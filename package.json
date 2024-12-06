@@ -1,0 +1,32 @@
+{
+  "name": "narraleaf-editor",
+  "version": "0.1.0",
+  "private": true,
+  "author": {
+    "email": "helloyork@icloud.com",
+    "name": "helloyork (Nomen)"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.13.1",
+    "next": "15.0.3",
+    "react": "18.2",
+    "react-dom": "18.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
