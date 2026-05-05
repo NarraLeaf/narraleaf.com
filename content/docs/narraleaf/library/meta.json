@@ -1,0 +1,6 @@
+{
+  "title": "NarraLeaf",
+  "description": "Runtime, renderer, and CLI documentation for the NarraLeaf engine.",
+  "defaultOpen": true,
+  "pages": ["main", "renderer", "cli"]
+}
