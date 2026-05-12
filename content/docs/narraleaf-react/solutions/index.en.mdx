@@ -1,0 +1,46 @@
+---
+title: Solutions
+description: Recipes for common problems, migration notes, and frequently asked questions.
+---
+
+<Callout type="warning">
+  This page is under construction.
+</Callout>
+
+<Callout type="warning">
+  Beta feature, subject to change.
+</Callout>
+
+Solutions are ways to solve common problems—for example customizing the font, implementing a backlog, and more.
+
+The following guides still live in the legacy doc tree and will be wired here in a later migration batch (links may 404 until then).
+
+## Solutions
+
+- [Customizing the font](./font)
+- [Migration from Ren'Py](./from-renpy)
+- [Dialog Avatar](./dialog-avatar)
+
+## FAQ
+
+### Is the game singleton?
+
+Yes, the game is a singleton. You can access it inside any React component.
+
+```typescript
+const game = useGame();
+```
+
+### How to save the game?
+
+NarraLeaf-React does not provide a save/load system. It only has methods to serialize and deserialize the game state.
+
+However, we are working on a complete desktop solution to manage the clutter—for example save/load, UI, packaging, and more.
+
+For a complete VN engine, please check [NarraLeaf](https://github.com/NarraLeaf/NarraLeaf).
+
+### How to customize the UI?
+
+You can customize the UI by using slot components.
+
+For more information, please refer to the **Player** chapter once it is available in this documentation site.

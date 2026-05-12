@@ -1,0 +1,5 @@
+{
+  "title": "NarraLeaf-React",
+  "description": "Lightweight React visual novel framework: get started, install, and explore basics.",
+  "pages": ["quick-start", "installation", "basic", "solutions"]
+}
