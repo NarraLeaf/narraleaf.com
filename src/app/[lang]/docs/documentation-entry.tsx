@@ -11,6 +11,7 @@ import { notFound, redirect } from 'next/navigation';
 import { getMDXComponents } from '@/components/mdx';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { docsRoute, gitConfig } from '@/lib/shared';
+import { type Locale, i18n, localizedPath } from '@/lib/i18n';
 import type { Metadata } from 'next';
 
 export type DocsProductSegment = 'narraleaf-project' | 'narraleaf' | 'studio' | 'narraleaf-react';
@@ -20,21 +21,19 @@ function fullSlug(segment: DocsProductSegment, slugSuffix?: string[]): string[] 
   return [segment, ...slugSuffix];
 }
 
-/** Default landing for the NarraLeaf engine segment when visiting `/docs/narraleaf` with no subpath. */
-const narraleafEngineDefaultPath = `${docsRoute}/narraleaf/library`;
-
 export async function DocumentationEntryPage(props: {
   segment: DocsProductSegment;
+  locale: Locale;
   slug?: string[];
 }) {
-  const { segment, slug } = props;
+  const { segment, locale, slug } = props;
 
   if (segment === 'narraleaf' && !slug?.length) {
-    redirect(narraleafEngineDefaultPath);
+    redirect(localizedPath(`${docsRoute}/narraleaf/library`, locale));
   }
 
   const slugs = fullSlug(segment, slug);
-  const page = source.getPage(slugs);
+  const page = source.getPage(slugs, locale);
   if (!page) notFound();
 
   const MDX = page.data.body;
@@ -64,9 +63,10 @@ export async function DocumentationEntryPage(props: {
 
 export async function documentationEntryMetadata(props: {
   segment: DocsProductSegment;
+  locale: Locale;
   slug?: string[];
 }): Promise<Metadata> {
-  const { segment, slug } = props;
+  const { segment, locale, slug } = props;
   let slugs = fullSlug(segment, slug);
   if (segment === 'narraleaf' && !slug?.length) {
     slugs = ['narraleaf', 'library'];
@@ -74,7 +74,7 @@ export async function documentationEntryMetadata(props: {
   if (segment === 'narraleaf-project' && !slug?.length) {
     slugs = ['narraleaf-project'];
   }
-  const page = source.getPage(slugs);
+  const page = source.getPage(slugs, locale);
   if (!page) notFound();
 
   return {
@@ -88,7 +88,7 @@ export async function documentationEntryMetadata(props: {
 
 export function documentationGenerateStaticParams(segment: DocsProductSegment) {
   const seen = new Set<string>();
-  const result: { slug?: string[] }[] = [];
+  const result: { lang: Locale; slug?: string[] }[] = [];
 
   for (const item of source.generateParams()) {
     const slug = item.slug;
@@ -96,14 +96,17 @@ export function documentationGenerateStaticParams(segment: DocsProductSegment) {
     const rest = slug.slice(1);
     if (segment === 'narraleaf' && rest.length === 0) continue;
 
-    const key = rest.length === 0 ? '__index__' : JSON.stringify(rest);
+    const lang = item.lang as Locale;
+    if (!i18n.languages.includes(lang)) continue;
+
+    const key = `${lang}:${rest.length === 0 ? '__index__' : JSON.stringify(rest)}`;
     if (seen.has(key)) continue;
     seen.add(key);
 
     if (rest.length === 0) {
-      result.push({});
+      result.push({ lang });
     } else {
-      result.push({ slug: rest });
+      result.push({ lang, slug: rest });
     }
   }
 

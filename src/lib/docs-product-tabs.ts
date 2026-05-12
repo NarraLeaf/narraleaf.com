@@ -1,28 +1,31 @@
 import { docsRoute } from './shared';
+import { type Locale, i18n, localizedPath } from './i18n';
 
 /**
  * Documentation shell tabs: each tab is a separate top-level docs segment.
- * NarraLeaf Project (ecosystem overview) is its own segment — not nested under NarraLeaf engine docs.
+ * NarraLeaf Project (ecosystem overview) is its own segment, not nested under NarraLeaf engine docs.
  */
-export const docsProductTabs = [
+export function docsProductTabs(locale: Locale = i18n.defaultLanguage) {
+  return [
   {
     title: 'NarraLeaf Project',
-    description: 'Ecosystem overview and how the solutions fit together.',
-    url: `${docsRoute}/narraleaf-project`,
+    description: 'Start here for the project map and the three build paths.',
+    url: localizedPath(`${docsRoute}/narraleaf-project`, locale),
   },
   {
     title: 'NarraLeaf',
-    description: 'Engine docs — Library (Main, Renderer, CLI).',
-    url: `${docsRoute}/narraleaf/library`,
+    description: 'Library and CLI docs for the desktop engine toolchain.',
+    url: localizedPath(`${docsRoute}/narraleaf/library`, locale),
   },
   {
     title: 'NarraLeaf Studio',
-    description: 'Zero-code IDE and studio workflows.',
-    url: `${docsRoute}/studio`,
+    description: 'Zero-code authoring, editing, preview, and publishing workflows.',
+    url: localizedPath(`${docsRoute}/studio`, locale),
   },
   {
     title: 'NarraLeaf-React',
-    description: 'React player and embedding.',
-    url: `${docsRoute}/narraleaf-react`,
+    description: 'React player docs for web embedding and custom UI.',
+    url: localizedPath(`${docsRoute}/narraleaf-react`, locale),
   },
-] as const;
+  ] as const;
+}

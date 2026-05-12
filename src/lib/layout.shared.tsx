@@ -1,8 +1,9 @@
 import Image from 'next/image';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
 import { appName, docsRoute, gitConfig, siteIconPath } from './shared';
+import { type Locale, i18n, localizedPath } from './i18n';
 
-export function baseOptions(): BaseLayoutProps {
+export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutProps {
   return {
     nav: {
       title: (
@@ -24,7 +25,7 @@ export function baseOptions(): BaseLayoutProps {
     links: [
       {
         text: 'Documentation',
-        url: docsRoute,
+        url: localizedPath(docsRoute, locale),
         active: 'nested-url',
       },
     ],

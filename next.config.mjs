@@ -6,7 +6,7 @@ const withMDX = createMDX();
 const config = {
   reactStrictMode: true,
   async redirects() {
-    return [
+    const docsRedirects = [
       {
         source: '/docs/narraleaf/project',
         destination: '/docs/narraleaf-project',
@@ -47,6 +47,15 @@ const config = {
         destination: '/docs/narraleaf/library/cli/:path*',
         permanent: false,
       },
+    ];
+
+    return [
+      ...docsRedirects,
+      ...docsRedirects.map((redirect) => ({
+        ...redirect,
+        source: `/:lang(en|zh)${redirect.source}`,
+        destination: `/:lang${redirect.destination}`,
+      })),
     ];
   },
 };
