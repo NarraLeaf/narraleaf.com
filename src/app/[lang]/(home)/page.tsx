@@ -127,7 +127,7 @@ const homeCopy = {
       {
         title: 'Cross-platform thinking',
         description:
-          'Move between web and desktop paths without rewriting your entire project philosophy.',
+          'One codebase, three platforms. Iterate and distribute the application quickly.',
         icon: Rocket,
       },
       {
@@ -147,8 +147,8 @@ const homeCopy = {
       {
         title: 'NarraLeaf Studio',
         description:
-          'An all-in-one visual novel IDE for creators who want one workspace for assets, scenes, preview, and publishing.',
-        audience: 'For creators and narrative teams who want to move fast without starting in code.',
+          'An all-in-one visual novel IDE for creators, bringing story writing, interface work, assets, and development into one workspace.',
+        audience: 'No code required. Start writing the story immediately.',
         href: '/studio',
         cta: 'Start with Studio',
         heroLabel: 'Zero-code IDE',
@@ -157,8 +157,9 @@ const homeCopy = {
       {
         title: 'NarraLeaf',
         description:
-          'A Node.js library and CLI for developers who want control over app flow, testing, packaging, and delivery.',
-        audience: 'For product-minded developers building cross-platform visual novel applications.',
+          'Build cross-platform visual novel applications on Electron with a Node.js library and CLI.',
+        audience:
+          'Developers stay focused on higher-level application logic and interface work while the engine handles the game lifecycle.',
         href: '/narraleaf/library/main',
         cta: 'Build with NarraLeaf',
         heroLabel: 'Complete desktop solution',
@@ -167,8 +168,9 @@ const homeCopy = {
       {
         title: 'NarraLeaf-React',
         description:
-          'A lightweight React player for bringing visual novel scenes and custom UI to the web.',
-        audience: 'For web teams who want narrative interfaces without leaving the React ecosystem.',
+          'A lightweight React player for customizing every part of the application as deeply as you need.',
+        audience:
+          'The player covers everything needed for presentation while leaving room for high-freedom customization.',
         href: '/narraleaf-react',
         cta: 'Embed with React',
         heroLabel: 'Lightweight React player',
@@ -274,7 +276,7 @@ const homeCopy = {
     ],
     capabilitiesIntro: {
       eyebrow: '为现代团队构建',
-      title: '发布故事，无需复杂而笨重的项目维护',
+      title: '发布故事，无需复杂且笨重的项目维护',
       description:
         'NarraLeaf 把结构化、复用、清晰的工具边界和可扩展协作等现代软件预期带入视觉小说开发',
     },
@@ -291,7 +293,7 @@ const homeCopy = {
       },
       {
         title: '跨平台思路',
-        description: '在 Web 与桌面路径之间切换，而不必重写整个项目理念',
+        description: '一份代码，三个平台。将应用快速迭代和分发',
         icon: Rocket,
       },
       {
@@ -308,8 +310,8 @@ const homeCopy = {
     solutions: [
       {
         title: 'NarraLeaf Studio',
-        description: '面向创作者的一体化视觉小说 IDE，把素材、场景、预览和发布放进同一个工作区',
-        audience: '适合希望快速推进、并且不想从代码开始的创作者与叙事团队',
+        description: '面向创作者的一体化视觉小说IDE，将故事、界面、资产和开发放进同一个工作区',
+        audience: '无需代码，从编写故事立即开始',
         href: '/studio',
         cta: '从 Studio 开始',
         heroLabel: '零代码 IDE',
@@ -317,8 +319,8 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf',
-        description: '面向开发者的 Node.js 库与 CLI，用于掌控应用流程、测试、打包和交付',
-        audience: '适合构建跨平台视觉小说应用、并关注产品质量的开发者',
+        description: '使用 Node.js 库与 CLI 开发基于Electron的跨平台视觉小说应用',
+        audience: '开发者专注于更高级的应用逻辑和界面，引擎处理所有繁杂的游戏生命',
         href: '/narraleaf/library/main',
         cta: '使用 NarraLeaf 构建',
         heroLabel: '完整桌面解决方案',
@@ -326,8 +328,8 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf-React',
-        description: '轻量级 React 播放器，用于把视觉小说场景和自定义 UI 带到 Web',
-        audience: '适合希望在 React 生态内构建叙事界面的 Web 团队',
+        description: '轻量级 React 播放器，最大程度自定义应用的一切',
+        audience: '播放器包揽表演所需要的一切，并提供高自由度的自定义方式',
         href: '/narraleaf-react',
         cta: '嵌入 React 项目',
         heroLabel: '轻量 React 播放器',
@@ -391,7 +393,7 @@ const homeCopy = {
       eyebrow: '开始使用',
       title: '选择符合团队构建方式的 NarraLeaf 路径',
       description:
-        '从零代码 Studio 开始，构建完整应用栈，或把轻量播放器嵌入 React 产品无论哪条路径，项目理念都保持一致',
+        '从零代码 Studio 开始，构建完整应用栈，或把轻量播放器嵌入 React 产品。无论哪条路径，项目理念都保持一致',
     },
   },
 } satisfies Record<Locale, HomePageCopy>;
