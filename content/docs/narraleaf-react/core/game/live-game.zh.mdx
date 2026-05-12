@@ -1,0 +1,492 @@
+﻿---
+title: "LiveGame"
+---
+LiveGame 是代表游戏当前状态的主类。
+
+## 公共属性
+
+### game
+
+[Game](./game) 实例
+
+### story
+
+当前 [Story](../elements/story) 实例
+
+## 公共方法
+
+### getStorable
+
+<Steps>
+<Step>
+
+返回 [Storable](./storable) 实例
+
+- `return: Storable` - [Storable](./storable)
+</Step>
+</Steps>
+
+### get storable
+
+<Steps>
+<Step>
+
+返回 [Storable](./storable) 实例
+
+```typescript {2}
+const {game} = useGame();
+const storable = game.getLiveGame().storable;
+
+// 等价于
+const storable = game.getLiveGame().getStorable();
+```
+
+- `return: Storable` - [Storable](./storable)
+</Step>
+</Steps>
+
+### newGame
+
+<Steps>
+<Step>
+
+开始新游戏
+
+- `return this`
+</Step>
+</Steps>
+
+### deserialize
+
+<Steps>
+<Step>
+
+加载保存的游戏
+
+调用此方法后，当前游戏状态将丢失，舞台将触发强制重置
+
+> **注意：**即使只更改一行脚本，保存的游戏也可能与新版本不兼容
+
+示例：
+
+```typescript
+const savedGame = {
+    // ...保存的游戏数据
+};
+
+// 在组件中使用钩子
+const {game} = useGame();
+
+// 将保存的游戏数据传递给游戏实例
+game.getLiveGame().deserialize(savedGame);
+```
+
+- `savedGame: SavedGame` - [SavedGame](../types/SavedGame)
+</Step>
+</Steps>
+
+### serialize
+
+<Steps>
+<Step>
+
+序列化当前游戏状态
+
+你可以使用此方法将游戏状态保存到文件或数据库中
+
+> **注意：**即使只更改一行脚本，保存的游戏也可能与新版本不兼容
+
+- `return: SavedGame` - 参见 [SavedGame](../types/SavedGame)
+</Step>
+</Steps>
+
+### onCharacterPrompt
+
+<Steps>
+<Step>
+
+角色说话时调用
+
+- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - 参见 [LiveGameEvent](../types/LiveGameEvent#event%3Acharacter.prompt)
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](../types/LiveGameEventToken)
+
+```typescript
+const {game} = useGame();
+const [texts, setTexts] = useState<string[]>([]);
+
+useEffect(() => {
+    const token = game.getLiveGame().onCharacterPrompt((event) => {
+        setTexts((prevTexts) => [...prevTexts, event.text]);
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+
+return (
+    <div>
+        {/* 你的文本日志 */}
+    </div>
+);
+```
+</Step>
+</Steps>
+
+### onMenuChoose
+
+<Steps>
+<Step>
+
+菜单完成时调用
+
+- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - 参见 [LiveGameEvent](../types/LiveGameEvent#event%3Amenu.choose)
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](../types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### capturePng
+
+<Steps>
+<Step>
+
+捕获游戏截图，仅包含玩家元素
+
+返回 PNG 图像的 Base64 编码数据 URL
+
+```typescript
+const {game} = useGame();
+
+function handleButtonClick() {
+    game.getLiveGame().capturePng().then((dataUrl) => {
+        // 对 dataUrl 进行操作
+    });
+}
+```
+
+- 返回 `Promise<string>`
+</Step>
+</Steps>
+
+### captureJpeg
+
+<Steps>
+<Step>
+
+捕获游戏截图，仅包含玩家元素
+
+返回压缩后的 JPEG 图像数据 URL
+
+- 返回 `Promise<string>`
+</Step>
+</Steps>
+
+### captureSvg
+
+<Steps>
+<Step>
+
+捕获游戏截图，仅包含玩家元素
+
+返回 SVG 数据 URL
+
+- 返回 `Promise<string>`
+</Step>
+</Steps>
+
+### capturePngBlob
+
+<Steps>
+<Step>
+
+捕获游戏截图，仅包含玩家元素
+
+返回 PNG 图像的 Blob
+
+- 返回 `Promise<Blob | null>`
+</Step>
+</Steps>
+
+### requestFullScreen
+
+<Steps>
+<Step>
+
+在 Chrome/Safari/Firefox/IE/Edge/Opera 上请求全屏，玩家元素将进入全屏模式
+
+**注意**：此方法应在用户手势（例如，点击事件）的响应中调用
+
+Safari iOS 和 Webview iOS 不支持，更多信息请参见 [MDN-requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen)
+
+- `options?: FullscreenOptions | undefined`
+- 返回 `Promise<void> | void`
+</Step>
+</Steps>
+
+### exitFullScreen
+
+<Steps>
+<Step>
+
+退出全屏
+
+- 返回 `Promise<void> | void`
+</Step>
+</Steps>
+
+### onPlayerEvent
+
+<Steps>
+<Step>
+
+监听玩家元素的事件
+
+```typescript
+const {game} = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onPlayerEvent("click", (event) => {
+        // 执行操作
+    }).cancel;
+}, []);
+```
+
+- `type: K` - 事件类型
+- `listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any` - 事件监听器
+- `options?: boolean | AddEventListenerOptions`
+- 返回 `LiveGameEventToken`
+</Step>
+</Steps>
+
+### getHistory
+
+<Steps>
+<Step>
+
+获取游戏历史。这个方法用于创建回溯。
+
+```typescript
+import { useGame, GameHistory } from "narraleaf-react";
+```
+
+```typescript
+const game = useGame();
+const history = game.getHistory();
+
+function handleUndo(history: GameHistory) {
+    game.undo(history.token);
+}
+
+return (
+    <div>
+        <h3>回溯</h3>
+
+        {history.map((item) => (
+            <div
+                key={item.token}
+                onClick={() => handleUndo(item)}
+            >
+                {/* show the action text */}
+                {/* text is available when the action is "say" or "menu" */}
+                {item.element.text}
+            </div>
+        ))}
+    </div>
+);
+```
+
+- 返回 `GameHistory[]` - 游戏历史，参见 [GameHistory](../types/GameHistory)
+</Step>
+</Steps>
+
+### undo
+
+<Steps>
+<Step>
+
+撤销游戏动作。
+
+```typescript
+game.undo(history.token);
+```
+
+- `token?: string` - 历史项的令牌，参见 [GameHistory](../types/GameHistory#token)。如果未提供，则撤销最后一个动作。
+</Step>
+</Steps>
+
+### notify
+
+<Steps>
+<Step>
+
+创建一个通知。
+
+```typescript
+// 通知 3 秒
+game.notify("Save success", 3000);
+```
+
+```typescript
+// 通知持续时间设置为 `null` 时，通知将一直显示
+const token = game.notify("Fast forward", null);
+
+// 当玩家释放箭头右键时，取消通知
+window.addEventListener("keyup", (event) => {
+    if (event.key === "ArrowRight") {
+        token.cancel();
+    }
+});
+```
+
+- `message: string` - 通知消息
+- `duration?: number | null` - 通知持续时间，默认是 3000ms。设置为 `null` 时，通知将一直显示。
+- 返回 `NotificationToken` - 参见 [NotificationToken](../types/NotificationToken)
+</Step>
+</Steps>
+
+### playSound
+
+<Steps>
+<Step>
+
+立即播放声音并返回对应的 `SoundToken`。
+
+```typescript
+const {game} = useGame();
+
+game.getLiveGame()
+    .playSound("https://example.com/voice.mp3")
+    .then((token) => {
+        token.once("ended", () => {
+            console.log("语音播放完成");
+        });
+    });
+```
+
+- `sound: Sound | string | URL` - 声音实例、声音地址或 URL
+- 返回 `Promise<SoundToken>` - 关于声音实例的更多信息，参见 [`@NarraLeaf/Sound`](https://github.com/NarraLeaf/Sound)
+</Step>
+</Steps>
+
+### waitForRouterExit
+
+<Steps>
+<Step>
+
+等待路由退出。
+
+此方法可以用于在创建新游戏时等待路由退出。
+
+```typescript {10}
+const {game} = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.clear().cleanHistory();
+
+    const token = liveGame
+        .newGame()
+        .waitForRouterExit()
+    
+    token
+        .promise
+        .then(() => {
+            dispatchState({ isPlaying: true });
+        });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- 返回 `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### waitForPageMount
+
+<Steps>
+<Step>
+
+等待页面挂载
+
+```typescript
+const {game} = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.push("home");
+    const token = liveGame.waitForPageMount();
+
+    token.promise.then(() => {
+        // 执行操作
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- Returns `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### onWindowEvent
+
+<Steps>
+<Step>
+
+监听窗口事件
+
+```typescript
+const {game} = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onWindowEvent("resize", (event) => {
+        // 处理窗口大小调整
+    }).cancel;
+}, []);
+```
+
+- `type: K` - 事件类型
+- `listener: (this: Window, ev: WindowEventMap[K]) => any` - 事件监听器
+- `options?: boolean | AddEventListenerOptions`
+- 返回 `LiveGameEventToken`
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+重置游戏状态
+
+> **注意：**调用此方法将丢失当前游戏状态
+
+```typescript
+const {game} = useGame();
+const router = useRouter();
+
+game.getLiveGame().reset();
+router.clear().cleanHistory().push("home");
+```
+</Step>
+</Steps>
+
+### skipDialog
+
+<Steps>
+<Step>
+
+跳过当前对话
+
+```typescript
+game.getLiveGame().skipDialog();
+```
+</Step>
+</Steps>

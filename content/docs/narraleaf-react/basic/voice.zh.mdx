@@ -1,0 +1,24 @@
+---
+title: "配音"
+---
+你可以通过使用 `voice` 配置为句子添加语音：
+
+```typescript
+new Sentence("你好", {
+    voice: "https://你的语音链接.mp3",
+});
+```
+
+或者使用现有的声音实例：
+
+```typescript
+import {SoundType} from "narraleaf-react";
+
+const voice = new Sound({
+    src: "https://你的语音链接.mp3",
+});
+
+new Sentence("你好", {
+    voice,
+});
+```

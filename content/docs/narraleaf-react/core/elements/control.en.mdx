@@ -1,0 +1,149 @@
+﻿---
+title: "Control"
+---
+`Control` is a class that has some utility methods for flow control.
+
+```typescript
+Control.do([
+    character1.say("hello"),
+
+    // play sound and shake image at the same time
+    Control.allAsync([
+        sound.play(),
+        shake(image1),
+    ]),
+]);
+```
+
+## Static Method
+
+### do
+
+<Steps>
+<Step>
+
+Execute actions **in order**, waiting for each action to complete
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### doAsync
+
+<Steps>
+<Step>
+
+Execute actions **in order**, do not wait for this action to complete
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### any
+
+<Steps>
+<Step>
+
+Execute all actions **at the same time**, waiting for any one action to complete
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### all
+
+<Steps>
+<Step>
+
+Execute all actions **at the same time**, waiting for all actions to complete
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### allAsync
+
+<Steps>
+<Step>
+
+Execute all actions **at the same time**, do not wait for all actions to complete
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### repeat
+
+<Steps>
+<Step>
+
+Execute actions multiple times
+
+- `times: number` - times
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### whileLoop
+
+<Steps>
+<Step>
+
+Execute actions while condition is true
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - condition to check
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### breakLoop
+
+<Steps>
+<Step>
+
+Break the current loop (repeat/while)
+Can only be used inside a loop body
+
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### sleep
+
+<Steps>
+<Step>
+
+Sleep for a duration
+
+- `duration: number | Awaitable<any> | Promise<any>` - sleep duration
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### waitForClick
+
+<Steps>
+<Step>
+
+Pause execution until the user clicks anywhere on the stage (excluding GUI elements such as dialog, buttons, menus). Similar to inserting a pause with no duration in a [Sentence](./character#sentence).
+
+Useful for creating "click to continue" moments in ADV mode, or for pausing within NVL blocks until the player is ready to proceed.
+
+```typescript
+scene.action([
+    character.say("Read this carefully..."),
+    Control.waitForClick(),
+    character.say("Now we continue."),
+]);
+```
+
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>

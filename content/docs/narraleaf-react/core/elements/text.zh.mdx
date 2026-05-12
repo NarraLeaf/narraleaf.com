@@ -1,0 +1,108 @@
+﻿---
+title: "文本"
+---
+> 该类继承自 [Displayble](./displayable)
+
+文本允许您在屏幕上显示文字。
+
+例如：
+
+```ts
+const t1 = new Text("之后，另一个故事发生了...", {
+    position: CommonPosition.Positions.Center,
+    fontColor: "#f00",
+    fontSize: 20,
+});
+
+// 将背景变为黑色并带有淡入效果
+// 然后显示文字“之后，另一个故事发生了...”
+scene2.action([
+    scene2.setBackground("#000", new Fade(1000)),
+    t1.show({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+
+    // 等待 1000 毫秒
+    Control.sleep(1000),
+
+    // 隐藏文字
+    t1.hide({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+]);
+```
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+#### 重载 1 / 2
+
+- `config: Partial<ITextUserConfig>` - [ITextUserConfig](../types/ITextUserConfig)
+
+#### 重载 2 / 2
+
+- `text: string` - 文本内容
+- `config?: Partial<ITextUserConfig>` - [ITextUserConfig](../types/ITextUserConfig)
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+设置文本的 [Layer](./layer)
+
+- `layer: Layer` - 要使用的图层
+- 返回 `this`
+</Step>
+</Steps>
+
+## 可链式方法
+
+### setText
+
+<Steps>
+<Step>
+
+- `text: string` - 文本内容
+</Step>
+</Steps>
+
+### setFontSize
+
+<Steps>
+<Step>
+
+```ts
+// 设置文本字体大小为 20 像素并带有过渡效果
+element.setFontSize(20, 1000, "easeInOut");
+```
+
+- `fontSize: number` - 文本字体大小（以像素为单位）
+- `duration?: number` - 过渡持续时间（以毫秒为单位）
+- `easing?: TransformDefinitions.EasingDefinition` - 过渡的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### setFontColor
+
+<Steps>
+<Step>
+
+```ts
+// 设置文本字体颜色为红色并带有过渡效果
+element.setFontColor("#f00", 1000, "easeInOut");
+```
+
+- `color: Color` - 参见 [Color](../types/color)
+- `duration?: number` - 过渡持续时间（以毫秒为单位）
+- `easing?: TransformDefinitions.EasingDefinition` - 过渡的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>

@@ -1,0 +1,107 @@
+﻿---
+title: "条件"
+---
+`Condition` 允许你在故事中创建条件分支。
+
+```typescript
+Condition
+    .If((ctx) => {
+        return // 你的条件在这里
+    }, [
+        character1.say`条件为真`,
+    ])
+
+    .Else([
+        character1.say`条件为假`,
+    ])
+```
+
+通常情况下，你可能想要确定标志，或检查变量的值。你可以使用 [Perdidtent](./persistent) 来实现这一点。
+
+```typescript
+type PersistentData = {
+    coin: number;
+    flag: boolean;
+    hobby: string;
+};
+
+const persis = new Persistent<PersistentData>("persis", {
+    coin: 0,
+    flag: false,
+    hobby: "coding",
+});
+
+// 检查玩家是否有足够的金币
+Condition
+    .If(persis.evaluate("coin", (coin) => coin < 50), [
+        character1.say("你没有足够的金币"),
+    ])
+
+// 检查玩家是否有一个标志
+Condition
+    .If(persis.isTrue("coin"), [
+        character1.say("你有这个标志"),
+    ])
+
+// 检查玩家是否有一个爱好
+Condition
+    .If(persis.equals("hobby", "coding"), [
+        character1.say("你喜欢编程"),
+    ])
+```
+
+> **注意:** 为了更好地理解脚本，如果你以错误的顺序调用这些方法，它将抛出错误。
+> 
+> 例如，你不能在 `If`之前调用`ElseIf`。
+
+## 静态方法
+
+### If
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>` - 要检查的条件。如果条件为真，则执行操作。有关更多信息，请参见 [Lambda](../types/Lambda) 以及 [LambdaHandler](../types/LambdaHandler)
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+
+```typescript
+Condition.If(({ storable }) => {
+    return ($("name").get("coin") || 0) >= 10;
+}, [
+character1.say("你有足够的钱")
+])
+```
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config?: ConditionConfig` - [ConditionConfig](../types/ConditionConfig)
+</Step>
+</Steps>
+
+## 链式方法
+
+### ElseIf
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>`
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+</Step>
+</Steps>
+
+### Else
+
+<Steps>
+<Step>
+
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+</Step>
+</Steps>

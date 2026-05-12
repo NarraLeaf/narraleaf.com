@@ -1,0 +1,303 @@
+﻿---
+title: "Persistent\\<T extends PersistentContent\\>"
+---
+In the past, we could only modify the state of Storable through Script, but Persistent provides a set of useful methods to easily control the flow.
+
+Persistent requires the **name** and **initial state** of a namespace. **Persistent with the same name will share the same state.**
+
+<Callout type="warning">
+    The namespace cannot be an existing built-in namespace (built-in namespaces include: "game")
+</Callout>
+
+```typescript
+type PersisData = {
+    flag: boolean;
+    coin: number;
+    name: string;
+    // ...
+};
+const persis = new Persistent<PersisData>("persis", {
+    flag: false,
+    coin: 0,
+    name: "John Smith",
+    // ...
+});
+```
+
+> **Note:** The stored content must be **serializable**, the serializable values supported by NarraLeaf-React include:
+> - `string`
+> - `number`
+> - `boolean`
+> - `object`: key is `string`, value is the above serializable value
+> - `array`: elements are the above serializable value
+> - `undefined`
+> - `null`
+> - `Date`: standard JavaScript date object
+
+<Callout type="warning">
+
+If the script content contains Persistent, it must be registered with [Story](./story).
+
+```typescript
+story.registerPersistent(persis);
+```
+
+</Callout>
+
+## Public Methods
+
+### constructor
+
+<Steps>
+<Step>
+
+- `namespace: string` - the name of the namespace
+- `defaultContent: T` - initial state
+</Step>
+</Steps>
+
+### equals\<K extends StringKeyOf\<T\>\>
+
+Determine whether the values are equal, can be used in Condition
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - the value to compare, a lambda function, or a lambda handler
+- Returns: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.equals("id", persis.get("player_id")), [
+            character1.say("ID matches!")
+        ])
+]);
+
+// or with a lambda handler
+scene.action([
+    Condition
+        .If(persis.equals("id", (ctx) => ctx.$("player").get("player_id")), [
+            character1.say("Player ID matches!")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### notEquals\<K extends StringKeyOf\<T\>\>
+
+Determine whether the values aren't equal, can be used in Condition
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - the value to compare, a lambda function, or a lambda handler
+- Returns: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.notEquals("id", persis.get("player_id")), [
+            character1.say("ID doesn't match!")
+        ])
+]);
+
+// or with a lambda handler
+scene.action([
+    Condition
+        .If(persis.notEquals("id", (ctx) => ctx.$("player").get("player_id")), [
+            character1.say("Player ID doesn't match!")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isTrue\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+Determine whether the value is true, can be used in Condition
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- Returns: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.isTrue("flag"), [
+            character1.say("Flag is true")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isFalse\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+Determine whether the value is false, can be used in Condition
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- Returns: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### isNotNull\<K extends StringKeyOf\<T\>\>
+
+Determine whether the value isn't null or undefined, can be used in Condition
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- Returns: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### toWord\<K extends StringKeyOf\<T\>\>
+
+Convert to a dynamic word
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- Returns: `Word<DynamicWord>`
+
+```typescript
+character.say(["You have ", persis.toWord("gold"), " gold"]);
+
+// or
+
+character.say`You have ${persis.toWord("gold")} gold`;
+```
+</Step>
+</Steps>
+
+### get\<K extends StringKeyOf\<T\>\>
+
+<Steps>
+<Step>
+
+Alias of `toWord`
+
+- `key: K` - the key of the state
+- Returns: `Word<DynamicWord>`
+
+```typescript
+character.say`You have ${persis.get("coin")} coins`;
+```
+</Step>
+</Steps>
+
+### conditional
+
+Create a conditional word
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - the condition to check
+- `ifTrue: DynamicWordResult` - the word to return if condition is true
+- `ifFalse: DynamicWordResult` - the word to return if condition is false
+- Returns: `Word`
+
+```typescript
+character.say([
+  "Your flag is ",
+  persis.conditional(
+    persis.isTrue("flag"),
+    "on",
+    "off"
+  )
+]);
+```
+</Step>
+</Steps>
+
+### evaluate\<K extends StringKeyOf\<T\>\>
+
+Evaluate the JavaScript function and determine whether the result is true
+
+<Steps>
+<Step>
+
+- `key: K` - the key of the state
+- `fn: (value: T[K]) => boolean` - a JavaScript function to evaluate the state
+- Returns: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.evaluate("coin", (coin) => coin < 10), [
+            character1.say`You don't have enough coins!`
+        ])
+]);
+```
+</Step>
+</Steps>
+
+## Chainable Methods
+
+### set\<K extends StringKeyOf\<T\>\>
+
+Create an action to set a value in the persistent storage for the given key
+
+<Steps>
+<Step>
+
+#### Overload 1 of 2
+
+- `key: K` - the key to set the value for
+- `value: T[K]` - the value to set
+- Returns: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.set("coin", 10)
+]);
+```
+
+#### Overload 2 of 2
+
+- `key: K` - the key to set the value for
+- `handler: (value: T[K]) => T[K]` - the handler to modify the value
+- Returns: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.set("coin", (coin) => coin + 10) // coin will increase by 10
+]);
+```
+</Step>
+</Steps>
+
+### assign
+
+Create an action to assign a value to the persistent storage
+
+<Steps>
+<Step>
+
+- `value: Partial<T> | ((value: T) => Partial<T>)` - the value to assign to the state
+- Returns: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.assign({ coin: 10 })
+]);
+
+// or with a function
+scene.action([
+    persis.assign((state) => ({ coin: state.coin + 10 }))
+]);
+```
+</Step>
+</Steps>

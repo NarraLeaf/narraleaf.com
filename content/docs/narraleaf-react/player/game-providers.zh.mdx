@@ -1,0 +1,54 @@
+---
+title: "GameProviders"
+---
+GameProviders 组件用于向组件提供游戏实例
+
+您必须将 `Player` 组件包裹在 `GameProviders` 组件中
+
+## 用法
+
+从 NarraLeaf-React 库中导入 `GameProviders` 组件
+
+```tsx
+import { GameProviders } from "narraleaf-react";
+```
+
+将 `Player` 组件包裹在 `GameProviders` 组件中
+
+```tsx
+<GameProviders>
+    <Player ... />
+</GameProviders>
+```
+
+### 使用已定义的游戏实例
+
+如果您想使用已定义的游戏实例，可以将 `game` 属性传递给 `GameProviders` 组件
+
+```tsx
+"use client";
+
+import { Game, GameProviders, Player } from "narraleaf-react";
+import { useState } from "react";
+
+export default function Page() {
+    // 在此处传递您的游戏配置
+    const [game] = useState(new Game({}));
+
+    return (
+        <GameProviders game={game}>
+            <Player ... />
+        </GameProviders>
+    );
+}
+```
+
+## Props
+
+### game
+
+您要使用的 [Game](../core/game/game) 实例
+
+### children
+
+您希望用 `GameProviders` 组件包裹的子组件

@@ -1,0 +1,36 @@
+---
+title: "SavedGame"
+---
+<Callout type="warning">
+    This page is under construction.
+</Callout>
+
+<Callout type="warning">
+    Beta feature, subject to change.
+</Callout>
+
+```typescript
+interface SavedGame {
+    name: string;
+    meta: SavedGameMetaData;
+    game: {
+        store: { [key: string]: StorableData; };
+        elementStates: RawData<ElementStateRaw>[];
+        stage: PlayerStateData;
+        currentAction: string | null;
+        services: { [key: string]: unknown; };
+    };
+}
+```
+
+## name
+
+保存游戏的名称
+
+## meta
+
+保存游戏的元数据，参见 [SavedGameMetaData](./SavedGameMetaData)
+
+## game
+
+保存游戏的游戏数据

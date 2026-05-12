@@ -1,0 +1,103 @@
+﻿---
+title: "KeyMap"
+---
+<Callout type="warning">
+    This page is under construction.
+</Callout>
+
+KeyMap is responsible for storing and manipulating keyboard bindings for different game actions.
+
+## Public Methods
+
+### setKeyBinding
+
+<Steps>
+<Step>
+
+Set (or overwrite) the key binding for a specific action.
+
+```typescript
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, " ");
+// Or bind **multiple** keys at once
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, ["Control", "F3"]);
+// Remove the binding
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, null);
+```
+
+- `type: KeyBindingType | string` – The action type
+- `value: KeyBindingValue` – A key, list of keys, or `null` to remove the binding
+</Step>
+</Steps>
+
+### getKeyBinding
+
+<Steps>
+<Step>
+
+Get the current binding of an action.
+
+```typescript
+const current = game.keyMap.getKeyBinding(KeyBindingType.skipAction);
+```
+</Step>
+</Steps>
+
+### addKeyBinding
+
+<Steps>
+<Step>
+
+Append one or more keys to an existing binding.
+
+```typescript
+game.keyMap.addKeyBinding(KeyBindingType.skipAction, "F3");
+// Append a list of keys
+game.keyMap.addKeyBinding(KeyBindingType.skipAction, ["Alt", "Shift"]);
+```
+</Step>
+</Steps>
+
+### getKeyBindings
+
+<Steps>
+<Step>
+
+Get all bindings.
+</Step>
+</Steps>
+
+### onKeyBindingChange
+
+<Steps>
+<Step>
+
+Subscribe to binding changes.
+
+```typescript
+const token = game.keyMap.onKeyBindingChange(KeyBindingType.skipAction, (value) => {
+    console.log("Binding changed", value);
+});
+
+token.cancel(); // stop listening
+```
+</Step>
+</Steps>
+
+### match
+
+<Steps>
+<Step>
+
+Determine if a key matches the predefined binding (case-insensitive).
+
+```typescript
+if (game.keyMap.match(KeyBindingType.skipAction, event.key)) {
+    // do something
+}
+```
+</Step>
+</Steps>
+
+## Related Hooks
+
+See [`useKeyBinding`](../../player/hooks/useKeyBinding) for a convenient React hook that automatically updates your UI when a binding changes.

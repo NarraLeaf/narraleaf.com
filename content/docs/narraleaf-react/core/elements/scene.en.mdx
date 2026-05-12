@@ -1,0 +1,267 @@
+﻿---
+title: "Scene"
+---
+> This class extends [Displayble](./displayable)
+
+Scene contains multiple actions that can be performed on the scene. 
+
+For example, you can add a [Character](./character) Action to the scene
+
+```ts
+import { Scene } from 'narraleaf-react';
+
+const scene = new Scene("scene 1");
+const character1 = new Character("character 1");
+
+scene.action([
+    character1
+        .say("Hello World")
+        .say("How are you?"),
+]);
+```
+
+## Public Properties
+
+### local
+
+<Steps>
+<Step>
+
+`scene.local` is a [Persistent](./persistent) instance that is local to the scene.
+It is used to store the temporary data that is only available in the scene.
+
+Local data doesn't need to be registered or initialised, but it is 'undefined' before it is used.
+
+> Data in local will be discarded when the scene is exited.
+
+```ts
+scene.action([
+    new Menu("Which coffee do you want?")
+        .choose("Latte", [
+            scene.local.set("coffee", "latte"),
+        ])
+        .choose("Cappuccino", [
+            scene.local.set("coffee", "cappuccino"),
+        ]),
+    character1.say`You chose ${scene.local.get("coffee")} coffee`,
+]);
+```
+</Step>
+</Steps>
+
+### background
+
+<Steps>
+<Step>
+
+This property is used to access the background [Image](./image) instance of the scene.
+
+```ts
+scene.background
+    .char("background.png", new Dissolve(1000, "linear"))
+```
+</Step>
+</Steps>
+
+### backgroundLayer
+
+<Steps>
+<Step>
+
+This property is used to access the background layer of the scene.  
+This layer contains the background image of the scene.
+
+```ts
+scene.backgroundLayer.opacity(0.5, 1000, "linear")
+```
+</Step>
+</Steps>
+
+### displayableLayer
+
+<Steps>
+<Step>
+
+This property is used to access the displayable layer of the scene.  
+This layer contains all the displayables that don't belong to any specific layer.
+
+```ts
+scene.displayableLayer.opacity(0.5, 1000, "linear")
+```
+</Step>
+</Steps>
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - Name of the scene
+- `config?: Partial<ISceneUserConfig>` - [ISceneUserConfig](../types/IsceneUserConfig)
+</Step>
+</Steps>
+
+### action
+
+<Steps>
+<Step>
+
+Add actions to the scene. Do not call this method more than once.
+
+#### Overload 1 of 2
+
+- `actions: ActionStatements` - Actions to be executed, see [ActionStatements](../types/ActionStatements)
+
+#### Overload 2 of 2
+
+This overload let you pass a function that receives the scene instance and returns the actions to be executed.
+
+In some cases, you may want to make a shortcut to the scene instance
+
+```ts
+story.entry(
+    new Scene("scene 1").action(scene => [
+        scene
+            .setBackground(background)
+            .sleep(1000),
+    ])
+);
+```
+
+- `actions: ((scene: Scene) => ActionStatements)` - Actions to be executed, see [ActionStatements](../types/ActionStatements)
+- Returns `this`
+</Step>
+</Steps>
+
+### preloadImage
+
+<Steps>
+<Step>
+
+Manually register image sources
+
+- `src: string | string[]` - The URL of the image or an array of URLs
+- Returns `this`
+</Step>
+</Steps>
+
+
+## Chainable Method
+
+### setBackground
+
+<Steps>
+<Step>
+
+Alias of `scene.background.char`.
+
+Set background of the scene. If the transition is provided, the background will be changed with the transition effect.
+
+```typescript
+scene.action([
+    scene.setBackground("background.png")
+
+    // is equivalent to
+    scene.background.char("background.png")
+]);
+```
+
+- `background: Color | ImageSrc` - See [Color](../types/color) or [ImageSrc](../types/imageSrc)
+- `transition?: ImageTransition` - For ImageTransition, see [Transition](../animation/transition)
+</Step>
+</Steps>
+
+### jumpTo
+
+<Steps>
+<Step>
+
+Jump to another scene. If the transition is provided, the scene will be changed with the transition effect.
+
+> Note: The current scene will be disposed after jumping to another scene. The rest of the actions will not be executed.
+
+- `scene: Scene | string` - The Scene instance or the name of the scene to jump to
+- `config: Partial<JumpConfig>` - [Jump Config](../types/JumpConfig)
+</Step>
+</Steps>
+
+### setBackgroundMusic
+
+<Steps>
+<Step>
+
+Set background music of the scene.
+
+- `sound: Sound` - [Sound](./sound) instance
+- `fade?: number` - If set, the fade-out effect will be applied to the previous music, and the fade-in effect will be applied to the current music, with a duration in milliseconds
+</Step>
+</Steps>
+
+### nvl
+
+<Steps>
+<Step>
+
+Create an NVL (Novel) mode block for displaying accumulated dialog. In NVL mode, dialogs are stacked on screen rather than replacing each other, similar to classic visual novel narration.
+
+#### Overload 1: actions only
+
+- `actions: ActionStatements | ((nvl: NVLToken) => ActionStatements)` - Actions to execute within NVL mode, or a callback that receives an [NVLToken](#nvl-token-methods) for manual show/hide/end control
+- Returns `ChainableAction`
+
+```ts
+scene.action([
+    scene.nvl([
+        character.say("First line"),
+        character.say("Second line"),
+        character.say("Third line"),
+    ]),
+]);
+```
+
+#### Overload 2: options + actions
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - Transition options for showing and hiding the NVL layer (e.g. `{ duration: 500 }`). See [CommonTransformProps](../types/CommonTransformProps)
+- `actions: ActionStatements | ((nvl: NVLToken) => ActionStatements)` - Same as Overload 1
+- Returns `ChainableAction`
+
+```ts
+scene.action([
+    scene.nvl({ duration: 300 }, [
+        character.say("Line 1"),
+        character.say("Line 2"),
+    ]),
+]);
+```
+
+#### Callback form with NVLToken
+
+When you pass a callback `(nvl) => [...]`, you can use `nvl.show()`, `nvl.hide()`, and `nvl.end()` to control the NVL layer explicitly:
+
+```ts
+scene.action([
+    scene.nvl(nvl => [
+        character.say("Line 1"),
+        character.say("Line 2"),
+        nvl.hide({ duration: 500 }),
+        Control.waitForClick(),
+        nvl.show({ duration: 500 }),
+        character.say("Line 3"),
+        nvl.end(),
+    ]),
+]);
+```
+</Step>
+</Steps>
+
+#### NVL Token methods
+
+When using the callback form `scene.nvl(nvl => [...])`, the `nvl` argument is an `NVLToken` with these chainable methods:
+
+| Method | Description |
+|--------|-------------|
+| `nvl.show(options?)` | Show the NVL layer with optional transition (e.g. `{ duration: 500 }`). See [CommonTransformProps](../types/CommonTransformProps). |
+| `nvl.hide(options?)` | Hide the NVL layer with optional transition. Does not exit NVL mode or clear dialogs. |
+| `nvl.end()` | Force exit NVL mode immediately. Clears all accumulated dialogs and hides the NVL layer. |

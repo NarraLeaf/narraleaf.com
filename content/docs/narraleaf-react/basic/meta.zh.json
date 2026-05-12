@@ -1,0 +1,16 @@
+{
+  "title": "基础",
+  "pages": [
+    "create-scene",
+    "add-actions",
+    "show-dialog",
+    "show-image",
+    "play-story",
+    "make-choices",
+    "sound",
+    "store-data",
+    "conditional",
+    "voice",
+    "manage-preferences"
+  ]
+}

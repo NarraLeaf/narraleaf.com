@@ -1,0 +1,72 @@
+---
+title: "Player"
+---
+Player 是 NarraLeaf-React 框架的一部分，其中包含一些用于播放故事的反应组件。
+
+如果您使用抽象类创建故事，请查看 [Core](./core) 文档。
+
+如果您正在寻找 `Player` 组件，您可以在 [此处](./player/player) 找到它。
+
+## 快速入门
+
+如果您还没有故事，您可以使用 `Story` 类创建故事并将其导出。
+
+请阅读 [Core](./core) 文档以了解如何创建故事。
+
+这是如何使用 `Player` 组件的基本示例：
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { useState } from "react";
+import { story } from "./my-story";
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame();
+            }}
+                width="100vw"
+                height="100vh"
+            />
+        </GameProviders>
+    );
+}
+```
+
+让我们解释一下上面的代码：
+
+### 1. 从 NarraLeaf-React 库导入必要的组件。
+
+```tsx
+import { GameProviders, Player } from "narraleaf-react";
+```
+
+这些组件是创建游戏所必需的。
+`GameProviders` 是一个上下文提供程序，它为组件提供游戏实例。 `Player` 是播放故事的组件。
+
+### 2. 渲染 `GameProviders` 和 `Player` 组件。
+
+```tsx
+<GameProviders>
+    <Player story={story} onReady={({ liveGame }) => {
+        liveGame.newGame();
+    }}
+        width="100vw"
+        height="100vh"
+    >
+    </Player>
+</GameProviders>
+```
+
+您必须使用 `GameProviders` 组件包装 `Player` 组件。
+
+`Player` 组件采用 `story` 属性，即您想要播放的故事。
+
+`onReady` 属性是一个回调函数，当游戏准备开始时调用。
+
+您可以通过调用 `liveGame` 对象的 `newGame` 方法来启动游戏。
+
+`width` 和 `height` 是 `Player` 组件的宽度和高度。播放器将会缩放以适应给定的宽度和高度。

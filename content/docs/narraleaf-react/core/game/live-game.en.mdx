@@ -1,0 +1,496 @@
+﻿---
+title: "LiveGame"
+---
+LiveGame is the main class that represents the game's current state. 
+
+## Public Properties
+
+### game
+
+The [Game](./game) instance
+
+### story
+
+The current [Story](../elements/story) instance
+
+## Public Methods
+
+### getStorable
+
+<Steps>
+<Step>
+
+Returns the [Storable](./storable) instance
+
+- `return: Storable` - [Storable](./storable)
+</Step>
+</Steps>
+
+### get storable
+
+<Steps>
+<Step>
+
+Returns the [Storable](./storable) instance
+
+```typescript {2}
+const {game} = useGame();
+const storable = game.getLiveGame().storable;
+
+// is equivalent to
+const storable = game.getLiveGame().getStorable();
+```
+
+- `return: Storable` - [Storable](./storable)
+</Step>
+</Steps>
+
+### newGame
+
+<Steps>
+<Step>
+
+Starts a new game
+
+- `return this`
+</Step>
+</Steps>
+
+### deserialize
+
+<Steps>
+<Step>
+
+Load a saved game
+
+After calling this method, the current game state will be lost, and the stage will trigger force reset
+
+> **Note: **Even if you change just a single line of script, the saved game might not be compatible with the new version
+
+Example:
+
+```typescript
+const savedGame = {
+    // ...saved game data
+};
+
+// use hook inside a component
+const {game} = useGame();
+
+// pass the saved game data to the game instance
+game.getLiveGame().deserialize(savedGame);
+```
+
+- `savedGame: SavedGame` - [SavedGame](../types/SavedGame)
+</Step>
+</Steps>
+
+### serialize
+
+<Steps>
+<Step>
+
+Serialize the current game state
+
+You can use this to save the game state to a file or a database
+
+> **Note: **Even if you change just a single line of script, the saved game might not be compatible with the new version
+
+- `return: SavedGame` - See [SavedGame](../types/SavedGame)`
+</Step>
+</Steps>
+
+### onCharacterPrompt
+
+<Steps>
+<Step>
+
+Called when a character says something
+
+- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - See [LiveGameEvent](../types/LiveGameEvent#event%3Acharacter.prompt)
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+
+```typescript
+const {game} = useGame();
+const [texts, setTexts] = useState<string[]>([]);
+
+useEffect(() => {
+    const token = game.getLiveGame().onCharacterPrompt((event) => {
+        setTexts((prevTexts) => [...prevTexts, event.text]);
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+
+return (
+    <div>
+        {/* Your Text Log */}
+    </div>
+);
+```
+</Step>
+</Steps>
+
+### onMenuChoose
+
+<Steps>
+<Step>
+
+Called when a menu is completed
+
+- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - See [LiveGameEvent](../types/LiveGameEvent#event%3Amenu.choose)
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### capturePng
+
+<Steps>
+<Step>
+
+Capture the game screenshot, will only include the player element
+
+Returns a PNG image base64-encoded data URL
+
+> **Note: **Image returned by this method is not compressed, and it is not affected by the `screenshotQuality` option
+
+```typescript
+const {game} = useGame();
+
+function handleButtonClick() {
+    game.getLiveGame().capturePng().then((dataUrl) => {
+        // do something with the dataUrl
+    });
+}
+```
+
+- Returns `Promise<string>`
+</Step>
+</Steps>
+
+### captureJpeg
+
+<Steps>
+<Step>
+
+Capture the game screenshot, will only include the player element
+
+Returns compressed JPEG image data URL
+
+- Returns `Promise<string>`
+</Step>
+</Steps>
+
+### captureSvg
+
+<Steps>
+<Step>
+
+Capture the game screenshot, will only include the player element
+
+Returns an SVG data URL
+
+- Returns `Promise<string>`
+</Step>
+</Steps>
+
+### capturePngBlob
+
+<Steps>
+<Step>
+
+Capture the game screenshot, will only include the player element
+
+Returns a PNG image blob
+
+- Returns `Promise<Blob | null>`
+</Step>
+</Steps>
+
+### requestFullScreen
+
+<Steps>
+<Step>
+
+Request full screen on Chrome/Safari/Firefox/IE/Edge/Opera, the player element will be full screen
+
+**Note**: this method should be called in response to a user gesture (for example, a click event)
+
+Safari iOS and Webview iOS aren't supported, for more information, see [MDN-requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen)
+
+- `options?: FullscreenOptions | undefined`
+- Returns `Promise<void> | void`
+</Step>
+</Steps>
+
+### exitFullScreen
+
+<Steps>
+<Step>
+
+Exit full screen
+
+- Returns `Promise<void> | void`
+</Step>
+</Steps>
+
+### onPlayerEvent
+
+<Steps>
+<Step>
+
+Listen to the events of the player element
+
+```typescript
+const {game} = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onPlayerEvent("click", (event) => {
+        // do something
+    }).cancel;
+}, []);
+```
+
+- `type: K` - The event type
+- `listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any` - The event listener
+- `options?: boolean | AddEventListenerOptions`
+- Returns `LiveGameEventToken`
+</Step>
+</Steps>
+
+### getHistory
+
+<Steps>
+<Step>
+
+Get the game history. This method is used to create backlog. 
+
+```typescript
+import { useGame, GameHistory } from "narraleaf-react";
+```
+
+```typescript
+const game = useGame();
+const history = game.getHistory();
+
+function handleUndo(history: GameHistory) {
+    game.undo(history.token);
+}
+
+return (
+    <div>
+        <h3>Backlog</h3>
+
+        {history.map((item) => (
+            <div
+                key={item.token}
+                onClick={() => handleUndo(item)}
+            >
+                {/* show the action text */}
+                {/* text is available when the action is "say" or "menu" */}
+                {item.element.text}
+            </div>
+        ))}
+    </div>
+);
+```
+
+- Returns `GameHistory[]` - The game history, see [GameHistory](../types/GameHistory)
+</Step>
+</Steps>
+
+### undo
+
+<Steps>
+<Step>
+
+Undo the game action.
+
+```typescript
+game.undo(history.token);
+```
+
+- `token?: string` - The token of the history item, see [GameHistory](../types/GameHistory#token). If not provided, the last action will be undone.
+</Step>
+</Steps>
+
+### notify
+
+<Steps>
+<Step>
+
+Create a notification.
+
+The style of the notification is defined by [Notification](../../player/notification). 
+
+```typescript
+// notify for 3 seconds
+game.notify("Save success", 3000);
+```
+
+```typescript
+// to control the notification, set the duration to `null` to make the notification stay forever
+const token = game.notify("Fast forward", null);
+
+// cancel the notification when the player releases the right key
+window.addEventListener("keyup", (event) => {
+    if (event.key === "ArrowRight") {
+        token.cancel();
+    }
+});
+```
+
+- `message: string` - The message to notify
+- `duration?: number | null` - The duration of the notification, default is 3000ms. Set to `null` to make the notification stay forever.
+- Returns `NotificationToken` - See [NotificationToken](../types/NotificationToken)
+</Step>
+</Steps>
+
+### playSound
+
+<Steps>
+<Step>
+
+Play a sound immediately and return its `SoundToken`.
+
+```typescript
+const {game} = useGame();
+
+game.getLiveGame()
+    .playSound("https://example.com/voice.mp3")
+    .then((token) => {
+        token.once("ended", () => {
+            console.log("Voice playback completed");
+        });
+    });
+```
+
+- `sound: Sound | string | URL` - The sound instance, sound source string, or URL
+- Returns `Promise<SoundToken>` - See [`@NarraLeaf/Sound`](https://github.com/NarraLeaf/Sound) for more information about the soundToken instance
+</Step>
+</Steps>
+
+### waitForRouterExit
+
+<Steps>
+<Step>
+
+Wait for the router to exit. 
+
+This method is useful when you want to create a new game and wait for the router to exit.
+
+```typescript {10}
+const {game} = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.clear().cleanHistory();
+
+    const token = liveGame
+        .newGame()
+        .waitForRouterExit()
+    
+    token
+        .promise
+        .then(() => {
+            dispatchState({ isPlaying: true });
+        });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- Returns `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### waitForPageMount
+
+<Steps>
+<Step>
+
+Wait for the page to mount
+
+```typescript
+const {game} = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.push("home");
+    const token = liveGame.waitForPageMount();
+
+    token.promise.then(() => {
+        // do something
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- Returns `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### onWindowEvent
+
+<Steps>
+<Step>
+
+Listen to the events of the window
+
+```typescript
+const {game} = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onWindowEvent("resize", (event) => {
+        // handle window resize
+    }).cancel;
+}, []);
+```
+
+- `type: K` - The event type
+- `listener: (this: Window, ev: WindowEventMap[K]) => any` - The event listener
+- `options?: boolean | AddEventListenerOptions`
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+Reset the game state
+
+> **Note:** Calling this method will lose the current game state
+
+```typescript
+const {game} = useGame();
+const router = useRouter();
+
+game.getLiveGame().reset();
+router.clear().cleanHistory().push("home");
+```
+</Step>
+</Steps>
+
+### skipDialog
+
+<Steps>
+<Step>
+
+Skip the current dialog
+
+```typescript
+game.getLiveGame().skipDialog();
+```
+</Step>
+</Steps>

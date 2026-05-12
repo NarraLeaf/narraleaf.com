@@ -1,0 +1,36 @@
+---
+title: "SavedGame"
+---
+<Callout type="warning">
+    This page is under construction.
+</Callout>
+
+<Callout type="warning">
+    Beta feature, subject to change.
+</Callout>
+
+```typescript
+interface SavedGame {
+    name: string;
+    meta: SavedGameMetaData;
+    game: {
+        store: { [key: string]: StorableData; };
+        elementStates: RawData<ElementStateRaw>[];
+        stage: PlayerStateData;
+        currentAction: string | null;
+        services: { [key: string]: unknown; };
+    };
+}
+```
+
+## name
+
+The name of the saved game
+
+## meta
+
+The metadata of the saved game, see [SavedGameMetaData](./SavedGameMetaData)
+
+## game
+
+Game data of the saved game

@@ -1,0 +1,41 @@
+---
+title: "Create a Scene"
+---
+[Scene](../core/elements/scene) is the basic element of NarraLeaf-React. It defines a period of time and background.
+
+## Define a Scene
+
+You can define a scene by creating a `Scene` instance:
+
+```typescript
+import { Scene } from "narraleaf-react";
+```
+
+```typescript
+const scene = new Scene("scene 1 - wake up", {
+    background: "<your background image url>",
+});
+```
+
+The first parameter of the scene constructor should be a name, this name is used to identify the scene.
+
+> Note: the name should be unique.
+
+The second parameter is an optional configuration. You can find the config doc [here](../core/types/SceneConfig).
+
+> Tips: you can use a pure color background through the `background` config
+>
+> ```typescript
+> const scene = new Scene("scene 1 - wake up", {
+>     background: "#f0f0f0",
+> });
+> ```
+>
+> If you are using Next.js, you can import an image using loader:
+>
+> ```typescript
+> import youImage from "./your-image.png";
+>
+> const scene = new Scene("scene 1 - wake up", {
+>     background: youImage,
+> });

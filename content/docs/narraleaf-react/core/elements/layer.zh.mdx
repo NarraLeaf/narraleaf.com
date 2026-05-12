@@ -1,0 +1,65 @@
+﻿---
+title: "图层"
+---
+> 此类继承自 [Displayble](./displayable)
+
+你可以使用 `Layer` 类来管理可显示元素的图层。
+
+## 用法
+
+```typescript
+import {Layer} from "narraleaf-react";
+```
+
+```typescript
+const layer = new Layer("图层名称", {
+    zIndex: 1
+});
+
+const scene = new Scene("带有图层的场景", {
+    layers: [layer] // 将图层注册到场景中
+});
+
+const image = new Image({ /* ... */}).useLayer(layer); // 将图像链接到图层
+```
+
+```typescript
+layer.opacity(0.5, 1000, "linear"); // 更改图层的不透明度，所有链接到图层的元素都会受到影响
+```
+
+## 链式方法
+
+### setZIndex
+
+<Steps>
+<Step>
+
+设置图层的 z-index。z-index 越高，图层越靠前。
+
+- `zIndex: number` - 图层的 z-index
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name?: string` - 图层的名称
+- `config?: Partial<ILayerUserConfig>` - 图层的配置，参见 [ILayerUserConfig](../types/ILayerUserConfig)
+</Step>
+</Steps>
+
+### include
+
+<Steps>
+<Step>
+
+将可显示元素包含到图层中
+
+- `elements: (Image | Text)[] | Image | Text` - T要包含的可显示元素，例如 [Image](./image), [Text](./text)
+- 返回 `this`
+</Step>
+</Steps>

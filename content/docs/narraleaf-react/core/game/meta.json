@@ -1,0 +1,12 @@
+{
+  "title": "Game",
+  "pages": [
+    "game",
+    "game-state",
+    "live-game",
+    "storable",
+    "preference",
+    "key-map",
+    "hooks"
+  ]
+}

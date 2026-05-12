@@ -1,4 +1,16 @@
 {
   "title": "Basic",
-  "description": "Starter topics for building stories with NarraLeaf-React (section in progress)."
+  "pages": [
+    "create-scene",
+    "add-actions",
+    "show-dialog",
+    "show-image",
+    "play-story",
+    "make-choices",
+    "sound",
+    "store-data",
+    "conditional",
+    "voice",
+    "manage-preferences"
+  ]
 }

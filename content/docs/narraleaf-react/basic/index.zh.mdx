@@ -1,12 +1,127 @@
 ---
-title: NarraLeaf-React 基础
-description: 基础教程入口；子页面迁移完成后可从此处继续深入。
+title: "NarraLeaf-React 基础"
+description: 学习 NarraLeaf-React 的核心创作流程：场景、动作、对话、选项、媒体、数据与偏好设置。
 ---
 
-<Callout type="warning">
-  此页面正在建设中。
-</Callout>
+基础教程适合在你已经拥有一个可运行的 NarraLeaf-React 项目后阅读。它会带你完成故事编写的主要流程：定义场景、添加动作、显示对话和图片、连接故事段落，然后逐步加入交互、音频、数据、语音和玩家偏好设置。
 
-本指南将帮助您开始使用 NarraLeaf-React。
+## 前置准备
 
-如果您尚未阅读[快速开始](../quick-start)指南，请在继续之前先阅读该指南。
+开始本节之前，请先创建或准备一个 NarraLeaf-React 项目：
+
+<Cards>
+    <Card
+        title="快速开始"
+        description="使用起始模板创建新的 NarraLeaf-React 项目。"
+        href="../quick-start"
+    />
+    <Card
+        title="安装"
+        description="将 NarraLeaf-React 安装到已有的 React 应用中。"
+        href="../installation"
+    />
+</Cards>
+
+## 核心流程
+
+<Steps>
+<Step>
+
+### 创建场景
+
+从定义 [Scene](./create-scene) 开始。场景会为视觉小说中的一段内容提供名称、背景和叙事上下文。
+
+</Step>
+<Step>
+
+### 添加动作
+
+使用[动作](./add-actions)描述场景中会发生什么。动作是 NarraLeaf-React 在故事播放时按顺序执行的指令。
+
+</Step>
+<Step>
+
+### 呈现故事内容
+
+显示[对话](./show-dialog)、展示[图片](./show-image)，并通过[播放故事](./play-story)把场景交给播放器运行。
+
+</Step>
+<Step>
+
+### 加入交互和状态
+
+使用[选项](./make-choices)、[条件](./conditional)和[存储数据](./store-data)，让故事能够响应玩家选择和之前发生过的事件。
+
+</Step>
+<Step>
+
+### 打磨体验
+
+加入[音效](./sound)、[语音](./voice)和[偏好设置](./manage-preferences)，让视觉小说体验更完整，并让玩家能够控制播放表现。
+
+</Step>
+</Steps>
+
+## 教程列表
+
+<Cards>
+    <Card
+        title="创建场景"
+        description="定义故事结构和视觉上下文的基本单位。"
+        href="./create-scene"
+    />
+    <Card
+        title="添加动作"
+        description="构建驱动场景播放的有序动作列表。"
+        href="./add-actions"
+    />
+    <Card
+        title="显示对话"
+        description="显示角色台词和旁白内容。"
+        href="./show-dialog"
+    />
+    <Card
+        title="显示图片"
+        description="在场景中放置视觉素材。"
+        href="./show-image"
+    />
+    <Card
+        title="播放故事"
+        description="将场景连接到播放器并运行故事。"
+        href="./play-story"
+    />
+    <Card
+        title="制作选项"
+        description="让玩家在不同分支之间做出选择。"
+        href="./make-choices"
+    />
+    <Card
+        title="声音"
+        description="添加音频提示和播放行为。"
+        href="./sound"
+    />
+    <Card
+        title="存储数据"
+        description="保存会影响后续故事事件的值。"
+        href="./store-data"
+    />
+    <Card
+        title="条件"
+        description="只在当前游戏状态匹配时执行动作。"
+        href="./conditional"
+    />
+    <Card
+        title="语音"
+        description="为故事呈现绑定语音播放。"
+        href="./voice"
+    />
+    <Card
+        title="管理偏好"
+        description="提供并更新面向玩家的设置。"
+        href="./manage-preferences"
+    />
+</Cards>
+
+## 下一步
+
+完成基础教程后，可以阅读[解决方案](../solutions)学习完整模式，阅读[核心](../core)了解底层故事 API，或阅读[播放器](../player)了解负责渲染体验的 React 组件与 Hook。

@@ -1,0 +1,108 @@
+﻿---
+title: "Text"
+---
+> This class extends [Displayble](./displayable)
+
+Text allows you to display text on the screen.
+
+For example: 
+
+```ts
+const t1 = new Text("After that, another story happened...", {
+    position: CommonPosition.Positions.Center,
+    fontColor: "#f00",
+    fontSize: 20,
+});
+
+// turn the background to black with fade effect
+// then show a text "After that, another story happened..."
+scene2.action([
+    scene2.setBackground("#000", new Fade(1000)),
+    t1.show({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+
+    // wait for 1000 milliseconds
+    Control.sleep(1000),
+
+    // hide the text
+    t1.hide({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+]);
+```
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+#### Overload 1 of 2
+
+- `config: Partial<ITextUserConfig>` - [ITextUserConfig](../types/ITextUserConfig)
+
+#### Overload 2 of 2
+
+- `text: string` - The content of the text
+- `config?: Partial<ITextUserConfig>` - [ITextUserConfig](../types/ITextUserConfig)
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+set the [Layer](./layer) of the text
+
+- `layer: Layer` - The layer to use
+- Returns `this`
+</Step>
+</Steps>
+
+## Chainable Method
+
+### setText
+
+<Steps>
+<Step>
+
+- `text: string` - The content of the text
+</Step>
+</Steps>
+
+### setFontSize
+
+<Steps>
+<Step>
+
+```ts
+// set the font size of the text to 20 pixels with transition
+element.setFontSize(20, 1000, "easeInOut");
+```
+
+- `fontSize: number` - The font size of the text in pixels
+- `duration?: number` - The duration of the transition in milliseconds
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function of the transition, see [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### setFontColor
+
+<Steps>
+<Step>
+
+```ts
+// set the font color of the text to red with transition
+element.setFontColor("#f00", 1000, "easeInOut");
+```
+
+- `color: Color` - See [Color](../types/color)
+- `duration?: number` - The duration of the transition in milliseconds
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function of the transition, see [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>

@@ -1,0 +1,48 @@
+---
+title: "作出选择"
+---
+你可以使用 [Menu](../core/elements/menu) 元素创建一个带有选择的菜单。
+
+```typescript
+const narrator = new Character(null);
+
+/**
+ * 我该怎么办？
+ * - 向左走
+ *    ~> *你向左走了。*
+ *    ~> 跳转到场景 "scene_went_left"
+ * 
+ * - 向右走
+ *    ~> *你向右走了。*
+ *    ~> 跳转到场景 "scene_went_right"
+ */
+
+scene.action([
+    Menu.prompt("我该怎么办？")
+
+        .choose("向左走", [
+            narrator.say("你向左走了。"),
+            /* ... */
+            scene.jumpTo(scene_went_left),
+        ])
+
+        .choose("向右走", [
+            narrator.say("你向右走了。"),
+            /* ... */
+            scene.jumpTo(scene_went_right),
+        ]);
+]);
+```
+
+你可以使用自定义的 [Sentence](../core/elements/sentence) 来显示菜单提示。
+
+```typescript
+// 使用自定义句子显示菜单提示
+Menu.prompt(
+    i("我该怎么办？")  // "我该怎么办？" 使用斜体样式
+).choose([
+    "向", b("左"), "走" // "向左走" 中的 "左" 使用粗体样式
+], [
+    /* ... */
+])
+```

@@ -1,0 +1,16 @@
+---
+title: "ScriptCtx"
+---
+```typescript
+type NamespaceGetter = <T extends NameSpaceContent<keyof T>>(namespace: string) => Namespace<T>;
+
+interface ScriptCtx {
+    gameState: GameState;
+    game: Game;
+    liveGame: LiveGame;
+    storable: Storable;
+    $: NamespaceGetter;
+}
+```
+
+See [Game](../game/game), [GameState](../game/gamestate), [LiveGame](../game/livegame), and [Storable](../game/storable) for more information.

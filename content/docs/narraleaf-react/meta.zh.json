@@ -1,0 +1,14 @@
+{
+  "title": "NarraLeaf-React",
+  "description": "轻量级 React 视觉小说框架文档。",
+  "pages": [
+    "index",
+    "quick-start",
+    "installation",
+    "basic",
+    "solutions",
+    "core",
+    "player",
+    "info"
+  ]
+}

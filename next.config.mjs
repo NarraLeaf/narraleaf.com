@@ -9,12 +9,22 @@ const config = {
     const docsRedirects = [
       {
         source: '/docs/narraleaf/project',
-        destination: '/docs/narraleaf-project',
+        destination: '/project',
         permanent: false,
       },
       {
         source: '/docs/narraleaf/project/:path*',
-        destination: '/docs/narraleaf-project/:path*',
+        destination: '/project/:path*',
+        permanent: false,
+      },
+      {
+        source: '/docs/narraleaf-project',
+        destination: '/project',
+        permanent: false,
+      },
+      {
+        source: '/docs/narraleaf-project/:path*',
+        destination: '/project/:path*',
         permanent: false,
       },
       {

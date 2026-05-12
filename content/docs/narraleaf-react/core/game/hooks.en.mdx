@@ -1,0 +1,131 @@
+﻿---
+title: "Hooks"
+---
+<Callout type="warning">
+    This page is under construction.
+</Callout>
+
+<Callout type="warning">
+    Beta feature, subject to change.
+</Callout>
+
+Hooks are a way to inject custom logic into the game. It is useful for creating plugins. 
+
+```typescript
+game.hooks.hook("init", () => {
+    console.log("Game initialized");
+});
+```
+
+## Public Methods
+
+### hook
+
+<Steps>
+<Step>
+
+Add a hook to the game.
+
+```typescript
+const token = game.hooks.hook("init", () => {
+    console.log("Game initialized");
+});
+
+return function cleanup() {
+    token.cancel();
+}
+```
+
+- `key: Hooks` - The key of the hook. For a list of keys, see the [Hooks](#hooks) section.
+- `hook: (...value: T[K]) => VoidFunction | void` - The callback function that returns a cleanup function.
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### unhook
+
+<Steps>
+<Step>
+
+Remove a hook from the game.
+
+```typescript
+const listener = function () { /* ... */ };
+
+game.hooks.hook("init", listener); // add a hook
+
+game.hooks.unhook("init", listener); // remove the hook
+```
+
+- `key: Hooks` - The key of the hook. For a list of keys, see the [Hooks](#hooks) section.
+- `listener: (...value: T[K]) => VoidFunction | void` - The listener function that was added to the hook.
+</Step>
+</Steps>
+
+## Hooks
+
+### init
+
+<Steps>
+<Step>
+
+This hook is called when the game is initialized and before the player has rendered.
+
+```typescript
+game.hooks.hook("init", () => {
+    console.log("let's do something cool here");
+});
+```
+</Step>
+</Steps>
+
+### preloadImage
+
+<Steps>
+<Step>
+
+This hook is called when preloading images. This is useful for creating proxy logic for images.
+
+- `src: string` - The source of the image.
+- `set: (src: string, options?: RequestInit) => void` - A function to set the image source.
+
+```typescript
+game.hooks.hook("preloadImage", (src, set) => {
+    const newSrc = `https://example.com/proxy?url=${src}`;
+    set(newSrc, {
+        credentials: "include",
+    });
+});
+```
+</Step>
+</Steps>
+
+### beforeRestore
+
+<Steps>
+<Step>
+
+This hook is called before deserializing the game state.
+
+```typescript
+game.hooks.hook("beforeRestore", () => {
+    console.log("Preparing to restore game state");
+});
+```
+</Step>
+</Steps>
+
+### afterRestore
+
+<Steps>
+<Step>
+
+This hook is called after deserializing the game state.
+
+```typescript
+game.hooks.hook("afterRestore", () => {
+    console.log("Game state restored successfully");
+});
+```
+</Step>
+</Steps>

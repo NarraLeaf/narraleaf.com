@@ -1,0 +1,40 @@
+---
+title: "播放故事"
+---
+You can wrap your entry scene with a [Story](../core/elements/story) instance to create a story. 
+
+```ts
+import { Story, Scene } from "narraleaf";
+
+const story = new Story("My Story");
+const scene = new Scene(/* ... */);
+
+story.entry(scene);
+
+export { story };
+```
+
+创建抽象故事后，你可以使用 React 组件来播放它。
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./my-story"; // 在此处导入你的故事
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame(); // 当播放器准备就绪时，开始游戏
+            }}
+                width="100%" // 全宽
+                height="100%" // 全高
+            />
+        </GameProviders>
+    );
+}
+```
+
+[GameProviders](../player/game-providers) 组件是播放故事所必需的。它为播放器和钩子提供了上下文。
+你可以在 GameProviders 组件内部使用钩子来与游戏实例进行交互。

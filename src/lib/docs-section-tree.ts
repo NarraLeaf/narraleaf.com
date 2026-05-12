@@ -6,7 +6,7 @@ function isFolder(node: Node): node is Folder {
   return node.type === 'folder';
 }
 
-/** Scope the page tree to one top-level docs folder (e.g. narraleaf-project, narraleaf, studio, narraleaf-react). */
+/** Scope the page tree to one top-level docs folder (e.g. narraleaf, studio, narraleaf-react). */
 export function buildSectionPageTree(
   fullTree: Root,
   section: string,

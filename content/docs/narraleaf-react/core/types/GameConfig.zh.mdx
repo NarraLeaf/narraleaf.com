@@ -1,0 +1,293 @@
+---
+title: "GameConfig"
+---
+```typescript
+type GameConfig = {
+    /**
+     * 游戏容器的元素ID
+     * @default "__narraleaf_content"
+     */
+    contentContainerId: string;
+    /**
+     * 游戏的宽高比
+     * 例如：16/9, 4/3, 1/1
+     * @default 16/9
+     */
+    aspectRatio: number;
+    /**
+     * 播放器的最小宽度（像素）
+     * @default 800
+     */
+    minWidth: number;
+    /**
+     * 播放器的最小高度（像素）
+     * @default 450
+     */
+    minHeight: number;
+    /**
+     * 播放器的基础宽度（像素），图像缩放将基于此值计算
+     *
+     * 对于16/9比例，推荐值为1920
+     * @default 1920
+     */
+    width: number;
+    /**
+     * 播放器的基础高度（像素），图像缩放将基于此值计算
+     *
+     * 对于16/9比例，推荐值为1080
+     * @default 1080
+     */
+    height: number;
+    /**
+     * 如果为true，游戏将监听窗口事件而不是播放器元素
+     * 
+     * 使用此选项可以让游戏在播放器未获得焦点时也能监听键盘事件
+     * 从而在跳过动作时提供更好的用户体验
+     * @default true
+     */
+    useWindowListener: boolean;
+    /**
+     * 更新宽高比的防抖间隔（毫秒）
+     *
+     * 设置为0将在每次调整大小时立即更新比例
+     * @default 50
+     */
+    ratioUpdateInterval: number;
+    /**
+     * 游戏预加载图像时，每个预加载任务之间的延迟时间
+     *
+     * 单个预加载任务可能包含 {@link GameConfig.preloadConcurrency} 张图片
+     * @default 100
+     */
+    preloadDelay: number;
+    /**
+     * 同时预加载的最大图片数量
+     * @default 5
+     */
+    preloadConcurrency: number;
+    /**
+     * 在显示游戏之前等待图片加载完成
+     * @default true
+     */
+    waitForPreload: boolean;
+    /**
+     * 预加载场景中所有可能的图片
+     *
+     * 启用此选项可能会影响性能，但能提供更好的用户体验
+     * @default true
+     */
+    preloadAllImages: boolean;
+    /**
+     * 在场景切换时强制清除缓存
+     * @default false
+     */
+    forceClearCache: boolean;
+    /**
+     * 将要预测和预加载的动作数量
+     * @default 10
+     */
+    maxPreloadActions: number;
+    /**
+     * 光标图片的源地址，如果为null，游戏将显示默认光标
+     * @default null
+     */
+    cursor: string | null;
+    /**
+     * 光标宽度（像素）
+     * @default 30
+     */
+    cursorWidth: number;
+    /**
+     * 光标高度（像素）
+     * @default 30
+     */
+    cursorHeight: number;
+    /**
+     * 在播放器组件上显示溢出内容
+     * @default false
+     */
+    showOverflow: boolean;
+    /**
+     * 页面路由器的最大历史记录大小
+     * @default 10
+     */
+    maxRouterHistory: number;
+    /**
+     * 截图质量，范围在0到1之间
+     * @default 1
+     */
+    screenshotQuality: number;
+    /**
+     * 如果为true，游戏将缩放对话框以适应屏幕
+     *
+     * 启用此选项时文本会显得更小
+     * @default true
+     */
+    useAspectScale: boolean;
+    /**
+     * 游戏自动显示下一句对话前的延迟时间（毫秒）
+     *
+     * 仅在玩家偏好设置中启用"autoForward"时生效
+     * @default 3000
+     */
+    autoForwardDelay: number;
+    /**
+     * 启用自动前进时的默认暂停持续时间（毫秒）
+     * 
+     * 当启用自动前进时，任何没有自定义持续时间的暂停都将使用此值
+     * @default 1000
+     */
+    autoForwardDefaultPause: number;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过图像变换
+     * @default true
+     */
+    allowSkipImageTransform: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过图像过渡
+     * @default true
+     */
+    allowSkipImageTransition: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过背景变换
+     * @default true
+     */
+    allowSkipBackgroundTransform: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过背景过渡
+     * @default false
+     */
+    allowSkipBackgroundTransition: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过文本变换
+     * @default true
+     */
+    allowSkipTextTransform: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过文本过渡
+     * @default true
+     */
+    allowSkipTextTransition: boolean;
+    /**
+     * 对话框的基础宽度（像素）
+     *
+     * 对于16/9比例，推荐值为1920
+     * @default 1920
+     */
+    dialogWidth: number;
+    /**
+     * 对话框的基础高度（像素）
+     *
+     * 对于16/9比例，推荐值为1080 * 0.2（屏幕高度的20%）
+     * @default 1080 * 0.2
+     */
+    dialogHeight: number;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过图层变换
+     * @default true
+     */
+    allowSkipLayersTransform: boolean;
+    /**
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过视频变换
+     *
+     * 这将只跳过"播放"动作
+     *
+     * @default false
+     */
+    allowSkipVideo: boolean;
+    /**
+     * 对话框的默认文本颜色
+     * @default "#000"
+     */
+    defaultTextColor: Color;
+    /**
+     * 角色名称标签的默认文本颜色
+     * @default "#000"
+     */
+    defaultNametagColor: Color;
+    /**
+     * 用于通知的组件
+     * @default DefaultNotification
+     */
+    notification: NotificationComponent;
+    /**
+     * 用于菜单的组件
+     * @default DefaultMenu
+     */
+    menu: MenuComponent;
+    /**
+     * 用于对话的组件
+     * @default DefaultSay
+     */
+    dialog: SayComponent;
+    /**
+     * 发生错误时要调用的函数
+     * @default () => {}
+     */
+    onError: (error: Error) => void;
+    app: {
+        debug: boolean;
+        /**
+         * 日志记录器的日志级别
+         * 设置为true以启用所有日志
+         */
+        logger: {
+            log: boolean;
+            info: boolean;
+            warn: boolean;
+            error: boolean;
+            debug: boolean;
+            trace: boolean;
+            verbose: boolean;
+        } | boolean;
+        /**
+         * 如果为true，当鼠标悬停在元素上时，游戏将显示检查器
+         */
+        inspector: boolean;
+        /**
+         * {@link GameStateGuard} 的配置
+         */
+        guard: GuardConfig;
+    };
+    /**
+     * 游戏的默认字体大小
+     * @default "16px"
+     */
+    fontSize: React.CSSProperties["fontSize"];
+    /**
+     * 游戏的默认字体粗细
+     * @default 400
+     */
+    fontWeight: number;
+    /**
+     * 游戏的默认粗体字体粗细
+     * @default 700
+     */
+    fontWeightBold: number;
+    /**
+     * 游戏的默认字体系列
+     * @default "sans-serif"
+     */
+    fontFamily: React.CSSProperties["fontFamily"];
+    /**
+     * 覆盖默认舞台
+     * @default null
+     */
+    stage: React.ReactNode | null;
+    /**
+     * 菜单选项的默认颜色
+     * @default "#000"
+     */
+    defaultMenuChoiceColor: Color;
+    /**
+     * 堆栈模型可以循环的最大次数
+     * @default 1000
+     */
+    maxStackModelLoop: number;
+    /**
+     * 动作历史记录中存储的最大动作数量
+     * @default 100
+     */
+    maxActionHistory: number;
+};
+```

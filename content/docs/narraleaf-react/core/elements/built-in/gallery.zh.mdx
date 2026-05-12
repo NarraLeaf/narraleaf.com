@@ -1,0 +1,344 @@
+﻿---
+title: "Gallery"
+---
+Gallery 是专门用于视觉小说游戏画廊（图集）的内置服务。它允许您添加、删除和检查项目。Gallery 数据可通过 **localStorage**（独立持久化）或随 **游戏存档**（通过 `serialize`/`deserialize`）自动保存。
+
+Gallery 适合用于管理游戏中的图片收集系统，比如角色立绘、CG 图片、背景图片等。
+
+```typescript
+import {Gallery} from "narraleaf-react";
+```
+
+## 基本用法
+
+### 创建 Gallery
+
+```typescript
+const gallery = new Gallery<{timestamp: number}>();
+
+scene.action([
+  gallery.add("item", () => ({
+    timestamp: Date.now(),
+  }))
+]);
+```
+
+### 注册服务
+
+要使用 Gallery，您需要在故事中注册它：
+
+```typescript
+story.registerService("gallery", gallery);
+```
+
+注册后，您可以使用游戏上下文访问 Gallery：
+
+```typescript
+const liveGame = useLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery<{timestamp: number}>>("gallery");
+
+if (gallery) {
+  console.log("图库中的所有项目:", gallery.$getAll());
+}
+```
+
+## 完整示例
+
+```typescript
+const gallery = new Gallery<{timestamp: number, description: string}>();
+
+scene.action([
+  gallery.add("item1", {
+    timestamp: Date.now(),
+    description: "第一个项目"
+  }),
+  
+  gallery.add("item2", (ctx) => ({
+    timestamp: Date.now(),
+    description: "动态创建的项目"
+  })),
+  
+  Condition.If(gallery.has("item1"), [
+    "项目1已解锁！",
+  ]),
+  
+  gallery.remove("item1"),
+  
+  gallery.clear()
+]);
+```
+
+## 使用 localStorage 持久化
+
+可将 Gallery 数据独立于游戏存档持久化到 [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)。调用 `serialize()` 获取数据，加载时调用 `deserialize()`：
+
+```typescript
+const GALLERY_STORAGE_KEY = "my-game-gallery";
+
+// 保存到 localStorage（例如打开图鉴页时或定时保存）
+function saveGalleryToStorage() {
+  const gallery = liveGame.story?.getService<Gallery<CgMetadata>>("gallery");
+  if (gallery) {
+    const data = gallery.serialize();
+    localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(data));
+  }
+}
+
+// 从 localStorage 加载（例如游戏初始化时、newGame 之前）
+function loadGalleryFromStorage() {
+  const gallery = liveGame.story?.getService<Gallery<CgMetadata>>("gallery");
+  if (gallery) {
+    const raw = localStorage.getItem(GALLERY_STORAGE_KEY);
+    if (raw) {
+      try {
+        gallery.deserialize(JSON.parse(raw));
+      } catch {}
+    }
+  }
+}
+```
+
+这样即使玩家从未使用完整存档系统，图鉴解锁状态也能跨会话保留。
+
+## serialize / deserialize 与游戏存档
+
+Gallery 实现了 `serialize()` 和 `deserialize()`。当使用 [LiveGame.serialize](../../game/live-game#serialize) 保存游戏时，框架会自动将 Gallery 的序列化数据写入 `SavedGame.game.services`。当调用 [LiveGame.deserialize](../../game/live-game#deserialize) 加载存档时，框架会恢复所有已注册服务，包括 Gallery。
+
+因此，若使用将 `liveGame.serialize()` 存入 localStorage 的 [存档系统](../../../solutions/save-system-localstorage)，图鉴解锁状态会随游戏 **自动** 保存和恢复，无需额外代码。`serialize`/`deserialize` 方法正是实现这一集成的关键。
+
+## 链式方法
+
+这些方法需要在 `scene.action` 中使用，它们会返回操作对象，可以被链式调用。
+
+### add
+
+<Steps>
+<Step>
+
+向图库添加一个项目
+
+```typescript
+scene.action([
+  gallery.add("item", {
+    timestamp: Date.now(),
+    description: "项目描述"
+  })
+]);
+
+// 或者使用函数
+scene.action([
+  gallery.add("item", (ctx) => {
+    return {
+      timestamp: Date.now(),
+      description: "动态项目"
+    };
+  })
+]);
+```
+
+- `name: string` - 要添加的项目名称
+- `metadata: Metadata | ((ctx: ScriptCtx) => Metadata)` - 项目的元数据，可以是对象或返回元数据的函数
+</Step>
+</Steps>
+
+### remove
+
+<Steps>
+<Step>
+
+从图库中移除一个项目
+
+```typescript
+scene.action([
+  gallery
+    .remove("item")
+    .remove("item2"),
+]);
+```
+
+- `name: string` - 要移除的项目名称
+</Step>
+</Steps>
+
+### clear
+
+<Steps>
+<Step>
+
+清空图库
+
+```typescript
+scene.action([
+  gallery.clear()
+]);
+```
+</Step>
+</Steps>
+
+## 公共方法
+
+这些以 `$` 开头的方法会立即执行，不需要在 `scene.action` 中使用。它们专门用于在游戏运行时直接操作图库数据。
+
+### has
+
+<Steps>
+<Step>
+
+检查图库中是否存在某个项目
+
+```typescript
+Condition.If(gallery.has("item"), [
+    "项目已解锁！",
+    // ...
+])
+```
+
+- `name: string` - 要检查的项目名称
+- 返回 `Lambda<boolean>` - 返回 true 如果项目存在，否则返回 false
+</Step>
+</Steps>
+
+### $add
+
+<Steps>
+<Step>
+
+立即向图库添加一个项目
+
+```typescript
+gallery.$add("item", {
+  timestamp: Date.now(),
+  description: "立即添加的项目"
+});
+```
+
+- `name: string` - 要添加的项目名称
+- `metadata: Metadata` - 项目的元数据
+</Step>
+</Steps>
+
+### $remove
+
+<Steps>
+<Step>
+
+立即从图库中移除一个项目
+
+```typescript
+gallery.$remove("item");
+```
+
+- `name: string` - 要移除的项目名称
+</Step>
+</Steps>
+
+### $clear
+
+<Steps>
+<Step>
+
+立即清空图库
+
+```typescript
+gallery.$clear();
+```
+
+调用此方法后，图库将立即变为空。
+</Step>
+</Steps>
+
+### $get
+
+<Steps>
+<Step>
+
+获取项目的元数据
+
+```typescript
+const metadata = gallery.$get("item");
+console.log(metadata?.timestamp);
+```
+
+- `name: string` - 要获取元数据的项目名称
+- 返回 `Metadata | undefined` - 项目的元数据
+</Step>
+</Steps>
+
+### $set
+
+<Steps>
+<Step>
+
+设置项目的元数据
+
+```typescript
+gallery.$set("item", {
+  timestamp: Date.now(),
+  description: "更新的描述"
+});
+```
+
+- `name: string` - 要设置元数据的项目名称
+- `metadata: Metadata` - 要设置的元数据
+</Step>
+</Steps>
+
+### $getAll
+
+<Steps>
+<Step>
+
+获取图库中的所有项目
+
+```typescript
+const allItems = gallery.$getAll();
+console.log("所有项目:", allItems);
+```
+
+- 返回 `Record<string, Metadata>` - 图库中的所有项目
+</Step>
+</Steps>
+
+### $has
+
+<Steps>
+<Step>
+
+检查图库中是否存在某个项目
+
+```typescript
+if (gallery.$has("item")) {
+  console.log("项目存在");
+}
+```
+
+- `name: string` - 要检查的项目名称
+- 返回 `boolean` - 如果项目存在返回 true，否则返回 false
+</Step>
+</Steps>
+
+## 类型参数
+
+### Metadata
+
+Gallery 接受一个泛型参数 `Metadata`，用于定义项目元数据的类型：
+
+```typescript
+// 定义元数据类型
+type ItemMetadata = {
+  timestamp: number;
+  description: string;
+  unlocked: boolean;
+};
+
+// 创建带有类型约束的 Gallery
+const gallery = new Gallery<ItemMetadata>();
+
+// 现在所有方法都会有类型检查
+gallery.add("item", {
+  timestamp: Date.now(),
+  description: "描述",
+  unlocked: true
+});
+```

@@ -1,0 +1,150 @@
+﻿---
+title: "Game"
+---
+Game 是代表游戏本身的主类。它包含游戏的所有配置和 [LiveGame](./live-game)。
+
+Game 使用单例模式，所以你可以通过调用钩子 `useGame()` 获取实例。
+
+## 公共属性
+
+### preference
+
+<Steps>
+<Step>
+
+[Preference](./preference/preference) 实例
+
+- `Preference<GamePreference>` - 参见 [GamePreference](../types/GamePreference)
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+</Step>
+</Steps>
+
+### keyMap
+
+<Steps>
+<Step>
+
+管理游戏动作键绑定的 KeyMap 实例
+
+- `KeyMap` - 参见 [KeyMap](./key-map)
+
+```typescript
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
+```
+</Step>
+</Steps>
+
+## 公共方法
+
+### getLiveGame
+
+<Steps>
+<Step>
+
+- `return: LiveGame` - [LiveGame](./live-game) 实例
+</Step>
+</Steps>
+
+### configure
+
+<Steps>
+<Step>
+
+为游戏分配新的配置
+
+> **注意:** 此方法设计为在游戏初始化之前使用。
+> 
+> 在游戏初始化之后调用此方法将不会生效或不会立即生效。设置在 [Preference](./preference/preference) 中的配置会立即生效。
+
+```typescript
+const { game } = useGame();
+
+useEffect(() => {
+    game.configure({
+        ratioUpdateInterval: 0, // 立即更新播放器大小
+
+        /* cursor */
+        cursor: "cursor.jpeg",
+        cursorHeight: 60,
+        cursorWidth: 60,
+    });
+}, []);
+```
+</Step>
+</Steps>
+
+### use
+
+<Steps>
+<Step>
+
+注册一个插件到游戏。
+
+> **注意**: 具有相同名称的插件将不会被注册。
+>
+> 一个名称由 `namespace` 和 `name` 组成，推荐使用 `"@Namespace/PluginName"`，`"@Author/PluginName"`，`"PluginName"` 格式。
+
+```typescript
+game.use({
+    ... /** plugin register config */
+});
+```
+
+- `plugin: IGamePluginRegistry` - 插件注册配置，参见 [IGamePluginRegistry](../types/IGamePluginRegistry)
+</Step>
+</Steps>
+
+### dispose
+
+<Steps>
+<Step>
+
+销毁游戏并释放所有资源。
+
+> **注意**：此操作不可逆。
+
+```typescript
+game.dispose();
+```
+</Step>
+</Steps>
+
+### configureAndFreeze
+
+<Steps>
+<Step>
+
+配置游戏并冻结特定字段以防止进一步修改。
+
+> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法。
+
+```typescript
+game.configureAndFreeze({
+    ratioUpdateInterval: 0,
+    cursor: "cursor.jpeg"
+});
+```
+
+- `config: DeepPartial<GameConfig>` - 要应用并冻结的游戏配置
+</Step>
+</Steps>
+
+### freeze
+
+<Steps>
+<Step>
+
+冻结特定的配置字段以防止进一步修改。
+
+> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法。
+
+```typescript
+game.freeze(["ratioUpdateInterval", "cursor"]);
+```
+
+- `fields: (StringKeyOf<GameConfig>)[]` - 要冻结的配置字段名称数组
+</Step>
+</Steps>

@@ -1,0 +1,237 @@
+﻿---
+title: "Image"
+---
+> This class extends [Displayble](./displayable)
+
+Image is very important for a visual novel. It is used to show the appearance of the character. 
+
+In NarraLeaf-React, Image only controls the appearance of the character. It does not control the dialogues of the character. For that, you can use [Character](../character).
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+<Callout type="warning">
+    You cannot mix tag-based image and src-based image in the same image.
+</Callout>
+
+- `config: Partial<IImageUserConfig>` - Image config, see [IImageUserConfig](../types/IImageUserConfig)
+
+#### Tag-based Image
+
+For example, if you have an image that has tags like `happy`, `sad`, `angry`, you can use tag-based image.
+
+Here is an example of tag-based image.
+
+```typescript
+const image = new Image({
+    src: {
+        groups: [
+            ["happy", "sad", "angry"],
+            ["shirt", "jacket", "t-shirt"],
+            ["trousers", "skirt", "shorts"],
+        ],
+        defaults: ["happy", "shirt", "trousers"],
+        resolve: (emotion, top, bottom) => `https://your/image/src/${emotion}_${top}_${bottom}.png`
+    } as const,
+});
+// The default image will be `https://your/image/src/happy_shirt_trousers.png`
+```
+
+<Callout type="warning">
+
+**Note:** You cannot have two identical tags in the same group or in different groups.
+
+```typescript
+const image = new Image({
+    src: {
+        groups: [
+            ["a", "b", "c"],
+            ["1", "2", "3"],
+            ["a"], // INVALID, tag "a" is already in the first group
+            ["x", "y", "y"], // INVALID, tag "y" is duplicated
+        ],
+        defaults: ["a"], // INVALID, default definition must have a full set of tags
+    } as const,
+    /* ... */
+});
+```
+</Callout>
+
+#### Src-based Image
+
+If you don't have tags, you can use src-based image.
+
+```typescript
+const image = new Image({
+    src: "https://your/image/src.png",
+});
+```
+
+#### Wearable Image
+
+You can add some wearables to the image.  
+The wearable image will move/scale/animate with the main image.
+
+```typescript
+const child = new Image({
+    /* ... */
+});
+const parent = new Image({
+    /* ... */
+}).wear(child);
+```
+
+> **Note:** The image can only have one parent.
+</Step>
+</Steps>
+
+### copy
+
+<Steps>
+<Step>
+
+Copy the image.
+
+- Returns `Image`
+
+```typescript
+const newImage = image.copy();
+```
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+Use a layer for the image
+
+- `layer: Layer` - [Layer](./layer)
+
+```typescript
+const layer = new Layer(/* ... */);
+
+image.useLayer(layer);
+```
+</Step>
+</Steps>
+
+## Chainable Method
+
+### char
+
+<Steps>
+<Step>
+
+Set the figure of the character
+
+- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>>` - The source of the image
+- `transition?: ImageTransition` - For ImageTransition, see [Transition](../animation/transition)
+
+```typescript
+image.char("your/image/src", new Fade(1000));
+```
+
+or for tag-based image
+
+```typescript
+// happy, shirt, trousers
+const image = new Image({
+    tag: {
+        groups: [
+            ["happy", "sad", "angry"],
+            ["shirt", "jacket", "t-shirt"],
+            ["trousers", "skirt", "shorts"],
+        ],
+        defaults: ["happy", "shirt", "trousers"],
+    } as const,
+    /* ... */
+});
+
+//  happy , [jacket], [t-shirt]
+image.char(["jacket", "t-shirt"], new Fade(1000));
+
+// [angry],  jacket ,  t-shirt
+image.char(["angry"], new Fade(1000));
+```
+</Step>
+</Steps>
+
+### darken
+
+<Steps>
+<Step>
+
+Set the darkness of the image
+
+- `darkness: number` - The darkness of the image, between 0 and 1. 0 is no darkness, 1 is full darkness.
+- `duration?: number` - The duration of the transition
+- `easing?: TransformDefinitions.EasingDefinition` - See [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+
+```typescript
+image.darken(0.5, 500, "easeIn");
+```
+</Step>
+</Steps>
+
+## Public Method
+
+### addWearable
+
+<Steps>
+<Step>
+
+Add a wearable to the image
+
+> Wearable is a feature that allows you to add an image that related to the main image. For example, you can add a hat to the character.
+> And that wearable image will move/scale/animate with the main image.
+
+- `children: Image | Image[]` - Wearable image or images
+- Returns `this`
+
+```typescript
+const childImage = new Image(/* ... */);
+
+image.addWearable(childImage);
+```
+</Step>
+</Steps>
+
+### wear
+
+<Steps>
+<Step>
+
+Alias of `addWearable`
+</Step>
+</Steps>
+
+### bindWearable
+
+<Steps>
+<Step>
+
+Bind this image to a parent image as a wearable
+
+- `parent: Image` - Parent image
+- Returns `this`
+
+```typescript
+childImage.bindWearable(parentImage);
+```
+</Step>
+</Steps>
+
+### asWearableOf
+
+<Steps>
+<Step>
+
+Alias of `bindWearable`
+</Step>
+</Steps>

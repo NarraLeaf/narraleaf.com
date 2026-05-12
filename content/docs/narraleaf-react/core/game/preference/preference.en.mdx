@@ -1,0 +1,136 @@
+﻿---
+title: "Preference\\<T extends Record\\<string, string | boolean | number | null | undefined\\>\\>"
+---
+Preference allows you to control some game behaviors, such as auto-forward mode.
+
+For a list of preference keys, see [GamePreference](../../types/GamePreference).
+
+## Public Methods
+
+### constructor
+
+<Steps>
+<Step>
+
+- `settings: T` - The default preference settings
+</Step>
+</Steps>
+
+### setPreference\<K extends Extract\<keyof T, string\>\>
+
+Set a preference.
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+
+- `key: K` - The preference key
+- `value: T[K]` - The preference value
+- Returns `void`
+</Step>
+</Steps>
+
+### getPreference\<K extends Extract\<keyof T, string\>\>
+
+Get a preference.
+
+<Steps>
+<Step>
+
+```typescript
+const autoForward = game.preference.getPreference("autoForward");
+```
+
+- `key: K` - The preference key
+- Returns `T[K]`
+</Step>
+</Steps>
+
+### getPreferences
+
+Get all preferences.
+
+<Steps>
+<Step>
+
+- Returns `T`
+</Step>
+</Steps>
+
+### onPreferenceChange\<U extends Extract\<keyof T, string\>\>
+
+Listen to preference changes.
+
+<Steps>
+<Step>
+
+#### Overload 1 / 1
+
+```typescript
+game.preference.onPreferenceChange("autoForward", value => {
+    console.log(`Auto-forward mode is ${value ? "enabled" : "disabled"}`);
+});
+```
+
+- `key: U` - The preference key
+- `listener: (value: T[U]) => void`
+- Returns `PreferenceEventToken` - See [PreferenceEventToken](../types/PreferenceEventToken)
+
+#### Overload 2 / 2
+
+- `listener: (key: Extract<keyof T, string>, value: T[Extract<keyof T, string>]) => void`
+</Step>
+</Steps>
+
+### importPreferences
+
+Import preferences
+
+> Note: this will override the existing preferences and trigger the change event
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.importPreferences({
+    autoForward: true,
+});
+```
+
+- `preferences: Partial<T>`
+- Returns `void`
+</Step>
+</Steps>
+
+### exportPreferences
+
+Export preferences
+
+<Steps>
+<Step>
+
+```typescript
+const preferences = game.preference.exportPreferences();
+```
+
+- Returns `Partial<T>`
+</Step>
+</Steps>
+
+### togglePreference\<K extends BooleanValueKeyOf\<T\>\>
+
+Toggle a boolean preference.
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.togglePreference("autoForward");
+```
+
+- Returns `void`
+</Step>
+</Steps>

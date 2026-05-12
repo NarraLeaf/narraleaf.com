@@ -1,5 +1,14 @@
 {
   "title": "NarraLeaf-React",
-  "description": "Lightweight React visual novel framework: get started, install, and explore basics.",
-  "pages": ["quick-start", "installation", "basic", "solutions"]
+  "description": "Documentation for the lightweight React visual novel framework.",
+  "pages": [
+    "index",
+    "quick-start",
+    "installation",
+    "basic",
+    "solutions",
+    "core",
+    "player",
+    "info"
+  ]
 }

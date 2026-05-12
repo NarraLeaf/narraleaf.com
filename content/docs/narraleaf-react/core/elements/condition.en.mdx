@@ -1,0 +1,107 @@
+﻿---
+title: "Condition"
+---
+`Condition` allows you to create conditional branches in your story.
+
+```typescript
+Condition
+    .If((ctx) => {
+        return // your condition here
+    }, [
+        character1.say`the condition is true`,
+    ])
+
+    .Else([
+        character1.say`the condition is false`,
+    ])
+```
+
+In usual cases, you may want to determine flags, or check the value of a variable. You can use [Perdidtent](./persistent) to do this.
+
+```typescript
+type PersistentData = {
+    coin: number;
+    flag: boolean;
+    hobby: string;
+};
+
+const persis = new Persistent<PersistentData>("persis", {
+    coin: 0,
+    flag: false,
+    hobby: "coding",
+});
+
+// check if the player has enough coins
+Condition
+    .If(persis.evaluate("coin", (coin) => coin < 50), [
+        character1.say("you don't have enough coins"),
+    ])
+
+// check if the player has a flag
+Condition
+    .If(persis.isTrue("coin"), [
+        character1.say("you have the flag"),
+    ])
+
+// check if the player has a hobby
+Condition
+    .If(persis.equals("hobby", "coding"), [
+        character1.say("you like coding"),
+    ])
+```
+
+> **Note:** To better unerstand the script, if you call these methods in wrong order, it will throw an error.
+> 
+> For example, you cannot call `ElseIf` before `If`.
+
+## Static Methods
+
+### If
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>` - The condition to check. If the condition is true, the actions will be executed. See [Lambda](../types/Lambda) and [LambdaHandler](../types/LambdaHandler) for more information.
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+
+```typescript
+Condition.If(({ $ }) => {
+    return ($("name").get("coin") || 0) >= 10;
+}, [
+    character1.say("you have enough money")
+])
+```
+</Step>
+</Steps>
+
+## Public Methods
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config?: ConditionConfig` - [ConditionConfig](../types/ConditionConfig)
+</Step>
+</Steps>
+
+## Chainable Methods
+
+### ElseIf
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>`
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+</Step>
+</Steps>
+
+### Else
+
+<Steps>
+<Step>
+
+- `action: ActionStatements` - [ActionStatements](../types/ActionStatements)
+</Step>
+</Steps>

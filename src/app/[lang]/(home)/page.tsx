@@ -75,7 +75,7 @@ const homeCopy = {
       title: 'Visual novels, built like modern software.',
       description:
         'Choose a zero-code studio, a desktop toolchain, or a React player. NarraLeaf keeps visual novel work light, structured, and ready to scale.',
-      primaryCta: 'Explore Solutions',
+      primaryCta: 'Explore Project',
       secondaryCta: 'Read Docs',
       imageAlt: 'NarraLeaf Studio editor showing a visual novel project workspace',
     },
@@ -247,7 +247,7 @@ const homeCopy = {
       title: '用现代软件方式构建视觉小说',
       description:
         '选择零代码 Studio、桌面工具链，或 React 播放器NarraLeaf 让视觉小说开发保持轻量、有结构，并且能够随项目规模成长',
-      primaryCta: '探索方案',
+      primaryCta: '探索项目',
       secondaryCta: '阅读文档',
       imageAlt: 'NarraLeaf Studio 编辑器中的视觉小说项目工作区',
     },
@@ -438,7 +438,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="#solutions"
+                href="/project"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-fd-primary px-5 py-3 text-sm font-medium text-fd-primary-foreground transition-transform duration-200 hover:-translate-y-0.5"
               >
                 {copy.hero.primaryCta}

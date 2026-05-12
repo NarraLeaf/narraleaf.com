@@ -1,0 +1,468 @@
+﻿---
+title: "LayoutRouter"
+---
+LayoutRouter manages navigation between pages and nested layouts. It replaces the previous linear **PageRouter** and works together with `Layout` and `Page` components to build a directory-like route tree.
+
+```tsx
+import { useRouter } from "narraleaf-react";
+
+const router = useRouter();
+```
+
+## Basic navigation
+
+```tsx
+// Absolute navigation
+router.navigate("/home");
+
+// With query parameters
+router.navigate("/user/profile", { tab: "info" });
+
+// Relative navigation
+router.navigate("./detail");
+
+// History control
+router.back();
+router.forward();
+
+// Replace without pushing history
+router.replace("/settings");
+
+// Clear current page & history
+router.clear();
+
+// Keep current page but drop history
+router.cleanHistory();
+```
+
+## Query helpers
+
+```tsx
+router.setQueryParam("lang", "en");
+router.getQueryParam("lang"); // "en"
+router.removeQueryParam("lang");
+
+router.setQueryParams({ tab: "general", theme: "dark" });
+router.clearQueryParams();
+```
+
+## Path helpers
+
+| Method | Description |
+| ------ | ----------- |
+| `resolvePath(path)` | Resolve a relative path (e.g. `../parent`) to an absolute path. |
+| `matchPath(path, pattern)` | Prefix match with `*` and `:param` support. |
+| `exactMatch(path, pattern)` | Same as `matchPath` but requires exact segment count. |
+| `extractParams(path, pattern)` | Extract dynamic parameters from a matched path. |
+
+## Public Methods
+
+### navigate
+<Steps>
+<Step>
+
+Navigate to a new path.
+
+- `path: string` – target path, absolute or relative
+- `queryParams?: Record<string,string>` – optional query parameters
+- `return: this`
+
+```typescript
+router.navigate("/about");
+```
+</Step>
+</Steps>
+
+### back
+<Steps>
+<Step>
+
+Go back to previous history entry (if any).
+
+- `return: this`
+</Step>
+</Steps>
+
+### forward
+<Steps>
+<Step>
+
+Go forward to next history entry (if any).
+
+- `return: this`
+</Step>
+</Steps>
+
+### replace
+<Steps>
+<Step>
+
+Replace current path without adding a new history entry.
+
+- `path: string` – new path
+- `queryParams?: Record<string,string>` – optional query parameters
+- `return: this`
+</Step>
+</Steps>
+
+### clear
+<Steps>
+<Step>
+
+Clear current path and history.
+
+- `return: this`
+</Step>
+</Steps>
+
+### cleanHistory
+<Steps>
+<Step>
+
+Remove all history records except the current entry.
+
+- `return: this`
+</Step>
+</Steps>
+
+### getCurrentPath / getPathname
+<Steps>
+<Step>
+
+Get the current path (without query).
+
+- `return: string`
+</Step>
+</Steps>
+
+### getCurrentQuery / getQueryParams
+<Steps>
+<Step>
+
+Get current query parameters object.
+
+- `return: Record<string,string>`
+</Step>
+</Steps>
+
+### getCurrentUrl
+<Steps>
+<Step>
+
+Get current full URL (path + query).
+
+- `return: string`
+</Step>
+</Steps>
+
+### setQueryParam
+<Steps>
+<Step>
+
+Set a single query parameter.
+
+- `key: string`
+- `value: string`
+- `return: this`
+</Step>
+</Steps>
+
+### setQueryParams
+<Steps>
+<Step>
+
+Merge multiple query parameters.
+
+- `params: Record<string,string>`
+- `return: this`
+</Step>
+</Steps>
+
+### getQueryParam
+<Steps>
+<Step>
+
+Get a query parameter value.
+
+- `key: string`
+- `return: string | undefined`
+</Step>
+</Steps>
+
+### removeQueryParam
+<Steps>
+<Step>
+
+Remove a query parameter.
+
+- `key: string`
+- `return: this`
+</Step>
+</Steps>
+
+### clearQueryParams
+<Steps>
+<Step>
+
+Remove all query parameters.
+
+- `return: this`
+</Step>
+</Steps>
+
+### hasQueryParam
+<Steps>
+<Step>
+
+Check whether a query parameter exists.
+
+- `key: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### getQueryParamKeys
+<Steps>
+<Step>
+
+Get all query parameter keys.
+
+- `return: string[]`
+</Step>
+</Steps>
+
+### getQueryParamCount
+<Steps>
+<Step>
+
+Get number of query parameters.
+
+- `return: number`
+</Step>
+</Steps>
+
+### getHistory
+<Steps>
+<Step>
+
+Get full navigation history.
+
+- `return: string[]`
+</Step>
+</Steps>
+
+### getHistoryIndex
+<Steps>
+<Step>
+
+Get current index inside history array.
+
+- `return: number`
+</Step>
+</Steps>
+
+### canGoBack / canGoForward
+<Steps>
+<Step>
+
+Check if router can go back / forward.
+
+- `return: boolean`
+</Step>
+</Steps>
+
+### parseUrl
+<Steps>
+<Step>
+
+Parse a URL string into `{ path, query }`.
+
+- `url: string`
+- `return: { path:string; query:Record<string,string>; }`
+</Step>
+</Steps>
+
+### buildUrl
+<Steps>
+<Step>
+
+Build full URL from path and query object.
+
+- `path: string`
+- `query: Record<string,string>`
+- `return: string`
+</Step>
+</Steps>
+
+### resolvePath
+<Steps>
+<Step>
+
+Resolve a relative path to absolute path.
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### normalizePath
+<Steps>
+<Step>
+
+Normalize duplicate or trailing slashes in a path.
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### joinPath
+<Steps>
+<Step>
+
+Join multiple path segments and normalize the result.
+
+- `path: string` – base path
+- `...paths: string[]` – additional segments
+- `return: string`
+</Step>
+</Steps>
+
+### parsePath
+<Steps>
+<Step>
+
+Split a path into segments.
+
+- `path: string`
+- `return: string[]`
+</Step>
+</Steps>
+
+### buildPath
+<Steps>
+<Step>
+
+Build path string from segments array.
+
+- `segments: string[]`
+- `return: string`
+</Step>
+</Steps>
+
+### getParentPath
+<Steps>
+<Step>
+
+Get parent path of a given path.
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### matchPath
+<Steps>
+<Step>
+
+Prefix path matching supporting `*` and `:param`.
+
+- `path: string`
+- `pattern: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### exactMatch
+<Steps>
+<Step>
+
+Exact path matching (segment count must match).
+
+- `path: string`
+- `pattern: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### extractParams
+<Steps>
+<Step>
+
+Extract route parameters based on pattern.
+
+- `path: string`
+- `pattern: string`
+- `return: Record<string,string>`
+</Step>
+</Steps>
+
+### onExitComplete / onceExitComplete
+<Steps>
+<Step>
+
+Register handler executed after all exit animations completed.
+
+- `handler: () => void`
+- `return: LiveGameEventToken`
+</Step>
+</Steps>
+
+### onPageMount / oncePageMount
+<Steps>
+<Step>
+
+Register handler executed when a page component mounts.
+
+- `handler: () => void`
+- `return: LiveGameEventToken`
+</Step>
+</Steps>
+
+## Inspection
+
+```tsx
+router.getCurrentPath();  // "/user/profile"
+router.getCurrentQuery(); // { tab: "info" }
+router.getCurrentUrl();   // "/user/profile?tab=info"
+
+router.getHistory();      // ["/home", "/user/profile"]
+router.canGoBack();
+router.canGoForward();
+```
+
+---
+
+### Example with Layout & Page
+
+```tsx
+import { RouterProvider, RootLayout, Layout, Page, useRouter } from "narraleaf-react";
+
+function MyPages() {
+  return (
+    <RouterProvider>
+      <RootLayout>
+        {/* /home */}
+        <Layout name="home">
+          {/* default page: /home */}
+          <Page name={null}>
+            <Home />
+          </Page>
+
+          {/* /home/detail */}
+          <Page name="detail">
+            <Detail />
+          </Page>
+        </Layout>
+
+        {/* /about */}
+        <Layout name="about">
+          <Page name={null}>
+            <About />
+          </Page>
+        </Layout>
+      </RootLayout>
+    </RouterProvider>
+  );
+}
+```

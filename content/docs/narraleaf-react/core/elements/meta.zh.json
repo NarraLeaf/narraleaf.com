@@ -1,0 +1,21 @@
+{
+  "title": "元素",
+  "pages": [
+    "scene",
+    "character",
+    "image",
+    "sound",
+    "menu",
+    "script",
+    "condition",
+    "control",
+    "text",
+    "persistent",
+    "story",
+    "displayable",
+    "layer",
+    "service",
+    "video",
+    "built-in"
+  ]
+}

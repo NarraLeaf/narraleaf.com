@@ -1,0 +1,66 @@
+---
+title: "声音"
+---
+在 NarraLeaf-React 中，你可以使用 [Sound](../core/elements/sound) 元素播放声音。
+
+```typescript
+const sound = new Sound({
+    src: "https://你的声音链接.mp3",
+    volume: 0.5, // 0.0 到 1.0
+    loop: true, // 循环播放声音
+    sync: false, // 不等待声音播放完毕
+});
+```
+
+## 播放声音
+
+你可以通过将声音添加到场景中来播放它。
+
+```typescript
+scene1.action([
+    sound.play(), // 如果声音是同步的，场景将等待声音播放完毕
+]);
+```
+
+## 声音操作
+
+你可以暂停/恢复/淡入淡出/停止/设置音量/设置播放速率。
+
+```typescript
+scene1.action([
+    sound.pause(),
+    character1.say`声音已暂停`,
+    sound.resume(),
+    character1.say`声音已恢复`,
+]);
+```
+
+有关声音的更多信息，请阅读 [Sound](../core/elements/sound) 文档。
+
+## 背景音乐
+
+你可以将音乐添加到场景中，场景开始时将自动播放音乐。
+
+```typescript
+const scene = new Scene("场景 1", {
+    backgroundMusic: YOUR_SOUND_INSTANCE,
+    backgroundMusicFade: 1000, // 如果指定，当场景切换时，音乐将在 1000 毫秒内淡入/淡出
+});
+```
+
+## 音效
+
+你可以使用这些配置轻松创建音效。
+
+```typescript
+const soundEffect = new Sound({
+    src: "https://你的音效链接.mp3",
+    sync: false,
+});
+
+scene1.action([
+    soundEffect.play(),
+]);
+```
+
+当音效播放时，它不会等待声音播放完毕。

@@ -1,0 +1,26 @@
+---
+title: "添加动作"
+---
+动作是场景中最重要的部分。它们是使故事具有互动性的元素。
+
+你可以简单地向场景添加动作：
+
+```typescript
+const scene1 = new Scene("场景 1 - 醒来", {
+    // ...
+});
+const scene2 = new Scene("场景 2 - 早餐", {
+    // ...
+});
+
+scene1.action([
+    // ...
+    scene1.jumpTo(scene2),
+]);
+```
+
+`action` 方法接受一个动作数组。你可以使用 [元素](../core/elements) 来创建动作。
+
+`scene1.jumpTo` 将创建一个跳转动作。当动作执行时，它将跳转到下一个场景。
+
+> 注意：跳转动作之后的动作将不会被执行。

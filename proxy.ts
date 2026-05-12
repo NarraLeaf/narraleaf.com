@@ -1,1 +1,2 @@
-export { default } from './src/proxy';
+﻿export { default as proxy } from './src/proxy';
+

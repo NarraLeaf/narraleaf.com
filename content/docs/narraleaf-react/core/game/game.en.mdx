@@ -1,0 +1,151 @@
+﻿---
+title: "Game"
+---
+Game is the main class that represents the game itself. It contains all the game's configuration and [LiveGame](./live-game)s
+
+Game use Singleton pattern, so you can get the instance by calling hook `useGame()`
+
+## Public Properties
+
+### preference
+
+<Steps>
+<Step>
+
+the [Preference](./preference/preference) instance
+
+- `Preference<GamePreference>` - See [GamePreference](../types/GamePreference)
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+</Step>
+</Steps>
+
+### keyMap
+
+<Steps>
+<Step>
+
+Key binding manager of the game
+
+- `KeyMap` - See [KeyMap](./key-map)
+
+```typescript
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
+```
+</Step>
+</Steps>
+
+## Public Methods
+
+### getLiveGame
+
+<Steps>
+<Step>
+
+- `return: LiveGame` - the [LiveGame](./live-game) instance
+</Step>
+</Steps>
+
+### configure
+
+<Steps>
+<Step>
+
+Assign a new configuration to the game
+
+> **Note:** This method is designed to be used before the game is initialized.
+> 
+> Calling this method after the game is initialized will not take effect or not taking effect immediately. Settings in the [Preference](./preference/preference) will take effect immediately.
+
+```typescript
+const { game } = useGame();
+
+useEffect(() => {
+    game.configure({
+        ratioUpdateInterval: 0, // update the player size immediately
+
+        /* cursor */
+        cursor: "cursor.jpeg",
+        cursorHeight: 60,
+        cursorWidth: 60,
+    });
+}, []);
+```
+</Step>
+</Steps>
+
+### use
+
+<Steps>
+<Step>
+
+Register a plugin to the game. 
+
+> **Note**: Plugins with the same name will not be registered.
+>
+> A name consists of `namespace` and `name` is recommended.  
+> Ex: `"@Namespace/PluginName"`, `"@Author/PluginName"`, `"PluginName"`
+
+```typescript
+game.use({
+    ... /** plugin register config */
+});
+```
+
+- `plugin: IGamePluginRegistry` - The plugin registry config, see [IGamePluginRegistry](../types/IGamePluginRegistry)
+</Step>
+</Steps>
+
+### dispose
+
+<Steps>
+<Step>
+
+Dispose the game and release all the resources.
+
+> **Note**: This action is irreversible.
+
+```typescript
+game.dispose();
+```
+</Step>
+</Steps>
+
+### configureAndFreeze
+
+<Steps>
+<Step>
+
+Configure the game and freeze specific fields to prevent further modifications.
+
+> **Warning**: This method is not recommended to be used without using NarraLeaf Engine or Plugin Environment.
+
+```typescript
+game.configureAndFreeze({
+    ratioUpdateInterval: 0,
+    cursor: "cursor.jpeg"
+});
+```
+
+- `config: DeepPartial<GameConfig>` - The game configuration to apply and freeze
+</Step>
+</Steps>
+
+### freeze
+
+<Steps>
+<Step>
+
+Freeze specific configuration fields to prevent further modifications.
+
+> **Warning**: This method is not recommended to be used without using NarraLeaf Engine or Plugin Environment.
+
+```typescript
+game.freeze(["ratioUpdateInterval", "cursor"]);
+```
+
+- `fields: (StringKeyOf<GameConfig>)[]` - Array of configuration field names to freeze
+</Step>
+</Steps>

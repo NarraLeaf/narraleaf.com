@@ -1,0 +1,244 @@
+﻿---
+title: "可显示元素"
+---
+可显示元素定义了所有可显示元素应具有的属性和方法。可显示元素是指可以在屏幕上显示的元素。
+例如：图像、文本
+
+## 链式方法
+
+### pos
+
+<Steps>
+<Step>
+
+Transform the element to a new position.
+
+```typescript
+    element.pos({
+    xalign: 0.3
+}, 1000, "linear"); // 在 1000 毫秒内以线性缓动将元素移动到 x: 0.3
+```
+
+- `position: CommonDisplayableConfig["position"]` - 元素的新位置，参见 [CommonDisplayableConfig](../types/CommonDisplayable#position)
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### scale
+
+<Steps>
+<Step>
+
+缩放元素
+
+```typescript
+element.scale(1.5, 0.8, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素在 X 轴缩放到 1.5 倍，Y 轴缩放到 0.8 倍
+```
+
+- `scaleX: number` - 元素在 X 轴的新缩放比例，使用负值可以反转缩放
+- `scaleY: number` - 元素在 Y 轴的新缩放比例，使用负值可以反转缩放
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### scaleX
+
+<Steps>
+<Step>
+
+在 X 轴方向缩放元素
+
+```typescript
+element.scaleX(1.5, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素在 X 轴缩放到 1.5 倍
+```
+
+- `scaleX: number` - 元素在 X 轴的新缩放比例
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### scaleY
+
+<Steps>
+<Step>
+
+在 Y 轴方向缩放元素
+
+```typescript
+element.scaleY(0.8, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素在 Y 轴缩放到 0.8 倍
+```
+
+- `scaleY: number` - 元素在 Y 轴的新缩放比例
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### scaleXY
+
+<Steps>
+<Step>
+
+同时在 X 和 Y 轴方向缩放元素
+
+```typescript
+element.scaleXY(1.2, 0.9, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素在 X 轴缩放到 1.2 倍，Y 轴缩放到 0.9 倍
+```
+
+- `scaleX: number` - 元素在 X 轴的新缩放比例
+- `scaleY: number` - 元素在 Y 轴的新缩放比例
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### zoom
+
+<Steps>
+<Step>
+
+缩放图像（推荐用于图像缩放）
+
+```typescript
+element.zoom(2, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将图像缩放到 2 倍
+```
+
+- `zoom: number` - 图像的新缩放比例
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### rotate
+
+<Steps>
+<Step>
+
+旋转元素
+
+```typescript
+    element.rotate(90, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素旋转到 90 度
+```
+
+- `angle: number` - 元素的新角度，以度为单位
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### opacity
+
+<Steps>
+<Step>
+
+更改元素的不透明度
+
+```typescript
+    element.opacity(0.5, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素的不透明度更改为 0.5
+```
+
+- `opacity: number` - 元素的新不透明度，介于 0 和 1 之间
+- `duration?: number` - 变换的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### transform
+
+<Steps>
+<Step>
+
+对元素应用自定义变换
+
+```typescript
+element.transform(new Transform(
+/* 变换定义 */
+));
+```
+
+- `transform: Transform` - 应用于元素的自定义变换，参见 [Transform](../animation/transform)
+</Step>
+</Steps>
+
+### show
+
+<Steps>
+<Step>
+
+#### 重载 1 / 3
+
+立即显示元素
+
+```typescript
+element.show();
+```
+
+#### 重载 2 / 3
+
+使用自定义变换显示元素
+
+```typescript
+element.show({
+    /* 变换定义 */
+});
+```
+
+- `options: Transform` - 应用于元素的自定义变换，参见 [Transform](../animation/transform)
+
+#### 重载 3 / 3
+
+使用变换配置显示元素。将应用一个 alpha:1 的变换到元素
+
+```typescript
+element.show({
+    duration: 1000,
+    ease: "easeInOut",
+});
+```
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - 参见 [TransformDefinitions](../types/TransformDefinitions).[CommonTransformProps](../types/TransformDefinitions#CommonTransformProps)
+</Step>
+</Steps>
+
+### hide
+
+<Steps>
+<Step>
+
+#### 重载 1 / 3
+
+立即隐藏元素
+
+```typescript
+element.hide();
+```
+
+#### 重载 2 / 3
+
+使用自定义变换隐藏元素
+
+```typescript
+element.hide({
+    /* 变换定义 */
+});
+```
+
+- `options: Transform` - 应用于元素的自定义变换，参见 [Transform](../animation/transform)
+
+#### 重载 3 / 3
+
+使用变换配置隐藏元素。将应用一个 alpha:0 的变换到元素
+
+```typescript
+element.hide({
+    duration: 1000,
+    ease: "easeInOut",
+});
+```
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - 参见 [TransformDefinitions](../types/TransformDefinitions).[CommonTransformProps](../types/TransformDefinitions#CommonTransformProps)
+</Step>
+</Steps>

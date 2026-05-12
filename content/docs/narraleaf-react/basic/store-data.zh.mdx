@@ -1,0 +1,58 @@
+---
+title: "存储数据"
+---
+你可以使用 [Persistent](../core/elements/persistent) 在游戏上下文中存储数据。
+
+```typescript
+type PersisData = {
+    flag: boolean;
+    coin: number;
+    name: string;
+    // ...
+};
+const persis = new Persistent<PersisData>("persis", {
+    flag: false,
+    coin: 0,
+    name: "约翰·史密斯",
+    // ...
+});
+
+// 在故事中注册持久化数据
+story.registerPersistent(persis);
+
+const scene1 = new Scene("场景1");
+const char1 = new Character("约翰·史密斯");
+scene1.action([
+    persis.set("coin", 50),
+
+    char1.say`你有 ${persis.get("coin")} 个硬币！`,
+]);
+```
+
+<Callout type="warning">
+    如果脚本内容包含 Persistent，必须使用 `story.registerPersistent(persis)` 在 [Story](../core/elements/story) 中注册。
+</Callout>
+
+> **注意：** 存储的内容必须是 **可序列化的**，更多信息请参见 [Persistent](../core/elements/persistent).
+
+你可以将包括持久数据在内的游戏数据保存到你想要的任何地方，例如本地存储、服务器或云存储。
+
+```typescript
+const {game} = useGame(); // 在 React 组件中调用此钩子
+
+// 例如，如果玩家点击了你的组件
+// 你可以将游戏数据保存到本地存储
+const data = game.getLiveGame().serialize();
+console.log(data);
+```
+
+你可以随时加载游戏数据。
+
+```typescript
+const {game} = useGame();
+
+const data = /* ... */;
+game.getLiveGame().deserialize(data);
+```
+
+> **注意：** 加载游戏数据后，当前游戏数据将丢失。

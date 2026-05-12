@@ -1,12 +1,127 @@
 ---
-title: NarraLeaf-React Basic
-description: Entry point for basic tutorials; links onward once sub-pages are migrated.
+title: "NarraLeaf-React Basic"
+description: Learn the core NarraLeaf-React workflow for writing scenes, actions, dialog, choices, media, data, and preferences.
 ---
 
-<Callout type="warning">
-  This page is under construction.
-</Callout>
+The Basic guide is the first place to go after you have a running NarraLeaf-React project. It walks through the story-writing workflow: define scenes, add actions, show dialog and images, connect scenes together, and then layer in interactivity, audio, data, voice, and player preferences.
 
-This guide will help you get started with NarraLeaf-React.
+## Prerequisites
 
-If you haven't read the [Quick Start](../quick-start) guide, please do so before continuing.
+Before starting this section, create or prepare a NarraLeaf-React project:
+
+<Cards>
+    <Card
+        title="Quick Start"
+        description="Create a new NarraLeaf-React project from the starter template."
+        href="../quick-start"
+    />
+    <Card
+        title="Installation"
+        description="Install NarraLeaf-React in an existing React application."
+        href="../installation"
+    />
+</Cards>
+
+## Core Workflow
+
+<Steps>
+<Step>
+
+### Create a scene
+
+Start by defining a [Scene](./create-scene). A scene gives a named section of your visual novel its own background and story context.
+
+</Step>
+<Step>
+
+### Add actions
+
+Use [actions](./add-actions) to describe what happens inside the scene. Actions are the ordered instructions NarraLeaf-React executes while the story is playing.
+
+</Step>
+<Step>
+
+### Present story content
+
+Show [dialog](./show-dialog), display [images](./show-image), and then [play the story](./play-story) through the player so the scene can be experienced interactively.
+
+</Step>
+<Step>
+
+### Add interaction and state
+
+Use [choices](./make-choices), [conditions](./conditional), and [stored data](./store-data) to make the story react to player decisions and previous events.
+
+</Step>
+<Step>
+
+### Polish the experience
+
+Add [sound](./sound), [voice](./voice), and [preferences](./manage-preferences) so the visual novel feels complete and gives players control over playback.
+
+</Step>
+</Steps>
+
+## Tutorials
+
+<Cards>
+    <Card
+        title="Create a Scene"
+        description="Define the basic unit of story structure and visual context."
+        href="./create-scene"
+    />
+    <Card
+        title="Add Actions"
+        description="Build the ordered action list that drives a scene."
+        href="./add-actions"
+    />
+    <Card
+        title="Show Dialog"
+        description="Display character lines and narration."
+        href="./show-dialog"
+    />
+    <Card
+        title="Show Image"
+        description="Place visual assets in the scene."
+        href="./show-image"
+    />
+    <Card
+        title="Play Story"
+        description="Connect scenes to the player and run the story."
+        href="./play-story"
+    />
+    <Card
+        title="Make Choices"
+        description="Let players choose between branches."
+        href="./make-choices"
+    />
+    <Card
+        title="Sound"
+        description="Add audio cues and playback behavior."
+        href="./sound"
+    />
+    <Card
+        title="Store Data"
+        description="Save values that influence later story events."
+        href="./store-data"
+    />
+    <Card
+        title="Conditional"
+        description="Run actions only when the current game state matches."
+        href="./conditional"
+    />
+    <Card
+        title="Voice"
+        description="Attach voice playback to story presentation."
+        href="./voice"
+    />
+    <Card
+        title="Manage Preferences"
+        description="Expose and update player-facing settings."
+        href="./manage-preferences"
+    />
+</Cards>
+
+## Next Steps
+
+After the Basic guide, use [Solutions](../solutions) for complete patterns, [Core](../core) for the underlying story APIs, and [Player](../player) for the React components and hooks that render the experience.

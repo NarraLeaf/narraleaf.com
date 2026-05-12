@@ -1,0 +1,149 @@
+﻿---
+title: "控制"
+---
+`控制`是一个类，它具有一些用于流程控制的实用方法。
+
+```typescript
+Control.do([
+    character1.say("hello"),
+
+    // 播放声音并同时摇动图像
+    Control.allAsync([
+        sound.play(),
+        shake(image1),
+    ]),
+]);
+```
+
+## 静态方法
+
+<Steps>
+<Step>
+
+### do
+
+按顺序执行操作，等待每个操作完成
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### doAsync
+
+<Steps>
+<Step>
+
+按顺序执行操作，不等待操作完成
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### any
+
+<Steps>
+<Step>
+
+同时执行所有操作，等待任意一个操作完成
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### all
+
+<Steps>
+<Step>
+
+同时执行所有操作，等待所有操作完成
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### allAsync
+
+<Steps>
+<Step>
+
+同时执行所有操作，不等待所有操作完成
+
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### repeat
+
+<Steps>
+<Step>
+
+多次执行操作
+
+- `times: number` - 次数
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### whileLoop
+
+<Steps>
+<Step>
+
+当条件为真时执行操作
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+- `actions: ActionStatements` - [ActionStatements](../types/ActionStatements)
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### breakLoop
+
+<Steps>
+<Step>
+
+打破当前循环（repeat/while）
+只能在循环体内使用
+
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### sleep
+
+<Steps>
+<Step>
+
+休眠一段时间
+
+- `duration: number | Awaitable<any> | Promise<any>` - 休眠时长
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### waitForClick
+
+<Steps>
+<Step>
+
+暂停执行，直到用户在舞台任意位置点击（不包括对话框、按钮、菜单等 GUI 元素）。类似于在 [Sentence](./character#sentence) 中插入无时长的暂停。
+
+适用于在 ADV 模式中创建「点击继续」的停顿，或在 NVL 块内等待玩家准备好后再继续。
+
+```typescript
+scene.action([
+    character.say("请仔细阅读..."),
+    Control.waitForClick(),
+    character.say("我们继续。"),
+]);
+```
+
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>

@@ -1,0 +1,207 @@
+﻿---
+title: "声音"
+---
+<Callout type="warning">
+    本页面正在建设中
+</Callout>
+
+<Callout type="warning">
+    测试功能，可能会有变动
+</Callout>
+
+Sound 控制游戏中的声音
+
+## 静态方法
+
+### voice
+
+<Steps>
+<Step>
+
+创建一个语音声音
+
+```ts
+const voice = Sound.voice({
+    src: 'voice.mp3',
+});
+
+// 等同于
+const voice = new Sound({
+    src: 'voice.mp3',
+    type: SoundType.Voice,
+});
+```
+
+- `arg0: Partial<ISoundUserConfig> | string` - 声音的配置或声音源，参见 [ISoundUserConfig](../types/ISoundUserConfig)
+- 返回 `Sound`
+</Step>
+</Steps>
+
+### bgm
+
+<Steps>
+<Step>
+
+创建一个背景音乐
+
+- `arg0: Partial<ISoundUserConfig> | string` - 声音的配置或声音源，参见 [ISoundUserConfig](../types/ISoundUserConfig)
+- 返回 `Sound`
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+创建一个声音
+
+- `arg0: Partial<ISoundUserConfig> | string` - 声音的配置或声音源，参见 [ISoundUserConfig](../types/ISoundUserConfig)
+- 返回 `Sound`
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+#### 重载 1 / 2
+
+- `config?: Partial<ISoundUserConfig>` - 参见 [ISoundUserConfig](../types/ISoundUserConfig)
+
+#### 重载 2 / 2
+
+- `src?: string` - 声音的源文件路径
+</Step>
+</Steps>
+
+## 可链式方法
+
+### play
+
+<Steps>
+<Step>
+
+播放声音并等待其结束
+
+> **提示**: 标记为 `Bgm` 的声音不能直接播放。
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+});
+scene.action([
+    sound.play(1000), // 播放并淡入 1 秒
+]);
+```
+
+- `duration?: number` - 淡入淡出持续时间（以毫秒为单位）
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+停止声音。停止后，声音将回到开头
+
+- `duration?: number` - 淡入淡出持续时间（以毫秒为单位）
+</Step>
+</Steps>
+
+### fade
+
+<Steps>
+<Step>
+
+淡入淡出声音
+
+- `start: number | undefined` - 起始音量，从 0 到 1，默认为当前音量
+- `end: number` - 结束音量，从 0 到 1
+- `duration: number` - 持续时间（以毫秒为单位）
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+    volume: 0,
+});
+scene.action([
+    sound
+        .play()
+        .fade(0, 1, 1000), // 淡入 1 秒
+]);
+```
+</Step>
+</Steps>
+
+### setVolume
+
+<Steps>
+<Step>
+
+设置声音的音量
+
+- `volume: number` - 音量，从 0 到 1
+- `duration?: number` - 淡入淡出持续时间（以毫秒为单位）
+</Step>
+</Steps>
+
+### mute
+
+<Steps>
+<Step>
+
+静默或恢复声音，但不会停止播放。
+
+- `muted?: boolean` - `true` 表示静默，`false` 表示恢复音量（默认 `true`）
+- 返回 `ChainedSound` - 可链式声音实例
+</Step>
+</Steps>
+
+### unmute
+
+<Steps>
+<Step>
+
+`mute(false)` 的别名，用于恢复原始音量。
+
+- 返回 `ChainedSound` - 可链式声音实例
+</Step>
+</Steps>
+
+### setRate
+
+<Steps>
+<Step>
+
+设置声音的播放速率
+
+- `rate: number` - 速率，基准为 1
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+暂停声音
+
+- `duration?: number` - 淡入淡出持续时间（以毫秒为单位）
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+恢复播放声音
+
+- `fade?: number` - 淡入淡出持续时间（以毫秒为单位）
+</Step>
+</Steps>

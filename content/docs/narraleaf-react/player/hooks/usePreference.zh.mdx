@@ -1,0 +1,42 @@
+---
+title: "usePreference"
+---
+您可以使用此钩子访问和管理偏好设置
+
+> **注意**：此钩子只能在 [GameProvider](../game-providers) 的后代组件中使用
+
+```typescript
+function usePreference<K extends StringKeyOf<GamePreference>>(
+    key: K
+): [GamePreference[K], (value: GamePreference[K]) => void];
+```
+
+- 有关 GamePreference，请参见 [GamePreference](../../core/types/GamePreference)
+
+## 用法
+
+此钩子类似于 [useState](https://react.dev/reference/react/useState) 钩子。它返回一个包含当前值和更新值的函数的元组
+
+```typescript
+import {usePreference} from "narraleaf-react";
+```
+
+```typescript
+function myComponent() {
+    const [autoForward, setAutoForward] = usePreference("autoForward");
+
+    function triggerAutoForward() {
+        setAutoForward(current => !current);
+    }
+
+    return (
+        <div>
+            自动前进：{autoForward ? "启用" : "禁用"}
+            
+            <button onClick={triggerAutoForward}>
+                切换自动前进
+            </button>
+        </div>
+    );
+}
+```

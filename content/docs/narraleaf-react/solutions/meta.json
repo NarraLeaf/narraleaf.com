@@ -1,4 +1,16 @@
 {
   "title": "Solutions",
-  "description": "Patterns and answers for fonts, migration, avatars, and common questions."
+  "pages": [
+    "font",
+    "from-renpy",
+    "quick-menu",
+    "custom-dialog",
+    "dialog-avatar",
+    "custom-nvl-dialog",
+    "custom-menu",
+    "page-overlay-settings",
+    "save-system-localstorage",
+    "custom-notification",
+    "gallery-service-localstorage"
+  ]
 }

@@ -1,0 +1,5 @@
+{
+  "title": "文档",
+  "description": "NarraLeaf 项目生态、引擎、Studio 与 React 播放器文档。",
+  "pages": ["narraleaf", "studio", "narraleaf-react"]
+}

@@ -1,0 +1,120 @@
+﻿---
+title: "Namespace\\<T extends NameSpaceContent\\<keyof T\\>\\>"
+---
+Namespace 是一个类，表示 [Storable](.) 的命名空间。
+
+## 公共属性
+
+### name
+
+- `string` - 命名空间的可读名称
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - 命名空间的可读名称
+- `initContent: T` - 命名空间的初始内容
+- `key?: string` - 命名空间的键，默认为名称
+</Step>
+</Steps>
+
+### set\<Key extends keyof T\>
+
+<Steps>
+<Step>
+
+示例：
+```typescript
+const namespace = new Namespace<{name: string}>('player1', {name: 'John Doe'});
+
+namespace.set('name', 'Jane Smith');
+```
+
+- `key: Key` - 要设置的值的键
+- `value: T[Key]` - 要设置的值
+- 返回 `this`
+</Step>
+</Steps>
+
+### get\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - 要获取的值的键
+- 返回 `T[Key]`
+</Step>
+</Steps>
+
+### equals\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - 要比较的值的键
+- `value: T[Key]` - 要比较的值
+- 返回 `boolean`
+</Step>
+</Steps>
+
+### assign
+
+<Steps>
+<Step>
+
+- `values: Partial<T>` - 要分配的内容
+- 返回 `this`
+</Step>
+</Steps>
+
+### has
+
+<Steps>
+<Step>
+
+- `key: keyof T` - 要检查的键
+- 返回 `boolean`
+</Step>
+</Steps>
+
+### keys
+
+<Steps>
+<Step>
+
+- 返回 `(keyof T)[]`
+</Step>
+</Steps>
+
+### values
+
+<Steps>
+<Step>
+
+- 返回 `T[keyof T][]`
+</Step>
+</Steps>
+
+### entries
+
+<Steps>
+<Step>
+
+- 返回 `[keyof T, T[keyof T]][]`
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+将命名空间重置为其初始内容
+
+- 返回 `this`
+</Step>
+</Steps>

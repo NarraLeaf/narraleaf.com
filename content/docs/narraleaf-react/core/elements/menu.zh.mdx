@@ -1,0 +1,191 @@
+﻿---
+title: "选项"
+---
+`菜单` 允许您在视觉小说中创建菜单。它用于在故事的不同部分之间导航。
+
+```ts
+Menu.prompt("我应该做什么？")
+    .choose("往左走", [
+        character1.say("我往左走了"),
+        scene1.jumpTo(scene2)
+    ])
+    .choose("往右走", [
+        character1.say("我往右走了")
+    ])
+```
+
+## 静态方法
+
+### prompt
+
+创建一个带提示的菜单。
+
+<Steps>
+<Step>
+
+- `prompt: SentencePrompt | Sentence | null | undefined` - 向玩家显示的提示
+- `config?: MenuConfig` - [MenuConfig](../types/MenuConfig)
+</Step>
+</Steps>
+
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+#### 重载 1 / 5
+
+- `prompt: SentencePrompt` - 见 [SentencePrompt](../types/SentencePrompt)
+- `config?: MenuConfig` - [MenuConfig](../types/MenuConfig)
+
+#### 重载 2 / 5
+
+- `prompt: Sentence` - 菜单的提示，见 [Sentence](./character/sentence)
+- `config?: MenuConfig` - [MenuConfig](../types/MenuConfig)
+
+#### 重载 3 / 5
+
+- `prompt: SentencePrompt | Sentence` - 菜单的提示
+- `config: MenuConfig` - [MenuConfig](../types/MenuConfig)
+
+#### 重载 4 / 5
+
+- `prompt: null` - 菜单无提示
+- `config?: MenuConfig` - [MenuConfig](../types/MenuConfig)
+
+#### 重载 5 / 5
+
+- `prompt: SentencePrompt | Sentence | null` - 菜单的提示
+- `config: MenuConfig` - [MenuConfig](../types/MenuConfig)
+</Step>
+</Steps>
+
+## 链式方法
+
+### choose
+
+向菜单添加一个选择。
+
+<Steps>
+<Step>
+
+#### 重载 1 / 3
+
+```ts
+new Menu("我应该做什么？")
+    .choose({
+        prompt: "往左走",
+        action: [
+            character1.say("我往左走了"),
+        ]
+    })
+```
+
+- `choice: MenuChoice` - 菜单的选择，见 [MenuChoice](../types/MenuChoice)
+
+#### 重载 2 / 3
+
+```ts
+new Menu("我应该做什么？")
+    .choose(new Sentence("往左走"), [
+        character1.say("我往左走了"),
+    ])
+```
+
+- `prompt: Sentence` - 选择的提示，见 [Sentence](./character/sentence)
+- `action: ActionStatements` - 选择的操作，见 [ActionStatements](../types/ActionStatements)
+
+#### 重载 3 / 3
+
+```ts
+new Menu("我应该做什么？")
+    .choose("往左走", [
+        character1.say("我往左走了"),
+    ])
+```
+
+- `prompt: SentencePrompt` - 见 [SentencePrompt](../types/SentencePrompt)
+- `action: ActionStatements` - 选择的操作，见 [ActionStatements](../types/ActionStatements)
+</Step>
+</Steps>
+
+### hideIf
+
+魔法方法，当条件为真时隐藏最后一个选择。
+
+```ts
+menu.choose(
+  "往左走",
+  [character.say("我往左走了")]
+).hideIf(persis.isTrue("flag"));
+```
+
+**注意**: 此方法将覆盖最后一个选择的 `config.hidden`
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+</Step>
+</Steps>
+
+### disableIf
+
+魔法方法，当条件为真时禁用最后一个选择。
+
+**注意**: 此方法将覆盖最后一个选择的 `config.disabled`
+
+```ts
+menu.choose(
+  "往左走",
+  [character.say("我往左走了")]
+).disableIf(persis.isTrue("flag"));
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+</Step>
+</Steps>
+
+### enableWhen
+
+添加一个选择，仅在条件为真时启用。
+
+```ts
+menu.enableWhen(persis.isTrue("flag"), "往左走", [
+    character.say("我往左走了")
+]);
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+- `prompt: Sentence` - 选择的提示
+- `action: ActionStatements` - 选择的操作
+</Step>
+</Steps>
+
+### showWhen
+
+添加一个选择，仅在条件为真时显示。
+
+```ts
+menu.showWhen(persis.isTrue("flag"), "往左走", [
+    character.say("我往左走了")
+]);
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+- `prompt: Sentence` - 选择的提示
+- `action: ActionStatements` - 选择的操作
+</Step>
+</Steps>

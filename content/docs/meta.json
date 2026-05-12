@@ -1,0 +1,5 @@
+{
+  "title": "Documentation",
+  "description": "NarraLeaf documentation for the engine, Studio, and React player.",
+  "pages": ["narraleaf", "studio", "narraleaf-react"]
+}

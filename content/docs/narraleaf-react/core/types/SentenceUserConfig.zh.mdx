@@ -1,0 +1,10 @@
+---
+title: "SentenceUserConfig"
+---
+```typescript
+type SentenceUserConfig = Partial<Omit<SentenceConfig, "voice"> & {
+    voice: Sound | string | null | undefined;
+}>;
+```
+
+参见 [SentenceConfig](./SentenceConfig)，其中包含 `pause`、`metadata`、`avatar`（对话框头像，见 [Dialog](../../player/dialog)）等可选字段。

@@ -1,0 +1,120 @@
+﻿---
+title: "Namespace\\<T extends NameSpaceContent\\<keyof T\\>\\>"
+---
+Namespace is a class that represents a namespace of a [Storable](.)
+
+## Public Properties
+
+### name
+
+- `string` - Human-readable name of the namespace
+
+## Public Methods
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - Human-readable name of the namespace
+- `initContent: T` - Initial content of the namespace
+- `key?: string` - The namespace key, default is the name
+</Step>
+</Steps>
+
+### set\<Key extends keyof T\>
+
+<Steps>
+<Step>
+
+Example:
+```typescript
+const namespace = new Namespace<{name: string}>('player1', {name: 'John Doe'});
+
+namespace.set('name', 'Jane Smith');
+```
+
+- `key: Key` - The key of the value to set
+- `value: T[Key]` - The value to set
+- Returns `this`
+</Step>
+</Steps>
+
+### get\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - The key of the value to get
+- Returns `T[Key]`
+</Step>
+</Steps>
+
+### equals\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - The key of the value to compare
+- `value: T[Key]` - The value to compare
+- Returns `boolean`
+</Step>
+</Steps>
+
+### assign
+
+<Steps>
+<Step>
+
+- `values: Partial<T>` - The content to assign
+- Returns `this`
+</Step>
+</Steps>
+
+### has
+
+<Steps>
+<Step>
+
+- `key: keyof T` - The key to check
+- Returns `boolean`
+</Step>
+</Steps>
+
+### keys
+
+<Steps>
+<Step>
+
+- Returns `(keyof T)[]`
+</Step>
+</Steps>
+
+### values
+
+<Steps>
+<Step>
+
+- Returns `T[keyof T][]`
+</Step>
+</Steps>
+
+### entries
+
+<Steps>
+<Step>
+
+- Returns `[keyof T, T[keyof T]][]`
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+Reset the namespace to its initial content
+
+- Returns `this`
+</Step>
+</Steps>

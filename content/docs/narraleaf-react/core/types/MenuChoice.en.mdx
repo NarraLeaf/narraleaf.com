@@ -1,0 +1,37 @@
+---
+title: "MenuChoice"
+---
+```ts
+type MenuChoice = {
+    action: ActionStatements;
+    prompt: SentencePrompt | Sentence;
+    config?: {
+        disabled?: Lambda<boolean> | LambdaHandler<boolean>;
+        hidden?: Lambda<boolean> | LambdaHandler<boolean>;
+    };
+};
+```
+
+Example:
+
+```ts
+Menu.prompt("What should I do?")
+    /**
+     * option: "Go left"
+     * action: say "I went left" and jump to scene2
+     */
+    .choose("Go left", [
+        character1.say("I went left"),
+        scene1.jumpTo(scene2)
+    ])
+    
+    /**
+     * option: "Go right" with red color
+     * action: say "I went right"
+     */
+    .choose(Sentence([ "Go", new Word("right", {color: "#ff0000"}) ]), [
+        character1.say("I went right")
+    ])
+```
+
+For more information about `ActionStatements`, see [ActionStatements](./ActionStatements).

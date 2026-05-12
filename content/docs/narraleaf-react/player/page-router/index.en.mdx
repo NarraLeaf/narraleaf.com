@@ -1,0 +1,127 @@
+---
+title: "Page Router (LayoutRouter)"
+---
+Since NarraLeaf-React **0.7.0** the linear *Page Router* has been replaced by **LayoutRouter** which works together with `Layout` and `Page` components to build a tree-like UI structure.
+
+This document gives a quick overview; detailed APIs are in:
+
+- [`LayoutRouter`](./page-router/router)
+- [`Layout`](./page-router/layout)
+- [`Page`](./page-router/page)
+
+## Quick example
+
+```tsx
+import { RouterProvider, RootLayout, Layout, Page, useRouter } from "narraleaf-react";
+
+function UI() {
+  return (
+    <RouterProvider>
+      <RootLayout>
+        {/* /home */}
+        <Layout name="home">
+          <Page name={null}> // default page /home
+            <Home />
+          </Page>
+          <Page name="detail"> // /home/detail
+            <Detail />
+          </Page>
+        </Layout>
+
+        {/* /about */}
+        <Layout name="about">
+          <Page name={null}>
+            <About />
+          </Page>
+        </Layout>
+      </RootLayout>
+    </RouterProvider>
+  );
+}
+
+function MenuButton() {
+  const router = useRouter();
+  return (
+    <button onClick={() => router.navigate("/about")}>Go to about</button>
+  );
+}
+```
+
+## Path patterns (slugs & wildcards)
+
+`Layout` and `Page` names support two special tokens:
+
+1. **Slug / parameter** – `:param` matches a single segment and exposes its value.
+2. **Wildcard** – `*` matches one segment (can be repeated).
+
+```tsx
+// /user/:id/profile
+<Layout name="user">
+  <Layout name=":id"> {/* matches any user id */}
+    <Page name="profile"> {/* e.g. /user/42/profile */}
+      <UserProfile />
+    </Page>
+  </Layout>
+</Layout>
+```
+
+Extract parameter values via the router helper:
+
+```tsx
+const router = useRouter();
+const params = router.extractParams(router.getCurrentPath(), "/user/:id/profile");
+console.log(params.id); // "42"
+```
+
+Wildcard example – match everything under `/docs/**`:
+
+```tsx
+<Layout name="docs">
+  <Page name="*"> {/* /docs/installation, /docs/api/x, ... */}
+    <DocViewer />
+  </Page>
+</Layout>
+```
+
+## Why the change?
+
+1. **Nested layouts** – Build complex UIs (side-bars, popups, tabs) by composing layouts.
+2. **URL-like paths** – Use familiar path patterns (`/user/:id/profile`).
+3. **Better animation control** – Exit/enter animations propagate through the layout tree.
+
+## Migration guide (0.6 → 0.7)
+
+| Old API | New API | Notes |
+| ------- | ------- | ----- |
+| `<Page id="about" />` | `<Page name="about" />` | `id` ➜ `name` |
+| `router.push("about")` | `router.navigate("/about")` | paths start with `/` |
+| No concept | `<Layout name="home">...</Layout>` | new container |
+
+## Next steps
+
+1. Read the [`LayoutRouter` public methods](./page-router/router#public-methods).
+2. Learn about [`Layout`](./page-router/layout) and path patterns.
+3. Update your project: replace `Page id` with `Page name`, wrap related pages in `Layout`s, and use `router.navigate`.
+
+## Component animations
+
+`LayoutRouter` mounts and unmounts `Page` / `Layout` components automatically.  To add enter/exit **transitions**, simply make the top-level node of your component a Framer Motion element.  No extra router code needed.
+
+```tsx
+import { motion } from "framer-motion";
+
+export function PageContent() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* your page UI */}
+    </motion.div>
+  );
+}
+```
+
+Wrap `PageContent` inside a `<Page>` and the transition will run whenever the route changes.

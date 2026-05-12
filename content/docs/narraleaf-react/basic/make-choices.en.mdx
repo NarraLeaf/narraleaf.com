@@ -1,0 +1,49 @@
+---
+title: "Make Choices"
+---
+You can crerate a menu with choices by using the [Menu](../core/elements/menu) element.
+
+```typescript
+const narrator = new Character(null);
+
+/**
+ * What should I do?
+ * - Go left
+ *    ~> *You went left.*
+ *    ~> jump to scene "scene_went_left"
+ * 
+ * - Go right
+ *    ~> *You went right.*
+ *    ~> jump to scene "scene_went_right"
+ */
+
+scene.action([
+    Menu.prompt("What should I do?")
+
+        .choose("Go left", [
+            narrator`You went left.`,
+            /* ... */
+            scene.jumpTo(scene_went_left),
+        ])
+
+        .choose("Go right", [
+            narrator`You went right.`,
+            /* ... */
+            scene.jumpTo(scene_went_right),
+        ]);
+]);
+```
+
+You can show the menu prompt with a custom [Sentence](../core/elements/sentence).
+
+```typescript
+import { i, b } from "narraleaf-react";
+// Show the menu prompt with a custom sentence
+Menu.prompt(
+    i("What should I do?")  // "What should I do?" with italic style
+).choose([
+    "Go ", b("left") // "Go left" with "left" in bold style
+]), [
+    /* ... */
+])
+```

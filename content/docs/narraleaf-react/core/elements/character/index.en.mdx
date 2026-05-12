@@ -1,0 +1,231 @@
+﻿---
+title: "Character"
+---
+<Cards>
+    <Card
+        title="Sentence"
+        href="./character/sentence"
+    />
+    <Card
+        title="Word"
+        href="./character/word"
+    />
+    <Card
+        title="Pause"
+        href="./character/pause"
+    />
+</Cards>
+
+Character controls the dialogues of the character.
+
+**Note:** `Character` does not drive stage sprite layout by itself; use [Image](./image) for on-stage displayables. For **dialog box avatars** (small portraits next to ADV text), configure `avatar` / `portraits` and render [`Avatar`](../../player/dialog) — see [Dialog](../../player/dialog).
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string | null` - If null, then it is a narrator. Narrator do not show any name in the dialogue box.
+- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](../types/CharacterConfig)
+</Step>
+</Steps>
+
+### [[Callable]]
+
+<Steps>
+<Step>
+
+The `character.say` can be used as a tag function.
+
+```typescript
+character`Hello, ${Word.color("Alice", "#f00")}!`, // will output "Hello, Alice" with "Alice" in red color
+
+// is equivalent to
+
+character.say`Hello, ${Word.color("Alice", "#f00")}!`
+```
+
+> **Note:** This short-hand is not chainable using some packaging tools like Webpack.
+>
+> ```typescript
+> scene.action([
+>     character`sentence 1` `sentence 2`, // this will throw an error
+> ]);
+> ```
+</Step>
+</Steps>
+
+## Chainable Method
+
+### say
+
+<Steps>
+<Step>
+
+#### Overload 1 of 4
+
+Say a sentence.
+
+```typescript
+character
+    .say("Good morning!")
+    .say("How are you?")
+```
+
+- `content: string` - The content of the sentence
+- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+
+#### Overload 2 of 4
+
+Use custom Sentence object.
+
+```typescript
+character.say(
+    new Sentence(character, [
+        "Good morning, I am ",
+        new Word("Alice", {color: "#f00"}), // Some words can be colored
+    ])
+) // will output "Good morning, I am Alice" with "Alice" in red color
+```
+
+> **Note:** The dialogues's name will be the same as the sentence's name.
+
+- `content: Sentence` - See [Sentence](./character/sentence)
+
+#### Overload 3 of 4
+
+Use mixed content of string and Word object.
+
+```typescript
+character.say([
+    "Hello, ",
+    new Word("Alice", {color: "#f00"}), // Some words can be colored
+]) // will output "Hello, Alice" with "Alice" in red color
+```
+
+- `content: SentencePrompt` - See [SentencePrompt](../types/SentencePrompt)
+- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+
+#### Overload 4 of 4
+
+Use short-hand for SentencePrompt.
+
+```typescript
+character.say`Hello, ${Word.color("Alice", "#f00")}!` // will output "Hello, Alice" with "Alice" in red color
+```
+
+- `texts: TemplateStringsArray` - The template string array
+- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+</Step>
+</Steps>
+
+### setName
+
+<Steps>
+<Step>
+
+Set the name of the character.
+
+```typescript
+character
+    .setName("Alice (angry)")
+    .say("What do you want?")
+```
+
+- `name: string` - The name of the character
+</Step>
+</Steps>
+
+### setAvatar
+
+<Steps>
+<Step>
+
+Set or clear the **character-level** dialog avatar (used for off-screen lines and as fallback when no visible bound portrait applies).
+
+```typescript
+const alice = new Character("Alice")
+    .setAvatar("/assets/alice/avatar-default.png");
+
+alice.setAvatar(false); // disable character-level avatar
+```
+
+- `avatar: DialogAvatar | false | null` — Image source, resolver, `false` to disable, or `null` to clear.
+
+See [Dialog](../../player/dialog) for resolver semantics and resolution order.
+</Step>
+</Steps>
+
+### addPortrait
+
+<Steps>
+<Step>
+
+Bind a stage [`Image`](./image) to this character and optionally supply a **portrait-level** dialog avatar (string or resolver).
+
+```typescript
+alice.addPortrait(aliceBody, {
+    avatar: "/assets/alice/avatar-normal.png",
+});
+```
+
+- `image: Image` — The stage portrait image.
+- `config?: { avatar?: DialogAvatar }` — Optional avatar override for this binding.
+</Step>
+</Steps>
+
+### setPortraits
+
+<Steps>
+<Step>
+
+Replace the entire portraits list (mixed `Image` or `{ image, avatar }` entries).
+
+```typescript
+alice.setPortraits([
+    { image: aliceBody, avatar: "/assets/alice/avatar-a.png" },
+    bobPortraitImage,
+]);
+```
+
+- `portraits: (Image | CharacterPortraitConfig)[]` — See [CharacterConfig](../types/CharacterConfig).
+</Step>
+</Steps>
+
+### apply
+
+<Steps>
+<Step>
+
+This is a special alias of `say`. It proxies the tag to the `say` method.
+
+> **Note**: Using some packaging tools like Webpack, you can't chain this method like this:
+> 
+> ```typescript
+> scene.action([
+>     character`sentence 1` `sentence 2`,
+> ]);
+> ```
+> 
+> But you still can chain other methods after it:
+> 
+> ```typescript
+> scene.action([
+>     character`sentence 1`.setName("Alice"),
+> ]);
+> ```
+
+This method shortens the code when the character is saying only one sentence.
+
+```typescript
+scene.action([
+    character`Hello, ${Word.color("Alice", "#f00")}!`,
+]);
+```
+
+- `texts: TemplateStringsArray` - The template string array
+- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+</Step>
+</Steps>

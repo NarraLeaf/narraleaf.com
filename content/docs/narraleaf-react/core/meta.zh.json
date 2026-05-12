@@ -1,0 +1,11 @@
+{
+  "title": "核心",
+  "pages": [
+    "elements",
+    "animation",
+    "game",
+    "plugin",
+    "types",
+    "utils"
+  ]
+}

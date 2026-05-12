@@ -1,0 +1,63 @@
+﻿---
+title: "暂停"
+---
+暂停允许您在句子中创建停顿。
+
+```ts
+new Character("角色 1")
+    .say([
+        "所以你的意思是...",
+        Pause.wait(1000),
+        "我可以这样做吗？"
+    ])
+```
+
+或者是需要用户点击以继续的停顿
+
+```ts
+new Character("角色 1")
+    .say([
+        "我说：",
+        Pause,
+        "我可以这样做！"
+    ])
+```
+
+这两者是等价的：
+
+```ts
+new Pause({duration: 1000});
+// 或者
+Pause.wait(1000);
+```
+
+以下内容也是等价的：
+
+```ts
+new Pause();
+// 或者
+Pause;
+```
+
+## 静态方法
+
+### wait
+
+<Steps>
+<Step>
+
+- `duration: number` - 暂停的持续时间，以毫秒为单位
+- 返回: `Pause`
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config?: Partial<PauseConfig>` - [PauseConfig](../../types/PauseConfig)
+</Step>
+</Steps>

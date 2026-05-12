@@ -1,0 +1,79 @@
+﻿---
+title: "Sentence"
+---
+Sentence is a part of the Character. It is used to construct a dialogue.
+
+Constructing a sentence:
+
+```ts
+import { Sentence } from 'narraleaf-react';
+
+const character = new Character("character 1");
+const sentence = new Sentence([
+    "Hello, ",
+    Word.color("world", "#f00") // words can be colored,
+], {
+    character,
+});
+```
+
+or 
+
+```ts
+const sentence = new Sentence("Hello, world");
+```
+
+or
+
+```ts
+const sentence = new Sentence([
+    "Hello, ", persis.get("playerName"), "!"
+]);
+
+```
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+- `text: SentencePrompt` - See [SentencePrompt](../../types/SentencePrompt)
+- `config?: Partial<SentenceUserConfig>` - [SentenceUserConfig](../../types/SentenceConfig#SentenceUserConfig)
+</Step>
+</Steps>
+
+### copy
+
+<Steps>
+<Step>
+
+Copy the sentence
+
+```ts
+const sentence = new Sentence("Hello, world");
+const sentence2 = sentence.copy();
+```
+
+- Returns: `Sentence`
+</Step>
+</Steps>
+
+### getMetadata
+
+<Steps>
+<Step>
+
+Returns runtime-only `metadata` from the sentence config (from [SentenceConfig](../../types/SentenceConfig)); `undefined` when unset. Metadata is not serialized with saves.
+
+```ts
+const sentence = new Sentence("Hello", {
+    metadata: { uiHint: "emphasis" },
+});
+sentence.getMetadata(); // { uiHint: "emphasis" }
+```
+
+- Returns: `SentenceMetadata | undefined`
+</Step>
+</Steps>

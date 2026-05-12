@@ -1,0 +1,207 @@
+﻿---
+title: "Story"
+---
+`Story` 是创建故事的主要入口点
+
+```ts
+import { Story } from 'narraleaf-react';
+
+const story = new Story("故事名称");
+const scene1 = new Scene("场景 1");
+
+story.entry(scene1);
+```
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - 故事的名称
+- `config: IStoryConfig` - 参见 [IStoryConfig](../types/IStoryConfig)
+</Step>
+</Steps>
+
+### entry
+
+<Steps>
+<Step>
+
+- `scene: Scene` - 要执行的第一个场景
+- 返回 `this`
+</Step>
+</Steps>
+
+### registerScene
+
+<Steps>
+<Step>
+
+注册的场景可以通过其名称访问。例如，您可以通过名称跳转到某个场景
+
+```ts
+const scene1 = new Scene("场景 1");
+const scene2 = new Scene("场景 2");
+
+scene1.action([
+    scene1.jumpTo("场景 2") // 使用字符串而不是场景实例
+]);
+
+const story = new Story("故事名称");
+story.registerScene("场景 2", scene2);
+```
+
+#### 重载 1 / 2
+
+- `scene: Scene` - 要注册的场景
+- 返回 `this`
+
+#### 重载 2 / 2
+
+此重载允许您传递场景别名和场景实例
+
+- `name: string` - 场景的名称
+- `scene: Scene` - 要注册的场景
+- 返回 `this`
+</Step>
+</Steps>
+
+### registerPersistent
+
+<Steps>
+<Step>
+
+您必须注册持久化对象以使其在故事中可用
+
+```ts
+const story = new Story("故事名称");
+const persis = new Persistent</* ... */>("persis", /* ... */);
+
+story.registerPersistent(persistent);
+
+const scene1 = new Scene("场景 1");
+scene1.action([
+    persis.set(/* ... */, /* ... */)
+]);
+```
+
+- `persistent: Persistent<any>` - 要注册的 [Persistent](./persistent)
+- 返回 `this`
+</Step>
+</Steps>
+
+### registerService
+
+<Steps>
+<Step>
+
+注册一个服务。有关更多信息，请参见 [Service](./service)
+
+```ts
+const story = new Story(/* ... */);
+const gallery = new Gallery(/* ... */);
+
+story.registerService("gallery", gallery);
+```
+
+- `name: string` - 服务的名称
+- `service: Service<any>` - 要注册的 [Service](./service)
+- 返回 `this`
+</Step>
+</Steps>
+
+### getService\<T extends Service\>
+
+<Steps>
+<Step>
+
+通过名称获取服务。如果未找到服务，则抛出错误
+
+```tsx
+const {game} = useGame();
+const liveGame = game.getLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery>("gallery");
+```
+
+- `name: string` - 服务的名称
+- 返回 `T`
+</Step>
+</Steps>
+
+### createPersistent\<T extends PersistentContent\>
+
+<Steps>
+<Step>
+
+创建一个 Persistent 并将其注册到故事中。
+
+```ts
+const persistent = story.createPersistent("playerData", {
+    name: "persistent",
+});
+
+// is equivalent to
+const persistent = new Persistent("playerData", {
+    name: "persistent",
+});
+story.registerPersistent(persistent);
+```
+
+- `namespace: string` - 持久化的名称
+- `defaultContent: T` - 持久化的默认内容
+- 返回 `Persistent<T>`
+</Step>
+</Steps>
+
+### hash
+
+<Steps>
+<Step>
+
+返回故事的 64 位哈希值。
+
+哈希值是基于故事的逻辑结构和操作顺序计算的，而不是基于文本内容。具体来说：
+
+- 哈希值反映了故事的逻辑结构和操作顺序
+- 操作顺序的改变（如动画、跳转等）会导致不同的哈希值
+- 文本内容的改变（如对话、描述等）**不会**影响哈希值
+- 当 `strict` 为 `true` 时，哈希值还会包含字符串化的 lambda 函数
+
+此哈希值主要用于检查存档之间的故事兼容性。
+
+```ts
+const story = new Story("故事名称");
+const hash = story.hash(); // 基本哈希值
+const strictHash = story.hash(true); // 严格模式下的哈希值
+```
+
+- `strict: boolean` - 是否使用严格模式进行哈希计算（默认值：`false`）
+- 返回 `string` - 故事的 64 位哈希值
+</Step>
+</Steps>
+
+### stringify
+
+<Steps>
+<Step>
+
+将故事转换为字符串表示。主要用于内部哈希计算。
+
+字符串化行为取决于 `strict` 参数：
+
+- 当 `strict` 为 `false`（默认值）时，返回基本字符串表示
+- 当 `strict` 为 `true` 时，输出中包含字符串化的 lambda 函数
+
+```ts
+const story = new Story("故事名称");
+const str = story.stringify(); // 基本字符串表示
+const strictStr = story.stringify(true); // 严格模式下的字符串表示
+```
+
+- `strict: boolean` - 是否使用严格模式进行字符串化（默认值：`false`）
+- 返回 `string` - 故事的字符串表示
+</Step>
+</Steps>

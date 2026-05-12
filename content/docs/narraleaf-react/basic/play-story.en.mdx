@@ -1,0 +1,40 @@
+---
+title: "Play Story"
+---
+You can wrap your entry scene with a [Story](../core/elements/story) instance to create a story. 
+
+```ts
+import { Story, Scene } from "narraleaf";
+
+const story = new Story("My Story");
+const scene = new Scene(/* ... */);
+
+story.entry(scene);
+
+export { story };
+```
+
+After creating a abstract story, you can play it using react components. 
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./my-story"; // Import your story here
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame(); // when the player is ready, start the game
+            }}
+                width="100%" // full width
+                height="100%" // full height
+            />
+        </GameProviders>
+    );
+}
+```
+
+The [GameProviders](../player/game-providers) component is required to play the story. It provides the context for the player and hooks to work.
+You can use hooks inside the GameProviders component to interact with the game instance.

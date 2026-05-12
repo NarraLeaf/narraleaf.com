@@ -1,0 +1,352 @@
+﻿---
+title: "变换"
+---
+变换控制图像的外观，如位置、旋转和缩放
+
+变换的示例：
+
+```typescript
+// 角色将上下移动
+new Transform<TransformDefinitions.ImageTransformProps>([
+    {
+        props: {
+            position: {
+                yoffset: -10, // 在 120 毫秒内向下移动 10 像素，使用 easeOut
+            }
+        },
+        options: {
+            duration: 120,
+            ease: "easeOut",
+        }
+    },
+    {
+        props: {
+            position: {
+                yoffset: 0, // 在 100 毫秒内移回原始位置，使用 easeOut
+            }
+        },
+        options: {
+            duration: 100,
+            ease: "easeOut",
+        }
+    }
+], {
+    repeat: 2,
+}),
+```
+
+或使用事务链式调用：
+
+```typescript
+Tranform.create()
+  .position({ yoffset: -10 })
+  .commit({ duration: 120, ease: "easeOut" })
+
+  .position({ yoffset: 0 })
+  .commit({ duration: 100, ease: "easeOut" })
+```
+
+一系列变换由 `props` 和 `options` 组成：
+
+1. `props` 是一个包含变换属性的对象，如 `position`、`rotation` 和 `scale`
+2. `options` 是一个包含变换选项的对象，如 `duration` 和 `ease`
+
+## 变换属性
+
+有关属性列表，请参见 [TransformDefinitions](../types/TransformDefinitions)
+
+## 静态方法
+
+### left
+
+<Steps>
+<Step>
+
+将图像移动到舞台的左侧
+
+- `duration: number` - 移动的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### right
+
+<Steps>
+<Step>
+
+将图像移动到舞台的右侧
+
+- `duration: number` - 移动的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### center
+
+<Steps>
+<Step>
+
+将图像移动到舞台的中心
+
+- `duration: number` - 移动的持续时间，以毫秒为单位
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+</Step>
+</Steps>
+
+### immediate\<T extends TransformDefinitions.Types\>
+
+<Steps>
+<Step>
+
+立即应用变换
+
+- `props: SequenceProps<T>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[SequenceProps](../types/TransformDefinitions#SequenceProps)
+- 返回 `Transform<T>`
+</Step>
+</Steps>
+
+### create\<T extends TransformDefinitions.Types\>
+
+<Steps>
+<Step>
+
+使用给定的配置创建一个新的变换。序列将为空。
+
+- `config?: Partial<TransformDefinitions.TransformConfig>` - 变换的配置。参见 [TransformDefinitions.TransformConfig](../types/TransformDefinitions#TransformConfig)
+- 返回 `Transform<T>`
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor\<T extends TransformDefinitions.Types\>
+
+<Steps>
+<Step>
+
+有关更多信息，请参见 [高级变换](./advanced-transform)
+
+#### 重载 1 / 2
+
+此重载接受一个序列数组
+
+示例：
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>([
+    {
+        props: {
+            position: {
+                xalign: 0.3, // 在 120 毫秒内向左移动，使用 easeOut
+            }
+        },
+        options: {
+            duration: 120,
+            ease: "easeOut",
+        }
+    },
+    {
+        props: {
+            position: {
+                xalign: 0.6, // 在 100 毫秒内向右移动，使用 easeOut
+            }
+        },
+        options: {
+            duration: 100,
+            ease: "easeOut",
+        }
+    }
+], {
+    repeat: 2,
+});
+```
+
+- `sequences: TransformDefinitions.Sequence<T>[]` - 序列数组
+- `transformConfig?: Partial<TransformDefinitions.TransformConfig>` - 变换配置
+
+#### 重载 2 / 2
+
+此重载接受单个序列
+
+示例：
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>({
+    position: {
+        xalign: 0.3, // 在 120 毫秒内向左移动，使用 easeOut
+    }
+}, {
+    duration: 120,
+    ease: "easeOut",
+});
+```
+
+- `props: SequenceProps<T>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[SequenceProps](../types/TransformDefinitions#SequenceProps)
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[CommonTransformProps](../types/TransformDefinitions#CommonTransformProps)
+</Step>
+</Steps>
+
+### repeat
+
+<Steps>
+<Step>
+
+重复变换
+
+示例：
+
+```typescript
+transform
+  .repeat(2)
+  .repeat(3)
+// 重复 6 次
+```
+
+- `n: number` - 重复变换的次数
+- `return: this`
+</Step>
+</Steps>
+
+### copy
+
+<Steps>
+<Step>
+
+复制变换
+
+- `return: Transform<T>`
+</Step>
+</Steps>
+
+### commit
+
+<Steps>
+<Step>
+
+提交所有暂存的更改到变换序列。此方法将从所有通过链式方法暂存的待处理更改创建一个新的序列。如果没有暂存的更改，此方法将返回当前实例而不进行修改。提交后，暂存的更改数组将被清除。
+
+示例：
+```typescript
+transform
+  .position({ x: 100, y: 100 })
+  .opacity(1).commit() // 将创建一个新的序列，透明度为 1，位置为 x: 100, y: 100
+  .position({ x: 200, y: 200 })
+  .opacity(0).commit({ duration: 1000 }) // 将创建一个新的序列，透明度为 0，位置为 x: 200, y: 200，持续时间为 1 秒
+```
+
+**注意**：暂存的更改将在动画开始前提交，以确保应用最新的更改。
+
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - 序列的选项。参见 [TransformDefinitions.SequenceOptions](../types/TransformDefinitions#SequenceOptions)
+- `return: this`
+</Step>
+</Steps>
+
+### scale
+
+<Steps>
+<Step>
+
+缩放当前暂存序列。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### scaleX
+
+<Steps>
+<Step>
+
+在 X 轴方向缩放当前暂存序列。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### scaleY
+
+<Steps>
+<Step>
+
+在 Y 轴方向缩放当前暂存序列。
+
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### scaleXY
+
+<Steps>
+<Step>
+
+同时在 X 和 Y 轴方向缩放当前暂存序列。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### zoom
+
+<Steps>
+<Step>
+
+缩放当前暂存序列（推荐用于图像缩放）。
+
+- `zoom: TransformDefinitions.Types["zoom"]` - 变换的缩放级别。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### rotation
+
+<Steps>
+<Step>
+
+旋转当前暂存序列。
+
+- `rotation: TransformDefinitions.Types["rotation"]` - 变换的旋转。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### position
+
+<Steps>
+<Step>
+
+设置当前暂存序列的位置。
+
+- `position: TransformDefinitions.Types["position"]` - 变换的位置。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### opacity
+
+<Steps>
+<Step>
+
+设置当前暂存序列的透明度。
+
+- `opacity: TransformDefinitions.Types["opacity"]` - 变换的透明度。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>
+
+### fontColor
+
+<Steps>
+<Step>
+
+设置当前暂存序列的字体颜色。
+
+- `fontColor: TransformDefinitions.Types["fontColor"]` - 变换的字体颜色。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `return: this`
+</Step>
+</Steps>

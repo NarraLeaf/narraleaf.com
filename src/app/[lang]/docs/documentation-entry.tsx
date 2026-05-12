@@ -14,7 +14,7 @@ import { docsRoute, gitConfig } from '@/lib/shared';
 import { type Locale, i18n, localizedPath } from '@/lib/i18n';
 import type { Metadata } from 'next';
 
-export type DocsProductSegment = 'narraleaf-project' | 'narraleaf' | 'studio' | 'narraleaf-react';
+export type DocsProductSegment = 'narraleaf' | 'studio' | 'narraleaf-react';
 
 function fullSlug(segment: DocsProductSegment, slugSuffix?: string[]): string[] {
   if (!slugSuffix?.length) return [segment];
@@ -70,9 +70,6 @@ export async function documentationEntryMetadata(props: {
   let slugs = fullSlug(segment, slug);
   if (segment === 'narraleaf' && !slug?.length) {
     slugs = ['narraleaf', 'library'];
-  }
-  if (segment === 'narraleaf-project' && !slug?.length) {
-    slugs = ['narraleaf-project'];
   }
   const page = source.getPage(slugs, locale);
   if (!page) notFound();

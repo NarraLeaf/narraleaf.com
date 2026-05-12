@@ -1,0 +1,104 @@
+---
+title: "Player"
+---
+Player component is used to play the story. 
+
+> Note: You have to wrap the `Player` component with the [GameProviders](./game-providers) component to provide the game instance.
+
+If you are creating a story using abstract classes, please check the [Core](../core) documentation.
+
+## Example
+
+This is a basic example of how to use the `Player` component:
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./my-story";
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame();
+            }}
+                width="100vw"
+                height="100vh"
+            />
+        </GameProviders>
+    );
+}
+```
+
+## Props
+
+### story
+
+> optional
+
+The story object that you want to play.
+
+### width
+
+> optional
+
+The width of the player.
+
+### height
+
+> optional
+
+The height of the player.
+
+### className
+
+> optional
+
+The class name of the player.
+
+### onReady
+
+> optional
+
+A callback function that is called when the player is ready. It returns the [ScriptCtx](../core/types/ScriptCtx) object.
+
+### onEnd
+
+> optional
+
+Called when the player ends.
+
+This callback is called when the story ends.
+
+### onError
+
+> optional
+
+Called when the game encounters an error.
+
+This callback is only called once per lifecycle and receives two parameters: `error` and `errorInfo`.
+
+### children
+
+> optional
+
+The children of the player.
+
+You can pass the children to the player.
+
+For example, you can use [PageRouter API](./page-router) to create your own quick menu. 
+
+### active
+
+> optional, default: `true`
+
+Whether to show the player
+
+Even the active is false, the pages will be rendered
+
+```tsx
+const [active, setActive] = useState(false);
+
+return <Player active={active}/>
+```

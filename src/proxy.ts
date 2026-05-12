@@ -1,12 +1,19 @@
 import { NextFetchEvent, NextRequest, NextResponse } from 'next/server';
 import { isMarkdownPreferred } from 'fumadocs-core/negotiation';
 import { i18n, isLocale } from '@/lib/i18n';
-import { docsContentRoute, docsRoute } from '@/lib/shared';
+import { docsContentRoute, docsRoute, projectContentRoute, projectRoute } from '@/lib/shared';
 
 function getLocalizedDocsContentPath(pathname: string): string | undefined {
   const segments = pathname.split('/').filter(Boolean);
   const locale = isLocale(segments[0]) ? segments.shift() : i18n.defaultLanguage;
-  if (segments[0] !== docsRoute.slice(1)) return;
+  const route = segments[0];
+  const contentRoute =
+    route === docsRoute.slice(1)
+      ? docsContentRoute
+      : route === projectRoute.slice(1)
+        ? projectContentRoute
+        : undefined;
+  if (!contentRoute) return;
 
   const slugs = segments.slice(1);
   const last = slugs.at(-1);
@@ -14,7 +21,7 @@ function getLocalizedDocsContentPath(pathname: string): string | undefined {
     slugs[slugs.length - 1] = last.slice(0, -4);
   }
 
-  return `${docsContentRoute}/${[locale, ...slugs, 'content.md'].join('/')}`;
+  return `${contentRoute}/${[locale, ...slugs, 'content.md'].join('/')}`;
 }
 
 function shouldRunI18n(pathname: string): boolean {

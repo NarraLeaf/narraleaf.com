@@ -1,0 +1,97 @@
+---
+title: "不兼容的变更"
+---
+完整的变更日志请参阅 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)
+
+## 0.9.0
+
+- `JumpConfig.unloadScene` is removed
+
+## 0.8.0
+
+- `Displayable.scale` 方法已变更。现在接受两个参数 `scaleX` 和 `scaleY`，而不是之前的单个 `scale` 参数
+
+## 0.7.0
+
+- `Router` is deprecated, use `LayoutRouter` as a more powerful router
+- `Page` is refactored
+- `game.config.skipKey` and `game.config.nextKey` are deprecated, use `game.keyMap` instead
+
+## 0.6.0
+
+- The game has completely transitioned from a single node currentAction to a **StackModel**. The model ensures that: 
+  - Awaitable is handled in an explicit way 
+  - Support for sub-stack model recursive calls 
+  - Full support for serialization/deserialization 
+  - Support for scenario operations to break the call stack 
+  - Better branching/merging operations 
+  - Less prone to state clutter when deserializing and undoing
+  - Is a complete solution for nested operations
+- `game.config.skipInterval` is deprecated, use `GamePreference.skipInterval` instead
+
+## 0.5.0
+
+- `game.config.cps` is deprecated, use `GamePreference.cps` instead
+- Menu GameElementHistory.`selected` may be null
+
+## 0.4.0
+
+- `game.config.elements.say.textInterval` is deprecated, use `game.config.elements.say.cps` instead
+- `game.config` has been refactored, see [GameConfig](src/game/nlcore/gameTypes.ts#GameConfig) for more details
+  - `game.config.player` is deprecated, use `game.config` instead
+  - `game.config.elements` is deprecated, use `game.config` instead
+  - `game.config.elementStyles` is deprecated, use `game.config` instead
+
+## 0.3.0
+
+- NarraLeaf-React now **requires** [React 19](https://react.dev/blog/2024/12/05/react-19) or later
+- Image Config has changed:
+    - the type of `config.src` should be a tag definition or a string
+    - In tag-based image config, `config.src` as a resolver function is moved to `config.src.resolve`
+    - Image can't be marked as wearable anymore, use `image.wear` or `image.asWearableOf` instead
+- These methods of `Image` has been changed:
+    - `setAppearance`, `setTags`, `setSrc` -> `char`
+    - `applyTransform` -> `transform`
+    - `wear` is a new alias for `addWearable`
+    - `asWearableOf` is a new alias for `bindWearable`
+    - `init`, `setPosition`, `dispose`, `copy` are removed
+    - `IImageTransition` is removed, use `ImageTransition` instead
+- These methods of `Text` has been changed:
+    - `applyTransform` -> `transform`
+    - `applyTransition` is removed, applying transitions are still in planning
+    - `ITextTransition` is removed, use `TextTransition` instead
+- These methods of `Transform` has been changed:
+    - `overwrite` is removed
+    - Transformer API is completely deprecated
+- These methods/properties of `Scene` has been changed:
+    - `activate`, `deactivate` are removed, the game will manage the scene's lifecycle automatically
+    - `applyTransform` is removed, use `scene.background.transform` instead
+    - `inherit` is removed
+    - `requestImagePreload` -> `preloadImage`
+- These methods of `Sound` has been changed:
+    - use `copy` to create a new sound instance
+    - `play`, `stop` and `setVolume` method can receive a `duration` parameter
+    - `fade` is removed, use `setVolume` instead
+- In displayable elements, the transform states are separated from the element states
+- These changes are made to `Sound` config
+    - `sync` and `type` are removed
+    - use `preload` to use [Howler.js](https://howlerjs.com/)'s preload feature
+    - use `seek` property to set the initial seek position
+- Scene's config now can't specify the `invertY` and `invertX` properties, use story config `origin` instead
+- `Top`, `Center`, `Bottom`, `HBox`, and `VBox` are deprecated, use `PageRouter` API instead
+- `ITransition`s are all deprecated, use `Transition` API instead
+    - `FontSizeTransition` -> `FontSize`
+    - `BaseImageTransition` -> `ImageTransition`
+    - `BaseTextTransition` -> `TextTransition`
+
+## 0.2.2
+
+- SceneConfig `invertY` is now `true` by default
+
+## 0.2.0
+
+- Image constructor signature has changed. Now the first argument must be a config object.
+
+## 0.1.2
+
+- `game.config.player.width` and `game.config.player.height` cannot be string anymore

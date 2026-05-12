@@ -1,0 +1,16 @@
+{
+  "title": "解决方案",
+  "pages": [
+    "font",
+    "from-renpy",
+    "quick-menu",
+    "custom-dialog",
+    "dialog-avatar",
+    "custom-nvl-dialog",
+    "custom-menu",
+    "page-overlay-settings",
+    "save-system-localstorage",
+    "custom-notification",
+    "gallery-service-localstorage"
+  ]
+}

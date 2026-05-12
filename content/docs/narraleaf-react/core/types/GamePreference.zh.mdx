@@ -1,0 +1,155 @@
+---
+title: "GamePreference"
+---
+```typescript
+type GamePreference = {
+    /**
+     * 如果为 true，当玩家完成当前句子时，游戏将自动前进到下一句
+     * @default false
+     */
+    autoForward: boolean;
+    /**
+     * 如果为 true，游戏将允许玩家跳过对话
+     * @default true
+     */
+    skip: boolean;
+    /**
+     * 如果为 true，游戏将显示对话框
+     * @default true
+     */
+    showDialog: boolean;
+    /**
+     * 对话速度的倍数
+     * 
+     * 对话速度将应用于：
+     * - 文字显示速度
+     * - 自动前进延迟
+     * @default 1.0
+     */
+    gameSpeed: number;
+    /**
+     * 文字效果的速度，以每秒字符数计
+     * @default 10
+     */
+    cps: number;
+    /**
+     * 语音音量
+     * @default 1
+     */
+    voiceVolume: number;
+    /**
+     * 语音在淡出模式下的淡出时长（毫秒）
+     * @default 0
+     */
+    voiceFadeDuration: number;
+    /**
+     * 语音在句子结束时的终止方式
+     * @default "stop"
+     */
+    voiceEndMode: "fade" | "stop" | "none";
+    /**
+     * 背景音乐音量
+     * @default 1
+     */
+    bgmVolume: number;
+    /**
+     * 音效音量
+     * @default 1
+     */
+    soundVolume: number;
+    /**
+     * 全局音频音量
+     * @default 1
+     */
+    globalVolume: number;
+    /**
+     * 游戏开始跳过动作前的延迟时间（毫秒）
+     *
+     * 这用于防止玩家按下跳过键时游戏过快跳过动作。
+     *
+     * 设置为 0 可在玩家按下跳过键时立即跳过动作。
+     * @default 500
+     */
+    skipDelay: number;
+    /**
+     * 每次跳过动作之间的间隔时间（毫秒）
+     * 例如：100 毫秒意味着玩家每秒可以跳过 10 个动作
+     * 值越高意味着跳过速度越慢
+     * @default 100
+     */
+    skipInterval: number;
+};
+```
+
+## autoForward
+
+是否自动前进游戏。
+
+启用后，当当前句子完成时，游戏将自动前进到下一句。
+
+游戏将在前进前等待 [GameConfig.elements.say.autoForwardDelay](./GameConfig#autoForwardDelay) 指定的时间。
+
+## skip
+
+启用后，玩家可以通过按下 [GameConfig.elements.say.nextKey](./GameConfig#nextKey) 来跳过当前句子。
+
+## showDialog
+
+是否显示对话框。
+
+## gameSpeed
+
+对话速度的倍数，默认为 1.0。
+
+对话速度将应用于：
+
+- 文字显示速度
+- 自动前进延迟
+
+## cps
+
+文字效果的速度，以每秒字符数计。
+
+## voiceVolume
+
+语音音量。
+
+## voiceFadeDuration
+
+当 `voiceEndMode` 设置为 `fade` 时，使用此值作为语音淡出的时长（毫秒）。
+
+## voiceEndMode
+
+控制语音在句子结束时的处理方式。
+
+- `fade`：在 `voiceFadeDuration` 毫秒内淡出语音。
+- `stop`：立即停止播放（默认）。
+- `none`：保持语音继续播放。
+
+当你想要在下一句出现前保持音频的平滑过渡时，可以将 `voiceFadeDuration` 与 `fade` 模式搭配使用。
+
+## bgmVolume
+
+背景音乐音量。
+
+## soundVolume
+
+音效音量。
+
+## globalVolume
+
+全局音频音量。这是一个独立的乘数，影响游戏中的所有音频。
+
+## skipDelay
+
+游戏开始跳过动作前的延迟时间（毫秒）。
+
+这用于防止玩家按下跳过键时游戏过快跳过动作。
+
+设置为 0 可在玩家按下跳过键时立即跳过动作。
+
+## skipInterval
+
+每次跳过动作之间的间隔时间（毫秒）。
+
+例如，100 毫秒意味着玩家每秒可以跳过 10 个动作。值越高意味着跳过速度越慢。

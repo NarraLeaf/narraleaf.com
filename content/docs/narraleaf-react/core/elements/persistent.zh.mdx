@@ -1,0 +1,299 @@
+﻿---
+title: "Persistent\\<T extends PersistentContent\\>"
+---
+在过去，我们只能通过脚本修改 Storable 的状态，但 Persistent 提供了一组有用的方法，可以轻松控制流程
+
+Persistent 需要一个命名空间的 **名称** 和 **初始状态**。**具有相同名称的 Persistent 将共享相同的状态**
+
+<Callout type="warning">
+    命名空间不能是现有的内置命名空间（内置命名空间包括："game"）
+</Callout>
+
+```typescript
+type PersisData = {
+    flag: boolean;
+    coin: number;
+    name: string;
+    // ...
+};
+const persis = new Persistent<PersisData>("persis", {
+    flag: false,
+    coin: 0,
+    name: "约翰·史密斯",
+    // ...
+});
+```
+
+> **注意:** 存储的内容必须是 **可序列化的**, NarraLeaf-React 支持的可序列化值包括：
+> - `string`
+> - `number`
+> - `boolean`
+> - `object`: 键为 `string`，值为上述可序列化值
+> - `array`: 元素为上述可序列化值
+> - `undefined`
+> - `null`
+> - `Date`: 标准的 JavaScript 日期对象
+
+如果脚本内容包含 Persistent，则必须使用 [Story](./story) 进行注册
+
+```typescript
+story.registerPersistent(persis);
+```
+
+## Public Methods
+
+### constructor
+
+<Steps>
+<Step>
+
+- `namespace: string` - 命名空间的名称
+- `defaultContent: T` - 初始状态
+</Step>
+</Steps>
+
+### equals\<K extends StringKeyOf\<T\>\>
+
+确定值是否相等，可用于条件判断
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 要比较的值、lambda 函数或 lambda 处理程序
+- 返回: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.equals("id", persis.get("player_id")), [
+            character1.say("ID 匹配！")
+        ])
+]);
+
+// 或使用 lambda 处理程序
+scene.action([
+    Condition
+        .If(persis.equals("id", (ctx) => ctx.storable.getNamespace("player").get("player_id")), [
+            character1.say("玩家 ID 匹配！")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### notEquals\<K extends StringKeyOf\<T\>\>
+
+确定值是否不相等，可用于条件判断
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 要比较的值、lambda 函数或 lambda 处理程序
+- 返回: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.notEquals("id", persis.get("player_id")), [
+            character1.say("ID 不匹配！")
+        ])
+]);
+
+// 或使用 lambda 处理程序
+scene.action([
+    Condition
+        .If(persis.notEquals("id", (ctx) => ctx.storable.getNamespace("player").get("player_id")), [
+            character1.say("玩家 ID 不匹配！")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isTrue\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+确定值是否为真，可用于条件判断
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- 返回: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.isTrue("flag"), [
+            character1.say("标志为真")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isFalse\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+确定值是否为假，可用于条件判断
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- 返回: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### isNotNull\<K extends StringKeyOf\<T\>\>
+
+确定值是否不为null或undefined，可用于条件判断
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- 返回: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### toWord\<K extends StringKeyOf\<T\>\>
+
+转换为动态词
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- 返回: `Word<DynamicWord>`
+
+```typescript
+character.say(["你有 ", persis.toWord("gold"), " 个金币"]);
+
+// 或者
+
+character.say`你有 ${persis.toWord("gold")} 个金币`;
+```
+</Step>
+</Steps>
+
+### get\<K extends StringKeyOf\<T\>\>
+
+<Steps>
+<Step>
+
+`toWord` 的别名
+
+- `key: K` - 状态的键
+- 返回: `Word<DynamicWord>`
+
+```typescript
+character.say`你有 ${persis.get("coin")} 个硬币`;
+```
+</Step>
+</Steps>
+
+### conditional
+
+创建条件词
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+- `ifTrue: DynamicWordResult` - 条件为真时返回的词
+- `ifFalse: DynamicWordResult` - 条件为假时返回的词
+- 返回: `Word`
+
+```typescript
+character.say([
+  "你的标志是 ",
+  persis.conditional(
+    persis.isTrue("flag"),
+    "开启",
+    "关闭"
+  )
+]);
+```
+</Step>
+</Steps>
+
+### evaluate\<K extends StringKeyOf\<T\>\>
+
+评估 JavaScript 函数并确定结果是否为真
+
+<Steps>
+<Step>
+
+- `key: K` - 状态的键
+- `fn: (value: T[K]) => boolean` - 用于评估状态的 JavaScript 函数
+- 返回: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.evaluate("coin", (coin) => coin < 10), [
+            character1.say`你没有足够的硬币！`
+        ])
+]);
+```
+</Step>
+</Steps>
+
+## 链式方法
+
+### set\<K extends StringKeyOf\<T\>\>
+
+为给定键在持久存储中设置值创建操作
+
+<Steps>
+<Step>
+
+#### 重载 1 / 2
+
+- `key: K` - 要设置值的键
+- `value: T[K]` - 要设置的值
+- 返回: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.set("coin", 10)
+]);
+```
+
+#### 重载 2 / 2
+
+- `key: K` - 要设置值的键
+- `handler: (value: T[K]) => T[K]` - 用于修改值的处理程序
+- 返回: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.set("coin", (coin) => coin + 10) // 硬币将增加 10
+]);
+```
+</Step>
+</Steps>
+
+### assign
+
+创建操作以将值分配给持久存储
+
+<Steps>
+<Step>
+
+- `value: Partial<T> | ((value: T) => Partial<T>)` - 要分配给状态的值
+- 返回: `ChainedPersistent<T>`
+
+```typescript
+scene.action([
+    persis.assign({ coin: 10 })
+]);
+
+// 或使用函数
+scene.action([
+    persis.assign((state) => ({ coin: state.coin + 10 }))
+]);
+```
+</Step>
+</Steps>

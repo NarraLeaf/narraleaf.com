@@ -1,0 +1,79 @@
+﻿---
+title: "句子"
+---
+句子是角色的一部分。它用于构建对话。
+
+构建句子：
+
+```ts
+import { Sentence } from 'narraleaf-react';
+
+const character = new Character("character 1");
+const sentence = new Sentence([
+    "Hello, ",
+    Word.color("world", "#f00") // words can be colored,
+], {
+    character,
+});
+```
+
+或
+
+```ts
+const sentence = new Sentence("Hello, world");
+```
+
+或
+
+```ts
+const sentence = new Sentence([
+    "Hello, ", persis.get("playerName"), "!"
+]);
+
+```
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `text: SentencePrompt` - 参见 [SentencePrompt](../../types/SentencePrompt)
+- `config?: Partial<SentenceUserConfig>` - [SentenceUserConfig](../../types/SentenceConfig#SentenceUserConfig)
+</Step>
+</Steps>
+
+### copy
+
+<Steps>
+<Step>
+
+复制句子
+
+```ts
+const sentence = new Sentence("你好，世界");
+const sentence2 = sentence.copy();
+```
+
+- 返回值: `Sentence`
+</Step>
+</Steps>
+
+### getMetadata
+
+<Steps>
+<Step>
+
+返回配置中的运行时 `metadata`（见 [SentenceConfig](../../types/SentenceConfig)）；未设置时返回 `undefined`。元数据不会写入存档。
+
+```ts
+const sentence = new Sentence("你好", {
+    metadata: { uiHint: "emphasis" },
+});
+sentence.getMetadata(); // { uiHint: "emphasis" }
+```
+
+- 返回值: `SentenceMetadata | undefined`
+</Step>
+</Steps>

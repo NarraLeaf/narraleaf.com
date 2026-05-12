@@ -1,0 +1,136 @@
+﻿---
+title: "Preference\\<T extends Record\\<string, string | boolean | number | null | undefined\\>\\>"
+---
+Preference 允许你控制一些游戏行为，例如自动前进模式。
+
+有关偏好设置键的列表，请参阅 [GamePreference](../../types/GamePreference)。
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `settings: T` - 默认偏好设置
+</Step>
+</Steps>
+
+### setPreference\<K extends Extract\<keyof T, string\>\>
+
+设置一个偏好。
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+
+- `key: K` - 偏好键
+- `value: T[K]` - 偏好值
+- 返回 `void`
+</Step>
+</Steps>
+
+### getPreference\<K extends Extract\<keyof T, string\>\>
+
+获取一个偏好。
+
+<Steps>
+<Step>
+
+```typescript
+const autoForward = game.preference.getPreference("autoForward");
+```
+
+- `key: K` - 偏好键
+- 返回 `T[K]`
+</Step>
+</Steps>
+
+### getPreferences
+
+获取所有偏好。
+
+<Steps>
+<Step>
+
+- 返回 `T`
+</Step>
+</Steps>
+
+### onPreferenceChange\<U extends Extract\<keyof T, string\>\>
+
+监听偏好更改。
+
+<Steps>
+<Step>
+
+#### 重载 1 / 1
+
+```typescript
+game.preference.onPreferenceChange("autoForward", value => {
+    console.log(`自动前进模式已 ${value ? "启用" : "禁用"}`);
+});
+```
+
+- `key: U` - 偏好键
+- `listener: (value: T[U]) => void`
+- 返回 `PreferenceEventToken` - 参见 [PreferenceEventToken](../types/PreferenceEventToken)
+
+#### 重载 2 / 2
+
+- `listener: (key: Extract<keyof T, string>, value: T[Extract<keyof T, string>]) => void`
+</Step>
+</Steps>
+
+### importPreferences
+
+导入偏好
+
+> 注意：这将覆盖现有偏好，并触发更改事件
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.importPreferences({
+    autoForward: true,
+});
+```
+
+- `preferences: Partial<T>`
+- 返回 `void`
+</Step>
+</Steps>
+
+### exportPreferences
+
+导出偏好
+
+<Steps>
+<Step>
+
+```typescript
+const preferences = game.preference.exportPreferences();
+```
+
+- 返回 `Partial<T>`
+</Step>
+</Steps>
+
+### togglePreference\<K extends BooleanValueKeyOf\<T\>\>
+
+切换布尔偏好。
+
+<Steps>
+<Step>
+
+```typescript
+    game.preference.togglePreference("autoForward");
+    ```
+
+    - 返回 `void`
+</Step>
+</Steps>

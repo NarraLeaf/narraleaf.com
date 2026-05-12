@@ -1,0 +1,203 @@
+﻿---
+title: "Sound"
+---
+<Callout type="warning">
+    This page is under construction.
+</Callout>
+
+<Callout type="warning">
+    Beta feature, subject to change.
+</Callout>
+
+Sound controls the sound of the game
+
+## Static Method
+
+### voice
+
+<Steps>
+<Step>
+
+Create a voice sound
+
+```ts
+const voice = Sound.voice({
+    src: 'voice.mp3',
+});
+
+// is equivalent to
+const voice = new Sound({
+    src: 'voice.mp3',
+    type: SoundType.Voice,
+});
+```
+
+- `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](../types/ISoundUserConfig)
+- Returns `Sound`
+</Step>
+</Steps>
+
+### bgm
+
+<Steps>
+<Step>
+
+Create a bgm sound
+
+- `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](../types/ISoundUserConfig)
+- Returns `Sound`
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+Create a sound
+
+- `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](../types/ISoundUserConfig)
+- Returns `Sound`
+</Step>
+</Steps>
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+#### Overload 1 of 2
+
+- `config?: Partial<ISoundUserConfig>` - See [ISoundUserConfig](../types/ISoundUserConfig)
+
+#### Overload 2 of 2
+
+- `src?: string` - The source of the sound
+</Step>
+</Steps>
+
+## Chainable Method
+
+### play
+
+<Steps>
+<Step>
+
+Play the sound and wait for it to finish
+
+> **Note**: Sounds marked as `Bgm` cannot be played directly.
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+});
+scene.action([
+    sound.play(1000), // play and fade in 1 second
+]);
+```
+
+- `duration?: number` - Fade duration in milliseconds
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+Stop the sound. After stopping, the sound will go back to the beginning
+
+- `duration?: number` - Fade duration in milliseconds
+</Step>
+</Steps>
+
+### fade
+
+<Steps>
+<Step>
+
+Fade the sound
+
+- `start: number | undefined` - Start volume, from 0 to 1, default is current volume
+- `end: number` - End volume, from 0 to 1
+- `duration: number` - Duration in milliseconds
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+    volume: 0,
+});
+scene.action([
+    sound
+        .play()
+        .fade(0, 1, 1000), // fade in 1 second
+]);
+```
+</Step>
+</Steps>
+
+### setVolume
+
+<Steps>
+<Step>
+
+Set the volume of the sound
+
+- `volume: number` - Volume, from 0 to 1
+- `duration?: number` - Fade duration in milliseconds
+</Step>
+</Steps>
+
+### mute
+
+<Steps>
+<Step>
+
+Mute or unmute the sound without stopping playback.
+
+- `muted?: boolean` - `true` to mute the sound, `false` to restore volume (defaults to `true`)
+- Returns `ChainedSound` - Chained Sound instance
+</Step>
+</Steps>
+
+### unmute
+
+<Steps>
+<Step>
+
+Alias of `mute(false)` to restore the original volume.
+
+- Returns `ChainedSound` - Chained Sound instance
+</Step>
+</Steps>
+
+### setRate
+
+<Steps>
+<Step>
+
+Set the rate of the sound
+
+- `rate: number` - Rate, base is 1
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+- `duration?: number` - Fade duration in milliseconds
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+- `fade?: number` - Fade duration in milliseconds
+</Step>
+</Steps>

@@ -1,0 +1,207 @@
+﻿---
+title: "Story"
+---
+`Story` is the main entry point for creating a story.
+
+```ts
+import { Story } from 'narraleaf-react';
+
+const story = new Story("story name");
+const scene1 = new Scene("scene 1");
+
+story.entry(scene1);
+```
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - Name of the story
+- `config: IStoryConfig` - See [IStoryConfig](../types/IStoryConfig)
+</Step>
+</Steps>
+
+### entry
+
+<Steps>
+<Step>
+
+- `scene: Scene` - The first scene to be executed
+- Returns `this`
+</Step>
+</Steps>
+
+### registerScene
+
+<Steps>
+<Step>
+
+Scenes that are registered can be accessed by their name. For exmaple, you can jump to a scene by its name.
+
+```ts
+const scene1 = new Scene("scene 1");
+const scene2 = new Scene("scene 2");
+
+scene1.action([
+    scene1.jumpTo("scene 2") // use string instead of scene instance
+]);
+
+const story = new Story("story name");
+story.registerScene("scene 2", scene2);
+```
+
+#### Overload 1 of 2
+
+- `scene: Scene` - The scene to be registered
+- Returns `this`
+
+#### Overload 2 of 2
+
+This overload allows you to pass the scene alias and the scene instance.
+
+- `name: string` - Name of the scene
+- `scene: Scene` - The scene to be registered
+- Returns `this`
+</Step>
+</Steps>
+
+### registerPersistent
+
+<Steps>
+<Step>
+
+You have to register the persistent to make it available in the story.
+
+```ts
+const story = new Story("story name");
+const persis = new Persistent</* ... */>("persis", /* ... */);
+
+story.registerPersistent(persistent);
+
+const scene1 = new Scene("scene 1");
+scene1.action([
+    persis.set(/* ... */, /* ... */)
+]);
+```
+
+- `persistent: Persistent<any>` - The [Persistent](./persistent) to be registered
+- Returns `this`
+</Step>
+</Steps>
+
+### registerService
+
+<Steps>
+<Step>
+
+Register a service. For more information, see [Service](./service).
+
+```ts
+const story = new Story(/* ... */);
+const gallery = new Gallery(/* ... */);
+
+story.registerService("gallery", gallery);
+```
+
+- `name: string` - Name of the service
+- `service: Service<any>` - The [Service](./service) to be registered
+- Returns `this`
+</Step>
+</Steps>
+
+### getService\<T extends Service\>
+
+<Steps>
+<Step>
+
+Get the service by its name. Throws an error if the service is not found.
+
+```tsx
+const {game} = useGame();
+const liveGame = game.getLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery>("gallery");
+```
+
+- `name: string` - Name of the service
+- Returns `T`
+</Step>
+</Steps>
+
+### createPersistent\<T extends PersistentContent\>
+
+<Steps>
+<Step>
+
+Create a Persistent and register it to the story.
+
+```typescript
+const persistent = story.createPersistent("playerData", {
+  name: "persistent",
+});
+
+// is equivalent to
+const persistent = new Persistent("playerData", {
+  name: "persistent",
+});
+story.registerPersistent(persistent);
+```
+
+- `namespace: string` - Name of the persistent
+- `defaultContent: T`
+- Returns `Persistent<T>`
+</Step>
+</Steps>
+
+### hash
+
+<Steps>
+<Step>
+
+Returns a 64-bit hash of the story.
+
+The hash is calculated based on the story's logic and operation order, not its text content. Specifically:
+
+- The hash reflects the logical structure and sequence of operations in the story
+- Changes to the order of operations (like animations, jumps, etc.) will result in different hashes
+- Changes to text content (like dialogue, descriptions) will **not** affect the hash
+- When `strict` is `true`, the hash also includes stringified lambda functions
+
+This hash is primarily used to check story compatibility between saved games.
+
+```ts
+const story = new Story("story name");
+const hash = story.hash(); // basic hash
+const strictHash = story.hash(true); // hash with strict mode
+```
+
+- `strict: boolean` - Whether to use strict mode for hash calculation (default: `false`)
+- Returns `string` - A 64-bit hash of the story
+</Step>
+</Steps>
+
+### stringify
+
+<Steps>
+<Step>
+
+Converts the story into a string representation. This is primarily used internally for hash calculation.
+
+The stringification behavior depends on the `strict` parameter:
+
+- When `strict` is `false` (default), returns a basic string representation
+- When `strict` is `true`, includes stringified lambda functions in the output
+
+```ts
+const story = new Story("story name");
+const str = story.stringify(); // basic string representation
+const strictStr = story.stringify(true); // string with strict mode
+```
+
+- `strict: boolean` - Whether to use strict mode for stringification (default: `false`)
+- Returns `string` - String representation of the story
+</Step>
+</Steps>

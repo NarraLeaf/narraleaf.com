@@ -1,0 +1,97 @@
+---
+title: "SentenceConfig"
+---
+```ts
+type SentenceConfig = {
+    pause?: boolean | number;
+    voice: Sound | null;
+    character: Character | null;
+    voiceId: string | number | null;
+    color?: Color;
+    metadata?: SentenceMetadata;
+    avatar?: DialogAvatar | false;
+} & Font;
+```
+
+`SentenceMetadata` 见下文。`DialogAvatar` 见 [Dialog](../../player/dialog)。
+
+面向作者的局部配置见 [SentenceUserConfig](./SentenceUserConfig)。
+
+`Font` 见 [Font](./Font)。
+
+## pause
+
+句后是否停顿及停顿长短，可为 `boolean` 或时长。
+
+## voice
+
+播放的语音资源。若指定了 `voice`，将忽略 `voiceId`。
+
+```ts
+character1.say("hello!", {
+    voice: new Sound({
+        src: "/your/path/to/voice.mp3"
+    })
+});
+```
+
+## voiceId
+
+语音标识，可为字符串或数字。
+
+```ts
+const voiceScene = new Scene("voice-scene", {
+    voices: {
+        "a_1_1": "/your/path/to/voice.mp3"
+    }
+});
+
+voiceScene.action([
+    character1
+        .say("hello!", {
+            voiceId: "a_1_1"
+        }),
+]);
+```
+
+或使用函数生成路径：
+
+```ts
+const voiceScene = new Scene("voice-scene", {
+    voices: (id) => `/static/game/sound/bgm/${id}.mp3`
+});
+```
+
+## character
+
+说话的 [Character](../elements/character)。设置后会覆盖之前的角色。
+
+## color
+
+句子文本颜色。
+
+```ts
+new Sentence("hello!", {
+    color: "red"
+});
+
+new Sentence("hello!", {
+    color: "#ff0000"
+});
+
+new Sentence("hello!", {
+    color: {
+        r: 255,
+        g: 0,
+        b: 0
+    }
+});
+```
+
+## metadata
+
+随句子附带的**运行时**元数据（`SentenceMetadata`，即 `Record<string, unknown>`）。**不会**写入存档。尽量使用可序列化的纯数据。运行时用 `Sentence.getMetadata()` 读取。
+
+## avatar
+
+按行的对话框头像覆盖：静态资源、解析器，或 `false` 隐藏本行头像。详见 [Dialog](../../player/dialog)。

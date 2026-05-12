@@ -1,0 +1,14 @@
+{
+  "title": "播放器",
+  "pages": [
+    "player",
+    "fixed-aspect-ratio-container",
+    "game-providers",
+    "hooks",
+    "page-router",
+    "dialog",
+    "notification",
+    "menu",
+    "nvl-container"
+  ]
+}
