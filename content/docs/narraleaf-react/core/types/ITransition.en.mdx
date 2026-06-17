@@ -44,7 +44,7 @@ Start the transition effect.
 
 Returns an array of ElementProps, each element represents the properties of the image element.  
 
-Here is an example of [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/dissolve.ts): 
+Here is an example of [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts): 
 
 ```ts
 public toElementProps(): (DissolveProps & ElementProp)[] {
@@ -79,9 +79,9 @@ You don't need to override this property.
 
 ## Custom Transition
 
-You can create your own transition effect by implementing the [ITransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/type.ts) interface and extends the [Base](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/base.ts) class.
+You can create your own transition effect by implementing the [ITransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/type.ts) interface and extends a transition base class such as [ImageTransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/imageTransition.ts).
 
-Here is an example of [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/dissolve.ts):
+Here is an example of [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts):
 
 ```ts
 import {Base, ITransition} from 'narraleaf-react';

@@ -3,13 +3,13 @@ title: "Custom Notification"
 ---
 ## Overview
 
-Notifications display brief messages in-game (e.g. "Saved", "Unlocked"). You can replace the default [Notification](../player/notification) component via the `notification` option in [game.configure](../core/game/game) to customize appearance and layout.
+Notifications display brief messages in-game (e.g. "Saved", "Unlocked"). You can replace the default [Notification](/docs/narraleaf-react/player/notification) component via the `notification` option in [game.configure](/docs/narraleaf-react/core/game/game) to customize appearance and layout.
 
-Use [liveGame.notify](../core/game/live-game) to trigger notifications. The custom component receives a `notifications` array ([INotificationsProps](../player/notification)) and renders each item.
+Use [liveGame.notify](/docs/narraleaf-react/core/game/live-game) to trigger notifications. The custom component receives a `notifications` array ([INotificationsProps](/docs/narraleaf-react/player/notification)) and renders each item.
 
 ## 1. Create the Custom Notification Component
 
-The custom component receives `{ notifications }` typed as [INotificationsProps](../player/notification). Each notification has `id` and `message`:
+The custom component receives `{ notifications }` typed as [INotificationsProps](/docs/narraleaf-react/player/notification). Each notification has `id` and `message`:
 
 ```tsx
 import type { INotificationsProps } from "narraleaf-react";
@@ -51,7 +51,7 @@ function App() {
 
 ## 3. Trigger Notifications
 
-Call `notify` anywhere you have access to [LiveGame](../core/game/live-game):
+Call `notify` anywhere you have access to [LiveGame](/docs/narraleaf-react/core/game/live-game):
 
 ```tsx
 const liveGame = game.getLiveGame();
@@ -108,6 +108,6 @@ type Notification = {
 
 ## See Also
 
-- [Notification](../player/notification) - Notification component API
-- [liveGame.notify](../core/game/live-game) - Trigger notifications
-- [game.configure](../core/game/game) - Game configuration
+- [Notification](/docs/narraleaf-react/player/notification) - Notification component API
+- [liveGame.notify](/docs/narraleaf-react/core/game/live-game) - Trigger notifications
+- [game.configure](/docs/narraleaf-react/core/game/game) - Game configuration

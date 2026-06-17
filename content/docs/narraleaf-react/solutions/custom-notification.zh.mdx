@@ -3,13 +3,13 @@ title: "自定义 Notification"
 ---
 ## 概述
 
-通知（Notification）用于在游戏中显示短暂提示，如「已保存」「已解锁」等。通过 [game.configure](../core/game/game) 的 `notification` 配置项，可替换默认的 [Notification](../player/notification) 组件，实现自定义样式和布局。
+通知（Notification）用于在游戏中显示短暂提示，如「已保存」「已解锁」等。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `notification` 配置项，可替换默认的 [Notification](/zh/docs/narraleaf-react/player/notification) 组件，实现自定义样式和布局。
 
-触发通知使用 [liveGame.notify](../core/game/live-game) 方法。自定义组件接收 `notifications` 数组（`INotificationsProps`），自行渲染每条通知。
+触发通知使用 [liveGame.notify](/zh/docs/narraleaf-react/core/game/live-game) 方法。自定义组件接收 `notifications` 数组（`INotificationsProps`），自行渲染每条通知。
 
 ## 1. 创建自定义 Notification 组件
 
-自定义组件接收 `{ notifications }`，类型为 [INotificationsProps](../player/notification)。每条通知包含 `id` 和 `message`：
+自定义组件接收 `{ notifications }`，类型为 [INotificationsProps](/zh/docs/narraleaf-react/player/notification)。每条通知包含 `id` 和 `message`：
 
 ```tsx
 import type { INotificationsProps } from "narraleaf-react";
@@ -51,7 +51,7 @@ function App() {
 
 ## 3. 触发通知
 
-在任意可访问 [LiveGame](../core/game/live-game) 的地方调用 `notify`：
+在任意可访问 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game) 的地方调用 `notify`：
 
 ```tsx
 const liveGame = game.getLiveGame();
@@ -108,6 +108,6 @@ type Notification = {
 
 ## 参考
 
-- [Notification](../player/notification) - 通知组件 API
-- [liveGame.notify](../core/game/live-game) - 触发通知
-- [game.configure](../core/game/game) - 游戏配置
+- [Notification](/zh/docs/narraleaf-react/player/notification) - 通知组件 API
+- [liveGame.notify](/zh/docs/narraleaf-react/core/game/live-game) - 触发通知
+- [game.configure](/zh/docs/narraleaf-react/core/game/game) - 游戏配置

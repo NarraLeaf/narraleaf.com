@@ -32,7 +32,7 @@ function VoiceControls() {
 
 - `done: boolean` — `true` when both the automatic voice managed by the current sentence and any manual playback have completed.
 - `voice: Sound | null` — The voice sound instance resolved from the current sentence. Null if the sentence does not play voice.
-- `playVoice(voice?: Sound | string | URL | null): Promise<SoundToken | null>` — Manually replay the voice. Passing a string or URL creates a `Sound` instance automatically, while `null` stops manual playback. The promise resolves to the `SoundToken` returned by [`LiveGame.playSound`](../../core/game/live-game), allowing you to listen for `ended` or `stop` events.
+- `playVoice(voice?: Sound | string | URL | null): Promise<SoundToken | null>` — Manually replay the voice. Passing a string or URL creates a `Sound` instance automatically, while `null` stops manual playback. The promise resolves to the `SoundToken` returned by [`LiveGame.playSound`](/docs/narraleaf-react/core/game/live-game), allowing you to listen for `ended` or `stop` events.
 - `getVoice: () => Sound | null` — Convenience accessor for the current voice instance.
 - `getVoiceId: () => string | number | null` — Returns the voice identifier defined in the sentence config, if any.
 - `getVoiceSrc: () => string | null` — Returns the source URL of the current voice sound, if available.

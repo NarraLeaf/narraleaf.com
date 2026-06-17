@@ -1,7 +1,7 @@
 ---
 title: "Show Dialog"
 ---
-To show a dialog, you can use a [Character](../core/elements/character) element. 
+To show a dialog, you can use a [Character](/docs/narraleaf-react/core/elements/character) element. 
 
 ```typescript
 import { Scene, Character } from "narraleaf-react";
@@ -26,7 +26,7 @@ scene1.action([
 
 The character with the name "John Smith" will say "Hello, World!" and "Good morning!".
 
-You can add some customization to the dialog by using the [Word](../core/elements/word) and the [Sentence](../core/elements/sentence) element.
+You can add some customization to the dialog by using the [Word](/docs/narraleaf-react/core/elements/character/word) and the [Sentence](/docs/narraleaf-react/core/elements/character/sentence) element.
 
 ```typescript
 character1.say`Hello, my name is ${Word.bold("John")}!`; // will output "Hello, my name is John!" with "John" in bold
@@ -45,8 +45,8 @@ const timeWord = new Word(
 character1.say`Now it is ${timeWord}`; // will output "Now it is 12:00:00 PM" with "12:00:00 PM" in red
 ```
 
-For more information about constructing a sentence, you can read the [Sentence](../core/elements/sentence) documentation.
+For more information about constructing a sentence, you can read the [Sentence](/docs/narraleaf-react/core/elements/character/sentence) documentation.
 
 In this example, the character will say "Now it is " and the current time in red.
 
-You can read more about the [Character](../core/elements/character) element in the documentation.
+You can read more about the [Character](/docs/narraleaf-react/core/elements/character) element in the documentation.

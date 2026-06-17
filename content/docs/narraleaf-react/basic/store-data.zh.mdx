@@ -1,7 +1,7 @@
 ---
 title: "存储数据"
 ---
-你可以使用 [Persistent](../core/elements/persistent) 在游戏上下文中存储数据。
+你可以使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 在游戏上下文中存储数据。
 
 ```typescript
 type PersisData = {
@@ -30,10 +30,10 @@ scene1.action([
 ```
 
 <Callout type="warning">
-    如果脚本内容包含 Persistent，必须使用 `story.registerPersistent(persis)` 在 [Story](../core/elements/story) 中注册。
+    如果脚本内容包含 Persistent，必须使用 `story.registerPersistent(persis)` 在 [Story](/zh/docs/narraleaf-react/core/elements/story) 中注册。
 </Callout>
 
-> **注意：** 存储的内容必须是 **可序列化的**，更多信息请参见 [Persistent](../core/elements/persistent).
+> **注意：** 存储的内容必须是 **可序列化的**，更多信息请参见 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent).
 
 你可以将包括持久数据在内的游戏数据保存到你想要的任何地方，例如本地存储、服务器或云存储。
 

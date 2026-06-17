@@ -3,13 +3,13 @@ title: "Save System with localStorage (Including Quick Save)"
 ---
 ## Overview
 
-NarraLeaf-React does not include a built-in save UI, but provides [serialize](../core/game/live-game#serialize) and [deserialize](../core/game/live-game#deserialize) for serializing/deserializing game state. Combined with [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage), you can implement a simple browser-based save system, and use [KeyMap](../core/game/key-map) for quick save (e.g. Ctrl+S) and quick load (e.g. F9).
+NarraLeaf-React does not include a built-in save UI, but provides [serialize](/docs/narraleaf-react/core/game/live-game#serialize) and [deserialize](/docs/narraleaf-react/core/game/live-game#deserialize) for serializing/deserializing game state. Combined with [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage), you can implement a simple browser-based save system, and use [KeyMap](/docs/narraleaf-react/core/game/key-map) for quick save (e.g. Ctrl+S) and quick load (e.g. F9).
 
 This guide demonstrates a full implementation with multiple save slots and quick save/load.
 
 ## 1. Core Save and Load Logic
 
-Use [useLiveGame](../player/hooks/useLiveGame) or `game.getLiveGame()` to get [LiveGame](../core/game/live-game), call `serialize()` to obtain [SavedGame](../core/types/SavedGame), then store it in localStorage:
+Use [useLiveGame](/docs/narraleaf-react/player/hooks/useLiveGame) or `game.getLiveGame()` to get [LiveGame](/docs/narraleaf-react/core/game/live-game), call `serialize()` to obtain [SavedGame](/docs/narraleaf-react/core/types/SavedGame), then store it in localStorage:
 
 ```tsx
 import { useGame } from "narraleaf-react";
@@ -85,7 +85,7 @@ function useQuickSave() {
 
 ## 3. Save Slot UI Example
 
-In a save/load page, list slots and show info from [SavedGameMetaData](../core/types/SavedGameMetaData):
+In a save/load page, list slots and show info from [SavedGameMetaData](/docs/narraleaf-react/core/types/SavedGameMetaData):
 
 ```tsx
 function SaveLoadPage() {
@@ -133,12 +133,12 @@ function SaveLoadPage() {
 
 ## 4. Notes
 
-- **Script compatibility**: After changing the story script, old saves may not load correctly; see [LiveGame](../core/game/live-game) docs.
+- **Script compatibility**: After changing the story script, old saves may not load correctly; see [LiveGame](/docs/narraleaf-react/core/game/live-game) docs.
 - **Storage limits**: localStorage is ~5–10MB; consider [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) or server storage for large saves.
-- **Storable and Service**: [Storable](../core/game/storable) and registered [Service](../core/types/ServiceHandlerCtx) (e.g. the built-in [Gallery](../core/elements/built-in/gallery)) are saved and restored with `serialize`/`deserialize`.
+- **Storable and Service**: [Storable](/docs/narraleaf-react/core/game/storable) and registered [Service](/docs/narraleaf-react/core/types/ServiceHandlerCtx) (e.g. the built-in [Gallery](/docs/narraleaf-react/core/elements/built-in/gallery)) are saved and restored with `serialize`/`deserialize`.
 
 ## See Also
 
-- [LiveGame.serialize / deserialize](../core/game/live-game) - Serialization
-- [SavedGame](../core/types/SavedGame) - Save data structure
-- [KeyMap](../core/game/key-map) - Key bindings
+- [LiveGame.serialize / deserialize](/docs/narraleaf-react/core/game/live-game) - Serialization
+- [SavedGame](/docs/narraleaf-react/core/types/SavedGame) - Save data structure
+- [KeyMap](/docs/narraleaf-react/core/game/key-map) - Key bindings

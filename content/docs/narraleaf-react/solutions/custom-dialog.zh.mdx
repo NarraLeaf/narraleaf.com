@@ -3,13 +3,13 @@ title: "自定义 Dialog"
 ---
 ## 概述
 
-对话框（Dialog）用于渲染 Say 模式下的角色对话，包括角色名牌和文本内容。通过 [game.configure](../core/game/game) 替换默认的 [Dialog](../player/dialog) 组件，即可实现完全自定义的对话框样式。
+对话框（Dialog）用于渲染 Say 模式下的角色对话，包括角色名牌和文本内容。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 替换默认的 [Dialog](/zh/docs/narraleaf-react/player/dialog) 组件，即可实现完全自定义的对话框样式。
 
-本文档演示如何创建自定义对话框，并配合 [Nametag](../player/dialog) 与 [Texts](../player/dialog) 调整名牌和文本的展示。
+本文档演示如何创建自定义对话框，并配合 [Nametag](/zh/docs/narraleaf-react/player/dialog) 与 [Texts](/zh/docs/narraleaf-react/player/dialog) 调整名牌和文本的展示。
 
 ## 1. 创建自定义 Dialog 组件
 
-使用 [Dialog](../player/dialog)、[Nametag](../player/dialog)、[Texts](../player/dialog) 三个子组件构建布局。`Dialog` 为容器，`Nametag` 渲染角色名，`Texts` 渲染对话文本。
+使用 [Dialog](/zh/docs/narraleaf-react/player/dialog)、[Nametag](/zh/docs/narraleaf-react/player/dialog)、[Texts](/zh/docs/narraleaf-react/player/dialog) 三个子组件构建布局。`Dialog` 为容器，`Nametag` 渲染角色名，`Texts` 渲染对话文本。
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -31,7 +31,7 @@ function GameDialog() {
 
 ## 2. 使用 useDialog 获取状态（可选）
 
-若需在子组件中读取当前对话状态（如 `done`、`text`、`isNarrator`），可使用 [useDialog](../player/hooks/useDialog) Hook：
+若需在子组件中读取当前对话状态（如 `done`、`text`、`isNarrator`），可使用 [useDialog](/zh/docs/narraleaf-react/player/hooks/useDialog) Hook：
 
 ```tsx
 import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
@@ -54,7 +54,7 @@ function GameDialog() {
 
 ## 3. 在 App 中注册
 
-通过 [useGame](../player/hooks/useGame) 获取游戏实例，在 `useEffect` 中调用 [game.configure](../core/game/game) 注册自定义组件：
+通过 [useGame](/zh/docs/narraleaf-react/player/hooks/useGame) 获取游戏实例，在 `useEffect` 中调用 [game.configure](/zh/docs/narraleaf-react/core/game/game) 注册自定义组件：
 
 ```tsx
 import { useEffect } from "react";
@@ -80,7 +80,7 @@ function App() {
 
 ## 4. 完整示例（参考 [narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton)）
 
-以下示例展示：使用 [useDialog](../player/hooks/useDialog) 的 `done` 控制打字完成指示器，`isNarrator` 控制名牌显隐，以及背景图样式：
+以下示例展示：使用 [useDialog](/zh/docs/narraleaf-react/player/hooks/useDialog) 的 `done` 控制打字完成指示器，`isNarrator` 控制名牌显隐，以及背景图样式：
 
 ```tsx
 import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
@@ -135,7 +135,7 @@ export function GameDialog() {
 }
 ```
 
-注册时还可设置 [defaultTextColor](../core/game/game)、[defaultNametagColor](../core/game/game) 等默认颜色：
+注册时还可设置 [defaultTextColor](/zh/docs/narraleaf-react/core/game/game)、[defaultNametagColor](/zh/docs/narraleaf-react/core/game/game) 等默认颜色：
 
 ```tsx
 game.configure({
@@ -167,5 +167,5 @@ function GameDialog() {
 
 ## 注意事项
 
-- **名牌颜色**：由 [Character](../core/elements/character) 配置中的 `nametagColor` 控制，不建议用 CSS 覆盖。
-- **文本样式**：由 [Word](../core/elements/word) / [Sentence](../core/elements/sentence) 配置控制，可自定义背景、字体、大小等未预定义属性。
+- **名牌颜色**：由 [Character](/zh/docs/narraleaf-react/core/elements/character) 配置中的 `nametagColor` 控制，不建议用 CSS 覆盖。
+- **文本样式**：由 [Word](/zh/docs/narraleaf-react/core/elements/character/word) / [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 配置控制，可自定义背景、字体、大小等未预定义属性。

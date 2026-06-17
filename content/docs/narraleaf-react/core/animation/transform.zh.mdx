@@ -53,7 +53,7 @@ Tranform.create()
 
 ## 变换属性
 
-有关属性列表，请参见 [TransformDefinitions](../types/TransformDefinitions)
+有关属性列表，请参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 
 ## 静态方法
 
@@ -65,7 +65,7 @@ Tranform.create()
 将图像移动到舞台的左侧
 
 - `duration: number` - 移动的持续时间，以毫秒为单位
-- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 </Step>
 </Steps>
 
@@ -77,7 +77,7 @@ Tranform.create()
 将图像移动到舞台的右侧
 
 - `duration: number` - 移动的持续时间，以毫秒为单位
-- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 </Step>
 </Steps>
 
@@ -89,7 +89,7 @@ Tranform.create()
 将图像移动到舞台的中心
 
 - `duration: number` - 移动的持续时间，以毫秒为单位
-- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+- `easing?: TransformDefinitions.EasingDefinition` - 参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 </Step>
 </Steps>
 
@@ -100,7 +100,7 @@ Tranform.create()
 
 立即应用变换
 
-- `props: SequenceProps<T>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[SequenceProps](../types/TransformDefinitions#SequenceProps)
+- `props: SequenceProps<T>` - 单个 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[SequenceProps](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - 返回 `Transform<T>`
 </Step>
 </Steps>
@@ -112,7 +112,7 @@ Tranform.create()
 
 使用给定的配置创建一个新的变换。序列将为空。
 
-- `config?: Partial<TransformDefinitions.TransformConfig>` - 变换的配置。参见 [TransformDefinitions.TransformConfig](../types/TransformDefinitions#TransformConfig)
+- `config?: Partial<TransformDefinitions.TransformConfig>` - 变换的配置。参见 [TransformDefinitions.TransformConfig](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - 返回 `Transform<T>`
 </Step>
 </Steps>
@@ -123,8 +123,6 @@ Tranform.create()
 
 <Steps>
 <Step>
-
-有关更多信息，请参见 [高级变换](./advanced-transform)
 
 #### 重载 1 / 2
 
@@ -181,8 +179,8 @@ new Transform<TransformDefinitions.ImageTransformProps>({
 });
 ```
 
-- `props: SequenceProps<T>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[SequenceProps](../types/TransformDefinitions#SequenceProps)
-- `options?: Partial<TransformDefinitions.CommonTransformProps>` - 单个 [TransformDefinitions](../types/TransformDefinitions).[CommonTransformProps](../types/TransformDefinitions#CommonTransformProps)
+- `props: SequenceProps<T>` - 单个 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[SequenceProps](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - 单个 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[CommonTransformProps](/zh/docs/narraleaf-react/core/types/CommonTransformProps)
 </Step>
 </Steps>
 
@@ -236,7 +234,7 @@ transform
 
 **注意**：暂存的更改将在动画开始前提交，以确保应用最新的更改。
 
-- `options?: Partial<TransformDefinitions.SequenceOptions>` - 序列的选项。参见 [TransformDefinitions.SequenceOptions](../types/TransformDefinitions#SequenceOptions)
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - 序列的选项。参见 [TransformDefinitions.SequenceOptions](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -248,8 +246,8 @@ transform
 
 缩放当前暂存序列。
 
-- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
-- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放，使用负值可以反转缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -261,7 +259,7 @@ transform
 
 在 X 轴方向缩放当前暂存序列。
 
-- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -273,7 +271,7 @@ transform
 
 在 Y 轴方向缩放当前暂存序列。
 
-- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -285,8 +283,8 @@ transform
 
 同时在 X 和 Y 轴方向缩放当前暂存序列。
 
-- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
-- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `scaleX: TransformDefinitions.Types["scaleX"]` - 变换在 X 轴的缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
+- `scaleY: TransformDefinitions.Types["scaleY"]` - 变换在 Y 轴的缩放。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -298,7 +296,7 @@ transform
 
 缩放当前暂存序列（推荐用于图像缩放）。
 
-- `zoom: TransformDefinitions.Types["zoom"]` - 变换的缩放级别。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `zoom: TransformDefinitions.Types["zoom"]` - 变换的缩放级别。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -310,7 +308,7 @@ transform
 
 旋转当前暂存序列。
 
-- `rotation: TransformDefinitions.Types["rotation"]` - 变换的旋转。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `rotation: TransformDefinitions.Types["rotation"]` - 变换的旋转。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -322,7 +320,7 @@ transform
 
 设置当前暂存序列的位置。
 
-- `position: TransformDefinitions.Types["position"]` - 变换的位置。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `position: TransformDefinitions.Types["position"]` - 变换的位置。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -334,7 +332,7 @@ transform
 
 设置当前暂存序列的透明度。
 
-- `opacity: TransformDefinitions.Types["opacity"]` - 变换的透明度。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `opacity: TransformDefinitions.Types["opacity"]` - 变换的透明度。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>
@@ -346,7 +344,7 @@ transform
 
 设置当前暂存序列的字体颜色。
 
-- `fontColor: TransformDefinitions.Types["fontColor"]` - 变换的字体颜色。参见 [TransformDefinitions.Types](../types/TransformDefinitions#Types)
+- `fontColor: TransformDefinitions.Types["fontColor"]` - 变换的字体颜色。参见 [TransformDefinitions.Types](/zh/docs/narraleaf-react/core/types/TransformDefinitions)
 - `return: this`
 </Step>
 </Steps>

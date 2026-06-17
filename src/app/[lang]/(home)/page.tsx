@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { docsRoute } from '@/lib/shared';
 import { type Locale, localizedPath } from '@/lib/i18n';
+import { UiEditorSlideshow } from './ui-editor-slideshow';
 
 type IconCard = {
   title: string;
@@ -46,10 +47,24 @@ type HeroCopy = SectionCopy & {
   imageAlt: string;
 };
 
+type EditorIntroCopy = SectionCopy & {
+  cta: string;
+  href: string;
+  slideAlts: string[];
+  slideControls: {
+    previous: string;
+    next: string;
+    goToSlide: string;
+    openPreview: string;
+    closePreview: string;
+  };
+};
+
 type HomePageCopy = {
   hero: HeroCopy;
   principlesIntro: SectionCopy;
   principles: IconCard[];
+  editorIntro: EditorIntroCopy;
   capabilitiesIntro: SectionCopy;
   capabilities: IconCard[];
   solutionsIntro: SectionCopy;
@@ -105,6 +120,26 @@ const homeCopy = {
         icon: GitBranch,
       },
     ],
+    editorIntro: {
+      eyebrow: 'Interface Editor',
+      title: 'Build interfaces as easily as you prototype',
+      description:
+        'Design layouts, animations, and visual logic seamlessly in one editor without writing a single line of code.',
+      cta: 'Learn more',
+      href: '/studio',
+      slideAlts: [
+        'NarraLeaf Studio interface editor with a selected menu layout',
+        'NarraLeaf Studio workspace showing the visual novel production editor',
+        'NarraLeaf Studio dark editor workspace with project panels',
+      ],
+      slideControls: {
+        previous: 'Previous interface editor feature',
+        next: 'Next interface editor feature',
+        goToSlide: 'Show interface editor feature',
+        openPreview: 'Open enlarged interface editor feature',
+        closePreview: 'Close enlarged interface editor feature',
+      },
+    },
     capabilitiesIntro: {
       eyebrow: 'Built For Modern Teams',
       title: 'Publish the story without complex, heavyweight project maintenance.',
@@ -274,6 +309,26 @@ const homeCopy = {
         icon: GitBranch,
       },
     ],
+    editorIntro: {
+      eyebrow: '界面编辑器',
+      title: '像制作原型一样轻松构建界面',
+      description:
+        '在同一个编辑器中无缝完成布局、动画和可视化逻辑设计，而无需编写任何一行代码',
+      cta: '了解更多',
+      href: '/studio',
+      slideAlts: [
+        'NarraLeaf Studio 界面编辑器中选中菜单布局的画面',
+        'NarraLeaf Studio 可视化制作工作区的画面',
+        'NarraLeaf Studio 暗色编辑器工作区的画面',
+      ],
+      slideControls: {
+        previous: '上一张界面编辑器特性',
+        next: '下一张界面编辑器特性',
+        goToSlide: '显示界面编辑器特性',
+        openPreview: '放大界面编辑器特性',
+        closePreview: '关闭放大的界面编辑器特性',
+      },
+    },
     capabilitiesIntro: {
       eyebrow: '为现代团队构建',
       title: '发布故事，无需复杂且笨重的项目维护',
@@ -398,6 +453,12 @@ const homeCopy = {
   },
 } satisfies Record<Locale, HomePageCopy>;
 
+const editorSlideImages = [
+  '/static/img/ui-editor-slides/feature-1.png',
+  '/static/img/ui-editor-slides/feature-2.png',
+  '/static/img/ui-editor-slides/feature-3.png',
+] as const;
+
 function SectionIntro(props: { eyebrow: string; title: string; description: string }) {
   const { eyebrow, title, description } = props;
 
@@ -511,6 +572,40 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section className="border-b border-black/10 dark:border-white/10">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
+          <div className="max-w-xl space-y-7">
+            <div className="space-y-4">
+              <p className="text-sm font-medium tracking-[0.18em] text-fd-muted-foreground uppercase">
+                {copy.editorIntro.eyebrow}
+              </p>
+              <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+                {copy.editorIntro.title}
+              </h2>
+              <p className="text-base leading-7 text-fd-muted-foreground sm:text-lg">
+                {copy.editorIntro.description}
+              </p>
+            </div>
+
+            <Link
+              href={docsUrl(copy.editorIntro.href)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-black/10 bg-transparent px-5 py-3 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:bg-fd-card dark:border-white/10"
+            >
+              {copy.editorIntro.cta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          <UiEditorSlideshow
+            slides={editorSlideImages.map((src, index) => ({
+              src,
+              alt: copy.editorIntro.slideAlts[index],
+            }))}
+            labels={copy.editorIntro.slideControls}
+          />
         </div>
       </section>
 

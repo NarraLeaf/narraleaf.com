@@ -3,13 +3,13 @@ title: "自定义 Menu（游戏内选项）"
 ---
 ## 概述
 
-游戏内选项（Menu）用于在故事中展示选择分支，玩家点击或按快捷键选择后执行对应动作。通过 [game.configure](../core/game/game) 的 `menu` 配置项，可替换默认的 [Menu](../player/menu) 组件，实现自定义的选项样式和布局。
+游戏内选项（Menu）用于在故事中展示选择分支，玩家点击或按快捷键选择后执行对应动作。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `menu` 配置项，可替换默认的 [Menu](/zh/docs/narraleaf-react/player/menu) 组件，实现自定义的选项样式和布局。
 
-本文档演示如何使用 [GameMenu](../player/menu) 和 [Item](../player/menu) 构建自定义菜单，并支持 `bindKey` 快捷键。
+本文档演示如何使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 和 [Item](/zh/docs/narraleaf-react/player/menu) 构建自定义菜单，并支持 `bindKey` 快捷键。
 
 ## 1. 创建自定义 Menu 组件
 
-自定义菜单组件接收 `items`（选项索引数组），使用 [GameMenu](../player/menu) 作为容器，[Item](../player/menu) 渲染每个选项。`Item` 会自动从上下文中获取对应选项的文本和点击逻辑。
+自定义菜单组件接收 `items`（选项索引数组），使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染每个选项。`Item` 会自动从上下文中获取对应选项的文本和点击逻辑。
 
 ```tsx
 import { useEffect } from "react";
@@ -98,7 +98,7 @@ function CustomMenu({ items }: { items: number[] }) {
 }
 ```
 
-注册时可设置 [defaultMenuChoiceColor](../core/game/game) 控制选项默认颜色：
+注册时可设置 [defaultMenuChoiceColor](/zh/docs/narraleaf-react/core/game/game) 控制选项默认颜色：
 
 ```tsx
 game.configure({
@@ -126,7 +126,7 @@ function HorizontalMenu({ items }: { items: number[] }) {
 
 ## 5. 在脚本中定义选项
 
-选项在 [Menu](../core/elements/menu) 元素中通过 `choose` 定义，支持 `hideIf`、`disableIf` 等条件控制：
+选项在 [Menu](/zh/docs/narraleaf-react/core/elements/menu) 元素中通过 `choose` 定义，支持 `hideIf`、`disableIf` 等条件控制：
 
 ```ts
 // In your story script
@@ -158,6 +158,6 @@ function App() {
 
 ## 参考
 
-- [Menu](../player/menu) - 菜单组件 API
-- [Menu 元素](../core/elements/menu) - 脚本中的 Menu 用法
-- [game.configure](../core/game/game) - 游戏配置
+- [Menu](/zh/docs/narraleaf-react/player/menu) - 菜单组件 API
+- [Menu 元素](/zh/docs/narraleaf-react/core/elements/menu) - 脚本中的 Menu 用法
+- [game.configure](/zh/docs/narraleaf-react/core/game/game) - 游戏配置

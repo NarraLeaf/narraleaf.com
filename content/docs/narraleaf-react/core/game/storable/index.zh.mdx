@@ -3,12 +3,12 @@ title: "Storable"
 ---
 Storable 允许你在游戏状态中存储数据。存储在 Storable 中的数据将与当前游戏状态一起保存和加载。
 
-> 如果你需要创建操作数据的动作，可以使用 [Persistent](../elements/persistent) 抽象。
+> 如果你需要创建操作数据的动作，可以使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 抽象。
 
 存储在 Storable 中的数据按命名空间分隔。你可以在不同的命名空间中使用相同的键。
 例如，你可以在 `player1` 命名空间中存储玩家 1 的名字，也可以在 `player2` 命名空间中存储玩家 2 的名字。
 
-`game` 命名空间已经定义且可以存储数据，你可以通过实例化一个新的 [Namespace](./storable/namespace) 来添加自己的命名空间。
+`game` 命名空间已经定义且可以存储数据，你可以通过实例化一个新的 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 来添加自己的命名空间。
 
 例如，创建一个新的 `player1` 命名空间，并在其中存储玩家 1 的名字：
 

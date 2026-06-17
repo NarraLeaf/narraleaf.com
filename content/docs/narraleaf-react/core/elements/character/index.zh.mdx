@@ -4,21 +4,21 @@ title: "角色"
 <Cards>
     <Card
         title="句子"
-        href="./character/sentence"
+        href="/zh/docs/narraleaf-react/core/elements/character/sentence"
     />
     <Card
         title="单词"
-        href="./character/word"
+        href="/zh/docs/narraleaf-react/core/elements/character/word"
     />
     <Card
         title="暂停"
-        href="./character/pause"
+        href="/zh/docs/narraleaf-react/core/elements/character/pause"
     />
 </Cards>
 
 角色控制角色的对话。
 
-**注意：** `Character` 本身不驱动舞台立绘布局；舞台展示请使用 [Image](./image)。**对话框旁小头像**（ADV 头像）通过 `avatar` / `portraits` 配置，并在 UI 中使用 [`Avatar`](../../player/dialog) — 详见 [Dialog](../../player/dialog)。
+**注意：** `Character` 本身不驱动舞台立绘布局；舞台展示请使用 [Image](/zh/docs/narraleaf-react/core/elements/image)。**对话框旁小头像**（ADV 头像）通过 `avatar` / `portraits` 配置，并在 UI 中使用 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) — 详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
 
 ## 公共方法
 
@@ -28,7 +28,7 @@ title: "角色"
 <Step>
 
 - `name: string | null` - 如果为 null，则为旁白。旁白在对话框中不显示任何名字。
-- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](../types/CharacterConfig)
+- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)
 </Step>
 </Steps>
 
@@ -75,7 +75,7 @@ character
 ```
 
 - `content: string` - 句子的内容
-- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 
 #### 重载 2 / 4
 
@@ -92,7 +92,7 @@ character.say(
 
 > **注意：** 对话的名称将与句子的名称相同。
 
-- `content: Sentence` - 参见 [Sentence](./character/sentence)
+- `content: Sentence` - 参见 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence)
 
 #### 重载 3 / 4
 
@@ -105,8 +105,8 @@ character.say([
 ]) // 将输出 "你好，艾丽斯"，其中 "艾丽斯" 为红色
 ```
 
-- `content: SentencePrompt` - 参见 [SentencePrompt](../types/SentencePrompt)
-- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+- `content: SentencePrompt` - 参见 [SentencePrompt](/zh/docs/narraleaf-react/core/types/SentencePrompt)
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 
 #### 重载 4 / 4
 
@@ -117,7 +117,7 @@ character.say([
 ```
 
 - `texts: TemplateStringsArray` - 模板字符串数组
-- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+- `...words: SingleWord[]` - [SingleWord](/zh/docs/narraleaf-react/core/types/SentencePrompt)
 </Step>
 </Steps>
 
@@ -154,7 +154,7 @@ alice.setAvatar(false); // 关闭角色级头像
 
 - `avatar: DialogAvatar | false | null` — 图片源、解析器、`false` 关闭，或 `null` 清除。
 
-解析语义与优先级见 [Dialog](../../player/dialog)。
+解析语义与优先级见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
 </Step>
 </Steps>
 
@@ -163,7 +163,7 @@ alice.setAvatar(false); // 关闭角色级头像
 <Steps>
 <Step>
 
-将舞台 [`Image`](./image) 绑定到该角色，并可选择为该绑定配置**立绘级**对话框头像（字符串或解析器）。
+将舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 绑定到该角色，并可选择为该绑定配置**立绘级**对话框头像（字符串或解析器）。
 
 ```typescript
 alice.addPortrait(aliceBody, {
@@ -190,7 +190,7 @@ alice.setPortraits([
 ]);
 ```
 
-- `portraits: (Image | CharacterPortraitConfig)[]` — 见 [CharacterConfig](../types/CharacterConfig)。
+- `portraits: (Image | CharacterPortraitConfig)[]` — 见 [CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)。
 </Step>
 </Steps>
 
@@ -230,6 +230,6 @@ scene.action([
 ```
 
 - `texts: TemplateStringsArray` - 模板字符串数组
-- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+- `...words: SingleWord[]` - [SingleWord](/zh/docs/narraleaf-react/core/types/SentencePrompt)
 </Step>
 </Steps>

@@ -7,11 +7,11 @@ LiveGame is the main class that represents the game's current state.
 
 ### game
 
-The [Game](./game) instance
+The [Game](/docs/narraleaf-react/core/game/game) instance
 
 ### story
 
-The current [Story](../elements/story) instance
+The current [Story](/docs/narraleaf-react/core/elements/story) instance
 
 ## Public Methods
 
@@ -20,9 +20,9 @@ The current [Story](../elements/story) instance
 <Steps>
 <Step>
 
-Returns the [Storable](./storable) instance
+Returns the [Storable](/docs/narraleaf-react/core/game/storable) instance
 
-- `return: Storable` - [Storable](./storable)
+- `return: Storable` - [Storable](/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>
 
@@ -31,7 +31,7 @@ Returns the [Storable](./storable) instance
 <Steps>
 <Step>
 
-Returns the [Storable](./storable) instance
+Returns the [Storable](/docs/narraleaf-react/core/game/storable) instance
 
 ```typescript {2}
 const {game} = useGame();
@@ -41,7 +41,7 @@ const storable = game.getLiveGame().storable;
 const storable = game.getLiveGame().getStorable();
 ```
 
-- `return: Storable` - [Storable](./storable)
+- `return: Storable` - [Storable](/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>
 
@@ -81,7 +81,7 @@ const {game} = useGame();
 game.getLiveGame().deserialize(savedGame);
 ```
 
-- `savedGame: SavedGame` - [SavedGame](../types/SavedGame)
+- `savedGame: SavedGame` - [SavedGame](/docs/narraleaf-react/core/types/SavedGame)
 </Step>
 </Steps>
 
@@ -96,7 +96,7 @@ You can use this to save the game state to a file or a database
 
 > **Note: **Even if you change just a single line of script, the saved game might not be compatible with the new version
 
-- `return: SavedGame` - See [SavedGame](../types/SavedGame)`
+- `return: SavedGame` - See [SavedGame](/docs/narraleaf-react/core/types/SavedGame)`
 </Step>
 </Steps>
 
@@ -107,8 +107,8 @@ You can use this to save the game state to a file or a database
 
 Called when a character says something
 
-- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - See [LiveGameEvent](../types/LiveGameEvent#event%3Acharacter.prompt)
-- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - See [LiveGameEvent](/docs/narraleaf-react/core/types/LiveGameEvent)
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
 
 ```typescript
 const {game} = useGame();
@@ -140,8 +140,8 @@ return (
 
 Called when a menu is completed
 
-- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - See [LiveGameEvent](../types/LiveGameEvent#event%3Amenu.choose)
-- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - See [LiveGameEvent](/docs/narraleaf-react/core/types/LiveGameEvent)
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
 </Step>
 </Steps>
 
@@ -297,7 +297,7 @@ return (
 );
 ```
 
-- Returns `GameHistory[]` - The game history, see [GameHistory](../types/GameHistory)
+- Returns `GameHistory[]` - The game history, see [GameHistory](/docs/narraleaf-react/core/types/GameHistory)
 </Step>
 </Steps>
 
@@ -312,7 +312,7 @@ Undo the game action.
 game.undo(history.token);
 ```
 
-- `token?: string` - The token of the history item, see [GameHistory](../types/GameHistory#token). If not provided, the last action will be undone.
+- `token?: string` - The token of the history item, see [GameHistory](/docs/narraleaf-react/core/types/GameHistory). If not provided, the last action will be undone.
 </Step>
 </Steps>
 
@@ -323,7 +323,7 @@ game.undo(history.token);
 
 Create a notification.
 
-The style of the notification is defined by [Notification](../../player/notification). 
+The style of the notification is defined by [Notification](/docs/narraleaf-react/player/notification). 
 
 ```typescript
 // notify for 3 seconds
@@ -344,7 +344,7 @@ window.addEventListener("keyup", (event) => {
 
 - `message: string` - The message to notify
 - `duration?: number | null` - The duration of the notification, default is 3000ms. Set to `null` to make the notification stay forever.
-- Returns `NotificationToken` - See [NotificationToken](../types/NotificationToken)
+- Returns `NotificationToken` - See [NotificationToken](/docs/narraleaf-react/core/types/NotificationToken)
 </Step>
 </Steps>
 
@@ -459,7 +459,7 @@ useEffect(() => {
 - `type: K` - The event type
 - `listener: (this: Window, ev: WindowEventMap[K]) => any` - The event listener
 - `options?: boolean | AddEventListenerOptions`
-- Returns `LiveGameEventToken` - See [LiveGameEventToken](../types/LiveGameEventToken)
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
 </Step>
 </Steps>
 

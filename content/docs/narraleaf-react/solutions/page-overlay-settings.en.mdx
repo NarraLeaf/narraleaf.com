@@ -3,13 +3,13 @@ title: "Adding Page Overlay (Settings Page)"
 ---
 ## Overview
 
-A page overlay is UI displayed on top of the main game screen (e.g. settings, save/load, gallery) without interrupting the game flow. By defining the route structure with [Layout](../player/page-router/layout) and [Page](../player/page-router/page), and navigating with [useRouter](../player/hooks/useRouter), you can implement overlays like a settings page.
+A page overlay is UI displayed on top of the main game screen (e.g. settings, save/load, gallery) without interrupting the game flow. By defining the route structure with [Layout](/docs/narraleaf-react/player/page-router/layout) and [Page](/docs/narraleaf-react/player/page-router/page), and navigating with [useRouter](/docs/narraleaf-react/player/hooks/useRouter), you can implement overlays like a settings page.
 
-This guide shows how to build a settings page overlay and open/close it from the [Quick Menu](./quick-menu).
+This guide shows how to build a settings page overlay and open/close it from the [Quick Menu](/docs/narraleaf-react/solutions/quick-menu).
 
 ## 1. Define Layout and Page Structure
 
-Define a `settings` layout in the [LayoutRouter](../player/page-router) with child pages (e.g. `general`, `audio`). `Page name={null}` is the default page for that layout.
+Define a `settings` layout in the [LayoutRouter](/docs/narraleaf-react/player/page-router) with child pages (e.g. `general`, `audio`). `Page name={null}` is the default page for that layout.
 
 ```tsx
 import { RootLayout, Layout, Page, Player } from "narraleaf-react";
@@ -81,7 +81,7 @@ function SettingsGeneral() {
 
 ## 3. Open Settings from Quick Menu
 
-In the [Quick Menu](./quick-menu), call `router.navigate("/settings")` to open the settings overlay:
+In the [Quick Menu](/docs/narraleaf-react/solutions/quick-menu), call `router.navigate("/settings")` to open the settings overlay:
 
 ```tsx
 import { useRouter } from "narraleaf-react";
@@ -112,7 +112,7 @@ function QuickMenu() {
 
 ## 5. Add Enter/Exit Animations
 
-Wrap page content with Framer Motion's `motion.div`; [LayoutRouter](../player/page-router) will trigger animations on mount/unmount:
+Wrap page content with Framer Motion's `motion.div`; [LayoutRouter](/docs/narraleaf-react/player/page-router) will trigger animations on mount/unmount:
 
 ```tsx
 import { motion } from "framer-motion";
@@ -144,7 +144,7 @@ function SettingsGeneral() {
 
 ## See Also
 
-- [Layout](../player/page-router/layout) - Layout component
-- [Page](../player/page-router/page) - Page component
-- [useRouter](../player/hooks/useRouter) - Router hook
-- [Quick Menu](./quick-menu) - Quick menu implementation
+- [Layout](/docs/narraleaf-react/player/page-router/layout) - Layout component
+- [Page](/docs/narraleaf-react/player/page-router/page) - Page component
+- [useRouter](/docs/narraleaf-react/player/hooks/useRouter) - Router hook
+- [Quick Menu](/docs/narraleaf-react/solutions/quick-menu) - Quick menu implementation

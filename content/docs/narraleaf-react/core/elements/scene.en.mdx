@@ -1,11 +1,11 @@
 ﻿---
 title: "Scene"
 ---
-> This class extends [Displayble](./displayable)
+> This class extends [Displayble](/docs/narraleaf-react/core/elements/displayable)
 
 Scene contains multiple actions that can be performed on the scene. 
 
-For example, you can add a [Character](./character) Action to the scene
+For example, you can add a [Character](/docs/narraleaf-react/core/elements/character) Action to the scene
 
 ```ts
 import { Scene } from 'narraleaf-react';
@@ -27,7 +27,7 @@ scene.action([
 <Steps>
 <Step>
 
-`scene.local` is a [Persistent](./persistent) instance that is local to the scene.
+`scene.local` is a [Persistent](/docs/narraleaf-react/core/elements/persistent) instance that is local to the scene.
 It is used to store the temporary data that is only available in the scene.
 
 Local data doesn't need to be registered or initialised, but it is 'undefined' before it is used.
@@ -54,7 +54,7 @@ scene.action([
 <Steps>
 <Step>
 
-This property is used to access the background [Image](./image) instance of the scene.
+This property is used to access the background [Image](/docs/narraleaf-react/core/elements/image) instance of the scene.
 
 ```ts
 scene.background
@@ -99,7 +99,7 @@ scene.displayableLayer.opacity(0.5, 1000, "linear")
 <Step>
 
 - `name: string` - Name of the scene
-- `config?: Partial<ISceneUserConfig>` - [ISceneUserConfig](../types/IsceneUserConfig)
+- `config?: Partial<ISceneUserConfig>` - [ISceneUserConfig](/docs/narraleaf-react/core/types/ISceneUserConfig)
 </Step>
 </Steps>
 
@@ -112,7 +112,7 @@ Add actions to the scene. Do not call this method more than once.
 
 #### Overload 1 of 2
 
-- `actions: ActionStatements` - Actions to be executed, see [ActionStatements](../types/ActionStatements)
+- `actions: ActionStatements` - Actions to be executed, see [ActionStatements](/docs/narraleaf-react/core/types/ActionStatements)
 
 #### Overload 2 of 2
 
@@ -130,7 +130,7 @@ story.entry(
 );
 ```
 
-- `actions: ((scene: Scene) => ActionStatements)` - Actions to be executed, see [ActionStatements](../types/ActionStatements)
+- `actions: ((scene: Scene) => ActionStatements)` - Actions to be executed, see [ActionStatements](/docs/narraleaf-react/core/types/ActionStatements)
 - Returns `this`
 </Step>
 </Steps>
@@ -168,8 +168,8 @@ scene.action([
 ]);
 ```
 
-- `background: Color | ImageSrc` - See [Color](../types/color) or [ImageSrc](../types/imageSrc)
-- `transition?: ImageTransition` - For ImageTransition, see [Transition](../animation/transition)
+- `background: Color | ImageSrc` - See [Color](/docs/narraleaf-react/core/types/color) or [ImageSrc](/docs/narraleaf-react/core/types/ImageSrc)
+- `transition?: ImageTransition` - For ImageTransition, see [Transition](/docs/narraleaf-react/core/animation/transition)
 </Step>
 </Steps>
 
@@ -183,7 +183,7 @@ Jump to another scene. If the transition is provided, the scene will be changed 
 > Note: The current scene will be disposed after jumping to another scene. The rest of the actions will not be executed.
 
 - `scene: Scene | string` - The Scene instance or the name of the scene to jump to
-- `config: Partial<JumpConfig>` - [Jump Config](../types/JumpConfig)
+- `config: Partial<JumpConfig>` - [Jump Config](/docs/narraleaf-react/core/types/JumpConfig)
 </Step>
 </Steps>
 
@@ -194,7 +194,7 @@ Jump to another scene. If the transition is provided, the scene will be changed 
 
 Set background music of the scene.
 
-- `sound: Sound` - [Sound](./sound) instance
+- `sound: Sound` - [Sound](/docs/narraleaf-react/core/elements/sound) instance
 - `fade?: number` - If set, the fade-out effect will be applied to the previous music, and the fade-in effect will be applied to the current music, with a duration in milliseconds
 </Step>
 </Steps>
@@ -223,7 +223,7 @@ scene.action([
 
 #### Overload 2: options + actions
 
-- `options: Partial<TransformDefinitions.CommonTransformProps>` - Transition options for showing and hiding the NVL layer (e.g. `{ duration: 500 }`). See [CommonTransformProps](../types/CommonTransformProps)
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - Transition options for showing and hiding the NVL layer (e.g. `{ duration: 500 }`). See [CommonTransformProps](/docs/narraleaf-react/core/types/CommonTransformProps)
 - `actions: ActionStatements | ((nvl: NVLToken) => ActionStatements)` - Same as Overload 1
 - Returns `ChainableAction`
 
@@ -262,6 +262,6 @@ When using the callback form `scene.nvl(nvl => [...])`, the `nvl` argument is an
 
 | Method | Description |
 |--------|-------------|
-| `nvl.show(options?)` | Show the NVL layer with optional transition (e.g. `{ duration: 500 }`). See [CommonTransformProps](../types/CommonTransformProps). |
+| `nvl.show(options?)` | Show the NVL layer with optional transition (e.g. `{ duration: 500 }`). See [CommonTransformProps](/docs/narraleaf-react/core/types/CommonTransformProps). |
 | `nvl.hide(options?)` | Hide the NVL layer with optional transition. Does not exit NVL mode or clear dialogs. |
 | `nvl.end()` | Force exit NVL mode immediately. Clears all accumulated dialogs and hides the NVL layer. |

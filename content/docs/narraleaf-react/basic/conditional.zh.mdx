@@ -1,7 +1,7 @@
 ---
 title: "条件"
 ---
-你可以通过使用 [条件](../core/elements/condition) 元素来创建一个条件语句。
+你可以通过使用 [条件](/zh/docs/narraleaf-react/core/elements/condition) 元素来创建一个条件语句。
 
 ```typescript
 scene1.action([
@@ -13,7 +13,7 @@ scene1.action([
 ])
 ```
 
-在条件语句中，提供了游戏上下文，你可以了解更多关于 [ScriptCtx](../core/types/ScriptCtx) 对象的信息。
+在条件语句中，提供了游戏上下文，你可以了解更多关于 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象的信息。
 
 在一个条件语句中，你只能有 **1 个 If 语句** 和 **1 个 Else 语句**
 
@@ -34,7 +34,7 @@ scene1.action([
 
 > 注意：如果你将这些语句的顺序放错，条件语句将抛出错误。
 
-[Persistent](../core/elements/persistent) 是在游戏上下文中存储数据的好方式。
+[Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 是在游戏上下文中存储数据的好方式。
 
 ```typescript
 const persis = new Persistent<{ flag: boolean; }>("persis", { flag: false });

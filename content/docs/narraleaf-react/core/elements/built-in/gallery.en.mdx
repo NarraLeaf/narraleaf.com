@@ -103,9 +103,9 @@ This keeps gallery unlocks across sessions even if the player never uses the ful
 
 ## serialize / deserialize with Game Save
 
-Gallery implements `serialize()` and `deserialize()`. When you use [LiveGame.serialize](../core/game/live-game#serialize) to save the game, the framework automatically includes Gallery's serialized data in `SavedGame.game.services`. When you call [LiveGame.deserialize](../core/game/live-game#deserialize) to load a saved game, the framework restores all registered services, including Gallery.
+Gallery implements `serialize()` and `deserialize()`. When you use [LiveGame.serialize](/docs/narraleaf-react/core/game/live-game#serialize) to save the game, the framework automatically includes Gallery's serialized data in `SavedGame.game.services`. When you call [LiveGame.deserialize](/docs/narraleaf-react/core/game/live-game#deserialize) to load a saved game, the framework restores all registered services, including Gallery.
 
-So if you use a [save system](../../../solutions/save-system-localstorage) that persists `liveGame.serialize()` to localStorage, Gallery unlock state is **automatically** saved and restored with the game—no extra code needed. The `serialize`/`deserialize` methods are what enable this integration.
+So if you use a [save system](/docs/narraleaf-react/solutions/save-system-localstorage) that persists `liveGame.serialize()` to localStorage, Gallery unlock state is **automatically** saved and restored with the game—no extra code needed. The `serialize`/`deserialize` methods are what enable this integration.
 
 ## Chainable Methods
 

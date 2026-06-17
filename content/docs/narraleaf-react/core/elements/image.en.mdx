@@ -1,11 +1,11 @@
 ﻿---
 title: "Image"
 ---
-> This class extends [Displayble](./displayable)
+> This class extends [Displayble](/docs/narraleaf-react/core/elements/displayable)
 
 Image is very important for a visual novel. It is used to show the appearance of the character. 
 
-In NarraLeaf-React, Image only controls the appearance of the character. It does not control the dialogues of the character. For that, you can use [Character](../character).
+In NarraLeaf-React, Image only controls the appearance of the character. It does not control the dialogues of the character. For that, you can use [Character](/docs/narraleaf-react/core/elements/character).
 
 ## Public Method
 
@@ -18,7 +18,7 @@ In NarraLeaf-React, Image only controls the appearance of the character. It does
     You cannot mix tag-based image and src-based image in the same image.
 </Callout>
 
-- `config: Partial<IImageUserConfig>` - Image config, see [IImageUserConfig](../types/IImageUserConfig)
+- `config: Partial<IImageUserConfig>` - Image config, see [IImageUserConfig](/docs/narraleaf-react/core/types/IImageUserConfig)
 
 #### Tag-based Image
 
@@ -111,7 +111,7 @@ const newImage = image.copy();
 
 Use a layer for the image
 
-- `layer: Layer` - [Layer](./layer)
+- `layer: Layer` - [Layer](/docs/narraleaf-react/core/elements/layer)
 
 ```typescript
 const layer = new Layer(/* ... */);
@@ -131,7 +131,7 @@ image.useLayer(layer);
 Set the figure of the character
 
 - `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>>` - The source of the image
-- `transition?: ImageTransition` - For ImageTransition, see [Transition](../animation/transition)
+- `transition?: ImageTransition` - For ImageTransition, see [Transition](/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
 image.char("your/image/src", new Fade(1000));
@@ -171,7 +171,7 @@ Set the darkness of the image
 
 - `darkness: number` - The darkness of the image, between 0 and 1. 0 is no darkness, 1 is full darkness.
 - `duration?: number` - The duration of the transition
-- `easing?: TransformDefinitions.EasingDefinition` - See [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+- `easing?: TransformDefinitions.EasingDefinition` - See [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
 
 ```typescript
 image.darken(0.5, 500, "easeIn");

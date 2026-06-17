@@ -20,7 +20,7 @@ story.entry(scene1);
 <Step>
 
 - `name: string` - 故事的名称
-- `config: IStoryConfig` - 参见 [IStoryConfig](../types/IStoryConfig)
+- `config: IStoryConfig` - 参见 [IStoryConfig](/zh/docs/narraleaf-react/core/types/IStoryConfig)
 </Step>
 </Steps>
 
@@ -87,7 +87,7 @@ scene1.action([
 ]);
 ```
 
-- `persistent: Persistent<any>` - 要注册的 [Persistent](./persistent)
+- `persistent: Persistent<any>` - 要注册的 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)
 - 返回 `this`
 </Step>
 </Steps>
@@ -97,7 +97,7 @@ scene1.action([
 <Steps>
 <Step>
 
-注册一个服务。有关更多信息，请参见 [Service](./service)
+注册一个服务。有关更多信息，请参见 [Service](/zh/docs/narraleaf-react/core/elements/service)
 
 ```ts
 const story = new Story(/* ... */);
@@ -107,7 +107,7 @@ story.registerService("gallery", gallery);
 ```
 
 - `name: string` - 服务的名称
-- `service: Service<any>` - 要注册的 [Service](./service)
+- `service: Service<any>` - 要注册的 [Service](/zh/docs/narraleaf-react/core/elements/service)
 - 返回 `this`
 </Step>
 </Steps>

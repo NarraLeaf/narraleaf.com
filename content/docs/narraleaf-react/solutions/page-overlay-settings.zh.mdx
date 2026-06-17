@@ -3,13 +3,13 @@ title: "添加页面叠层（设置页面）"
 ---
 ## 概述
 
-页面叠层指在游戏主界面上方叠加显示的 UI（如设置、存档、图鉴等），不中断游戏流程。通过 [Layout](../player/page-router/layout) 和 [Page](../player/page-router/page) 定义路由结构，使用 [useRouter](../player/hooks/useRouter) 进行导航，即可实现设置页等叠层。
+页面叠层指在游戏主界面上方叠加显示的 UI（如设置、存档、图鉴等），不中断游戏流程。通过 [Layout](/zh/docs/narraleaf-react/player/page-router/layout) 和 [Page](/zh/docs/narraleaf-react/player/page-router/page) 定义路由结构，使用 [useRouter](/zh/docs/narraleaf-react/player/hooks/useRouter) 进行导航，即可实现设置页等叠层。
 
-本文档演示如何构建一个设置页面叠层，并配合 [快捷菜单](./quick-menu) 打开/关闭。
+本文档演示如何构建一个设置页面叠层，并配合 [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu) 打开/关闭。
 
 ## 1. 定义 Layout 与 Page 结构
 
-在 [LayoutRouter](../player/page-router) 中定义 `settings` 布局，内含多个子页面（如 `general`、`audio`）。`Page name={null}` 表示该 Layout 的默认页面。
+在 [LayoutRouter](/zh/docs/narraleaf-react/player/page-router) 中定义 `settings` 布局，内含多个子页面（如 `general`、`audio`）。`Page name={null}` 表示该 Layout 的默认页面。
 
 ```tsx
 import { RootLayout, Layout, Page, Player } from "narraleaf-react";
@@ -81,7 +81,7 @@ function SettingsGeneral() {
 
 ## 3. 从快捷菜单打开设置
 
-在 [快捷菜单](./quick-menu) 中调用 `router.navigate("/settings")` 打开设置叠层：
+在 [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu) 中调用 `router.navigate("/settings")` 打开设置叠层：
 
 ```tsx
 import { useGame, useRouter } from "narraleaf-react";
@@ -112,7 +112,7 @@ function QuickMenu() {
 
 ## 5. 添加进入/退出动画
 
-使用 Framer Motion 的 `motion.div` 包裹页面内容，[LayoutRouter](../player/page-router) 会在挂载/卸载时自动触发动画：
+使用 Framer Motion 的 `motion.div` 包裹页面内容，[LayoutRouter](/zh/docs/narraleaf-react/player/page-router) 会在挂载/卸载时自动触发动画：
 
 ```tsx
 import { motion } from "framer-motion";
@@ -144,7 +144,7 @@ function SettingsGeneral() {
 
 ## 参考
 
-- [Layout](../player/page-router/layout) - 布局组件
-- [Page](../player/page-router/page) - 页面组件
-- [useRouter](../player/hooks/useRouter) - 路由 Hook
-- [快捷菜单](./quick-menu) - 快捷菜单实现
+- [Layout](/zh/docs/narraleaf-react/player/page-router/layout) - 布局组件
+- [Page](/zh/docs/narraleaf-react/player/page-router/page) - 页面组件
+- [useRouter](/zh/docs/narraleaf-react/player/hooks/useRouter) - 路由 Hook
+- [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu) - 快捷菜单实现

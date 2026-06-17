@@ -3,7 +3,7 @@ title: "usePreference"
 ---
 您可以使用此钩子访问和管理偏好设置
 
-> **注意**：此钩子只能在 [GameProvider](../game-providers) 的后代组件中使用
+> **注意**：此钩子只能在 [GameProvider](/zh/docs/narraleaf-react/player/game-providers) 的后代组件中使用
 
 ```typescript
 function usePreference<K extends StringKeyOf<GamePreference>>(
@@ -11,7 +11,7 @@ function usePreference<K extends StringKeyOf<GamePreference>>(
 ): [GamePreference[K], (value: GamePreference[K]) => void];
 ```
 
-- 有关 GamePreference，请参见 [GamePreference](../../core/types/GamePreference)
+- 有关 GamePreference，请参见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)
 
 ## 用法
 

@@ -1,7 +1,7 @@
 ---
 title: "useAvatar"
 ---
-`useAvatar` returns the resolved dialog avatar for the **current** Say line: visibility, image URL, and related `Character` / portrait `Image` references. It is meant to be used **inside** a [`Dialog`](../dialog) subtree (same context as [`useDialog`](./useDialog)).
+`useAvatar` returns the resolved dialog avatar for the **current** Say line: visibility, image URL, and related `Character` / portrait `Image` references. It is meant to be used **inside** a [`Dialog`](/docs/narraleaf-react/player/dialog) subtree (same context as [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog)).
 
 ## Usage
 
@@ -39,7 +39,7 @@ function GameDialog() {
 - `portrait: Image | null` — Stage `Image` portrait that contributed to resolution, if any.
 - `alt: string` — Suggested `alt` text.
 
-When `visible` is false, `src` is `null`. The [`Avatar`](../dialog) component uses this hook and renders nothing if there is nothing to show.
+When `visible` is false, `src` is `null`. The [`Avatar`](/docs/narraleaf-react/player/dialog) component uses this hook and renders nothing if there is nothing to show.
 
 ### Metadata when visible
 
@@ -55,10 +55,10 @@ if (avatar.visible) {
 
 ## Relation to `<Avatar />`
 
-[`Avatar`](../dialog) calls `useAvatar()` and renders an `<img>` with default sizing (96×96, `objectFit: "cover"`, `borderRadius: 6`). Pass `className` / `style` to override.
+[`Avatar`](/docs/narraleaf-react/player/dialog) calls `useAvatar()` and renders an `<img>` with default sizing (96×96, `objectFit: "cover"`, `borderRadius: 6`). Pass `className` / `style` to override.
 
 ## See also
 
-- [Dialog](../dialog) — Mental model, resolution order, `Character` / `Sentence` configuration
-- [Character](../../core/elements/character) — `setAvatar`, `addPortrait`, `setPortraits`
+- [Dialog](/docs/narraleaf-react/player/dialog) — Mental model, resolution order, `Character` / `Sentence` configuration
+- [Character](/docs/narraleaf-react/core/elements/character) — `setAvatar`, `addPortrait`, `setPortraits`
 - Types: `DialogAvatarContext` (exported from `narraleaf-react`)

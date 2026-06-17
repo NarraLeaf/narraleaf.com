@@ -4,21 +4,21 @@ title: "Character"
 <Cards>
     <Card
         title="Sentence"
-        href="./character/sentence"
+        href="/docs/narraleaf-react/core/elements/character/sentence"
     />
     <Card
         title="Word"
-        href="./character/word"
+        href="/docs/narraleaf-react/core/elements/character/word"
     />
     <Card
         title="Pause"
-        href="./character/pause"
+        href="/docs/narraleaf-react/core/elements/character/pause"
     />
 </Cards>
 
 Character controls the dialogues of the character.
 
-**Note:** `Character` does not drive stage sprite layout by itself; use [Image](./image) for on-stage displayables. For **dialog box avatars** (small portraits next to ADV text), configure `avatar` / `portraits` and render [`Avatar`](../../player/dialog) — see [Dialog](../../player/dialog).
+**Note:** `Character` does not drive stage sprite layout by itself; use [Image](/docs/narraleaf-react/core/elements/image) for on-stage displayables. For **dialog box avatars** (small portraits next to ADV text), configure `avatar` / `portraits` and render [`Avatar`](/docs/narraleaf-react/player/dialog) — see [Dialog](/docs/narraleaf-react/player/dialog).
 
 ## Public Method
 
@@ -28,7 +28,7 @@ Character controls the dialogues of the character.
 <Step>
 
 - `name: string | null` - If null, then it is a narrator. Narrator do not show any name in the dialogue box.
-- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](../types/CharacterConfig)
+- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](/docs/narraleaf-react/core/types/CharacterConfig)
 </Step>
 </Steps>
 
@@ -75,7 +75,7 @@ character
 ```
 
 - `content: string` - The content of the sentence
-- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/docs/narraleaf-react/core/types/SentenceUserConfig)
 
 #### Overload 2 of 4
 
@@ -92,7 +92,7 @@ character.say(
 
 > **Note:** The dialogues's name will be the same as the sentence's name.
 
-- `content: Sentence` - See [Sentence](./character/sentence)
+- `content: Sentence` - See [Sentence](/docs/narraleaf-react/core/elements/character/sentence)
 
 #### Overload 3 of 4
 
@@ -105,8 +105,8 @@ character.say([
 ]) // will output "Hello, Alice" with "Alice" in red color
 ```
 
-- `content: SentencePrompt` - See [SentencePrompt](../types/SentencePrompt)
-- `config?: SentenceUserConfig` - [SentenceUserConfig](../types/SentenceUserConfig)
+- `content: SentencePrompt` - See [SentencePrompt](/docs/narraleaf-react/core/types/SentencePrompt)
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/docs/narraleaf-react/core/types/SentenceUserConfig)
 
 #### Overload 4 of 4
 
@@ -117,7 +117,7 @@ character.say`Hello, ${Word.color("Alice", "#f00")}!` // will output "Hello, Ali
 ```
 
 - `texts: TemplateStringsArray` - The template string array
-- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+- `...words: SingleWord[]` - [SingleWord](/docs/narraleaf-react/core/types/SentencePrompt)
 </Step>
 </Steps>
 
@@ -154,7 +154,7 @@ alice.setAvatar(false); // disable character-level avatar
 
 - `avatar: DialogAvatar | false | null` — Image source, resolver, `false` to disable, or `null` to clear.
 
-See [Dialog](../../player/dialog) for resolver semantics and resolution order.
+See [Dialog](/docs/narraleaf-react/player/dialog) for resolver semantics and resolution order.
 </Step>
 </Steps>
 
@@ -163,7 +163,7 @@ See [Dialog](../../player/dialog) for resolver semantics and resolution order.
 <Steps>
 <Step>
 
-Bind a stage [`Image`](./image) to this character and optionally supply a **portrait-level** dialog avatar (string or resolver).
+Bind a stage [`Image`](/docs/narraleaf-react/core/elements/image) to this character and optionally supply a **portrait-level** dialog avatar (string or resolver).
 
 ```typescript
 alice.addPortrait(aliceBody, {
@@ -190,7 +190,7 @@ alice.setPortraits([
 ]);
 ```
 
-- `portraits: (Image | CharacterPortraitConfig)[]` — See [CharacterConfig](../types/CharacterConfig).
+- `portraits: (Image | CharacterPortraitConfig)[]` — See [CharacterConfig](/docs/narraleaf-react/core/types/CharacterConfig).
 </Step>
 </Steps>
 
@@ -226,6 +226,6 @@ scene.action([
 ```
 
 - `texts: TemplateStringsArray` - The template string array
-- `...words: SingleWord[]` - [SingleWord](../types/SentencePrompt#SingleWord)
+- `...words: SingleWord[]` - [SingleWord](/docs/narraleaf-react/core/types/SentencePrompt)
 </Step>
 </Steps>

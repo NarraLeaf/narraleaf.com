@@ -103,9 +103,9 @@ function loadGalleryFromStorage() {
 
 ## serialize / deserialize 与游戏存档
 
-Gallery 实现了 `serialize()` 和 `deserialize()`。当使用 [LiveGame.serialize](../../game/live-game#serialize) 保存游戏时，框架会自动将 Gallery 的序列化数据写入 `SavedGame.game.services`。当调用 [LiveGame.deserialize](../../game/live-game#deserialize) 加载存档时，框架会恢复所有已注册服务，包括 Gallery。
+Gallery 实现了 `serialize()` 和 `deserialize()`。当使用 [LiveGame.serialize](/zh/docs/narraleaf-react/core/game/live-game#serialize) 保存游戏时，框架会自动将 Gallery 的序列化数据写入 `SavedGame.game.services`。当调用 [LiveGame.deserialize](/zh/docs/narraleaf-react/core/game/live-game#deserialize) 加载存档时，框架会恢复所有已注册服务，包括 Gallery。
 
-因此，若使用将 `liveGame.serialize()` 存入 localStorage 的 [存档系统](../../../solutions/save-system-localstorage)，图鉴解锁状态会随游戏 **自动** 保存和恢复，无需额外代码。`serialize`/`deserialize` 方法正是实现这一集成的关键。
+因此，若使用将 `liveGame.serialize()` 存入 localStorage 的 [存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)，图鉴解锁状态会随游戏 **自动** 保存和恢复，无需额外代码。`serialize`/`deserialize` 方法正是实现这一集成的关键。
 
 ## 链式方法
 

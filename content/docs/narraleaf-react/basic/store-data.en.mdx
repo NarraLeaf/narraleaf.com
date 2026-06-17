@@ -1,7 +1,7 @@
 ---
 title: "Store Data"
 ---
-You can use [Persistent](../core/elements/persistent) to store data in the game context.
+You can use [Persistent](/docs/narraleaf-react/core/elements/persistent) to store data in the game context.
 
 ```typescript
 type PersisData = {
@@ -30,10 +30,10 @@ scene1.action([
 ```
 
 <Callout type="warning">
-    If the script content contains Persistent, it must be registered with [Story](../core/elements/story) using `story.registerPersistent(persis)`.
+    If the script content contains Persistent, it must be registered with [Story](/docs/narraleaf-react/core/elements/story) using `story.registerPersistent(persis)`.
 </Callout>
 
-> **Note:** The stored content must be **serializable**, for more information, see [Persistent](../core/elements/persistent).
+> **Note:** The stored content must be **serializable**, for more information, see [Persistent](/docs/narraleaf-react/core/elements/persistent).
 
 You can save the game data including the persistent data to anywhere you want, such as local storage, server, or cloud storage.
 

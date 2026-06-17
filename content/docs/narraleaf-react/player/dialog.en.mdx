@@ -3,7 +3,7 @@ title: "Dialog"
 ---
 The `Dialog` component renders the dialog box, including the character nametag, dialog text, and the optional **dialog avatar** (small portrait).
 
-To customize the dialog, provide your own component via `game.configure({ dialog })`. You can compose `Avatar`, `Nametag`, and `Texts`, or use [`useAvatar`](./hooks/useAvatar) / [`useDialog`](./hooks/useDialog) for layout logic.
+To customize the dialog, provide your own component via `game.configure({ dialog })`. You can compose `Avatar`, `Nametag`, and `Texts`, or use [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar) / [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog) for layout logic.
 
 <Callout type="info">
     **0.9.1** adds dialog avatar APIs (`Character` avatars, portrait resolution, `Avatar` / `useAvatar`) and `Sentence.getMetadata`. See the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
@@ -68,7 +68,7 @@ Renders the dialog container. Children are typically `Avatar`, `Nametag`, and `T
 
 Renders the speaker name. Must be used inside `Dialog`.
 
-> **Note:** Nametag color comes from [Character](../core/elements/character) config; avoid overriding it with CSS in a way that fights the engine.
+> **Note:** Nametag color comes from [Character](/docs/narraleaf-react/core/elements/character) config; avoid overriding it with CSS in a way that fights the engine.
 
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
@@ -85,7 +85,7 @@ Renders the typed dialogue text. Must be used inside `Dialog`.
 
 Renders the resolved dialog avatar image for the current line, or **nothing** when no avatar is resolved (no layout gap).
 
-- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — Merged with defaults (see [useAvatar](./hooks/useAvatar)).
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — Merged with defaults (see [useAvatar](/docs/narraleaf-react/player/hooks/useAvatar)).
 
 Default image style:
 
@@ -237,18 +237,18 @@ If several bound portraits are visible, the engine picks the **most recently** s
 
 ## Custom dialogs and `useAvatar`
 
-Use [`<Avatar />`](./hooks/useAvatar) for simple layouts. Use [`useAvatar()`](./hooks/useAvatar) when grid/flex should depend on whether an avatar exists (`visible`, `src`, `character`, `portrait`).
+Use [`<Avatar />`](/docs/narraleaf-react/player/hooks/useAvatar) for simple layouts. Use [`useAvatar()`](/docs/narraleaf-react/player/hooks/useAvatar) when grid/flex should depend on whether an avatar exists (`visible`, `src`, `character`, `portrait`).
 
-See [useAvatar](./hooks/useAvatar) for props, return shape, and examples.
+See [useAvatar](/docs/narraleaf-react/player/hooks/useAvatar) for props, return shape, and examples.
 
 ## TypeScript reference (public exports)
 
-Types and classes are exported from `narraleaf-react` (see [Character](../core/elements/character), [SentenceConfig](../core/types/SentenceConfig), [CharacterConfig](../core/types/CharacterConfig)):
+Types and classes are exported from `narraleaf-react` (see [Character](/docs/narraleaf-react/core/elements/character), [SentenceConfig](/docs/narraleaf-react/core/types/SentenceConfig), [CharacterConfig](/docs/narraleaf-react/core/types/CharacterConfig)):
 
 - `DialogAvatarSource`, `DialogAvatarResolverContext`, `DialogAvatarResolver`, `DialogAvatar`
 - `CharacterPortraitConfig`, `DialogAvatarResolution`
 - `Character` methods: `setAvatar`, `addPortrait`, `setPortraits`
-- `Sentence` / `say` config: `avatar` on [SentenceUserConfig](../core/types/SentenceUserConfig)
+- `Sentence` / `say` config: `avatar` on [SentenceUserConfig](/docs/narraleaf-react/core/types/SentenceUserConfig)
 - React: `Avatar`, `useAvatar`, type `DialogAvatarContext`
 
 Avatar resolution for the default UI runs inside the player; you normally configure characters and sentences, then render `<Avatar />` or call `useAvatar()`.

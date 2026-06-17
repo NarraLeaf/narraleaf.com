@@ -3,7 +3,7 @@ title: "usePreference"
 ---
 You can access and manage the preferences using this hook.
 
-> **Note**: this hook can only be used in a component that is a descendant of [GameProvider](../game-providers).
+> **Note**: this hook can only be used in a component that is a descendant of [GameProvider](/docs/narraleaf-react/player/game-providers).
 
 ```typescript
 function usePreference<K extends StringKeyOf<GamePreference>>(
@@ -11,7 +11,7 @@ function usePreference<K extends StringKeyOf<GamePreference>>(
 ): [GamePreference[K], (value: GamePreference[K]) => void];
 ```
 
-- For GamePreference, see [GamePreference](../../core/types/GamePreference).
+- For GamePreference, see [GamePreference](/docs/narraleaf-react/core/types/GamePreference).
 
 ## Usage
 

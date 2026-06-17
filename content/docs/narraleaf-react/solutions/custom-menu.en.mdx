@@ -3,13 +3,13 @@ title: "Custom Menu (In-Game Choices)"
 ---
 ## Overview
 
-The in-game Menu displays choice branches during the story; the player selects an option by click or keyboard shortcut to trigger the corresponding action. You can replace the default [Menu](../player/menu) component via the `menu` option in [game.configure](../core/game/game) to customize the choice appearance and layout.
+The in-game Menu displays choice branches during the story; the player selects an option by click or keyboard shortcut to trigger the corresponding action. You can replace the default [Menu](/docs/narraleaf-react/player/menu) component via the `menu` option in [game.configure](/docs/narraleaf-react/core/game/game) to customize the choice appearance and layout.
 
-This guide shows how to build a custom menu with [GameMenu](../player/menu) and [Item](../player/menu), including `bindKey` support for keyboard shortcuts.
+This guide shows how to build a custom menu with [GameMenu](/docs/narraleaf-react/player/menu) and [Item](/docs/narraleaf-react/player/menu), including `bindKey` support for keyboard shortcuts.
 
 ## 1. Create the Custom Menu Component
 
-The custom menu component receives `items` (an array of choice indices), uses [GameMenu](../player/menu) as the container, and [Item](../player/menu) to render each option. `Item` automatically gets the text and click handler from context.
+The custom menu component receives `items` (an array of choice indices), uses [GameMenu](/docs/narraleaf-react/player/menu) as the container, and [Item](/docs/narraleaf-react/player/menu) to render each option. `Item` automatically gets the text and click handler from context.
 
 ```tsx
 import { useEffect } from "react";
@@ -98,7 +98,7 @@ function CustomMenu({ items }: { items: number[] }) {
 }
 ```
 
-You can set [defaultMenuChoiceColor](../core/game/game) when registering:
+You can set [defaultMenuChoiceColor](/docs/narraleaf-react/core/game/game) when registering:
 
 ```tsx
 game.configure({
@@ -126,7 +126,7 @@ function HorizontalMenu({ items }: { items: number[] }) {
 
 ## 5. Define Choices in Script
 
-Choices are defined in the [Menu](../core/elements/menu) element via `choose`, with support for `hideIf`, `disableIf`, etc.:
+Choices are defined in the [Menu](/docs/narraleaf-react/core/elements/menu) element via `choose`, with support for `hideIf`, `disableIf`, etc.:
 
 ```ts
 // In your story script
@@ -158,6 +158,6 @@ function App() {
 
 ## See Also
 
-- [Menu](../player/menu) - Menu component API
-- [Menu element](../core/elements/menu) - Menu usage in scripts
-- [game.configure](../core/game/game) - Game configuration
+- [Menu](/docs/narraleaf-react/player/menu) - Menu component API
+- [Menu element](/docs/narraleaf-react/core/elements/menu) - Menu usage in scripts
+- [game.configure](/docs/narraleaf-react/core/game/game) - Game configuration

@@ -1,11 +1,11 @@
 ﻿---
 title: "图像"
 ---
-> 此类继承自 [Displayble](./displayable)
+> 此类继承自 [Displayble](/zh/docs/narraleaf-react/core/elements/displayable)
 
 图像对于视觉小说非常重要。它用于显示角色的外观
 
-在 NarraLeaf-React 中，图像仅控制角色的外观。它不控制角色的对话。为此，你可以使用 [Character](../character)
+在 NarraLeaf-React 中，图像仅控制角色的外观。它不控制角色的对话。为此，你可以使用 [Character](/zh/docs/narraleaf-react/core/elements/character)
 
 ## 公共方法
 
@@ -18,7 +18,7 @@ title: "图像"
     你不能在同一图像中混合使用基于标签的图像和基于 src 的图像
 </Callout>
 
-- `config: Partial<IImageUserConfig>` - 图像配置，参见 [IImageUserConfig](../types/IImageUserConfig)
+- `config: Partial<IImageUserConfig>` - 图像配置，参见 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig)
 
 #### Tag-based Image
 
@@ -111,7 +111,7 @@ const newImage = image.copy();
 
 为图像使用图层
 
-- `layer: Layer` - [图层](./layer)
+- `layer: Layer` - [图层](/zh/docs/narraleaf-react/core/elements/layer)
 
 ```typescript
 const layer = new Layer(/* ... */);
@@ -131,7 +131,7 @@ image.useLayer(layer);
 设置角色的形象
 
 - `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>>` - 图像的源
-- `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](../animation/transition)
+- `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
 image.char("你的/图片/路径", new Fade(1000));
@@ -171,7 +171,7 @@ image.char(["angry"], new Fade(1000));
 
 - `darkness: number` - 图像的黑暗程度，介于 0 和 1 之间。0 是全亮，1 是全黑
 - `duration?: number` - 过渡的持续时间
-- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](../types/TransformDefinitions).[EasingDefinition](../types/TransformDefinitions#EasingDefinition)
+- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 
 ```typescript
 image.darken(0.5, 500, "easeIn");

@@ -166,7 +166,7 @@ A raw sequence has two parts:
 - `props` contains the visual changes for that step, such as `position`, `rotation`, `zoom`, `scaleX`, `scaleY`, `opacity`, or `fontColor`.
 - `options` contains timing options for that step, such as `duration`, `ease`, `delay`, or `at`.
 
-For the full property types, see [TransformDefinitions](../types/TransformDefinitions).
+For the full property types, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).
 
 ## Static Methods
 
@@ -178,7 +178,7 @@ For the full property types, see [TransformDefinitions](../types/TransformDefini
 Move the image to the left side of the stage.
 
 - `duration: number` - The duration of the movement in milliseconds.
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](../types/TransformDefinitions#EasingDefinition).
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition).
 - Returns `Transform<T>`
 </Step>
 </Steps>
@@ -191,7 +191,7 @@ Move the image to the left side of the stage.
 Move the image to the right side of the stage.
 
 - `duration: number` - The duration of the movement in milliseconds.
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](../types/TransformDefinitions#EasingDefinition).
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition).
 - Returns `Transform<T>`
 </Step>
 </Steps>
@@ -204,7 +204,7 @@ Move the image to the right side of the stage.
 Move the image to the center of the stage.
 
 - `duration: number` - The duration of the movement in milliseconds.
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](../types/TransformDefinitions#EasingDefinition).
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function. See [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition).
 - Returns `Transform<T>`
 </Step>
 </Steps>
@@ -216,7 +216,7 @@ Move the image to the center of the stage.
 
 Create a transform that applies the given properties immediately.
 
-- `props: SequenceProps<T>` - A single [SequenceProps](../types/TransformDefinitions#SequenceProps) object.
+- `props: SequenceProps<T>` - A single [SequenceProps](/docs/narraleaf-react/core/types/TransformDefinitions) object.
 - Returns `Transform<T>`
 </Step>
 </Steps>
@@ -228,7 +228,7 @@ Create a transform that applies the given properties immediately.
 
 Create an empty transform that can be built with chained property methods.
 
-- `config?: Partial<TransformDefinitions.TransformConfig>` - The transform config. See [TransformConfig](../types/TransformDefinitions#TransformConfig).
+- `config?: Partial<TransformDefinitions.TransformConfig>` - The transform config. See [TransformConfig](/docs/narraleaf-react/core/types/TransformDefinitions).
 - Returns `Transform<T>`
 </Step>
 </Steps>
@@ -293,8 +293,8 @@ new Transform<TransformDefinitions.ImageTransformProps>({
 });
 ```
 
-- `props: SequenceProps<T>` - A single [SequenceProps](../types/TransformDefinitions#SequenceProps) object.
-- `options?: Partial<TransformDefinitions.CommonTransformProps>` - Timing options for that sequence. See [CommonTransformProps](../types/TransformDefinitions#CommonTransformProps).
+- `props: SequenceProps<T>` - A single [SequenceProps](/docs/narraleaf-react/core/types/TransformDefinitions) object.
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - Timing options for that sequence. See [CommonTransformProps](/docs/narraleaf-react/core/types/CommonTransformProps).
 </Step>
 </Steps>
 
@@ -347,7 +347,7 @@ transform
 
 The first commit creates a sequence with `position` and `opacity`. The second commit creates another sequence with its own timing options.
 
-- `options?: Partial<TransformDefinitions.SequenceOptions>` - Sequence timing options. See [SequenceOptions](../types/TransformDefinitions#SequenceOptions).
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - Sequence timing options. See [SequenceOptions](/docs/narraleaf-react/core/types/TransformDefinitions).
 - Returns `this`
 </Step>
 </Steps>

@@ -1,7 +1,7 @@
 ---
 title: "useAvatar"
 ---
-`useAvatar` 返回当前 Say 台词下解析后的对话框头像信息：是否显示、图片地址、以及关联的 `Character` / 立绘 `Image`。须在 [`Dialog`](../dialog) 子树内使用（与 [`useDialog`](./useDialog) 同源上下文）。
+`useAvatar` 返回当前 Say 台词下解析后的对话框头像信息：是否显示、图片地址、以及关联的 `Character` / 立绘 `Image`。须在 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 子树内使用（与 [`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 同源上下文）。
 
 ## 用法
 
@@ -39,7 +39,7 @@ function GameDialog() {
 - `portrait: Image | null` — 参与解析的舞台立绘 `Image`（若有）。
 - `alt: string` — 建议的图片替代文本。
 
-`visible` 为 `false` 时，`src` 为 `null`。[`Avatar`](../dialog) 内部使用本 Hook，无头像时不渲染任何节点。
+`visible` 为 `false` 时，`src` 为 `null`。[`Avatar`](/zh/docs/narraleaf-react/player/dialog) 内部使用本 Hook，无头像时不渲染任何节点。
 
 ### 可见时的元数据
 
@@ -55,10 +55,10 @@ if (avatar.visible) {
 
 ## 与 `<Avatar />` 的关系
 
-[`Avatar`](../dialog) 会调用 `useAvatar()` 并输出 `<img>`，默认尺寸 96×96、`objectFit: "cover"`、`borderRadius: 6`。可通过 `className` / `style` 覆盖。
+[`Avatar`](/zh/docs/narraleaf-react/player/dialog) 会调用 `useAvatar()` 并输出 `<img>`，默认尺寸 96×96、`objectFit: "cover"`、`borderRadius: 6`。可通过 `className` / `style` 覆盖。
 
 ## 参见
 
-- [Dialog](../dialog) — 设计模型、解析顺序、`Character` / `Sentence` 配置
-- [Character](../../core/elements/character) — `setAvatar`、`addPortrait`、`setPortraits`
+- [Dialog](/zh/docs/narraleaf-react/player/dialog) — 设计模型、解析顺序、`Character` / `Sentence` 配置
+- [Character](/zh/docs/narraleaf-react/core/elements/character) — `setAvatar`、`addPortrait`、`setPortraits`
 - 类型：`DialogAvatarContext`（自 `narraleaf-react` 导出）

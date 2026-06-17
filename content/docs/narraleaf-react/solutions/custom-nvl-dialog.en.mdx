@@ -3,13 +3,13 @@ title: "Custom NVL Dialog"
 ---
 ## Overview
 
-NVL (Novel) mode displays multiple dialogue entries in a scrollable list, suitable for novel-style narration. You can replace the default [NvlContainer](../player/nvl-container) via the `nvlDialog` option in [game.configure](../core/game/game) to fully customize the NVL dialogue appearance.
+NVL (Novel) mode displays multiple dialogue entries in a scrollable list, suitable for novel-style narration. You can replace the default [NvlContainer](/docs/narraleaf-react/player/nvl-container) via the `nvlDialog` option in [game.configure](/docs/narraleaf-react/core/game/game) to fully customize the NVL dialogue appearance.
 
 This guide demonstrates two approaches: **fully custom** (using `NvlContainer`) and **customizing per-dialogue layout only** (using `DefaultNvlContainer` + `renderDialogItem`).
 
 ## 1. Fully Custom NVL Container
 
-Use [NvlContainer](../player/nvl-container) as the outer wrapper, receive the `dialogs` array, and render each dialogue yourself. `INvlContainerProps` includes `dialogs` and an optional `renderDialogItem`.
+Use [NvlContainer](/docs/narraleaf-react/player/nvl-container) as the outer wrapper, receive the `dialogs` array, and render each dialogue yourself. `INvlContainerProps` includes `dialogs` and an optional `renderDialogItem`.
 
 ```tsx
 import { useEffect } from "react";
@@ -55,7 +55,7 @@ function App() {
 
 ## 2. Customize Per-Dialogue with renderDialogItem
 
-If you only need to adjust how each dialogue is displayed (e.g. border, opacity), keep using [DefaultNvlContainer](../player/nvl-container) and pass `renderDialogItem` to customize the layout:
+If you only need to adjust how each dialogue is displayed (e.g. border, opacity), keep using [DefaultNvlContainer](/docs/narraleaf-react/player/nvl-container) and pass `renderDialogItem` to customize the layout:
 
 ```tsx
 import {
@@ -115,5 +115,5 @@ function App() {
 
 ## See Also
 
-- [NvlContainer](../player/nvl-container) - NVL container API
-- [game.configure](../core/game/game) - Game configuration
+- [NvlContainer](/docs/narraleaf-react/player/nvl-container) - NVL container API
+- [game.configure](/docs/narraleaf-react/core/game/game) - Game configuration

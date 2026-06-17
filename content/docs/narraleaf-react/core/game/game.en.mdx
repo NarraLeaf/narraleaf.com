@@ -1,7 +1,7 @@
 ﻿---
 title: "Game"
 ---
-Game is the main class that represents the game itself. It contains all the game's configuration and [LiveGame](./live-game)s
+Game is the main class that represents the game itself. It contains all the game's configuration and [LiveGame](/docs/narraleaf-react/core/game/live-game)s
 
 Game use Singleton pattern, so you can get the instance by calling hook `useGame()`
 
@@ -12,9 +12,9 @@ Game use Singleton pattern, so you can get the instance by calling hook `useGame
 <Steps>
 <Step>
 
-the [Preference](./preference/preference) instance
+the [Preference](/docs/narraleaf-react/core/game/preference/preference) instance
 
-- `Preference<GamePreference>` - See [GamePreference](../types/GamePreference)
+- `Preference<GamePreference>` - See [GamePreference](/docs/narraleaf-react/core/types/GamePreference)
 
 ```typescript
 game.preference.setPreference("autoForward", true);
@@ -29,7 +29,7 @@ game.preference.setPreference("autoForward", true);
 
 Key binding manager of the game
 
-- `KeyMap` - See [KeyMap](./key-map)
+- `KeyMap` - See [KeyMap](/docs/narraleaf-react/core/game/key-map)
 
 ```typescript
 game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
@@ -44,7 +44,7 @@ game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
 <Steps>
 <Step>
 
-- `return: LiveGame` - the [LiveGame](./live-game) instance
+- `return: LiveGame` - the [LiveGame](/docs/narraleaf-react/core/game/live-game) instance
 </Step>
 </Steps>
 
@@ -57,7 +57,7 @@ Assign a new configuration to the game
 
 > **Note:** This method is designed to be used before the game is initialized.
 > 
-> Calling this method after the game is initialized will not take effect or not taking effect immediately. Settings in the [Preference](./preference/preference) will take effect immediately.
+> Calling this method after the game is initialized will not take effect or not taking effect immediately. Settings in the [Preference](/docs/narraleaf-react/core/game/preference/preference) will take effect immediately.
 
 ```typescript
 const { game } = useGame();
@@ -94,7 +94,7 @@ game.use({
 });
 ```
 
-- `plugin: IGamePluginRegistry` - The plugin registry config, see [IGamePluginRegistry](../types/IGamePluginRegistry)
+- `plugin: IGamePluginRegistry` - The plugin registry config, see [Plugin](/docs/narraleaf-react/core/plugin)
 </Step>
 </Steps>
 

@@ -3,7 +3,7 @@ title: "对话框"
 ---
 `Dialog` 组件用于渲染对话框，包括角色名牌、对话文本以及可选的**对话框头像**（小型立绘头像）。
 
-可通过 `game.configure({ dialog })` 传入自定义组件。你可以组合 `Avatar`、`Nametag`、 `Texts`，或使用 [`useAvatar`](./hooks/useAvatar)、[`useDialog`](./hooks/useDialog) 处理布局逻辑。
+可通过 `game.configure({ dialog })` 传入自定义组件。你可以组合 `Avatar`、`Nametag`、 `Texts`，或使用 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)、[`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 处理布局逻辑。
 
 <Callout type="info">
     **0.9.1** 起加入对话框头像相关 API（`Character` 头像、立绘解析、`Avatar` / `useAvatar`）以及 `Sentence.getMetadata`。完整条目见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
@@ -68,7 +68,7 @@ function App() {
 
 渲染说话人名字。需放在 `Dialog` 内。
 
-> **注意：** 名牌颜色来自 [Character](../core/elements/character) 配置，请避免用 CSS 与引擎规则冲突。
+> **注意：** 名牌颜色来自 [Character](/zh/docs/narraleaf-react/core/elements/character) 配置，请避免用 CSS 与引擎规则冲突。
 
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
@@ -85,7 +85,7 @@ function App() {
 
 根据当前台词解析并渲染对话框头像；若当前行没有头像则**不渲染任何节点**（不占位）。
 
-- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — 会与默认样式合并（见 [useAvatar](./hooks/useAvatar)）。
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — 会与默认样式合并（见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)）。
 
 默认图片样式：
 
@@ -237,18 +237,18 @@ alice.say("本行使用解析器。", {
 
 ## 自定义对话框与 `useAvatar`
 
-简单布局直接使用 [`<Avatar />`](./hooks/useAvatar)。若网格/弹性布局依赖「是否有头像」，请使用 [`useAvatar()`](./hooks/useAvatar)（`visible`、`src`、`character`、`portrait` 等）。
+简单布局直接使用 [`<Avatar />`](/zh/docs/narraleaf-react/player/hooks/useAvatar)。若网格/弹性布局依赖「是否有头像」，请使用 [`useAvatar()`](/zh/docs/narraleaf-react/player/hooks/useAvatar)（`visible`、`src`、`character`、`portrait` 等）。
 
-详见 [useAvatar](./hooks/useAvatar)。
+详见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)。
 
 ## TypeScript 参考（公开导出）
 
-类型与类由 `narraleaf-react` 导出（并见 [Character](../core/elements/character)、[SentenceConfig](../core/types/SentenceConfig)、[CharacterConfig](../core/types/CharacterConfig)）：
+类型与类由 `narraleaf-react` 导出（并见 [Character](/zh/docs/narraleaf-react/core/elements/character)、[SentenceConfig](/zh/docs/narraleaf-react/core/types/SentenceConfig)、[CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)）：
 
 - `DialogAvatarSource`、`DialogAvatarResolverContext`、`DialogAvatarResolver`、`DialogAvatar`
 - `CharacterPortraitConfig`、`DialogAvatarResolution`
 - `Character` 方法：`setAvatar`、`addPortrait`、`setPortraits`
-- `Sentence` / `say` 的 `avatar`：`SentenceUserConfig` 参见 [SentenceUserConfig](../core/types/SentenceUserConfig)
+- `Sentence` / `say` 的 `avatar`：`SentenceUserConfig` 参见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 - React：`Avatar`、`useAvatar`，类型 `DialogAvatarContext`
 
 默认 UI 的头像解析在播放器内部完成；通常只需配置角色与句子，再渲染 `<Avatar />` 或调用 `useAvatar()`。

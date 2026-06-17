@@ -7,11 +7,11 @@ LiveGame 是代表游戏当前状态的主类。
 
 ### game
 
-[Game](./game) 实例
+[Game](/zh/docs/narraleaf-react/core/game/game) 实例
 
 ### story
 
-当前 [Story](../elements/story) 实例
+当前 [Story](/zh/docs/narraleaf-react/core/elements/story) 实例
 
 ## 公共方法
 
@@ -20,9 +20,9 @@ LiveGame 是代表游戏当前状态的主类。
 <Steps>
 <Step>
 
-返回 [Storable](./storable) 实例
+返回 [Storable](/zh/docs/narraleaf-react/core/game/storable) 实例
 
-- `return: Storable` - [Storable](./storable)
+- `return: Storable` - [Storable](/zh/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>
 
@@ -31,7 +31,7 @@ LiveGame 是代表游戏当前状态的主类。
 <Steps>
 <Step>
 
-返回 [Storable](./storable) 实例
+返回 [Storable](/zh/docs/narraleaf-react/core/game/storable) 实例
 
 ```typescript {2}
 const {game} = useGame();
@@ -41,7 +41,7 @@ const storable = game.getLiveGame().storable;
 const storable = game.getLiveGame().getStorable();
 ```
 
-- `return: Storable` - [Storable](./storable)
+- `return: Storable` - [Storable](/zh/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>
 
@@ -81,7 +81,7 @@ const {game} = useGame();
 game.getLiveGame().deserialize(savedGame);
 ```
 
-- `savedGame: SavedGame` - [SavedGame](../types/SavedGame)
+- `savedGame: SavedGame` - [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)
 </Step>
 </Steps>
 
@@ -96,7 +96,7 @@ game.getLiveGame().deserialize(savedGame);
 
 > **注意：**即使只更改一行脚本，保存的游戏也可能与新版本不兼容
 
-- `return: SavedGame` - 参见 [SavedGame](../types/SavedGame)
+- `return: SavedGame` - 参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)
 </Step>
 </Steps>
 
@@ -107,8 +107,8 @@ game.getLiveGame().deserialize(savedGame);
 
 角色说话时调用
 
-- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - 参见 [LiveGameEvent](../types/LiveGameEvent#event%3Acharacter.prompt)
-- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](../types/LiveGameEventToken)
+- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - 参见 [LiveGameEvent](/zh/docs/narraleaf-react/core/types/LiveGameEvent)
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
 
 ```typescript
 const {game} = useGame();
@@ -140,8 +140,8 @@ return (
 
 菜单完成时调用
 
-- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - 参见 [LiveGameEvent](../types/LiveGameEvent#event%3Amenu.choose)
-- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](../types/LiveGameEventToken)
+- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - 参见 [LiveGameEvent](/zh/docs/narraleaf-react/core/types/LiveGameEvent)
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
 </Step>
 </Steps>
 
@@ -295,7 +295,7 @@ return (
 );
 ```
 
-- 返回 `GameHistory[]` - 游戏历史，参见 [GameHistory](../types/GameHistory)
+- 返回 `GameHistory[]` - 游戏历史，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
 </Step>
 </Steps>
 
@@ -310,7 +310,7 @@ return (
 game.undo(history.token);
 ```
 
-- `token?: string` - 历史项的令牌，参见 [GameHistory](../types/GameHistory#token)。如果未提供，则撤销最后一个动作。
+- `token?: string` - 历史项的令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。如果未提供，则撤销最后一个动作。
 </Step>
 </Steps>
 
@@ -340,7 +340,7 @@ window.addEventListener("keyup", (event) => {
 
 - `message: string` - 通知消息
 - `duration?: number | null` - 通知持续时间，默认是 3000ms。设置为 `null` 时，通知将一直显示。
-- 返回 `NotificationToken` - 参见 [NotificationToken](../types/NotificationToken)
+- 返回 `NotificationToken` - 参见 [NotificationToken](/zh/docs/narraleaf-react/core/types/NotificationToken)
 </Step>
 </Steps>
 
