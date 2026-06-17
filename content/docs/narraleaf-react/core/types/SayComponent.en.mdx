@@ -2,20 +2,15 @@
 title: "SayComponent"
 ---
 ```typescript
-interface SayElementProps {
-    action: {
-        sentence: Sentence;
-        character: Character | null;
-    };
-    /**
-     * Callback function to be called when player triggers the next action
-     */
-    onClick?: () => void;
-    useTypeEffect?: boolean;
-    className?: string;
-    state: GameState;
-}
-type SayComponent = Components<SayElementProps>;
+interface IDialogProps {}
+
+type SayComponent = Components<IDialogProps>;
 ```
+
+`SayComponent` is the slot type for `game.configure({ dialog })`. It is a no-argument component contract: the player provides the current line through dialog context, not through props.
+
+Inside the component, render [`Dialog`](/docs/narraleaf-react/player/dialog), [`Nametag`](/docs/narraleaf-react/player/dialog), [`Texts`](/docs/narraleaf-react/player/dialog), [`Avatar`](/docs/narraleaf-react/player/dialog), or call [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog) to read the active dialogue state.
+
+`Dialog` itself accepts `HTMLMotionProps<"div">`, so a `SayComponent` can return `<Dialog initial={...} animate={...} exit={...}>...</Dialog>` without changing the slot signature.
 
 For Components, see [Components](/docs/narraleaf-react/core/types/Components).

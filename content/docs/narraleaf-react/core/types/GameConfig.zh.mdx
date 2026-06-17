@@ -169,6 +169,13 @@ type GameConfig = {
      */
     allowSkipTextTransition: boolean;
     /**
+     * 如果为true，退出动画会向子级传播
+     *
+     * 此行为由 [motion](https://motion.dev) 控制：`When true, exit animations will be propagated to nested AnimatePresence components.`
+     * @default false
+     */
+    animationPropagate: boolean;
+    /**
      * 对话框的基础宽度（像素）
      *
      * 对于16/9比例，推荐值为1920

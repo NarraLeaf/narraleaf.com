@@ -2,20 +2,15 @@
 title: "SayComponent"
 ---
 ```typescript
-interface SayElementProps {
-    action: {
-        sentence: Sentence;
-        character: Character | null;
-    };
-    /**
-     * Callback function to be called when player triggers the next action
-     */
-    onClick?: () => void;
-    useTypeEffect?: boolean;
-    className?: string;
-    state: GameState;
-}
-type SayComponent = Components<SayElementProps>;
+interface IDialogProps {}
+
+type SayComponent = Components<IDialogProps>;
 ```
 
-For Components, see [Components](/zh/docs/narraleaf-react/core/types/Components).
+`SayComponent` 是 `game.configure({ dialog })` 使用的 slot 类型。它是无参数组件契约：播放器会通过 dialog context 提供当前对话行，而不是把 action props 传给组件。
+
+在组件内部，可以渲染 [`Dialog`](/zh/docs/narraleaf-react/player/dialog)、[`Nametag`](/zh/docs/narraleaf-react/player/dialog)、[`Texts`](/zh/docs/narraleaf-react/player/dialog)、[`Avatar`](/zh/docs/narraleaf-react/player/dialog)，或调用 [`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 读取当前对话状态。
+
+`Dialog` 本身接收 `HTMLMotionProps<"div">`，因此 `SayComponent` 可以直接返回 `<Dialog initial={...} animate={...} exit={...}>...</Dialog>`，无需改变 slot 签名。
+
+关于 Components，参见 [Components](/zh/docs/narraleaf-react/core/types/Components)。

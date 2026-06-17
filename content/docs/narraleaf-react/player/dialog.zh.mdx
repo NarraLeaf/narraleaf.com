@@ -62,7 +62,9 @@ function App() {
 渲染对话框容器。子节点通常为 `Avatar`、`Nametag`、`Texts`（布局可自定义）。
 
 - `children?: React.ReactNode` — 对话框内容。
-- `...props: React.HTMLAttributes<HTMLDivElement>` — 传给内层包裹元素。
+- `...props: HTMLMotionProps<"div">` — 传给内部的 `motion.div` 包裹元素。除了普通 div props 外，也支持 `initial`、`animate`、`exit`、`transition`、`layout` 以及 Motion 事件处理器。
+
+外层 dialog wrapper 会继续负责宽高比缩放以及点击/按键处理。视觉 transform 应直接写在 `Dialog` 上，播放器会把它们应用到内部 motion 元素。
 
 ### Nametag
 
@@ -93,6 +95,39 @@ function App() {
 - `objectFit`：`"cover"`
 - `borderRadius`：`6`
 - `flex`：`"0 0 auto"`
+
+## Dialog motion props
+
+自定义对话框组件可以直接向 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 传入 Motion props。内置的 `DefaultDialog` 默认不会添加进入或退出动画。
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+    return (
+        <Dialog
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            layout
+        >
+            <Nametag />
+            <Texts />
+        </Dialog>
+    );
+}
+```
+
+presence 时序由播放器处理：
+
+- 对话到对话的直接替换会保留同一个可视 dialog slot。上一句不会播放 `exit`，下一句也不会只因为文本或 nametag 变化就重新播放进入动画。
+- 对话后接非对话内容时，当前对话会从 active text list 中移除，因此可以继续播放 `exit`，同时剧情向后推进。
+- 如果旧退出动画还没结束，后面又出现新对话，新对话会获得新的 presence key。旧退出和新进入可以重叠播放。
+- 通过 dialog slot 渲染的菜单 prompt 会在选项出现前使用同一套 presence 行为。
+- 正在退出的对话框处于 inactive 状态：点击、skip、auto-forward 都会被忽略，保留节点也不能重复调用 `onFinished`。
+
+`GameConfig.animationPropagate` 会传给 dialog 的 `AnimatePresence` 边界。除非你的自定义对话框内部还嵌套了需要传播退出动画的 `AnimatePresence`，否则保持 `false` 即可。
 
 ## 对话框头像
 

@@ -165,6 +165,43 @@ function GameDialog() {
 }
 ```
 
+## 6. Add Enter and Exit Motion
+
+`Dialog` accepts Motion props directly. You do not need to wrap it with your own `motion.div` for the dialog box animation:
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+  return (
+    <Dialog
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] rounded-xl bg-black/75 px-6 py-4"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.24, ease: "easeOut" }}
+      layout
+      onAnimationComplete={() => {
+        // Optional Motion event handler
+      }}
+    >
+      <Nametag className="font-bold text-amber-400" />
+      <Texts className="text-white" />
+    </Dialog>
+  );
+}
+```
+
+The Motion props are applied to the dialog's inner `motion.div`. The outer wrapper still handles player scaling and click/key behavior, so transforms such as `x`, `y`, `scale`, and `rotate` will not conflict with `useAspectScale`.
+
+Dialog presence is managed by the player:
+
+- Consecutive dialogue lines reuse the same dialog presence slot, so the previous line does **not** run `exit` before the next line appears.
+- If dialogue is followed by a non-dialogue gap, the old dialog can run its `exit` animation while the story continues.
+- If a later dialogue appears before the old exit finishes, the new dialogue gets a separate presence key, so the old exit and new enter can overlap.
+- Menu prompts rendered through the dialog slot use the same motion behavior before the choices appear.
+- Exiting dialogs ignore click, skip, and auto-forward events, so they cannot advance the story again.
+
 ## Notes
 
 - **Nametag color**: Controlled by `nametagColor` in [Character](/docs/narraleaf-react/core/elements/character) config; avoid overriding with CSS.

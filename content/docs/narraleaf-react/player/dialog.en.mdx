@@ -62,7 +62,9 @@ function App() {
 Renders the dialog container. Children are typically `Avatar`, `Nametag`, and `Texts` (any layout you prefer).
 
 - `children?: React.ReactNode` — Dialog content.
-- `...props: React.HTMLAttributes<HTMLDivElement>` — Passed to the inner wrapper.
+- `...props: HTMLMotionProps<"div">` — Passed to the inner `motion.div` wrapper. This includes normal div props plus Motion props such as `initial`, `animate`, `exit`, `transition`, `layout`, and Motion event handlers.
+
+The outer dialog wrapper is kept separate for aspect-ratio scaling and click/key handling. Put visual transforms on `Dialog` itself; the player will apply them to the inner motion element.
 
 ### Nametag
 
@@ -93,6 +95,39 @@ Default image style:
 - `objectFit`: `"cover"`
 - `borderRadius`: `6`
 - `flex`: `"0 0 auto"`
+
+## Dialog motion props
+
+Custom dialog components can pass Motion props directly to [`Dialog`](/docs/narraleaf-react/player/dialog). The built-in `DefaultDialog` does not add enter or exit animation by default.
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+    return (
+        <Dialog
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            layout
+        >
+            <Nametag />
+            <Texts />
+        </Dialog>
+    );
+}
+```
+
+Presence timing is handled by the player:
+
+- Direct dialogue-to-dialogue replacement keeps the same visual dialog slot alive. The previous line does not run `exit`, and the next line does not restart the enter animation just because text or nametag changed.
+- Dialogue-to-non-dialogue content removes the active dialog from the current text list, so `exit` can continue while the story advances.
+- If a new dialogue appears while an older exit animation is still running, the new dialogue receives a new presence key. The old exit and new enter can overlap.
+- Menu prompts rendered through the dialog slot use the same presence behavior before menu choices appear.
+- Exiting dialogs are inactive: click, skip, and auto-forward handlers are ignored, and retained nodes cannot call `onFinished` twice.
+
+`GameConfig.animationPropagate` is passed to the dialog `AnimatePresence` boundary. Leave it `false` unless you need nested `AnimatePresence` exits inside your custom dialog to propagate.
 
 ## Dialog avatars
 
