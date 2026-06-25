@@ -1,44 +1,78 @@
 ---
 title: NarraLeaf
-description: Engine documentation for the NarraLeaf desktop application toolchain, including the runtime, renderer, and CLI.
+description: Desktop visual novel engine documentation for the NarraLeaf runtime, renderer, project config, and CLI.
 ---
 
-NarraLeaf is the desktop application path in the NarraLeaf Project ecosystem. It brings together the runtime, rendering layer, and command-line tooling used to build and deliver complete NarraLeaf applications.
+Welcome to the documentation of the **NarraLeaf** library!
 
-Use this documentation when you are building a full visual novel application and need the engine-level pieces that sit below the authoring experience.
+NarraLeaf is a desktop visual novel engine built on Electron, React, and NarraLeaf-React. It provides the main-process runtime, renderer shell, save bridge, page routing, project configuration, and CLI workflow used to create a complete packaged app.
 
-## When to Use This Path
+## Why NarraLeaf?
 
-Choose NarraLeaf when your project needs a complete desktop application toolchain, including runtime behavior, rendering, project commands, and delivery workflow.
+- **Full desktop app**: Build a standalone Electron application instead of only embedding a player in an existing web page.
+- **Typed runtime surface**: Configure the main process, renderer bridge, save system, and build targets with TypeScript-friendly APIs.
+- **NarraLeaf-React inside**: Author the story with NarraLeaf-React, then let NarraLeaf handle app boot, routing, persistence, and packaging.
 
-Choose [NarraLeaf Studio](/docs/studio) when your first goal is zero-code story authoring and production through a guided visual environment.
+Choose [NarraLeaf-React](/docs/narraleaf-react) when you only need the React player framework. Choose NarraLeaf when you also need the desktop app shell, CLI, and delivery workflow.
 
-Choose [NarraLeaf-React](/docs/narraleaf-react) when you already have a React application, need a lightweight embedded player, or want to own the surrounding web UI.
+## Getting Started
+
+Start with installation, then create a project and run it locally.
+
+<Cards>
+    <Card
+        title="Installation"
+        description="Install the CLI and runtime packages used by a NarraLeaf desktop app."
+        href="/docs/narraleaf/library/installation"
+    />
+    <Card
+        title="Quick Start"
+        description="Create your first NarraLeaf project and run the development server."
+        href="/docs/narraleaf/library/quick-start"
+    />
+</Cards>
 
 ## Modules
 
 <Cards>
     <Card
         title="Main"
-        description="Core runtime and authoring APIs for NarraLeaf applications."
+        description="Electron main-process runtime, AppConfig, App, AppWindow, hooks, and storage."
         href="/docs/narraleaf/library/main"
     />
     <Card
         title="Renderer"
-        description="Rendering layer for scenes, interfaces, and player-facing visual presentation."
+        description="Renderer entry, App provider, save hooks, typed main-process events, and page routing."
         href="/docs/narraleaf/library/renderer"
     />
     <Card
         title="CLI"
-        description="Project scaffolding, local development commands, and delivery workflows."
+        description="Project commands for init, dev, build, info, and generated renderer entries."
         href="/docs/narraleaf/library/cli"
+    />
+</Cards>
+
+## Project Setup
+
+<Cards>
+    <Card
+        title="Project Config"
+        description="Understand narraleaf.config.js and the required project folders."
+        href="/docs/narraleaf/library/project-config"
+    />
+    <Card
+        title="Build Targets"
+        description="Configure Windows, macOS, and Linux targets through narraleaf/config."
+        href="/docs/narraleaf/library/build-targets"
     />
 </Cards>
 
 ## Recommended Reading Path
 
-Start with [Main](/docs/narraleaf/library/main) to understand the runtime and authoring model. Continue with [Renderer](/docs/narraleaf/library/renderer) to see how scenes and interfaces are presented. Finish with [CLI](/docs/narraleaf/library/cli) when you are ready to scaffold, run, and ship a NarraLeaf application.
+1. Read [Installation](/docs/narraleaf/library/installation).
+2. Follow [Quick Start](/docs/narraleaf/library/quick-start).
+3. Learn [Project Config](/docs/narraleaf/library/project-config).
+4. Use [Main](/docs/narraleaf/library/main) and [Renderer](/docs/narraleaf/library/renderer) when you need API details.
+5. Use [CLI](/docs/narraleaf/library/cli) when you are ready to automate local development and packaging.
 
-## Ecosystem
-
-NarraLeaf is one part of the broader [NarraLeaf Project](/project). You can also explore [NarraLeaf Studio](/docs/studio) for visual authoring and [NarraLeaf-React](/docs/narraleaf-react) for React-based embedding.
+> **Note:** NarraLeaf is in early development. Some APIs are stable enough to document, but projects should keep the NarraLeaf, NarraLeaf-React, Electron, and React versions aligned.

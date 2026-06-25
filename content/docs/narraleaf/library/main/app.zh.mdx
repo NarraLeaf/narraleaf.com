@@ -1,0 +1,104 @@
+---
+title: "App"
+description: 使用 NarraLeaf 主进程 App 宿主管理生命周期、路径、hooks 与存储。
+---
+
+`App` 是 NarraLeaf 的主进程宿主。通常通过 `new AppConfig(...).create()` 获取。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+```
+
+## 生命周期
+
+在启动窗口前使用 `onReady`。
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+    });
+
+    win.setTitle("My Visual Novel");
+});
+```
+
+`launchApp()` 会创建主 `AppWindow`。如果 app 尚未初始化，或主窗口已经存在，它会抛出错误。
+
+## Hooks
+
+`App` 提供一个轻量 hook bus，用于 NarraLeaf 生命周期事件。当前公共包入口尚未导出 hook event enum，因此应用启动代码建议优先使用 `onReady`。
+
+```ts
+app.onReady(() => {
+    app.logger.info("NarraLeaf is ready");
+});
+```
+
+内部 hook bus 使用这些事件名：
+
+- `AfterReady`
+- `AfterMainWindowClose`
+- `OnTerminate`
+
+> **注意：** 在 `HookEvents` 从稳定入口导出前，请把 `app.hook`、`app.onceHook`、`app.unhook` 和 `app.emitHook` 视为高级运行时 hooks。
+
+## 路径
+
+`App` 会同时为开发模式和打包应用解析运行时路径。
+
+- `getEntryFile()`：渲染 HTML 文件路径，或开发 HTTP URL。
+- `getPreloadScript()`：preload bundle 路径。
+- `getPublicDir()`：public 资源目录。
+- `getRendererBuildDir()`：渲染构建目录。
+- `getAppPath()`：NarraLeaf 构建根目录。
+- `getUserDataDir()`：Electron `userData` 路径。
+
+```ts
+app.onReady(() => {
+    app.logger.info("public dir", app.getPublicDir());
+});
+```
+
+## 存档数据
+
+主进程暴露渲染器 hooks 使用的存档操作。
+
+```ts
+await app.saveGameData(savedGame, SaveType.Save, "slot-1");
+const data = await app.readGameData("slot-1");
+const saves = await app.listGameData();
+await app.deleteGameData("slot-1");
+```
+
+存档 id 必须是安全 storage key。它可以包含字母、数字、`_`、`-` 和 `.`，不能包含路径分隔符或 `..`。
+
+```ts
+import { assertSafeStorageKey } from "narraleaf";
+
+assertSafeStorageKey("slot-1", "Save id");
+```
+
+## JSON Stores
+
+使用 `createJsonStore` 在 app data 目录下保存小型主进程 JSON 文档。
+
+```ts
+const settings = app.createJsonStore<{ volume?: number }>("settings");
+
+await settings.write({ volume: 0.8 });
+const data = await settings.read();
+```
+
+`createExposedJsonStore` 和 `exposeJsonStore` 为兼容性保留，但已经 deprecated。面向渲染器的能力建议使用显式主进程事件。
+
+## Crash 与 Quit
+
+```ts
+app.quit();
+app.crash("Unexpected state", { disableRecovery: true });
+```
+
+`crash()` 会记录 crash metadata 并交给 crash manager。`quit()` 执行普通 Electron 退出。

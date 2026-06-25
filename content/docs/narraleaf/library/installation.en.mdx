@@ -1,0 +1,85 @@
+---
+title: "Installation"
+description: Install the NarraLeaf CLI, runtime package, and peer dependencies.
+---
+
+NarraLeaf projects use two package surfaces:
+
+- `narraleaf-cli` provides the `narraleaf` command.
+- `narraleaf` provides the main-process runtime, renderer entry, and build configuration types.
+
+## Install the CLI
+
+Use the CLI when you want to initialize, run, inspect, or package a NarraLeaf project.
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install -g narraleaf-cli
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn global add narraleaf-cli
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add -g narraleaf-cli
+        ```
+</Tab></Tabs>
+
+After installation, the command name is `narraleaf`.
+
+```bash
+narraleaf --version
+```
+
+## Install in a Project
+
+For an existing application, install the runtime package and its peer dependencies.
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install narraleaf narraleaf-react react react-dom electron electron-builder
+        npm install -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn add narraleaf narraleaf-react react react-dom electron electron-builder
+        yarn add -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add narraleaf narraleaf-react react react-dom electron electron-builder
+        pnpm add -D narraleaf-cli typescript
+        ```
+</Tab></Tabs>
+
+> **Note:** The current runtime expects React 19 and Electron 34 compatible projects.
+
+## Package Entrypoints
+
+NarraLeaf exposes three runtime entrypoints:
+
+```ts
+import { AppConfig } from "narraleaf";
+import { render, useApp } from "narraleaf/renderer";
+import { BuildTarget } from "narraleaf/config";
+```
+
+- `narraleaf` and `narraleaf/main` expose main-process APIs.
+- `narraleaf/renderer` exposes renderer helpers, hooks, and types.
+- `narraleaf/config` exposes build configuration helpers and target types.
+
+## Next Steps
+
+<Cards>
+    <Card
+        title="Quick Start"
+        description="Create a NarraLeaf project and run it locally."
+        href="/docs/narraleaf/library/quick-start"
+    />
+    <Card
+        title="Project Config"
+        description="Learn the required project files and narraleaf.config.js fields."
+        href="/docs/narraleaf/library/project-config"
+    />
+</Cards>

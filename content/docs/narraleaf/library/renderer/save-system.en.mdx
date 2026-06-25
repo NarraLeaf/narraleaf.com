@@ -1,0 +1,104 @@
+---
+title: "Save System"
+description: Use renderer save hooks, quick saves, current snapshots, and save metadata.
+---
+
+The renderer save helpers call the preload bridge, which routes to main-process save storage.
+
+```tsx
+import {
+    readGame,
+    useCurrentSaved,
+    useSaveAction,
+    useSavedGames,
+} from "narraleaf/renderer";
+```
+
+## Save Actions
+
+`useSaveAction()` returns imperative helpers for the active game.
+
+```tsx
+import { useSaveAction } from "narraleaf/renderer";
+
+export function SaveButton() {
+    const { save, quickSave } = useSaveAction();
+
+    return (
+        <>
+            <button onClick={() => void save("slot-1")}>Save</button>
+            <button onClick={() => void quickSave()}>Quick Save</button>
+        </>
+    );
+}
+```
+
+Return shape:
+
+- `save(id)`: serializes the live game and stores a regular save.
+- `read(id)`: reads one save slot and returns a serialized game or `null`.
+- `quickSave()`: stores the current game using NarraLeaf's quick-save id.
+- `quickRead()`: reads the quick save.
+
+`save`, `quickSave`, and bridge failures throw errors.
+
+## Current Snapshot
+
+Use `useCurrentSaved()` when a component needs the current serialized game snapshot.
+
+```tsx
+const current = useCurrentSaved();
+```
+
+Use `useCurrentSavedRef()` when a callback needs the latest snapshot without re-rendering.
+
+```tsx
+const currentRef = useCurrentSavedRef();
+```
+
+Both helpers serialize the active NarraLeaf-React `LiveGame`.
+
+## List Saves
+
+`useSavedGames()` loads save metadata and provides a serialized `refetch()`.
+
+```tsx
+import { useSavedGames } from "narraleaf/renderer";
+
+export function SaveList() {
+    const { results, isLoading, error, refetch } = useSavedGames();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <button onClick={() => void refetch()}>Retry</button>;
+
+    return (
+        <ul>
+            {results.map((save) => (
+                <li key={save.id}>{save.id}</li>
+            ))}
+        </ul>
+    );
+}
+```
+
+## Read Without a Hook
+
+Use `readGame(id)` outside React hooks.
+
+```ts
+const savedGame = await readGame("slot-1");
+```
+
+It throws on bridge failure and returns `null` when the save is missing or does not contain game content.
+
+## Save Id Rules
+
+Save ids are validated in the main process. They must:
+
+- be non-empty strings
+- be at most `200` characters
+- be a single path segment
+- not contain `..`
+- match `^[a-zA-Z0-9_.-]+$`
+
+> **Note:** The main process has lower-level delete-save support, but the current renderer public APIs do not expose a delete helper. Use a custom main event if your app needs delete UI today.

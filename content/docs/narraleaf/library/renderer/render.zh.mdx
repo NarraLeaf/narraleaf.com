@@ -1,0 +1,65 @@
+---
+title: "Render"
+description: 挂载 NarraLeaf 渲染根节点并提供 story metadata。
+---
+
+`render()` 用于挂载 NarraLeaf 渲染根节点。在普通项目中，CLI 会为你生成渲染入口，扫描 `renderer/pages`，导入你的 `renderer/App.tsx`，然后调用 `render()`。
+
+## 用户 App 契约
+
+你的渲染应用必须导出：
+
+- `metadata.story`：一个 NarraLeaf-React `Story`。
+- `default`：接收 `children` 的 React 组件。
+
+```tsx title="renderer/App.tsx"
+import type { GameMetadata } from "narraleaf/renderer";
+import type { ReactNode } from "react";
+import { Story } from "narraleaf-react";
+
+const story = new Story("My Story");
+
+export const metadata: GameMetadata = {
+    story,
+};
+
+export default function App({ children }: { children: ReactNode }) {
+    return <main>{children}</main>;
+}
+```
+
+生成的渲染根会把你的 app 放进 NarraLeaf 的 `AppProvider`，并把播放器/页面渲染结果放在你的 `children` 下。
+
+## 手动 Render
+
+你通常不需要自己调用 `render()`。如果确实需要，请提供 React root adapter、用户 app、router data 和 metadata。
+
+```tsx
+import { createRoot } from "react-dom/client";
+import { render } from "narraleaf/renderer";
+import App, { metadata } from "./App";
+
+const root = createRoot(document.getElementById("root")!);
+
+await render({
+    renderer: root,
+    App,
+    appRouterData,
+    metadata,
+});
+```
+
+## 校验
+
+挂载前，`render()` 会检查：
+
+- `window.NarraLeaf` 存在。
+- `document` 存在。
+- React major version 是 `19`。
+- `metadata.story` 存在。
+
+如果 preload bridge 无法返回平台信息，NarraLeaf 会终止宿主进程并直接返回，不再挂载。
+
+## Error Fallback
+
+如果存在 `renderer/pages/error.tsx`，CLI 会把它作为全局渲染器错误 fallback 页面。否则 NarraLeaf 使用内置 fallback 组件。

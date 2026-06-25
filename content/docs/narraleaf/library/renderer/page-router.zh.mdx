@@ -1,0 +1,76 @@
+---
+title: "Page Router"
+description: 了解 NarraLeaf CLI 扫描的 renderer pages 目录。
+---
+
+CLI 会扫描 `renderer/pages`，并生成传给 `render()` 的 route tree。页面会通过生成的 `RootPages` 组件在 NarraLeaf-React player 内渲染。
+
+## 文件规则
+
+- `index.tsx`、`index.jsx`、`index.ts` 或 `index.js` 处理目录的默认页面。
+- `layout.tsx`、`layout.jsx`、`layout.ts` 或 `layout.js` 包裹该目录下的子页面。
+- pages 根目录下的 `error.tsx`、`error.jsx`、`error.ts` 或 `error.js` 会成为全局错误 fallback。
+- 其他文件按文件名成为页面。
+- `[name]` 这样的目录名会成为 slug 参数。
+
+```txt
+renderer/pages
+├── index.tsx
+├── save.tsx
+├── settings.tsx
+├── error.tsx
+└── gallery
+    ├── layout.tsx
+    ├── index.tsx
+    └── [id].tsx
+```
+
+## Layouts
+
+layout module 导出一个接收 `children` 的 React 组件。
+
+```tsx title="renderer/pages/gallery/layout.tsx"
+import type { ReactNode } from "react";
+
+export default function GalleryLayout({ children }: { children: ReactNode }) {
+    return <section>{children}</section>;
+}
+```
+
+## Pages
+
+page module 导出一个 React 组件。
+
+```tsx title="renderer/pages/save.tsx"
+import { useSavedGames } from "narraleaf/renderer";
+
+export default function SavePage() {
+    const { results } = useSavedGames();
+
+    return <pre>{JSON.stringify(results, null, 2)}</pre>;
+}
+```
+
+## Slugs
+
+以 `[` 开头并以 `]` 结尾的目录名会被视为 slug 片段。可接受的 slug 名称字符包括字母、数字、下划线、连字符和常见 CJK 字符。
+
+```txt
+renderer/pages/gallery/[id].tsx
+```
+
+## 路由冲突
+
+一个目录可以使用以下两种方式之一：
+
+- 本地 `index` 文件
+- 与目录同名的兄弟文件
+
+不要为同一路由同时使用两者。
+
+```txt
+renderer/pages/gallery.tsx
+renderer/pages/gallery/index.tsx
+```
+
+CLI 会把这视为路由冲突，因为两个文件都会处理 `/gallery`。

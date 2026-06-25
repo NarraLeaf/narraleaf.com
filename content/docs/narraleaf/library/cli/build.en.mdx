@@ -1,0 +1,78 @@
+---
+title: "Build"
+description: Build and package a NarraLeaf desktop app.
+---
+
+`narraleaf build` creates production build output and packages the app.
+
+```bash
+narraleaf build
+```
+
+## Build Steps
+
+The command runs three phases:
+
+<Steps>
+<Step>
+
+### Build renderer
+
+The CLI scans `renderer/pages`, creates the temporary renderer entry, bundles React output, and writes renderer files under the configured `temp` directory.
+</Step>
+<Step>
+
+### Build main
+
+The CLI bundles your configured `main` entry for Electron main and copies the NarraLeaf preload bundle.
+</Step>
+<Step>
+
+### Pack app
+
+The CLI calls Electron Builder with generated files, public assets, resources, licenses, and configured targets.
+</Step>
+</Steps>
+
+## Output
+
+The packaged app is written to `build.dist`, which defaults to `dist`.
+
+```js title="narraleaf.config.js"
+module.exports = {
+    build: {
+        dist: "dist",
+        productName: "My Visual Novel",
+    },
+};
+```
+
+## Fast Packaging
+
+Set `build.dev` to `true` for development-oriented packaging with faster compression.
+
+```js
+module.exports = {
+    build: {
+        dev: true,
+    },
+};
+```
+
+## Targets
+
+Configure targets with `BuildTarget` helpers from `narraleaf/config`.
+
+```js
+const { BuildTarget, WindowsBuildTarget } = require("narraleaf/config");
+
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+        }),
+    },
+};
+```
+
+See [Build Targets](/docs/narraleaf/library/build-targets) for platform examples.

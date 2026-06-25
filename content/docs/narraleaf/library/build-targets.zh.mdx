@@ -1,0 +1,100 @@
+---
+title: "构建目标"
+description: 通过 narraleaf/config 配置 Windows、macOS 与 Linux 打包目标。
+---
+
+构建目标是 Electron Builder target 配置的类型化封装。请从 `narraleaf/config` 导入。
+
+```js
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+    MacBuildTarget,
+    LinuxBuildTarget,
+} = require("narraleaf/config");
+```
+
+## Windows
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+            icon: "assets/icon.ico",
+        }),
+    },
+};
+```
+
+常见 Windows targets 包括 `nsis`、`portable`、`msi`、`appx`、`zip` 和 `dir`。
+
+## macOS
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Mac({
+            target: MacBuildTarget.dmg,
+            arch: ArchType.arm64,
+            icon: "assets/icon.icns",
+        }),
+    },
+};
+```
+
+常见 macOS targets 包括 `dmg`、`pkg`、`zip`、`mas`、`mas-dev` 和 `dir`。
+
+## Linux
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Linux({
+            target: LinuxBuildTarget.AppImage,
+            arch: ArchType.x64,
+            icon: "assets/icon.png",
+            category: "Game",
+        }),
+    },
+};
+```
+
+常见 Linux targets 包括 `AppImage`、`deb`、`rpm`、`snap`、`tar.gz`、`zip` 和 `dir`。
+
+## 多目标构建
+
+当你需要构建多个目标时，请传入数组。
+
+```js
+module.exports = {
+    build: {
+        targets: [
+            BuildTarget.Windows({
+                target: WindowsBuildTarget.nsis,
+                arch: ArchType.x64,
+            }),
+            BuildTarget.Linux({
+                target: LinuxBuildTarget.AppImage,
+                arch: ArchType.x64,
+            }),
+        ],
+    },
+};
+```
+
+NarraLeaf 会在传给 Electron Builder 之前，对相同 target 与 architecture 组合去重。
+
+## 架构
+
+`ArchType` 包含：
+
+- `x64`
+- `ia32`
+- `armv7l`
+- `arm64`
+- `universal`
+
+> **提示：** 图标格式建议按平台区分：Windows 使用 `.ico`，macOS 使用 `.icns`，Linux 使用 `.png`。

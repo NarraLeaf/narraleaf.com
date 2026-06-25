@@ -1,0 +1,40 @@
+---
+title: "Commands"
+description: Current NarraLeaf CLI command reference.
+---
+
+The `narraleaf` command is provided by the `narraleaf-cli` package.
+
+```bash
+narraleaf --version
+narraleaf --debug info
+```
+
+## Command List
+
+| Command | Purpose |
+| --- | --- |
+| `narraleaf info` | Print platform info, CLI config, merged project config, renderer root, node_modules path, and scanned route tree. |
+| `narraleaf init [path]` | Run `npx narraleaf-skeleton@latest <path>` and create a project. |
+| `narraleaf dev` | Start development mode: watch main and renderer, run Electron, and communicate over the dev WebSocket. |
+| `narraleaf build` | Build renderer, build main, then package with Electron Builder. |
+| `narraleaf cache [action] --force` | Registered by the CLI, but currently has no documented behavior. |
+
+## Global Options
+
+- `--debug`: enable debug output.
+
+```bash
+narraleaf --debug dev
+```
+
+## Working Directory
+
+Project commands use the current working directory as the project root.
+
+```bash
+cd my-visual-novel
+narraleaf dev
+```
+
+The CLI resolves relative project paths from that directory.

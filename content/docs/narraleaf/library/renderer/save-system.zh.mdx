@@ -1,0 +1,104 @@
+---
+title: "Save System"
+description: 使用渲染器存档 hooks、快速存档、当前快照和存档 metadata。
+---
+
+渲染器存档 helpers 会调用 preload bridge，再路由到主进程存档存储。
+
+```tsx
+import {
+    readGame,
+    useCurrentSaved,
+    useSaveAction,
+    useSavedGames,
+} from "narraleaf/renderer";
+```
+
+## 存档操作
+
+`useSaveAction()` 返回当前游戏的命令式 helpers。
+
+```tsx
+import { useSaveAction } from "narraleaf/renderer";
+
+export function SaveButton() {
+    const { save, quickSave } = useSaveAction();
+
+    return (
+        <>
+            <button onClick={() => void save("slot-1")}>Save</button>
+            <button onClick={() => void quickSave()}>Quick Save</button>
+        </>
+    );
+}
+```
+
+返回值：
+
+- `save(id)`：序列化 live game 并保存普通存档。
+- `read(id)`：读取一个存档位，返回序列化游戏或 `null`。
+- `quickSave()`：使用 NarraLeaf 的 quick-save id 保存当前游戏。
+- `quickRead()`：读取快速存档。
+
+`save`、`quickSave` 和 bridge failure 会抛出错误。
+
+## 当前快照
+
+组件需要当前序列化游戏快照时，使用 `useCurrentSaved()`。
+
+```tsx
+const current = useCurrentSaved();
+```
+
+当 callback 需要最新快照但不希望触发重新渲染时，使用 `useCurrentSavedRef()`。
+
+```tsx
+const currentRef = useCurrentSavedRef();
+```
+
+两个 helpers 都会序列化当前 NarraLeaf-React `LiveGame`。
+
+## 列出存档
+
+`useSavedGames()` 会加载存档 metadata，并提供串行化的 `refetch()`。
+
+```tsx
+import { useSavedGames } from "narraleaf/renderer";
+
+export function SaveList() {
+    const { results, isLoading, error, refetch } = useSavedGames();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <button onClick={() => void refetch()}>Retry</button>;
+
+    return (
+        <ul>
+            {results.map((save) => (
+                <li key={save.id}>{save.id}</li>
+            ))}
+        </ul>
+    );
+}
+```
+
+## 不使用 Hook 读取
+
+在 React hooks 之外使用 `readGame(id)`。
+
+```ts
+const savedGame = await readGame("slot-1");
+```
+
+它会在 bridge 失败时抛出错误；当存档不存在或不包含游戏内容时返回 `null`。
+
+## Save Id 规则
+
+存档 id 会在主进程校验。它必须：
+
+- 是非空字符串
+- 最长 `200` 个字符
+- 是单个路径片段
+- 不包含 `..`
+- 匹配 `^[a-zA-Z0-9_.-]+$`
+
+> **注意：** 主进程有更底层的删除存档支持，但当前 renderer 公共 API 尚未暴露 delete helper。如果你的应用现在需要删除 UI，请使用自定义主进程事件。

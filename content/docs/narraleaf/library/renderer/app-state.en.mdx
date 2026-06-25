@@ -1,0 +1,80 @@
+---
+title: "App State"
+description: Access RendererApp, playback state, and app-level actions from React.
+---
+
+Use `useApp()` inside the NarraLeaf renderer tree to access the stable `RendererApp` surface.
+
+```tsx
+import { useApp } from "narraleaf/renderer";
+
+export function MainMenu() {
+    const app = useApp();
+
+    return <button onClick={() => void app.newGame()}>New Game</button>;
+}
+```
+
+## RendererApp
+
+`useApp()` returns a controlled subset of the renderer `App` class:
+
+- `newGame()`
+- `loadGame(id)`
+- `exitGame()`
+- `continueGame()`
+- `listSaves()`
+- `createRecovery(savedGame)`
+- `getCrashReport()`
+- `crash(error)`
+- `quit()`
+- `state`
+- `config`
+
+## Playback State
+
+`useGamePlayback()` returns a read-only high-level playback state.
+
+```tsx
+import { useGamePlayback } from "narraleaf/renderer";
+
+export function Overlay() {
+    const { isPlaying } = useGamePlayback();
+
+    return isPlaying ? <GameHUD /> : <MainMenu />;
+}
+```
+
+## useAppState
+
+`useAppState(key)` subscribes to a renderer app state key and returns `[value, setValue]`.
+
+```tsx
+import { useAppState } from "narraleaf/renderer";
+
+export function PauseButton() {
+    const [isPlaying, setIsPlaying] = useAppState("isPlaying");
+
+    return (
+        <button onClick={() => setIsPlaying((value) => !value)}>
+            {isPlaying ? "Pause" : "Resume"}
+        </button>
+    );
+}
+```
+
+Current public state keys:
+
+- `isPlaying`: whether the NarraLeaf-React live game is active.
+
+## Continue Game
+
+`continueGame()` loads the latest regular save if one exists.
+
+```tsx
+const continued = await app.continueGame();
+
+if (continued === null) {
+    // No regular save was found.
+}
+```

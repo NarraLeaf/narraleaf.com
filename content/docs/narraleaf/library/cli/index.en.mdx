@@ -1,6 +1,56 @@
 ---
 title: CLI
-description: Tooling for scaffolding, local workflows, and shipping projects.
+description: NarraLeaf command-line tooling for scaffolding, local development, builds, and project inspection.
 ---
 
-The **CLI** module documents project scaffolding, local development commands, and delivery workflows for NarraLeaf applications.
+The **CLI** package provides the `narraleaf` command used by NarraLeaf desktop projects.
+
+```bash
+narraleaf init my-visual-novel
+cd my-visual-novel
+narraleaf dev
+```
+
+## Commands
+
+<Cards>
+    <Card
+        title="Commands"
+        description="A quick reference for all current CLI commands."
+        href="/docs/narraleaf/library/cli/commands"
+    />
+    <Card
+        title="Init"
+        description="Create a project through the NarraLeaf skeleton package."
+        href="/docs/narraleaf/library/cli/init"
+    />
+    <Card
+        title="Dev"
+        description="Watch main and renderer sources, start Electron, and refresh during development."
+        href="/docs/narraleaf/library/cli/dev"
+    />
+    <Card
+        title="Build"
+        description="Bundle renderer and main process output, then package the app with Electron Builder."
+        href="/docs/narraleaf/library/cli/build"
+    />
+    <Card
+        title="Info"
+        description="Print platform, config, renderer project, and route scan information."
+        href="/docs/narraleaf/library/cli/info"
+    />
+</Cards>
+
+## What the CLI Reads
+
+Each project command runs from the current working directory and expects:
+
+- `package.json`
+- `narraleaf.config.js`
+- the configured main entry
+- the configured renderer directory
+- `renderer/App.tsx` or `renderer/App.jsx`
+- `renderer/pages`
+- `renderer/public`
+
+Use [Project Config](/docs/narraleaf/library/project-config) for the full config shape.

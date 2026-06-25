@@ -1,0 +1,40 @@
+---
+title: "Commands"
+description: 当前 NarraLeaf CLI 命令参考。
+---
+
+`narraleaf` 命令由 `narraleaf-cli` 包提供。
+
+```bash
+narraleaf --version
+narraleaf --debug info
+```
+
+## 命令列表
+
+| Command | 作用 |
+| --- | --- |
+| `narraleaf info` | 输出平台信息、CLI 配置、合并后的项目配置、渲染器根目录、node_modules 路径和扫描出的路由树。 |
+| `narraleaf init [path]` | 运行 `npx narraleaf-skeleton@latest <path>` 并创建项目。 |
+| `narraleaf dev` | 启动开发模式：监听 main 和 renderer，运行 Electron，并通过开发 WebSocket 通信。 |
+| `narraleaf build` | 构建 renderer、构建 main，然后使用 Electron Builder 打包。 |
+| `narraleaf cache [action] --force` | 已在 CLI 中注册，但当前没有已文档化行为。 |
+
+## 全局选项
+
+- `--debug`：开启 debug 输出。
+
+```bash
+narraleaf --debug dev
+```
+
+## 工作目录
+
+项目命令会把当前工作目录作为项目根目录。
+
+```bash
+cd my-visual-novel
+narraleaf dev
+```
+
+CLI 会从该目录解析相对项目路径。

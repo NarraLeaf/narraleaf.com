@@ -1,0 +1,65 @@
+---
+title: "Render"
+description: Mount the NarraLeaf renderer root and provide story metadata.
+---
+
+`render()` mounts the NarraLeaf renderer root. In normal projects, the CLI generates the renderer entry for you, scans `renderer/pages`, imports your `renderer/App.tsx`, and calls `render()`.
+
+## User App Contract
+
+Your renderer app must export:
+
+- `metadata.story`: a NarraLeaf-React `Story`.
+- `default`: a React component that receives `children`.
+
+```tsx title="renderer/App.tsx"
+import type { GameMetadata } from "narraleaf/renderer";
+import type { ReactNode } from "react";
+import { Story } from "narraleaf-react";
+
+const story = new Story("My Story");
+
+export const metadata: GameMetadata = {
+    story,
+};
+
+export default function App({ children }: { children: ReactNode }) {
+    return <main>{children}</main>;
+}
+```
+
+The generated renderer root places your app inside NarraLeaf's `AppProvider` and places the player/page renderer under your `children`.
+
+## Manual Render
+
+You rarely need to call `render()` yourself. If you do, provide a React root adapter, the user app, router data, and metadata.
+
+```tsx
+import { createRoot } from "react-dom/client";
+import { render } from "narraleaf/renderer";
+import App, { metadata } from "./App";
+
+const root = createRoot(document.getElementById("root")!);
+
+await render({
+    renderer: root,
+    App,
+    appRouterData,
+    metadata,
+});
+```
+
+## Validation
+
+Before mounting, `render()` verifies:
+
+- `window.NarraLeaf` exists.
+- `document` exists.
+- React major version is `19`.
+- `metadata.story` is present.
+
+If the preload bridge cannot return platform information, NarraLeaf terminates the host process and returns without mounting.
+
+## Error Fallback
+
+If `renderer/pages/error.tsx` exists, the CLI treats it as the global renderer error fallback page. Otherwise, NarraLeaf uses its built-in fallback component.

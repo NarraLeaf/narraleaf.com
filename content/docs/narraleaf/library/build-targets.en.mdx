@@ -1,0 +1,100 @@
+---
+title: "Build Targets"
+description: Configure Windows, macOS, and Linux packaging targets through narraleaf/config.
+---
+
+Build targets are typed wrappers around Electron Builder target configuration. Import them from `narraleaf/config`.
+
+```js
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+    MacBuildTarget,
+    LinuxBuildTarget,
+} = require("narraleaf/config");
+```
+
+## Windows
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+            icon: "assets/icon.ico",
+        }),
+    },
+};
+```
+
+Common Windows targets include `nsis`, `portable`, `msi`, `appx`, `zip`, and `dir`.
+
+## macOS
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Mac({
+            target: MacBuildTarget.dmg,
+            arch: ArchType.arm64,
+            icon: "assets/icon.icns",
+        }),
+    },
+};
+```
+
+Common macOS targets include `dmg`, `pkg`, `zip`, `mas`, `mas-dev`, and `dir`.
+
+## Linux
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Linux({
+            target: LinuxBuildTarget.AppImage,
+            arch: ArchType.x64,
+            icon: "assets/icon.png",
+            category: "Game",
+        }),
+    },
+};
+```
+
+Common Linux targets include `AppImage`, `deb`, `rpm`, `snap`, `tar.gz`, `zip`, and `dir`.
+
+## Multiple Targets
+
+Pass an array when you want to build more than one target.
+
+```js
+module.exports = {
+    build: {
+        targets: [
+            BuildTarget.Windows({
+                target: WindowsBuildTarget.nsis,
+                arch: ArchType.x64,
+            }),
+            BuildTarget.Linux({
+                target: LinuxBuildTarget.AppImage,
+                arch: ArchType.x64,
+            }),
+        ],
+    },
+};
+```
+
+NarraLeaf de-duplicates identical target and architecture pairs before passing them to Electron Builder.
+
+## Architecture
+
+`ArchType` includes:
+
+- `x64`
+- `ia32`
+- `armv7l`
+- `arm64`
+- `universal`
+
+> **Tip:** Keep icon formats platform-specific: `.ico` for Windows, `.icns` for macOS, and `.png` for Linux.

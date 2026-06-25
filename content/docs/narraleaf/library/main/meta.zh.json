@@ -1,4 +1,5 @@
 {
   "title": "Main",
-  "description": "NarraLeaf 应用的核心运行时和创作 API。"
+  "description": "NarraLeaf 应用的 Electron 主进程运行时 API。",
+  "pages": ["index", "app-config", "app", "window"]
 }

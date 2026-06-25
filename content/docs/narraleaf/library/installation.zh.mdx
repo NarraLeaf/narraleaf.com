@@ -1,0 +1,85 @@
+---
+title: "安装"
+description: 安装 NarraLeaf CLI、运行时包与 peer dependencies。
+---
+
+NarraLeaf 项目会用到两个包入口：
+
+- `narraleaf-cli` 提供 `narraleaf` 命令。
+- `narraleaf` 提供主进程运行时、渲染入口和构建配置类型。
+
+## 安装 CLI
+
+当你需要初始化、运行、检查或打包 NarraLeaf 项目时，请使用 CLI。
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install -g narraleaf-cli
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn global add narraleaf-cli
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add -g narraleaf-cli
+        ```
+</Tab></Tabs>
+
+安装完成后，命令名称是 `narraleaf`。
+
+```bash
+narraleaf --version
+```
+
+## 在项目中安装
+
+如果你要把 NarraLeaf 加入已有应用，请安装运行时包及其 peer dependencies。
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install narraleaf narraleaf-react react react-dom electron electron-builder
+        npm install -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn add narraleaf narraleaf-react react react-dom electron electron-builder
+        yarn add -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add narraleaf narraleaf-react react react-dom electron electron-builder
+        pnpm add -D narraleaf-cli typescript
+        ```
+</Tab></Tabs>
+
+> **注意：** 当前运行时面向 React 19 与 Electron 34 兼容项目。
+
+## 包入口
+
+NarraLeaf 暴露三个运行时入口：
+
+```ts
+import { AppConfig } from "narraleaf";
+import { render, useApp } from "narraleaf/renderer";
+import { BuildTarget } from "narraleaf/config";
+```
+
+- `narraleaf` 与 `narraleaf/main` 暴露主进程 API。
+- `narraleaf/renderer` 暴露渲染器 helpers、hooks 和类型。
+- `narraleaf/config` 暴露构建配置 helpers 与 target 类型。
+
+## 下一步
+
+<Cards>
+    <Card
+        title="快速开始"
+        description="创建 NarraLeaf 项目并在本地运行。"
+        href="/zh/docs/narraleaf/library/quick-start"
+    />
+    <Card
+        title="项目配置"
+        description="了解必需项目文件和 narraleaf.config.js 字段。"
+        href="/zh/docs/narraleaf/library/project-config"
+    />
+</Cards>

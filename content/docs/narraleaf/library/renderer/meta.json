@@ -1,4 +1,5 @@
 {
   "title": "Renderer",
-  "description": "Rendering layer for scenes, interfaces, and visual presentation."
+  "description": "Renderer runtime, app hooks, save APIs, main-process events, and page routing.",
+  "pages": ["index", "render", "app-state", "save-system", "main-events", "page-router"]
 }

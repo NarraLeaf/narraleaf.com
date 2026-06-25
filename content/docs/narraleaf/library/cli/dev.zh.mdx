@@ -1,0 +1,53 @@
+---
+title: "Dev"
+description: 启动 NarraLeaf 开发服务器。
+---
+
+`narraleaf dev` 会从当前项目根目录启动本地开发工作流。
+
+```bash
+narraleaf dev
+```
+
+## 它会做什么
+
+`dev` 命令会：
+
+1. 解析 `package.json` 和 `narraleaf.config.js`。
+2. 校验渲染器项目结构。
+3. 监听主进程入口和渲染器文件。
+4. 在配置的 `temp` 目录下构建开发输出。
+5. 启动 Electron。
+6. 在 `dev.port` 上启动 WebSocket server。
+7. 按需为渲染输出启动 HTTP dev server。
+
+## 端口
+
+默认开发 WebSocket 端口是 `5050`。
+
+```js title="narraleaf.config.js"
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+当启用 `renderer.httpDevServer` 时，渲染输出会通过 HTTP 服务。默认 HTTP 端口是 `5051`。
+
+```js
+module.exports = {
+    renderer: {
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+## 重新构建行为
+
+- 主进程变化会请求运行中的 app 退出并重启 Electron。
+- 渲染器变化会请求渲染进程刷新。
+- 页面变化会在重新构建前重新生成临时渲染入口。
+
+使用 `Ctrl+C` 停止开发服务器。

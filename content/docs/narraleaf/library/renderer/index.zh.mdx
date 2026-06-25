@@ -1,6 +1,67 @@
 ---
 title: Renderer
-description: 面向场景、界面与视觉呈现的渲染层。
+description: 渲染器运行时、应用 hooks、存档 API、主进程事件和文件路由。
 ---
 
-**Renderer** 模块聚焦 NarraLeaf 项目如何呈现场景、界面和面向玩家的视觉内容。
+**Renderer** 模块是 NarraLeaf 桌面应用的 React 侧。它挂载生成的应用入口，提供应用壳，嵌入 NarraLeaf-React `Player`，并暴露用于存档、播放状态和 renderer-to-main 通信的 hooks。
+
+```ts
+import {
+    render,
+    useApp,
+    useGamePlayback,
+    useSaveAction,
+    invokeMainEvent,
+} from "narraleaf/renderer";
+```
+
+## 指南
+
+<Cards>
+    <Card
+        title="Render"
+        description="了解生成的渲染入口和 render() 启动函数。"
+        href="/zh/docs/narraleaf/library/renderer/render"
+    />
+    <Card
+        title="App State"
+        description="访问 RendererApp 应用壳与播放状态。"
+        href="/zh/docs/narraleaf/library/renderer/app-state"
+    />
+    <Card
+        title="Save System"
+        description="使用存档 hooks、当前快照、快速存档和存档 metadata。"
+        href="/zh/docs/narraleaf/library/renderer/save-system"
+    />
+    <Card
+        title="Main Events"
+        description="从渲染器调用字符串 key 或类型化主进程 handler。"
+        href="/zh/docs/narraleaf/library/renderer/main-events"
+    />
+    <Card
+        title="Page Router"
+        description="学习 CLI 扫描的文件路由规则。"
+        href="/zh/docs/narraleaf/library/renderer/page-router"
+    />
+</Cards>
+
+## 公共导出
+
+- `render`
+- `useApp`
+- `useAppState`
+- `useGamePlayback`
+- `useCurrentSaved`
+- `useCurrentSavedRef`
+- `useSaveAction`
+- `useSavedGames`
+- `readGame`
+- `requestMain`
+- `invokeMainEvent`
+- `SaveType`
+
+渲染入口还导出 `RendererApp`、`RendererAppRootProps`、`GameMetadata`、路由模块类型、存档结果类型、`MainProcessEventMap` 和 `MainProcessEventEntry` 等公共类型。
+
+## 与 NarraLeaf-React 的关系
+
+NarraLeaf 使用 NarraLeaf-React 播放故事。故事、场景、角色、菜单和 displayables 请使用 [NarraLeaf-React](/zh/docs/narraleaf-react) 创建，然后通过 NarraLeaf 渲染应用的 `metadata.story` 导出。

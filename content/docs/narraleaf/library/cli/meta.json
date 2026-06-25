@@ -1,4 +1,5 @@
 {
   "title": "CLI",
-  "description": "Tooling for scaffolding, local workflows, and shipping projects."
+  "description": "NarraLeaf command-line tooling for init, dev, build, and project inspection.",
+  "pages": ["index", "commands", "init", "dev", "build", "info"]
 }

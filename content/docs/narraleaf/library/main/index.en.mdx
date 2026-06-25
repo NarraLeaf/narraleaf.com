@@ -1,6 +1,73 @@
 ---
 title: Main
-description: Core runtime and authoring APIs for NarraLeaf applications.
+description: Electron main-process runtime, configuration, windows, user events, hooks, and storage.
 ---
 
-The **Main** module covers the core runtime, authoring primitives, and application-facing APIs used to build NarraLeaf projects.
+The **Main** module is the Electron main-process surface of NarraLeaf. It creates the application host, launches the main window, wires the renderer event bridge, manages app data paths, and exposes save and JSON storage helpers.
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
+
+## Entry Points
+
+The same stable surface is available from `narraleaf` and `narraleaf/main`.
+
+```ts
+import {
+    App,
+    AppConfig,
+    AppWindow,
+    assertSafeStorageKey,
+} from "narraleaf";
+```
+
+## Guides
+
+<Cards>
+    <Card
+        title="AppConfig"
+        description="Configure recovery behavior, error handling, sandboxing, platform icons, and custom save backends."
+        href="/docs/narraleaf/library/main/app-config"
+    />
+    <Card
+        title="App"
+        description="Use the main application host for lifecycle, paths, hooks, and storage."
+        href="/docs/narraleaf/library/main/app"
+    />
+    <Card
+        title="AppWindow"
+        description="Work with the main window, user events, fullscreen state, devtools, and renderer event bridge."
+        href="/docs/narraleaf/library/main/window"
+    />
+</Cards>
+
+## User-Facing Exports
+
+- `App`: Electron application host.
+- `AppConfig`: chainable configuration builder that creates `App`.
+- `AppWindow`: `BrowserWindow` wrapper returned by `app.launchApp()`.
+- `StoreProvider`: type for custom save backends.
+- `assertSafeStorageKey`, `MAX_STORAGE_KEY_LENGTH`: validation helpers for save ids and JSON store names.
+
+## Main Events
+
+For app-level renderer-to-main calls, register handlers with `AppWindow.handleUserEvent()` and call them from the renderer with `requestMain()` or `invokeMainEvent()`.
+
+<Cards>
+    <Card
+        title="Main Events"
+        description="Use the user-level renderer-to-main event API."
+        href="/docs/narraleaf/library/renderer/main-events"
+    />
+</Cards>
+
+## Low-Level Contract Types
+
+The package also exports low-level IPC contract types such as `IPCEventType`, `Namespace`, `IPCEvents`, and `RequestStatus`. They describe NarraLeaf's built-in preload bridge and default handlers. Most applications should not import them for ordinary app features.

@@ -1,0 +1,38 @@
+---
+title: "Info"
+description: 检查解析后的 NarraLeaf 项目配置与路由树。
+---
+
+`narraleaf info` 会输出当前项目的诊断信息。
+
+```bash
+narraleaf info
+```
+
+## 输出
+
+该命令会输出：
+
+- 平台信息
+- CLI app 配置
+- 合并后的 NarraLeaf 项目配置
+- 渲染器项目根目录
+- 解析后的项目 `node_modules`
+- 扫描出的渲染器路由树
+
+## 使用场景
+
+当出现以下情况时，可以使用 `info`：
+
+- `narraleaf dev` 找不到必需文件。
+- 页面没有出现在预期位置。
+- 需要确认解析后的 `renderer.baseDir`。
+- 想检查 slug、layout、index 和 error page 识别结果。
+
+## Debug 模式
+
+添加 `--debug` 查看 debug 级别 CLI 输出。
+
+```bash
+narraleaf --debug info
+```

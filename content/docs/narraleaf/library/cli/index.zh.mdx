@@ -1,6 +1,56 @@
 ---
 title: CLI
-description: 用于脚手架、本地工作流和项目交付的工具链。
+description: 用于脚手架、本地开发、构建和项目检查的 NarraLeaf 命令行工具。
 ---
 
-**CLI** 模块记录 NarraLeaf 应用的项目脚手架、本地开发命令和交付工作流。
+**CLI** 包提供 NarraLeaf 桌面项目使用的 `narraleaf` 命令。
+
+```bash
+narraleaf init my-visual-novel
+cd my-visual-novel
+narraleaf dev
+```
+
+## 命令
+
+<Cards>
+    <Card
+        title="Commands"
+        description="当前 CLI 命令速查。"
+        href="/zh/docs/narraleaf/library/cli/commands"
+    />
+    <Card
+        title="Init"
+        description="通过 NarraLeaf skeleton 包创建项目。"
+        href="/zh/docs/narraleaf/library/cli/init"
+    />
+    <Card
+        title="Dev"
+        description="监听主进程和渲染器源码，启动 Electron，并在开发时刷新。"
+        href="/zh/docs/narraleaf/library/cli/dev"
+    />
+    <Card
+        title="Build"
+        description="打包渲染器和主进程输出，然后通过 Electron Builder 打包应用。"
+        href="/zh/docs/narraleaf/library/cli/build"
+    />
+    <Card
+        title="Info"
+        description="输出平台、配置、渲染项目和路由扫描信息。"
+        href="/zh/docs/narraleaf/library/cli/info"
+    />
+</Cards>
+
+## CLI 会读取什么
+
+每个项目命令都会从当前工作目录运行，并期望存在：
+
+- `package.json`
+- `narraleaf.config.js`
+- 配置的主进程入口
+- 配置的渲染器目录
+- `renderer/App.tsx` 或 `renderer/App.jsx`
+- `renderer/pages`
+- `renderer/public`
+
+完整配置结构参见 [项目配置](/zh/docs/narraleaf/library/project-config)。

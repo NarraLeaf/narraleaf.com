@@ -1,44 +1,78 @@
 ---
 title: NarraLeaf
-description: NarraLeaf 桌面应用工具链的引擎文档，覆盖运行时、渲染器与 CLI。
+description: NarraLeaf 桌面视觉小说引擎文档，覆盖运行时、渲染器、项目配置与 CLI。
 ---
 
-NarraLeaf 是 NarraLeaf Project 生态中的桌面应用路径。它将运行时、渲染层和命令行工具组合在一起，用于构建和交付完整的 NarraLeaf 应用。
+欢迎来到 **NarraLeaf** 库的文档！
 
-当你正在构建完整的视觉小说应用，并且需要创作体验之下的引擎级能力时，请使用本文档。
+NarraLeaf 是基于 Electron、React 与 NarraLeaf-React 的桌面视觉小说引擎。它提供主进程运行时、渲染器壳层、存档桥接、页面路由、项目配置和 CLI 工作流，用于创建完整的可打包桌面应用。
 
-## 何时选择这一路径
+## 为什么使用 NarraLeaf?
 
-如果你的项目需要完整的桌面应用工具链，包括运行时行为、渲染、项目命令和交付流程，请选择 NarraLeaf。
+- **完整桌面应用**：构建独立 Electron 应用，而不只是把播放器嵌入已有网页。
+- **类型化运行时能力**：用对 TypeScript 友好的 API 配置主进程、渲染桥、存档系统和构建目标。
+- **内置 NarraLeaf-React**：使用 NarraLeaf-React 创作故事，再由 NarraLeaf 负责应用启动、路由、持久化和打包。
 
-如果你的首要目标是通过引导式可视化环境进行零代码故事创作和制作管理，请选择 [NarraLeaf Studio](/zh/docs/studio)。
+如果你只需要 React 播放器框架，请选择 [NarraLeaf-React](/zh/docs/narraleaf-react)。如果你还需要桌面应用壳、CLI 与交付流程，请选择 NarraLeaf。
 
-如果你已经有 React 应用，需要轻量嵌入式播放器，或希望完全掌控周围的 Web UI，请选择 [NarraLeaf-React](/zh/docs/narraleaf-react)。
+## 立即开始
+
+先安装依赖，然后创建项目并在本地运行。
+
+<Cards>
+    <Card
+        title="安装"
+        description="安装 NarraLeaf 桌面应用需要的 CLI 与运行时包。"
+        href="/zh/docs/narraleaf/library/installation"
+    />
+    <Card
+        title="快速开始"
+        description="创建第一个 NarraLeaf 项目并启动开发服务器。"
+        href="/zh/docs/narraleaf/library/quick-start"
+    />
+</Cards>
 
 ## 模块
 
 <Cards>
     <Card
         title="Main"
-        description="NarraLeaf 应用的核心运行时和创作 API。"
+        description="Electron 主进程运行时、AppConfig、App、AppWindow、hooks 与存储。"
         href="/zh/docs/narraleaf/library/main"
     />
     <Card
         title="Renderer"
-        description="用于场景、界面和玩家可见视觉呈现的渲染层。"
+        description="渲染入口、App Provider、存档 hooks、类型化主进程事件和页面路由。"
         href="/zh/docs/narraleaf/library/renderer"
     />
     <Card
         title="CLI"
-        description="项目脚手架、本地开发命令和交付工作流。"
+        description="用于 init、dev、build、info 和生成渲染入口的项目命令。"
         href="/zh/docs/narraleaf/library/cli"
+    />
+</Cards>
+
+## 项目设置
+
+<Cards>
+    <Card
+        title="项目配置"
+        description="了解 narraleaf.config.js 和必需的项目目录。"
+        href="/zh/docs/narraleaf/library/project-config"
+    />
+    <Card
+        title="构建目标"
+        description="通过 narraleaf/config 配置 Windows、macOS 与 Linux 构建目标。"
+        href="/zh/docs/narraleaf/library/build-targets"
     />
 </Cards>
 
 ## 推荐阅读顺序
 
-先阅读 [Main](/zh/docs/narraleaf/library/main)，理解运行时和创作模型。然后阅读 [Renderer](/zh/docs/narraleaf/library/renderer)，了解场景和界面如何呈现。最后阅读 [CLI](/zh/docs/narraleaf/library/cli)，在准备创建、运行和交付 NarraLeaf 应用时使用。
+1. 阅读 [安装](/zh/docs/narraleaf/library/installation)。
+2. 完成 [快速开始](/zh/docs/narraleaf/library/quick-start)。
+3. 学习 [项目配置](/zh/docs/narraleaf/library/project-config)。
+4. 需要 API 细节时阅读 [Main](/zh/docs/narraleaf/library/main) 与 [Renderer](/zh/docs/narraleaf/library/renderer)。
+5. 准备自动化本地开发和打包时阅读 [CLI](/zh/docs/narraleaf/library/cli)。
 
-## 生态
-
-NarraLeaf 是更大的 [NarraLeaf Project](/zh/project) 的一部分。你也可以查看 [NarraLeaf Studio](/zh/docs/studio) 了解可视化创作路径，或查看 [NarraLeaf-React](/zh/docs/narraleaf-react) 了解基于 React 的嵌入方案。
+> **注意：** NarraLeaf 仍处于早期开发阶段。本文档记录的是当前代码中可验证的 API，但项目中仍建议保持 NarraLeaf、NarraLeaf-React、Electron 与 React 版本一致。

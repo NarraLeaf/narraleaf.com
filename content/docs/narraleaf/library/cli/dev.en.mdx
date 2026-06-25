@@ -1,0 +1,53 @@
+---
+title: "Dev"
+description: Start the NarraLeaf development server.
+---
+
+`narraleaf dev` starts the local development workflow from the current project root.
+
+```bash
+narraleaf dev
+```
+
+## What It Does
+
+The dev command:
+
+1. Parses `package.json` and `narraleaf.config.js`.
+2. Validates the renderer project structure.
+3. Watches the main-process entry and renderer files.
+4. Builds development output under the configured `temp` directory.
+5. Starts Electron.
+6. Starts a WebSocket server on `dev.port`.
+7. Optionally starts an HTTP dev server for renderer output.
+
+## Ports
+
+The default dev WebSocket port is `5050`.
+
+```js title="narraleaf.config.js"
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+When `renderer.httpDevServer` is enabled, the renderer output is served over HTTP. The default HTTP port is `5051`.
+
+```js
+module.exports = {
+    renderer: {
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+## Rebuild Behavior
+
+- Main-process changes ask the running app to quit and restart Electron.
+- Renderer changes ask the renderer process to refresh.
+- Page changes regenerate the temporary renderer entry before rebuilding.
+
+Stop the dev server with `Ctrl+C`.

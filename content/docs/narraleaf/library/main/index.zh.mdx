@@ -1,6 +1,73 @@
 ---
 title: Main
-description: NarraLeaf 应用的核心运行时和创作 API。
+description: Electron 主进程运行时、配置、窗口、用户事件、hooks 与存储。
 ---
 
-**Main** 模块涵盖用于构建 NarraLeaf 项目的核心运行时、创作基础能力，以及面向应用的 API。
+**Main** 模块是 NarraLeaf 的 Electron 主进程接口。它负责创建应用宿主、启动主窗口、连接渲染器事件桥、管理应用数据路径，并暴露存档与 JSON 存储 helpers。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
+
+## 入口
+
+同一套稳定接口可以从 `narraleaf` 或 `narraleaf/main` 导入。
+
+```ts
+import {
+    App,
+    AppConfig,
+    AppWindow,
+    assertSafeStorageKey,
+} from "narraleaf";
+```
+
+## 指南
+
+<Cards>
+    <Card
+        title="AppConfig"
+        description="配置恢复行为、错误处理、沙盒、平台图标和自定义存档后端。"
+        href="/zh/docs/narraleaf/library/main/app-config"
+    />
+    <Card
+        title="App"
+        description="使用主应用宿主管理生命周期、路径、hooks 和存储。"
+        href="/zh/docs/narraleaf/library/main/app"
+    />
+    <Card
+        title="AppWindow"
+        description="处理主窗口、用户事件、全屏状态、开发者工具和渲染器事件桥。"
+        href="/zh/docs/narraleaf/library/main/window"
+    />
+</Cards>
+
+## 面向用户的导出
+
+- `App`：Electron 应用宿主。
+- `AppConfig`：用于创建 `App` 的链式配置 builder。
+- `AppWindow`：`app.launchApp()` 返回的 `BrowserWindow` 包装器。
+- `StoreProvider`：自定义存档后端类型。
+- `assertSafeStorageKey`、`MAX_STORAGE_KEY_LENGTH`：用于校验存档 id 和 JSON store name 的 helpers。
+
+## Main Events
+
+应用级 renderer-to-main 调用应在主进程通过 `AppWindow.handleUserEvent()` 注册 handler，再在渲染器使用 `requestMain()` 或 `invokeMainEvent()` 调用。
+
+<Cards>
+    <Card
+        title="Main Events"
+        description="使用用户级 renderer-to-main event API。"
+        href="/zh/docs/narraleaf/library/renderer/main-events"
+    />
+</Cards>
+
+## 底层契约类型
+
+包中也导出了 `IPCEventType`、`Namespace`、`IPCEvents` 和 `RequestStatus` 等底层 IPC 契约类型。它们描述 NarraLeaf 内置 preload bridge 和默认 handlers。大多数应用功能不需要直接导入这些类型。

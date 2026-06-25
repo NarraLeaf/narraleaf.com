@@ -1,0 +1,158 @@
+---
+title: "项目配置"
+description: 配置 narraleaf.config.js、必需目录、渲染路径、开发端口、资源和打包输出。
+---
+
+`narraleaf.config.js` 会在 CLI 执行 `dev`、`build` 和 `info` 前加载。它决定主进程入口的位置、渲染应用的位置，以及应用如何打包。
+
+## 基础配置
+
+```js title="narraleaf.config.js"
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+} = require("narraleaf/config");
+
+module.exports = {
+    main: "main/index.ts",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+    },
+    temp: ".narraleaf",
+    resources: "assets",
+    dev: {
+        port: 5050,
+    },
+    build: {
+        appId: "com.example.visualnovel",
+        productName: "My Visual Novel",
+        dist: "dist",
+        dev: false,
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+        }),
+    },
+};
+```
+
+## 必需文件
+
+CLI 会验证这些文件和目录：
+
+- `package.json`：必须包含非空的 `name`、`version` 和 `description`。
+- `narraleaf.config.js`：必须导出项目配置对象。
+- 主进程入口：默认是 `main/index.js`。
+- 渲染器根目录：默认是 `renderer`。
+- 渲染应用组件：`renderer/App.tsx` 或 `renderer/App.jsx`。
+- 渲染页面目录：`renderer/pages`。
+- 渲染 public 目录：`renderer/public`。
+
+## 配置字段
+
+### main
+
+主进程入口文件。它会被打包为 Electron main，并应使用 `AppConfig` 创建应用。
+
+```js
+module.exports = {
+    main: "main/index.ts",
+};
+```
+
+### renderer
+
+控制渲染项目根目录和开发资源模式。
+
+- `baseDir`：渲染项目目录。
+- `allowHTTP`：允许生成的 CSP 中图片使用 `http:` 和 `https:` 来源。
+- `httpDevServer`：开发模式下通过 HTTP 服务渲染输出。
+- `httpDevServerPort`：默认是 `5051`。
+
+```js
+module.exports = {
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: true,
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+### temp
+
+用于生成构建输出和开发输出的目录。默认是 `.narraleaf`。
+
+```js
+module.exports = {
+    temp: ".narraleaf",
+};
+```
+
+### resources
+
+由 Electron Builder 复制到打包应用中的额外资源目录。
+
+```js
+module.exports = {
+    resources: "assets",
+};
+```
+
+### dev
+
+CLI 与运行中应用使用的开发 WebSocket 端口。
+
+```js
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+### build
+
+传给 Electron Builder 的打包选项。
+
+- `appId`：应用标识。
+- `productName`：打包产物名称。
+- `copyright`：版权文本。
+- `dist`：输出目录。
+- `dev`：为 true 时使用更快的开发打包设置。
+- `targets`：一个 `PlatformBuildTarget` 或数组。
+
+构建目标 helpers 参见 [构建目标](/zh/docs/narraleaf/library/build-targets)。
+
+## 默认值
+
+如果省略字段，NarraLeaf 会与以下默认值合并：
+
+```js
+{
+    build: {
+        appId: "com.example.App",
+        copyright: "",
+        dev: false,
+        dist: "dist",
+        productName: "Example App",
+        targets: [],
+    },
+    main: "main/index.js",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+        httpDevServerPort: 5051,
+    },
+    temp: ".narraleaf",
+    dev: {
+        port: 5050,
+    },
+    resources: "assets",
+}
+```

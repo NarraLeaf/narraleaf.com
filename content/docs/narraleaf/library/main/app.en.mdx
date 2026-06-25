@@ -1,0 +1,104 @@
+---
+title: "App"
+description: Use the NarraLeaf main-process App host for lifecycle, paths, hooks, and storage.
+---
+
+`App` is the NarraLeaf main-process host. You usually receive it from `new AppConfig(...).create()`.
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+```
+
+## Lifecycle
+
+Use `onReady` before launching the window.
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+    });
+
+    win.setTitle("My Visual Novel");
+});
+```
+
+`launchApp()` creates the primary `AppWindow`. It throws if the app is not initialized yet or if the main window already exists.
+
+## Hooks
+
+`App` has a lightweight hook bus for NarraLeaf lifecycle events. In the current public package entry, the hook event enum is not exported, so app startup code should prefer `onReady`.
+
+```ts
+app.onReady(() => {
+    app.logger.info("NarraLeaf is ready");
+});
+```
+
+The internal hook bus uses these event names:
+
+- `AfterReady`
+- `AfterMainWindowClose`
+- `OnTerminate`
+
+> **Note:** Treat `app.hook`, `app.onceHook`, `app.unhook`, and `app.emitHook` as advanced runtime hooks until `HookEvents` is exported from the stable entrypoint.
+
+## Paths
+
+`App` resolves runtime paths for both development and packaged apps.
+
+- `getEntryFile()`: renderer HTML file path or dev HTTP URL.
+- `getPreloadScript()`: preload bundle path.
+- `getPublicDir()`: public asset directory.
+- `getRendererBuildDir()`: renderer build directory.
+- `getAppPath()`: NarraLeaf build root.
+- `getUserDataDir()`: Electron `userData` path.
+
+```ts
+app.onReady(() => {
+    app.logger.info("public dir", app.getPublicDir());
+});
+```
+
+## Save Data
+
+The main process exposes save operations used by the renderer hooks.
+
+```ts
+await app.saveGameData(savedGame, SaveType.Save, "slot-1");
+const data = await app.readGameData("slot-1");
+const saves = await app.listGameData();
+await app.deleteGameData("slot-1");
+```
+
+Save ids must be safe storage keys. They may contain letters, digits, `_`, `-`, and `.`, and must not contain path separators or `..`.
+
+```ts
+import { assertSafeStorageKey } from "narraleaf";
+
+assertSafeStorageKey("slot-1", "Save id");
+```
+
+## JSON Stores
+
+Use `createJsonStore` for small main-side JSON documents under the app data directory.
+
+```ts
+const settings = app.createJsonStore<{ volume?: number }>("settings");
+
+await settings.write({ volume: 0.8 });
+const data = await settings.read();
+```
+
+`createExposedJsonStore` and `exposeJsonStore` exist for compatibility, but are deprecated. Prefer explicit main events for renderer-facing features.
+
+## Crash and Quit
+
+```ts
+app.quit();
+app.crash("Unexpected state", { disableRecovery: true });
+```
+
+`crash()` records crash metadata and delegates to the crash manager. `quit()` performs a normal Electron quit.

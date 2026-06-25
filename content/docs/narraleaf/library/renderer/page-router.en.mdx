@@ -1,0 +1,76 @@
+---
+title: "Page Router"
+description: Understand the renderer pages directory scanned by the NarraLeaf CLI.
+---
+
+The CLI scans `renderer/pages` and generates the route tree passed to `render()`. Pages are rendered inside the NarraLeaf-React player through the generated `RootPages` component.
+
+## File Rules
+
+- `index.tsx`, `index.jsx`, `index.ts`, or `index.js` handles the default page for a directory.
+- `layout.tsx`, `layout.jsx`, `layout.ts`, or `layout.js` wraps child pages in that directory.
+- `error.tsx`, `error.jsx`, `error.ts`, or `error.js` at the pages root becomes the global error fallback.
+- Other files become pages by filename.
+- Directory names like `[name]` become slug parameters.
+
+```txt
+renderer/pages
+├── index.tsx
+├── save.tsx
+├── settings.tsx
+├── error.tsx
+└── gallery
+    ├── layout.tsx
+    ├── index.tsx
+    └── [id].tsx
+```
+
+## Layouts
+
+A layout module exports a React component that accepts `children`.
+
+```tsx title="renderer/pages/gallery/layout.tsx"
+import type { ReactNode } from "react";
+
+export default function GalleryLayout({ children }: { children: ReactNode }) {
+    return <section>{children}</section>;
+}
+```
+
+## Pages
+
+A page module exports a React component.
+
+```tsx title="renderer/pages/save.tsx"
+import { useSavedGames } from "narraleaf/renderer";
+
+export default function SavePage() {
+    const { results } = useSavedGames();
+
+    return <pre>{JSON.stringify(results, null, 2)}</pre>;
+}
+```
+
+## Slugs
+
+Directory names that start with `[` and end with `]` are treated as slug segments. The accepted slug name characters include letters, numbers, underscore, hyphen, and common CJK characters.
+
+```txt
+renderer/pages/gallery/[id].tsx
+```
+
+## Route Conflicts
+
+A directory can use either:
+
+- a local `index` file, or
+- a sibling file with the same name as the directory.
+
+Do not use both for the same route.
+
+```txt
+renderer/pages/gallery.tsx
+renderer/pages/gallery/index.tsx
+```
+
+The CLI treats this as a routing conflict because both files would handle `/gallery`.

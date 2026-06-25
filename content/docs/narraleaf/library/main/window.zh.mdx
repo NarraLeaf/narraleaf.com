@@ -1,0 +1,110 @@
+---
+title: "AppWindow"
+description: 使用 NarraLeaf 的主 BrowserWindow 包装器和渲染器事件桥。
+---
+
+`AppWindow` 由 `app.launchApp()` 返回。它在主 Electron `BrowserWindow` 外包装了 NarraLeaf 生命周期事件、用户级渲染器事件和便捷方法。
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+        options: {
+            width: 1280,
+            height: 720,
+        },
+    });
+});
+```
+
+## 窗口配置
+
+`launchApp` 接收 `Partial<WindowConfig>`。
+
+- `isolated`：窗口是否使用 context isolation。默认是 `true`。
+- `autoFocus`：窗口是否自动聚焦。默认是 `true`。
+- `options`：Electron `BrowserWindowConstructorOptions`。
+
+```ts
+await app.launchApp({
+    isolated: true,
+    options: {
+        backgroundColor: "#000",
+        width: 1280,
+        height: 720,
+    },
+});
+```
+
+## 窗口操作
+
+```ts
+win.setTitle("My Visual Novel");
+win.getTitle();
+
+win.enterFullScreen();
+win.exitFullScreen();
+win.isFullScreen();
+
+win.reload();
+win.toggleDevTools();
+```
+
+当你需要更底层的 Electron 控制时，也可以调用 `loadURL`、`loadFile`、`show` 和 `setIcon`。
+
+## 窗口事件
+
+```ts
+const closeToken = win.onClose(() => {
+    app.logger.info("Main window closed");
+});
+
+closeToken.cancel();
+```
+
+`onKeyUp` 会监听 Electron `before-input-event`，并按键名过滤。
+
+```ts
+win.onKeyUp("F12", () => {
+    win.toggleDevTools();
+});
+```
+
+## 用户级 Main Events
+
+在主进程注册一个字符串 key 的 handler：
+
+```ts
+win.handleUserEvent<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    async ({ id }) => {
+        app.logger.info("ping", id);
+        return { ok: true };
+    },
+);
+```
+
+渲染器可以使用 `requestMain` 或类型化的 `invokeMainEvent` wrapper 调用它。
+
+```ts
+import { requestMain } from "narraleaf/renderer";
+
+const result = await requestMain<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    { id: "intro" },
+);
+```
+
+类型化渲染器模式参见 [Main Events](/zh/docs/narraleaf/library/renderer/main-events)。
+
+## 管理 Handlers
+
+当你需要检查或移除应用级 handler 时，使用 `isUserEventHandled` 和 `offUserEvent`。
+
+```ts
+if (win.isUserEventHandled("example:ping")) {
+    win.offUserEvent("example:ping");
+}
+```
+
+> **注意：** `registerIPCHandler` 面向 NarraLeaf 内置 bridge 和高级框架扩展。普通应用自己的 renderer-to-main 调用不应该使用它，而应使用 `handleUserEvent`。

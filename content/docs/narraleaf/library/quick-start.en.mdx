@@ -1,0 +1,137 @@
+---
+title: "Quick Start"
+description: Create your first desktop visual novel with NarraLeaf.
+---
+
+NarraLeaf combines a main-process app host, a generated renderer entry, and a NarraLeaf-React story. This guide creates the smallest project shape that the CLI expects.
+
+## Create a Project
+
+<Steps>
+<Step>
+
+### Initialize the project
+
+Run the CLI init command:
+
+```bash
+narraleaf init my-visual-novel
+cd my-visual-novel
+```
+
+`init` delegates to the latest NarraLeaf skeleton package and creates the project files for you.
+</Step>
+<Step>
+
+### Start the development server
+
+Run the local development command:
+
+```bash
+narraleaf dev
+```
+
+The dev command watches the main process and renderer process, starts Electron, and asks the renderer to refresh when page files change.
+</Step>
+</Steps>
+
+## Minimal Project Files
+
+If you are wiring a project manually, NarraLeaf expects this shape:
+
+<Files>
+    <Folder name="my-visual-novel" defaultOpen>
+        <File name="package.json" />
+        <File name="narraleaf.config.js" />
+        <Folder name="main">
+            <File name="index.ts" />
+        </Folder>
+        <Folder name="renderer" defaultOpen>
+            <File name="App.tsx" />
+            <Folder name="pages">
+                <File name="index.tsx" />
+            </Folder>
+            <Folder name="public" />
+        </Folder>
+        <Folder name="assets" />
+    </Folder>
+</Files>
+
+## Main Process
+
+Create the Electron app host from `AppConfig`, then launch the main window after NarraLeaf is ready.
+
+```ts title="main/index.ts"
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig({
+    appErrorHandling: "restart",
+}).create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
+
+## Renderer App
+
+The renderer app exports `metadata.story` and a shell component. The shell receives generated pages as `children`.
+
+```tsx title="renderer/App.tsx"
+import type { ReactNode } from "react";
+import { Character, Scene, Story } from "narraleaf-react";
+
+const story = new Story("First NarraLeaf Story");
+const opening = new Scene("opening", {
+    background: "#20232a",
+});
+
+const narrator = new Character("Narrator");
+opening.action([
+    narrator.say("Welcome to NarraLeaf."),
+]);
+
+story.entry(opening);
+
+export const metadata = {
+    story,
+};
+
+export default function App({ children }: { children: ReactNode }) {
+    return <main>{children}</main>;
+}
+```
+
+## Home Page
+
+Use renderer hooks from `narraleaf/renderer` to access the application shell.
+
+```tsx title="renderer/pages/index.tsx"
+import { useApp, useGamePlayback } from "narraleaf/renderer";
+
+export default function HomePage() {
+    const app = useApp();
+    const { isPlaying } = useGamePlayback();
+
+    return (
+        <button onClick={() => void app.newGame()}>
+            {isPlaying ? "Restart" : "Start"}
+        </button>
+    );
+}
+```
+
+## Next Steps
+
+<Cards>
+    <Card
+        title="Project Config"
+        description="Configure paths, build targets, dev ports, and resources."
+        href="/docs/narraleaf/library/project-config"
+    />
+    <Card
+        title="Renderer"
+        description="Learn the renderer hooks and page routing model."
+        href="/docs/narraleaf/library/renderer"
+    />
+</Cards>

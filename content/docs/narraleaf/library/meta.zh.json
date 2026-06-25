@@ -2,5 +2,14 @@
   "title": "NarraLeaf",
   "description": "NarraLeaf 引擎的运行时、渲染器与 CLI 文档。",
   "defaultOpen": true,
-  "pages": ["main", "renderer", "cli"]
+  "pages": [
+    "index",
+    "installation",
+    "quick-start",
+    "project-config",
+    "build-targets",
+    "main",
+    "renderer",
+    "cli"
+  ]
 }

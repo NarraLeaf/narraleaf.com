@@ -1,0 +1,158 @@
+---
+title: "Project Config"
+description: Configure narraleaf.config.js, required folders, renderer paths, dev ports, resources, and packaging output.
+---
+
+`narraleaf.config.js` is loaded by the CLI before `dev`, `build`, and `info`. It controls where the main entry lives, where the renderer app lives, and how the app is packaged.
+
+## Basic Config
+
+```js title="narraleaf.config.js"
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+} = require("narraleaf/config");
+
+module.exports = {
+    main: "main/index.ts",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+    },
+    temp: ".narraleaf",
+    resources: "assets",
+    dev: {
+        port: 5050,
+    },
+    build: {
+        appId: "com.example.visualnovel",
+        productName: "My Visual Novel",
+        dist: "dist",
+        dev: false,
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+        }),
+    },
+};
+```
+
+## Required Files
+
+The CLI validates these files and folders:
+
+- `package.json`: must include non-empty `name`, `version`, and `description`.
+- `narraleaf.config.js`: must export the project config object.
+- Main entry: defaults to `main/index.js`.
+- Renderer base directory: defaults to `renderer`.
+- Renderer app component: `renderer/App.tsx` or `renderer/App.jsx`.
+- Renderer pages directory: `renderer/pages`.
+- Renderer public directory: `renderer/public`.
+
+## Config Fields
+
+### main
+
+The main-process entry file. It is bundled for Electron main and should create the app with `AppConfig`.
+
+```js
+module.exports = {
+    main: "main/index.ts",
+};
+```
+
+### renderer
+
+Controls the renderer project root and development asset mode.
+
+- `baseDir`: renderer project directory.
+- `allowHTTP`: allows `http:` and `https:` sources in generated CSP for images.
+- `httpDevServer`: serves renderer output over HTTP during development.
+- `httpDevServerPort`: defaults to `5051`.
+
+```js
+module.exports = {
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: true,
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+### temp
+
+Directory used for generated build output and development output. The default is `.narraleaf`.
+
+```js
+module.exports = {
+    temp: ".narraleaf",
+};
+```
+
+### resources
+
+Extra resources copied into packaged apps by Electron Builder.
+
+```js
+module.exports = {
+    resources: "assets",
+};
+```
+
+### dev
+
+Development WebSocket port used by the CLI and running app.
+
+```js
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+### build
+
+Packaging options consumed by Electron Builder.
+
+- `appId`: application identifier.
+- `productName`: packaged product name.
+- `copyright`: copyright text.
+- `dist`: output directory.
+- `dev`: uses faster development-oriented packaging when true.
+- `targets`: one `PlatformBuildTarget` or an array.
+
+See [Build Targets](/docs/narraleaf/library/build-targets) for target helpers.
+
+## Defaults
+
+If omitted, NarraLeaf merges your config with these defaults:
+
+```js
+{
+    build: {
+        appId: "com.example.App",
+        copyright: "",
+        dev: false,
+        dist: "dist",
+        productName: "Example App",
+        targets: [],
+    },
+    main: "main/index.js",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+        httpDevServerPort: 5051,
+    },
+    temp: ".narraleaf",
+    dev: {
+        port: 5050,
+    },
+    resources: "assets",
+}
+```

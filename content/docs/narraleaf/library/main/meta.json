@@ -1,4 +1,5 @@
 {
   "title": "Main",
-  "description": "Core runtime and authoring APIs for NarraLeaf applications."
+  "description": "Electron main-process runtime APIs for NarraLeaf applications.",
+  "pages": ["index", "app-config", "app", "window"]
 }

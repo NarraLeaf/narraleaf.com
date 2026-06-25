@@ -1,4 +1,5 @@
 {
   "title": "CLI",
-  "description": "用于脚手架、本地工作流和项目交付的工具链。"
+  "description": "用于 init、dev、build 与项目检查的 NarraLeaf 命令行工具。",
+  "pages": ["index", "commands", "init", "dev", "build", "info"]
 }

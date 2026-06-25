@@ -1,0 +1,38 @@
+---
+title: "Info"
+description: Inspect the resolved NarraLeaf project configuration and route tree.
+---
+
+`narraleaf info` prints diagnostics about the current project.
+
+```bash
+narraleaf info
+```
+
+## Output
+
+The command prints:
+
+- platform information
+- CLI app configuration
+- merged NarraLeaf project configuration
+- renderer project root
+- resolved project `node_modules`
+- scanned renderer route tree
+
+## Use Cases
+
+Use `info` when:
+
+- `narraleaf dev` cannot find a required file.
+- a page is not appearing where you expect.
+- you need to confirm the resolved `renderer.baseDir`.
+- you want to inspect slug, layout, index, and error page detection.
+
+## Debug Mode
+
+Add `--debug` to see debug-level CLI output.
+
+```bash
+narraleaf --debug info
+```

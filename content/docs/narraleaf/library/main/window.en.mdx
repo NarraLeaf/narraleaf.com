@@ -1,0 +1,110 @@
+---
+title: "AppWindow"
+description: Work with NarraLeaf's main BrowserWindow wrapper and renderer event bridge.
+---
+
+`AppWindow` is returned by `app.launchApp()`. It wraps the main Electron `BrowserWindow` with NarraLeaf lifecycle events, user-level renderer events, and convenience methods.
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+        options: {
+            width: 1280,
+            height: 720,
+        },
+    });
+});
+```
+
+## Window Config
+
+`launchApp` accepts `Partial<WindowConfig>`.
+
+- `isolated`: whether the window uses context isolation. Defaults to `true`.
+- `autoFocus`: whether the window should focus automatically. Defaults to `true`.
+- `options`: Electron `BrowserWindowConstructorOptions`.
+
+```ts
+await app.launchApp({
+    isolated: true,
+    options: {
+        backgroundColor: "#000",
+        width: 1280,
+        height: 720,
+    },
+});
+```
+
+## Window Operations
+
+```ts
+win.setTitle("My Visual Novel");
+win.getTitle();
+
+win.enterFullScreen();
+win.exitFullScreen();
+win.isFullScreen();
+
+win.reload();
+win.toggleDevTools();
+```
+
+You can also call `loadURL`, `loadFile`, `show`, and `setIcon` when you need lower-level Electron control.
+
+## Window Events
+
+```ts
+const closeToken = win.onClose(() => {
+    app.logger.info("Main window closed");
+});
+
+closeToken.cancel();
+```
+
+`onKeyUp` listens to Electron `before-input-event` and filters by key.
+
+```ts
+win.onKeyUp("F12", () => {
+    win.toggleDevTools();
+});
+```
+
+## User Main Events
+
+Register a string-keyed handler in the main process:
+
+```ts
+win.handleUserEvent<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    async ({ id }) => {
+        app.logger.info("ping", id);
+        return { ok: true };
+    },
+);
+```
+
+Renderer code can call the handler with `requestMain` or the typed `invokeMainEvent` wrapper.
+
+```ts
+import { requestMain } from "narraleaf/renderer";
+
+const result = await requestMain<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    { id: "intro" },
+);
+```
+
+See [Main Events](/docs/narraleaf/library/renderer/main-events) for the typed renderer pattern.
+
+## Manage Handlers
+
+Use `isUserEventHandled` and `offUserEvent` when you need to inspect or remove app-level handlers.
+
+```ts
+if (win.isUserEventHandled("example:ping")) {
+    win.offUserEvent("example:ping");
+}
+```
+
+> **Note:** `registerIPCHandler` exists for NarraLeaf's built-in bridge and advanced framework extensions. It is not the normal user API for app-specific renderer-to-main calls.

@@ -1,6 +1,67 @@
 ---
 title: Renderer
-description: Rendering layer for scenes, interfaces, and visual presentation.
+description: Renderer runtime, app hooks, save APIs, main-process events, and file-based page routing.
 ---
 
-The **Renderer** module focuses on how NarraLeaf projects present scenes, interfaces, and player-facing visuals.
+The **Renderer** module is the React side of a NarraLeaf desktop app. It mounts the generated app entry, provides the application shell, embeds the NarraLeaf-React `Player`, and exposes hooks for saves, playback state, and renderer-to-main communication.
+
+```ts
+import {
+    render,
+    useApp,
+    useGamePlayback,
+    useSaveAction,
+    invokeMainEvent,
+} from "narraleaf/renderer";
+```
+
+## Guides
+
+<Cards>
+    <Card
+        title="Render"
+        description="Understand the generated renderer entry and the render() boot function."
+        href="/docs/narraleaf/library/renderer/render"
+    />
+    <Card
+        title="App State"
+        description="Access the RendererApp shell and playback state."
+        href="/docs/narraleaf/library/renderer/app-state"
+    />
+    <Card
+        title="Save System"
+        description="Use save hooks, current snapshots, quick saves, and save metadata."
+        href="/docs/narraleaf/library/renderer/save-system"
+    />
+    <Card
+        title="Main Events"
+        description="Call string-keyed or typed main-process handlers from the renderer."
+        href="/docs/narraleaf/library/renderer/main-events"
+    />
+    <Card
+        title="Page Router"
+        description="Learn the file-based page rules scanned by the CLI."
+        href="/docs/narraleaf/library/renderer/page-router"
+    />
+</Cards>
+
+## Public Exports
+
+- `render`
+- `useApp`
+- `useAppState`
+- `useGamePlayback`
+- `useCurrentSaved`
+- `useCurrentSavedRef`
+- `useSaveAction`
+- `useSavedGames`
+- `readGame`
+- `requestMain`
+- `invokeMainEvent`
+- `SaveType`
+
+The renderer entry also exports public types such as `RendererApp`, `RendererAppRootProps`, `GameMetadata`, route module types, save result types, `MainProcessEventMap`, and `MainProcessEventEntry`.
+
+## Relationship to NarraLeaf-React
+
+NarraLeaf uses NarraLeaf-React for story playback. Create stories, scenes, characters, menus, and displayables with [NarraLeaf-React](/docs/narraleaf-react), then export the story through the NarraLeaf renderer app's `metadata.story`.

@@ -2,5 +2,14 @@
   "title": "NarraLeaf",
   "description": "Runtime, renderer, and CLI documentation for the NarraLeaf engine.",
   "defaultOpen": true,
-  "pages": ["main", "renderer", "cli"]
+  "pages": [
+    "index",
+    "installation",
+    "quick-start",
+    "project-config",
+    "build-targets",
+    "main",
+    "renderer",
+    "cli"
+  ]
 }

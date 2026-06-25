@@ -1,0 +1,78 @@
+---
+title: "Build"
+description: 构建并打包 NarraLeaf 桌面应用。
+---
+
+`narraleaf build` 会创建生产构建输出并打包应用。
+
+```bash
+narraleaf build
+```
+
+## 构建步骤
+
+该命令分三阶段执行：
+
+<Steps>
+<Step>
+
+### 构建 renderer
+
+CLI 扫描 `renderer/pages`，创建临时渲染入口，打包 React 输出，并把渲染文件写入配置的 `temp` 目录。
+</Step>
+<Step>
+
+### 构建 main
+
+CLI 会为 Electron main 打包你配置的 `main` 入口，并复制 NarraLeaf preload bundle。
+</Step>
+<Step>
+
+### 打包 app
+
+CLI 使用生成文件、public assets、resources、licenses 和配置的 targets 调用 Electron Builder。
+</Step>
+</Steps>
+
+## 输出
+
+打包应用会写入 `build.dist`，默认是 `dist`。
+
+```js title="narraleaf.config.js"
+module.exports = {
+    build: {
+        dist: "dist",
+        productName: "My Visual Novel",
+    },
+};
+```
+
+## 快速打包
+
+将 `build.dev` 设为 `true`，可使用面向开发的更快压缩设置。
+
+```js
+module.exports = {
+    build: {
+        dev: true,
+    },
+};
+```
+
+## Targets
+
+通过 `narraleaf/config` 中的 `BuildTarget` helpers 配置 targets。
+
+```js
+const { BuildTarget, WindowsBuildTarget } = require("narraleaf/config");
+
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+        }),
+    },
+};
+```
+
+平台示例参见 [构建目标](/zh/docs/narraleaf/library/build-targets)。

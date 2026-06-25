@@ -1,0 +1,97 @@
+---
+title: "AppConfig"
+description: Configure the NarraLeaf main-process app host.
+---
+
+`AppConfig` is the configuration builder for the NarraLeaf main process. Create it in your main entry, optionally merge platform-specific settings, then call `create()`.
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig({
+    appErrorHandling: "restart",
+    recoveryCreationInterval: 5000,
+})
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" })
+    .create();
+```
+
+## Base Config
+
+The constructor accepts `Partial<BaseAppConfig>`.
+
+- `forceSandbox`: calls Electron `app.enableSandbox()` during prepare.
+- `recoveryCreationInterval`: interval used by the renderer recovery announcer.
+- `appErrorHandling`: `"terminate"`, `"raw"`, or `"restart"`.
+- `deleteCorruptedSaves`: passed to the default local save backend.
+- `store`: optional custom `StoreProvider`.
+
+```ts
+const app = new AppConfig({
+    forceSandbox: false,
+    recoveryCreationInterval: 5000,
+    appErrorHandling: "terminate",
+    deleteCorruptedSaves: false,
+}).create();
+```
+
+## Error Handling
+
+`appErrorHandling` controls what the renderer error boundary asks the host process to do in packaged apps.
+
+- `"terminate"` terminates the app on critical renderer errors.
+- `"restart"` reloads the app window.
+- `"raw"` leaves the error visible to the renderer layer.
+
+In development, NarraLeaf avoids terminating the app for ordinary renderer errors so you can inspect the failure.
+
+## Platform Icons
+
+Use platform helpers for OS-specific app icons.
+
+```ts
+const config = new AppConfig()
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" });
+```
+
+The icon path is resolved relative to the project root by the window manager.
+
+## Custom Save Backend
+
+Provide `store` when you want to replace the default file-backed save provider.
+
+```ts
+import { AppConfig, type StoreProvider } from "narraleaf";
+
+declare const store: StoreProvider;
+
+const app = new AppConfig({
+    store,
+}).create();
+```
+
+`StoreProvider` must implement:
+
+- `get(name)`
+- `metadata(name)`
+- `set(name, type, metadata, data)`
+- `list()`
+- `delete(name)`
+
+Save ids routed through `App` are validated before reaching the provider.
+
+## Create the App
+
+`create()` returns an `App`. Register lifecycle handlers before the app is ready.
+
+```ts
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```

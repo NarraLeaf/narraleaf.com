@@ -1,0 +1,45 @@
+---
+title: "Init"
+description: Create a NarraLeaf project with the skeleton package.
+---
+
+`narraleaf init [path]` creates a project by delegating to the latest skeleton package.
+
+```bash
+narraleaf init my-visual-novel
+```
+
+Internally, the command runs:
+
+```bash
+npx narraleaf-skeleton@latest my-visual-novel
+```
+
+If `[path]` is omitted, the default path is the current directory.
+
+```bash
+narraleaf init
+```
+
+## After Init
+
+Move into the project directory and start development:
+
+```bash
+cd my-visual-novel
+narraleaf dev
+```
+
+## Expected Project Shape
+
+The generated project should contain the required NarraLeaf project files:
+
+<Files>
+    <Folder name="my-visual-novel" defaultOpen>
+        <File name="package.json" />
+        <File name="narraleaf.config.js" />
+        <Folder name="main" />
+        <Folder name="renderer" />
+        <Folder name="assets" />
+    </Folder>
+</Files>

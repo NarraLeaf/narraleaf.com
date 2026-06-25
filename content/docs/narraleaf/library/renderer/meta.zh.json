@@ -1,4 +1,5 @@
 {
   "title": "Renderer",
-  "description": "面向场景、界面与视觉呈现的渲染层。"
+  "description": "渲染器运行时、应用 hooks、存档 API、主进程事件与页面路由。",
+  "pages": ["index", "render", "app-state", "save-system", "main-events", "page-router"]
 }

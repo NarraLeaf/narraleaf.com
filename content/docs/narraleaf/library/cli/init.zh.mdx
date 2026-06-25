@@ -1,0 +1,45 @@
+---
+title: "Init"
+description: 使用 skeleton 包创建 NarraLeaf 项目。
+---
+
+`narraleaf init [path]` 会通过最新 skeleton 包创建项目。
+
+```bash
+narraleaf init my-visual-novel
+```
+
+内部会执行：
+
+```bash
+npx narraleaf-skeleton@latest my-visual-novel
+```
+
+如果省略 `[path]`，默认路径是当前目录。
+
+```bash
+narraleaf init
+```
+
+## Init 之后
+
+进入项目目录并启动开发：
+
+```bash
+cd my-visual-novel
+narraleaf dev
+```
+
+## 预期项目结构
+
+生成的项目应包含 NarraLeaf 所需的项目文件：
+
+<Files>
+    <Folder name="my-visual-novel" defaultOpen>
+        <File name="package.json" />
+        <File name="narraleaf.config.js" />
+        <Folder name="main" />
+        <Folder name="renderer" />
+        <Folder name="assets" />
+    </Folder>
+</Files>

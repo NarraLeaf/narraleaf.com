@@ -1,0 +1,80 @@
+---
+title: "Main Events"
+description: Call main-process handlers from the NarraLeaf renderer.
+---
+
+NarraLeaf provides a user-level renderer-to-main event API. In app code, register handlers on `AppWindow`, then call them from the renderer with `requestMain` or `invokeMainEvent`.
+
+You do not need to import `IPCEventType`, implement `IPCHandler`, or know NarraLeaf's built-in channel names for app-specific features.
+
+## Register a Handler
+
+```ts title="main/index.ts"
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+
+app.onReady(async () => {
+    const win = await app.launchApp();
+
+    win.handleUserEvent<{ id: string }, { ok: boolean }>(
+        "example:ping",
+        ({ id }) => {
+            app.logger.info("ping", id);
+            return { ok: true };
+        },
+    );
+});
+```
+
+## requestMain
+
+Use `requestMain` for simple calls where you are comfortable providing the generic request and response types at the call site.
+
+```ts
+import { requestMain } from "narraleaf/renderer";
+
+const result = await requestMain<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    { id: "intro" },
+);
+```
+
+`requestMain` throws when the main process reports failure.
+
+## Typed Events
+
+Use TypeScript declaration merging with `MainProcessEventMap`, then call `invokeMainEvent`.
+
+```ts title="renderer/narraleaf-events.d.ts"
+import type { MainProcessEventEntry } from "narraleaf/renderer";
+
+declare module "narraleaf/renderer" {
+    interface MainProcessEventMap {
+        "example:ping": MainProcessEventEntry<
+            { id: string },
+            { ok: boolean }
+        >;
+    }
+}
+```
+
+```ts
+import { invokeMainEvent } from "narraleaf/renderer";
+
+const result = await invokeMainEvent("example:ping", {
+    id: "intro",
+});
+```
+
+Until you augment `MainProcessEventMap`, no typed event keys are valid.
+
+## When to Use
+
+Use main events for features that must stay in the main process, such as native dialogs, filesystem access, external process calls, and app-specific storage.
+
+For game saves and app playback, prefer built-in renderer APIs such as `useSaveAction`, `useSavedGames`, and `useApp`.
+
+## Lower-Level IPC
+
+NarraLeaf implements these calls through a preload bridge internally. Those built-in IPC contracts are framework plumbing; use the user event API above unless you are extending NarraLeaf itself.

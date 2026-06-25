@@ -1,0 +1,97 @@
+---
+title: "AppConfig"
+description: 配置 NarraLeaf 主进程应用宿主。
+---
+
+`AppConfig` 是 NarraLeaf 主进程的配置 builder。在主入口中创建它，按需合并平台配置，然后调用 `create()`。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig({
+    appErrorHandling: "restart",
+    recoveryCreationInterval: 5000,
+})
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" })
+    .create();
+```
+
+## 基础配置
+
+构造函数接收 `Partial<BaseAppConfig>`。
+
+- `forceSandbox`：在 prepare 阶段调用 Electron `app.enableSandbox()`。
+- `recoveryCreationInterval`：渲染器恢复存档 announcer 使用的间隔。
+- `appErrorHandling`：`"terminate"`、`"raw"` 或 `"restart"`。
+- `deleteCorruptedSaves`：传给默认本地存档后端。
+- `store`：可选自定义 `StoreProvider`。
+
+```ts
+const app = new AppConfig({
+    forceSandbox: false,
+    recoveryCreationInterval: 5000,
+    appErrorHandling: "terminate",
+    deleteCorruptedSaves: false,
+}).create();
+```
+
+## 错误处理
+
+`appErrorHandling` 控制打包应用中渲染器错误边界要求宿主进程执行什么动作。
+
+- `"terminate"` 会在关键渲染器错误时终止应用。
+- `"restart"` 会重新加载应用窗口。
+- `"raw"` 会把错误留给渲染层处理。
+
+开发模式下，NarraLeaf 会避免因为普通渲染器错误直接终止应用，方便你检查问题。
+
+## 平台图标
+
+使用平台 helpers 设置不同系统的应用图标。
+
+```ts
+const config = new AppConfig()
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" });
+```
+
+图标路径会由窗口管理器按项目根目录解析。
+
+## 自定义存档后端
+
+当你需要替换默认文件存档 provider 时，传入 `store`。
+
+```ts
+import { AppConfig, type StoreProvider } from "narraleaf";
+
+declare const store: StoreProvider;
+
+const app = new AppConfig({
+    store,
+}).create();
+```
+
+`StoreProvider` 需要实现：
+
+- `get(name)`
+- `metadata(name)`
+- `set(name, type, metadata, data)`
+- `list()`
+- `delete(name)`
+
+通过 `App` 路由的存档 id 会在到达 provider 前完成校验。
+
+## 创建 App
+
+`create()` 返回 `App`。请在 app ready 前注册生命周期处理。
+
+```ts
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
