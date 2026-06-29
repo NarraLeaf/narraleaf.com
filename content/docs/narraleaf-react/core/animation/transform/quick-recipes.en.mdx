@@ -1,0 +1,75 @@
+---
+title: "Quick Recipes"
+---
+Copy an example and adjust the timing or position values for your scene.
+
+## Move to a Side
+
+Use the built-in helpers for common stage positions.
+
+```typescript
+scene.action([
+    characterImage.transform(Transform.left(250, "easeOut")),
+    characterImage.transform(Transform.center(250, "easeInOut")),
+    characterImage.transform(Transform.right(250, "easeOut")),
+]);
+```
+
+## Move and Fade Together
+
+Put multiple property calls before one `commit()` to animate them at the same time.
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5, yoffset: 0 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+
+scene.action([
+    characterImage.transform(enter),
+]);
+```
+
+## Build a Tiny Timeline
+
+Each `commit()` adds a step. The code reads in playback order.
+
+```typescript
+const lookAround = Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180, ease: "easeOut" })
+    .rotation(4)
+    .commit({ duration: 240, ease: "easeInOut" })
+    .rotation(0)
+    .commit({ duration: 180, ease: "easeOut" });
+```
+
+## Apply a State Immediately
+
+Use `Transform.immediate()` when you want a visual state without a transition.
+
+```typescript
+scene.action([
+    characterImage.transform(
+        Transform.immediate({ opacity: 0 })
+    ),
+]);
+```
+
+## Flash a Character
+
+Use visual effect properties when the effect should run as part of the animation.
+
+```typescript
+const flash = Transform.create()
+    .filter("brightness(1.5)")
+    .commit({ duration: 100 })
+    .filter("none")
+    .commit({ duration: 160 });
+
+scene.action([
+    characterImage.transform(flash),
+]);
+```
+
+For effect-specific methods, see [Visual Effects](/docs/narraleaf-react/core/animation/transform/visual-effects).

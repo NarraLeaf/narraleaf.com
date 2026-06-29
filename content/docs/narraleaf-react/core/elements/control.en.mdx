@@ -97,6 +97,23 @@ Execute actions multiple times
 
 Execute actions while condition is true
 
+```typescript
+const loopState = new Persistent("loop-state", {
+    tries: 0,
+});
+
+story.registerPersistent(loopState);
+
+scene.action([
+    loopState.set("tries", 0),
+
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 3), [
+        character.say`Attempt ${loopState.get("tries")}`,
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
+
 - `condition: Lambda<boolean> | LambdaHandler<boolean>` - condition to check
 - `actions: ActionStatements` - [ActionStatements](/docs/narraleaf-react/core/types/ActionStatements)
 - Returns `ChainedControl` - Chained Control instance
@@ -110,6 +127,18 @@ Execute actions while condition is true
 
 Break the current loop (repeat/while)
 Can only be used inside a loop body
+
+```typescript
+scene.action([
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 10), [
+        Condition.If(loopState.equals("tries", 3), [
+            character.say("Stop here."),
+            Control.breakLoop(),
+        ]),
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
 
 - Returns `ChainedControl` - Chained Control instance
 </Step>

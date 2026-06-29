@@ -1,0 +1,75 @@
+---
+title: "常用示例"
+---
+复制一个示例，再按场景调整时间或位置。
+
+## 移动到舞台一侧
+
+常见舞台位置可以直接使用内置辅助方法。
+
+```typescript
+scene.action([
+    characterImage.transform(Transform.left(250, "easeOut")),
+    characterImage.transform(Transform.center(250, "easeInOut")),
+    characterImage.transform(Transform.right(250, "easeOut")),
+]);
+```
+
+## 移动并淡入
+
+在一个 `commit()` 前调用多个属性方法，可以让这些变化同时发生。
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5, yoffset: 0 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+
+scene.action([
+    characterImage.transform(enter),
+]);
+```
+
+## 构建短时间线
+
+每个 `commit()` 都会追加一个步骤。代码顺序就是播放顺序。
+
+```typescript
+const lookAround = Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180, ease: "easeOut" })
+    .rotation(4)
+    .commit({ duration: 240, ease: "easeInOut" })
+    .rotation(0)
+    .commit({ duration: 180, ease: "easeOut" });
+```
+
+## 立即应用状态
+
+需要无过渡地应用视觉状态时，使用 `Transform.immediate()`。
+
+```typescript
+scene.action([
+    characterImage.transform(
+        Transform.immediate({ opacity: 0 })
+    ),
+]);
+```
+
+## 角色闪白
+
+如果视觉效果也要参与动画，可以直接放进 transform 序列。
+
+```typescript
+const flash = Transform.create()
+    .filter("brightness(1.5)")
+    .commit({ duration: 100 })
+    .filter("none")
+    .commit({ duration: 160 });
+
+scene.action([
+    characterImage.transform(flash),
+]);
+```
+
+视觉效果相关方法见[视觉效果](/zh/docs/narraleaf-react/core/animation/transform/visual-effects)。

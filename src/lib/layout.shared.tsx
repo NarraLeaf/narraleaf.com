@@ -1,11 +1,21 @@
 import Image from 'next/image';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName, docsRoute, gitConfig, projectRoute, siteIconPath } from './shared';
+import { appName, gitConfig, siteIconPath } from './shared';
 import { type Locale, i18n, localizedPath } from './i18n';
+import { topLevelNavItems } from './top-level-nav';
+
+export function topLevelNavLinks(locale: Locale = i18n.defaultLanguage): NonNullable<BaseLayoutProps['links']> {
+  return topLevelNavItems(locale).map((item) => ({
+    text: item.label,
+    url: item.href,
+    active: item.active,
+  }));
+}
 
 export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutProps {
   return {
     nav: {
+      url: localizedPath('/', locale),
       title: (
         <span className="inline-flex items-center gap-2 font-semibold">
           <Image
@@ -22,17 +32,5 @@ export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutPr
       ),
     },
     githubUrl: `https://github.com/${gitConfig.user}/${gitConfig.repo}`,
-    links: [
-      {
-        text: 'Project',
-        url: localizedPath(projectRoute, locale),
-        active: 'nested-url',
-      },
-      {
-        text: 'Documentation',
-        url: localizedPath(docsRoute, locale),
-        active: 'nested-url',
-      },
-    ],
   };
 }

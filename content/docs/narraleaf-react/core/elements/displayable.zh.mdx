@@ -11,10 +11,10 @@ title: "可显示元素"
 <Steps>
 <Step>
 
-Transform the element to a new position.
+将元素移动到新的位置。
 
 ```typescript
-    element.pos({
+element.pos({
     xalign: 0.3
 }, 1000, "linear"); // 在 1000 毫秒内以线性缓动将元素移动到 x: 0.3
 ```
@@ -120,7 +120,7 @@ element.zoom(2, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将
 旋转元素
 
 ```typescript
-    element.rotate(90, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素旋转到 90 度
+element.rotate(90, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素旋转到 90 度
 ```
 
 - `angle: number` - 元素的新角度，以度为单位
@@ -137,12 +137,142 @@ element.zoom(2, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将
 更改元素的不透明度
 
 ```typescript
-    element.opacity(0.5, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素的不透明度更改为 0.5
+element.opacity(0.5, 1000, "easeInOut"); // 在 1000 毫秒内以 easeInOut 缓动将元素的不透明度更改为 0.5
 ```
 
 - `opacity: number` - 元素的新不透明度，介于 0 和 1 之间
 - `duration?: number` - 变换的持续时间，以毫秒为单位
 - `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+</Step>
+</Steps>
+
+## 视觉效果
+
+视觉效果对应标准 CSS 视觉属性，也可以像其他变换一样设置过渡。常用于遮罩、擦除、滤镜、模糊覆盖层和混合模式。
+
+```typescript
+scene.action([
+    image
+        .mask("/masks/spotlight.png", {
+            maskSize: "cover",
+            maskPosition: "center",
+            duration: 300,
+        })
+        .filter("brightness(1.2) saturate(1.1)", { duration: 300 }),
+]);
+```
+
+### effect
+
+<Steps>
+<Step>
+
+直接应用一个或多个视觉效果字段。
+
+- `effect: TransformDefinitions.VisualEffectTransformProps` - 支持 `maskImage`、`maskSize`、`maskPosition`、`maskRepeat`、`maskMode`、`clipPath`、`filter`、`backdropFilter` 和 `mixBlendMode`
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项，如 `duration`、`ease`、`delay` 和 `at`
+</Step>
+</Steps>
+
+### mask
+
+<Steps>
+<Step>
+
+应用图片遮罩。遮罩图片会自动注册到预加载列表。
+
+- `src: ImageSrc` - 遮罩图片源
+- `options?: TransformDefinitions.MaskOptions` - 遮罩字段和过渡选项
+</Step>
+</Steps>
+
+### clearMask
+
+<Steps>
+<Step>
+
+清除当前遮罩。
+
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项
+</Step>
+</Steps>
+
+### clip / clearClip
+
+<Steps>
+<Step>
+
+应用或清除 CSS `clip-path`。
+
+```typescript
+scene.action([
+    image.clip("inset(0 0 50% 0)", { duration: 200 }),
+    image.clearClip({ duration: 0 }),
+]);
+```
+
+- `clipPath: React.CSSProperties["clipPath"]` - CSS clip path 值
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项
+</Step>
+</Steps>
+
+### circleReveal / circleClose
+
+<Steps>
+<Step>
+
+使用圆形 `clip-path` 显示或收起元素。
+
+- `options?: TransformDefinitions.CircleRevealOptions | TransformDefinitions.CircleCloseOptions`
+- 常用选项：`center`、`from`、`to`、`clearClip`、`duration`、`ease`
+</Step>
+</Steps>
+
+### wipe
+
+<Steps>
+<Step>
+
+使用方向擦除显示或隐藏元素。
+
+- `options?: TransformDefinitions.WipeOptions`
+- 常用选项：`direction`、`reverse`、`clearClip`、`duration`、`ease`
+</Step>
+</Steps>
+
+### filter / clearFilter
+
+<Steps>
+<Step>
+
+应用或清除 CSS `filter`。
+
+- `filter: React.CSSProperties["filter"]` - 例如 `blur(4px)` 或 `brightness(0.8)`
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项
+</Step>
+</Steps>
+
+### backdrop
+
+<Steps>
+<Step>
+
+应用 CSS `backdrop-filter`。适合制作玻璃感或背景模糊覆盖层。
+
+- `backdropFilter: React.CSSProperties["backdropFilter"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项
+</Step>
+</Steps>
+
+### blend
+
+<Steps>
+<Step>
+
+应用 CSS `mix-blend-mode`。
+
+- `mixBlendMode: React.CSSProperties["mixBlendMode"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - 过渡选项
 </Step>
 </Steps>
 

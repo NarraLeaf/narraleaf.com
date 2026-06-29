@@ -1,0 +1,164 @@
+---
+title: "Sequences"
+---
+A `Transform` is made of one or more sequences. Each sequence contains visual `props` and timing `options`.
+
+## Chained API vs Raw Sequences
+
+The chained API and the constructor create the same kind of `Transform`. Prefer the chained API for hand-written animation because the timing stays next to the change it belongs to.
+
+<Tabs items={['Chained API', 'Raw sequences']}><Tab value="Chained API">
+        ```typescript
+        const bounce = Transform.create()
+            .position({ yoffset: -10 })
+            .commit({ duration: 120, ease: "easeOut" })
+            .position({ yoffset: 0 })
+            .commit({ duration: 100, ease: "easeOut" });
+        ```
+</Tab>
+<Tab value="Raw sequences">
+        ```typescript
+        const bounce = new Transform<TransformDefinitions.ImageTransformProps>([
+            {
+                props: {
+                    position: { yoffset: -10 },
+                },
+                options: {
+                    duration: 120,
+                    ease: "easeOut",
+                },
+            },
+            {
+                props: {
+                    position: { yoffset: 0 },
+                },
+                options: {
+                    duration: 100,
+                    ease: "easeOut",
+                },
+            },
+        ]);
+        ```
+</Tab></Tabs>
+
+## Constructor
+
+Use the constructor when you already have a sequence object, or when generated code produces sequence arrays.
+
+### Array of sequences
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>([
+    {
+        props: {
+            position: { xalign: 0.3 },
+        },
+        options: {
+            duration: 120,
+            ease: "easeOut",
+        },
+    },
+    {
+        props: {
+            position: { xalign: 0.6 },
+        },
+        options: {
+            duration: 100,
+            ease: "easeOut",
+        },
+    },
+], {
+    repeat: 2,
+});
+```
+
+- `sequences: TransformDefinitions.Sequence<T>[]` - The sequence array.
+- `transformConfig?: Partial<TransformDefinitions.TransformConfig>` - Transform-level options.
+
+### Single sequence
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>({
+    position: {
+        xalign: 0.3,
+    },
+}, {
+    duration: 120,
+    ease: "easeOut",
+});
+```
+
+- `props: SequenceProps<T>` - A single [SequenceProps](/docs/narraleaf-react/core/types/TransformDefinitions) object.
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - Timing options for that sequence. See [CommonTransformProps](/docs/narraleaf-react/core/types/CommonTransformProps).
+
+## Static Methods
+
+### left / right / center
+
+Move an image to a common stage position.
+
+- `duration: number` - Movement duration in milliseconds.
+- `easing?: TransformDefinitions.EasingDefinition` - Easing function. See [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition).
+- Returns `Transform<T>`
+
+```typescript
+Transform.left(250, "easeOut");
+Transform.center(250, "easeInOut");
+Transform.right(250, "easeOut");
+```
+
+### immediate\<T extends TransformDefinitions.Types\>
+
+Create a transform that applies the given properties immediately.
+
+- `props: SequenceProps<T>` - A single sequence props object.
+- Returns `Transform<T>`
+
+### create\<T extends TransformDefinitions.Types\>
+
+Create an empty transform that can be built with chained property methods.
+
+- `config?: Partial<TransformDefinitions.TransformConfig>` - Transform config.
+- Returns `Transform<T>`
+
+## Public Methods
+
+### commit
+
+`commit()` groups every property call before it into one sequence. All properties in that sequence animate together using the same timing options.
+
+```typescript
+transform
+    .position({ x: 100, y: 100 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300 })
+    .position({ x: 200, y: 200 })
+    .opacity(0)
+    .commit({ duration: 1000 });
+```
+
+If there are no pending property calls, `commit()` returns the current instance without changing it.
+
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - Sequence timing options.
+- Returns `this`
+
+### repeat
+
+Repeat the transform.
+
+```typescript
+transform
+    .repeat(2)
+    .repeat(3);
+// repeats 6 times
+```
+
+- `n: number` - The number of times to repeat the transform.
+- Returns `this`
+
+### copy
+
+Copy the transform.
+
+- Returns `Transform<T>`

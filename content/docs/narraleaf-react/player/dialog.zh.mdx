@@ -6,7 +6,7 @@ title: "对话框"
 可通过 `game.configure({ dialog })` 传入自定义组件。你可以组合 `Avatar`、`Nametag`、 `Texts`，或使用 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)、[`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 处理布局逻辑。
 
 <Callout type="info">
-    **0.9.1** 起加入对话框头像相关 API（`Character` 头像、立绘解析、`Avatar` / `useAvatar`）以及 `Sentence.getMetadata`。完整条目见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
+    默认头像槽位可直接使用 `Avatar`。如果对话布局需要根据是否存在头像而变化，请使用 `useAvatar()`。
 </Callout>
 
 ## 快速示例

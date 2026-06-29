@@ -97,6 +97,23 @@ Control.do([
 
 当条件为真时执行操作
 
+```typescript
+const loopState = new Persistent("loop-state", {
+    tries: 0,
+});
+
+story.registerPersistent(loopState);
+
+scene.action([
+    loopState.set("tries", 0),
+
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 3), [
+        character.say`第 ${loopState.get("tries")} 次尝试`,
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
+
 - `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
 - 返回 `ChainedControl` - 链式控制实例
@@ -110,6 +127,18 @@ Control.do([
 
 打破当前循环（repeat/while）
 只能在循环体内使用
+
+```typescript
+scene.action([
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 10), [
+        Condition.If(loopState.equals("tries", 3), [
+            character.say("到这里停止。"),
+            Control.breakLoop(),
+        ]),
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
 
 - 返回 `ChainedControl` - 链式控制实例
 </Step>

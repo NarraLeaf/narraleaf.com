@@ -1,0 +1,164 @@
+---
+title: "序列"
+---
+一个 `Transform` 由一个或多个序列组成。每个序列包含视觉 `props` 和时间 `options`。
+
+## 链式 API 与原始序列
+
+链式 API 和构造函数创建的是同一种 `Transform`。手写动画时更推荐链式 API，因为时间选项会贴近对应的变化。
+
+<Tabs items={['链式 API', '原始序列']}><Tab value="链式 API">
+        ```typescript
+        const bounce = Transform.create()
+            .position({ yoffset: -10 })
+            .commit({ duration: 120, ease: "easeOut" })
+            .position({ yoffset: 0 })
+            .commit({ duration: 100, ease: "easeOut" });
+        ```
+</Tab>
+<Tab value="原始序列">
+        ```typescript
+        const bounce = new Transform<TransformDefinitions.ImageTransformProps>([
+            {
+                props: {
+                    position: { yoffset: -10 },
+                },
+                options: {
+                    duration: 120,
+                    ease: "easeOut",
+                },
+            },
+            {
+                props: {
+                    position: { yoffset: 0 },
+                },
+                options: {
+                    duration: 100,
+                    ease: "easeOut",
+                },
+            },
+        ]);
+        ```
+</Tab></Tabs>
+
+## 构造函数
+
+当你已经有序列对象，或由工具生成序列数组时，可以使用构造函数。
+
+### 序列数组
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>([
+    {
+        props: {
+            position: { xalign: 0.3 },
+        },
+        options: {
+            duration: 120,
+            ease: "easeOut",
+        },
+    },
+    {
+        props: {
+            position: { xalign: 0.6 },
+        },
+        options: {
+            duration: 100,
+            ease: "easeOut",
+        },
+    },
+], {
+    repeat: 2,
+});
+```
+
+- `sequences: TransformDefinitions.Sequence<T>[]` - 序列数组
+- `transformConfig?: Partial<TransformDefinitions.TransformConfig>` - transform 级配置
+
+### 单个序列
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>({
+    position: {
+        xalign: 0.3,
+    },
+}, {
+    duration: 120,
+    ease: "easeOut",
+});
+```
+
+- `props: SequenceProps<T>` - 单个 [SequenceProps](/zh/docs/narraleaf-react/core/types/TransformDefinitions) 对象
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - 该序列的时间选项。参见 [CommonTransformProps](/zh/docs/narraleaf-react/core/types/CommonTransformProps)
+
+## 静态方法
+
+### left / right / center
+
+把图片移动到常用舞台位置。
+
+- `duration: number` - 移动时长，单位为毫秒
+- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数。参见 [EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- 返回 `Transform<T>`
+
+```typescript
+Transform.left(250, "easeOut");
+Transform.center(250, "easeInOut");
+Transform.right(250, "easeOut");
+```
+
+### immediate\<T extends TransformDefinitions.Types\>
+
+创建一个立即应用属性的 transform。
+
+- `props: SequenceProps<T>` - 单个序列属性对象
+- 返回 `Transform<T>`
+
+### create\<T extends TransformDefinitions.Types\>
+
+创建空 transform，之后可用链式属性方法构建。
+
+- `config?: Partial<TransformDefinitions.TransformConfig>` - Transform 配置
+- 返回 `Transform<T>`
+
+## 公共方法
+
+### commit
+
+`commit()` 会把它前面的所有属性调用组合成一个序列。这个序列里的所有属性会使用同一组时间选项，同时开始变化。
+
+```typescript
+transform
+    .position({ x: 100, y: 100 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300 })
+    .position({ x: 200, y: 200 })
+    .opacity(0)
+    .commit({ duration: 1000 });
+```
+
+如果没有待提交的属性调用，`commit()` 会直接返回当前实例。
+
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - 序列时间选项
+- 返回 `this`
+
+### repeat
+
+重复 transform。
+
+```typescript
+transform
+    .repeat(2)
+    .repeat(3);
+// 重复 6 次
+```
+
+- `n: number` - 重复次数
+- 返回 `this`
+
+### copy
+
+复制 transform。
+
+- 返回 `Transform<T>`

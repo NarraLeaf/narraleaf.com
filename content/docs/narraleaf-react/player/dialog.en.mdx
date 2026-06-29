@@ -6,7 +6,7 @@ The `Dialog` component renders the dialog box, including the character nametag, 
 To customize the dialog, provide your own component via `game.configure({ dialog })`. You can compose `Avatar`, `Nametag`, and `Texts`, or use [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar) / [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog) for layout logic.
 
 <Callout type="info">
-    **0.9.1** adds dialog avatar APIs (`Character` avatars, portrait resolution, `Avatar` / `useAvatar`) and `Sentence.getMetadata`. See the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
+    Use `Avatar` for the default portrait slot. Use `useAvatar()` when the dialog layout should change depending on whether an avatar is available.
 </Callout>
 
 ## Quick example

@@ -4,6 +4,7 @@ import { baseOptions } from '@/lib/layout.shared';
 import { buildSectionPageTree } from '@/lib/docs-section-tree';
 import { docsProductTabs } from '@/lib/docs-product-tabs';
 import { type Locale } from '@/lib/i18n';
+import { DocsTopLevelNav } from '@/components/docs-top-level-nav';
 
 export default async function Layout({
   children,
@@ -14,8 +15,11 @@ export default async function Layout({
   const tree = buildSectionPageTree(source.getPageTree(locale), 'narraleaf-react', locale);
 
   return (
-    <DocsLayout tree={tree} {...baseOptions(locale)} tabs={[...docsProductTabs(locale)]}>
-      {children}
-    </DocsLayout>
+    <>
+      <DocsTopLevelNav locale={locale} active="docs" />
+      <DocsLayout tree={tree} {...baseOptions(locale)} tabs={[...docsProductTabs(locale)]}>
+        {children}
+      </DocsLayout>
+    </>
   );
 }

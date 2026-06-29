@@ -1,0 +1,115 @@
+---
+title: "Properties"
+---
+Put multiple property calls before one `commit()` when they should animate together.
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+```
+
+In this example, position, zoom, and opacity share the same `duration` and `ease`.
+
+## Position
+
+### position
+
+Set position.
+
+- `position: TransformDefinitions.Types["position"]` - The position value.
+- Returns `this`
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5, yalign: 1 })
+    .commit({ duration: 300 });
+```
+
+## Scale and Zoom
+
+### scale
+
+Set scale for both axes.
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - The X-axis scale. Negative values invert the element on the X axis.
+- `scaleY: TransformDefinitions.Types["scaleY"]` - The Y-axis scale. Negative values invert the element on the Y axis.
+- Returns `this`
+
+### scaleX
+
+Set X-axis scale.
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - The X-axis scale.
+- Returns `this`
+
+### scaleY
+
+Set Y-axis scale.
+
+- `scaleY: TransformDefinitions.Types["scaleY"]` - The Y-axis scale.
+- Returns `this`
+
+### scaleXY
+
+Set X-axis and Y-axis scale.
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - The X-axis scale.
+- `scaleY: TransformDefinitions.Types["scaleY"]` - The Y-axis scale.
+- Returns `this`
+
+### zoom
+
+Set zoom. Use this for normal image scaling.
+
+- `zoom: TransformDefinitions.Types["zoom"]` - The zoom level.
+- Returns `this`
+
+```typescript
+Transform.create()
+    .zoom(1.15)
+    .commit({ duration: 240, ease: "easeOut" });
+```
+
+## Rotation
+
+### rotation
+
+Set rotation.
+
+- `rotation: TransformDefinitions.Types["rotation"]` - The rotation value.
+- Returns `this`
+
+```typescript
+Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180 })
+    .rotation(0)
+    .commit({ duration: 180 });
+```
+
+## Opacity
+
+### opacity
+
+Set opacity.
+
+- `opacity: TransformDefinitions.Types["opacity"]` - The opacity value.
+- Returns `this`
+
+```typescript
+Transform.create()
+    .opacity(0)
+    .commit({ duration: 200 });
+```
+
+## Text
+
+### fontColor
+
+Set text color.
+
+- `fontColor: TransformDefinitions.Types["fontColor"]` - The font color value.
+- Returns `this`

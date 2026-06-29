@@ -27,7 +27,8 @@ function projectSlugs(slug?: string[]): string[] | undefined {
 
 export default async function Page(props: ProjectPageProps) {
   const params = await props.params;
-  const page = projectSource.getPage(projectSlugs(params.slug), params.lang as Locale);
+  const locale = params.lang as Locale;
+  const page = projectSource.getPage(projectSlugs(params.slug), locale);
   if (!page) notFound();
 
   const MDX = page.data.body;

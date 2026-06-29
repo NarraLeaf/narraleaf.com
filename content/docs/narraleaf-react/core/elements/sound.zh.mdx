@@ -157,6 +157,14 @@ scene.action([
 
 静默或恢复声音，但不会停止播放。
 
+```ts
+scene.action([
+    bgm.play(),
+    bgm.mute(),
+    bgm.unmute(),
+]);
+```
+
 - `muted?: boolean` - `true` 表示静默，`false` 表示恢复音量（默认 `true`）
 - 返回 `ChainedSound` - 可链式声音实例
 </Step>

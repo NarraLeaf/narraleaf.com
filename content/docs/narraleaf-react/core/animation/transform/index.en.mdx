@@ -1,0 +1,96 @@
+---
+title: "Transform"
+---
+`Transform` describes how a displayable element changes on screen: where it moves, how it scales, how it rotates, how visible it is, and which visual effects are applied.
+
+Use it when an animation has more than one step, or when you want to reuse the same animation in multiple places.
+
+```typescript
+import { Transform } from "narraleaf-react";
+
+const bounce = Transform.create()
+    .position({ yoffset: -10 })
+    .commit({ duration: 120, ease: "easeOut" })
+    .position({ yoffset: 0 })
+    .commit({ duration: 100, ease: "easeOut" })
+    .repeat(2);
+
+scene.action([
+    characterImage.transform(bounce),
+]);
+```
+
+## Pages
+
+<Cards>
+    <Card
+        title="Quick Recipes"
+        description="Copyable movement, fade, timeline, and flash examples."
+        href="/docs/narraleaf-react/core/animation/transform/quick-recipes"
+    />
+    <Card
+        title="Sequences"
+        description="Using commit(), constructor sequences, repeat(), and copy()."
+        href="/docs/narraleaf-react/core/animation/transform/sequences"
+    />
+    <Card
+        title="Properties"
+        description="Position, scale, zoom, rotation, opacity, and font color methods."
+        href="/docs/narraleaf-react/core/animation/transform/properties"
+    />
+    <Card
+        title="Visual Effects"
+        description="Mask, clip path, filter, backdrop filter, and blend mode methods."
+        href="/docs/narraleaf-react/core/animation/transform/visual-effects"
+    />
+</Cards>
+
+## How `commit()` Groups Changes
+
+<Steps>
+<Step>
+
+### Add properties
+
+Call every property that should change together before `commit()`.
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+```
+</Step>
+<Step>
+
+### Commit once
+
+One `commit()` turns those property calls into one animation step. In this example, position, zoom, and opacity change at the same time.
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+```
+</Step>
+<Step>
+
+### Continue
+
+Property calls after `commit()` belong to the next step.
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.35 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+    .position({ xalign: 0.65 })
+    .opacity(0.8)
+    .commit({ duration: 300, ease: "easeInOut" })
+```
+</Step>
+</Steps>
+
+For the full property types, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).

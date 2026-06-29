@@ -19,8 +19,11 @@ type Player1Content = {
 
 const storable = game.getLiveGame().getStorable();
 
-// initialize a new namespace
-const player1namespace = new Namespace<Player1Content>("player1", { name: "default name" });
+// initialize and register a namespace
+const player1namespace = Storable.createNamespace<Player1Content>("player1", {
+    name: "default name",
+});
+
 storable.addNamespace(player1namespace);
 
 // set data from the namespace

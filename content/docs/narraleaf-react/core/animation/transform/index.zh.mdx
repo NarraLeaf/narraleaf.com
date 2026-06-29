@@ -1,0 +1,96 @@
+---
+title: "变换"
+---
+`Transform` 描述可显示元素在屏幕上的变化：位置、缩放、旋转、透明度，以及应用的视觉效果。
+
+当动画有多个步骤，或同一段动画需要复用时，可以使用 `Transform`。
+
+```typescript
+import { Transform } from "narraleaf-react";
+
+const bounce = Transform.create()
+    .position({ yoffset: -10 })
+    .commit({ duration: 120, ease: "easeOut" })
+    .position({ yoffset: 0 })
+    .commit({ duration: 100, ease: "easeOut" })
+    .repeat(2);
+
+scene.action([
+    characterImage.transform(bounce),
+]);
+```
+
+## 页面
+
+<Cards>
+    <Card
+        title="常用示例"
+        description="可直接改用的移动、淡入淡出、时间线和闪白示例。"
+        href="/zh/docs/narraleaf-react/core/animation/transform/quick-recipes"
+    />
+    <Card
+        title="序列"
+        description="commit()、构造函数序列、repeat() 和 copy()。"
+        href="/zh/docs/narraleaf-react/core/animation/transform/sequences"
+    />
+    <Card
+        title="属性"
+        description="位置、缩放、旋转、透明度和文字颜色方法。"
+        href="/zh/docs/narraleaf-react/core/animation/transform/properties"
+    />
+    <Card
+        title="视觉效果"
+        description="遮罩、裁剪路径、滤镜、背景滤镜和混合模式方法。"
+        href="/zh/docs/narraleaf-react/core/animation/transform/visual-effects"
+    />
+</Cards>
+
+## `commit()` 如何组合变化
+
+<Steps>
+<Step>
+
+### 添加属性
+
+需要同时变化的属性，都写在同一个 `commit()` 前。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+```
+</Step>
+<Step>
+
+### 提交一次
+
+一次 `commit()` 会把前面的属性调用合成一个动画步骤。下面的例子里，位置、缩放和透明度会同时变化。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+```
+</Step>
+<Step>
+
+### 继续下一步
+
+`commit()` 之后的属性调用属于下一段动画。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.35 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+    .position({ xalign: 0.65 })
+    .opacity(0.8)
+    .commit({ duration: 300, ease: "easeInOut" })
+```
+</Step>
+</Steps>
+
+完整属性类型见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions)。

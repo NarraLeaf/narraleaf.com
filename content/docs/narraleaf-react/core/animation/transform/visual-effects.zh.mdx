@@ -1,0 +1,99 @@
+---
+title: "视觉效果"
+---
+遮罩、裁剪、滤镜、背景滤镜或混合模式需要跟随 transform 动画时，可以使用这些方法。
+
+```typescript
+const flash = Transform.create()
+    .filter("brightness(1.5)")
+    .commit({ duration: 120 })
+    .filter("none")
+    .commit({ duration: 160 });
+```
+
+<Callout type="info">
+    如果图片遮罩需要自动预加载，请使用 [`Displayable.mask`](/zh/docs/narraleaf-react/core/elements/displayable#mask)。
+</Callout>
+
+## effect
+
+一次设置多个视觉效果字段。
+
+```typescript
+Transform.create()
+    .effect({
+        clipPath: "inset(0 0 30% 0)",
+        filter: "brightness(0.8)",
+    })
+    .commit({ duration: 200 });
+```
+
+- `effect: TransformDefinitions.VisualEffectTransformProps` - 支持遮罩、裁剪路径、滤镜、背景滤镜和混合模式字段
+- 返回 `this`
+
+## maskImage
+
+设置原始 CSS `mask-image` 值。
+
+```typescript
+Transform.create()
+    .maskImage('url("/masks/spotlight.png")')
+    .commit({ duration: 300 });
+```
+
+- `maskImage: TransformDefinitions.Types["maskImage"]`
+- 返回 `this`
+
+## clipPath
+
+设置 CSS `clip-path` 值。
+
+```typescript
+Transform.create()
+    .clipPath("circle(0% at 50% 50%)")
+    .commit({ duration: 0 })
+    .clipPath("circle(150% at 50% 50%)")
+    .commit({ duration: 500, ease: "easeOut" });
+```
+
+- `clipPath: TransformDefinitions.Types["clipPath"]`
+- 返回 `this`
+
+## filter
+
+设置 CSS `filter` 值。
+
+```typescript
+Transform.create()
+    .filter("blur(4px) brightness(0.8)")
+    .commit({ duration: 240 });
+```
+
+- `filter: TransformDefinitions.Types["filter"]`
+- 返回 `this`
+
+## backdropFilter
+
+设置 CSS `backdrop-filter` 值。
+
+```typescript
+Transform.create()
+    .backdropFilter("blur(12px)")
+    .commit({ duration: 200 });
+```
+
+- `backdropFilter: TransformDefinitions.Types["backdropFilter"]`
+- 返回 `this`
+
+## mixBlendMode
+
+设置 CSS `mix-blend-mode` 值。
+
+```typescript
+Transform.create()
+    .mixBlendMode("screen")
+    .commit({ duration: 0 });
+```
+
+- `mixBlendMode: TransformDefinitions.Types["mixBlendMode"]`
+- 返回 `this`

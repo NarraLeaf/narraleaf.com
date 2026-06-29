@@ -1,0 +1,115 @@
+---
+title: "属性"
+---
+多个属性需要一起动画时，把它们写在同一个 `commit()` 前。
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+```
+
+这个例子里，位置、缩放和透明度共用同一组 `duration` 和 `ease`。
+
+## 位置
+
+### position
+
+设置位置。
+
+- `position: TransformDefinitions.Types["position"]` - 位置值
+- 返回 `this`
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5, yalign: 1 })
+    .commit({ duration: 300 });
+```
+
+## 缩放
+
+### scale
+
+设置 X 轴和 Y 轴缩放。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X 轴缩放。负值会在 X 轴翻转元素
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y 轴缩放。负值会在 Y 轴翻转元素
+- 返回 `this`
+
+### scaleX
+
+设置 X 轴缩放。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X 轴缩放
+- 返回 `this`
+
+### scaleY
+
+设置 Y 轴缩放。
+
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y 轴缩放
+- 返回 `this`
+
+### scaleXY
+
+设置 X 轴和 Y 轴缩放。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X 轴缩放
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y 轴缩放
+- 返回 `this`
+
+### zoom
+
+设置 zoom。常规图片缩放推荐使用这个方法。
+
+- `zoom: TransformDefinitions.Types["zoom"]` - 缩放级别
+- 返回 `this`
+
+```typescript
+Transform.create()
+    .zoom(1.15)
+    .commit({ duration: 240, ease: "easeOut" });
+```
+
+## 旋转
+
+### rotation
+
+设置旋转。
+
+- `rotation: TransformDefinitions.Types["rotation"]` - 旋转值
+- 返回 `this`
+
+```typescript
+Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180 })
+    .rotation(0)
+    .commit({ duration: 180 });
+```
+
+## 透明度
+
+### opacity
+
+设置透明度。
+
+- `opacity: TransformDefinitions.Types["opacity"]` - 透明度值
+- 返回 `this`
+
+```typescript
+Transform.create()
+    .opacity(0)
+    .commit({ duration: 200 });
+```
+
+## 文本
+
+### fontColor
+
+设置文字颜色。
+
+- `fontColor: TransformDefinitions.Types["fontColor"]` - 文字颜色值
+- 返回 `this`

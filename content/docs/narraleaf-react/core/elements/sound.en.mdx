@@ -157,6 +157,14 @@ Set the volume of the sound
 
 Mute or unmute the sound without stopping playback.
 
+```ts
+scene.action([
+    bgm.play(),
+    bgm.mute(),
+    bgm.unmute(),
+]);
+```
+
 - `muted?: boolean` - `true` to mute the sound, `false` to restore volume (defaults to `true`)
 - Returns `ChainedSound` - Chained Sound instance
 </Step>

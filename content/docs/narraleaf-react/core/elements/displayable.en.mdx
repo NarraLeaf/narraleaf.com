@@ -146,6 +146,136 @@ element.opacity(0.5, 1000, "easeInOut"); // Change the opacity of the element to
 </Step>
 </Steps>
 
+## Visual Effects
+
+Visual effects map to standard CSS visual properties and can be animated like other transforms. Use them for masks, wipes, filters, blur overlays, and blend modes.
+
+```typescript
+scene.action([
+    image
+        .mask("/masks/spotlight.png", {
+            maskSize: "cover",
+            maskPosition: "center",
+            duration: 300,
+        })
+        .filter("brightness(1.2) saturate(1.1)", { duration: 300 }),
+]);
+```
+
+### effect
+
+<Steps>
+<Step>
+
+Apply one or more visual effect fields directly.
+
+- `effect: TransformDefinitions.VisualEffectTransformProps` - Supports `maskImage`, `maskSize`, `maskPosition`, `maskRepeat`, `maskMode`, `clipPath`, `filter`, `backdropFilter`, and `mixBlendMode`.
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options such as `duration`, `ease`, `delay`, and `at`.
+</Step>
+</Steps>
+
+### mask
+
+<Steps>
+<Step>
+
+Apply an image mask. The source is registered for preload automatically.
+
+- `src: ImageSrc` - Mask image source.
+- `options?: TransformDefinitions.MaskOptions` - Mask fields plus timing options.
+</Step>
+</Steps>
+
+### clearMask
+
+<Steps>
+<Step>
+
+Clear the current mask.
+
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options.
+</Step>
+</Steps>
+
+### clip / clearClip
+
+<Steps>
+<Step>
+
+Apply or clear a CSS `clip-path`.
+
+```typescript
+scene.action([
+    image.clip("inset(0 0 50% 0)", { duration: 200 }),
+    image.clearClip({ duration: 0 }),
+]);
+```
+
+- `clipPath: React.CSSProperties["clipPath"]` - CSS clip path value.
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options.
+</Step>
+</Steps>
+
+### circleReveal / circleClose
+
+<Steps>
+<Step>
+
+Reveal or close the element with an animated circular `clip-path`.
+
+- `options?: TransformDefinitions.CircleRevealOptions | TransformDefinitions.CircleCloseOptions`
+- Common options: `center`, `from`, `to`, `clearClip`, `duration`, `ease`
+</Step>
+</Steps>
+
+### wipe
+
+<Steps>
+<Step>
+
+Reveal or hide the element with a directional wipe.
+
+- `options?: TransformDefinitions.WipeOptions`
+- Common options: `direction`, `reverse`, `clearClip`, `duration`, `ease`
+</Step>
+</Steps>
+
+### filter / clearFilter
+
+<Steps>
+<Step>
+
+Apply or clear a CSS `filter`.
+
+- `filter: React.CSSProperties["filter"]` - For example `blur(4px)` or `brightness(0.8)`.
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options.
+</Step>
+</Steps>
+
+### backdrop
+
+<Steps>
+<Step>
+
+Apply a CSS `backdrop-filter`. This is useful for glass or blur overlays.
+
+- `backdropFilter: React.CSSProperties["backdropFilter"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options.
+</Step>
+</Steps>
+
+### blend
+
+<Steps>
+<Step>
+
+Apply a CSS `mix-blend-mode`.
+
+- `mixBlendMode: React.CSSProperties["mixBlendMode"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - Timing options.
+</Step>
+</Steps>
+
 ### transform
 
 <Steps>
