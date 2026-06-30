@@ -20,10 +20,10 @@ function GameDialog() {
       className="bg-black/70 rounded-lg px-6 py-4"
       // Dialog: container for the dialog box, supports className/style
     >
-      <Nametag className="text-lg font-bold text-amber-400" />
-      {/* Nametag: character name, color is defined in character config */}
-      <Texts className="text-white text-base leading-relaxed" />
-      {/* Texts: dialogue content, inherits from word/sentence config */}
+      <Nametag className="text-lg font-bold" color="#fbbf24" />
+      {/* Nametag: 角色名、内容与颜色由组件 props 控制 */}
+      <Texts className="text-base leading-relaxed" defaultColor="white" />
+      {/* Texts: 默认文本外观来自组件 props；Sentence/Word 局部样式仍优先 */}
     </Dialog>
   );
 }
@@ -46,7 +46,7 @@ function GameDialog() {
     <Dialog className="bg-black/70 rounded-lg px-6 py-4">
       {!isNarrator && <Nametag className="text-lg font-bold" />}
       {/* Hide nametag when narrator speaks */}
-      <Texts className="text-white" />
+      <Texts defaultColor="white" />
     </Dialog>
   );
 }
@@ -91,7 +91,11 @@ function SentenceContext() {
   const { done } = useDialog();
   return (
     <>
-      <Texts className="text-[22px] max-w-max flex items-center" />
+      <Texts
+        className="max-w-max flex items-center"
+        defaultColor="white"
+        fontSize={22}
+      />
       <div className="flex flex-col items-center">
         <div className={clsx(
           "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white",
@@ -119,6 +123,7 @@ export function GameDialog() {
       <div className={clsx("absolute left-[30px] -top-[15px]", { "hidden": isNarrator })}>
         <Nametag
           className="px-4 py-2 min-w-[220px] min-h-[56px] flex items-center justify-center"
+          color="#2987a1"
           style={{
             backgroundImage: "url('/ui/game-dialog-nametag.png')",
             backgroundSize: "contain",
@@ -135,15 +140,7 @@ export function GameDialog() {
 }
 ```
 
-注册时还可设置 [defaultTextColor](/zh/docs/narraleaf-react/core/game/game)、[defaultNametagColor](/zh/docs/narraleaf-react/core/game/game) 等默认颜色：
-
-```tsx
-game.configure({
-  dialog: GameDialog,
-  defaultTextColor: "white",
-  defaultNametagColor: "#2987a1",
-});
-```
+文本与名牌默认外观应写在组件自身 props 上。`GameConfig` 不再负责对话文字字体、文字颜色或名牌默认颜色。
 
 ## 5. 简单样式示例
 
@@ -159,7 +156,7 @@ function GameDialog() {
       }}
     >
       <Nametag style={{ marginBottom: "8px", paddingBottom: "4px", borderBottom: "2px solid rgba(255, 193, 7, 0.8)" }} />
-      <Texts />
+      <Texts defaultColor="white" fontSize={18} />
     </Dialog>
   );
 }
@@ -185,8 +182,8 @@ function GameDialog() {
         // 可选的 Motion 事件处理
       }}
     >
-      <Nametag className="font-bold text-amber-400" />
-      <Texts className="text-white" />
+      <Nametag className="font-bold" color="#fbbf24" />
+      <Texts defaultColor="white" />
     </Dialog>
   );
 }
@@ -204,5 +201,5 @@ function GameDialog() {
 
 ## 注意事项
 
-- **名牌颜色**：由 [Character](/zh/docs/narraleaf-react/core/elements/character) 配置中的 `nametagColor` 控制，不建议用 CSS 覆盖。
-- **文本样式**：由 [Word](/zh/docs/narraleaf-react/core/elements/character/word) / [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 配置控制，可自定义背景、字体、大小等未预定义属性。
+- **名牌内容与颜色**：由 `Nametag` 的 `name`、`children`、`color`、`className`、`style` 等 props 控制。
+- **文本默认外观**：由 `Texts` 的 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold` 等 props 控制。[Word](/zh/docs/narraleaf-react/core/elements/character/word) / [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 的局部样式仍会覆盖具体词或具体句。

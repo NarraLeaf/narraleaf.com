@@ -24,7 +24,8 @@ function CustomMenu({ items }: { items: number[] }) {
       {items.map((index) => (
         <Item
           key={index}
-          className="bg-white/90 text-black px-6 py-3 rounded-lg mt-3 w-64 text-center hover:bg-white transition-colors"
+          className="bg-white/90 px-6 py-3 rounded-lg mt-3 w-64 text-center hover:bg-white transition-colors"
+          defaultColor="black"
           // Item: renders one choice, receives index from items array
         />
       ))}
@@ -52,7 +53,8 @@ function CustomMenu({ items }: { items: number[] }) {
       {items.map((index) => (
         <Item
           key={index}
-          className="bg-white text-black p-2 mt-2 w-1/2"
+          className="bg-white p-2 mt-2 w-1/2"
+          defaultColor="black"
           bindKey={String(index + 1)}
           // bindKey: "1", "2", "3" etc. - press key to select this item
         />
@@ -81,9 +83,12 @@ function CustomMenu({ items }: { items: number[] }) {
           {items.map((index) => (
             <Item
               key={index}
-              className="block md:w-3/4 lg:w-2/3 mx-auto text-center text-white text-lg py-3 px-6
+              className="block md:w-3/4 lg:w-2/3 mx-auto text-center py-3 px-6
                 hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1
                 hover:[filter:drop-shadow(8px_8px_0_rgba(0,0,0,0.8))] disabled:opacity-50 disabled:cursor-not-allowed"
+              defaultColor="white"
+              fontSize={18}
+              fontWeight={700}
               style={{
                 backgroundColor: "rgba(64,168,197,0.9)",
                 clipPath: "polygon(0 0,100% 0,97% 100%,3% 100%)",  // Parallelogram shape
@@ -98,14 +103,7 @@ function CustomMenu({ items }: { items: number[] }) {
 }
 ```
 
-注册时可设置 [defaultMenuChoiceColor](/zh/docs/narraleaf-react/core/game/game) 控制选项默认颜色：
-
-```tsx
-game.configure({
-  menu: CustomMenu,
-  defaultMenuChoiceColor: "white",
-});
-```
+菜单选项文字由自定义菜单组件控制。可以向 `Item` 传入 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold`，也可以让文字从 CSS 继承。
 
 ## 4. 横向布局示例
 
@@ -116,7 +114,8 @@ function HorizontalMenu({ items }: { items: number[] }) {
       {items.map((index) => (
         <Item
           key={index}
-          className="bg-amber-500/80 text-black px-4 py-2 rounded hover:bg-amber-400"
+          className="bg-amber-500/80 px-4 py-2 rounded hover:bg-amber-400"
+          defaultColor="black"
         />
       ))}
     </GameMenu>

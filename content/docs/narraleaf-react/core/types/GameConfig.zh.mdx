@@ -203,16 +203,6 @@ type GameConfig = {
      */
     allowSkipVideo: boolean;
     /**
-     * 对话框的默认文本颜色
-     * @default "#000"
-     */
-    defaultTextColor: Color;
-    /**
-     * 角色名称标签的默认文本颜色
-     * @default "#000"
-     */
-    defaultNametagColor: Color;
-    /**
      * 用于通知的组件
      * @default DefaultNotification
      */
@@ -257,35 +247,10 @@ type GameConfig = {
         guard: GuardConfig;
     };
     /**
-     * 游戏的默认字体大小
-     * @default "16px"
-     */
-    fontSize: React.CSSProperties["fontSize"];
-    /**
-     * 游戏的默认字体粗细
-     * @default 400
-     */
-    fontWeight: number;
-    /**
-     * 游戏的默认粗体字体粗细
-     * @default 700
-     */
-    fontWeightBold: number;
-    /**
-     * 游戏的默认字体系列
-     * @default "sans-serif"
-     */
-    fontFamily: React.CSSProperties["fontFamily"];
-    /**
      * 覆盖默认舞台
      * @default null
      */
     stage: React.ReactNode | null;
-    /**
-     * 菜单选项的默认颜色
-     * @default "#000"
-     */
-    defaultMenuChoiceColor: Color;
     /**
      * 堆栈模型可以循环的最大次数
      * @default 1000

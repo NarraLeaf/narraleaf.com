@@ -20,10 +20,10 @@ function GameDialog() {
       className="bg-black/70 rounded-lg px-6 py-4"
       // Dialog: container for the dialog box, supports className/style
     >
-      <Nametag className="text-lg font-bold text-amber-400" />
-      {/* Nametag: character name, color is defined in character config */}
-      <Texts className="text-white text-base leading-relaxed" />
-      {/* Texts: dialogue content, inherits from word/sentence config */}
+      <Nametag className="text-lg font-bold" color="#fbbf24" />
+      {/* Nametag: character name, content and color are controlled by props */}
+      <Texts className="text-base leading-relaxed" defaultColor="white" />
+      {/* Texts: component defaults are props; Sentence/Word overrides still win */}
     </Dialog>
   );
 }
@@ -46,7 +46,7 @@ function GameDialog() {
     <Dialog className="bg-black/70 rounded-lg px-6 py-4">
       {!isNarrator && <Nametag className="text-lg font-bold" />}
       {/* Hide nametag when narrator speaks */}
-      <Texts className="text-white" />
+      <Texts defaultColor="white" />
     </Dialog>
   );
 }
@@ -91,7 +91,11 @@ function SentenceContext() {
   const { done } = useDialog();
   return (
     <>
-      <Texts className="text-[22px] max-w-max flex items-center" />
+      <Texts
+        className="max-w-max flex items-center"
+        defaultColor="white"
+        fontSize={22}
+      />
       <div className="flex flex-col items-center">
         <div className={clsx(
           "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white",
@@ -119,6 +123,7 @@ export function GameDialog() {
       <div className={clsx("absolute left-[30px] -top-[15px]", { "hidden": isNarrator })}>
         <Nametag
           className="px-4 py-2 min-w-[220px] min-h-[56px] flex items-center justify-center"
+          color="#2987a1"
           style={{
             backgroundImage: "url('/ui/game-dialog-nametag.png')",
             backgroundSize: "contain",
@@ -135,15 +140,7 @@ export function GameDialog() {
 }
 ```
 
-You can also set [defaultTextColor](/docs/narraleaf-react/core/game/game) and [defaultNametagColor](/docs/narraleaf-react/core/game/game) when registering:
-
-```tsx
-game.configure({
-  dialog: GameDialog,
-  defaultTextColor: "white",
-  defaultNametagColor: "#2987a1",
-});
-```
+Set text and nametag defaults on the components themselves. `GameConfig` no longer owns dialog font, text color, or nametag color defaults.
 
 ## 5. Simple Style Example
 
@@ -159,7 +156,7 @@ function GameDialog() {
       }}
     >
       <Nametag style={{ marginBottom: "8px", paddingBottom: "4px", borderBottom: "2px solid rgba(255, 193, 7, 0.8)" }} />
-      <Texts />
+      <Texts defaultColor="white" fontSize={18} />
     </Dialog>
   );
 }
@@ -185,8 +182,8 @@ function GameDialog() {
         // Optional Motion event handler
       }}
     >
-      <Nametag className="font-bold text-amber-400" />
-      <Texts className="text-white" />
+      <Nametag className="font-bold" color="#fbbf24" />
+      <Texts defaultColor="white" />
     </Dialog>
   );
 }
@@ -204,5 +201,5 @@ Dialog presence is managed by the player:
 
 ## Notes
 
-- **Nametag color**: Controlled by `nametagColor` in [Character](/docs/narraleaf-react/core/elements/character) config; avoid overriding with CSS.
-- **Text style**: Controlled by [Word](/docs/narraleaf-react/core/elements/character/word) / [Sentence](/docs/narraleaf-react/core/elements/character/sentence) config; you can customize background, font, size, etc. for attributes not predefined.
+- **Nametag content and color**: Controlled by `Nametag` props such as `name`, `children`, `color`, `className`, and `style`.
+- **Text defaults**: Controlled by `Texts` props such as `defaultColor`, `fontSize`, `fontFamily`, `fontWeight`, and `fontWeightBold`. [Word](/docs/narraleaf-react/core/elements/character/word) / [Sentence](/docs/narraleaf-react/core/elements/character/sentence) styling still overrides specific words or lines.

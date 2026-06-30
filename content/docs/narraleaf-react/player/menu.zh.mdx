@@ -23,7 +23,8 @@ function DefaultMenu({items}: { items: number[] }) {
             {items.map((index) => (
                 <Item
                     key={index}
-                    className="bg-white text-black p-2 mt-2 w-1/2"
+                    className="bg-white p-2 mt-2 w-1/2"
+                    defaultColor="black"
                 />
             ))}
         </GameMenu>
@@ -60,6 +61,15 @@ GameMenu 组件渲染菜单容器。它的子组件是 `Item` 组件。
 
 Item 组件渲染菜单项。它是 `GameMenu` 组件的子组件。
 
+已导出的 props 类型：`ItemProps`。
+
 - `className?: string` - 菜单项的类名。
 - `style?: React.CSSProperties` - 菜单项的样式。
 - `bindKey?: string` - 菜单项的快捷键，参考 [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)。当按下快捷键时，菜单项将被选中并执行相应的操作。
+- `defaultColor?: Color` - 选项文字的回退颜色。未传时，文字可从 CSS 继承。
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]`
+- `fontFamily?: React.CSSProperties["fontFamily"]`
+
+`Item` 的选项文字使用与对话文本相同的渲染器。选项上的 `Sentence` 与 `Word` 局部样式仍会覆盖这些组件默认值。

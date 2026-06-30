@@ -66,21 +66,33 @@ function App() {
 
 外层 dialog wrapper 会继续负责宽高比缩放以及点击/按键处理。视觉 transform 应直接写在 `Dialog` 上，播放器会把它们应用到内部 motion 元素。
 
+已导出的 props 类型：`NametagProps`、`TextAppearanceProps`、`TextsProps`、`RawTextsProps`、`EntryTextsProps`。
+
 ### Nametag
 
 渲染说话人名字。需放在 `Dialog` 内。
 
-> **注意：** 名牌颜色来自 [Character](/zh/docs/narraleaf-react/core/elements/character) 配置，请避免用 CSS 与引擎规则冲突。
+`Nametag` 现在由组件 props 驱动：通过 props 控制内容与展示。未传自定义内容时，会回退到当前说话人名称；未传 `color` 时，会在可用时回退到当前角色颜色。
 
-- `...props: React.HTMLAttributes<HTMLDivElement>`
+- `character?: Character | null` — 显式指定角色来源。
+- `entry?: NvlDialogEntry` — NVL 条目来源。
+- `name?: React.ReactNode` — 覆盖显示名称。
+- `color?: Color` — 名牌文字颜色。
+- `children?: React.ReactNode` — 完全自定义名牌内容。
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
 
 ### Texts
 
 渲染逐字显示的对话正文。需放在 `Dialog` 内。
 
-> **注意：** 单词/句子级样式由引擎控制，请勿随意覆盖已由配置决定的文本样式。
+文本默认外观来自组件 props 或继承的 CSS。`Sentence` 与 `Word` 的局部样式仍会覆盖对应行或词。
 
 - `children?: never`
+- `defaultColor?: Color` — 当句子/词没有设置颜色时使用的回退文本颜色。
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` — 句子/词为粗体时使用的字重。
+- `fontFamily?: React.CSSProperties["fontFamily"]`
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar

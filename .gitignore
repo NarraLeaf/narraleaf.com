@@ -1,5 +1,6 @@
 # deps
 /node_modules
+/.yarn/install-state.gz
 
 # generated content
 .source

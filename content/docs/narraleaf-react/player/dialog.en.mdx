@@ -66,21 +66,33 @@ Renders the dialog container. Children are typically `Avatar`, `Nametag`, and `T
 
 The outer dialog wrapper is kept separate for aspect-ratio scaling and click/key handling. Put visual transforms on `Dialog` itself; the player will apply them to the inner motion element.
 
+Exported prop types: `NametagProps`, `TextAppearanceProps`, `TextsProps`, `RawTextsProps`, and `EntryTextsProps`.
+
 ### Nametag
 
 Renders the speaker name. Must be used inside `Dialog`.
 
-> **Note:** Nametag color comes from [Character](/docs/narraleaf-react/core/elements/character) config; avoid overriding it with CSS in a way that fights the engine.
+`Nametag` is now component-driven: pass props to control its content and presentation. If no custom content is provided, it falls back to the current speaker name. If no `color` prop is provided, it falls back to the current character color when available.
 
-- `...props: React.HTMLAttributes<HTMLDivElement>`
+- `character?: Character | null` — Explicit character source.
+- `entry?: NvlDialogEntry` — NVL entry source.
+- `name?: React.ReactNode` — Override the displayed name.
+- `color?: Color` — Text color for the nametag.
+- `children?: React.ReactNode` — Fully custom nametag content.
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
 
 ### Texts
 
 Renders the typed dialogue text. Must be used inside `Dialog`.
 
-> **Note:** Per-word styling follows sentence/word config; avoid overriding text styles that the engine already sets.
+Text defaults are component props or inherited CSS. `Sentence` and `Word` style overrides still win for the individual line or word.
 
 - `children?: never`
+- `defaultColor?: Color` — Fallback text color when sentence/word color is not set.
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` — Weight used when a sentence/word is bold.
+- `fontFamily?: React.CSSProperties["fontFamily"]`
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar

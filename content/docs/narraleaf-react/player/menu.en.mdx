@@ -23,7 +23,8 @@ function DefaultMenu({items}: { items: number[] }) {
             {items.map((index) => (
                 <Item
                     key={index}
-                    className="bg-white text-black p-2 mt-2 w-1/2"
+                    className="bg-white p-2 mt-2 w-1/2"
+                    defaultColor="black"
                 />
             ))}
         </GameMenu>
@@ -60,6 +61,15 @@ GameMenu component renders the menu container. Its children are the `Item` compo
 
 Item component renders the menu item. It is a child of the `GameMenu` component.  
 
+Exported prop type: `ItemProps`.
+
 - `className?: string` - The class name of the menu item.
 - `style?: React.CSSProperties` - The style of the menu item.
 - `bindKey?: string` - The keyboard binding for this item, see [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) for more information. When this key is pressed, the item will be selected and the action will be executed.
+- `defaultColor?: Color` - Fallback text color for the choice text. If omitted, text can inherit from CSS.
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]`
+- `fontFamily?: React.CSSProperties["fontFamily"]`
+
+`Item` renders its label through the same text renderer used by dialog text. `Sentence` and `Word` styling on the choice still overrides these component defaults.
