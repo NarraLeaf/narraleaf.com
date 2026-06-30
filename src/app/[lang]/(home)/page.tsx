@@ -101,7 +101,7 @@ const homeCopy = {
       eyebrow: 'Project paths',
       title: 'Choose the path that matches the work in front of you.',
       description:
-        'Use Studio when the story is still being shaped, NarraLeaf Desktop when the novel is the app, and NarraLeaf-React when the player belongs inside an existing site or product.',
+        'Use Studio to create freely, NarraLeaf Desktop to scale quickly, or NarraLeaf-React to customize completely.',
     },
     editorIntro: {
       eyebrow: 'Studio',
@@ -125,9 +125,9 @@ const homeCopy = {
     },
     desktopIntro: {
       eyebrow: 'Desktop',
-      title: 'NarraLeaf Desktop keeps the app code next to the playable build.',
+      title: 'NarraLeaf Desktop connects code and preview seamlessly.',
       description:
-        'Work in the desktop project where window lifecycle, saves, routes, menus, and packaging stay beside the NarraLeaf runtime that players actually open.',
+        'Work in the desktop project where window lifecycle, saves, routes, menus, and packaging are wired into the same NarraLeaf runtime you preview and ship.',
       cta: 'Explore Desktop',
       href: '/narraleaf/library/main',
       codeImageAlt: 'VS Code window with a NarraLeaf Desktop project entry file open',
@@ -275,7 +275,7 @@ const homeCopy = {
       eyebrow: '项目路径',
       title: '眼前的工作，要从哪条路开始？',
       description:
-        '创作阶段用 Studio，成品发布用 NarraLeaf Desktop，嵌入网页或产品用 NarraLeaf-React。',
+        '使用 Studio 自由创作，使用 NarraLeaf Desktop 快速扩展，或使用 NarraLeaf-React 完全自定义',
     },
     editorIntro: {
       eyebrow: 'Studio',
@@ -301,7 +301,7 @@ const homeCopy = {
       eyebrow: 'Desktop',
       title: 'NarraLeaf Desktop —— 让代码与预览无缝衔接',
       description:
-        '窗口、存档、路由、菜单、打包：所有环节由 Desktop 一手把控，代码就在旁边，交付路径和故事体验永不分离。',
+        '窗口、存档、路由、菜单、打包：所有环节由 Desktop 一手把控，代码、预览与交付路径始终连在同一套 NarraLeaf 运行时里。',
       cta: '探索 Desktop',
       href: '/narraleaf/library/main',
       codeImageAlt: '打开 NarraLeaf Desktop 项目入口文件的 VS Code 窗口',
