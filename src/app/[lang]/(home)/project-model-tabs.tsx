@@ -34,8 +34,8 @@ export function ProjectModelTabs(props: ProjectModelTabsProps) {
     <div className="space-y-5">
       <div
         role="tablist"
-        aria-label="NarraLeaf project models"
-        className="flex gap-2 overflow-x-auto border-b border-black/10 pb-3 dark:border-white/10"
+        aria-label="NarraLeaf project routes"
+        className="grid gap-3 lg:grid-cols-3"
       >
         {tabs.map((tab, index) => {
           const active = index === activeIndex;
@@ -50,13 +50,18 @@ export function ProjectModelTabs(props: ProjectModelTabsProps) {
               aria-controls={`${baseId}-panel-${index}`}
               onClick={() => setActiveIndex(index)}
               className={cn(
-                'shrink-0 rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-fd-ring focus-visible:outline-none',
+                'group min-h-28 rounded-xl border p-4 text-left transition-all duration-200 focus-visible:ring-2 focus-visible:ring-fd-ring focus-visible:outline-none',
                 active
-                  ? 'border-black/15 bg-fd-card text-fd-foreground dark:border-white/15'
-                  : 'border-black/10 bg-fd-muted/35 text-fd-muted-foreground hover:bg-fd-muted/50 hover:text-fd-foreground dark:border-white/10',
+                  ? 'border-black/20 bg-fd-card text-fd-foreground shadow-sm dark:border-white/20'
+                  : 'border-black/10 bg-fd-card/65 text-fd-muted-foreground hover:-translate-y-0.5 hover:bg-fd-card hover:text-fd-foreground dark:border-white/10',
               )}
             >
-              <span className="block text-xs font-medium">{tab.label}</span>
+              <span className="block min-w-0 space-y-2">
+                <span className="block text-[11px] font-medium tracking-[0.16em] text-fd-muted-foreground uppercase">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="block text-base font-semibold tracking-tight">{tab.label}</span>
+              </span>
             </button>
           );
         })}
@@ -66,26 +71,27 @@ export function ProjectModelTabs(props: ProjectModelTabsProps) {
         id={`${baseId}-panel-${activeIndex}`}
         role="tabpanel"
         aria-labelledby={`${baseId}-tab-${activeIndex}`}
-        className="rounded-xl border border-black/10 bg-fd-card p-6 dark:border-white/10 sm:p-8"
+        className="rounded-xl border border-black/10 bg-fd-card p-6 shadow-sm dark:border-white/10 dark:bg-fd-card/85 sm:p-8"
       >
-        <div className="max-w-2xl space-y-4">
-          <h3 className="text-2xl font-semibold tracking-tight text-balance">
-            <HighlightedName text={activeTab.title} name={activeTab.name} tone={activeTab.tone} />
-          </h3>
-          <p className="text-base leading-7 text-fd-muted-foreground">{activeTab.description}</p>
-        </div>
+        <div className="grid gap-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
+          <div className="space-y-4">
+            <h3 className="text-2xl font-semibold tracking-tight text-balance">
+              <HighlightedName text={activeTab.title} name={activeTab.name} tone={activeTab.tone} />
+            </h3>
+            <p className="text-base leading-7 text-fd-muted-foreground">{activeTab.description}</p>
+          </div>
 
-        <ul className="mt-8 space-y-3 text-sm leading-6 text-fd-muted-foreground">
-          {activeTab.points.map((point) => (
-            <li key={point} className="flex gap-3">
-              <span
-                aria-hidden="true"
-                className="mt-2 size-1.5 shrink-0 rounded-full bg-fd-muted-foreground/45"
-              />
-              <span>{point}</span>
-            </li>
-          ))}
-        </ul>
+          <ol className="divide-y divide-black/10 border-y border-black/10 text-sm leading-6 text-fd-muted-foreground dark:divide-white/10 dark:border-white/10">
+            {activeTab.points.map((point, index) => (
+              <li key={point} className="grid gap-3 py-4 sm:grid-cols-[56px_1fr]">
+                <span className="font-mono text-xs font-medium tracking-[0.16em] text-fd-muted-foreground">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span>{point}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     </div>
   );

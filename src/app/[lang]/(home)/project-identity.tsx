@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 export type ProjectTone = 'studio' | 'electron' | 'react';
@@ -8,34 +8,14 @@ export type ProjectLogoKind = 'narraleaf' | 'electron' | 'react';
 export const projectTones = {
   studio: {
     accent: '#38abc6',
-    border: 'rgba(56, 171, 198, 0.42)',
-    soft: 'rgba(56, 171, 198, 0.08)',
-    text: '#258da5',
   },
   electron: {
     accent: '#1f4f8f',
-    border: 'rgba(31, 79, 143, 0.42)',
-    soft: 'rgba(31, 79, 143, 0.08)',
-    text: '#1f4f8f',
   },
   react: {
     accent: '#f97316',
-    border: 'rgba(249, 115, 22, 0.42)',
-    soft: 'rgba(249, 115, 22, 0.09)',
-    text: '#ea580c',
   },
-} satisfies Record<ProjectTone, Record<'accent' | 'border' | 'soft' | 'text', string>>;
-
-export function projectToneStyle(tone: ProjectTone): CSSProperties {
-  const colors = projectTones[tone];
-
-  return {
-    '--project-accent': colors.accent,
-    '--project-accent-border': colors.border,
-    '--project-accent-soft': colors.soft,
-    '--project-accent-text': colors.text,
-  } as CSSProperties;
-}
+} satisfies Record<ProjectTone, { accent: string }>;
 
 export function BrandUnderline(props: { tone: ProjectTone; children: ReactNode }) {
   const { tone, children } = props;

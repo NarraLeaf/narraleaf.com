@@ -1,6 +1,6 @@
 {
-  "title": "NarraLeaf",
-  "description": "NarraLeaf 引擎的运行时、渲染器与 CLI 文档。",
+  "title": "NarraLeaf Desktop",
+  "description": "NarraLeaf Desktop 的运行时、渲染器与 CLI 文档。",
   "defaultOpen": true,
   "pages": [
     "index",

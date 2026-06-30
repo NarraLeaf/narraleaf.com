@@ -4,8 +4,8 @@ import { type Locale, i18n, localizedPath } from './i18n';
 const localizedTabs = {
   en: [
     {
-      title: 'NarraLeaf',
-      description: 'Library and CLI docs for the desktop engine toolchain.',
+      title: 'NarraLeaf Desktop',
+      description: 'Library and CLI docs for the desktop app toolchain.',
       path: 'narraleaf/library',
     },
     {
@@ -21,8 +21,8 @@ const localizedTabs = {
   ],
   zh: [
     {
-      title: 'NarraLeaf',
-      description: '面向桌面引擎工具链的 Library 与 CLI 文档。',
+      title: 'NarraLeaf Desktop',
+      description: '面向桌面应用工具链的 Library 与 CLI 文档。',
       path: 'narraleaf/library',
     },
     {

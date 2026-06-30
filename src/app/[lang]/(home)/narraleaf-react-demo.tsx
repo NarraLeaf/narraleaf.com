@@ -1,4 +1,8 @@
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { type Locale, localizedPath } from '@/lib/i18n';
+import { DemoPreviewFrame } from './demo-preview-frame';
+import { LayeredDemoShowcase } from './layered-demo-showcase';
 import { HighlightedName } from './project-identity';
 
 type EmbedDemoCopy = {
@@ -45,7 +49,7 @@ function syntaxHighlight(line: string) {
 
 function ScriptPreview(props: { copy: EmbedDemoCopy }) {
   const { copy } = props;
-  const emphasizedLines = new Set(Array.from({ length: 12 }, (_, index) => index + 12));
+  const emphasizedLines = new Set(Array.from({ length: 9 }, (_, index) => index + 6));
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-[#071016] shadow-[0_24px_70px_rgba(8,47,73,0.24)] ring-1 ring-cyan-300/20 dark:shadow-[0_24px_80px_rgba(0,0,0,0.55)] dark:ring-cyan-200/15">
@@ -79,32 +83,45 @@ function ScriptPreview(props: { copy: EmbedDemoCopy }) {
 
 export function NarraLeafReactDemo(props: NarraLeafReactDemoProps) {
   const { copy, locale } = props;
+  const isZh = locale === 'zh';
+  const docsHref = localizedPath('/docs/narraleaf-react', locale);
+  const docsLabel = isZh ? '阅读 React 文档' : 'Read React Docs';
 
   return (
     <section className="border-b border-black/10 dark:border-white/10">
-      <div className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
-        <div className="max-w-3xl space-y-4">
-          <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            <HighlightedName text={copy.title} name="NarraLeaf-React" tone="react" />
-          </h2>
-          <p className="text-base leading-7 text-fd-muted-foreground sm:text-lg">
-            {copy.description}
-          </p>
+      <div className="mx-auto w-full max-w-6xl px-6 pt-16 pb-10 sm:pt-20 sm:pb-12">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-4">
+            <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+              <HighlightedName text={copy.title} name="NarraLeaf-React" tone="react" />
+            </h2>
+            <p className="text-base leading-7 text-fd-muted-foreground sm:text-lg">
+              {copy.description}
+            </p>
+          </div>
+
+          <Link
+            href={docsHref}
+            className="inline-flex w-fit items-center justify-center gap-2 rounded-lg border border-black/10 px-5 py-3 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:bg-fd-card dark:border-white/10"
+          >
+            {docsLabel}
+            <ArrowRight className="size-4" />
+          </Link>
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[1.02fr_0.98fr] lg:items-start">
-          <ScriptPreview copy={copy} />
-
-          <div className="relative aspect-video overflow-hidden rounded-2xl border border-black/10 bg-fd-card p-2 shadow-sm dark:border-white/10">
-            <iframe
+        <LayeredDemoShowcase
+          code={<ScriptPreview copy={copy} />}
+          demo={
+            <DemoPreviewFrame
               src={localizedPath('/nlr-demo-frame', locale)}
               title="NarraLeaf-React embedded demo"
-              className="h-full w-full rounded-xl bg-[#eef8fb]"
-              loading="lazy"
-              style={{ border: 0 }}
+              expandLabel={isZh ? '放大演示' : 'Expand demo'}
+              collapseLabel={isZh ? '收起演示' : 'Collapse demo'}
             />
-          </div>
-        </div>
+          }
+          codeLabel={isZh ? '代码示例窗口' : 'Code example window'}
+          demoLabel={isZh ? '实时演示窗口' : 'Live demo window'}
+        />
       </div>
     </section>
   );

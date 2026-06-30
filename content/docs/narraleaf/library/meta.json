@@ -1,6 +1,6 @@
 {
-  "title": "NarraLeaf",
-  "description": "Runtime, renderer, and CLI documentation for the NarraLeaf engine.",
+  "title": "NarraLeaf Desktop",
+  "description": "Runtime, renderer, and CLI documentation for NarraLeaf Desktop.",
   "defaultOpen": true,
   "pages": [
     "index",

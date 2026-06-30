@@ -27,3 +27,6 @@ next-env.d.ts
 
 #error log
 next-dev-*.log
+
+# Codex
+.codex-hatch

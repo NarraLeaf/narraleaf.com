@@ -1,16 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BookOpen } from 'lucide-react';
-import { docsRoute } from '@/lib/shared';
+import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
+import { appName, docsRoute, gitConfig, projectRoute, siteIconPath } from '@/lib/shared';
 import { type Locale, localizedPath } from '@/lib/i18n';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
 import { ProjectModelTabs, type ProjectModelTabCopy } from './project-model-tabs';
+import { DesktopDemoShowcase } from './desktop-demo-showcase';
 import {
   HighlightedName,
   ProductLogo,
   type ProjectLogoKind,
   type ProjectTone,
-  projectToneStyle,
 } from './project-identity';
 import { NarraLeafReactDemo } from './narraleaf-react-demo';
 
@@ -49,62 +49,103 @@ type EditorIntroCopy = SectionCopy & {
   };
 };
 
+type DesktopIntroCopy = SectionCopy & {
+  cta: string;
+  href: string;
+  codeImageAlt: string;
+  demoSlideAlts: string[];
+  slideControls: {
+    previous: string;
+    next: string;
+    goToSlide: string;
+  };
+};
+
 type EmbedDemoCopy = SectionCopy & {
   code: string[];
+};
+
+type FooterCopy = {
+  navigationLabel: string;
+  projectLabel: string;
+  docsLabel: string;
+  sourceLabel: string;
+  copyright: string;
 };
 
 type HomePageCopy = {
   hero: HeroCopy;
   solutionIntro: SectionCopy;
   editorIntro: EditorIntroCopy;
+  desktopIntro: DesktopIntroCopy;
   projectModelIntro: SectionCopy;
   projectModelTabs: ProjectModelTabCopy[];
   solutions: SolutionCard[];
   embedDemo: EmbedDemoCopy;
+  bottomCta: Omit<SectionCopy, 'eyebrow'>;
+  footer: FooterCopy;
 };
 
 const homeCopy = {
   en: {
     hero: {
-      eyebrow: 'NarraLeaf Project',
+      eyebrow: '',
       title: 'Visual novels, built like modern software.',
       description:
-        'NarraLeaf Project connects visual authoring, desktop application delivery, and React embedding in one ecosystem for story-driven experiences.',
-      primaryCta: 'Explore Project',
-      secondaryCta: 'Read Docs',
-      imageAlt: 'NarraLeaf Studio editor showing a visual novel project workspace',
+        'One project system for building, shipping, and embedding visual novels.',
+      primaryCta: 'Explore the Project',
+      secondaryCta: 'Browse the Docs',
+      imageAlt: 'NarraLeaf Studio workspace with a visual novel project open',
     },
     solutionIntro: {
-      eyebrow: 'Project Paths',
-      title: 'Start with where your story will live.',
+      eyebrow: 'Project paths',
+      title: 'Choose the path that matches the work in front of you.',
       description:
-        'Some stories need a visual workspace first. Some are the whole desktop app. Some live inside a React product. NarraLeaf Project keeps those choices connected by the same story model.',
+        'Use Studio when the story is still being shaped, NarraLeaf Desktop when the novel is the app, and NarraLeaf-React when the player belongs inside an existing site or product.',
     },
     editorIntro: {
-      eyebrow: 'Studio Path',
-      title: 'Explore the NarraLeaf Studio path.',
+      eyebrow: 'Studio',
+      title: 'NarraLeaf Studio shapes the project where creators can see it.',
       description:
-        'NarraLeaf Studio is one entry point in the project: a focused workspace for shaping scenes, interfaces, and assets visually before the work moves deeper into delivery.',
+        'NarraLeaf Studio brings asset management, interface editing, immersive narrative work, and team collaboration into one editor built for visual novel production.',
       cta: 'Explore Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio interface editor with a selected menu layout',
-        'NarraLeaf Studio workspace showing the visual novel production editor',
-        'NarraLeaf Studio dark editor workspace with project panels',
+        'NarraLeaf Studio interface editor with a menu layout selected',
+        'NarraLeaf Studio workspace with a visual novel project open',
+        'NarraLeaf Studio dark project workspace with side panels',
       ],
       slideControls: {
-        previous: 'Previous interface editor feature',
-        next: 'Next interface editor feature',
-        goToSlide: 'Show interface editor feature',
-        openPreview: 'Open enlarged interface editor feature',
-        closePreview: 'Close enlarged interface editor feature',
+        previous: 'Previous Studio preview',
+        next: 'Next Studio preview',
+        goToSlide: 'Show Studio preview',
+        openPreview: 'Open enlarged Studio preview',
+        closePreview: 'Close enlarged Studio preview',
+      },
+    },
+    desktopIntro: {
+      eyebrow: 'Desktop',
+      title: 'NarraLeaf Desktop keeps the app code next to the playable build.',
+      description:
+        'Work in the desktop project where window lifecycle, saves, routes, menus, and packaging stay beside the NarraLeaf runtime that players actually open.',
+      cta: 'Explore Desktop',
+      href: '/narraleaf/library/main',
+      codeImageAlt: 'VS Code window with a NarraLeaf Desktop project entry file open',
+      demoSlideAlts: [
+        'NarraLeaf Desktop visual novel demo with a dialogue UI open',
+        'NarraLeaf Desktop visual novel demo showing the load game menu',
+      ],
+      slideControls: {
+        previous: 'Previous Desktop demo preview',
+        next: 'Next Desktop demo preview',
+        goToSlide: 'Show Desktop demo preview',
       },
     },
     projectModelIntro: {
-      eyebrow: 'Project Model',
-      title: 'A project model for visual novels.',
+      eyebrow: 'Project architecture',
+      title: 'A modern project shape, not a traditional editor box.',
       description:
-        'NarraLeaf Project separates the authoring room, the desktop application, and the embedded player so each project can own the layer it is actually good at.',
+        'NarraLeaf separates production work, desktop runtime, and embedded playback as first-class routes in the same project. Each route has its own job, but the story never has to become a disconnected export.',
     },
     projectModelTabs: [
       {
@@ -112,27 +153,27 @@ const homeCopy = {
         name: 'NarraLeaf Studio',
         tone: 'studio',
         logo: 'narraleaf',
-        title: 'NarraLeaf Studio is the authoring room.',
+        title: 'NarraLeaf Studio handles production work.',
         description:
-          'Studio is for the moment when the project is still being shaped: what scenes exist, how the interface behaves, which assets belong together, and what the production state looks like.',
+          'Studio is the editor where production stays together: assets, interface states, narrative flow, and collaboration context live in the same workspace.',
         points: [
-          'Map story flow before it turns into application code.',
-          'Keep scene structure, interface states, and asset decisions visible together.',
-          'Hand off naturally when the project needs runtime or delivery work.',
+          'Manage project assets where scenes and UI decisions are made.',
+          'Edit interfaces beside the immersive story flow they belong to.',
+          'Keep production context visible for teams instead of scattering work across separate tools.',
         ],
       },
       {
-        label: 'NarraLeaf',
-        name: 'NarraLeaf',
+        label: 'NarraLeaf Desktop',
+        name: 'NarraLeaf Desktop',
         tone: 'electron',
         logo: 'electron',
-        title: 'NarraLeaf turns the story into an application.',
+        title: 'NarraLeaf Desktop handles the shipped application.',
         description:
-          'This path is for visual novels that need to behave like real desktop software: windows, saves, menus, routes, packaging, platform delivery, and a renderer that knows where the story lives.',
+          'Desktop is where the visual novel becomes software players can open: window lifecycle, routes, saves, menus, packaging, and runtime behavior belong here.',
         points: [
-          'Own the window, save system, menus, packaging, and renderer in one application path.',
-          'Keep Electron app decisions next to NarraLeaf runtime decisions.',
-          'Use it when the visual novel itself is the shipped product.',
+          'Build the playable app beside the code that controls it.',
+          'Keep Electron, renderer, and NarraLeaf runtime decisions in one place.',
+          'Use it when the visual novel is the product, not a page inside another app.',
         ],
       },
       {
@@ -140,13 +181,13 @@ const homeCopy = {
         name: 'NarraLeaf-React',
         tone: 'react',
         logo: 'react',
-        title: 'NarraLeaf-React lives inside your product.',
+        title: 'NarraLeaf-React handles embedded playback.',
         description:
-          'Use this path when the visual novel is part of a site, product page, campaign, documentation experience, or custom interface. The player owns story playback; React owns everything around it.',
+          'React is for bringing the story into a web product without making the surrounding app pretend to be a visual novel engine.',
         points: [
-          'Mount the player inside an existing React route or product surface.',
-          'Let NarraLeaf handle scene playback while your app keeps layout, data, and design system.',
-          'Use it for sites, campaigns, docs, or products where the story is one part of the interface.',
+          'Mount the player inside an existing React surface.',
+          'Let the host app keep layout, data, auth, and product UI.',
+          'Use it when the story is a feature inside a larger experience.',
         ],
       },
     ],
@@ -154,97 +195,131 @@ const homeCopy = {
       {
         title: 'NarraLeaf Studio',
         description:
-          'A visual workspace for writing story flow, building interfaces, and organizing assets.',
-        audience: 'Best when creators need to start from content and production flow.',
+          'A production editor for assets, interfaces, immersive storytelling, and collaboration.',
+        audience: 'For teams that need one place to shape the visual novel before delivery work begins.',
         href: '/studio',
-        cta: 'Run Studio',
+        cta: 'Explore Studio',
         tone: 'studio',
         logo: 'narraleaf',
       },
       {
-        title: 'NarraLeaf',
-        description: 'A desktop application toolchain for runtime, renderer, CLI, and app delivery.',
-        audience: 'Best when the story needs to ship as a complete cross-platform application.',
+        title: 'NarraLeaf Desktop',
+        description: 'A desktop application path for runtime, renderer, saves, packaging, and release work.',
+        audience: 'For projects that need to become a standalone visual novel application.',
         href: '/narraleaf/library/main',
-        cta: 'app.launch()',
+        cta: 'Explore Desktop',
         tone: 'electron',
         logo: 'electron',
       },
       {
         title: 'NarraLeaf-React',
-        description: 'A React player for embedding visual novel playback in your own product UI.',
-        audience: 'Best when NarraLeaf is one part of a larger web application.',
+        description: 'A React player for placing visual novel scenes inside your own interface.',
+        audience: 'For products where the story supports a larger web experience.',
         href: '/narraleaf-react',
-        cta: '<Player story={story} />',
+        cta: 'Explore React Player',
         tone: 'react',
         logo: 'react',
       },
     ],
     embedDemo: {
-      eyebrow: 'React Player',
-      title: 'A closer look at NarraLeaf-React.',
+      eyebrow: 'React player',
+      title: 'NarraLeaf-React stays inside the page.',
       description:
-        'Drop the player into an existing React page, then let the story script handle the scene, Narra, styled dialogue, and choices inside the same frame.',
+        'The player can sit beside the rest of your React UI while the script controls backgrounds, characters, dialogue, and choices inside the frame.',
       code: [
         'introScene.background.char("/room.jpg", new FadeIn(600)),',
         '',
         'narraImage.show({ duration: 600 }),',
-        'narraImage.transform(Transform.create().position({ yoffset: -24 }).commit({ duration: 260 })),',
+        'narraImage.transform(',
+        '  Transform.create()',
+        '    .position({ yoffset: -24 })',
+        '    .commit({ duration: 260 })',
+        '),',
         '',
-        'narrator.say`This player is mounted inside the page.`',
+        'narrator.say`The scene starts here, inside this page.`',
         '',
-        'narra.say`Text can carry ${c("color", "#7dd3fc")}.`,',
+        'narra.say`The line can still carry ${c("color", "#7dd3fc")}.`,',
         '',
-        'Menu.prompt("What should happen next?")',
-        '  .choose("Change the background", [',
-        '    narra.say`Sure. Let me step out first.`,',
+        'Menu.prompt("Where should the scene go?")',
+        '  .choose("Change the room", [',
+        '    narra.say`Give me a second to step aside.`,',
         '    narraImage.hide({ duration: 500 }),',
         '    introScene.jumpTo(featureScene, new Dissolve(500)),',
         '  ]),',
       ],
     },
+    bottomCta: {
+      title: 'A good place to start.',
+      description:
+        'The project overview gives you the shape of NarraLeaf. When you want the details, the docs are ready beside it.',
+    },
+    footer: {
+      navigationLabel: 'Footer navigation',
+      projectLabel: 'Project',
+      docsLabel: 'Docs',
+      sourceLabel: 'GitHub',
+      copyright: 'NarraLeaf Project.',
+    },
   },
   zh: {
     hero: {
       eyebrow: 'NarraLeaf Project',
-      title: '用现代软件方式构建视觉小说',
+      title: '像现代软件一样构建视觉小说。',
       description:
-        'NarraLeaf Project 将可视化创作、桌面应用交付和 React 嵌入放在同一个生态里，用于构建以故事为核心的互动体验。',
+        '一套用于构建、发布和嵌入视觉小说的项目系统。',
       primaryCta: '探索项目',
-      secondaryCta: '阅读文档',
-      imageAlt: 'NarraLeaf Studio 编辑器中的视觉小说项目工作区',
+      secondaryCta: '浏览文档',
+      imageAlt: '打开视觉小说项目的 NarraLeaf Studio 工作区',
     },
     solutionIntro: {
       eyebrow: '项目路径',
-      title: '从故事最终要去的地方开始。',
+      title: '先看眼前的工作需要哪条路。',
       description:
-        '有的项目先需要一个可视化制作空间，有的最终就是桌面应用，有的只是 React 产品中的一段体验。NarraLeaf Project 用同一套故事模型把这些选择连在一起。',
+        '故事还在打磨时用 Studio；视觉小说本身就是成品时用 NarraLeaf Desktop；需要嵌进网站或产品里时用 NarraLeaf-React。',
     },
     editorIntro: {
-      eyebrow: 'Studio 路径',
-      title: '探索 NarraLeaf Studio 路径',
+      eyebrow: 'Studio',
+      title: 'NarraLeaf Studio 是创作者看得见的制作台。',
       description:
-        'NarraLeaf Studio 是 Project 的一个入口：用集中的工作区可视化组织场景、界面和素材，然后在需要时继续进入交付流程。',
-      cta: 'Explore Studio',
+        'NarraLeaf Studio 把资产管理、界面编辑、沉浸叙事和团队协作放进同一个为视觉小说制作而设计的编辑器。',
+      cta: '探索 Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio 界面编辑器中选中菜单布局的画面',
-        'NarraLeaf Studio 可视化制作工作区的画面',
-        'NarraLeaf Studio 暗色编辑器工作区的画面',
+        'NarraLeaf Studio 界面编辑器中被选中的菜单布局',
+        'NarraLeaf Studio 中打开的视觉小说制作工作区',
+        'NarraLeaf Studio 暗色项目工作区',
       ],
       slideControls: {
-        previous: '上一张界面编辑器特性',
-        next: '下一张界面编辑器特性',
-        goToSlide: '显示界面编辑器特性',
-        openPreview: '放大界面编辑器特性',
-        closePreview: '关闭放大的界面编辑器特性',
+        previous: '上一张 Studio 预览',
+        next: '下一张 Studio 预览',
+        goToSlide: '显示 Studio 预览',
+        openPreview: '放大 Studio 预览',
+        closePreview: '关闭预览',
+      },
+    },
+    desktopIntro: {
+      eyebrow: 'Desktop',
+      title: 'NarraLeaf Desktop 让应用代码和可游玩版本并排推进。',
+      description:
+        '在桌面项目里处理窗口、存档、路由、菜单和打包；运行中的视觉小说就贴在代码旁边，交付路径不会和故事运行时分离。',
+      cta: '探索 Desktop',
+      href: '/narraleaf/library/main',
+      codeImageAlt: '打开 NarraLeaf Desktop 项目入口文件的 VS Code 窗口',
+      demoSlideAlts: [
+        '打开对白界面的 NarraLeaf Desktop 视觉小说演示',
+        '显示读取存档菜单的 NarraLeaf Desktop 视觉小说演示',
+      ],
+      slideControls: {
+        previous: '上一张 Desktop 演示预览',
+        next: '下一张 Desktop 演示预览',
+        goToSlide: '显示 Desktop 演示预览',
       },
     },
     projectModelIntro: {
-      eyebrow: '项目模型',
-      title: '为视觉小说而设计的项目模型。',
+      eyebrow: '项目结构',
+      title: '不是传统编辑器盒子，而是现代项目结构。',
       description:
-        'NarraLeaf Project 把创作空间、桌面应用和嵌入式播放器拆成各自清楚的层，让每个项目负责自己真正擅长的部分。',
+        'NarraLeaf 把制作工作、桌面运行时和网页嵌入拆成同一个项目里的三条一等路线。每条路线负责自己的工作，但故事不用被导出成彼此割裂的文件。',
     },
     projectModelTabs: [
       {
@@ -252,27 +327,27 @@ const homeCopy = {
         name: 'NarraLeaf Studio',
         tone: 'studio',
         logo: 'narraleaf',
-        title: 'NarraLeaf Studio 是创作现场。',
+        title: 'NarraLeaf Studio 负责制作现场。',
         description:
-          'Studio 面向项目还在被塑形的阶段：有哪些场景，界面如何表现，素材如何归类，制作状态推进到哪里。这些决定应该先有一个可以看见的地方。',
+          'Studio 是把制作工作收在一起的编辑器：素材、界面状态、叙事流程和协作上下文都在同一个工作区里。',
         points: [
-          '在进入应用代码前，先把故事流和制作状态铺开。',
-          '场景结构、界面状态和素材判断可以放在同一张工作台上。',
-          '当项目需要运行时或交付时，再自然进入后续路径。',
+          '在做场景和界面决定的地方直接管理项目素材。',
+          '界面编辑和沉浸叙事流程放在一起推进。',
+          '让团队协作上下文留在制作现场，而不是分散到多个工具里。',
         ],
       },
       {
-        label: 'NarraLeaf',
-        name: 'NarraLeaf',
+        label: 'NarraLeaf Desktop',
+        name: 'NarraLeaf Desktop',
         tone: 'electron',
         logo: 'electron',
-        title: 'NarraLeaf 把故事变成应用。',
+        title: 'NarraLeaf Desktop 负责发布出来的应用。',
         description:
-          '这条路径面向需要像桌面软件一样工作的视觉小说：窗口、存档、菜单、路由、打包、平台交付，以及知道故事应该放在哪里的 renderer。',
+          'Desktop 是视觉小说成为玩家真正打开的软件的地方：窗口生命周期、路由、存档、菜单、打包和运行时行为都属于这里。',
         points: [
-          '把窗口、存档、菜单、打包和 renderer 放进同一条应用路径。',
-          '让 Electron 的应用决策和 NarraLeaf 的 runtime 决策靠在一起。',
-          '适合视觉小说本身就是最终交付产品的项目。',
+          '可游玩的应用和控制它的代码并排构建。',
+          'Electron、renderer 和 NarraLeaf 运行时决策放在同一个地方。',
+          '适合视觉小说本身就是产品，而不是另一个应用里的页面。',
         ],
       },
       {
@@ -280,67 +355,83 @@ const homeCopy = {
         name: 'NarraLeaf-React',
         tone: 'react',
         logo: 'react',
-        title: 'NarraLeaf-React 放在你的产品里。',
+        title: 'NarraLeaf-React 负责嵌入式播放。',
         description:
-          '当视觉小说是网站、产品页、活动页、文档体验或自定义界面的一部分时，使用这条路径。播放器负责故事播放，React 继续负责它周围的一切。',
+          'React 路线用于把故事放进 Web 产品里，而不是让外层应用被迫变成一套视觉小说引擎。',
         points: [
-          '把播放器挂进现有 React 路由或产品界面里。',
-          'NarraLeaf 负责场景播放，外层应用继续负责布局、数据和设计系统。',
-          '适合网站、活动页、文档或产品中需要一段视觉小说体验的场景。',
+          '播放器可以挂进已有的 React 界面。',
+          '外层应用继续负责布局、数据、账号和产品 UI。',
+          '适合故事是更大产品体验中的一个功能。',
         ],
       },
     ],
     solutions: [
       {
         title: 'NarraLeaf Studio',
-        description: '用于编写故事流程、制作界面和组织素材的可视化工作区。',
-        audience: '适合需要从内容和制作流程开始的创作者。',
+        description: '面向资产、界面、沉浸叙事和团队协作的制作编辑器。',
+        audience: '适合需要在交付前用一个地方推进视觉小说制作的团队。',
         href: '/studio',
-        cta: 'Run Studio',
+        cta: '探索 Studio',
         tone: 'studio',
         logo: 'narraleaf',
       },
       {
-        title: 'NarraLeaf',
-        description: '用于 runtime、renderer、CLI 和应用交付的桌面应用工具链。',
-        audience: '适合需要把故事交付成完整跨平台应用的项目。',
+        title: 'NarraLeaf Desktop',
+        description: '用于运行时、renderer、存档、打包和发布工作的桌面应用路径。',
+        audience: '适合要发布成独立视觉小说应用的项目。',
         href: '/narraleaf/library/main',
-        cta: 'app.launch()',
+        cta: '探索 Desktop',
         tone: 'electron',
         logo: 'electron',
       },
       {
         title: 'NarraLeaf-React',
-        description: '用于把视觉小说播放嵌入自有产品 UI 的 React 播放器。',
-        audience: '适合 NarraLeaf 只是更大 Web 应用一部分的项目。',
+        description: '用于把视觉小说场景放进自有界面的 React 播放器。',
+        audience: '适合故事服务于更大 Web 体验的产品。',
         href: '/narraleaf-react',
-        cta: '<Player story={story} />',
+        cta: '探索 React 播放器',
         tone: 'react',
         logo: 'react',
       },
     ],
     embedDemo: {
       eyebrow: 'React 播放器',
-      title: '进一步看看 NarraLeaf-React。',
+      title: 'NarraLeaf-React 留在页面里。',
       description:
-        '把播放器放进现有 React 页面，再让故事脚本在同一个画面里处理场景、Narra 立绘、带样式的对白和选项。',
+        '播放器可以和你的 React 界面并排存在；脚本继续在画面里控制背景、角色、对白和选项。',
       code: [
         'introScene.background.char("/room.jpg", new FadeIn(600)),',
         '',
         'narraImage.show({ duration: 600 }),',
-        'narraImage.transform(Transform.create().position({ yoffset: -24 }).commit({ duration: 260 })),',
+        'narraImage.transform(',
+        '  Transform.create()',
+        '    .position({ yoffset: -24 })',
+        '    .commit({ duration: 260 })',
+        '),',
         '',
-        'narrator.say`播放器就嵌在这个页面里。`',
+        'narrator.say`这个场景就从页面里开始。`',
         '',
-        'narra.say`文本里可以有 ${c("颜色", "#7dd3fc")}。`,',
+        'narra.say`台词仍然可以带上 ${c("颜色", "#7dd3fc")}。`,',
         '',
-        'Menu.prompt("接下来试哪一步？")',
-        '  .choose("切换背景", [',
-        '    narra.say`好，我先退场。`,',
+        'Menu.prompt("接下来去哪里？")',
+        '  .choose("换到房间另一边", [',
+        '    narra.say`等我先让出画面。`,',
         '    narraImage.hide({ duration: 500 }),',
         '    introScene.jumpTo(featureScene, new Dissolve(500)),',
         '  ]),',
       ],
+    },
+    bottomCta: {
+      title: '可以从项目概览开始。',
+      description:
+        '项目概览会先交代 NarraLeaf 的整体结构；想继续深入时，文档就在旁边。',
+    },
+    footer: {
+      navigationLabel: '页脚导航',
+      projectLabel: '项目',
+      docsLabel: '文档',
+      sourceLabel: 'GitHub',
+      copyright: 'NarraLeaf Project. 保留所有权利。',
     },
   },
 } satisfies Record<Locale, HomePageCopy>;
@@ -349,6 +440,13 @@ const editorSlideImages = [
   '/static/img/ui-editor-slides/feature-1.png',
   '/static/img/ui-editor-slides/feature-2.png',
   '/static/img/ui-editor-slides/feature-3.png',
+] as const;
+
+const desktopCodeImage = '/static/img/home/desktop-code.png';
+
+const desktopDemoSlideImages = [
+  '/static/img/home/desktop-game-dialog.png',
+  '/static/img/home/desktop-game-menu.png',
 ] as const;
 
 function SectionIntro(props: { title: string; description: string }) {
@@ -362,14 +460,45 @@ function SectionIntro(props: { title: string; description: string }) {
   );
 }
 
+function CtaLinks(props: {
+  projectUrl: string;
+  docsUrl: string;
+  primaryLabel: string;
+  secondaryLabel: string;
+}) {
+  const { projectUrl, docsUrl, primaryLabel, secondaryLabel } = props;
+
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row">
+      <Link
+        href={projectUrl}
+        className="inline-flex items-center justify-center gap-2 rounded-lg bg-fd-primary px-5 py-3 text-sm font-medium text-white transition-transform duration-200 hover:-translate-y-0.5"
+      >
+        {primaryLabel}
+        <ArrowRight className="size-4" />
+      </Link>
+      <Link
+        href={docsUrl}
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-black/10 px-5 py-3 text-sm font-medium transition-colors duration-200 hover:bg-fd-card dark:border-white/10"
+      >
+        {secondaryLabel}
+        <BookOpen className="size-4" />
+      </Link>
+    </div>
+  );
+}
+
 export default async function HomePage(props: PageProps<'/[lang]'>) {
   const { lang } = await props.params;
   const locale = lang as Locale;
   const copy = homeCopy[locale];
+  const projectUrl = localizedPath(projectRoute, locale);
   const docsUrl = (path = '') => localizedPath(`${docsRoute}${path}`, locale);
+  const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
 
   return (
-    <main className="flex flex-1 flex-col">
+    <>
+      <main className="flex flex-1 flex-col">
       <section className="relative overflow-hidden border-b border-black/10 dark:border-white/10 lg:overflow-visible">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-20 sm:py-24 lg:min-h-[760px] lg:flex-row lg:items-center lg:gap-10 lg:py-24 xl:gap-16">
           <div className="relative z-10 max-w-2xl space-y-8 lg:w-[40%] lg:shrink-0">
@@ -385,22 +514,12 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/project"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-fd-primary px-5 py-3 text-sm font-medium text-white transition-transform duration-200 hover:-translate-y-0.5"
-              >
-                {copy.hero.primaryCta}
-                <ArrowRight className="size-4" />
-              </Link>
-              <Link
-                href={docsUrl()}
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-black/10 px-5 py-3 text-sm font-medium transition-colors duration-200 hover:bg-fd-card dark:border-white/10"
-              >
-                {copy.hero.secondaryCta}
-                <BookOpen className="size-4" />
-              </Link>
-            </div>
+            <CtaLinks
+              projectUrl={projectUrl}
+              docsUrl={docsUrl()}
+              primaryLabel={copy.hero.primaryCta}
+              secondaryLabel={copy.hero.secondaryCta}
+            />
           </div>
 
           <div className="group relative z-20 -mx-6 h-[330px] overflow-visible sm:h-[420px] lg:mx-0 lg:h-[560px] lg:min-w-0 lg:flex-1 xl:h-[620px]">
@@ -440,8 +559,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
               return (
                 <article
                   key={solution.title}
-                  style={projectToneStyle(solution.tone)}
-                  className="flex h-full flex-col rounded-xl border border-black/10 bg-fd-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[color:var(--project-accent-border)] dark:border-white/10"
+                  className="flex h-full flex-col rounded-xl border border-black/10 bg-fd-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-black/15 dark:border-white/10 dark:hover:border-white/15"
                 >
                   <div className="flex items-center gap-3">
                     <ProductLogo logo={solution.logo} className="size-10" />
@@ -474,9 +592,9 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
       </section>
 
       <section className="border-b border-black/10 dark:border-white/10">
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
-          <div className="max-w-xl space-y-7">
-            <div className="space-y-4">
+        <div className="mx-auto w-full max-w-6xl px-6 pt-16 pb-10 sm:pt-20 sm:pb-12">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-4">
               <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
                 <HighlightedName
                   text={copy.editorIntro.title}
@@ -491,22 +609,65 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
 
             <Link
               href={docsUrl(copy.editorIntro.href)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-black/10 bg-transparent px-5 py-3 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:bg-fd-card dark:border-white/10"
+              className="inline-flex w-fit items-center justify-center gap-2 rounded-lg border border-black/10 px-5 py-3 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:bg-fd-card dark:border-white/10"
             >
               {copy.editorIntro.cta}
               <ArrowRight className="size-4" />
             </Link>
           </div>
 
-          <UiEditorSlideshow
-            slides={editorSlideImages.map((src, index) => ({
+          <div className="mx-auto mt-8 w-full max-w-[900px] rounded-xl shadow-[0_28px_80px_rgba(0,0,0,0.22)] dark:shadow-[0_28px_90px_rgba(0,0,0,0.48)] sm:mt-10">
+            <UiEditorSlideshow
+              slides={editorSlideImages.map((src, index) => ({
+                src,
+                alt: copy.editorIntro.slideAlts[index],
+              }))}
+              labels={copy.editorIntro.slideControls}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-black/10 dark:border-white/10">
+        <div className="mx-auto w-full max-w-6xl px-6 pt-16 pb-10 sm:pt-20 sm:pb-12">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl space-y-4">
+              <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+                <HighlightedName
+                  text={copy.desktopIntro.title}
+                  name="NarraLeaf Desktop"
+                  tone="electron"
+                />
+              </h2>
+              <p className="text-base leading-7 text-fd-muted-foreground sm:text-lg">
+                {copy.desktopIntro.description}
+              </p>
+            </div>
+
+            <Link
+              href={docsUrl(copy.desktopIntro.href)}
+              className="inline-flex w-fit items-center justify-center gap-2 rounded-lg border border-black/10 px-5 py-3 text-sm font-medium transition-all duration-200 hover:-translate-y-0.5 hover:bg-fd-card dark:border-white/10"
+            >
+              {copy.desktopIntro.cta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          <DesktopDemoShowcase
+            codeImage={{
+              src: desktopCodeImage,
+              alt: copy.desktopIntro.codeImageAlt,
+            }}
+            slides={desktopDemoSlideImages.map((src, index) => ({
               src,
-              alt: copy.editorIntro.slideAlts[index],
+              alt: copy.desktopIntro.demoSlideAlts[index],
             }))}
-            labels={copy.editorIntro.slideControls}
+            labels={copy.desktopIntro.slideControls}
           />
         </div>
       </section>
+
+        <NarraLeafReactDemo copy={copy.embedDemo} locale={locale} />
 
       <section className="border-b border-black/10 dark:border-white/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
@@ -521,7 +682,70 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
         </div>
       </section>
 
-      <NarraLeafReactDemo copy={copy.embedDemo} locale={locale} />
-    </main>
+        <section className="border-t border-b border-black/10 bg-fd-card/45 dark:border-white/10">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-16 sm:py-20 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl space-y-4">
+              <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+                {copy.bottomCta.title}
+              </h2>
+              <p className="text-base leading-7 text-fd-muted-foreground sm:text-lg">
+                {copy.bottomCta.description}
+              </p>
+            </div>
+
+            <CtaLinks
+              projectUrl={projectUrl}
+              docsUrl={docsUrl()}
+              primaryLabel={copy.hero.primaryCta}
+              secondaryLabel={copy.hero.secondaryCta}
+            />
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-fd-background">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 sm:py-12 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-md space-y-4">
+            <Link href={localizedPath('/', locale)} className="inline-flex items-center gap-3 font-semibold">
+              <Image
+                src={siteIconPath}
+                alt=""
+                width={32}
+                height={32}
+                className="size-8 shrink-0 rounded-sm"
+                unoptimized
+              />
+              <span>{appName}</span>
+            </Link>
+          </div>
+
+          <nav
+            aria-label={copy.footer.navigationLabel}
+            className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium"
+          >
+            <Link href={projectUrl} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
+              {copy.footer.projectLabel}
+            </Link>
+            <Link href={docsUrl()} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
+              {copy.footer.docsLabel}
+            </Link>
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
+            >
+              <ExternalLink className="size-4" />
+              {copy.footer.sourceLabel}
+            </a>
+          </nav>
+        </div>
+        <div className="border-t border-black/10 dark:border-white/10">
+          <div className="mx-auto w-full max-w-6xl px-6 py-5 text-xs text-fd-muted-foreground">
+            &copy; {copy.footer.copyright}
+          </div>
+        </div>
+      </footer>
+    </>
   );
 }

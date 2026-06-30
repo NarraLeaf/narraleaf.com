@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   b,
   c,
@@ -8,6 +8,7 @@ import {
   Dialog,
   Dissolve,
   FadeIn,
+  Game,
   GameMenu,
   GameProviders,
   Image as NarraImage,
@@ -21,7 +22,6 @@ import {
   Texts,
   Transform,
   useDialog,
-  useGame,
 } from 'narraleaf-react';
 import { type Locale } from '@/lib/i18n';
 
@@ -121,7 +121,7 @@ function DemoDialog() {
         <div className="flex shrink-0 flex-col items-center">
           <div
             className={[
-              'h-0 w-0 border-x-[7px] border-t-[11px] border-x-transparent border-t-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-opacity',
+              'demo-line-cue-arrow h-0 w-0 border-x-[7px] border-t-[11px] border-x-transparent border-t-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-opacity',
               done ? 'opacity-100' : 'opacity-0',
             ].join(' ')}
           />
@@ -149,25 +149,7 @@ function DemoMenu(props: { items: number[] }) {
 
 function DemoPlayer(props: { locale: Locale }) {
   const { locale } = props;
-  const game = useGame();
   const story = useMemo(() => createDemoStory(locale), [locale]);
-
-  useEffect(() => {
-    game.configure({
-      width: 1280,
-      height: 720,
-      aspectRatio: 16 / 9,
-      ratioUpdateInterval: 0,
-      dialog: DemoDialog,
-      menu: DemoMenu,
-      defaultTextColor: 'white',
-      defaultNametagColor: '#e6fbff',
-      minHeight: 50,
-      minWidth: 50,
-    });
-
-    game.preference.setPreference('cps', 72);
-  }, [game]);
 
   function handleReady({ liveGame }: PlayerEventContext) {
     liveGame.newGame();
@@ -176,14 +158,110 @@ function DemoPlayer(props: { locale: Locale }) {
   return <Player story={story} width="100%" height="100%" onReady={handleReady} />;
 }
 
+export function NarraLeafReactPlayer(props: { locale: Locale }) {
+  const { locale } = props;
+  const [game] = useState(() => {
+    const configuredGame = new Game({
+      width: 1280,
+      height: 720,
+      aspectRatio: 16 / 9,
+      ratioUpdateInterval: 0,
+      dialog: DemoDialog,
+      menu: DemoMenu,
+      defaultTextColor: 'white',
+      defaultNametagColor: '#e6fbff',
+      minWidth: 320,
+      minHeight: 180,
+    });
+
+    configuredGame.preference.setPreference('cps', 72);
+
+    return configuredGame;
+  });
+
+  return (
+    <GameProviders game={game}>
+      <DemoPlayer locale={locale} />
+    </GameProviders>
+  );
+}
+
 export function NarraLeafReactPlayerFrame(props: { locale: Locale }) {
   const { locale } = props;
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlStyle = html.getAttribute('style');
+    const previousBodyStyle = body.getAttribute('style');
+
+    html.style.margin = '0';
+    html.style.padding = '0';
+    html.style.width = '100%';
+    html.style.height = '100%';
+    html.style.minWidth = '100%';
+    html.style.minHeight = '100%';
+    html.style.overflow = 'hidden';
+    html.style.background = '#08151b';
+    html.style.setProperty('scrollbar-gutter', 'auto');
+    body.style.margin = '0';
+    body.style.padding = '0';
+    body.style.display = 'block';
+    body.style.width = '100%';
+    body.style.height = '100%';
+    body.style.minWidth = '100%';
+    body.style.minHeight = '100%';
+    body.style.overflow = 'hidden';
+    body.style.background = '#08151b';
+
+    return () => {
+      if (previousHtmlStyle === null) {
+        html.removeAttribute('style');
+      } else {
+        html.setAttribute('style', previousHtmlStyle);
+      }
+
+      if (previousBodyStyle === null) {
+        body.removeAttribute('style');
+      } else {
+        body.setAttribute('style', previousBodyStyle);
+      }
+    };
+  }, []);
+
   return (
-    <main className="h-screen w-screen overflow-hidden bg-[#eef8fb]">
-      <GameProviders>
-        <DemoPlayer locale={locale} />
-      </GameProviders>
-    </main>
+    <>
+      <style>{`
+        html:has(body [data-nlr-demo-frame-root]) {
+          margin: 0 !important;
+          padding: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          min-width: 100% !important;
+          min-height: 100% !important;
+          overflow: hidden !important;
+          scrollbar-gutter: auto !important;
+          background: #08151b !important;
+        }
+
+        body:has([data-nlr-demo-frame-root]) {
+          margin: 0 !important;
+          padding: 0 !important;
+          display: block !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          min-width: 100vw !important;
+          min-height: 100vh !important;
+          overflow: hidden !important;
+          background: #08151b !important;
+        }
+      `}</style>
+      <main
+        data-nlr-demo-frame-root
+        className="fixed inset-0 m-0 block h-[100vh] w-[100vw] overflow-hidden bg-[#08151b]"
+      >
+        <NarraLeafReactPlayer locale={locale} />
+      </main>
+    </>
   );
 }

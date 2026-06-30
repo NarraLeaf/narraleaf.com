@@ -1,5 +1,5 @@
 {
-  "title": "NarraLeaf",
-  "description": "Engine documentation: runtime, renderer, and CLI.",
+  "title": "NarraLeaf Desktop",
+  "description": "Desktop documentation: runtime, renderer, and CLI.",
   "pages": ["library"]
 }

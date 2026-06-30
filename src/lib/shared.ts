@@ -1,6 +1,6 @@
-export const appName = 'NarraLeaf';
+export const appName = 'NarraLeaf Project';
 export const appDescription =
-  'NarraLeaf Project gives you three ways to build: a zero-code studio, a complete desktop solution, and a lightweight React player, all designed for modern workflows, collaboration, and scale.';
+  'NarraLeaf helps visual novel projects move from a Studio workspace to a desktop app or an embedded React player without changing the story model.';
 /** Public URL for favicon and Fumadocs layout nav brand (see `public/narraleaf.ico`). */
 export const siteIconPath = '/narraleaf.ico';
 export const projectRoute = '/project';
