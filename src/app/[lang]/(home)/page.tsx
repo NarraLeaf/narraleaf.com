@@ -111,9 +111,11 @@ const homeCopy = {
       cta: 'Explore Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio interface editor with a menu layout selected',
-        'NarraLeaf Studio workspace with a visual novel project open',
-        'NarraLeaf Studio dark project workspace with side panels',
+        'NarraLeaf Studio story editor showing a visual novel chapter and scene details',
+        'NarraLeaf Studio blueprint editor with the command search palette open',
+        'NarraLeaf Studio UI editor showing a menu screen canvas',
+        'NarraLeaf Studio UI editor with character properties selected',
+        'NarraLeaf Studio dev mode preview showing a dialogue scene',
       ],
       slideControls: {
         previous: 'Previous Studio preview',
@@ -285,9 +287,11 @@ const homeCopy = {
       cta: '探索 Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio 界面编辑器中被选中的菜单布局',
-        'NarraLeaf Studio 中打开的视觉小说制作工作区',
-        'NarraLeaf Studio 暗色项目工作区',
+        'NarraLeaf Studio 故事编辑器中显示章节、场景与台词',
+        'NarraLeaf Studio 蓝图编辑器中打开的命令搜索面板',
+        'NarraLeaf Studio UI 编辑器中的菜单页面画布',
+        'NarraLeaf Studio UI 编辑器中选中的角色属性面板',
+        'NarraLeaf Studio Dev Mode 中预览的对话场景',
       ],
       slideControls: {
         previous: '上一张 Studio 预览',
@@ -440,6 +444,8 @@ const editorSlideImages = [
   '/static/img/ui-editor-slides/feature-1.png',
   '/static/img/ui-editor-slides/feature-2.png',
   '/static/img/ui-editor-slides/feature-3.png',
+  '/static/img/ui-editor-slides/feature-4.png',
+  '/static/img/ui-editor-slides/feature-5.png',
 ] as const;
 
 const desktopCodeImage = '/static/img/home/desktop-code.png';
@@ -616,7 +622,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </Link>
           </div>
 
-          <div className="mx-auto mt-8 w-full max-w-[900px] rounded-xl shadow-[0_28px_80px_rgba(0,0,0,0.22)] dark:shadow-[0_28px_90px_rgba(0,0,0,0.48)] sm:mt-10">
+          <div className="mx-auto mt-8 w-full max-w-[1000px] overflow-visible sm:mt-10">
             <UiEditorSlideshow
               slides={editorSlideImages.map((src, index) => ({
                 src,

@@ -71,7 +71,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
 
   return (
     <>
-      <div className="group relative aspect-[1441/905] overflow-hidden rounded-xl border border-black/10 bg-[#05090d] shadow-sm dark:border-white/10">
+      <div className="group relative aspect-[2968/1974] overflow-visible">
         {slides.map((slide, index) => {
           const active = index === activeIndex;
 
@@ -93,22 +93,18 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
                 onClick={() => setExpandedIndex(index)}
                 className="absolute inset-0 cursor-zoom-in focus-visible:ring-2 focus-visible:ring-fd-ring focus-visible:outline-none"
               >
-                <div className="absolute inset-x-0 -top-[5px] h-[calc(100%+5px)]">
-                  <Image
-                    src={slide.src}
-                    alt={slide.alt}
-                    fill
-                    unoptimized
-                    sizes="(min-width: 1024px) 600px, calc(100vw - 48px)"
-                    className="pointer-events-none object-cover object-top"
-                  />
-                </div>
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  unoptimized
+                  sizes="(min-width: 1024px) 1000px, calc(100vw - 48px)"
+                  className="pointer-events-none object-contain object-center"
+                />
               </button>
             </div>
           );
         })}
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-[#05090d]/65 to-transparent" />
 
         <button
           type="button"
@@ -142,8 +138,6 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
             />
           ))}
         </div>
-
-        <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-cyan-300/20" />
       </div>
 
       {expandedSlide ? (
@@ -160,19 +154,17 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
           />
           <div
             className="relative z-10"
-            style={{ width: 'min(96vw, calc(88vh * 1441 / 905))' }}
+            style={{ width: 'min(96vw, calc(88vh * 2968 / 1974))' }}
           >
-            <div className="relative aspect-[1441/905] overflow-hidden rounded-xl border border-white/15 bg-[#05090d] shadow-2xl">
-              <div className="absolute inset-x-0 -top-[5px] h-[calc(100%+5px)]">
-                <Image
-                  src={expandedSlide.src}
-                  alt={expandedSlide.alt}
-                  fill
-                  unoptimized
-                  sizes="96vw"
-                  className="object-cover object-top"
-                />
-              </div>
+            <div className="relative aspect-[2968/1974] overflow-visible">
+              <Image
+                src={expandedSlide.src}
+                alt={expandedSlide.alt}
+                fill
+                unoptimized
+                sizes="96vw"
+                className="object-contain object-center"
+              />
             </div>
             <button
               type="button"
