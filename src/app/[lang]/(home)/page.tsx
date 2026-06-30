@@ -101,7 +101,7 @@ const homeCopy = {
       eyebrow: 'Project paths',
       title: 'Choose the path that matches the work in front of you.',
       description:
-        'Use Studio when the story is still being shaped, NarraLeaf Desktop when the novel is the app, and NarraLeaf-React when the player belongs inside an existing site or product.',
+        'Use Studio to create freely, NarraLeaf Desktop to scale quickly, or NarraLeaf-React to customize completely.',
     },
     editorIntro: {
       eyebrow: 'Studio',
@@ -125,9 +125,9 @@ const homeCopy = {
     },
     desktopIntro: {
       eyebrow: 'Desktop',
-      title: 'NarraLeaf Desktop keeps the app code next to the playable build.',
+      title: 'NarraLeaf Desktop connects code and preview seamlessly.',
       description:
-        'Work in the desktop project where window lifecycle, saves, routes, menus, and packaging stay beside the NarraLeaf runtime that players actually open.',
+        'Work in the desktop project where window lifecycle, saves, routes, menus, and packaging are wired into the same NarraLeaf runtime you preview and ship.',
       cta: 'Explore Desktop',
       href: '/narraleaf/library/main',
       codeImageAlt: 'VS Code window with a NarraLeaf Desktop project entry file open',
@@ -264,24 +264,24 @@ const homeCopy = {
   zh: {
     hero: {
       eyebrow: 'NarraLeaf Project',
-      title: '像现代软件一样构建视觉小说。',
+      title: '像现代软件一样构建视觉小说',
       description:
-        '一套用于构建、发布和嵌入视觉小说的项目系统。',
+        '一套用于构建、发布和嵌入视觉小说的项目系统',
       primaryCta: '探索项目',
       secondaryCta: '浏览文档',
       imageAlt: '打开视觉小说项目的 NarraLeaf Studio 工作区',
     },
     solutionIntro: {
       eyebrow: '项目路径',
-      title: '先看眼前的工作需要哪条路。',
+      title: '眼前的工作，要从哪条路开始？',
       description:
-        '故事还在打磨时用 Studio；视觉小说本身就是成品时用 NarraLeaf Desktop；需要嵌进网站或产品里时用 NarraLeaf-React。',
+        '使用 Studio 自由创作，使用 NarraLeaf Desktop 快速扩展，或使用 NarraLeaf-React 完全自定义',
     },
     editorIntro: {
       eyebrow: 'Studio',
-      title: 'NarraLeaf Studio 是创作者看得见的制作台。',
+      title: 'NarraLeaf Studio —— 创作者看得见的工作台',
       description:
-        'NarraLeaf Studio 把资产管理、界面编辑、沉浸叙事和团队协作放进同一个为视觉小说制作而设计的编辑器。',
+        '资产管理、界面编辑、沉浸叙事、团队协作：NarraLeaf Studio 把它们都装在了这个专为视觉小说而生的编辑器。',
       cta: '探索 Studio',
       href: '/studio',
       slideAlts: [
@@ -299,9 +299,9 @@ const homeCopy = {
     },
     desktopIntro: {
       eyebrow: 'Desktop',
-      title: 'NarraLeaf Desktop 让应用代码和可游玩版本并排推进。',
+      title: 'NarraLeaf Desktop —— 让代码与预览无缝衔接',
       description:
-        '在桌面项目里处理窗口、存档、路由、菜单和打包；运行中的视觉小说就贴在代码旁边，交付路径不会和故事运行时分离。',
+        '窗口、存档、路由、菜单、打包：所有环节由 Desktop 一手把控，代码、预览与交付路径始终连在同一套 NarraLeaf 运行时里。',
       cta: '探索 Desktop',
       href: '/narraleaf/library/main',
       codeImageAlt: '打开 NarraLeaf Desktop 项目入口文件的 VS Code 窗口',
@@ -317,9 +317,9 @@ const homeCopy = {
     },
     projectModelIntro: {
       eyebrow: '项目结构',
-      title: '不是传统编辑器盒子，而是现代项目结构。',
+      title: '告别传统编辑器，迎接现代项目结构',
       description:
-        'NarraLeaf 把制作工作、桌面运行时和网页嵌入拆成同一个项目里的三条一等路线。每条路线负责自己的工作，但故事不用被导出成彼此割裂的文件。',
+        '制作、桌面运行、网页嵌入：NarraLeaf 将它们分成项目里的三条并行的路，各有分工，而故事不必被拆为互不相干的文件。',
     },
     projectModelTabs: [
       {
@@ -327,13 +327,13 @@ const homeCopy = {
         name: 'NarraLeaf Studio',
         tone: 'studio',
         logo: 'narraleaf',
-        title: 'NarraLeaf Studio 负责制作现场。',
+        title: 'NarraLeaf Studio 制作交给它',
         description:
-          'Studio 是把制作工作收在一起的编辑器：素材、界面状态、叙事流程和协作上下文都在同一个工作区里。',
+          '素材、界面状态、叙事流程、协作上下文，一个工作区全都搞定。',
         points: [
-          '在做场景和界面决定的地方直接管理项目素材。',
-          '界面编辑和沉浸叙事流程放在一起推进。',
-          '让团队协作上下文留在制作现场，而不是分散到多个工具里。',
+          '在搭建场景和界面的地方，直接管理项目素材。',
+          '界面编辑和沉浸叙事，在一起同步推进。',
+          '让团队协作也留在制作现场，不必在多个工具之间来回跳。',
         ],
       },
       {
@@ -341,13 +341,13 @@ const homeCopy = {
         name: 'NarraLeaf Desktop',
         tone: 'electron',
         logo: 'electron',
-        title: 'NarraLeaf Desktop 负责发布出来的应用。',
+        title: 'NarraLeaf Desktop 发布交给它',
         description:
-          'Desktop 是视觉小说成为玩家真正打开的软件的地方：窗口生命周期、路由、存档、菜单、打包和运行时行为都属于这里。',
+          'Desktop 是玩家真正打开的游戏的地方：窗口生命周期、路由、存档、菜单、打包和运行时行为都在这里。',
         points: [
-          '可游玩的应用和控制它的代码并排构建。',
-          'Electron、renderer 和 NarraLeaf 运行时决策放在同一个地方。',
-          '适合视觉小说本身就是产品，而不是另一个应用里的页面。',
+          '可游玩的应用，和控制它的代码，并排构建。',
+          'Electron、renderer 和 NarraLeaf 运行时决策集中一处管理。',
+          '视觉小说本身就是产品？Desktop即可派上用场。',
         ],
       },
       {
@@ -355,21 +355,21 @@ const homeCopy = {
         name: 'NarraLeaf-React',
         tone: 'react',
         logo: 'react',
-        title: 'NarraLeaf-React 负责嵌入式播放。',
+        title: 'NarraLeaf-React 嵌入式播放交给它',
         description:
-          'React 路线用于把故事放进 Web 产品里，而不是让外层应用被迫变成一套视觉小说引擎。',
+          '把故事放在你的 Web 产品里，而不是让它成为一套视觉小说引擎',
         points: [
-          '播放器可以挂进已有的 React 界面。',
-          '外层应用继续负责布局、数据、账号和产品 UI。',
-          '适合故事是更大产品体验中的一个功能。',
+          '播放器可以直接挂进已有的 React 界面。',
+          '外层应用不受影响，依旧负责布局、数据、账号和产品 UI。',
+          '故事只是其中一个功能？React 即可派上用场',
         ],
       },
     ],
     solutions: [
       {
         title: 'NarraLeaf Studio',
-        description: '面向资产、界面、沉浸叙事和团队协作的制作编辑器。',
-        audience: '适合需要在交付前用一个地方推进视觉小说制作的团队。',
+        description: '面向资产、界面、沉浸叙事与团队协作的制作编辑器。',
+        audience: '适合想在交付前，把视觉小说的制作推进集中在一处的团队。',
         href: '/studio',
         cta: '探索 Studio',
         tone: 'studio',
@@ -377,8 +377,8 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf Desktop',
-        description: '用于运行时、renderer、存档、打包和发布工作的桌面应用路径。',
-        audience: '适合要发布成独立视觉小说应用的项目。',
+        description: '面向运行时、renderer、存档、打包与发布工作的桌面应用路线。',
+        audience: '适合打算将视觉小说发布为独立应用的项目。',
         href: '/narraleaf/library/main',
         cta: '探索 Desktop',
         tone: 'electron',
@@ -386,7 +386,7 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf-React',
-        description: '用于把视觉小说场景放进自有界面的 React 播放器。',
+        description: '面向自有界面嵌入视觉小说场景的 React 播放器。',
         audience: '适合故事服务于更大 Web 体验的产品。',
         href: '/narraleaf-react',
         cta: '探索 React 播放器',
@@ -396,9 +396,9 @@ const homeCopy = {
     ],
     embedDemo: {
       eyebrow: 'React 播放器',
-      title: 'NarraLeaf-React 留在页面里。',
+      title: 'NarraLeaf-React —— 就地呈现',
       description:
-        '播放器可以和你的 React 界面并排存在；脚本继续在画面里控制背景、角色、对白和选项。',
+        '与 React 界面共同运行，背景、角色、对白，还有选项均由脚本掌控。',
       code: [
         'introScene.background.char("/room.jpg", new FadeIn(600)),',
         '',
@@ -422,16 +422,16 @@ const homeCopy = {
       ],
     },
     bottomCta: {
-      title: '可以从项目概览开始。',
+      title: '不妨先从项目概览开始',
       description:
-        '项目概览会先交代 NarraLeaf 的整体结构；想继续深入时，文档就在旁边。',
+        '自项目概览了解 NarraLeaf 的整体结构；想继续深入？文档随时待命。',
     },
     footer: {
       navigationLabel: '页脚导航',
       projectLabel: '项目',
       docsLabel: '文档',
       sourceLabel: 'GitHub',
-      copyright: 'NarraLeaf Project. 保留所有权利。',
+      copyright: 'NarraLeaf Project.',
     },
   },
 } satisfies Record<Locale, HomePageCopy>;
