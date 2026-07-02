@@ -1,0 +1,9 @@
+{
+  "title": "Getting Started",
+  "pages": [
+    "index",
+    "workspace-overview",
+    "create-first-page",
+    "run-and-package"
+  ]
+}

@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName, gitConfig, siteIconPath } from './shared';
+import { gitConfig, navBrandName, siteIconPath } from './shared';
 import { type Locale, i18n, localizedPath } from './i18n';
 import { topLevelNavItems } from './top-level-nav';
 
@@ -27,7 +27,7 @@ export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutPr
             priority
             unoptimized
           />
-          <span>{appName}</span>
+          <span>{navBrandName}</span>
         </span>
       ),
     },

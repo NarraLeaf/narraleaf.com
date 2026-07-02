@@ -1,4 +1,5 @@
 export const appName = 'NarraLeaf Project';
+export const navBrandName = 'NarraLeaf';
 export const appDescription =
   'NarraLeaf helps visual novel projects move from a Studio workspace to a desktop app or an embedded React player without changing the story model.';
 /** Public URL for favicon and Fumadocs layout nav brand (see `public/narraleaf.ico`). */

@@ -1,4 +1,11 @@
 {
   "title": "NarraLeaf Studio",
-  "description": "面向引导式创作与编辑流程的零代码视觉小说 IDE。"
+  "description": "面向引导式创作与编辑流程的零代码视觉小说 IDE。",
+  "pages": [
+    "index",
+    "installation",
+    "getting-started",
+    "workspace",
+    "plugin"
+  ]
 }

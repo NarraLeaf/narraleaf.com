@@ -1,0 +1,11 @@
+{
+  "title": "工作区",
+  "pages": [
+    "index",
+    "resource-manager",
+    "character-manager",
+    "story-editor",
+    "ui-editor",
+    "localization"
+  ]
+}

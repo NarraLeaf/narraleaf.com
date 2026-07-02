@@ -1,4 +1,11 @@
 {
   "title": "NarraLeaf Studio",
-  "description": "Zero-code visual novel IDE for guided creation and editing workflows."
+  "description": "Zero-code visual novel IDE for guided creation and editing workflows.",
+  "pages": [
+    "index",
+    "installation",
+    "getting-started",
+    "workspace",
+    "plugin"
+  ]
 }
