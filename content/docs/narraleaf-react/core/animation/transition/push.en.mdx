@@ -1,0 +1,23 @@
+---
+title: "Push"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Slide the next image in from one edge while the current image slides out the opposite way, as if the camera panned.
+
+## Usage
+
+```tsx
+import { Push } from "narraleaf-react";
+
+image.char("image1.jpg", new Push({ duration: 800, direction: "left" }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: PushOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `direction?: TransformDefinitions.WipeDirection` - The direction the current image travels toward (`"left"`, `"right"`, `"top"`, `"bottom"`); the next image enters from the opposite edge. Defaults to `"left"`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

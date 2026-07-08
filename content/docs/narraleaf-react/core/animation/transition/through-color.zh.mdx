@@ -1,0 +1,59 @@
+---
+title: "过色"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+用纯色覆盖画面、保持片刻，再揭开下一张图像——因此下一张图像只会在纯色画面**之后**出现。根据所用的工厂方法，纯色以纯淡入、柔化方向边缘、百叶窗叶片或收拢的圆形来覆盖。
+
+常见用途：过黑 / 过白、soft wipe 过黑、百叶窗黑场、圈入到黑，以及闪光（`hold: 0`）。
+
+`ThroughColor` 通过静态工厂方法创建（没有公共构造函数）。
+
+## 用法
+
+```tsx
+import { ThroughColor } from "narraleaf-react";
+
+// 过黑：淡入黑色、保持、再淡出到下一张图像
+image.char("image1.jpg", ThroughColor.fade({ duration: 1000, color: "#000000", hold: 0.3 }));
+
+// soft wipe 过黑
+image.char("image1.jpg", ThroughColor.wipe({ duration: 1100, direction: "left", feather: 15 }));
+
+// 快速闪白（无保持）
+image.char("image1.jpg", ThroughColor.fade({ duration: 700, color: "#ffffff", hold: 0 }));
+```
+
+## 公共方法
+
+所有工厂方法共享以下基础选项：
+
+- `duration: number` - 过渡效果的持续时间，以毫秒为单位
+- `color?: string` - 保持的颜色。默认为 `"#000000"`。
+- `hold?: number` - 完全被纯色覆盖所占的时长比例（`0`–`1`）。设为 `0` 即为闪光。默认为 `0.3`。
+- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+
+### ThroughColor.fade
+
+覆盖层纯淡入淡出（过某种颜色）。仅使用基础选项。
+
+### ThroughColor.wipe
+
+以柔化的方向性边缘覆盖（soft wipe 过色）。额外选项：
+
+- `direction?: TransformDefinitions.WipeDirection` - 边缘推进的方向。默认为 `"left"`。
+- `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。
+
+### ThroughColor.blinds
+
+以百叶窗叶片覆盖。额外选项：
+
+- `orientation?: BlindsOrientation` - 叶片方向，`"horizontal"` 或 `"vertical"`。默认为 `"horizontal"`。
+- `slats?: number` - 叶片数量。默认为 `8`。
+
+### ThroughColor.iris
+
+以从四周向中心收拢的圆形覆盖（圈入到某种颜色）。额外选项：
+
+- `center?: string` - 圆形的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
+- `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。

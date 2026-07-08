@@ -1,0 +1,25 @@
+---
+title: "柔边擦除"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+以柔化的方向性边缘，将下一张图像覆盖到当前图像之上显现。  
+这是 `MaskTransition.wipe`（使用硬边 clip-path）的柔边版本。
+
+## 用法
+
+```tsx
+import { SoftWipe } from "narraleaf-react";
+
+image.char("image1.jpg", new SoftWipe({ duration: 800, direction: "left" }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: SoftWipeOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `direction?: TransformDefinitions.WipeDirection` - 擦除推进的方向（`"left"`、`"right"`、`"top"`、`"bottom"`）。默认为 `"left"`。
+  - `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

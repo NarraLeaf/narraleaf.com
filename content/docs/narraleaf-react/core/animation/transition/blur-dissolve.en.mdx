@@ -1,0 +1,23 @@
+---
+title: "BlurDissolve"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Crossfade from the current image to the next one while blurring — the current image blurs out and fades, and the next image sharpens in. A dreamy transition for flashbacks / dream states.
+
+## Usage
+
+```tsx
+import { BlurDissolve } from "narraleaf-react";
+
+image.char("image1.jpg", new BlurDissolve({ duration: 800, blur: 16 }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: BlurDissolveOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `blur?: number` - The peak blur radius applied at the crossover, in pixels. Defaults to `16`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

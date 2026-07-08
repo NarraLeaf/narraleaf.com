@@ -1,0 +1,25 @@
+---
+title: "SoftWipe"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Reveal the next image over the current one with a feathered directional edge.  
+This is the soft-edged counterpart of `MaskTransition.wipe`, which uses a hard clip-path.
+
+## Usage
+
+```tsx
+import { SoftWipe } from "narraleaf-react";
+
+image.char("image1.jpg", new SoftWipe({ duration: 800, direction: "left" }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: SoftWipeOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `direction?: TransformDefinitions.WipeDirection` - The direction the wipe travels toward (`"left"`, `"right"`, `"top"`, `"bottom"`). Defaults to `"left"`.
+  - `feather?: number` - The width of the soft (feathered) edge band, in percent. Defaults to `12`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

@@ -1,0 +1,24 @@
+---
+title: "百叶窗"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+通过一组逐渐变宽、直至铺满画面的百叶窗叶片，将下一张图像覆盖到当前图像之上显现。
+
+## 用法
+
+```tsx
+import { Blinds } from "narraleaf-react";
+
+image.char("image1.jpg", new Blinds({ duration: 800, orientation: "horizontal", slats: 8 }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: BlindsOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `orientation?: BlindsOrientation` - 叶片方向，`"horizontal"`（水平）或 `"vertical"`（垂直）。默认为 `"horizontal"`。
+  - `slats?: number` - 叶片数量。默认为 `8`。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

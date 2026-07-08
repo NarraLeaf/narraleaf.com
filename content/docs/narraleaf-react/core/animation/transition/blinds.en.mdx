@@ -1,0 +1,24 @@
+---
+title: "Blinds"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Reveal the next image over the current one through a set of venetian slats that widen until they cover the frame.
+
+## Usage
+
+```tsx
+import { Blinds } from "narraleaf-react";
+
+image.char("image1.jpg", new Blinds({ duration: 800, orientation: "horizontal", slats: 8 }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: BlindsOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `orientation?: BlindsOrientation` - The slat orientation, `"horizontal"` or `"vertical"`. Defaults to `"horizontal"`.
+  - `slats?: number` - The number of slats. Defaults to `8`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

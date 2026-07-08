@@ -2,6 +2,12 @@
   "title": "Transition",
   "pages": [
     "dissolve",
-    "fade-in"
+    "fade-in",
+    "soft-wipe",
+    "soft-iris",
+    "blinds",
+    "blur-dissolve",
+    "push",
+    "through-color"
   ]
 }
