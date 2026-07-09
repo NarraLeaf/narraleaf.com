@@ -446,6 +446,10 @@ const editorSlideImages = [
   '/static/img/ui-editor-slides/feature-3.png',
   '/static/img/ui-editor-slides/feature-4.png',
   '/static/img/ui-editor-slides/feature-5.png',
+  '/static/img/ui-editor-slides/feature-6.png',
+  '/static/img/ui-editor-slides/feature-7.png',
+  '/static/img/ui-editor-slides/feature-8.png',
+  '/static/img/ui-editor-slides/feature-9.png',
 ] as const;
 
 const desktopCodeImage = '/static/img/home/desktop-code.png';
