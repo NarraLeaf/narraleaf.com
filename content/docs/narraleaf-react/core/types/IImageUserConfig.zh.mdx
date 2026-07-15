@@ -2,7 +2,10 @@
 title: "IImageUserConfig"
 ---
 ```typescript
-interface IImageUserConfig<Tag extends TagGroupDefinition | null = TagGroupDefinition | null>
+interface IImageUserConfig<
+    Tag extends TagGroupDefinition | null = TagGroupDefinition | null,
+    Layers extends LayerGroupDefinition = LayerGroupDefinition,
+>
     extends CommonDisplayableConfig {
     /**
      * The name of the image, only for debugging purposes
@@ -16,7 +19,7 @@ interface IImageUserConfig<Tag extends TagGroupDefinition | null = TagGroupDefin
     /**
      * Image Src, see [Image](../elements/image) for more information
      */
-    src: ImageSrcType<Tag>;
+    src: ImageSrcType<Tag> | LayeredDefinition<Layers>;
     /**
      * Auto resize image's width to fit the screen
      * @default false
@@ -26,6 +29,11 @@ interface IImageUserConfig<Tag extends TagGroupDefinition | null = TagGroupDefin
      * layer of the image
      */
     layer?: Layer;
+    /**
+     * Darkness of the image, between 0 and 1
+     * @default 0
+     */
+    darkness?: number;
 }
 type TagDefinition<T extends TagGroupDefinition | null> =
     T extends TagGroupDefinition ? TagDefinitionObject<T> : never;

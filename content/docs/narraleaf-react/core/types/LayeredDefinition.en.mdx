@@ -1,0 +1,62 @@
+---
+title: "LayeredDefinition"
+---
+The src of a layered image, see [Image](/docs/narraleaf-react/core/elements/image#layered-image).
+
+```typescript
+export type LayeredDefinition<L extends LayerGroupDefinition = LayerGroupDefinition> = {
+    /**
+     * The layer stack, from bottom to top. Array order is the stacking order.
+     */
+    layers: L;
+    /**
+     * One tag per variant layer, in any order.
+     */
+    defaults: readonly LayerTagsOf<L>[];
+};
+```
+
+```typescript
+/**
+ * One slot of a layered image, from bottom to top. Either a constant src, `null`,
+ * a variant map, or a resolver.
+ */
+export type LayerSlot = string | null | LayerVariants | LayerResolver;
+export type LayerGroupDefinition = readonly LayerSlot[];
+
+/**
+ * A set of mutually exclusive variants for one layer, keyed by tag.
+ * `null` means the layer draws nothing for that tag.
+ */
+export type LayerVariants = Record<string, string | null>;
+
+/**
+ * Derives a layer's src from the currently active tags. Declares no tags of its own.
+ */
+export type LayerResolver = (tags: ReadonlySet<string>) => string | null;
+
+/**
+ * The union of every tag declared by a layer stack.
+ */
+export type LayerTagsOf<L> = L extends readonly (infer E)[]
+    ? (E extends LayerResolver ? never : E extends LayerVariants ? keyof E & string : never)
+    : never;
+```
+
+Tags are inferred from the definition, so no explicit type argument is needed:
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+yuko.char(["sad"]);  // ok
+yuko.char(["sda"]);  // rejected at compile time
+```

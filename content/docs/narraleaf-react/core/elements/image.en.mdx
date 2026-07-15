@@ -15,7 +15,7 @@ In NarraLeaf-React, Image only controls the appearance of the character. It does
 <Step>
 
 <Callout type="warning">
-    You cannot mix tag-based image and src-based image in the same image.
+    An image is tag-based, layered, or src-based. You cannot mix them in the same image.
 </Callout>
 
 - `config: Partial<IImageUserConfig>` - Image config, see [IImageUserConfig](/docs/narraleaf-react/core/types/IImageUserConfig)
@@ -60,6 +60,72 @@ const image = new Image({
 });
 ```
 </Callout>
+
+#### Layered Image
+
+If your artwork is exported as one image per part instead of one image per combination, use a layered image. A character with 5 emotions and 4 outfits needs 5 + 4 files this way, instead of 5 × 4 pre-composited ones.
+
+```typescript
+const yuko = new Image({
+    src: {
+        // bottom to top
+        layers: [
+            "yuko/body.png",                                          // constant layer
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"}, // mutually exclusive variants
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+            {noHat: null, straw: "yuko/straw_hat.png"},               // null draws nothing
+            (tags) => tags.has("sad") ? "yuko/tears.png" : null,      // derived from other layers
+        ],
+        defaults: ["uniform", "happy", "noHat"],
+    },
+});
+```
+
+A layered image is driven by the same [char](#char) method as a tag-based image, and tags behave the same way: a tag replaces the other variants of its own layer and leaves every other layer untouched.
+
+```typescript
+yuko.char(["sad"]);                  // only the face layer changes; the outfit is kept
+yuko.char(["casual", "happy"]);      // several layers at once, in any order
+yuko.char(["sad"], new Dissolve(300)); // transitions work as they do on any image
+```
+
+Each entry of `layers` is one of:
+
+- a **string** — a constant layer, always drawn
+- a **variant map** — mutually exclusive srcs keyed by tag, where `null` means the layer draws nothing for that tag
+- a **function** — derives the layer's src from the currently active tags. It declares no tags of its own, so it can react to the other layers.
+- `null` — draws nothing
+
+Array order is the stacking order, so the first entry is at the bottom. `defaults` takes one tag per variant layer, in any order.
+
+Tags are inferred from the definition, so `char()` rejects a misspelled tag at compile time without an explicit type argument.
+
+<Callout type="info">
+    Every layer of one image is expected to share a canvas, which is what image editors export by default when you export layers. Layers are aligned by centering them on the image, so a layer is not positioned individually.
+</Callout>
+
+<Callout type="info">
+    Effects that apply to an image as a whole — a transition, `darken`, and transforms such as `opacity` or `pos` — are applied to the stack as one unit, so layers never show through the ones above them.
+</Callout>
+
+<Callout type="warning">
+    A tag can only be declared by one layer, and every variant layer needs exactly one of its tags listed in `defaults`.
+
+```typescript
+const image = new Image({
+    src: {
+        layers: [
+            {none: null, hat: "hat.png"},
+            {none: null, scarf: "scarf.png"}, // INVALID, tag "none" is already declared above
+            {happy: "happy.png", sad: "sad.png"},
+        ],
+        defaults: ["hat"], // INVALID, the face layer has no default
+    },
+});
+```
+</Callout>
+
+Every src a layer stack can show is registered for preload when the image is created. Layers are independent, so this is the sum of the variants rather than their cross product — a layered image never warns about an unpredicted source. A src returned by a function layer is opaque and must be registered with [scene.preloadImage](/docs/narraleaf-react/core/elements/scene#preloadimage) if no other layer uses it.
 
 #### Src-based Image
 
@@ -130,7 +196,7 @@ image.useLayer(layer);
 
 Set the figure of the character
 
-- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>>` - The source of the image
+- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>> | LayerTagsOf<Layers>[]` - The source of the image
 - `transition?: ImageTransition` - For ImageTransition, see [Transition](/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
@@ -158,6 +224,27 @@ image.char(["jacket", "t-shirt"], new Fade(1000));
 
 // [angry],  jacket ,  t-shirt
 image.char(["angry"], new Fade(1000));
+```
+
+For a [layered image](#layered-image), tags select a variant of their own layer and every other layer is kept. Tags may be given in any order, and a transition crossfades the whole stack.
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+//  uniform , [sad]
+yuko.char(["sad"], new Dissolve(300));
+
+// [casual],  sad
+yuko.char(["casual"]);
 ```
 </Step>
 </Steps>
