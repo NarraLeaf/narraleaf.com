@@ -3,6 +3,12 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
 
+## 0.13.0
+
+- `SavedGame` 的 `store` 现声明为 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)，不再是 [StorableData](/zh/docs/narraleaf-react/core/types/StorableData)。它携带的一直是带标签的形式，错的只是声明。存档格式本身没有变化，已有存档仍可正常读取 —— 但如果你的代码直接读取 `savedGame.game.store` 并依赖旧的声明，现在会看到它一直以来实际拿到的带标签形状
+- 0.12.x 及更早版本写出的存档重新可以正确读取，但有一个例外：在受影响的版本上**读档后再存档**产生的存档，其中的值在磁盘上被打了两层标签，而这无法与游戏真正存入的值区分开。此类存档不会被修复
+- `image.darken(darkness, duration)` 现在会在 `duration` 内播放动画，而不再立即生效。此前只有同时传入缓动函数时动画才会运行，否则 `duration` 会被静默丢弃。若需要旧的瞬间生效行为，请传入 `0` 作为 `duration`
+
 ## 0.9.0
 
 - `JumpConfig.unloadScene` 已移除
@@ -56,6 +62,7 @@ title: "不兼容的变更"
   - `asWearableOf` 是 `bindWearable` 的新别名
   - `init`、`setPosition`、`dispose`、`copy` 已移除
   - `IImageTransition` 已移除，请使用 `ImageTransition`
+  - `Fade` 已移除，请使用 [Dissolve](/zh/docs/narraleaf-react/core/animation/transition/dissolve)，它接受相同的持续时间和缓动参数
 - `Text` 方法变更：
   - `applyTransform` 改为 `transform`
   - `applyTransition` 已移除

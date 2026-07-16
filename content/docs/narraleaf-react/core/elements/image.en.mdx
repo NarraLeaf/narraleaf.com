@@ -200,7 +200,7 @@ Set the figure of the character
 - `transition?: ImageTransition` - For ImageTransition, see [Transition](/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
-image.char("your/image/src", new Fade(1000));
+image.char("your/image/src", new Dissolve(1000));
 ```
 
 or for tag-based image
@@ -208,22 +208,22 @@ or for tag-based image
 ```typescript
 // happy, shirt, trousers
 const image = new Image({
-    tag: {
+    src: {
         groups: [
             ["happy", "sad", "angry"],
             ["shirt", "jacket", "t-shirt"],
             ["trousers", "skirt", "shorts"],
         ],
         defaults: ["happy", "shirt", "trousers"],
+        /* ... */
     } as const,
-    /* ... */
 });
 
 //  happy , [jacket], [t-shirt]
-image.char(["jacket", "t-shirt"], new Fade(1000));
+image.char(["jacket", "t-shirt"], new Dissolve(1000));
 
 // [angry],  jacket ,  t-shirt
-image.char(["angry"], new Fade(1000));
+image.char(["angry"], new Dissolve(1000));
 ```
 
 For a [layered image](#layered-image), tags select a variant of their own layer and every other layer is kept. Tags may be given in any order, and a transition crossfades the whole stack.
@@ -257,11 +257,14 @@ yuko.char(["casual"]);
 Set the darkness of the image
 
 - `darkness: number` - The darkness of the image, between 0 and 1. 0 is no darkness, 1 is full darkness.
-- `duration?: number` - The duration of the transition
-- `easing?: TransformDefinitions.EasingDefinition` - See [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+- `duration?: number` - The duration of the transition. Without it, the new darkness applies instantly.
+- `easing?: TransformDefinitions.EasingDefinition` - See [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition). Without it, the default easing is used.
 
 ```typescript
 image.darken(0.5, 500, "easeIn");
+
+image.darken(0.5, 500); // animates over 500ms with the default easing
+image.darken(0.5);      // applies instantly
 ```
 </Step>
 </Steps>

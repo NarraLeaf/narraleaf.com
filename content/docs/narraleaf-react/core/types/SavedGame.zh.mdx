@@ -14,11 +14,12 @@ interface SavedGame {
     name: string;
     meta: SavedGameMetaData;
     game: {
-        store: { [key: string]: StorableData; };
+        store: { [key: string]: SerializedNamespaceData; };
         elementStates: RawData<ElementStateRaw>[];
         stage: PlayerStateData;
-        currentAction: string | null;
         services: { [key: string]: unknown; };
+        stackModel: StackModelRawData;
+        asyncStackModels: StackModelRawData[];
     };
 }
 ```
@@ -34,3 +35,33 @@ interface SavedGame {
 ## game
 
 保存游戏的游戏数据
+
+### store
+
+所有命名空间的内容，以命名空间名称为键。其中的值以带标签的形式存储，参见 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)。
+
+这既包含通过 `story.registerPersistent` 注册的命名空间，也包含 `scene.local` 背后的场景局部存储。
+
+<Callout type="warning">
+    请通过 `Storable` / `Namespace` 读取，而不要直接手动读取。存储的值并非值本身，而是一个 `{type, data}` 包装 —— 正是它让 `Date` 能够在 JSON 中存活。
+</Callout>
+
+### elementStates
+
+故事中每个元素的状态，每一项都携带元素的 id 及其数据。
+
+### stage
+
+播放器的状态，包括当前在舞台上的场景与可显示元素。
+
+### services
+
+通过 `story.registerService` 注册的每个服务的序列化状态。
+
+### stackModel
+
+主执行栈，读档时游戏从这里继续。
+
+### asyncStackModels
+
+与主执行栈并行运行的执行栈 —— 即由 `Control.doAsync` 和 `Control.allAsync` 启动的操作。

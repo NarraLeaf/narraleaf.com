@@ -200,7 +200,7 @@ image.useLayer(layer);
 - `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
-image.char("你的/图片/路径", new Fade(1000));
+image.char("你的/图片/路径", new Dissolve(1000));
 ```
 
 或对于基于标签的图像
@@ -208,22 +208,22 @@ image.char("你的/图片/路径", new Fade(1000));
 ```typescript
 // happy, shirt, trousers
 const image = new Image({
-    tag: {
+    src: {
         groups: [
             ["happy", "sad", "angry"],
             ["shirt", "jacket", "t-shirt"],
             ["trousers", "skirt", "shorts"],
         ],
         defaults: ["happy", "shirt", "trousers"],
+        /* ... */
     } as const,
-    /* ... */
 });
 
 //  happy , [jacket], [t-shirt]
-image.char(["jacket", "t-shirt"], new Fade(1000));
+image.char(["jacket", "t-shirt"], new Dissolve(1000));
 
 // [angry],  jacket ,  t-shirt
-image.char(["angry"], new Fade(1000));
+image.char(["angry"], new Dissolve(1000));
 ```
 
 对于[层叠图像](#layered-image)，标签会选中它所在层的一个变体，其他所有层保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
@@ -257,11 +257,14 @@ yuko.char(["casual"]);
 设置图像的黑暗程度
 
 - `darkness: number` - 图像的黑暗程度，介于 0 和 1 之间。0 是全亮，1 是全黑
-- `duration?: number` - 过渡的持续时间
-- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- `duration?: number` - 过渡的持续时间。不传时，新的黑暗程度立即生效
+- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)。不传时使用默认缓动
 
 ```typescript
 image.darken(0.5, 500, "easeIn");
+
+image.darken(0.5, 500); // 以默认缓动在 500ms 内播放动画
+image.darken(0.5);      // 立即生效
 ```
 </Step>
 </Steps>

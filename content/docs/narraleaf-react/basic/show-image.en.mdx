@@ -85,12 +85,12 @@ scene1.action([
 or with a [transition](/docs/narraleaf-react/core/animation/transition).
 
 ```typescript
-import {Fade} from "narraleaf-react";
+import {Dissolve} from "narraleaf-react";
 ```
 
 ```typescript
 scene1.action([
-    character1Happy.char("https://NEW_IMAGE_URL", new Fade(300)),
+    character1Happy.char("https://NEW_IMAGE_URL", new Dissolve(300)),
 ]);
 ```
 
@@ -101,7 +101,7 @@ You can use the tag-based image to show the image.
 > Note: The tag-based image is a feature that allows you to change the image appearance by providing tags.
 >
 > You can't mix the tag-based image configuration with the normal image configuration.  
-> Normal image configuration don't have the `tag` property, and its `src` property should be a string.
+> Normal image configuration has a string as its `src` property.
 
 ```typescript
 import {Image} from "narraleaf-react";
@@ -109,25 +109,46 @@ import {Image} from "narraleaf-react";
 
 ```typescript
 const image = new Image({
-    tag: {
+    src: {
         groups: [
             ["happy", "sad", "angry"], // group 1
             ["shirt", "jacket", "t-shirt"], // group 2
             ["trousers", "skirt", "shorts"], // group 3
         ],
         defaults: ["happy", "shirt", "trousers"], // default appearance
+        resolve: (emotion, top, bottom) => `https://your/image/src/${emotion}_${top}_${bottom}.png`,
     } as const,
-    src: (emotion, top, bottom) => `https://your/image/src/${emotion}_${top}_${bottom}.png`, // image source
 });
 // The default image will be `https://your/image/src/happy_shirt_trousers.png`
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts"], new Fade(1000)), // change the image to `https://your/image/src/angry_shirt_shorts.png`
+    image.char(["angry", "shorts"], new Dissolve(1000)), // change the image to `https://your/image/src/angry_shirt_shorts.png`
 ]);
 ```
 
-Read more about tag-based image, please read the [Image](/docs/narraleaf-react/core/elements/image) documentation.
+This shape expects one pre-composited image per combination of tags. If your artwork is exported as one image per part instead, use a **layered image** — you write the parts once and NarraLeaf composes them, so 3 emotions × 3 tops × 3 bottoms is 9 files rather than 27.
+
+```typescript
+const image = new Image({
+    src: {
+        // bottom to top
+        layers: [
+            {trousers: "trousers.png", skirt: "skirt.png", shorts: "shorts.png"},
+            {shirt: "shirt.png", jacket: "jacket.png", tshirt: "t-shirt.png"},
+            {happy: "happy.png", sad: "sad.png", angry: "angry.png"},
+        ],
+        defaults: ["trousers", "shirt", "happy"],
+    },
+});
+
+scene1.action([
+    image.show(),
+    image.char(["angry", "shorts"], new Dissolve(1000)), // only those two layers change
+]);
+```
+
+Read more about tag-based and layered images, please read the [Image](/docs/narraleaf-react/core/elements/image) documentation.
 
 ## Animate the Image
 

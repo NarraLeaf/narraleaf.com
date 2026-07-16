@@ -1,0 +1,33 @@
+---
+title: "SerializedNamespaceData"
+---
+存档中单个命名空间的内容：其中每个值都由 [WrappedStorableData](/zh/docs/narraleaf-react/core/types/WrappedStorableData) 包装。
+
+```typescript
+export type SerializedNamespaceData = {
+    [key: string]: WrappedStorableData;
+}
+```
+
+这正是 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `store` 为每个命名空间保存的内容 —— 通过 `story.registerPersistent` 注册的每个命名空间各一项，加上每个场景局部存储各一项。
+
+```typescript
+// savedGame.game.store
+{
+    "persistent:player": {
+        "name": {type: "any", data: "Yuko"},
+        "metHer": {type: "any", data: false},
+        "lastMet": {type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"},
+    },
+}
+```
+
+命名空间的键带有种类前缀：`persistent:` 表示通过 `story.registerPersistent` 注册的命名空间，`local:` 表示某个场景的 `scene.local`。
+
+<Callout type="warning">
+    请通过 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 读写，而不要直接手动操作。存档中的值并非值本身，而是它的带标签形式 —— 因此存入的 `false` 是一个对象，直接与 `false` 比较不会得到你预期的结果。
+</Callout>
+
+## 兼容性
+
+在 0.13.0 之前，`SavedGame` 的 `store` 被声明为 [StorableData](/zh/docs/narraleaf-react/core/types/StorableData)，但它实际携带的一直是这种带标签的形式。变的只是声明，存档格式本身并未改变。参见[不兼容的变更](/zh/docs/narraleaf-react/info/incompatible-changes)。

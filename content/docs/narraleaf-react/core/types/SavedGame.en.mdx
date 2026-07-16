@@ -14,11 +14,12 @@ interface SavedGame {
     name: string;
     meta: SavedGameMetaData;
     game: {
-        store: { [key: string]: StorableData; };
+        store: { [key: string]: SerializedNamespaceData; };
         elementStates: RawData<ElementStateRaw>[];
         stage: PlayerStateData;
-        currentAction: string | null;
         services: { [key: string]: unknown; };
+        stackModel: StackModelRawData;
+        asyncStackModels: StackModelRawData[];
     };
 }
 ```
@@ -34,3 +35,33 @@ The metadata of the saved game, see [SavedGameMetaData](/docs/narraleaf-react/co
 ## game
 
 Game data of the saved game
+
+### store
+
+Every namespace's contents, keyed by namespace name. Values are stored in their tagged form, see [SerializedNamespaceData](/docs/narraleaf-react/core/types/SerializedNamespaceData).
+
+This covers both the namespaces registered with `story.registerPersistent` and the scene locals behind `scene.local`.
+
+<Callout type="warning">
+    Read this through `Storable` / `Namespace` rather than by hand. A stored value is not the value itself but a `{type, data}` wrapper, which is what lets a `Date` survive JSON.
+</Callout>
+
+### elementStates
+
+The state of every element in the story, each entry carrying the element's id alongside its data.
+
+### stage
+
+The state of the player, including the scenes and displayable elements currently on stage.
+
+### services
+
+The serialized state of every service registered with `story.registerService`.
+
+### stackModel
+
+The main execution stack, which is where the game resumes from when the save is loaded.
+
+### asyncStackModels
+
+The execution stacks running alongside the main one — the actions started by `Control.doAsync` and `Control.allAsync`.
