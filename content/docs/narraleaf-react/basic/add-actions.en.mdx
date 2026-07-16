@@ -1,26 +1,49 @@
 ---
 title: "Add Actions"
 ---
-Actions are the most important part of a scene. They are the things that make the story interactive.
 
-You can simply add actions to the scene:
+A scene runs its actions from top to bottom. Pass the complete action list to `scene.action()` once.
 
-```typescript
-const scene1 = new Scene("scene 1 - wake up", {
-    // ...
+```ts
+import { Character, Scene } from "narraleaf-react";
+
+const kitchen = new Scene("kitchen", {
+    background: "/backgrounds/kitchen.webp",
 });
-const scene2 = new Scene("scene 2 - breakfast", {
-    // ...
+const street = new Scene("street", {
+    background: "/backgrounds/street.webp",
 });
+const alice = new Character("Alice");
 
-scene1.action([
-    // ...
-    scene1.jumpTo(scene2),
+kitchen.action([
+    alice.say("Breakfast is ready."),
+    kitchen.jumpTo(street),
 ]);
 ```
 
-The `action` method accepts an array of actions. You can use [elements](/docs/narraleaf-react/core/elements) to create actions.
+Most methods on story elements return actions: `character.say()`, `image.show()`, `sound.play()`, and `scene.jumpTo()` are common examples. Plain strings are also accepted and are rendered as narrator lines.
 
-`scene1.jumpTo` will create a jumpTo action. It will jump to the next scene when the action is executed.
+```ts
+kitchen.action([
+    "The room is quiet.",
+    alice.say("Let's go."),
+]);
+```
 
-> Note: actions after the jumpTo action will not be executed.
+Use the callback form when you want a short local name for the current scene:
+
+```ts
+import { Control } from "narraleaf-react";
+
+const room = new Scene("room").action((scene) => [
+    scene.setBackground("/backgrounds/room-night.webp"),
+    Control.sleep(500),
+    scene.jumpTo(street),
+]);
+```
+
+<Callout type="warning">
+    Do not call `action()` more than once on the same scene. Actions after `jumpTo()` are unreachable and will not run.
+</Callout>
+
+See [ActionStatements](/docs/narraleaf-react/core/types/ActionStatements) for every accepted statement type.

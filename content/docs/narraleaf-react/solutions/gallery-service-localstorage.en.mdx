@@ -1,14 +1,16 @@
 ---
-title: "Custom Gallery (Service + localStorage)"
+title: "Persistent Gallery (Service + localStorage)"
 ---
+This version keeps unlocks outside normal game saves. A CG stays unlocked after starting a new game or loading an older slot. If unlocks should follow each save instead, use the built-in `Gallery` from `narraleaf-react`; registered Service data is already included in `SavedGame`.
+
 ## Part 1: Complete Gallery source code
 
 The implementation includes action triggers, localStorage persistence, and constructor-time loading:
 
 ```tsx
 // lib/gallery.ts
-import { Service, Lambda } from "narraleaf-react";
-import type { ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
+import { Service } from "narraleaf-react";
+import type { LambdaHandler, ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
 
 export type GalleryMetadata = {
   url: string;
@@ -31,7 +33,7 @@ type GalleryOptions = {
   autoSave?: boolean;
 };
 
-export class GalleryService extends Service<GalleryActions, GalleryStorage> {
+export class GalleryService extends Service<GalleryActions, null> {
   private unlocked: Record<string, GalleryMetadata> = {};
   private readonly storageKey: string;
   private readonly autoSave: boolean;
@@ -44,13 +46,14 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     this.setupActions();
   }
 
-  serialize(): GalleryStorage | null {
-    return { unlocked: this.unlocked };
+  // Returning null keeps this service out of SavedGame.
+  // localStorage is the only source of truth for permanent unlocks.
+  serialize(): null {
+    return null;
   }
 
-  deserialize(data: GalleryStorage): void {
-    this.unlocked = data?.unlocked ?? {};
-  }
+  // Required by Service's storage contract; no SavedGame data is restored.
+  deserialize(_data: null): void {}
 
   public add(name: string, metadata: GalleryMetadata | ((ctx: ScriptCtx) => GalleryMetadata)) {
     return this.trigger("add", name, metadata);
@@ -64,8 +67,8 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     return this.trigger("clear");
   }
 
-  public has(name: string): Lambda<boolean> {
-    return new Lambda(() => this.unlocked[name] !== undefined);
+  public has(name: string): LambdaHandler<boolean> {
+    return () => this.unlocked[name] !== undefined;
   }
 
   public $add(name: string, metadata: GalleryMetadata) {
@@ -121,7 +124,7 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as GalleryStorage;
-      this.deserialize(parsed);
+      this.unlocked = parsed.unlocked ?? {};
     } catch {}
   }
 
@@ -145,7 +148,7 @@ import { GalleryService } from "@/lib/gallery";
 
 const story = new Story("my-story");
 const gallery = new GalleryService();
-const narrator = Character.narrator();
+const narrator = new Character(null);
 const scene = new Scene("start");
 
 // Register custom service
@@ -218,7 +221,7 @@ export function GalleryPage() {
 
 ### 4) Persistence independent of game saves
 
-The localStorage layer is separate from the save system, which is useful for "permanent unlocks" even if the player restarts or never uses game saves.
+The localStorage layer is separate from the save system. `serialize()` returns `null`, so loading an older slot cannot roll the gallery back.
 
 ## Part 3: API
 
@@ -227,7 +230,7 @@ The localStorage layer is separate from the save system, which is useful for "pe
 | `add(name, metadata)` | Unlock in `scene.action`, accepts object or `(ctx) => metadata` |
 | `remove(name)` | Remove in `scene.action` |
 | `clear()` | Clear all in `scene.action` |
-| `has(name)` | Returns `Lambda<boolean>` for [Condition](/docs/narraleaf-react/core/elements/condition) |
+| `has(name)` | Returns `LambdaHandler<boolean>` for [Condition](/docs/narraleaf-react/core/elements/condition) |
 | `$add(name, metadata)` | Add immediately and persist |
 | `$remove(name)` | Remove immediately and persist |
 | `$clear()` | Clear immediately and persist |
@@ -235,8 +238,7 @@ The localStorage layer is separate from the save system, which is useful for "pe
 | `$set(name, metadata)` | Set metadata and persist |
 | `$getAll()` | Get all entries |
 | `$has(name)` | Check if unlocked |
-| `serialize()` | Return persistable data |
-| `deserialize(data)` | Restore from data |
+| `serialize()` | Returns `null`; unlocks are stored only in localStorage |
 
 ## See Also
 
@@ -244,3 +246,4 @@ The localStorage layer is separate from the save system, which is useful for "pe
 - [Story.registerService](/docs/narraleaf-react/core/elements/story) - Service registration
 - [Condition](/docs/narraleaf-react/core/elements/condition) - Conditional branching
 - [Page overlay](/docs/narraleaf-react/solutions/page-overlay-settings) - Overlay pages and routing
+- [Built-in Gallery](/docs/narraleaf-react/core/elements/built-in/gallery) - Gallery state that follows each game save

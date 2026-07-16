@@ -1,19 +1,18 @@
 ---
 title: "自定义 Menu（游戏内选项）"
 ---
-## 概述
+## 作用
 
 游戏内选项（Menu）用于在故事中展示选择分支，玩家点击或按快捷键选择后执行对应动作。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `menu` 配置项，可替换默认的 [Menu](/zh/docs/narraleaf-react/player/menu) 组件，实现自定义的选项样式和布局。
 
-本文档演示如何使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 和 [Item](/zh/docs/narraleaf-react/player/menu) 构建自定义菜单，并支持 `bindKey` 快捷键。
+使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为选项容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染单个选项。`Item.bindKey` 用于绑定快捷键。
 
 ## 1. 创建自定义 Menu 组件
 
 自定义菜单组件接收 `items`（选项索引数组），使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染每个选项。`Item` 会自动从上下文中获取对应选项的文本和点击逻辑。
 
 ```tsx
-import { useEffect } from "react";
-import { GameMenu, Item, useGame } from "narraleaf-react";
+import { GameMenu, Item } from "narraleaf-react";
 
 function CustomMenu({ items }: { items: number[] }) {
   return (
@@ -33,13 +32,6 @@ function CustomMenu({ items }: { items: number[] }) {
   );
 }
 
-function App() {
-  const game = useGame();
-  useEffect(() => {
-    game.configure({ menu: CustomMenu });
-  }, [game]);
-  return /* ... */;
-}
 ```
 
 ## 2. 为选项绑定快捷键
@@ -64,9 +56,9 @@ function CustomMenu({ items }: { items: number[] }) {
 }
 ```
 
-## 3. 完整示例（参考 [narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton)）
+## 3. 只让选项区域接收点击
 
-以下示例展示：`pointer-events-none` 使全屏容器不阻挡点击，内层 `pointer-events-auto` 仅让选项区域可交互；使用 `clipPath` 实现斜切按钮、`drop-shadow` 与 hover 动效：
+外层使用 `pointer-events-none`，避免全屏容器阻挡点击；内层使用 `pointer-events-auto`，只让选项区域可交互：
 
 ```tsx
 import { GameMenu, Item } from "narraleaf-react";
@@ -139,19 +131,16 @@ Menu.prompt("你要怎么做？")
 ## 6. 注册到游戏
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ menu: CustomMenu });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      menu: CustomMenu,  // Replace default menu component
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
 

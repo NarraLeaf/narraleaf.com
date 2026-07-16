@@ -1,14 +1,16 @@
 ---
-title: "自定义 Gallery（Service + localStorage）"
+title: "持久 Gallery（Service + localStorage）"
 ---
+这个版本把解锁记录放在普通游戏存档之外。开始新游戏或读取旧槽位后，CG 仍保持解锁。如果解锁记录应该跟随每个存档，直接使用 `narraleaf-react` 导出的内置 `Gallery`；已注册 Service 的数据本来就会写入 `SavedGame`。
+
 ## 第一部分：完整的 Gallery 源代码实现
 
 以下实现包含 action 触发、localStorage 持久化与构造时加载（constructor 内完成）：
 
 ```tsx
 // lib/gallery.ts
-import { Service, Lambda } from "narraleaf-react";
-import type { ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
+import { Service } from "narraleaf-react";
+import type { LambdaHandler, ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
 
 export type GalleryMetadata = {
   url: string;
@@ -31,7 +33,7 @@ type GalleryOptions = {
   autoSave?: boolean;
 };
 
-export class GalleryService extends Service<GalleryActions, GalleryStorage> {
+export class GalleryService extends Service<GalleryActions, null> {
   private unlocked: Record<string, GalleryMetadata> = {};
   private readonly storageKey: string;
   private readonly autoSave: boolean;
@@ -44,13 +46,14 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     this.setupActions();
   }
 
-  serialize(): GalleryStorage | null {
-    return { unlocked: this.unlocked };
+  // 返回 null，让该 Service 不写入 SavedGame。
+  // 永久解锁只以 localStorage 为准。
+  serialize(): null {
+    return null;
   }
 
-  deserialize(data: GalleryStorage): void {
-    this.unlocked = data?.unlocked ?? {};
-  }
+  // Service 的存储契约要求该方法；本实现不从 SavedGame 恢复数据。
+  deserialize(_data: null): void {}
 
   public add(name: string, metadata: GalleryMetadata | ((ctx: ScriptCtx) => GalleryMetadata)) {
     return this.trigger("add", name, metadata);
@@ -64,8 +67,8 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     return this.trigger("clear");
   }
 
-  public has(name: string): Lambda<boolean> {
-    return new Lambda(() => this.unlocked[name] !== undefined);
+  public has(name: string): LambdaHandler<boolean> {
+    return () => this.unlocked[name] !== undefined;
   }
 
   public $add(name: string, metadata: GalleryMetadata) {
@@ -121,7 +124,7 @@ export class GalleryService extends Service<GalleryActions, GalleryStorage> {
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as GalleryStorage;
-      this.deserialize(parsed);
+      this.unlocked = parsed.unlocked ?? {};
     } catch {}
   }
 
@@ -145,7 +148,7 @@ import { GalleryService } from "@/lib/gallery";
 
 const story = new Story("my-story");
 const gallery = new GalleryService();
-const narrator = Character.narrator();
+const narrator = new Character(null);
 const scene = new Scene("start");
 
 // Register custom service
@@ -218,7 +221,7 @@ export function GalleryPage() {
 
 ### 4) 独立于游戏存档的持久化
 
-该实现的 localStorage 与游戏存档系统分离，适合「图鉴永久解锁」等需求；即使玩家重开游戏或没有使用存档系统，图鉴也能保持解锁状态。
+该实现的 localStorage 与游戏存档系统分离。`serialize()` 返回 `null`，因此读取旧槽位不会让画廊回退。
 
 ## 第三部分：API
 
@@ -227,7 +230,7 @@ export function GalleryPage() {
 | `add(name, metadata)` | 在 `scene.action` 中解锁，支持对象或 `(ctx) => metadata` |
 | `remove(name)` | 在 `scene.action` 中移除 |
 | `clear()` | 在 `scene.action` 中清空 |
-| `has(name)` | 返回 `Lambda<boolean>`，用于 [Condition](/zh/docs/narraleaf-react/core/elements/condition) |
+| `has(name)` | 返回 `LambdaHandler<boolean>`，用于 [Condition](/zh/docs/narraleaf-react/core/elements/condition) |
 | `$add(name, metadata)` | 立即添加并保存 |
 | `$remove(name)` | 立即移除并保存 |
 | `$clear()` | 立即清空并保存 |
@@ -235,8 +238,7 @@ export function GalleryPage() {
 | `$set(name, metadata)` | 设置单条元数据并保存 |
 | `$getAll()` | 获取所有条目 |
 | `$has(name)` | 检查是否已解锁 |
-| `serialize()` | 返回可持久化数据 |
-| `deserialize(data)` | 从持久化数据恢复 |
+| `serialize()` | 返回 `null`；解锁记录只保存在 localStorage |
 
 ## 参考
 
@@ -244,3 +246,4 @@ export function GalleryPage() {
 - [Story.registerService](/zh/docs/narraleaf-react/core/elements/story) - 服务注册
 - [Condition](/zh/docs/narraleaf-react/core/elements/condition) - 条件分支
 - [页面叠层](/zh/docs/narraleaf-react/solutions/page-overlay-settings) - 叠层页面与路由
+- [内置 Gallery](/zh/docs/narraleaf-react/core/elements/built-in/gallery) - 解锁状态跟随游戏存档

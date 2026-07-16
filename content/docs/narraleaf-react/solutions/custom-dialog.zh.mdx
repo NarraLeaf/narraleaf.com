@@ -1,11 +1,11 @@
 ---
 title: "自定义 Dialog"
 ---
-## 概述
+## 作用
 
 对话框（Dialog）用于渲染 Say 模式下的角色对话，包括角色名牌和文本内容。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 替换默认的 [Dialog](/zh/docs/narraleaf-react/player/dialog) 组件，即可实现完全自定义的对话框样式。
 
-本文档演示如何创建自定义对话框，并配合 [Nametag](/zh/docs/narraleaf-react/player/dialog) 与 [Texts](/zh/docs/narraleaf-react/player/dialog) 调整名牌和文本的展示。
+下面使用 [Nametag](/zh/docs/narraleaf-react/player/dialog) 和 [Texts](/zh/docs/narraleaf-react/player/dialog) 分别渲染角色名和台词。
 
 ## 1. 创建自定义 Dialog 组件
 
@@ -54,33 +54,31 @@ function GameDialog() {
 
 ## 3. 在 App 中注册
 
-通过 [useGame](/zh/docs/narraleaf-react/player/hooks/useGame) 获取游戏实例，在 `useEffect` 中调用 [game.configure](/zh/docs/narraleaf-react/core/game/game) 注册自定义组件：
+创建 [Game](/zh/docs/narraleaf-react/core/game/game) 时指定 Dialog，再把同一个实例传给 `GameProviders`。把 Game 放在 React 组件外，也可以避免每次渲染都重新创建实例。
 
 ```tsx
-import { useEffect } from "react";
-import { useGame, Player } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
 import GameDialog from "./GameDialog";
 
+const game = new Game({ dialog: GameDialog });
+
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      dialog: GameDialog,  // Replace default dialog with custom one
-    });
-  }, [game]);
-
   return (
-    <Player>
-      {/* ... */}
-    </Player>
+    <GameProviders game={game}>
+      <Player
+        story={story}
+        onReady={({ liveGame }) => liveGame.newGame()}
+      />
+    </GameProviders>
   );
 }
 ```
 
-## 4. 完整示例（参考 [narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton)）
+确实需要在运行时替换组件时，再调用 `game.configure({ dialog: GameDialog })`。
 
-以下示例展示：使用 [useDialog](/zh/docs/narraleaf-react/player/hooks/useDialog) 的 `done` 控制打字完成指示器，`isNarrator` 控制名牌显隐，以及背景图样式：
+## 4. 带打字完成提示的对话框
+
+这个版本用 [useDialog](/zh/docs/narraleaf-react/player/hooks/useDialog) 的 `done` 控制打字完成标记，用 `isNarrator` 控制名牌显隐：
 
 ```tsx
 import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";

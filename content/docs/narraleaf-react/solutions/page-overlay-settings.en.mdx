@@ -1,23 +1,23 @@
 ---
 title: "Adding Page Overlay (Settings Page)"
 ---
-## Overview
+## Route Shape
 
 A page overlay is UI displayed on top of the main game screen (e.g. settings, save/load, gallery) without interrupting the game flow. By defining the route structure with [Layout](/docs/narraleaf-react/player/page-router/layout) and [Page](/docs/narraleaf-react/player/page-router/page), and navigating with [useRouter](/docs/narraleaf-react/player/hooks/useRouter), you can implement overlays like a settings page.
 
-This guide shows how to build a settings page overlay and open/close it from the [Quick Menu](/docs/narraleaf-react/solutions/quick-menu).
+The example uses a settings overlay opened from the [Quick Menu](/docs/narraleaf-react/solutions/quick-menu).
 
 ## 1. Define Layout and Page Structure
 
-Define a `settings` layout in the [LayoutRouter](/docs/narraleaf-react/player/page-router) with child pages (e.g. `general`, `audio`). `Page name={null}` is the default page for that layout.
+Define a `settings` layout with child pages such as `general` and `audio`. `Player` already creates the root layout, so place `Page` and `Layout` directly inside it. `Page name={null}` is the default page for its parent layout.
 
 ```tsx
-import { RootLayout, Layout, Page, Player } from "narraleaf-react";
+import { GameProviders, Layout, Page, Player } from "narraleaf-react";
 
 function AppLayout() {
   return (
-    <Player>
-      <RootLayout>
+    <GameProviders>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
         {/* Default page (game stage) - path: / */}
         <Page name={null}>
           <GameStage />
@@ -38,11 +38,13 @@ function AppLayout() {
             {/* /settings/audio - audio settings */}
           </Page>
         </Layout>
-      </RootLayout>
-    </Player>
+      </Player>
+    </GameProviders>
   );
 }
 ```
+
+Do not add `RootLayout` yourself. Nesting another root layout inside `Player` creates the wrong route boundary.
 
 ## 2. Implement the Settings Page Component
 
@@ -109,13 +111,15 @@ function QuickMenu() {
 | `router.forward()` | Go forward |
 | `router.clear().navigate(path)` | Clear history then navigate (e.g. return to main) |
 | `router.getCurrentPath()` | Get current path |
+| `router.replace(path)` | Replace the current history entry |
+| `router.canGoBack()` | Check whether `back()` can navigate |
 
 ## 5. Add Enter/Exit Animations
 
-Wrap page content with Framer Motion's `motion.div`; [LayoutRouter](/docs/narraleaf-react/player/page-router) will trigger animations on mount/unmount:
+Wrap page content with Motion's `motion.div`; [LayoutRouter](/docs/narraleaf-react/player/page-router) keeps the exiting page mounted until its animation finishes:
 
 ```tsx
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 function SettingsGeneral() {
   const router = useRouter();

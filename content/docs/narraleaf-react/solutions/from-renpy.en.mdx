@@ -1,14 +1,99 @@
 ---
-title: "From Ren'Py"
+title: "Moving from Ren'Py"
 ---
-<Callout type="warning">
-    This page is under construction.
-</Callout>
 
-If you are coming from Ren'Py, you might need to know these things:
+NarraLeaf uses TypeScript objects instead of a separate script language. The closest concepts are:
 
-- **Character** in NarraLeaf only controls the dialogues of the character. It does not control the appearance of the character or image. For that, you can use [Image](/docs/narraleaf-react/core/elements/image).
-- **Scene** in NarraLeaf = **Label** in Ren'Py. NarraLeaf do not have a class that is similar to Ren'Py's **Scene**.
-- **Transition** and **Transform** can use on both Scene and Image
+| Ren'Py | NarraLeaf React |
+|---|---|
+| `label` | `Scene` |
+| `jump` | `scene.jumpTo(otherScene)` |
+| `scene bg room` | Scene `background` or `scene.setBackground()` |
+| `show eileen happy` | `image.show()` then `image.char(["happy"])` |
+| `hide eileen` | `image.hide()` |
+| `e "Hello"` | `character.say("Hello")` |
+| `menu` | `Menu.prompt().choose()` |
+| `default` / persistent variable | `Persistent` |
+| screen language | React components inside `Player` |
+| `with dissolve` | `new Dissolve(duration)` |
 
-**Note:** NarraLeaf focuses on the playing of the story. It does not have a feature to control GUI, and it is not a complete engine like Ren'Py.
+The names are similar, but the boundaries differ. A NarraLeaf `Character` only owns dialog identity and avatar rules. A stage `Image` owns the sprite. A `Scene` is closer to a Ren'Py label than to Ren'Py's `scene` statement.
+
+## A small translation
+
+Ren'Py:
+
+```text
+define a = Character("Alice")
+
+label start:
+    scene bg room
+    show alice happy at center
+    with dissolve
+    a "Good morning."
+
+    menu:
+        "Open the window":
+            $ opened_window = True
+            jump window
+        "Stay in bed":
+            jump sleep
+```
+
+NarraLeaf React:
+
+```ts
+import {
+    Character,
+    Dissolve,
+    Image,
+    Menu,
+    Scene,
+    Story,
+} from "narraleaf-react";
+
+const story = new Story("morning");
+const state = story.createPersistent("state", { openedWindow: false });
+const alice = new Character("Alice");
+const aliceSprite = new Image({
+    src: {
+        groups: [["happy", "sleepy"]],
+        defaults: ["happy"],
+        resolve: (expression) => `/characters/alice-${expression}.webp`,
+    } as const,
+});
+
+const windowScene = new Scene("window");
+const sleepScene = new Scene("sleep");
+const start = new Scene("start", {
+    background: "/backgrounds/room.webp",
+}).action((scene) => [
+    aliceSprite.show(),
+    aliceSprite.char(["happy"], new Dissolve(400)),
+    alice.say("Good morning."),
+    Menu.prompt("What should I do?")
+        .choose("Open the window", [
+            state.set("openedWindow", true),
+            scene.jumpTo(windowScene),
+        ])
+        .choose("Stay in bed", [
+            scene.jumpTo(sleepScene),
+        ]),
+]);
+
+story.entry(start);
+```
+
+## UI and screens
+
+NarraLeaf does not ship a screen language. Settings, save slots, history, galleries, and menus are React components. Put routed pages inside `Player`, and replace the dialog, menu, NVL, or notification slots through `Game` configuration.
+
+Start with [Basic](/docs/narraleaf-react/basic), then use [Page Overlay](/docs/narraleaf-react/solutions/page-overlay-settings), [Custom Dialog](/docs/narraleaf-react/solutions/custom-dialog), and [Save System](/docs/narraleaf-react/solutions/save-system-localstorage) for common engine UI.
+
+## Differences to plan for
+
+- There is no rollback UI by default, though `liveGame.undo()` provides the underlying action.
+- Save data is serializable, but you build the storage and slot UI.
+- Assets are URLs or bundler imports. Web preload and browser audio rules apply.
+- Transforms and transitions are TypeScript objects, not ATL blocks.
+- React owns interface layout and accessibility.

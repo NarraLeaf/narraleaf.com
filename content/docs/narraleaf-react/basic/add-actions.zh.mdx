@@ -1,26 +1,49 @@
 ---
 title: "添加动作"
 ---
-动作是场景中最重要的部分。它们是使故事具有互动性的元素。
 
-你可以简单地向场景添加动作：
+场景按从上到下的顺序执行动作。一个场景只调用一次 `scene.action()`，把完整动作列表传进去。
 
-```typescript
-const scene1 = new Scene("场景 1 - 醒来", {
-    // ...
+```ts
+import { Character, Scene } from "narraleaf-react";
+
+const kitchen = new Scene("厨房", {
+    background: "/backgrounds/kitchen.webp",
 });
-const scene2 = new Scene("场景 2 - 早餐", {
-    // ...
+const street = new Scene("街道", {
+    background: "/backgrounds/street.webp",
 });
+const alice = new Character("爱丽丝");
 
-scene1.action([
-    // ...
-    scene1.jumpTo(scene2),
+kitchen.action([
+    alice.say("早餐准备好了。"),
+    kitchen.jumpTo(street),
 ]);
 ```
 
-`action` 方法接受一个动作数组。你可以使用 [元素](/zh/docs/narraleaf-react/core/elements) 来创建动作。
+大多数故事元素的方法都会返回动作，例如 `character.say()`、`image.show()`、`sound.play()` 和 `scene.jumpTo()`。动作列表也可以直接写字符串，字符串会作为旁白显示。
 
-`scene1.jumpTo` 将创建一个跳转动作。当动作执行时，它将跳转到下一个场景。
+```ts
+kitchen.action([
+    "房间里很安静。",
+    alice.say("走吧。"),
+]);
+```
 
-> 注意：跳转动作之后的动作将不会被执行。
+需要多次引用当前场景时，可以使用回调写法：
+
+```ts
+import { Control } from "narraleaf-react";
+
+const room = new Scene("房间").action((scene) => [
+    scene.setBackground("/backgrounds/room-night.webp"),
+    Control.sleep(500),
+    scene.jumpTo(street),
+]);
+```
+
+<Callout type="warning">
+    不要对同一个场景多次调用 `action()`。`jumpTo()` 后面的动作不会执行。
+</Callout>
+
+完整的可用类型见 [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)。

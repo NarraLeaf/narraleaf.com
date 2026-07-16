@@ -1,66 +1,91 @@
 ---
 title: "声音"
 ---
-在 NarraLeaf-React 中，你可以使用 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 元素播放声音。
 
-```typescript
-const sound = new Sound({
-    src: "https://你的声音链接.mp3",
-    volume: 0.5, // 0.0 到 1.0
-    loop: true, // 循环播放声音
-    sync: false, // 不等待声音播放完毕
+使用 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 播放音效、背景音乐和语音。静态构造方法会为声音设置正确类型。
+
+```ts
+import { Sound } from "narraleaf-react";
+
+const door = Sound.sound({
+    src: "/audio/door.ogg",
+    volume: 0.8,
 });
-```
 
-## 播放声音
-
-你可以通过将声音添加到场景中来播放它。
-
-```typescript
-scene1.action([
-    sound.play(), // 如果声音是同步的，场景将等待声音播放完毕
-]);
-```
-
-## 声音操作
-
-你可以暂停/恢复/淡入淡出/停止/设置音量/设置播放速率。
-
-```typescript
-scene1.action([
-    sound.pause(),
-    character1.say`声音已暂停`,
-    sound.resume(),
-    character1.say`声音已恢复`,
-]);
-```
-
-有关声音的更多信息，请阅读 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 文档。
-
-## 背景音乐
-
-你可以将音乐添加到场景中，场景开始时将自动播放音乐。
-
-```typescript
-const scene = new Scene("场景 1", {
-    backgroundMusic: YOUR_SOUND_INSTANCE,
-    backgroundMusicFade: 1000, // 如果指定，当场景切换时，音乐将在 1000 毫秒内淡入/淡出
+const theme = Sound.bgm({
+    src: "/audio/theme.ogg",
+    volume: 0.5,
+    loop: true,
 });
 ```
 
 ## 音效
 
-你可以使用这些配置轻松创建音效。
+`play()` 返回一个动作。默认情况下，剧情会等到音频播放结束。
 
-```typescript
-const soundEffect = new Sound({
-    src: "https://你的音效链接.mp3",
-    sync: false,
-});
-
-scene1.action([
-    soundEffect.play(),
+```ts
+scene.action([
+    door.play(),
+    alice.say("有人来了。"),
 ]);
 ```
 
-当音效播放时，它不会等待声音播放完毕。
+如果剧情需要在声音播放时继续执行，可把声音放到异步控制栈。
+
+```ts
+import { Control } from "narraleaf-react";
+
+scene.action([
+    Control.doAsync([door.play()]),
+    alice.say("门在你身后关上了。"),
+]);
+```
+
+<Callout type="warning">
+    旧版的 `sync` 配置已经移除。非阻塞音频请使用 `Control.doAsync()` 或 `Control.allAsync()`。
+</Callout>
+
+## 背景音乐
+
+可以在场景配置中指定 BGM，也可以在剧情中更换。淡入淡出时间的单位是毫秒。
+
+```ts
+const room = new Scene("房间", {
+    backgroundMusic: theme,
+    backgroundMusicFade: 800,
+});
+
+room.action([
+    room.setBackgroundMusic(Sound.bgm("/audio/night.ogg"), 800),
+]);
+```
+
+传入 `null` 可以停止当前 BGM。
+
+```ts
+room.setBackgroundMusic(null, 500);
+```
+
+## 播放控制
+
+Sound 动作可以调整播放状态和参数。
+
+```ts
+scene.action([
+    door.setVolume(0.3, 300),
+    door.setRate(1.2),
+    door.pause(200),
+    door.resume(200),
+    door.mute(),
+    door.unmute(),
+    door.stop(300),
+]);
+```
+
+在 React UI 中需要立即播放声音时，使用 `liveGame.playSound()`，不用创建剧情动作。
+
+```tsx
+const liveGame = useLiveGame();
+
+<button onClick={() => liveGame.playSound("/audio/click.ogg")}>播放</button>
+```

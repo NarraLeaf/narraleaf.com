@@ -7,8 +7,8 @@ title: "显示图片"
 
 你可以通过提供 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig) 对象来构建图片。
 
-```typescript
-import {Image} from "narraleaf-react";
+```ts
+import { Image } from "narraleaf-react";
 ```
 
 ```typescript
@@ -22,7 +22,7 @@ const character1Happy = new Image({
 });
 ```
 
-这张图片将以 0.5 的比例显示在屏幕的左侧。
+图片初始位于屏幕中央，缩放为 0.5。执行 `show()` 前不会显示。
 
 ## 显示图片
 
@@ -36,7 +36,7 @@ scene1.action([
 
 图片将立即显示在屏幕上。
 
-你可以使用缓动效果显示图片。
+显示时可以让透明度平滑变化：
 
 ```typescript
 scene1.action([
@@ -59,7 +59,7 @@ scene1.action([
 
 图片将立即从屏幕上隐藏。
 
-你可以使用缓动效果隐藏图片。
+隐藏时使用相同的参数：
 
 ```typescript
 scene1.action([
@@ -94,9 +94,9 @@ scene1.action([
 ]);
 ```
 
-### 使用基于标签的图片
+### 基于标签的图片
 
-你可以使用基于标签的图片来显示图片。
+每个外观都已经合成为单张图片时，可以使用标签组。
 
 > 注意：基于标签的图片是一项功能，允许你通过提供标签来更改图片外观。
 >
@@ -127,35 +127,48 @@ scene1.action([
 ]);
 ```
 
-这种形式需要为每一种标签组合准备一张已合成好的图片。如果你的素材是按部件分别导出的，可以改用**层叠图像** —— 每个部件只需画一次，由 NarraLeaf 负责合成，于是 3 种表情 × 3 种上衣 × 3 种下装 只需 9 张图，而不是 27 张。
+### 层叠图片
+
+素材按部件分别导出时，使用 `layers`。NarraLeaf 按数组顺序从下到上叠放图片。3 种表情、3 种上衣和 3 种下装只需 9 张图，不需要准备 27 种合成结果。
 
 ```typescript
 const image = new Image({
     src: {
         // 从下到上
         layers: [
+            "body.png",
             {trousers: "trousers.png", skirt: "skirt.png", shorts: "shorts.png"},
             {shirt: "shirt.png", jacket: "jacket.png", tshirt: "t-shirt.png"},
             {happy: "happy.png", sad: "sad.png", angry: "angry.png"},
+            {noHat: null, hat: "hat.png"},
+            (tags) => tags.has("sad") ? "tears.png" : null,
         ],
-        defaults: ["trousers", "shirt", "happy"],
+        defaults: ["trousers", "shirt", "happy", "noHat"],
     },
 });
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts"], new Dissolve(1000)), // 只有这两个图层会改变
+    image.char(["angry", "shorts", "hat"], new Dissolve(1000)),
 ]);
 ```
 
-有关基于标签的图片和层叠图像的更多信息，请阅读 [Image](/zh/docs/narraleaf-react/core/elements/image) 文档。
+每个标签只替换自己所在的变体层，其他层保持不变。标签会从配置中自动推断，拼写错误会被 TypeScript 拒绝。
+
+常量层和变体层会自动预加载。函数层的返回值无法静态分析，需要手动注册所有可能返回的 URL：
+
+```ts
+scene1.preloadImage("tears.png");
+```
+
+`null` 图层、函数图层、附着图片、遮罩和预加载规则见 [Image](/zh/docs/narraleaf-react/core/elements/image)。
 
 ## 动画化图片
 
 你可以使用 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 对图片进行动画处理。
 
-```typescript
-import {Transform, CommonPosition} from "narraleaf-react";
+```ts
+import { Transform } from "narraleaf-react";
 ```
 
 ```typescript
@@ -171,10 +184,14 @@ scene1.action([
 // 或者
 
 scene1.action([
-    character1Happy.transform(Transform.left(120, "easeOut")),
+    character1Happy.transform(Transform.right(120, "easeOut")),
 ]);
 ```
 
-图片将以 120 毫秒的持续时间和缓出效果移动到屏幕右侧。
+图片会在 120 毫秒内以缓出曲线移动到右侧。
+
+## 其他图片过渡
+
+NarraLeaf 0.13 内置 `Dissolve`、`FadeIn`、`SoftWipe`、`SoftIris`、`Blinds`、`BlurDissolve`、`Push`、`ThroughColor` 和 `MaskTransition`。这些过渡都支持普通图片、标签图片和层叠图片。
 
 有关 Transform 的更多信息，请查看 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 文档.

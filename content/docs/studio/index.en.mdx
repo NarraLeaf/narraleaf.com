@@ -1,8 +1,52 @@
 ---
 title: Introduction to Studio
-description: Zero-code visual novel IDE for guided creation and editing workflows.
+description: Learn how NarraLeaf Studio organizes projects, editors, and runtime workflows.
 ---
 
-NarraLeaf Studio is the zero-code path in the NarraLeaf Project ecosystem.
+NarraLeaf Studio is a desktop editor for visual novels. Stories, characters, assets, interfaces, and release settings live in one NarraLeaf project. Routine authoring does not require external scripts.
 
-Use these docs to explain the editor workflow, authoring experience, and how Studio fits into team-based visual novel production.
+<Callout type="warning">
+Studio is in early development. Interface names and project formats may change between preview releases. Keep important projects under version control or maintain a separate backup.
+</Callout>
+
+## What a project contains
+
+A Studio project can contain:
+
+- **Stories**, organized into stories, chapters, scenes, and actions.
+- **Characters**, including forms, variants, and linked assets.
+- **Assets**, including images, audio, and other project files.
+- **Pages**, such as title, settings, save, history, and gallery screens.
+- **Game UI**, such as dialog, choices, notifications, NVL, and stage HUDs.
+- **Blueprints** for page, widget, and Game UI behavior.
+- **Localization** data for source text, translations, and review state.
+
+Studio writes this data into the project directory. Treat that directory as a unit when moving, backing up, or committing a project.
+
+## Pages and Game UI
+
+Both are made in the UI editor, but they serve different roles.
+
+| Type | Use | Size |
+| --- | --- | --- |
+| Page | Complete screens such as title, settings, or save | Set when the page is created |
+| Game UI | Dialog, choices, notifications, NVL, or stage content | Uses the project stage size |
+
+Game UI is mounted into a slot. A project can have one active interface for each dialog, choice, notification, NVL, and other supported slot.
+
+## Editing and running
+
+The workspace canvas is for layout and static checks. Use **Dev Mode** to verify real interactions, Blueprint execution, and Host API behavior. When the project is ready for players, use **Build Release** to create desktop or web artifacts.
+
+<Cards>
+    <Card
+        title="Start a project"
+        description="Create a project and complete the first run."
+        href="/en/docs/studio/getting-started"
+    />
+    <Card
+        title="Meet the workspace"
+        description="Learn the sidebars, editor area, Properties panel, and bottom panel."
+        href="/en/docs/studio/getting-started/workspace-overview"
+    />
+</Cards>

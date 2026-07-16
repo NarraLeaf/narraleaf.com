@@ -1,49 +1,63 @@
 ---
 title: "Make Choices"
 ---
-You can crerate a menu with choices by using the [Menu](/docs/narraleaf-react/core/elements/menu) element.
 
-```typescript
-const narrator = new Character(null);
+Use [Menu](/docs/narraleaf-react/core/elements/menu) to pause the story and show choices. The selected choice runs its own action list.
 
-/**
- * What should I do?
- * - Go left
- *    ~> *You went left.*
- *    ~> jump to scene "scene_went_left"
- * 
- * - Go right
- *    ~> *You went right.*
- *    ~> jump to scene "scene_went_right"
- */
+```ts
+import { Menu, Narrator } from "narraleaf-react";
 
 scene.action([
-    Menu.prompt("What should I do?")
-
-        .choose("Go left", [
-            narrator`You went left.`,
-            /* ... */
-            scene.jumpTo(scene_went_left),
+    Menu.prompt("Where should I go?")
+        .choose("Library", [
+            Narrator.say("You head to the library."),
+            scene.jumpTo(library),
         ])
-
-        .choose("Go right", [
-            narrator`You went right.`,
-            /* ... */
-            scene.jumpTo(scene_went_right),
-        ]);
+        .choose("Station", [
+            Narrator.say("You walk toward the station."),
+            scene.jumpTo(station),
+        ]),
 ]);
 ```
 
-You can show the menu prompt with a custom [Sentence](/docs/narraleaf-react/core/elements/character/sentence).
+Use `Menu.choose()` when no prompt is needed.
 
-```typescript
-import { i, b } from "narraleaf-react";
-// Show the menu prompt with a custom sentence
-Menu.prompt(
-    i("What should I do?")  // "What should I do?" with italic style
-).choose([
-    "Go ", b("left") // "Go left" with "left" in bold style
-]), [
-    /* ... */
-])
+```ts
+scene.action([
+    Menu.choose("Continue", [scene.jumpTo(nextScene)]),
+]);
 ```
+
+## Styled choice text
+
+Prompts and choices accept strings, Words, or arrays of both.
+
+```ts
+import { b, i, Menu } from "narraleaf-react";
+
+Menu.prompt(i("Choose carefully."))
+    .choose(["Take the ", b("left door")], [
+        scene.jumpTo(leftDoor),
+    ]);
+```
+
+## Hide or disable a choice
+
+`hideIf()` removes the last choice when its condition is true. `disableIf()` keeps it visible but prevents selection.
+
+```ts
+const state = story.createPersistent("player", {
+    hasKey: false,
+    visitedRoof: false,
+});
+
+const menu = Menu.prompt("What next?")
+    .choose("Open the locked door", [scene.jumpTo(vault)])
+        .disableIf(state.isFalse("hasKey"))
+    .choose("Go to the roof", [scene.jumpTo(roof)])
+        .hideIf(state.isTrue("visitedRoof"));
+
+scene.action([menu]);
+```
+
+`enableWhen(condition, prompt, actions)` and `showWhen(condition, prompt, actions)` are the positive forms of the same rules.

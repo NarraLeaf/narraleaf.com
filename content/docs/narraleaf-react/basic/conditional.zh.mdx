@@ -1,52 +1,54 @@
 ---
-title: "条件"
+title: "条件分支"
 ---
-你可以通过使用 [条件](/zh/docs/narraleaf-react/core/elements/condition) 元素来创建一个条件语句。
 
-```typescript
-scene1.action([
-    Condition
-        // if (persistent.get("favoriteTea") === "green")
-        .If(persistent.equals("favoriteTea", "green"), [
-            character1.say`你喜欢绿茶！`
-        ])
-])
-```
+使用 [Condition](/zh/docs/narraleaf-react/core/elements/condition) 在运行时选择要执行的动作列表。
 
-在条件语句中，提供了游戏上下文，你可以了解更多关于 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象的信息。
+```ts
+import { Condition } from "narraleaf-react";
 
-在一个条件语句中，你只能有 **1 个 If 语句** 和 **1 个 Else 语句**
-
-但是可以有 **多个 Else If 语句**。
-
-```typescript
-scene1.action([
-    Condition
-        .If(/* ... */, [/* ... */])
-
-        .ElseIf(/* ... */, [/* ... */])
-        .ElseIf(/* ... */, [/* ... */])
-        .ElseIf(/* ... */, [/* ... */])
-
-        .Else(/* ... */, [/* ... */])
-])
-```
-
-> 注意：如果你将这些语句的顺序放错，条件语句将抛出错误。
-
-[Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 是在游戏上下文中存储数据的好方式。
-
-```typescript
-const persis = new Persistent<{ flag: boolean; }>("persis", { flag: false });
-```
-
-```typescript
 scene.action([
-    persis.set("flag", true),
-
-    Condition
-        .If(persis.isTrue("flag"), [
-            character1.say("该标志为真")
-        ])
+    Condition.If(player.equals("favoriteTea", "green"), [
+        alice.say("我泡了绿茶。"),
+    ]).Else([
+        alice.say("我煮了咖啡。"),
+    ]),
 ]);
 ```
+
+一个条件可以包含一个 `If`、任意数量的 `ElseIf`，以及最后一个 `Else`。
+
+```ts
+scene.action([
+    Condition.If(player.evaluate("coins", (coins) => coins >= 100), [
+        alice.say("你买得起这本珍本。"),
+    ])
+        .ElseIf(player.evaluate("coins", (coins) => coins >= 20), [
+            alice.say("你买得起这张地图。"),
+        ])
+        .Else([
+            alice.say("多攒些硬币再来吧。"),
+        ]),
+]);
+```
+
+## 读取多个值
+
+条件依赖多个值时可直接传入函数。上下文中的 `$()` 用于读取已注册的命名空间。
+
+```ts
+scene.action([
+    Condition.If(({ $ }) => {
+        const state = $("persistent:player");
+        return state.get("hasKey") && state.get("coins") >= 10;
+    }, [
+        alice.say("大门打开了。"),
+    ]),
+]);
+```
+
+只判断一个字段时，优先使用 `equals`、`isTrue`、`isFalse` 或 `evaluate`。写法更短，也能保留字段类型。
+
+<Callout type="warning">
+    分支顺序固定。`ElseIf()` 必须写在 `If()` 后面，`Else()` 必须放在最后。在 `Else()` 后继续添加分支会抛出错误。
+</Callout>

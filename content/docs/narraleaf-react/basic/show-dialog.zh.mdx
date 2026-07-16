@@ -1,52 +1,77 @@
 ---
 title: "显示对话"
 ---
-要显示对话框，你可以使用 [Character](/zh/docs/narraleaf-react/core/elements/character) 元素 
 
-```typescript
-import { Scene, Character } from "narraleaf-react";
-```
+先创建 [Character](/zh/docs/narraleaf-react/core/elements/character)，再把它的 `say()` 动作放进场景。
 
-```typescript
-// 创建一个场景
-const scene1 = new Scene("场景 1 - 醒来", {
-    // ...
-});
+```ts
+import { Character, Scene } from "narraleaf-react";
 
-// 创建一个角色
-const character1 = new Character("约翰·史密斯");
-
-// 向场景添加动作
-scene1.action([
-    character1
-        .say`你好，世界！`
-        .say`早上好！`,
+const alice = new Character("爱丽丝", { color: "#f59e0b" });
+const opening = new Scene("开场").action([
+    alice.say("你好。"),
+    alice.say("昨晚睡得好吗？"),
 ]);
 ```
 
-名为 "约翰·史密斯" 的角色将会说 "你好，世界！" 和 "早上好！"。
+旁白可使用导出的 `Narrator`，也可以创建名字为 `null` 的角色。
 
-你可以使用 [Word](/zh/docs/narraleaf-react/core/elements/character/word) 和 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 元素为对话框添加一些自定义内容。
+```ts
+import { Narrator } from "narraleaf-react";
 
-```typescript
-character1.say`你好，我的名字是 ${Word.bold("约翰")}！`; // 将输出 "你好，我的名字是 约翰！" 并且 "约翰" 以粗体显示
+opening.action([
+    Narrator.say("雨点敲打着窗户。"),
+]);
 ```
 
-你还可以使用这些元素构建复杂的对话框。
+<Callout type="warning">
+    上面的代码只用于分别说明写法。实际项目中应把所有动作放进同一次 `opening.action([...])` 调用。
+</Callout>
 
-```typescript
-const timeWord = new Word(
-    (ctx) => new Date().toLocaleTimeString(),
-    { color: "red" }
+## 设置局部文字样式
+
+模板字符串可以插入 [Word](/zh/docs/narraleaf-react/core/elements/character/word)。
+
+```ts
+import { Word } from "narraleaf-react";
+
+alice.say`拿上${Word.bold("红色钥匙")}，不要拿${Word.color("蓝色钥匙", "#60a5fa")}。`;
+```
+
+也可以使用 `b`、`i`、`c` 快捷创建粗体、斜体和彩色文字。
+
+```ts
+import { b, c, i } from "narraleaf-react";
+
+alice.say(["这件事", b("很重要"), "。"]);
+alice.say([i("她悄悄地"), "关上了门。"]);
+alice.say(["警告：", c("生命值过低", "#ef4444")]);
+```
+
+## 动态文字
+
+`Word` 可以在对话显示时读取游戏数据。存档数据可直接使用 [Persistent.get()](/zh/docs/narraleaf-react/basic/store-data)，其他逻辑可以传入函数。
+
+```ts
+import { Word } from "narraleaf-react";
+
+const currentTime = new Word(
+    () => new Date().toLocaleTimeString(),
+    { color: "#f87171" },
 );
 
-/* ... */
-
-character1.say`现在的时间是 ${timeWord}`; // 将会输出 "现在的时间是 12:00:00 PM" 并且 "12:00:00 PM" 以红色显示
+alice.say`现在是 ${currentTime}。`;
 ```
 
-有关构建句子的更多信息，你可以阅读 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 文档。
+## 单句配置
 
-在这个例子中，角色将会说 "现在是" 并以红色显示当前时间。
+`say()` 的第二个参数只影响当前一句。`pause: false` 会直接继续执行；`metadata` 可由自定义对话框中的 `useDialog()` 读取。
 
-你可以在文档中阅读更多关于 [Character](/zh/docs/narraleaf-react/core/elements/character) 元素的信息。
+```ts
+alice.say("这句话显示后直接继续。", { pause: false });
+alice.say("任务开始。", {
+    metadata: { event: "quest-start", questId: "find-key" },
+});
+```
+
+暂停、语音、元数据、颜色和字体选项见 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence)。

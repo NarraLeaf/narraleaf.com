@@ -114,10 +114,13 @@ function DemoDialog() {
   return (
     <Dialog className="relative mx-auto mb-4 h-[84%] w-[88%] rounded-lg border border-cyan-200/70 bg-black/58 p-5 shadow-2xl backdrop-blur-md">
       <div className="absolute left-6 -top-6">
-        <Nametag className="flex min-h-[44px] min-w-[150px] items-center justify-center rounded-lg border border-cyan-200/70 bg-black/62 px-4 py-2 text-[22px] font-semibold text-cyan-50 shadow-lg backdrop-blur-sm" />
+        <Nametag
+          color="#e6fbff"
+          className="flex min-h-[44px] min-w-[150px] items-center justify-center rounded-lg border border-cyan-200/70 bg-black/62 px-4 py-2 text-[22px] font-semibold text-cyan-50 shadow-lg backdrop-blur-sm"
+        />
       </div>
       <div className="flex h-full items-center gap-3 pt-1 text-[30px] leading-[1.45] text-white">
-        <Texts className="max-w-full" />
+        <Texts className="max-w-full" defaultColor="white" />
         <div className="flex shrink-0 flex-col items-center">
           <div
             className={[
@@ -168,8 +171,6 @@ export function NarraLeafReactPlayer(props: { locale: Locale }) {
       ratioUpdateInterval: 0,
       dialog: DemoDialog,
       menu: DemoMenu,
-      defaultTextColor: 'white',
-      defaultNametagColor: '#e6fbff',
       minWidth: 320,
       minHeight: 180,
     });

@@ -1,40 +1,66 @@
 ---
 title: "播放故事"
 ---
-You can wrap your entry scene with a [Story](/zh/docs/narraleaf-react/core/elements/story) instance to create a story. 
 
-```ts
-import { Story, Scene } from "narraleaf";
+创建 [Story](/zh/docs/narraleaf-react/core/elements/story)，并设置入口场景。
 
-const story = new Story("My Story");
-const scene = new Scene(/* ... */);
+```ts title="story.ts"
+import { Character, Scene, Story } from "narraleaf-react";
 
-story.entry(scene);
+const alice = new Character("爱丽丝");
+const opening = new Scene("开场", {
+    background: "/backgrounds/room.webp",
+}).action([
+    alice.say("早上好。"),
+]);
 
-export { story };
+export const story = new Story("我的故事").entry(opening);
 ```
 
-创建抽象故事后，你可以使用 React 组件来播放它。
+在 `GameProviders` 中渲染 Player，并在 `Player.onReady` 中开始新游戏。
 
-```tsx
+```tsx title="Game.tsx"
 "use client";
 
 import { GameProviders, Player } from "narraleaf-react";
-import { story } from "./my-story"; // 在此处导入你的故事
+import { story } from "./story";
 
-export default function Page() {
+export default function Game() {
     return (
         <GameProviders>
-            <Player story={story} onReady={({ liveGame }) => {
-                liveGame.newGame(); // 当播放器准备就绪时，开始游戏
-            }}
-                width="100%" // 全宽
-                height="100%" // 全高
+            <Player
+                story={story}
+                width="100%"
+                height="100%"
+                onReady={({ liveGame }) => liveGame.newGame()}
             />
         </GameProviders>
     );
 }
 ```
 
-[GameProviders](/zh/docs/narraleaf-react/player/game-providers) 组件是播放故事所必需的。它为播放器和钩子提供了上下文。
-你可以在 GameProviders 组件内部使用钩子来与游戏实例进行交互。
+`GameProviders` 提供游戏、路由、缩放和预加载上下文。`useGame`、`useLiveGame`、`useRouter` 等 Hook 必须在 Provider 内使用。
+
+## 等到首帧显示
+
+`onReady` 只表示 Player 已初始化。如果外层加载界面需要等到第一个场景真正渲染后再关闭，可用 `onFirstSceneReady` 更新界面状态。开始剧情仍放在 `onReady`。
+
+```tsx
+<Player
+    story={story}
+    onReady={({ liveGame }) => liveGame.newGame()}
+    onFirstSceneReady={() => setLoading(false)}
+/>
+```
+
+需要指定 Game 配置时，创建一次 Game 实例，再传给 Provider：
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ waitForPreload: true });
+
+<GameProviders game={game}>
+    <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+</GameProviders>
+```

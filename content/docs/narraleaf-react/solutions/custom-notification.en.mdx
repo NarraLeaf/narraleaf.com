@@ -1,7 +1,7 @@
 ---
 title: "Custom Notification"
 ---
-## Overview
+## What It Replaces
 
 Notifications display brief messages in-game (e.g. "Saved", "Unlocked"). You can replace the default [Notification](/docs/narraleaf-react/player/notification) component via the `notification` option in [game.configure](/docs/narraleaf-react/core/game/game) to customize appearance and layout.
 
@@ -33,19 +33,16 @@ function CustomNotification({ notifications }: INotificationsProps) {
 ## 2. Register with Game
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ notification: CustomNotification });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      notification: CustomNotification,
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
 
@@ -63,15 +60,20 @@ liveGame.notify("Saved");
 liveGame.notify("Achievement unlocked", 5000);
 
 // duration: null - do not auto-dismiss (stays until manually removed)
-liveGame.notify("Important notice", null);
+const notice = liveGame.notify("Important notice", null);
+
+// Remove a persistent notification later.
+notice.cancel();
 ```
+
+`notify()` returns a `NotificationToken` with `cancel()` and `promise`. The promise settles when the notification disappears.
 
 ## 4. Example with Animation
 
-Use Framer Motion for fade in/out:
+Use Motion for fade in/out:
 
 ```tsx
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import type { INotificationsProps } from "narraleaf-react";
 
 function AnimatedNotification({ notifications }: INotificationsProps) {

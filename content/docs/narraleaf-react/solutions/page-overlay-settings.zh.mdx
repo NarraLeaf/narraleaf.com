@@ -1,23 +1,23 @@
 ---
 title: "添加页面叠层（设置页面）"
 ---
-## 概述
+## 路由结构
 
 页面叠层指在游戏主界面上方叠加显示的 UI（如设置、存档、图鉴等），不中断游戏流程。通过 [Layout](/zh/docs/narraleaf-react/player/page-router/layout) 和 [Page](/zh/docs/narraleaf-react/player/page-router/page) 定义路由结构，使用 [useRouter](/zh/docs/narraleaf-react/player/hooks/useRouter) 进行导航，即可实现设置页等叠层。
 
-本文档演示如何构建一个设置页面叠层，并配合 [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu) 打开/关闭。
+下面的设置页叠层通过[快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu)打开和关闭。
 
 ## 1. 定义 Layout 与 Page 结构
 
-在 [LayoutRouter](/zh/docs/narraleaf-react/player/page-router) 中定义 `settings` 布局，内含多个子页面（如 `general`、`audio`）。`Page name={null}` 表示该 Layout 的默认页面。
+定义 `settings` 布局，并加入 `general`、`audio` 等子页面。`Player` 已经创建根布局，因此直接把 `Page` 和 `Layout` 放在 Player 内即可。`Page name={null}` 表示父布局的默认页面。
 
 ```tsx
-import { RootLayout, Layout, Page, Player } from "narraleaf-react";
+import { GameProviders, Layout, Page, Player } from "narraleaf-react";
 
 function AppLayout() {
   return (
-    <Player>
-      <RootLayout>
+    <GameProviders>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
         {/* Default page (game stage) - path: / */}
         <Page name={null}>
           <GameStage />
@@ -38,11 +38,13 @@ function AppLayout() {
             {/* /settings/audio - audio settings */}
           </Page>
         </Layout>
-      </RootLayout>
-    </Player>
+      </Player>
+    </GameProviders>
   );
 }
 ```
+
+不要再手动添加 `RootLayout`。在 Player 内嵌套第二个根布局会产生错误的路由边界。
 
 ## 2. 实现设置页面组件
 
@@ -84,7 +86,7 @@ function SettingsGeneral() {
 在 [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu) 中调用 `router.navigate("/settings")` 打开设置叠层：
 
 ```tsx
-import { useGame, useRouter } from "narraleaf-react";
+import { useRouter } from "narraleaf-react";
 
 function QuickMenu() {
   const router = useRouter();
@@ -109,13 +111,15 @@ function QuickMenu() {
 | `router.forward()` | 前进 |
 | `router.clear().navigate(path)` | 清空历史后导航（常用于返回主界面） |
 | `router.getCurrentPath()` | 获取当前路径 |
+| `router.replace(path)` | 替换当前历史记录，不新增一条 |
+| `router.canGoBack()` | 检查 `back()` 是否可以返回 |
 
 ## 5. 添加进入/退出动画
 
-使用 Framer Motion 的 `motion.div` 包裹页面内容，[LayoutRouter](/zh/docs/narraleaf-react/player/page-router) 会在挂载/卸载时自动触发动画：
+使用 Motion 的 `motion.div` 包裹页面内容。[LayoutRouter](/zh/docs/narraleaf-react/player/page-router) 会让退出页面保持挂载，直到退出动画完成：
 
 ```tsx
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 function SettingsGeneral() {
   const router = useRouter();

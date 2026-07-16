@@ -1,7 +1,7 @@
 ---
 title: "对话框头像教程"
 ---
-这篇教程用最少的概念说明：**怎样在 ADV 文本旁显示小头像**。对应组件是 [`Avatar`](/zh/docs/narraleaf-react/player/dialog)。你只需要记住两件事：
+ADV 文本旁的小头像由 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) 渲染。配置分两步：
 
 1. 在 [`Character`](/zh/docs/narraleaf-react/core/elements/character) 上配置**用哪张图**（也可用舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 做表情立绘）。
 2. 在自己的 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 里**摆上 `<Avatar />`**，播放器才会画出来。
@@ -69,7 +69,7 @@ export function GameDialog() {
 
 ### 可选：用 `useAvatar` 自适应布局
 
-希望**没有头像时文字栏占满整行**，可用 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar) 的 `visible`：
+没有头像时需要让文字栏占满整行，可读取 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar) 的 `visible`：
 
 ```tsx
 import {
@@ -104,23 +104,20 @@ export function GameDialog() {
 
 ## 3. 注册自定义 Dialog
 
-在你的 [`Game`](/zh/docs/narraleaf-react/core/game/game) 上注册组件（写法与 [自定义对话框](/zh/docs/narraleaf-react/solutions/custom-dialog) 相同）：
+创建 [`Game`](/zh/docs/narraleaf-react/core/game/game) 时指定组件，再把同一个实例传给 `GameProviders`：
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
 import { GameDialog } from "./GameDialog";
 
-export function RegisterDialog() {
-    const game = useGame();
+const game = new Game({ dialog: GameDialog });
 
-    useEffect(() => {
-        game.configure({
-            dialog: GameDialog,
-        });
-    }, [game]);
-
-    return null;
+export function GameView() {
+    return (
+        <GameProviders game={game}>
+            <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+        </GameProviders>
+    );
 }
 ```
 
@@ -140,7 +137,6 @@ alice.say("这一句不显示头像。", { avatar: false });
 const body = new Image({
     name: "alice-body",
     src: "/characters/alice/body-normal.png",
-    opacity: 1,
 });
 
 const alice = new Character("Alice", {

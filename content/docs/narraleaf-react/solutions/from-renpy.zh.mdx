@@ -1,14 +1,99 @@
 ---
-title: "来自 Ren'Py"
+title: "从 Ren'Py 迁移"
 ---
-<Callout type="warning">
-    此页面正在建设中
-</Callout>
 
-如果你来自 Ren'Py，你可能需要了解以下内容：
+NarraLeaf 使用 TypeScript 对象，不使用独立的脚本语言。常用概念可以这样对应：
 
-- **Character** 在 NarraLeaf 中仅控制角色的对话。它不控制角色的外观或图像。对于这些，你可以使用 [Image](/zh/docs/narraleaf-react/core/elements/image)。
-- NarraLeaf 中的 **Scene** = Ren'Py 中的 **Label**。NarraLeaf 没有类似于 Ren'Py 的 **Scene** 类。
-- **Transition** 和 **Transform** 可以同时用于 Scene 和 Image。
+| Ren'Py | NarraLeaf React |
+|---|---|
+| `label` | `Scene` |
+| `jump` | `scene.jumpTo(otherScene)` |
+| `scene bg room` | Scene 的 `background` 或 `scene.setBackground()` |
+| `show eileen happy` | `image.show()` 后调用 `image.char(["happy"])` |
+| `hide eileen` | `image.hide()` |
+| `e "你好"` | `character.say("你好")` |
+| `menu` | `Menu.prompt().choose()` |
+| `default` / 持久变量 | `Persistent` |
+| Screen Language | Player 内的 React 组件 |
+| `with dissolve` | `new Dissolve(duration)` |
 
-**注意：** NarraLeaf 专注于故事的播放。它没有控制 GUI 的功能，也不像 Ren'Py 那样是一个完整的引擎。
+名称相近，但职责不同。NarraLeaf 的 `Character` 只负责对话身份和头像规则，舞台立绘由 `Image` 控制。`Scene` 更接近 Ren'Py 的 label，不是 Ren'Py 的 `scene` 语句。
+
+## 一个小型迁移示例
+
+Ren'Py：
+
+```text
+define a = Character("爱丽丝")
+
+label start:
+    scene bg room
+    show alice happy at center
+    with dissolve
+    a "早上好。"
+
+    menu:
+        "打开窗户":
+            $ opened_window = True
+            jump window
+        "继续睡觉":
+            jump sleep
+```
+
+NarraLeaf React：
+
+```ts
+import {
+    Character,
+    Dissolve,
+    Image,
+    Menu,
+    Scene,
+    Story,
+} from "narraleaf-react";
+
+const story = new Story("清晨");
+const state = story.createPersistent("state", { openedWindow: false });
+const alice = new Character("爱丽丝");
+const aliceSprite = new Image({
+    src: {
+        groups: [["happy", "sleepy"]],
+        defaults: ["happy"],
+        resolve: (expression) => `/characters/alice-${expression}.webp`,
+    } as const,
+});
+
+const windowScene = new Scene("窗边");
+const sleepScene = new Scene("继续睡觉");
+const start = new Scene("开场", {
+    background: "/backgrounds/room.webp",
+}).action((scene) => [
+    aliceSprite.show(),
+    aliceSprite.char(["happy"], new Dissolve(400)),
+    alice.say("早上好。"),
+    Menu.prompt("要做什么？")
+        .choose("打开窗户", [
+            state.set("openedWindow", true),
+            scene.jumpTo(windowScene),
+        ])
+        .choose("继续睡觉", [
+            scene.jumpTo(sleepScene),
+        ]),
+]);
+
+story.entry(start);
+```
+
+## UI 与 Screen
+
+NarraLeaf 没有 Screen Language。设置、存档槽位、历史、画廊和菜单都由 React 组件实现。路由页面放在 `Player` 内；对话框、选项、NVL 和通知组件通过 `Game` 配置替换。
+
+建议先读[基础](/zh/docs/narraleaf-react/basic)，再参考[页面叠层](/zh/docs/narraleaf-react/solutions/page-overlay-settings)、[自定义对话框](/zh/docs/narraleaf-react/solutions/custom-dialog)和[存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
+
+## 迁移前需要考虑的差异
+
+- 默认不提供回滚 UI，但底层可以调用 `liveGame.undo()`。
+- NarraLeaf 提供可序列化的存档数据，存储方式和槽位 UI 由项目实现。
+- 素材使用 URL 或构建工具导入，受网页预加载和浏览器音频规则影响。
+- Transform 和 Transition 是 TypeScript 对象，不使用 ATL。
+- 界面布局和无障碍由 React 组件负责。

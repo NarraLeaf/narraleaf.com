@@ -1,43 +1,46 @@
 ---
 title: "Solutions"
+description: Complete patterns for UI, routing, saves, notifications, galleries, and migration.
 ---
 
-Solutions are ways to solve common problems. Ex. Customizing the font, Implementing a backlog, etc.
+Solutions combine the core story API with React UI. Each page starts from a working pattern and shows where to extend it.
 
-## Solutions
+## Player UI
 
-- [Customizing the font](/docs/narraleaf-react/solutions/font)
-- [Migration from Ren'Py](/docs/narraleaf-react/solutions/from-renpy)
-- [Quick Menu](/docs/narraleaf-react/solutions/quick-menu)
-- [Dialog Avatar](/docs/narraleaf-react/solutions/dialog-avatar)
-- [Custom Dialog](/docs/narraleaf-react/solutions/custom-dialog)
-- [Custom NVL Dialog](/docs/narraleaf-react/solutions/custom-nvl-dialog)
-- [Custom Menu](/docs/narraleaf-react/solutions/custom-menu)
-- [Page Overlay Settings](/docs/narraleaf-react/solutions/page-overlay-settings)
-- [Save System with localStorage](/docs/narraleaf-react/solutions/save-system-localstorage)
-- [Custom Notification](/docs/narraleaf-react/solutions/custom-notification)
-- [Gallery Service with localStorage](/docs/narraleaf-react/solutions/gallery-service-localstorage)
+<Cards>
+    <Card title="Custom Dialog" description="Replace ADV dialog layout, text defaults, and motion." href="/docs/narraleaf-react/solutions/custom-dialog" />
+    <Card title="Dialog Avatar" description="Resolve and render character portraits next to dialog." href="/docs/narraleaf-react/solutions/dialog-avatar" />
+    <Card title="Custom NVL Dialog" description="Replace the NVL container or only its row renderer." href="/docs/narraleaf-react/solutions/custom-nvl-dialog" />
+    <Card title="Custom Menu" description="Style choices, disabled states, and keyboard shortcuts." href="/docs/narraleaf-react/solutions/custom-menu" />
+    <Card title="Custom Notification" description="Render timed and persistent game notifications." href="/docs/narraleaf-react/solutions/custom-notification" />
+    <Card title="Custom Fonts" description="Load fonts and apply dialog and menu defaults." href="/docs/narraleaf-react/solutions/font" />
+</Cards>
 
-## FAQ
+## Pages and game features
 
-### Is the game singleton?
+<Cards>
+    <Card title="Quick Menu" description="Add undo, auto, save, load, and settings actions." href="/docs/narraleaf-react/solutions/quick-menu" />
+    <Card title="Page Overlay" description="Build settings, save, and gallery overlays with the page router." href="/docs/narraleaf-react/solutions/page-overlay-settings" />
+    <Card title="localStorage Saves" description="Implement multiple slots, quick save, and quick load." href="/docs/narraleaf-react/solutions/save-system-localstorage" />
+    <Card title="Persistent Gallery" description="Build a Service-backed gallery with permanent unlocks." href="/docs/narraleaf-react/solutions/gallery-service-localstorage" />
+    <Card title="Moving from Ren'Py" description="Map labels, sprites, menus, variables, and screens." href="/docs/narraleaf-react/solutions/from-renpy" />
+</Cards>
 
-Yes, the game is a singleton. You can access it inside any react component.
+## Common questions
 
-```typescript
+### Is Game a global singleton?
+
+No. `useGame()` returns the `Game` instance owned by the nearest `GameProviders`. Passing the same instance to multiple consumers shares state; separate providers may own separate games.
+
+```tsx
 const game = useGame();
+const liveGame = game.getLiveGame();
 ```
 
-### How to save the game?
+### Does NarraLeaf include save slots?
 
-NarraLeaf-React does not provide a save/load system. It only has methods to serialize and deserialize the game state.
+NarraLeaf serializes and restores runtime state through `liveGame.serialize()` and `liveGame.deserialize()`. Your application chooses localStorage, IndexedDB, files, or a server and supplies the slot UI. See [localStorage Saves](/docs/narraleaf-react/solutions/save-system-localstorage).
 
-However, we are working on a complete desktop solution to manage the clutter. Ex. Save/Load, UI, packaging, etc.
+### Where does custom UI go?
 
-For a complete VN engine, please check [NarraLeaf](https://github.com/NarraLeaf/NarraLeaf).
-
-### How to customize the UI?
-
-You can customize the UI by using slot components.
-
-For more information, please refer to the [Player](/docs/narraleaf-react/player) page.
+Use `Game` configuration for dialog, menu, NVL, and notification slots. Put settings, history, gallery, and save pages inside `Player` using `Page` and `Layout`.

@@ -1,23 +1,21 @@
 ---
 title: "自定义 NVL Dialog"
 ---
-## 概述
+## 选择自定义范围
 
 NVL（Novel）模式以可滚动列表形式展示多条对话，适用于小说式叙事。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `nvlDialog` 配置项，可替换默认的 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 组件，实现完全自定义的 NVL 对话样式。
 
-本文档演示两种方式：**完全自定义**（使用 `NvlContainer`）和**仅定制单条对话布局**（使用 `DefaultNvlContainer` + `renderDialogItem`）。
+有两种做法：使用 `NvlContainer` 替换整个容器，或保留 `DefaultNvlContainer`，只修改 `renderDialogItem`。
 
 ## 1. 完全自定义 NVL 容器
 
 使用 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 作为外层，接收 `dialogs` 数组，自行渲染每条对话。`INvlContainerProps` 包含 `dialogs` 和可选的 `renderDialogItem`。
 
 ```tsx
-import { useEffect } from "react";
 import {
   NvlContainer,
   Nametag,
   Texts,
-  useGame,
   type INvlContainerProps,
 } from "narraleaf-react";
 
@@ -44,13 +42,6 @@ function CustomNvlContainer({ dialogs = [] }: INvlContainerProps) {
   );
 }
 
-function App() {
-  const game = useGame();
-  useEffect(() => {
-    game.configure({ nvlDialog: CustomNvlContainer });
-  }, []);
-  return /* ... */;
-}
 ```
 
 ## 2. 使用 renderDialogItem 定制单条对话
@@ -78,8 +69,6 @@ function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps
     />
   );
 }
-
-// Register: game.configure({ nvlDialog: CustomNvlWithRenderer });
 ```
 
 ## 3. renderDialogItem 参数说明
@@ -97,21 +86,20 @@ function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps
 ## 4. 注册到游戏
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ nvlDialog: CustomNvlContainer });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      nvlDialog: CustomNvlContainer,  // or CustomNvlWithRenderer
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
+
+如果只修改单条对话布局，把配置改为 `CustomNvlWithRenderer`。
 
 ## 参考
 
