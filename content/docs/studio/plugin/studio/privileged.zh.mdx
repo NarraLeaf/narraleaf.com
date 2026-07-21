@@ -1,0 +1,56 @@
+---
+title: privileged
+description: 文件系统、权限与 bash——由清单权限控制的提权能力。
+---
+
+`app.privileged` 越过精选服务，触及真实机器：文件系统、权限申请流程和 shell。它受控——只有当清单声明了对应权限、且用户在安装时授予后，调用才生效。这里的一切都以 Studio 本身的访问权限运行；没有沙箱。
+
+每个方法都 resolve 为一个 `RequestStatus<…>` 包装——在使用其载荷前先检查请求是否成功，不要假定值一定存在。
+
+## 清单权限
+
+在清单的 `permissions` 数组中声明插件所需的权限。每一项为以下之一：
+
+```ts
+{ kind: "filesystem"; path: string; mode: "read" | "write" | "readwrite"; recursive: boolean }
+{ kind: "api"; capability: string }
+```
+
+Studio 在安装时会弹出提示，列出所有声明项。`permissions` 为空数组表示插件只停留在精选接口上。
+
+## fs
+
+文件系统访问，由 `filesystem` 权限控制。
+
+- **对话框**——`selectFile(filters, multiple)`、`selectSaveFile(defaultFileName, filters)`。
+- **读 / 写**——`requestRead(path, encoding)`、`requestReadRaw(path)`、`requestWrite(path, encoding)`、`requestWriteRaw(path)`、`ensureRegularFile(path, data, encoding?)`、`writeFileNoFollow(path, data, encoding?)`、`recoverCorruptedJsonFile(path, replacement, encoding?)`。
+- **检查**——`stat(path)`、`list(path)`、`details(path)`、`hash(path)`、`isFileExists(path)`、`isDirExists(path)`、`isFile(path)`、`isDir(path)`。
+- **变更**——`createDir(path)`、`deleteFile(path)`、`deleteDir(path)`、`rename(oldPath, newName, isDir)`、`copyFile(src, dest)`、`copyDir(src, dest)`、`moveFile(src, dest)`、`moveDir(src, dest)`。
+
+```ts
+const res = await app.privileged.fs.requestRead("/path/to/file.txt", "utf-8");
+if (res.status === "success") {
+    // res.data 是读取结果
+}
+```
+
+## permissions
+
+在运行时申请更多访问，或撤销某插件的授权。
+
+| 方法 | 签名 |
+| --- | --- |
+| `request` | `(request: PluginPermissionRequest) => Promise<RequestStatus<PluginPermissionPromptResult>>` |
+| `revokePlugin` | `(pluginId: string) => Promise<RequestStatus<void>>` |
+
+## bash
+
+运行一条 shell 命令，由一个 `api` 能力权限控制。
+
+| 方法 | 签名 |
+| --- | --- |
+| `execute` | `(command: string, cwd?: string) => Promise<RequestStatus<PrivilegedBashExecuteResult>>` |
+
+<Callout type="warn">
+`fs` 和 `bash` 正是 Studio 警告插件不在沙箱中的原因。只申请能完成任务的最小权限——用具体的 `filesystem` 路径而非宽泛的——并且只有在别无他法时才动用 `bash`。
+</Callout>

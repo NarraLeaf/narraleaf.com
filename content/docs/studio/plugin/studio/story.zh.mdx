@@ -1,0 +1,40 @@
+---
+title: story
+description: 向场景编辑器插入故事块的调板操作。
+---
+
+`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。该块是标准故事块——插入后文档不再依赖你的插件。
+
+## 方法
+
+| 方法 | 签名 |
+| --- | --- |
+| `register` | `(registration: StoryPluginActionRegistration) => PluginCleanup` |
+| `registerMany` | `(registrations: StoryPluginActionRegistration[]) => PluginCleanup` |
+
+## StoryPluginActionRegistration
+
+```ts
+type StoryPluginActionRegistration = {
+    id: string;                 // 以你的插件 id 为前缀
+    label: string;
+    detail?: string;            // 调板中的次要行
+    group?: string;
+    createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+};
+```
+
+`createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及在调板有待处理文本时的 `initialText`。返回一个 `StoryBlock`。
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: ({ generateId }) => ({
+        id: generateId(),
+        // ... 一个标准故事块
+    }),
+});
+```
+
+`StoryBlock`、`StoryBlockId` 和 `StoryBlockKind` 由 `narraleaf-studio/plugin` 导出。

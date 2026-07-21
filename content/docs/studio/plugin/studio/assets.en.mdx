@@ -1,0 +1,32 @@
+---
+title: assets
+description: Read the project's assets and turn them into object URLs for previews.
+---
+
+`app.services.assets` is read access to the project's asset library — images, audio, fonts, and the rest. Use it to list assets, read their data, and make object URLs for previews in your panels.
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `getMap` | `() => AssetsMap` | The whole asset map. |
+| `list` | `<T>(type: AssetType) => Asset<T>[]` | Every asset of one type. |
+| `get` | `<T>(type: AssetType, assetId: string) => Asset<T> \| undefined` | One asset by type and id. |
+| `fetch` | `<T>(asset: Asset<T>) => Promise<AssetData<T>>` | The asset's data and metadata. |
+| `createObjectUrl` | `(asset: Asset) => Promise<string>` | An object URL for previewing the asset. |
+| `revokeObjectUrl` | `(url: string) => void` | Release an object URL you created. |
+
+`AssetType` is `Image`, `Audio`, `Video`, `JSON`, `Blueprint`, `Font`, or `Other`.
+
+```ts
+import { AssetType } from "narraleaf-studio/plugin";
+
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// <img src={url} /> ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+<Callout type="info">
+Revoke every object URL you create when you are done with it — they leak otherwise. This service reads assets; it does not add, rename, or delete them.
+</Callout>

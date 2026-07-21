@@ -1,0 +1,44 @@
+---
+title: widgets
+description: 注册 UI 编辑器的控件模块——自定义控件的编辑器侧。
+---
+
+`app.services.widgets` 注册**控件模块**：自定义控件类型的编辑器一半。一个模块负责该控件的画布渲染、属性检查器和 docker 栏控件。同一类型的游戏侧渲染器由 runtime 入口通过 [`app.game.widgets`](/docs/studio/plugin/api-reference) 单独注册。
+
+每个 `type` 都必须在 `contributes.widgets` 中声明，并以你的插件 id 为前缀。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `register` | `(module: UIWidgetModule) => PluginCleanup` | |
+| `registerMany` | `(modules: UIWidgetModule[]) => PluginCleanup` | |
+| `get` | `(type: string) => UIWidgetModule \| undefined` | |
+| `list` | `() => UIWidgetModule[]` | |
+| `has` | `(type: string) => boolean` | |
+
+## UIWidgetModule
+
+与 Studio 内置控件实现的是同一套接口。
+
+| 成员 | 类型 | 说明 |
+| --- | --- | --- |
+| `type` | `string` | 唯一类型 id，例如 `"yourname.plugin.badge"`。 |
+| `displayName` | `string` | 显示在元素调板中。 |
+| `icon` | `LucideIcon` | 调板图标。 |
+| `createDefaultElement` | `() => Partial<UIElement>` | 用户添加控件时插入的元素；与系统默认值合并。 |
+| `render` | `(props: WidgetRendererProps) => ReactElement \| null` | 画布渲染。 |
+| `logicApi` | `WidgetLogicApi` | 可选。声明控件的蓝图事件与逻辑能力。 |
+| `createInspector` | `(context) => PropertyEditorSchema \| undefined` | 可选。追加在通用布局字段之后的额外字段。 |
+| `createDefaultChildElements` | `(context) => …` | 可选。随控件一同创建的结构性子元素。 |
+| `createDockerBarItems` | `(context) => DockerBarItem[]` | 可选。控件被选中时显示的控制项。 |
+| `createContextMenuItems`、`createFloatingToolbarItems`、`createMultiSelectDockerBarItems`、`createLayoutSizeField` | | 可选的编辑器功能。 |
+| `registerBlueprintNodes` | `() => void` | 可选。模块加载时注册额外的蓝图节点；保持幂等。 |
+
+```ts
+app.services.widgets.register(myWidgetModule);
+```
+
+<Callout type="info">
+需要在发布游戏中渲染的控件需要两半：编辑器用的这个模块，以及从 runtime 入口用 `app.game.widgets` 注册的游戏侧渲染器。只注册编辑器模块会让控件出现在画布上，但导出游戏后一片空白。
+</Callout>

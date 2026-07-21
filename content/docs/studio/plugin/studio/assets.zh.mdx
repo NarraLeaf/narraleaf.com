@@ -1,0 +1,32 @@
+---
+title: assets
+description: 读取项目资源，并转成对象 URL 用于预览。
+---
+
+`app.services.assets` 是对项目资源库的只读访问——图片、音频、字体等。用它列出资源、读取其数据，并生成对象 URL 以在面板中预览。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `getMap` | `() => AssetsMap` | 整个资源映射。 |
+| `list` | `<T>(type: AssetType) => Asset<T>[]` | 某一类型的所有资源。 |
+| `get` | `<T>(type: AssetType, assetId: string) => Asset<T> \| undefined` | 按类型与 id 取单个资源。 |
+| `fetch` | `<T>(asset: Asset<T>) => Promise<AssetData<T>>` | 资源的数据与元数据。 |
+| `createObjectUrl` | `(asset: Asset) => Promise<string>` | 用于预览该资源的对象 URL。 |
+| `revokeObjectUrl` | `(url: string) => void` | 释放你创建的对象 URL。 |
+
+`AssetType` 为 `Image`、`Audio`、`Video`、`JSON`、`Blueprint`、`Font` 或 `Other`。
+
+```ts
+import { AssetType } from "narraleaf-studio/plugin";
+
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// <img src={url} /> ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+<Callout type="info">
+每个你创建的对象 URL 用完后都要释放——否则会泄漏。此服务读取资源；它不新增、重命名或删除资源。
+</Callout>

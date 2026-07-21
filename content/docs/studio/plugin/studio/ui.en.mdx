@@ -1,0 +1,119 @@
+---
+title: ui
+description: Contribute panels, actions, editor tabs, keybindings, and notifications to the workspace.
+---
+
+`app.services.ui` is how a plugin adds to the workspace chrome. Five families: panels, actions, editors, keybindings, and notifications. Registration ids must be prefixed with your plugin id.
+
+## panels
+
+Sidebar (left / right) and bottom panels.
+
+| Method | Signature |
+| --- | --- |
+| `register` | `(panel: PanelDefinition) => PluginCleanup` |
+| `registerMany` | `(panels: PanelDefinition[]) => PluginCleanup` |
+
+```ts
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: ({ panelId, payload }) => <MyPanel />,
+});
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` | Namespaced. Required. |
+| `title` | `string` | Required. |
+| `titleKey` | `TranslationKey` | Resolved reactively, so it follows a language switch. |
+| `icon` | `ReactNode` | Rail icon. Required. |
+| `position` | `PanelPosition` | `Left`, `Right`, or `Bottom`. |
+| `component` | `ComponentType<{ panelId; payload? }>` | The panel body. |
+| `defaultVisible` | `boolean` | Show on first load. |
+| `order` | `number` | Sort order among panels. |
+| `badge` | `string \| number` | Rail badge. |
+| `payload` | `TPayload` | Data passed to `component`. |
+
+## actions
+
+Toolbar and menu actions, and action groups (dropdowns / native menu entries).
+
+| Method | Signature |
+| --- | --- |
+| `register` | `(action: ActionDefinition) => PluginCleanup` |
+| `registerMany` | `(actions: ActionDefinition[]) => PluginCleanup` |
+| `registerGroup` | `(group: ActionGroup) => PluginCleanup` |
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+
+app.services.ui.actions.registerGroup({
+    id: `${PLUGIN_ID}.menu`,
+    label: "My Menu",
+    items: [/* ActionDefinition | ActionSubmenu | Separator */],
+});
+```
+
+`ActionDefinition` fields: `id`, `label` / `labelKey`, `icon?`, `tooltip?` / `tooltipKey?`, `shortcut?`, `onClick(workspace)`, `order?`, `disabled?`, `visible?`, `checked?` (toggle), `when?(context)`, `badge?`, `allowInEditable?`. `ActionGroup` fields: `id`, `label` / `labelKey`, `icon?`, `actions?` (flat) or `items?` (with submenus), `order?`, `menuSlot?`. Insert the exported `Separator` constant between items for a divider.
+
+<Callout type="info">
+A plugin group is confined to a menu of its own — it cannot merge into Studio's native Edit menu or claim a standard command role (`menuRole`). Those are reserved for built-in surfaces.
+</Callout>
+
+## editors
+
+Open and close editor tabs. Imperative — tabs are user-visible, so they are never force-closed on unload.
+
+| Method | Signature |
+| --- | --- |
+| `open` | `(tab: EditorTabDefinition, groupId?: string) => void` |
+| `close` | `(tabId: string, groupId?: string) => void` |
+
+```ts
+app.services.ui.editors.open({
+    id: `${PLUGIN_ID}.doc`,
+    title: "Doc",
+    component: ({ tabId, payload, active }) => <MyEditor active={active} />,
+});
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+`EditorTabDefinition` fields: `id`, `title`, `icon?`, `component` (gets `{ tabId, payload?, active }`), `closable?`, `modified?`, `payload?`. A hidden-but-kept-alive tab stays mounted with `active: false` — use it to pause work and restore scroll/focus when shown again.
+
+## keybindings
+
+| Method | Signature |
+| --- | --- |
+| `register` | `(keybinding: Keybinding) => PluginCleanup` |
+| `registerMany` | `(keybindings: Keybinding[]) => PluginCleanup` |
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: context => { /* ... */ },
+});
+```
+
+`Keybinding` fields: `id`, `key` (`"mod+s"`, `"ctrl+tab"`, `"cmd+shift+p"` — `mod` is ⌘ on macOS and Ctrl elsewhere), `description?`, `handler(context)`, `when?(context)`, `allowInEditable?` (default `false` — bindings are skipped while typing in a text field unless set), `catalogId?`.
+
+## notifications
+
+Fire-and-forget toasts.
+
+| Method | Signature |
+| --- | --- |
+| `info` / `success` / `warning` / `error` | `(message: string) => void` |
+
+```ts
+app.services.ui.notifications.success("Saved");
+```

@@ -1,0 +1,68 @@
+---
+title: blueprintNodes
+description: Register blueprint node definitions and dynamic select options on the editor side.
+---
+
+`app.services.blueprintNodes` registers blueprint node definitions for the editor — the palette entry, pins, inspector fields, and the in-editor-preview `execute`. To run the same node in a shipped game, register it again from the runtime entry with `app.game.blueprintNodes`; write the definition once in a shared module and register the array from both entries. See [Make a plugin](/docs/studio/plugin/create-first-plugin).
+
+Each node `type` must be declared in `contributes.blueprintNodes`, prefixed with your plugin id.
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `register` | `(def: BlueprintNodeDef) => void` | Session-persistent — returns `void`, a node type cannot be removed once registered. |
+| `registerMany` | `(defs: BlueprintNodeDef[]) => void` | Same. |
+| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | Backs a `kind: "select"` inspector param with live options. Returns a cleanup. |
+| `notifyDynamicSelectOptionsChanged` | `() => void` | Refresh open node cards after the provider's data changes. |
+
+## BlueprintNodeDef
+
+The essential fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `type` | `string` | Namespaced type id. |
+| `displayName` | `string` | Palette label. |
+| `category` | `string` | Palette grouping. |
+| `keywords` | `string[]` | Palette search terms. |
+| `graphKinds` | `BlueprintGraphKind[]` | Where the node may appear, e.g. `["event", "macro"]`. |
+| `isPure` | `boolean` | Pure nodes have no side effects. |
+| `isLatent` | `boolean` | Async / awaited execution; disallowed in function graphs. |
+| `pins` | `BlueprintNodePinDef[]` | Exec and data pins. |
+| `inspectorParams` | `BlueprintInspectorParamDef[]` | On-card fields, read at runtime from `ctx.params`. |
+| `execute` | `BlueprintNodeExecuteFn` | The node body; see below. |
+
+A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`.
+
+## execute and the Host API
+
+`execute(ctx)` reads its inspector fields from `ctx.params` and drives the running game through the Host API:
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    hostApi?.devtools.log("info", message);
+    return { nextPort: "next" };
+}
+```
+
+Everything reachable from `ctx.hostAdapter.blueprintRuntime?.hostApi` is documented in the [Host API reference](/docs/studio/plugin/host-api).
+
+## Dynamic select options
+
+```ts
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+// when the underlying data changes:
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+An inspector param declared as `{ kind: "select", dynamicOptionsSource: "yourname.plugin.items" }` renders the options this source returns.
+
+<Callout type="info">
+A plugin node cannot read a *data input pin* — that accessor is internal. Drive plugin nodes from `inspectorParams` + `ctx.params` instead.
+</Callout>

@@ -1,0 +1,15 @@
+{
+  "title": "Studio API",
+  "pages": [
+    "index",
+    "storage",
+    "assets",
+    "i18n",
+    "ui",
+    "widgets",
+    "story",
+    "blueprint-nodes",
+    "ui-kit",
+    "privileged"
+  ]
+}

@@ -1,0 +1,25 @@
+---
+title: storage
+description: Per-plugin JSON storage, scoped to the project.
+---
+
+`app.services.storage` is a small JSON store private to your plugin and scoped to the current project. Use it for editor-side plugin state — settings, cached lookups, panel state.
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `readJson` | `<T>(namespace: string) => Promise<T \| null>` | Read the object stored under `namespace`. Resolves to `null` when nothing is stored yet. |
+| `writeJson` | `<T>(namespace: string, data: T) => Promise<void>` | Replace the object stored under `namespace`. |
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// data is null until the first write
+```
+
+`namespace` is a key within your plugin's own store — you do not need to prefix it with your plugin id, since the store is already private to the plugin. Values are JSON.
+
+<Callout type="info">
+This is editor-side state, available only while the workspace is open. It is not the game's persistence — a blueprint node reads and writes durable game state through [`hostApi.persistence`](/docs/studio/plugin/host-api/state) at runtime instead.
+</Callout>

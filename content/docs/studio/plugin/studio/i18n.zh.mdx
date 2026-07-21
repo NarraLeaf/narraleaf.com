@@ -1,0 +1,40 @@
+---
+title: i18n
+description: 读取编辑器语言，并据此本地化你自己的字符串。
+---
+
+`app.services.i18n` 是对**编辑器** UI 语言的只读访问，让插件能翻译自己的面板并响应实时的语言切换。这是编辑器语言，不是游戏面向玩家的语言——后者由蓝图节点通过 [`hostApi.localization`](/docs/studio/plugin/host-api/localization) 处理。
+
+## 成员
+
+| 成员 | 签名 | 说明 |
+| --- | --- | --- |
+| `locale` | `string` | 编辑器当前生效的语言代码。 |
+| `onLocaleChange` | `(fn: (locale: string) => void) => PluginCleanup` | 语言切换时以新的 locale 触发。返回一个清理函数。 |
+| `createTranslator` | `(bundle: PluginMessageBundle) => PluginTranslator` | 基于你自己的消息表构建翻译器。 |
+| `formatNumber` | `(value: number, options?: Intl.NumberFormatOptions) => string` | 绑定到编辑器语言。 |
+| `formatDate` | `(value: Date \| number, options?: Intl.DateTimeFormatOptions) => string` | 绑定到编辑器语言。 |
+| `formatList` | `(items: string[], options?: Intl.ListFormatOptions) => string` | 绑定到编辑器语言。 |
+
+## 翻译你自己的字符串
+
+```ts
+type PluginMessageBundle = {
+    messages: Record<string, Record<string, string>>; // locale -> (key -> string)
+    fallbackLocale?: string;                           // 默认取第一个表
+};
+
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi {name}" }, zh: { hi: "你好 {name}" } },
+    fallbackLocale: "en",
+});
+
+i18n.t("hi", { name: "Ada" }); // 跟随编辑器语言
+i18n.locale;                   // 当前 locale，实时读取
+```
+
+`t(key, params?)` 按 当前 locale 的表 → 回退表 → key 的顺序解析。`{placeholder}` 占位符由 `params` 填充。一个翻译器实例就够了——`.locale` 和 `t()` 在调用时读取当前 locale。用 `onLocaleChange` 订阅，以在语言切换时重渲染你自己的 UI。
+
+<Callout type="info">
+要翻译 **Studio 本身**——新增语言或补全某语言的缺口——请改为通过 `contributes.locales` 提供语言包。那不需要调用 `i18n`。参见 [创建第一个插件](/docs/studio/plugin/create-first-plugin)。
+</Callout>

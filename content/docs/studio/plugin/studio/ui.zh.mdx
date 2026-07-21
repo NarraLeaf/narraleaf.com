@@ -1,0 +1,119 @@
+---
+title: ui
+description: 向工作区贡献面板、操作、编辑器标签、快捷键与通知。
+---
+
+`app.services.ui` 是插件向工作区框架添加内容的入口。五个族：面板、操作、编辑器、快捷键、通知。注册的 id 必须以你的插件 id 为前缀。
+
+## panels
+
+侧边（左 / 右）与底部面板。
+
+| 方法 | 签名 |
+| --- | --- |
+| `register` | `(panel: PanelDefinition) => PluginCleanup` |
+| `registerMany` | `(panels: PanelDefinition[]) => PluginCleanup` |
+
+```ts
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: ({ panelId, payload }) => <MyPanel />,
+});
+```
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `id` | `string` | 带命名空间。必填。 |
+| `title` | `string` | 必填。 |
+| `titleKey` | `TranslationKey` | 响应式解析，跟随语言切换。 |
+| `icon` | `ReactNode` | 侧栏图标。必填。 |
+| `position` | `PanelPosition` | `Left`、`Right` 或 `Bottom`。 |
+| `component` | `ComponentType<{ panelId; payload? }>` | 面板主体。 |
+| `defaultVisible` | `boolean` | 首次加载时显示。 |
+| `order` | `number` | 面板间的排序。 |
+| `badge` | `string \| number` | 侧栏角标。 |
+| `payload` | `TPayload` | 传给 `component` 的数据。 |
+
+## actions
+
+工具栏与菜单操作，以及操作组（下拉 / 原生菜单项）。
+
+| 方法 | 签名 |
+| --- | --- |
+| `register` | `(action: ActionDefinition) => PluginCleanup` |
+| `registerMany` | `(actions: ActionDefinition[]) => PluginCleanup` |
+| `registerGroup` | `(group: ActionGroup) => PluginCleanup` |
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+
+app.services.ui.actions.registerGroup({
+    id: `${PLUGIN_ID}.menu`,
+    label: "My Menu",
+    items: [/* ActionDefinition | ActionSubmenu | Separator */],
+});
+```
+
+`ActionDefinition` 字段：`id`、`label` / `labelKey`、`icon?`、`tooltip?` / `tooltipKey?`、`shortcut?`、`onClick(workspace)`、`order?`、`disabled?`、`visible?`、`checked?`（开关态）、`when?(context)`、`badge?`、`allowInEditable?`。`ActionGroup` 字段：`id`、`label` / `labelKey`、`icon?`、`actions?`（扁平）或 `items?`（含子菜单）、`order?`、`menuSlot?`。在条目之间插入导出的 `Separator` 常量以显示分隔线。
+
+<Callout type="info">
+插件的操作组只能局限在它自己的菜单里——无法并入 Studio 的原生「编辑」菜单，也不能占用标准命令角色（`menuRole`）。那些为内置界面保留。
+</Callout>
+
+## editors
+
+打开与关闭编辑器标签。命令式——标签对用户可见，卸载时绝不会被强行关闭。
+
+| 方法 | 签名 |
+| --- | --- |
+| `open` | `(tab: EditorTabDefinition, groupId?: string) => void` |
+| `close` | `(tabId: string, groupId?: string) => void` |
+
+```ts
+app.services.ui.editors.open({
+    id: `${PLUGIN_ID}.doc`,
+    title: "Doc",
+    component: ({ tabId, payload, active }) => <MyEditor active={active} />,
+});
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+`EditorTabDefinition` 字段：`id`、`title`、`icon?`、`component`（收到 `{ tabId, payload?, active }`）、`closable?`、`modified?`、`payload?`。被隐藏但保活的标签会以 `active: false` 保持挂载——用它在隐藏时暂停工作，在再次显示时恢复滚动 / 焦点。
+
+## keybindings
+
+| 方法 | 签名 |
+| --- | --- |
+| `register` | `(keybinding: Keybinding) => PluginCleanup` |
+| `registerMany` | `(keybindings: Keybinding[]) => PluginCleanup` |
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: context => { /* ... */ },
+});
+```
+
+`Keybinding` 字段：`id`、`key`（`"mod+s"`、`"ctrl+tab"`、`"cmd+shift+p"`——`mod` 在 macOS 上是 ⌘，其他平台是 Ctrl）、`description?`、`handler(context)`、`when?(context)`、`allowInEditable?`（默认 `false`——在文本框中输入时会跳过绑定，除非置为 true）、`catalogId?`。
+
+## notifications
+
+即发即忘的提示。
+
+| 方法 | 签名 |
+| --- | --- |
+| `info` / `success` / `warning` / `error` | `(message: string) => void` |
+
+```ts
+app.services.ui.notifications.success("Saved");
+```

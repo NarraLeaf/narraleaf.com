@@ -1,0 +1,68 @@
+---
+title: blueprintNodes
+description: 在编辑器侧注册蓝图节点定义与动态下拉选项。
+---
+
+`app.services.blueprintNodes` 为编辑器注册蓝图节点定义——调板条目、引脚、检查器字段，以及在编辑器内预览用的 `execute`。要在发布的游戏中运行同一个节点，需从 runtime 入口再用 `app.game.blueprintNodes` 注册；把定义写在一个共享模块中一次，然后从两个入口各注册一遍。参见 [创建第一个插件](/docs/studio/plugin/create-first-plugin)。
+
+每个节点 `type` 都必须在 `contributes.blueprintNodes` 中声明，并以你的插件 id 为前缀。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `register` | `(def: BlueprintNodeDef) => void` | 会话内持久——返回 `void`，注册后节点类型无法移除。 |
+| `registerMany` | `(defs: BlueprintNodeDef[]) => void` | 同上。 |
+| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | 为 `kind: "select"` 检查器参数提供实时选项。返回一个清理函数。 |
+| `notifyDynamicSelectOptionsChanged` | `() => void` | 在 provider 数据变化后刷新已打开的节点卡片。 |
+
+## BlueprintNodeDef
+
+核心字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `type` | `string` | 带命名空间的类型 id。 |
+| `displayName` | `string` | 调板标签。 |
+| `category` | `string` | 调板分组。 |
+| `keywords` | `string[]` | 调板搜索词。 |
+| `graphKinds` | `BlueprintGraphKind[]` | 节点可出现的位置，例如 `["event", "macro"]`。 |
+| `isPure` | `boolean` | 纯节点无副作用。 |
+| `isLatent` | `boolean` | 异步 / 需等待的执行；在函数图中不允许。 |
+| `pins` | `BlueprintNodePinDef[]` | 执行引脚与数据引脚。 |
+| `inspectorParams` | `BlueprintInspectorParamDef[]` | 卡片上的字段，运行时从 `ctx.params` 读取。 |
+| `execute` | `BlueprintNodeExecuteFn` | 节点主体；见下文。 |
+
+引脚（`BlueprintNodePinDef`）为 `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`。
+
+## execute 与宿主 API
+
+`execute(ctx)` 从 `ctx.params` 读取检查器字段，并通过宿主 API 驱动运行中的游戏：
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    hostApi?.devtools.log("info", message);
+    return { nextPort: "next" };
+}
+```
+
+从 `ctx.hostAdapter.blueprintRuntime?.hostApi` 可触及的一切，都记录在 [宿主 API 参考](/docs/studio/plugin/host-api) 中。
+
+## 动态下拉选项
+
+```ts
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+// 底层数据变化时：
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+声明为 `{ kind: "select", dynamicOptionsSource: "yourname.plugin.items" }` 的检查器参数会渲染该源返回的选项。
+
+<Callout type="info">
+插件节点无法读取*数据输入引脚*——那个访问器是内部的。改用 `inspectorParams` + `ctx.params` 来驱动插件节点。
+</Callout>

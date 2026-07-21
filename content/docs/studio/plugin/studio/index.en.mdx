@@ -1,0 +1,65 @@
+---
+title: Studio API
+description: Everything a plugin touches in the editor — the definePlugin entry, the app object, services, the ui kit, and privileged capabilities.
+---
+
+The Studio API is the `narraleaf-studio/plugin` surface: everything a plugin can reach in the **editor process** (the workspace window). It is where a plugin contributes to Studio itself — panels, actions, keybindings, blueprint node metadata, widgets, language packs — and where it reads project assets and its own storage.
+
+This is the editor counterpart to the [Host API](/docs/studio/plugin/host-api), which acts on a running game. A plugin's `studio` entry talks to the Studio API; its `runtime` entry talks to the game. See [The two entries](/docs/studio/plugin/create-first-plugin).
+
+## definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // register contributions, read services
+        return () => { /* optional cleanup */ };
+    },
+});
+```
+
+`setup(app)` runs when the workspace window loads the plugin. It may be async. Return a cleanup to run on unload — or return nothing, since the host tracks every registration anyway.
+
+## The `app` object
+
+| Property | Type | What |
+| --- | --- | --- |
+| `app.plugin` | `PluginIdentity` | Identity: `id`, `name`, `version`, `publisher`. |
+| `app.manifest` | `NormalizedPluginManifestV2` | The normalized manifest. |
+| `app.services` | `PluginServices` | The curated editor API — the service families below. |
+| `app.privileged` | `BoundPrivilegedFacade` | Elevated capabilities (filesystem, bash) gated by manifest permissions. |
+
+## Services
+
+<Cards>
+  <Card title="storage" href="/docs/studio/plugin/studio/storage" description="Per-plugin JSON storage, scoped to the project." />
+  <Card title="assets" href="/docs/studio/plugin/studio/assets" description="Read the project's assets and turn them into object URLs." />
+  <Card title="i18n" href="/docs/studio/plugin/studio/i18n" description="The editor's language, for localizing your own strings." />
+  <Card title="ui" href="/docs/studio/plugin/studio/ui" description="Contribute panels, actions, editor tabs, keybindings, and notifications." />
+  <Card title="widgets" href="/docs/studio/plugin/studio/widgets" description="Register UI-editor widget modules." />
+  <Card title="story" href="/docs/studio/plugin/studio/story" description="Scene-editor palette actions that insert story blocks." />
+  <Card title="blueprintNodes" href="/docs/studio/plugin/studio/blueprint-nodes" description="Register blueprint node definitions and dynamic select options." />
+</Cards>
+
+Two more pages cover what is not a service:
+
+<Cards>
+  <Card title="ui kit" href="/docs/studio/plugin/studio/ui-kit" description="Studio's own React components, so your panels match the editor theme." />
+  <Card title="privileged" href="/docs/studio/plugin/studio/privileged" description="Filesystem, permissions, and bash — gated by manifest permissions." />
+</Cards>
+
+## Registration conventions
+
+These hold across every service that registers something.
+
+- **`register` returns a cleanup.** Each `register` / `registerMany` returns a `PluginCleanup` (`() => void | Promise<void>`) that removes exactly what it registered. `registerMany` returns one cleanup for the whole batch.
+- **Unload reclaims everything.** The host tracks each registration, so unloading the plugin removes it even if you never call the returned cleanup. Cleanups are idempotent.
+- **Ids are namespaced.** Every id or type you register must be prefixed with your plugin id (`yourname.plugin.thing`). An unprefixed id throws.
+- **Imperative calls return their value, not a cleanup.** `ui.editors.*`, `ui.notifications.*`, `i18n.format*`, and `blueprintNodes.notifyDynamicSelectOptionsChanged` are actions.
+- **Blueprint node registration returns `void`.** Node definitions are session-persistent — removing one would orphan nodes in open documents — so there is nothing to dispose.
+
+<Callout type="warn">
+Plugins are not sandboxed. The Studio API is a curated whitelist, but `app.privileged` reaches the real filesystem and shell once the manifest declares the matching permission. Everything runs with Studio's own access.
+</Callout>

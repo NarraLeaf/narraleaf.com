@@ -1,0 +1,44 @@
+---
+title: widgets
+description: Register UI-editor widget modules — the editor side of a custom widget.
+---
+
+`app.services.widgets` registers **widget modules**: the editor half of a custom widget type. A module owns the widget's canvas rendering, its property inspector, and its docker-bar controls. The game-side renderer for the same type is registered separately from the runtime entry with [`app.game.widgets`](/docs/studio/plugin/api-reference).
+
+Each `type` must be declared in `contributes.widgets`, prefixed with your plugin id.
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `register` | `(module: UIWidgetModule) => PluginCleanup` | |
+| `registerMany` | `(modules: UIWidgetModule[]) => PluginCleanup` | |
+| `get` | `(type: string) => UIWidgetModule \| undefined` | |
+| `list` | `() => UIWidgetModule[]` | |
+| `has` | `(type: string) => boolean` | |
+
+## UIWidgetModule
+
+The same interface Studio's built-in widgets implement.
+
+| Member | Type | Notes |
+| --- | --- | --- |
+| `type` | `string` | Unique type id, e.g. `"yourname.plugin.badge"`. |
+| `displayName` | `string` | Shown in the element palette. |
+| `icon` | `LucideIcon` | Palette icon. |
+| `createDefaultElement` | `() => Partial<UIElement>` | The element inserted when the user adds this widget; merged with system defaults. |
+| `render` | `(props: WidgetRendererProps) => ReactElement \| null` | Canvas rendering. |
+| `logicApi` | `WidgetLogicApi` | Optional. Declares the widget's blueprint events and logic capabilities. |
+| `createInspector` | `(context) => PropertyEditorSchema \| undefined` | Optional. Extra fields appended after the common layout fields. |
+| `createDefaultChildElements` | `(context) => …` | Optional. Structural children created with the widget. |
+| `createDockerBarItems` | `(context) => DockerBarItem[]` | Optional. Controls shown when the widget is selected. |
+| `createContextMenuItems`, `createFloatingToolbarItems`, `createMultiSelectDockerBarItems`, `createLayoutSizeField` | | Optional editor affordances. |
+| `registerBlueprintNodes` | `() => void` | Optional. Registers extra blueprint nodes when the module loads; keep it idempotent. |
+
+```ts
+app.services.widgets.register(myWidgetModule);
+```
+
+<Callout type="info">
+A widget that must render in shipped games needs both halves: this module for the editor, and a game-side renderer registered from the runtime entry with `app.game.widgets`. Registering only the editor module shows the widget on the canvas but leaves it blank once the game is exported.
+</Callout>

@@ -1,0 +1,40 @@
+---
+title: story
+description: Scene-editor palette actions that insert story blocks.
+---
+
+`app.services.story.actions` registers actions in the scene editor's insert palette, under the Plugin category. Each action builds a story block and inserts it. The block is a standard story block — the document does not depend on your plugin after insertion.
+
+## Methods
+
+| Method | Signature |
+| --- | --- |
+| `register` | `(registration: StoryPluginActionRegistration) => PluginCleanup` |
+| `registerMany` | `(registrations: StoryPluginActionRegistration[]) => PluginCleanup` |
+
+## StoryPluginActionRegistration
+
+```ts
+type StoryPluginActionRegistration = {
+    id: string;                 // namespaced with your plugin id
+    label: string;
+    detail?: string;            // secondary line in the palette
+    group?: string;
+    createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+};
+```
+
+`createBlock` receives `generateId()` — use it for any ids the block needs — and `initialText` when the palette has pending text to seed the block with. Return a `StoryBlock`.
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: ({ generateId }) => ({
+        id: generateId(),
+        // ... a standard story block
+    }),
+});
+```
+
+`StoryBlock`, `StoryBlockId`, and `StoryBlockKind` are exported from `narraleaf-studio/plugin`.

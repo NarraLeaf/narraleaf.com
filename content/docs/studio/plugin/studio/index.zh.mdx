@@ -1,0 +1,65 @@
+---
+title: Studio API
+description: 插件在编辑器中能触碰到的一切——definePlugin 入口、app 对象、服务、ui 套件与提权能力。
+---
+
+Studio API 是 `narraleaf-studio/plugin` 接口：插件在**编辑器进程**（工作区窗口）中能触碰到的一切。它是插件向 Studio 本身贡献内容的地方——面板、操作、快捷键、蓝图节点元数据、控件、语言包——也是它读取项目资源和自身存储的地方。
+
+它是 [宿主 API](/docs/studio/plugin/host-api) 的编辑器侧对应物，后者作用于运行中的游戏。插件的 `studio` 入口对接 Studio API，`runtime` 入口对接游戏。参见 [两个入口](/docs/studio/plugin/create-first-plugin)。
+
+## definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // 注册贡献内容、读取服务
+        return () => { /* 可选的清理 */ };
+    },
+});
+```
+
+`setup(app)` 在工作区窗口加载插件时运行。它可以是异步的。返回一个在卸载时运行的清理函数——不返回也行，因为宿主本来就会追踪每次注册。
+
+## `app` 对象
+
+| 属性 | 类型 | 说明 |
+| --- | --- | --- |
+| `app.plugin` | `PluginIdentity` | 身份信息：`id`、`name`、`version`、`publisher`。 |
+| `app.manifest` | `NormalizedPluginManifestV2` | 规范化后的清单。 |
+| `app.services` | `PluginServices` | 精选的编辑器 API——下方的各个服务族。 |
+| `app.privileged` | `BoundPrivilegedFacade` | 由清单权限控制的提权能力（文件系统、bash）。 |
+
+## 服务
+
+<Cards>
+  <Card title="storage" href="/docs/studio/plugin/studio/storage" description="按插件划分、作用于项目的 JSON 存储。" />
+  <Card title="assets" href="/docs/studio/plugin/studio/assets" description="读取项目资源，并转成对象 URL。" />
+  <Card title="i18n" href="/docs/studio/plugin/studio/i18n" description="编辑器语言，用于本地化你自己的字符串。" />
+  <Card title="ui" href="/docs/studio/plugin/studio/ui" description="贡献面板、操作、编辑器标签、快捷键与通知。" />
+  <Card title="widgets" href="/docs/studio/plugin/studio/widgets" description="注册 UI 编辑器的控件模块。" />
+  <Card title="story" href="/docs/studio/plugin/studio/story" description="向场景编辑器插入故事块的调板操作。" />
+  <Card title="blueprintNodes" href="/docs/studio/plugin/studio/blueprint-nodes" description="注册蓝图节点定义与动态下拉选项。" />
+</Cards>
+
+另有两页覆盖非服务的内容：
+
+<Cards>
+  <Card title="ui 套件" href="/docs/studio/plugin/studio/ui-kit" description="Studio 自己的 React 组件，让你的面板贴合编辑器主题。" />
+  <Card title="privileged" href="/docs/studio/plugin/studio/privileged" description="文件系统、权限与 bash——由清单权限控制。" />
+</Cards>
+
+## 注册约定
+
+以下约定适用于每个会注册内容的服务。
+
+- **`register` 返回清理函数。** 每个 `register` / `registerMany` 返回一个 `PluginCleanup`（`() => void | Promise<void>`），它只移除自己注册的内容。`registerMany` 返回覆盖整批的一个清理函数。
+- **卸载会回收一切。** 宿主追踪每次注册，所以即使你从不调用返回的清理函数，卸载插件也会移除它。清理函数是幂等的。
+- **id 带命名空间。** 你注册的任何 id 或类型都必须以你的插件 id 为前缀（`yourname.plugin.thing`）。未加前缀会抛错。
+- **命令式调用返回其自身的值，而非清理函数。** `ui.editors.*`、`ui.notifications.*`、`i18n.format*` 和 `blueprintNodes.notifyDynamicSelectOptionsChanged` 都是操作。
+- **蓝图节点注册返回 `void`。** 节点定义在整个会话期间持续存在——移除会让已打开文档中的节点变成孤儿——所以没有需要清理的东西。
+
+<Callout type="warn">
+插件不在沙箱中运行。Studio API 是一份精选白名单，但一旦清单声明了对应权限，`app.privileged` 就能触及真实的文件系统与 shell。一切都以 Studio 本身的访问权限运行。
+</Callout>

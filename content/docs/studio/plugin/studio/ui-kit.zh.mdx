@@ -1,0 +1,60 @@
+---
+title: ui 套件
+description: Studio 自己的 React 组件，让你的面板贴合编辑器主题。
+---
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+`ui` 是 Studio 的组件库。用它构建面板和编辑器标签，就能让它们继承编辑器的主题、间距和明暗处理，而无需自带样式。每个组件的 props 类型也一并导出（`ButtonProps`、`SelectProps`、`ModalProps`、`SwitchProps` 等）。
+
+## 组件
+
+| 分组 | 成员 |
+| --- | --- |
+| 输入 | `Button`、`IconButton`、`Input`、`TextArea`、`SearchInput`、`InputGroup`、`Select`、`Combobox`、`SelectGroup`、`Switch` |
+| 模态框 | `Modal`、`ConfirmModal`、`AlertModal`、`ModalHeader`、`ModalBody`、`ModalFooter` |
+| 菜单 | `ContextMenu`、`ContextMenuSeparator`、`useContextMenu` |
+| 进度 | `Progress`、`ProgressIndeterminate`、`ProgressCircle` |
+| 展开 | `Accordion`、`AccordionItem`、`NestedAccordion` |
+| 卡片 | `Card`、`CardHeader`、`CardTitle`、`CardDescription`、`CardContent`、`CardFooter`、`InteractiveCard` |
+| 资源 | `AssetSelector` |
+
+## 面板布局原语
+
+`ui.Panel.*` 是赋予面板标准结构的布局构件。
+
+| 原语 | 作用 |
+| --- | --- |
+| `Panel.Root` | 面板容器（默认带内边距）。 |
+| `Panel.Header` | 标题、描述与头部操作。 |
+| `Panel.Toolbar` | 一排控件。 |
+| `Panel.Section` | 带标题的区块。 |
+| `Panel.Row` | 标签 / 描述 / 控件行。 |
+| `Panel.EmptyState` | 居中的空状态占位。 |
+
+```tsx
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "Hello",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: () => (
+        <ui.Panel.Root>
+            <ui.Panel.Header title="Hello" description="A plugin panel." />
+            <ui.Panel.Section title="Actions">
+                <ui.Button variant="primary" onClick={() => app.services.ui.notifications.success("Hi")}>
+                    Say hi
+                </ui.Button>
+            </ui.Panel.Section>
+        </ui.Panel.Root>
+    ),
+});
+```
+
+<Callout type="info">
+`react` 和 `react-dom` 由宿主通过 import map 提供。在打包器中把它们标记为 external（连同 `narraleaf-studio/plugin`），否则你会打进第二份 React 实例，插件将加载失败。模板的构建配置已为你处理好。
+</Callout>

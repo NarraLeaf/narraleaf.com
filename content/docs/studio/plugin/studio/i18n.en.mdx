@@ -1,0 +1,40 @@
+---
+title: i18n
+description: Read the editor's language and localize your own strings against it.
+---
+
+`app.services.i18n` is read access to the **editor's** UI language, so a plugin can translate its own panels and react to a live language switch. This is the editor language, not a game's player-facing language — for that, a blueprint node uses [`hostApi.localization`](/docs/studio/plugin/host-api/localization).
+
+## Members
+
+| Member | Signature | Notes |
+| --- | --- | --- |
+| `locale` | `string` | The editor's active locale code. |
+| `onLocaleChange` | `(fn: (locale: string) => void) => PluginCleanup` | Fires with the new locale on a language switch. Returns a cleanup. |
+| `createTranslator` | `(bundle: PluginMessageBundle) => PluginTranslator` | A translator over your own message tables. |
+| `formatNumber` | `(value: number, options?: Intl.NumberFormatOptions) => string` | Bound to the editor locale. |
+| `formatDate` | `(value: Date \| number, options?: Intl.DateTimeFormatOptions) => string` | Bound to the editor locale. |
+| `formatList` | `(items: string[], options?: Intl.ListFormatOptions) => string` | Bound to the editor locale. |
+
+## Translating your own strings
+
+```ts
+type PluginMessageBundle = {
+    messages: Record<string, Record<string, string>>; // locale -> (key -> string)
+    fallbackLocale?: string;                           // defaults to the first table
+};
+
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi {name}" }, zh: { hi: "你好 {name}" } },
+    fallbackLocale: "en",
+});
+
+i18n.t("hi", { name: "Ada" }); // follows the editor locale
+i18n.locale;                   // the active locale, read live
+```
+
+`t(key, params?)` resolves against the active locale's table, then the fallback table, then returns the key. `{placeholder}` tokens are filled from `params`. One translator instance is enough — `.locale` and `t()` read the current locale at call time. Subscribe with `onLocaleChange` to re-render your own UI when the language switches.
+
+<Callout type="info">
+To translate **Studio itself** — add a language or fill gaps in one — ship a language pack through `contributes.locales` instead. That needs no `i18n` calls. See [Make a plugin](/docs/studio/plugin/create-first-plugin).
+</Callout>

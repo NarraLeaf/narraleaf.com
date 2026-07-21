@@ -1,0 +1,56 @@
+---
+title: privileged
+description: Filesystem, permissions, and bash — elevated capabilities gated by manifest permissions.
+---
+
+`app.privileged` reaches beyond the curated services to the real machine: the filesystem, a permission-request flow, and the shell. It is gated — a call only works when the manifest declares the matching permission and the user granted it at install. Everything here runs with Studio's own access; there is no sandbox.
+
+Every method resolves to a `RequestStatus<…>` wrapper — check that the request succeeded before using its payload, rather than assuming the value is there.
+
+## Manifest permissions
+
+Declare what the plugin needs in the manifest `permissions` array. Each entry is one of:
+
+```ts
+{ kind: "filesystem"; path: string; mode: "read" | "write" | "readwrite"; recursive: boolean }
+{ kind: "api"; capability: string }
+```
+
+Studio shows a prompt at install listing everything declared. An empty `permissions` array means the plugin stays on the curated surface only.
+
+## fs
+
+Filesystem access, gated by `filesystem` permissions.
+
+- **Dialogs** — `selectFile(filters, multiple)`, `selectSaveFile(defaultFileName, filters)`.
+- **Read / write** — `requestRead(path, encoding)`, `requestReadRaw(path)`, `requestWrite(path, encoding)`, `requestWriteRaw(path)`, `ensureRegularFile(path, data, encoding?)`, `writeFileNoFollow(path, data, encoding?)`, `recoverCorruptedJsonFile(path, replacement, encoding?)`.
+- **Inspect** — `stat(path)`, `list(path)`, `details(path)`, `hash(path)`, `isFileExists(path)`, `isDirExists(path)`, `isFile(path)`, `isDir(path)`.
+- **Mutate** — `createDir(path)`, `deleteFile(path)`, `deleteDir(path)`, `rename(oldPath, newName, isDir)`, `copyFile(src, dest)`, `copyDir(src, dest)`, `moveFile(src, dest)`, `moveDir(src, dest)`.
+
+```ts
+const res = await app.privileged.fs.requestRead("/path/to/file.txt", "utf-8");
+if (res.status === "success") {
+    // res.data holds the read result
+}
+```
+
+## permissions
+
+Request more access at runtime, or revoke a plugin's grants.
+
+| Method | Signature |
+| --- | --- |
+| `request` | `(request: PluginPermissionRequest) => Promise<RequestStatus<PluginPermissionPromptResult>>` |
+| `revokePlugin` | `(pluginId: string) => Promise<RequestStatus<void>>` |
+
+## bash
+
+Run a shell command, gated by an `api` capability permission.
+
+| Method | Signature |
+| --- | --- |
+| `execute` | `(command: string, cwd?: string) => Promise<RequestStatus<PrivilegedBashExecuteResult>>` |
+
+<Callout type="warn">
+`fs` and `bash` are the reason Studio warns that plugins are not sandboxed. Request the narrowest permission that does the job — a specific `filesystem` path over a broad one — and only reach for `bash` when nothing else will do.
+</Callout>

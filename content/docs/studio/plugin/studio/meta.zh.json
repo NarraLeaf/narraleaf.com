@@ -1,0 +1,15 @@
+{
+  "title": "Studio 接口",
+  "pages": [
+    "index",
+    "storage",
+    "assets",
+    "i18n",
+    "ui",
+    "widgets",
+    "story",
+    "blueprint-nodes",
+    "ui-kit",
+    "privileged"
+  ]
+}

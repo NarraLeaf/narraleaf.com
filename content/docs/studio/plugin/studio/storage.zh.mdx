@@ -1,0 +1,25 @@
+---
+title: storage
+description: 按插件划分、作用于项目的 JSON 存储。
+---
+
+`app.services.storage` 是一个属于你插件私有、作用于当前项目的小型 JSON 存储。用于编辑器侧的插件状态——设置、缓存的查询结果、面板状态。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `readJson` | `<T>(namespace: string) => Promise<T \| null>` | 读取 `namespace` 下存储的对象。尚未存储时 resolve 为 `null`。 |
+| `writeJson` | `<T>(namespace: string, data: T) => Promise<void>` | 替换 `namespace` 下存储的对象。 |
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// 首次写入前 data 为 null
+```
+
+`namespace` 是你插件自有存储内的一个键——无需加插件 id 前缀，因为该存储本就为插件私有。值是 JSON。
+
+<Callout type="info">
+这是编辑器侧状态，只在工作区打开时可用。它不是游戏的持久化——蓝图节点在运行时通过 [`hostApi.persistence`](/docs/studio/plugin/host-api/state) 读写可持久的游戏状态。
+</Callout>

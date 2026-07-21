@@ -1,0 +1,60 @@
+---
+title: ui kit
+description: Studio's own React components, so your panels match the editor theme.
+---
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+`ui` is Studio's component library. Building panels and editor tabs out of it means they inherit the editor's theme, spacing, and dark/light handling without shipping your own styles. Every component's props type is also exported (`ButtonProps`, `SelectProps`, `ModalProps`, `SwitchProps`, and so on).
+
+## Components
+
+| Group | Members |
+| --- | --- |
+| Inputs | `Button`, `IconButton`, `Input`, `TextArea`, `SearchInput`, `InputGroup`, `Select`, `Combobox`, `SelectGroup`, `Switch` |
+| Modals | `Modal`, `ConfirmModal`, `AlertModal`, `ModalHeader`, `ModalBody`, `ModalFooter` |
+| Menus | `ContextMenu`, `ContextMenuSeparator`, `useContextMenu` |
+| Progress | `Progress`, `ProgressIndeterminate`, `ProgressCircle` |
+| Disclosure | `Accordion`, `AccordionItem`, `NestedAccordion` |
+| Cards | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `InteractiveCard` |
+| Assets | `AssetSelector` |
+
+## Panel layout primitives
+
+`ui.Panel.*` are the layout pieces that give a panel its standard structure.
+
+| Primitive | Role |
+| --- | --- |
+| `Panel.Root` | Panel container (padded by default). |
+| `Panel.Header` | Title, description, and header actions. |
+| `Panel.Toolbar` | A row of controls. |
+| `Panel.Section` | A titled section. |
+| `Panel.Row` | A label / description / control row. |
+| `Panel.EmptyState` | Centered empty-state placeholder. |
+
+```tsx
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "Hello",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: () => (
+        <ui.Panel.Root>
+            <ui.Panel.Header title="Hello" description="A plugin panel." />
+            <ui.Panel.Section title="Actions">
+                <ui.Button variant="primary" onClick={() => app.services.ui.notifications.success("Hi")}>
+                    Say hi
+                </ui.Button>
+            </ui.Panel.Section>
+        </ui.Panel.Root>
+    ),
+});
+```
+
+<Callout type="info">
+`react` and `react-dom` are provided by the host through an import map. Mark them external in your bundler (alongside `narraleaf-studio/plugin`), or you ship a second React instance and the plugin fails to load. The template's build config already does this.
+</Callout>
