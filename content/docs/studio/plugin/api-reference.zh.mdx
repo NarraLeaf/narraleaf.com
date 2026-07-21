@@ -235,6 +235,8 @@ app.game.blueprintNodes.registerMany(defs);
 
 为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `BlueprintNodeDef[]`（一个共享模块）——只会用到 `type` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`。
 
+在 `execute` 内部，节点通过**宿主 API**——`ctx.hostAdapter.blueprintRuntime?.hostApi`——驱动运行中的游戏。它暴露的每个能力族见 [宿主 API 参考](/docs/studio/plugin/host-api)。
+
 ### game.widgets
 
 ```ts

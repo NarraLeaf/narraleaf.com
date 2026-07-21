@@ -1,0 +1,23 @@
+---
+title: frame
+description: 读取所在 Frame 的参数，并向外发出事件。
+---
+
+Frame 控件把一个 Surface 内嵌进另一个 Surface，并向它传递参数。`hostApi.frame` 是运行在**内嵌** Surface 里的图读取这些参数、并向宿主回话的方式。从节点的 `execute` 中获取它——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `getParam` | `(key: string) => unknown` | 由所在 Frame 传入的参数。当 Frame 未设置该键时，回退到页面自身的 props。纯读取。 |
+| `emit` | `(eventName: string, data: unknown) => Promise<void>` | 向 Frame 的宿主发出一个事件。`eventName` 为空时忽略。 |
+
+```ts
+const frame = ctx.hostAdapter.blueprintRuntime?.hostApi.frame;
+if (!frame) return { nextPort: "next" };
+
+const itemId = String(frame.getParam("itemId") ?? "");
+await frame.emit("selected", { itemId });
+```
+
+`getParam` 和 `emit` 是 Frame 契约的两端：宿主设置参数（通过 Frame 的 `params`，或 [`hostApi.widget.setFrameProperties`](/docs/studio/plugin/host-api/widget)），内嵌的 Surface 用 `getParam` 读取，并用 `emit` 回报。`data` 是 JSON——只传纯数据。

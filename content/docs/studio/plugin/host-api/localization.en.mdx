@@ -1,0 +1,45 @@
+---
+title: localization
+description: Read the game's locale config and get or set the player's language.
+---
+
+`hostApi.localization` is the game's player-facing language, set by the running project's localization data. Reach it from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+This is the **game's** language, not the editor's. (The editor UI language is a separate, studio-side surface — `app.services.i18n` — and is not available at game runtime.)
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `getConfig` | `() => LocaleConfig \| null` | The running game's localization setup, or `null` when the project has none. |
+| `getLocale` | `() => Promise<string>` | The effective locale: the player's stored choice if it is still valid, otherwise the source locale. |
+| `setLocale` | `(code: string) => Promise<void>` | Persist the player's language choice. |
+
+```ts
+type LocaleConfig = {
+    sourceLocale: string;
+    locales: { code: string; /* ... */ }[];
+    // translation tables are included for text-resolution nodes; language
+    // pickers only need sourceLocale + locales
+};
+```
+
+## Example — a language picker
+
+```ts
+execute: async ctx => {
+    const loc = ctx.hostAdapter.blueprintRuntime?.hostApi.localization;
+    if (!loc) return { nextPort: "next" };
+
+    const config = loc.getConfig();
+    if (!config) return { nextPort: "next" };
+
+    const target = String(ctx.params.localeCode ?? "");
+    if (config.locales.some(l => l.code === target)) {
+        await loc.setLocale(target);
+    }
+    return { nextPort: "next" };
+}
+```
+
+`setLocale` does not validate against `getConfig()` for you — check the code against `config.locales` first, as above. `getLocale` already falls back to `sourceLocale` when the stored choice is missing or no longer offered.

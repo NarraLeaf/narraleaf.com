@@ -1,0 +1,57 @@
+---
+title: 宿主 API
+description: 蓝图节点在游戏运行时调用的能力树——导航、控件、状态、游戏流程等。
+---
+
+宿主 API 是蓝图节点的 `execute` 用来驱动运行中游戏的接口：打开页面、移动控件、读取存档、推进对话。它是编辑器 `app.services` 在游戏运行时的对应物——后者向编辑器注册内容，宿主 API 则作用于运行中的游戏。
+
+## 从哪里获取
+
+节点从它的执行上下文中获取宿主 API：
+
+```ts
+execute: async ctx => {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) return { nextPort: "next" }; // 没有游戏宿主——无事可做
+    await hostApi.game.next();
+    return { nextPort: "next" };
+}
+```
+
+`hostApi` 只在**运行中的游戏**里存在：开发模式窗口、预览，以及导出的生产构建。编辑器画布预览不提供它，那里 `ctx.hostAdapter.blueprintRuntime?.hostApi` 是 `undefined`。始终为这种情况做防护——需要游戏的节点要么跳过工作，要么抛出清晰的错误：
+
+```ts
+function getHostApi(ctx: Parameters<BlueprintNodeDef["execute"]>[0]) {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) {
+        throw new Error("This node requires game host APIs");
+    }
+    return hostApi;
+}
+```
+
+同一个节点的 `execute` 会在两处运行——studio 入口为编辑器面板和预览注册它，runtime 入口为游戏注册它——所以这个防护是环境之间唯一的差别。参见 [两个入口](/docs/studio/plugin/create-first-plugin)。
+
+## 能力族
+
+宿主 API 按职责分组。每个能力族是 `hostApi` 上的一个属性。
+
+<Cards>
+  <Card title="navigation" href="/docs/studio/plugin/host-api/navigation" description="打开与关闭 Surface、读取页面 props、全屏、退出应用。" />
+  <Card title="widget" href="/docs/studio/plugin/host-api/widget" description="读取与修改元素属性：文本、按钮、图片、滑块、列表、变换、动画。" />
+  <Card title="state" href="/docs/studio/plugin/host-api/state" description="运行时状态（surface / global）与项目级持久化存储。" />
+  <Card title="game" href="/docs/studio/plugin/host-api/game" description="剧情流程、存档、历史、对话、选项、偏好、已读追踪。" />
+  <Card title="localization" href="/docs/studio/plugin/host-api/localization" description="读取游戏语言配置，获取 / 设置玩家语言。" />
+  <Card title="frame" href="/docs/studio/plugin/host-api/frame" description="读取所在 Frame 的参数，并向外发出事件。" />
+  <Card title="devtools" href="/docs/studio/plugin/host-api/devtools" description="写入蓝图调试日志。" />
+</Cards>
+
+## 两条通用规则
+
+**读是纯的，写有副作用。** 每个 `get*` / `is*` 都无副作用，可用于图要求纯值的地方——蓝图值图或字段绑定。每个 `set*` 和每个动作（`next`、`openSurface`、`writeSave`……）都有副作用，不能用于这些地方；它们只能挂在执行流上。
+
+**值经过 JSON 往返。** 状态、持久化、存档元数据、frame 数据和页面 props 都会被序列化。只传纯数据（对象、数组、字符串、数字、布尔、`null`）；函数、类实例和 `undefined` 无法保留。`undefined` 会被存储并读回为 `null`。
+
+## 版本
+
+契约由 `BLUEPRINT_HOST_API_CONTRACT_VERSION` 标记版本，仅在形状发生不兼容变化时递增。节点不需要读取它——宿主与随包类型一起演进。它的存在是为了让「针对旧契约构建的插件」与「较新的宿主」之间的不匹配能被发现，而不是悄无声息地出错。

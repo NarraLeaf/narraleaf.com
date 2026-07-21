@@ -1,0 +1,35 @@
+---
+title: navigation
+description: Open and close Surfaces, read page props, control fullscreen, quit the app.
+---
+
+`hostApi.navigation` moves between App Surfaces (pages) and controls the application window. Reach it from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `openSurface` | `(surfaceId: string, props?: unknown) => Promise<void>` | Open a Surface as a layer, passing `props` as its page props. An empty `surfaceId` closes the top layer instead. Throws if the surface id does not exist. |
+| `getPageProps` | `() => Record<string, unknown>` | The props the current page was opened with. Pure. |
+| `closeLayer` | `() => Promise<void>` | Close the top layer. |
+| `quitApplication` | `() => Promise<void>` | Quit the application window. Throws when there is no window (for example the Story preview host). |
+| `getFullscreen` | `() => Promise<boolean>` | Current fullscreen state. Throws when there is no application window. |
+| `setFullscreen` | `(fullscreen: boolean) => Promise<void>` | Enter or leave fullscreen. Throws when there is no application window. |
+
+## Example
+
+```ts
+execute: async ctx => {
+    const nav = ctx.hostAdapter.blueprintRuntime?.hostApi.navigation;
+    if (!nav) return { nextPort: "next" };
+
+    await nav.openSurface("yourname.plugin.creditsPage", { from: "title" });
+    return { nextPort: "next" };
+}
+```
+
+`props` are read back inside the opened page with `getPageProps()`. Both are JSON — pass plain data only.
+
+<Callout type="info">
+`getFullscreen` / `setFullscreen` / `quitApplication` need a real application window. In hosts that do not have one (such as the in-workspace Story preview) they throw, so guard them behind `game.isInGame()` or handle the rejection if a node can run in those hosts.
+</Callout>

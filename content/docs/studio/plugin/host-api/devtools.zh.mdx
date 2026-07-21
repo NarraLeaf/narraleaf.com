@@ -1,0 +1,21 @@
+---
+title: devtools
+description: 写入蓝图调试日志。
+---
+
+`hostApi.devtools` 向蓝图调试日志写入内容，在开发模式下图运行时可见。从节点的 `execute` 中获取它——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `log` | `(level: string, message: string) => void` | 输出一条调试日志并镜像到控制台。`level` 为 `"info"`、`"warn"` 或 `"error"`；其他值按 info 处理。过长的消息会被截断。 |
+
+```ts
+const devtools = ctx.hostAdapter.blueprintRuntime?.hostApi.devtools;
+devtools?.log("warn", `unexpected item id: ${id}`);
+```
+
+<Callout type="info">
+`devtools.log` 用于节点自身的执行，即 `execute` 内部。若要在 runtime 插件的 `setup` 中——任何节点运行之前——记录日志，请改用 `app.game.log(level, message)`，其 `level` 为 `"info"`、`"warning"` 或 `"error"`。参见 [API 参考](/docs/studio/plugin/api-reference)。
+</Callout>

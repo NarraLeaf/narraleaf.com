@@ -1,0 +1,35 @@
+---
+title: navigation
+description: 打开与关闭 Surface、读取页面 props、控制全屏、退出应用。
+---
+
+`hostApi.navigation` 用于在 App Surface（页面）之间切换，并控制应用窗口。从节点的 `execute` 中获取它——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `openSurface` | `(surfaceId: string, props?: unknown) => Promise<void>` | 以图层方式打开一个 Surface，将 `props` 作为它的页面 props 传入。`surfaceId` 为空时改为关闭顶层图层。id 不存在时抛出错误。 |
+| `getPageProps` | `() => Record<string, unknown>` | 当前页面被打开时携带的 props。纯读取。 |
+| `closeLayer` | `() => Promise<void>` | 关闭顶层图层。 |
+| `quitApplication` | `() => Promise<void>` | 退出应用窗口。没有窗口时（例如剧情预览宿主）抛出错误。 |
+| `getFullscreen` | `() => Promise<boolean>` | 当前全屏状态。没有应用窗口时抛出错误。 |
+| `setFullscreen` | `(fullscreen: boolean) => Promise<void>` | 进入或退出全屏。没有应用窗口时抛出错误。 |
+
+## 示例
+
+```ts
+execute: async ctx => {
+    const nav = ctx.hostAdapter.blueprintRuntime?.hostApi.navigation;
+    if (!nav) return { nextPort: "next" };
+
+    await nav.openSurface("yourname.plugin.creditsPage", { from: "title" });
+    return { nextPort: "next" };
+}
+```
+
+在被打开的页面中用 `getPageProps()` 读回 `props`。二者都是 JSON——只传纯数据。
+
+<Callout type="info">
+`getFullscreen` / `setFullscreen` / `quitApplication` 需要真实的应用窗口。在没有窗口的宿主里（例如工作区内的剧情预览）它们会抛错，所以要么用 `game.isInGame()` 做防护，要么在这些宿主可能运行到该节点时处理其 reject。
+</Callout>

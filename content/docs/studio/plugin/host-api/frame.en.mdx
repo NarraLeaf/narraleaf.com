@@ -1,0 +1,23 @@
+---
+title: frame
+description: Read the enclosing Frame's params and emit events out of it.
+---
+
+A Frame widget embeds one Surface inside another and passes it params. `hostApi.frame` is how a graph running **inside** an embedded Surface reads those params and talks back to the host. Reach it from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+## Methods
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `getParam` | `(key: string) => unknown` | A param passed in by the enclosing Frame. Falls back to the page's own props when the Frame did not set that key. Pure. |
+| `emit` | `(eventName: string, data: unknown) => Promise<void>` | Emit an event out to the Frame's host. A blank `eventName` is ignored. |
+
+```ts
+const frame = ctx.hostAdapter.blueprintRuntime?.hostApi.frame;
+if (!frame) return { nextPort: "next" };
+
+const itemId = String(frame.getParam("itemId") ?? "");
+await frame.emit("selected", { itemId });
+```
+
+`getParam` and `emit` are the two ends of the Frame contract: the host sets params (through the Frame's `params`, or [`hostApi.widget.setFrameProperties`](/docs/studio/plugin/host-api/widget)), the embedded Surface reads them with `getParam` and reports back with `emit`. `data` is JSON — pass plain data only.

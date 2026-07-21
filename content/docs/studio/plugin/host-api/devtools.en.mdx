@@ -1,0 +1,21 @@
+---
+title: devtools
+description: Write to the blueprint debug log.
+---
+
+`hostApi.devtools` writes to the blueprint debug log, visible while a graph runs in Dev Mode. Reach it from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+## Method
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `log` | `(level: string, message: string) => void` | Emit a debug-log line and mirror it to the console. `level` is `"info"`, `"warn"`, or `"error"`; anything else logs as info. Long messages are truncated. |
+
+```ts
+const devtools = ctx.hostAdapter.blueprintRuntime?.hostApi.devtools;
+devtools?.log("warn", `unexpected item id: ${id}`);
+```
+
+<Callout type="info">
+`devtools.log` is for a node's own execution, inside `execute`. To log from a runtime plugin's `setup` — before any node runs — use `app.game.log(level, message)` instead, where `level` is `"info"`, `"warning"`, or `"error"`. See the [API reference](/docs/studio/plugin/api-reference).
+</Callout>

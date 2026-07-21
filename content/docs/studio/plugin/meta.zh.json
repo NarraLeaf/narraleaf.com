@@ -4,6 +4,7 @@
     "index",
     "create-first-plugin",
     "api-reference",
+    "host-api",
     "install-plugin"
   ]
 }

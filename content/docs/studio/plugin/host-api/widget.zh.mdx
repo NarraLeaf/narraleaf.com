@@ -1,0 +1,162 @@
+---
+title: widget
+description: 读取与修改元素属性——可见性、变体、文本、按钮、图片、滑块、列表、变换与动画。
+---
+
+`hostApi.widget` 读取和改变当前 Surface 上的元素。每个方法都以目标元素的 `elementId` 为参数。从节点的 `execute` 中获取这个能力族——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+整个能力族遵循三条约定：
+
+- **读取返回完整属性对象；写入接受局部 patch。** `set*` 只应用你给出的字段，无变化时是空操作。
+- **类型相关的方法会校验元素类型。** 对按钮调用 `setTextProperties`，或对不存在的 id 调用任何方法，都会抛错。
+- **`get*` 是纯的，`set*` 有副作用。** 读取可用于蓝图值图和绑定；写入不行。
+
+## 通用
+
+每个控件都有这些。
+
+| 方法 | 签名 |
+| --- | --- |
+| `setVisible` | `(elementId: string, visible: boolean) => Promise<void>` |
+| `setEnabled` | `(elementId: string, enabled: boolean) => Promise<void>` |
+| `setVariant` | `(elementId: string, variantId: string \| null, options?: { waitForTransition?: boolean }) => Promise<void>` |
+| `getCommonProperties` | `(elementId: string) => { visible: boolean; enabled: boolean; variantId: string \| null }` |
+
+`setVariant(id, { waitForTransition: true })` 会在变体过渡结束后再 resolve。传 `null` 清除运行时覆盖，恢复到作者设定的默认变体。元素必须支持外观且拥有该变体，否则抛错。
+
+## 变换与动画
+
+可显示对象的变换——位置、尺寸、旋转、不透明度、偏移——以及一次性动画。
+
+```ts
+type DisplayableProperties = {
+    position: { x: number; y: number }; // 左上角，surface 坐标系
+    offset: { x: number; y: number };   // 相对作者位置的持久平移
+    size: { width: number; height: number };
+    bounds: { x: number; y: number; width: number; height: number };
+    rotation: number;                    // 角度
+    opacity: number;                     // 0..1
+    display: boolean;
+    visible: boolean;
+};
+```
+
+| 方法 | 签名 |
+| --- | --- |
+| `getDisplayableProperties` | `(elementId: string) => DisplayableProperties` |
+| `setDisplayableProperties` | `(elementId: string, patch: Partial<{ x; y; offsetX; offsetY; width; height; rotation; opacity; display; visible }>) => Promise<void>` |
+| `animateDisplayable` | `(elementId: string, request: MotionRequest) => Promise<MotionOverride>` |
+| `stopDisplayableAnimation` | `(animationId: string) => Promise<void>` |
+
+`x`/`y` 设置 surface 上的绝对位置；`offsetX`/`offsetY` 是叠加在其上的持久平移。动画请求可对 `x`、`y`、`scale`、`rotate`、`opacity` 中任意项做动画——每项为一个目标数值或 `[from, to]` 关键帧对——过渡类型为 `tween` 或 `spring`：
+
+```ts
+const motion = await widget.animateDisplayable(id, {
+    target: { opacity: [1, 0], y: -40 },
+    transition: { type: "tween", durationMs: 300, easing: "ease-out" },
+    resetOnComplete: false, // 保留最终姿态；true 表示结束后弹回
+});
+await widget.stopDisplayableAnimation(motion.id); // 提前取消——弹回基础姿态
+```
+
+`animateDisplayable` 在动画结束时 resolve；返回的覆盖对象的 `id` 用于取消它。停止会丢弃动画且不提交其姿态。
+
+## 文本 — `nl.text`
+
+```ts
+type TextProperties = {
+    text: string;
+    fontAssetId: string | null;
+    fontSize: number;
+    fontWeight: "normal" | "600" | "bold";
+    color: string;
+    textAlign: "left" | "center" | "right";
+    textVerticalAlign: "start" | "center" | "end";
+    lineHeight: number;
+    textWrapMode: "word" | "character" | "nowrap";
+    effects: ElementEffectValues;
+};
+```
+
+- `getTextProperties(elementId) => TextProperties`——纯读取。
+- `setTextProperties(elementId, patch: Partial<TextProperties>) => Promise<void>`。
+
+## 按钮 — `nl.button`
+
+```ts
+type ButtonProperties = { label: string; cursor: ButtonCursorValue };
+```
+
+- `getButtonProperties(elementId) => ButtonProperties`。
+- `setButtonProperties(elementId, patch: Partial<ButtonProperties>) => Promise<void>`——`cursor` 写入按钮默认变体的光标。
+
+## 容器 — `nl.container`
+
+```ts
+type ContainerProperties = { clipContent: boolean };
+```
+
+- `getContainerProperties(elementId) => ContainerProperties`。
+- `setContainerProperties(elementId, patch: Partial<ContainerProperties>) => Promise<void>`。
+
+## 图片 — `nl.image`
+
+```ts
+type ImageProperties = {
+    asset: BlueprintImageAsset | null;
+    assetId: string | null;            // asset 的旧别名，为兼容旧图保留
+    fitMode: "cover" | "contain" | "stretch" | "crop" | "tile";
+    cropRect: { leftPct; topPct; widthPct; heightPct };
+    flipX: boolean;
+    flipY: boolean;
+};
+```
+
+- `getImageProperties(elementId) => ImageProperties`。
+- `setImageProperties(elementId, patch: Partial<ImageProperties>) => Promise<void>`——patch `asset`（推荐）或 `assetId`。
+
+## 滑块 — `nl.slider`
+
+```ts
+type SliderProperties = { value: number; normalizedValue: number; min: number; max: number; step: number };
+```
+
+- `getSliderProperties(elementId) => SliderProperties`——纯读取。
+- `setSliderProperties(elementId, patch: Partial<{ value; min; max; step }>) => Promise<void>`。
+
+## 文本输入 — `nl.textInput`
+
+```ts
+type TextInputProperties = { value: string };
+```
+
+- `getTextInputProperties(elementId) => TextInputProperties`——纯读取。
+- `setTextInputProperties(elementId, patch: { value?: string }) => Promise<void>`。运行时只能写 `value`；`placeholder`、`readOnly`、`disabled` 仍是作者属性——若需在运行时改变，将它们绑定到图。
+
+## 列表 — `nl.list` 及类列表控件
+
+```ts
+type ListProperties = { items: unknown[]; selectedIndex: number };
+```
+
+| 方法 | 签名 |
+| --- | --- |
+| `getListProperties` | `(elementId: string) => ListProperties` |
+| `setListItems` | `(elementId: string, items: readonly unknown[]) => Promise<void>` |
+| `setListSelectedIndex` | `(elementId: string, index: number) => Promise<void>` |
+| `scrollListToIndex` | `(elementId: string, index: number) => Promise<void>` |
+| `scrollListToTop` | `(elementId: string) => Promise<void>` |
+| `scrollListToBottom` | `(elementId: string) => Promise<void>` |
+
+`items` 是 JSON——与列表项模板所绑定的形状一致。
+
+## Frame — `nl.frame`
+
+```ts
+type FrameProperties = { targetSurfaceId: string | null; params: Record<string, unknown> };
+```
+
+- `getFrameProperties(elementId) => FrameProperties`。
+- `setFrameProperties(elementId, patch: Partial<FrameProperties>) => Promise<void>`——重定向内嵌的 Surface 或替换其 params。
+
+被重定向的 Surface 通过 [`hostApi.frame.getParam`](/docs/studio/plugin/host-api/frame) 读取 `params`。

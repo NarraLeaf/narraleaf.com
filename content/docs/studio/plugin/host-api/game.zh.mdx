@@ -1,0 +1,108 @@
+---
+title: game
+description: 剧情流程、存档、历史、对话、选项、偏好与已读追踪。
+---
+
+`hostApi.game` 控制视觉小说本身——剧情引擎、存档数据、对话框以及玩家偏好。从节点的 `execute` 中获取它——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+读取（`is*`、`get*`）是纯的、可用于绑定。其余都有副作用。
+
+## 剧情流程
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `startStory` | `(request: { storyId: string; sceneId: string }) => Promise<void>` | 从某个场景开始一个剧情。两个 id 都必填。 |
+| `isInGame` | `() => boolean` | 当前是否有剧情在播放。 |
+| `isGameOverlay` | `() => boolean` | 游戏是否叠加在另一个 surface 之上（例如叠层菜单）。 |
+| `quit` | `(surfaceId: string) => Promise<void>` | 退出运行中的游戏并返回到 `surfaceId`。 |
+
+## 推进与选项
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `next` | `() => Promise<void>` | 推进到下一个动作，等同于点击。 |
+| `skip` | `() => Promise<void>` | 跳过当前一行。 |
+| `choose` | `(index: number) => Promise<void>` | 按索引选择一个菜单选项。 |
+| `getChoiceCount` | `() => number` | 当前屏幕上的选项数量（无菜单时为 `0`）。纯读取。 |
+
+## 对话
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `showDialog` | `() => Promise<void>` | 显示对话框。 |
+| `hideDialog` | `() => Promise<void>` | 隐藏对话框。 |
+| `toggleDialogDisplay` | `() => Promise<void>` | 切换显示。 |
+| `getNametag` | `() => string \| null` | 当前说话者的名牌，或 `null`。纯读取。 |
+| `isNvlMode` | `() => boolean` | 对话是否处于 NVL 模式。纯读取。 |
+| `setSentenceSpeed` | `(cps: number) => Promise<void>` | 文本速度，单位为每秒字符数；必须为正。 |
+
+## 已读追踪
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `isCurrentTextRead` | `() => boolean` | 当一行在屏幕上且其文本被标记为已读（此前看过，或本次显示已结束）时为 true。纯读取。 |
+| `clearTextRead` | `() => Promise<void>` | 清除所有剧情的已读文本记录。 |
+
+## 通知
+
+`getNotifications() => { id: string; message: string }[]`——实时通知队列。纯读取。
+
+## 存档
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `writeSave` | `(id: string, metadata?: unknown, screenshot?: boolean) => Promise<void>` | 写入到槽 `id`。`metadata` 一同存储（JSON）；`screenshot: true` 会截图。 |
+| `loadSave` | `(id: string) => Promise<void>` | 载入槽 `id`。 |
+| `deleteSave` | `(id: string) => Promise<void>` | 删除槽 `id`。 |
+| `listSaveIds` | `() => Promise<string[]>` | 所有已存在的槽 id。 |
+| `getSaveMetadata` | `(id: string) => Promise<unknown>` | 随槽存储的元数据。 |
+| `getSavePreview` | `(id: string) => Promise<BlueprintImageAsset \| null>` | 该槽的截图，或 `null`。 |
+
+`id` 是任意非空字符串——必填，空 id 会抛错。自行选择槽 id；一个固定的保留 id 就能实现玩家无需命名的快速存档槽。
+
+```ts
+const game = ctx.hostAdapter.blueprintRuntime?.hostApi.game;
+if (!game) return { nextPort: "next" };
+
+await game.writeSave("yourname.quick-save.slot", { at: "chapter-2" }, true);
+const ids = await game.listSaveIds();
+```
+
+## 历史（回溯）
+
+```ts
+type HistoryEntry = {
+    id: string;                    // 传给 restoreHistory 以跳回此处
+    type: "say" | "menu";
+    text: string;                  // 台词，或菜单提示
+    character: string | null;      // 说话者名牌（say），否则 null
+    voice: string | null;          // 语音片段 id，否则 null
+    selected: string | null;       // 所选选项文本（menu），否则 null
+    isPending: boolean;            // 当前正在显示的一行
+};
+```
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `getHistory` | `() => Promise<HistoryEntry[]>` | 对话 / 菜单回溯记录。 |
+| `restoreHistory` | `(id?: string) => Promise<void>` | 按 `id` 跳回某条记录；省略 `id` 则撤销最后一条。 |
+
+将 `getHistory()` 绑定到回溯 List 控件，再把每条记录的 `id` 回传给 `restoreHistory`，即可让玩家回退。
+
+## 偏好
+
+| 方法 | 签名 |
+| --- | --- |
+| `getPreference` | `(key: PreferenceKey) => boolean \| number \| string` |
+| `setPreference` | `(key: PreferenceKey, value: boolean \| number \| string) => Promise<void>` |
+
+`getPreference` 是纯的。键及其值类型：
+
+| 键 | 类型 | 约束 |
+| --- | --- | --- |
+| `autoForward`、`skip`、`showDialog` | `boolean` | — |
+| `gameSpeed`、`cps`、`skipInterval` | `number` | 正数 |
+| `voiceVolume`、`voiceFadeDuration`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay` | `number` | 大于等于零 |
+| `voiceEndMode` | `string` | `"fade"` \| `"stop"` \| `"none"` |
+
+未知的键，或不满足约束的值，都会抛错。

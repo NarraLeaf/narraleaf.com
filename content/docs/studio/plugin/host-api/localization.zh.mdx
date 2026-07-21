@@ -1,0 +1,45 @@
+---
+title: localization
+description: 读取游戏语言配置，获取或设置玩家语言。
+---
+
+`hostApi.localization` 是游戏面向玩家的语言，由运行中项目的本地化数据决定。从节点的 `execute` 中获取它——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+这是**游戏**的语言，不是编辑器的。（编辑器 UI 语言是另一个 studio 侧的接口——`app.services.i18n`——在游戏运行时不可用。）
+
+## 方法
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `getConfig` | `() => LocaleConfig \| null` | 运行中游戏的本地化配置，项目没有本地化时为 `null`。 |
+| `getLocale` | `() => Promise<string>` | 生效的语言：玩家存储的选择（若仍有效），否则为源语言。 |
+| `setLocale` | `(code: string) => Promise<void>` | 持久保存玩家的语言选择。 |
+
+```ts
+type LocaleConfig = {
+    sourceLocale: string;
+    locales: { code: string; /* ... */ }[];
+    // 翻译表会一并提供给文本解析类节点；
+    // 语言选择器只需要 sourceLocale + locales
+};
+```
+
+## 示例——语言选择器
+
+```ts
+execute: async ctx => {
+    const loc = ctx.hostAdapter.blueprintRuntime?.hostApi.localization;
+    if (!loc) return { nextPort: "next" };
+
+    const config = loc.getConfig();
+    if (!config) return { nextPort: "next" };
+
+    const target = String(ctx.params.localeCode ?? "");
+    if (config.locales.some(l => l.code === target)) {
+        await loc.setLocale(target);
+    }
+    return { nextPort: "next" };
+}
+```
+
+`setLocale` 不会替你对照 `getConfig()` 做校验——如上所示，先用 `config.locales` 检查语言代码。`getLocale` 在存储的选择缺失或已不再提供时，会自动回退到 `sourceLocale`。

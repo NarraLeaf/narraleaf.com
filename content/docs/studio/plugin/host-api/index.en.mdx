@@ -1,0 +1,57 @@
+---
+title: Host API
+description: The capability tree a blueprint node calls at game runtime — navigation, widgets, state, game flow, and more.
+---
+
+The Host API is what a blueprint node's `execute` uses to drive a running game: open a page, move a widget, read a save, advance the dialog. It is the game-runtime counterpart to the editor's `app.services` — those register things into the editor; the Host API acts on the live game.
+
+## Where it lives
+
+A node reaches the Host API from its execution context:
+
+```ts
+execute: async ctx => {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) return { nextPort: "next" }; // no game host — nothing to do
+    await hostApi.game.next();
+    return { nextPort: "next" };
+}
+```
+
+`hostApi` is present only in a **running game**: the Dev Mode window, Preview, and the exported Production build. The in-editor canvas preview omits it, so `ctx.hostAdapter.blueprintRuntime?.hostApi` is `undefined` there. Always guard for that — a node that needs the game either skips its work or throws a clear error:
+
+```ts
+function getHostApi(ctx: Parameters<BlueprintNodeDef["execute"]>[0]) {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) {
+        throw new Error("This node requires game host APIs");
+    }
+    return hostApi;
+}
+```
+
+The same node `execute` runs in both places — the studio entry registers it for the editor palette and preview, the runtime entry registers it for the game — so the guard is the one thing that differs between environments. See [The two entries](/docs/studio/plugin/create-first-plugin).
+
+## Families
+
+The Host API is grouped by responsibility. Each family is one property on `hostApi`.
+
+<Cards>
+  <Card title="navigation" href="/docs/studio/plugin/host-api/navigation" description="Open and close Surfaces, read page props, fullscreen, quit the app." />
+  <Card title="widget" href="/docs/studio/plugin/host-api/widget" description="Read and patch element properties: text, button, image, slider, list, transform, animation." />
+  <Card title="state" href="/docs/studio/plugin/host-api/state" description="Runtime state (surface / global) and durable per-project persistence." />
+  <Card title="game" href="/docs/studio/plugin/host-api/game" description="Story flow, saves, history, dialog, choices, preferences, read tracking." />
+  <Card title="localization" href="/docs/studio/plugin/host-api/localization" description="Read the game's locale config and get / set the player's language." />
+  <Card title="frame" href="/docs/studio/plugin/host-api/frame" description="Read the enclosing Frame's params and emit events out of it." />
+  <Card title="devtools" href="/docs/studio/plugin/host-api/devtools" description="Write to the blueprint debug log." />
+</Cards>
+
+## Two rules that hold everywhere
+
+**Reads are pure, writes are effectful.** Every `get*` / `is*` is side-effect free and may run where the graph requires a pure value — a Blueprint Value graph or a field binding. Every `set*` and every action (`next`, `openSurface`, `writeSave`, …) is effectful and cannot run in those places; it belongs on an execution flow.
+
+**Values round-trip through JSON.** State, persistence, save metadata, frame data, and page props are serialized. Pass plain data (objects, arrays, strings, numbers, booleans, `null`); functions, class instances, and `undefined` do not survive. `undefined` is stored and returned as `null`.
+
+## Versioning
+
+The contract is versioned by `BLUEPRINT_HOST_API_CONTRACT_VERSION`, bumped only when the shape changes incompatibly. Nodes do not read it — the host and the bundled types move together. It exists so a mismatch between a plugin built against an old contract and a newer host is detectable rather than silent.

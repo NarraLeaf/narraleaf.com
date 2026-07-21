@@ -235,6 +235,8 @@ app.game.blueprintNodes.registerMany(defs);
 
 Registers the game-side `execute` for each node type. Pass the same `BlueprintNodeDef[]` you register on the studio side (a shared module) — only `type` and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
 
+Inside `execute`, a node drives the running game through the **Host API** — `ctx.hostAdapter.blueprintRuntime?.hostApi`. See the [Host API reference](/docs/studio/plugin/host-api) for every family it exposes.
+
 ### game.widgets
 
 ```ts

@@ -1,0 +1,56 @@
+---
+title: state & persistence
+description: 内存中的运行时状态（surface / global）与项目级的持久化存储。
+---
+
+有两个能力族负责蓝图数据。`hostApi.state` 是同步的内存状态，存在于整个会话；`hostApi.persistence` 是可跨重启保留的持久键值存储。二者都从节点的 `execute` 中获取——参见 [节点如何获取 `hostApi`](/docs/studio/plugin/host-api)。
+
+所有键都是字符串，所有值经过 JSON 往返。`undefined` 读写都会变成 `null`。
+
+## state
+
+同步。`get` 是纯的（可用于绑定）；`set` 有副作用。
+
+| 方法 | 签名 |
+| --- | --- |
+| `get` | `(scope: string, key: string) => unknown` |
+| `set` | `(scope: string, key: string, value: unknown) => void` |
+
+`scope` 取以下之一：
+
+| 作用域 | 含义 |
+| --- | --- |
+| `"surface"` | 作用于当前 Surface 实例的状态。同一 Surface 的两个实例互不共享。Surface 的局部变量存在这里。 |
+| `"global"` | 会话内所有 Surface 共享的状态。 |
+| `"persistence"` | 对下方持久存储的**同步**读写。当纯绑定需要不经 await 就读到持久值时使用。 |
+
+```ts
+const state = ctx.hostAdapter.blueprintRuntime?.hostApi.state;
+if (!state) return { nextPort: "next" };
+
+const count = Number(state.get("surface", "count") ?? 0);
+state.set("surface", "count", count + 1);
+```
+
+## persistence
+
+持久、异步、作用于项目。它是 `"persistence"` 状态作用域所同步读取的那个存储的异步视图。
+
+| 方法 | 签名 |
+| --- | --- |
+| `get` | `(key: string) => Promise<unknown>` |
+| `set` | `(key: string, value: unknown) => Promise<void>` |
+
+```ts
+const persistence = ctx.hostAdapter.blueprintRuntime?.hostApi.persistence;
+if (!persistence) return { nextPort: "next" };
+
+const unlocked = (await persistence.get("yourname.gallery.unlocked")) ?? [];
+await persistence.set("yourname.gallery.unlocked", [...unlocked, "cg_01"]);
+```
+
+用你的插件 id 给键加命名空间，以免与游戏本身或其他插件的键冲突。
+
+<Callout type="info">
+这与存档文件不同。`persistence` 是一个项目级键值存储，无论存档如何都会跨游玩会话保留；存档槽通过 [`hostApi.game.writeSave` / `loadSave`](/docs/studio/plugin/host-api/game) 写入和读取。它也不同于编辑器侧的 `app.services.storage`——后者只在工作区中可用，游戏运行时没有。
+</Callout>

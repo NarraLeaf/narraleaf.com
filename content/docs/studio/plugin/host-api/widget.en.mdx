@@ -1,0 +1,162 @@
+---
+title: widget
+description: Read and patch element properties — visibility, variant, text, button, image, slider, list, transform, and animation.
+---
+
+`hostApi.widget` reads and changes the elements on the current Surface. Every method takes the target element's `elementId`. Reach the family from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+Three conventions hold across the family:
+
+- **Reads return a full properties object; writes take a partial patch.** A `set*` applies only the keys you include and is a no-op when nothing changes.
+- **Type-specific methods check the element type.** `setTextProperties` on a button, or any method on a missing id, throws.
+- **`get*` is pure, `set*` is effectful.** Reads may run in Blueprint Value graphs and bindings; writes may not.
+
+## Common
+
+Every widget has these.
+
+| Method | Signature |
+| --- | --- |
+| `setVisible` | `(elementId: string, visible: boolean) => Promise<void>` |
+| `setEnabled` | `(elementId: string, enabled: boolean) => Promise<void>` |
+| `setVariant` | `(elementId: string, variantId: string \| null, options?: { waitForTransition?: boolean }) => Promise<void>` |
+| `getCommonProperties` | `(elementId: string) => { visible: boolean; enabled: boolean; variantId: string \| null }` |
+
+`setVariant(id, { waitForTransition: true })` resolves after the variant's transition finishes. Passing `null` clears the runtime override and restores the authored default variant. The element must be appearance-capable and own that variant, or it throws.
+
+## Transform and animation
+
+The displayable transform — position, size, rotation, opacity, offset — plus one-shot motion.
+
+```ts
+type DisplayableProperties = {
+    position: { x: number; y: number }; // top-left, in surface coordinates
+    offset: { x: number; y: number };   // persistent translate from the authored position
+    size: { width: number; height: number };
+    bounds: { x: number; y: number; width: number; height: number };
+    rotation: number;                    // degrees
+    opacity: number;                     // 0..1
+    display: boolean;
+    visible: boolean;
+};
+```
+
+| Method | Signature |
+| --- | --- |
+| `getDisplayableProperties` | `(elementId: string) => DisplayableProperties` |
+| `setDisplayableProperties` | `(elementId: string, patch: Partial<{ x; y; offsetX; offsetY; width; height; rotation; opacity; display; visible }>) => Promise<void>` |
+| `animateDisplayable` | `(elementId: string, request: MotionRequest) => Promise<MotionOverride>` |
+| `stopDisplayableAnimation` | `(animationId: string) => Promise<void>` |
+
+`x`/`y` set the absolute surface position; `offsetX`/`offsetY` are a persistent translate layered on top of it. A motion request animates any of `x`, `y`, `scale`, `rotate`, `opacity` — each a target number or a `[from, to]` keyframe pair — over a `tween` or `spring` transition:
+
+```ts
+const motion = await widget.animateDisplayable(id, {
+    target: { opacity: [1, 0], y: -40 },
+    transition: { type: "tween", durationMs: 300, easing: "ease-out" },
+    resetOnComplete: false, // keep the final pose; true snaps back when done
+});
+await widget.stopDisplayableAnimation(motion.id); // cancel early — snaps to base pose
+```
+
+`animateDisplayable` resolves when the motion finishes; the returned override's `id` cancels it. Stopping discards the motion without committing its pose.
+
+## Text — `nl.text`
+
+```ts
+type TextProperties = {
+    text: string;
+    fontAssetId: string | null;
+    fontSize: number;
+    fontWeight: "normal" | "600" | "bold";
+    color: string;
+    textAlign: "left" | "center" | "right";
+    textVerticalAlign: "start" | "center" | "end";
+    lineHeight: number;
+    textWrapMode: "word" | "character" | "nowrap";
+    effects: ElementEffectValues;
+};
+```
+
+- `getTextProperties(elementId) => TextProperties` — pure.
+- `setTextProperties(elementId, patch: Partial<TextProperties>) => Promise<void>`.
+
+## Button — `nl.button`
+
+```ts
+type ButtonProperties = { label: string; cursor: ButtonCursorValue };
+```
+
+- `getButtonProperties(elementId) => ButtonProperties`.
+- `setButtonProperties(elementId, patch: Partial<ButtonProperties>) => Promise<void>` — `cursor` writes the button's default-variant cursor.
+
+## Container — `nl.container`
+
+```ts
+type ContainerProperties = { clipContent: boolean };
+```
+
+- `getContainerProperties(elementId) => ContainerProperties`.
+- `setContainerProperties(elementId, patch: Partial<ContainerProperties>) => Promise<void>`.
+
+## Image — `nl.image`
+
+```ts
+type ImageProperties = {
+    asset: BlueprintImageAsset | null;
+    assetId: string | null;            // legacy alias of asset, kept for older graphs
+    fitMode: "cover" | "contain" | "stretch" | "crop" | "tile";
+    cropRect: { leftPct; topPct; widthPct; heightPct };
+    flipX: boolean;
+    flipY: boolean;
+};
+```
+
+- `getImageProperties(elementId) => ImageProperties`.
+- `setImageProperties(elementId, patch: Partial<ImageProperties>) => Promise<void>` — patch `asset` (preferred) or `assetId`.
+
+## Slider — `nl.slider`
+
+```ts
+type SliderProperties = { value: number; normalizedValue: number; min: number; max: number; step: number };
+```
+
+- `getSliderProperties(elementId) => SliderProperties` — pure.
+- `setSliderProperties(elementId, patch: Partial<{ value; min; max; step }>) => Promise<void>`.
+
+## Text Input — `nl.textInput`
+
+```ts
+type TextInputProperties = { value: string };
+```
+
+- `getTextInputProperties(elementId) => TextInputProperties` — pure.
+- `setTextInputProperties(elementId, patch: { value?: string }) => Promise<void>`. Only `value` is runtime-writable; `placeholder`, `readOnly`, and `disabled` stay authored props — bind them to a graph if they need to change at runtime.
+
+## List — `nl.list` and list-like widgets
+
+```ts
+type ListProperties = { items: unknown[]; selectedIndex: number };
+```
+
+| Method | Signature |
+| --- | --- |
+| `getListProperties` | `(elementId: string) => ListProperties` |
+| `setListItems` | `(elementId: string, items: readonly unknown[]) => Promise<void>` |
+| `setListSelectedIndex` | `(elementId: string, index: number) => Promise<void>` |
+| `scrollListToIndex` | `(elementId: string, index: number) => Promise<void>` |
+| `scrollListToTop` | `(elementId: string) => Promise<void>` |
+| `scrollListToBottom` | `(elementId: string) => Promise<void>` |
+
+`items` are JSON — the same shape the list's item template binds against.
+
+## Frame — `nl.frame`
+
+```ts
+type FrameProperties = { targetSurfaceId: string | null; params: Record<string, unknown> };
+```
+
+- `getFrameProperties(elementId) => FrameProperties`.
+- `setFrameProperties(elementId, patch: Partial<FrameProperties>) => Promise<void>` — retarget the embedded Surface or replace its params.
+
+The retargeted Surface reads `params` through [`hostApi.frame.getParam`](/docs/studio/plugin/host-api/frame).

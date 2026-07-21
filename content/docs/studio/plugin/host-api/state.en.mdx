@@ -1,0 +1,56 @@
+---
+title: state & persistence
+description: In-memory runtime state (surface / global) and durable per-project storage.
+---
+
+Two families cover blueprint data. `hostApi.state` is synchronous in-memory state that lives for the session; `hostApi.persistence` is a durable key-value store that survives restarts. Reach both from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+All keys are strings and all values round-trip through JSON. `undefined` reads and writes back as `null`.
+
+## state
+
+Synchronous. `get` is pure (binding-safe); `set` is effectful.
+
+| Method | Signature |
+| --- | --- |
+| `get` | `(scope: string, key: string) => unknown` |
+| `set` | `(scope: string, key: string, value: unknown) => void` |
+
+`scope` is one of:
+
+| Scope | Meaning |
+| --- | --- |
+| `"surface"` | State scoped to the current Surface instance. Two instances of the same Surface do not share it. This is where a Surface's local variables live. |
+| `"global"` | State shared across every Surface in the session. |
+| `"persistence"` | A **synchronous** read/write of the durable store below. Use it when a pure binding needs a persisted value without awaiting. |
+
+```ts
+const state = ctx.hostAdapter.blueprintRuntime?.hostApi.state;
+if (!state) return { nextPort: "next" };
+
+const count = Number(state.get("surface", "count") ?? 0);
+state.set("surface", "count", count + 1);
+```
+
+## persistence
+
+Durable, asynchronous, scoped to the project. This is the async view of the same store the `"persistence"` state scope reads synchronously.
+
+| Method | Signature |
+| --- | --- |
+| `get` | `(key: string) => Promise<unknown>` |
+| `set` | `(key: string, value: unknown) => Promise<void>` |
+
+```ts
+const persistence = ctx.hostAdapter.blueprintRuntime?.hostApi.persistence;
+if (!persistence) return { nextPort: "next" };
+
+const unlocked = (await persistence.get("yourname.gallery.unlocked")) ?? [];
+await persistence.set("yourname.gallery.unlocked", [...unlocked, "cg_01"]);
+```
+
+Namespace your keys with your plugin id so they never collide with the game's own keys or another plugin's.
+
+<Callout type="info">
+This is not the same as a save file. `persistence` is a project-wide key-value store that persists across play sessions regardless of saves; a save slot is written and read through [`hostApi.game.writeSave` / `loadSave`](/docs/studio/plugin/host-api/game). It is also distinct from the editor-side `app.services.storage`, which is only available in the workspace, not at game runtime.
+</Callout>

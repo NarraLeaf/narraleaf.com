@@ -1,0 +1,13 @@
+{
+  "title": "Host API",
+  "pages": [
+    "index",
+    "navigation",
+    "widget",
+    "state",
+    "game",
+    "localization",
+    "frame",
+    "devtools"
+  ]
+}

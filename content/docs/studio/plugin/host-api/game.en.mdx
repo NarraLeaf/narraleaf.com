@@ -1,0 +1,108 @@
+---
+title: game
+description: Story flow, saves, history, dialog, choices, preferences, and read tracking.
+---
+
+`hostApi.game` controls the visual novel itself — the story engine, save data, the dialog box, and player preferences. Reach it from a node's `execute` — see [how a node obtains `hostApi`](/docs/studio/plugin/host-api).
+
+Reads (`is*`, `get*`) are pure and binding-safe. Everything else is effectful.
+
+## Story flow
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `startStory` | `(request: { storyId: string; sceneId: string }) => Promise<void>` | Start a story at a scene. Both ids are required. |
+| `isInGame` | `() => boolean` | Whether a story is currently playing. |
+| `isGameOverlay` | `() => boolean` | Whether the game is showing over another surface (e.g. an overlay menu). |
+| `quit` | `(surfaceId: string) => Promise<void>` | Quit the running game and return to `surfaceId`. |
+
+## Advancing and choices
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `next` | `() => Promise<void>` | Advance to the next action, as a click would. |
+| `skip` | `() => Promise<void>` | Skip the current line. |
+| `choose` | `(index: number) => Promise<void>` | Pick a menu choice by index. |
+| `getChoiceCount` | `() => number` | Number of choices currently on screen (`0` when no menu is up). Pure. |
+
+## Dialog
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `showDialog` | `() => Promise<void>` | Show the dialog box. |
+| `hideDialog` | `() => Promise<void>` | Hide the dialog box. |
+| `toggleDialogDisplay` | `() => Promise<void>` | Toggle it. |
+| `getNametag` | `() => string \| null` | Current speaker's nametag, or `null`. Pure. |
+| `isNvlMode` | `() => boolean` | Whether the dialog is in NVL mode. Pure. |
+| `setSentenceSpeed` | `(cps: number) => Promise<void>` | Text speed in characters per second; must be positive. |
+
+## Read tracking
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `isCurrentTextRead` | `() => boolean` | True while a line is on screen and its text is marked read (seen before, or finished displaying). Pure. |
+| `clearTextRead` | `() => Promise<void>` | Wipe the persisted read-text record across all stories. |
+
+## Notifications
+
+`getNotifications() => { id: string; message: string }[]` — the live notification queue. Pure.
+
+## Saves
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `writeSave` | `(id: string, metadata?: unknown, screenshot?: boolean) => Promise<void>` | Write a save to slot `id`. `metadata` is stored alongside (JSON); `screenshot: true` captures one. |
+| `loadSave` | `(id: string) => Promise<void>` | Load slot `id`. |
+| `deleteSave` | `(id: string) => Promise<void>` | Delete slot `id`. |
+| `listSaveIds` | `() => Promise<string[]>` | All existing slot ids. |
+| `getSaveMetadata` | `(id: string) => Promise<unknown>` | The metadata stored with a slot. |
+| `getSavePreview` | `(id: string) => Promise<BlueprintImageAsset \| null>` | The slot's screenshot, or `null`. |
+
+`id` is any non-empty string — it is required, and blank ids throw. Choose your own slot ids; a fixed reserved id gives you a quick-save slot players never name.
+
+```ts
+const game = ctx.hostAdapter.blueprintRuntime?.hostApi.game;
+if (!game) return { nextPort: "next" };
+
+await game.writeSave("yourname.quick-save.slot", { at: "chapter-2" }, true);
+const ids = await game.listSaveIds();
+```
+
+## History (backlog)
+
+```ts
+type HistoryEntry = {
+    id: string;                    // pass to restoreHistory to jump back here
+    type: "say" | "menu";
+    text: string;                  // spoken line, or the menu prompt
+    character: string | null;      // speaker nametag (say), else null
+    voice: string | null;          // voice clip id, else null
+    selected: string | null;       // chosen option text (menu), else null
+    isPending: boolean;            // the line currently being shown
+};
+```
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `getHistory` | `() => Promise<HistoryEntry[]>` | The dialogue / menu backlog. |
+| `restoreHistory` | `(id?: string) => Promise<void>` | Jump back to an entry by `id`; omit `id` to undo the last entry. |
+
+Bind `getHistory()` to a backlog List widget, then feed each entry's `id` back into `restoreHistory` to let players rewind.
+
+## Preferences
+
+| Method | Signature |
+| --- | --- |
+| `getPreference` | `(key: PreferenceKey) => boolean \| number \| string` |
+| `setPreference` | `(key: PreferenceKey, value: boolean \| number \| string) => Promise<void>` |
+
+`getPreference` is pure. Keys and their value types:
+
+| Key | Type | Constraint |
+| --- | --- | --- |
+| `autoForward`, `skip`, `showDialog` | `boolean` | — |
+| `gameSpeed`, `cps`, `skipInterval` | `number` | positive |
+| `voiceVolume`, `voiceFadeDuration`, `bgmVolume`, `soundVolume`, `globalVolume`, `skipDelay` | `number` | zero or greater |
+| `voiceEndMode` | `string` | `"fade"` \| `"stop"` \| `"none"` |
+
+An unknown key or a value that fails its constraint throws.

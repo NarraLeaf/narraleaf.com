@@ -1,0 +1,13 @@
+{
+  "title": "宿主 API",
+  "pages": [
+    "index",
+    "navigation",
+    "widget",
+    "state",
+    "game",
+    "localization",
+    "frame",
+    "devtools"
+  ]
+}
