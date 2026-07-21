@@ -2,6 +2,8 @@
   "title": "Plugin",
   "pages": [
     "index",
-    "create-first-plugin"
+    "create-first-plugin",
+    "api-reference",
+    "install-plugin"
   ]
 }

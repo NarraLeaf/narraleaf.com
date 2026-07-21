@@ -1,3 +1,329 @@
 ---
-title: Create Your First Plugin
+title: Make a Plugin
+description: From an empty folder to an installed plugin — manifest, entries, a blueprint node, a panel, localization, and packaging.
 ---
+
+This walks through building a real plugin end to end: a blueprint node that runs in shipped games, an editor panel, localized strings, and a Studio language pack. Start from the official template so the build and types are already wired.
+
+## Prerequisites
+
+- Node.js 20 or newer and a package manager (this guide uses Yarn).
+- NarraLeaf Studio installed, so you can install and test the result.
+- Familiarity with TypeScript. Plugins are TypeScript bundled to ESM.
+
+## Start from the template
+
+The template repo has the manifest, tsconfig, build script, and a working node already in place.
+
+<Steps>
+<Step>
+
+### Copy the template
+
+Copy the `template/` directory from the [Plugins repo](https://github.com/NarraLeaf/Plugins) into a new folder and install its dev dependencies.
+
+```bash
+cp -r Plugins/template my-plugin
+cd my-plugin
+yarn install
+```
+
+</Step>
+<Step>
+
+### Rename it
+
+Open `manifest.json` and `package.json` and replace the id, name, and publisher with your own. The plugin id must be namespaced — `publisher.plugin-name`, lowercase, at least one dot:
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": { "blueprintNodes": ["yourname.hello.log"] },
+  "permissions": []
+}
+```
+
+</Step>
+</Steps>
+
+## The manifest
+
+`manifest.json` is the only file Studio reads without executing code. Every field:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `manifestVersion` | yes | Always `2`. Version 1 is rejected. |
+| `id` | yes | Namespaced: `publisher.plugin-name`, lowercase, `[a-z0-9-]`, at least one dot. |
+| `name` | yes | Display name. |
+| `version` | yes | Semver (`1.0.0`). |
+| `publisher` | no | Shown in the plugin list. |
+| `description` | no | One line. |
+| `entries` | yes | `{ studio?, runtime? }` — relative ESM paths. At least one. |
+| `contributes` | no | What the plugin provides: `blueprintNodes`, `widgets`, `locales`. |
+| `permissions` | no | Elevated capabilities (filesystem, API). Empty by default. |
+
+`contributes` is a declaration Studio validates without running your code. Every blueprint node type and widget type you register must be listed here, prefixed with your plugin id. Registering a type you did not declare throws at load time, and a game that uses a node whose provider is missing fails to build with a clear error — the declaration is what makes that check possible.
+
+## The two entries
+
+Each entry is a prebundled ESM file. They are physically isolated: importing `narraleaf-studio/plugin` from a runtime entry throws.
+
+- **`entries.studio`** loads in the editor (workspace window). It talks to `narraleaf-studio/plugin` and can register panels, actions, keybindings, blueprint node editor metadata, widgets, and language packs.
+- **`entries.runtime`** loads in every game environment — Dev Mode, Preview, and the exported Production build. It talks to `narraleaf-studio/runtime` and registers the code that actually runs: blueprint node `execute`, widget renderers.
+
+Declare only what you need. A UI-only plugin needs just `studio`. A plugin whose blueprint node must run in shipped games needs **both** — the `studio` entry for the editor, the `runtime` entry for the game.
+
+<Callout type="warn">
+A blueprint node registered only from the `studio` entry appears in the editor palette but has no code in a shipped game. It runs in the in-editor preview (the studio entry carries `execute` too), then silently does nothing once the game is exported. Register it from the runtime entry as well.
+</Callout>
+
+## A blueprint node, registered from both entries
+
+Write the node definition once in a shared module, then register the same array from each entry. `execute` lives in one place, so both targets ship identical logic.
+
+```ts
+// src/nodes.ts
+import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+
+export const PLUGIN_ID = "yourname.hello";
+
+export function createNodes(): BlueprintNodeDef[] {
+    return [
+        {
+            type: `${PLUGIN_ID}.log`,
+            displayName: "Log Message",
+            category: "Hello",
+            keywords: ["log", "debug"],
+            graphKinds: ["event", "macro"],
+            isPure: false,
+            isLatent: false,
+            pins: [
+                { id: "in", kind: "input", semantic: "exec", label: "In" },
+                { id: "next", kind: "output", semantic: "exec", label: "Next" },
+            ],
+            inspectorParams: [
+                { key: "message", label: "Message", kind: "string" },
+            ],
+            execute: async ctx => {
+                const message = String(ctx.params.message ?? "");
+                console.log(`[hello] ${message}`);
+                return { nextPort: "next" };
+            },
+        },
+    ];
+}
+```
+
+The studio entry registers the full definitions for the palette and in-editor preview:
+
+```ts
+// src/main.ts
+import { definePlugin } from "narraleaf-studio/plugin";
+import { createNodes } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+The runtime entry registers the same definitions for game execution:
+
+```ts
+// src/runtime.ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+import { createNodes } from "./nodes";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+Both `registerMany` calls accept the same `BlueprintNodeDef[]`; the runtime side uses only `type` and `execute` and ignores the editor metadata. This one-definition-two-entries shape is why the types package bundles both surfaces together — a `BlueprintNodeDef` from `/plugin` is assignable to what the `/runtime` register expects.
+
+### Reading config
+
+A node reads its inspector fields from `ctx.params`, keyed by the `key` you gave each `inspectorParams` entry. Values are whatever the field produced (strings for `kind: "string"`, and so on) — coerce them.
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    // ...
+}
+```
+
+<Callout type="info">
+A plugin node cannot read a *data input pin*. Built-in nodes resolve wired data through an internal accessor that is not part of the plugin API. Drive plugin nodes from `inspectorParams` + `ctx.params` instead.
+</Callout>
+
+### Persisting game state
+
+Game-side execution reaches the host through `ctx.hostAdapter.blueprintRuntime?.hostApi`, which exposes `persistence` for reading and writing saved game state:
+
+```ts
+execute: async ctx => {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) {
+        throw new Error("This node requires game host APIs");
+    }
+    const seen = (await hostApi.persistence.get("yourname.hello.count")) ?? 0;
+    await hostApi.persistence.set("yourname.hello.count", Number(seen) + 1);
+    return { nextPort: "next" };
+}
+```
+
+## A panel with the `ui` kit
+
+Panels are studio-only. `setup` returns a cleanup, and every `register` returns its own disposer that the host also tracks — so a panel is removed on unload whether you call the disposer or not. Registration ids must be prefixed with your plugin id.
+
+```tsx
+// src/main.tsx  (rename main.ts and update entries.studio to "main.js")
+import { definePlugin, ui, PanelPosition } from "narraleaf-studio/plugin";
+import { createNodes, PLUGIN_ID } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+
+        const unregister = app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: "Hello",
+            position: PanelPosition.Left,
+            component: () => (
+                <ui.Panel.Root>
+                    <ui.Panel.Header title="Hello" description="A plugin panel." />
+                    <ui.Panel.Section>
+                        <ui.Button
+                            variant="primary"
+                            onClick={() => app.services.ui.notifications.success("Hi from the plugin")}
+                        >
+                            Say hi
+                        </ui.Button>
+                    </ui.Panel.Section>
+                </ui.Panel.Root>
+            ),
+        });
+
+        return () => unregister();
+    },
+});
+```
+
+The `ui` kit exposes Studio's own components — `Button`, `Input`, `Select`, `Switch`, `Card`, the `Panel.*` layout primitives, and more — so a panel matches the editor's look and theme without shipping its own styles.
+
+## Localize your own strings
+
+`app.services.i18n` gives read access to the editor's language so a plugin can translate its own UI. Ship your own message tables and build a translator over them; it follows the editor locale live.
+
+```tsx
+const messages = {
+    en: { "panel.title": "Hello", "panel.hi": "Say hi" },
+    zh: { "panel.title": "你好", "panel.hi": "打个招呼" },
+};
+
+export default definePlugin({
+    setup(app) {
+        const i18n = app.services.i18n.createTranslator({ messages, fallbackLocale: "en" });
+
+        app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: i18n.t("panel.title"),
+            position: PanelPosition.Left,
+            component: () => <PanelBody t={i18n.t} />,
+        });
+
+        // Re-render your own React state when the editor language changes.
+        app.services.i18n.onLocaleChange(() => {/* trigger a re-render */});
+    },
+});
+```
+
+`i18n.t(key)` resolves against the active editor locale's table, then `fallbackLocale`, then returns the key. `i18n.locale`, `formatNumber`, `formatDate`, and `formatList` are also available, all bound to the editor's current language. This is the editor's UI language — it is unrelated to a game's player-facing localization, which the runtime entry does not receive.
+
+## Ship a Studio language pack
+
+A plugin can also translate **Studio itself** — add a new language, or fill gaps in an existing one. Declare each locale in `contributes.locales` and point it at a JSON catalog.
+
+```json
+{
+  "contributes": {
+    "locales": [
+      { "code": "ja", "nativeName": "日本語", "intl": "ja-JP", "messages": "locales/ja.json" },
+      { "code": "zh", "messages": "locales/zh-extra.json" }
+    ]
+  }
+}
+```
+
+The catalog is a flat map of Studio's own translation keys to strings:
+
+```json
+{
+  "settings.categories.general.label": "一般",
+  "workspace.menu.file": "ファイル"
+}
+```
+
+A new locale (`ja`) appears in Settings → Language and applies across the whole editor. Extending a built-in locale (`zh`) fills any key Studio leaves untranslated. The rules:
+
+- Adding a **new locale** or **filling a gap** in a built-in locale is free.
+- You **cannot override** a key Studio already translates for a built-in locale — the built-in wins and Studio logs a warning. Language packs fill gaps; they do not fork shipped translations.
+- Set `nativeName` for a new locale (it is the endonym shown in the picker). `intl` is the BCP-47 tag used for date/number formatting; it defaults to `code`.
+
+Language packs need no `studio` entry code — a manifest with only `contributes.locales` is a valid plugin. They require a Studio build that understands `contributes.locales`; older builds reject the manifest.
+
+## Build
+
+The template's `build.mjs` bundles each entry with esbuild, marking the host modules external, and copies `manifest.json` into `dist/`.
+
+```bash
+yarn build
+```
+
+The externals are the load-bearing part — the host provides these at runtime, so your bundle must not include its own copies:
+
+```js
+external: [
+    "narraleaf-studio/plugin",
+    "narraleaf-studio/runtime",
+    "react",
+    "react-dom",
+    "react-dom/client",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime",
+]
+```
+
+If you ship a language pack, copy its JSON files into `dist/` next to `manifest.json` at the paths your `contributes.locales` declares, so the packaged plugin can find them.
+
+Type-check without bundling while you work:
+
+```bash
+yarn typecheck
+```
+
+## Package
+
+An installable plugin is the `dist/` folder — `manifest.json`, the built entry files, and any locale JSON. Zip that folder (or its contents) for a release. To try it locally, point Studio at the built `dist/` directory: see [Install a plugin](/docs/studio/plugin/install-plugin).
+
+<Files>
+  <Folder name="dist" defaultOpen>
+    <File name="manifest.json" />
+    <File name="main.js" />
+    <File name="runtime.js" />
+    <Folder name="locales">
+      <File name="ja.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+Next: the full [API reference](/docs/studio/plugin/api-reference) for every method on both surfaces.

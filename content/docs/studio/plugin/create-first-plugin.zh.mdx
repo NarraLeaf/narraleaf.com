@@ -1,3 +1,329 @@
 ---
 title: 创建第一个插件
+description: 从空文件夹到已安装的插件——清单、入口、蓝图节点、面板、本地化和打包。
 ---
+
+本文端到端构建一个真实的插件：一个在发布游戏中运行的蓝图节点、一个编辑器面板、本地化字符串，以及一个 Studio 语言包。从官方模板开始，构建流程和类型都已经配置好。
+
+## 前置条件
+
+- Node.js 20 或更高版本，以及一个包管理器（本文使用 Yarn）。
+- 已安装 NarraLeaf Studio，以便安装并测试成果。
+- 熟悉 TypeScript。插件是打包为 ESM 的 TypeScript。
+
+## 从模板开始
+
+模板仓库已经包含清单、tsconfig、构建脚本和一个可用的节点。
+
+<Steps>
+<Step>
+
+### 复制模板
+
+将 [Plugins 仓库](https://github.com/NarraLeaf/Plugins) 中的 `template/` 目录复制到一个新文件夹，并安装它的开发依赖。
+
+```bash
+cp -r Plugins/template my-plugin
+cd my-plugin
+yarn install
+```
+
+</Step>
+<Step>
+
+### 重命名
+
+打开 `manifest.json` 和 `package.json`，把 id、name 和 publisher 替换为你自己的。插件 id 必须带命名空间——`publisher.plugin-name`，全小写，至少包含一个点：
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": { "blueprintNodes": ["yourname.hello.log"] },
+  "permissions": []
+}
+```
+
+</Step>
+</Steps>
+
+## 清单
+
+`manifest.json` 是 Studio 唯一会在不执行代码的情况下读取的文件。各字段说明：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `manifestVersion` | 是 | 始终为 `2`。版本 1 会被拒绝。 |
+| `id` | 是 | 带命名空间：`publisher.plugin-name`，全小写，`[a-z0-9-]`，至少一个点。 |
+| `name` | 是 | 显示名称。 |
+| `version` | 是 | 语义化版本（`1.0.0`）。 |
+| `publisher` | 否 | 显示在插件列表中。 |
+| `description` | 否 | 一行简介。 |
+| `entries` | 是 | `{ studio?, runtime? }`——相对的 ESM 路径。至少一个。 |
+| `contributes` | 否 | 插件提供的内容：`blueprintNodes`、`widgets`、`locales`。 |
+| `permissions` | 否 | 提权能力（文件系统、API）。默认为空。 |
+
+`contributes` 是一份声明，Studio 无需运行你的代码即可校验它。你注册的每个蓝图节点类型和控件类型都必须列在这里，并以你的插件 id 为前缀。注册一个未声明的类型会在加载时抛出错误；而使用了某个缺少提供方的节点的游戏会在构建时失败并给出明确错误——正是这份声明让这项检查成为可能。
+
+## 两个入口
+
+每个入口都是一个预打包的 ESM 文件。它们在物理上是隔离的：从 runtime 入口导入 `narraleaf-studio/plugin` 会抛出错误。
+
+- **`entries.studio`** 在编辑器（工作区窗口）中加载。它与 `narraleaf-studio/plugin` 交互，可以注册面板、操作、快捷键、蓝图节点的编辑器元数据、控件和语言包。
+- **`entries.runtime`** 在每种游戏环境中加载——开发模式、预览和导出的生产构建。它与 `narraleaf-studio/runtime` 交互，注册真正运行的代码：蓝图节点的 `execute`、控件渲染器。
+
+只声明你需要的部分。纯 UI 插件只需要 `studio`。如果插件的蓝图节点必须在发布游戏中运行，则**两者都需要**——`studio` 入口用于编辑器，`runtime` 入口用于游戏。
+
+<Callout type="warn">
+只从 `studio` 入口注册的蓝图节点会出现在编辑器的节点选板中，但在发布游戏里没有对应代码。它能在编辑器内预览中运行（studio 入口同样携带 `execute`），可一旦游戏被导出就会悄无声息地什么都不做。请同时从 runtime 入口注册它。
+</Callout>
+
+## 从两个入口注册同一个蓝图节点
+
+在一个共享模块中编写一次节点定义，然后从每个入口注册同一个数组。`execute` 只存在于一处，因此两个目标发布的是完全相同的逻辑。
+
+```ts
+// src/nodes.ts
+import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+
+export const PLUGIN_ID = "yourname.hello";
+
+export function createNodes(): BlueprintNodeDef[] {
+    return [
+        {
+            type: `${PLUGIN_ID}.log`,
+            displayName: "Log Message",
+            category: "Hello",
+            keywords: ["log", "debug"],
+            graphKinds: ["event", "macro"],
+            isPure: false,
+            isLatent: false,
+            pins: [
+                { id: "in", kind: "input", semantic: "exec", label: "In" },
+                { id: "next", kind: "output", semantic: "exec", label: "Next" },
+            ],
+            inspectorParams: [
+                { key: "message", label: "Message", kind: "string" },
+            ],
+            execute: async ctx => {
+                const message = String(ctx.params.message ?? "");
+                console.log(`[hello] ${message}`);
+                return { nextPort: "next" };
+            },
+        },
+    ];
+}
+```
+
+studio 入口注册完整定义，供节点选板和编辑器内预览使用：
+
+```ts
+// src/main.ts
+import { definePlugin } from "narraleaf-studio/plugin";
+import { createNodes } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+runtime 入口注册相同的定义，供游戏执行使用：
+
+```ts
+// src/runtime.ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+import { createNodes } from "./nodes";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+两处 `registerMany` 调用接受相同的 `BlueprintNodeDef[]`；runtime 侧只使用 `type` 和 `execute`，忽略编辑器元数据。正是这种“一次定义、两个入口”的形态，决定了类型包要把两个接口打包在一起——来自 `/plugin` 的 `BlueprintNodeDef` 可以赋值给 `/runtime` 的 register 所期望的类型。
+
+### 读取配置
+
+节点从 `ctx.params` 读取它的检查器字段，键名就是你为每个 `inspectorParams` 项指定的 `key`。取到的值就是字段产生的原始值（`kind: "string"` 对应字符串，以此类推）——请自行做类型转换。
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    // ...
+}
+```
+
+<Callout type="info">
+插件节点无法读取*数据输入引脚*。内置节点通过一个不属于插件 API 的内部访问器来解析连线数据。请改用 `inspectorParams` + `ctx.params` 来驱动插件节点。
+</Callout>
+
+### 持久化游戏状态
+
+游戏侧执行通过 `ctx.hostAdapter.blueprintRuntime?.hostApi` 访问宿主，其中的 `persistence` 用于读写已保存的游戏状态：
+
+```ts
+execute: async ctx => {
+    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
+    if (!hostApi) {
+        throw new Error("This node requires game host APIs");
+    }
+    const seen = (await hostApi.persistence.get("yourname.hello.count")) ?? 0;
+    await hostApi.persistence.set("yourname.hello.count", Number(seen) + 1);
+    return { nextPort: "next" };
+}
+```
+
+## 用 `ui` 套件构建面板
+
+面板仅限 studio 使用。`setup` 返回一个清理函数，每个 `register` 也会返回它自己的清理器，宿主同样会追踪它——所以无论你是否调用该清理器，面板都会在卸载时被移除。注册 id 必须以你的插件 id 为前缀。
+
+```tsx
+// src/main.tsx  (rename main.ts and update entries.studio to "main.js")
+import { definePlugin, ui, PanelPosition } from "narraleaf-studio/plugin";
+import { createNodes, PLUGIN_ID } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+
+        const unregister = app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: "Hello",
+            position: PanelPosition.Left,
+            component: () => (
+                <ui.Panel.Root>
+                    <ui.Panel.Header title="Hello" description="A plugin panel." />
+                    <ui.Panel.Section>
+                        <ui.Button
+                            variant="primary"
+                            onClick={() => app.services.ui.notifications.success("Hi from the plugin")}
+                        >
+                            Say hi
+                        </ui.Button>
+                    </ui.Panel.Section>
+                </ui.Panel.Root>
+            ),
+        });
+
+        return () => unregister();
+    },
+});
+```
+
+`ui` 套件暴露了 Studio 自己的组件——`Button`、`Input`、`Select`、`Switch`、`Card`、`Panel.*` 布局原语等等——这样面板就能匹配编辑器的外观和主题，而无需自带样式。
+
+## 本地化你自己的字符串
+
+`app.services.i18n` 提供对编辑器语言的只读访问，让插件可以翻译自己的 UI。自带你自己的消息表，并在其上构建一个翻译器；它会实时跟随编辑器语言。
+
+```tsx
+const messages = {
+    en: { "panel.title": "Hello", "panel.hi": "Say hi" },
+    zh: { "panel.title": "你好", "panel.hi": "打个招呼" },
+};
+
+export default definePlugin({
+    setup(app) {
+        const i18n = app.services.i18n.createTranslator({ messages, fallbackLocale: "en" });
+
+        app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: i18n.t("panel.title"),
+            position: PanelPosition.Left,
+            component: () => <PanelBody t={i18n.t} />,
+        });
+
+        // Re-render your own React state when the editor language changes.
+        app.services.i18n.onLocaleChange(() => {/* trigger a re-render */});
+    },
+});
+```
+
+`i18n.t(key)` 先在当前编辑器语言的表中解析，然后是 `fallbackLocale`，最后返回该 key 本身。`i18n.locale`、`formatNumber`、`formatDate` 和 `formatList` 也都可用，全部绑定到编辑器的当前语言。这是编辑器的 UI 语言——它与游戏面向玩家的本地化无关，而 runtime 入口拿不到后者。
+
+## 发布 Studio 语言包
+
+插件还可以翻译 **Studio 本身**——新增一种语言，或补全已有语言的缺失项。在 `contributes.locales` 中声明每个语言，并指向一个 JSON 词条文件。
+
+```json
+{
+  "contributes": {
+    "locales": [
+      { "code": "ja", "nativeName": "日本語", "intl": "ja-JP", "messages": "locales/ja.json" },
+      { "code": "zh", "messages": "locales/zh-extra.json" }
+    ]
+  }
+}
+```
+
+该词条文件是一个扁平映射，把 Studio 自己的翻译 key 映射到字符串：
+
+```json
+{
+  "settings.categories.general.label": "一般",
+  "workspace.menu.file": "ファイル"
+}
+```
+
+新语言（`ja`）会出现在 设置 → 语言 中，并作用于整个编辑器。扩展内置语言（`zh`）会补全 Studio 未翻译的任何 key。规则如下：
+
+- 新增**一种语言**，或**补全**内置语言的缺失项，都是允许的。
+- 对于内置语言，你**无法覆盖** Studio 已经翻译的 key——内置翻译优先，Studio 会记录一条警告。语言包只补全缺失项，不会分叉已发布的翻译。
+- 为新语言设置 `nativeName`（它是选择器中显示的本地名称）。`intl` 是用于日期/数字格式化的 BCP-47 标签；默认取 `code` 的值。
+
+语言包不需要任何 `studio` 入口代码——只包含 `contributes.locales` 的清单就是一个有效插件。它们需要能识别 `contributes.locales` 的 Studio 构建；较旧的构建会拒绝该清单。
+
+## 构建
+
+模板的 `build.mjs` 用 esbuild 打包每个入口，把宿主模块标记为 external，并把 `manifest.json` 复制到 `dist/`。
+
+```bash
+yarn build
+```
+
+external 配置是关键所在——宿主在运行时提供这些模块，所以你的产物绝不能包含它们自己的副本：
+
+```js
+external: [
+    "narraleaf-studio/plugin",
+    "narraleaf-studio/runtime",
+    "react",
+    "react-dom",
+    "react-dom/client",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime",
+]
+```
+
+如果你发布语言包，请把它的 JSON 文件复制到 `dist/` 中、与 `manifest.json` 并列，路径要与 `contributes.locales` 声明的一致，这样打包后的插件才能找到它们。
+
+在开发过程中做类型检查而不打包：
+
+```bash
+yarn typecheck
+```
+
+## 打包
+
+可安装的插件就是 `dist/` 文件夹——`manifest.json`、构建出的入口文件，以及任何语言 JSON。把该文件夹（或其内容）打成 zip 即可发布。想在本地试用，就让 Studio 指向构建出的 `dist/` 目录：参见 [安装插件](/docs/studio/plugin/install-plugin)。
+
+<Files>
+  <Folder name="dist" defaultOpen>
+    <File name="manifest.json" />
+    <File name="main.js" />
+    <File name="runtime.js" />
+    <Folder name="locales">
+      <File name="ja.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+下一步：查看完整的 [API 参考](/docs/studio/plugin/api-reference)，了解两个接口上的每个方法。

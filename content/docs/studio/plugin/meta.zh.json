@@ -2,6 +2,8 @@
   "title": "插件",
   "pages": [
     "index",
-    "create-first-plugin"
+    "create-first-plugin",
+    "api-reference",
+    "install-plugin"
   ]
 }

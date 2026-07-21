@@ -1,0 +1,266 @@
+---
+title: API 参考
+description: studio 与 runtime 两个插件接口的逐方法说明，附带示例与注意事项。
+---
+
+两个入口点，均从纯类型包 `narraleaf-studio` 导入：
+
+- `narraleaf-studio/plugin`——编辑器接口，由 `studio` 入口使用。
+- `narraleaf-studio/runtime`——游戏接口，由 `runtime` 入口使用。
+
+## 约定
+
+以下约定适用于整个 studio 接口：
+
+- **注册会返回一个清理函数。** 每个 `register` / `registerMany` 返回一个 `PluginCleanup`，它只移除自己注册的内容。宿主也会追踪每次注册，所以即使你从不调用清理函数，卸载插件也会回收所有内容。清理函数是幂等的。
+- **id 带命名空间。** 你注册的任何 id 或类型都必须以你的插件 id 为前缀（`yourname.plugin.thing`）。注册未加前缀的 id 会抛出错误。
+- **命令式调用返回其自身的值。** `editors.open`、`notifications.*`、`i18n.format*` 和 `blueprintNodes.notifyDynamicSelectOptionsChanged` 是操作，而非注册——它们不返回清理函数。
+- **一个例外：** `blueprintNodes.register` / `registerMany` 返回 `void`。节点定义在整个会话期间持续存在——移除某个定义会让已打开文档中的节点变成孤儿——所以没有需要清理的东西。
+
+runtime 接口完全没有清理生命周期：游戏进程只加载一次插件，且永不卸载，所以它的 `register` 调用返回 `void`。
+
+---
+
+## `narraleaf-studio/plugin`
+
+### definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // register things
+        return () => { /* optional cleanup */ };
+    },
+});
+```
+
+`setup(app)` 在工作区窗口加载插件时运行。它可以是异步的。返回一个在卸载时运行的清理函数；不返回也没问题，因为宿主本来就会追踪每次注册。
+
+`app` 携带：
+
+| 属性 | 说明 |
+| --- | --- |
+| `app.plugin` | 身份信息：`id`、`name`、`version`、`publisher`。 |
+| `app.manifest` | 规范化后的清单。 |
+| `app.services` | 精选的 API 接口（见下文）。 |
+| `app.privileged` | 由清单权限控制的提权能力（文件系统、bash）。 |
+
+### services.i18n
+
+对编辑器语言的只读访问，用于本地化你自己的字符串。
+
+```ts
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi" }, zh: { hi: "你好" } },
+    fallbackLocale: "en",
+});
+i18n.t("hi"); // follows the editor locale
+
+const stop = app.services.i18n.onLocaleChange(locale => {
+    // re-render your UI for the new locale
+});
+```
+
+| 成员 | 说明 |
+| --- | --- |
+| `locale` | 当前生效的编辑器语言代码。 |
+| `onLocaleChange(fn)` | 语言切换时以新的 locale 触发。返回一个清理函数。 |
+| `createTranslator(bundle)` | 基于*你自己的* `{ locale: { key: string } }` 表构建的翻译器。`t(key, params?)` 按 当前 → 回退 → key 的顺序解析，并填充 `{placeholders}`。 |
+| `formatNumber` / `formatDate` / `formatList` | 绑定到编辑器语言的 `Intl` 格式化器。 |
+
+这是**编辑器**的 UI 语言。它不是游戏面向玩家的语言——runtime 接口没有 i18n；游戏通过它自己的系统进行本地化。
+
+### services.storage
+
+按插件划分的 JSON 存储，作用域限定在项目内。
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// readJson returns null when nothing is stored yet.
+```
+
+### services.assets
+
+读取项目的资源，并将其转换为用于预览的对象 URL。
+
+```ts
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// ... use url ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+`getMap()`、`list(type)`、`get(type, id)`、`fetch(asset)`、`createObjectUrl(asset)`、`revokeObjectUrl(url)`。及时释放你创建的对象 URL，避免内存泄漏。
+
+### services.ui.panels
+
+侧边栏面板和底部面板。
+
+```ts
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    position: PanelPosition.Left,
+    component: () => <MyPanel />,
+});
+// off() removes it; unload removes it too.
+```
+
+`register(panel)` 和 `registerMany(panels)` 返回清理函数。
+
+### services.ui.actions
+
+工具栏和菜单操作，以及操作组（下拉菜单 / 原生菜单项）。
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+app.services.ui.actions.registerGroup({ id: `${PLUGIN_ID}.menu`, label: "My Menu", actions: [/* ... */] });
+```
+
+`register`、`registerMany` 和 `registerGroup` 返回清理函数。插件的操作组只能局限在自己的菜单中——它无法并入 Studio 的原生 Edit 菜单，也无法占用标准命令角色。
+
+### services.ui.editors
+
+打开和关闭编辑器标签页。命令式——标签页对用户可见，因此卸载时绝不会被强制关闭。
+
+```ts
+app.services.ui.editors.open({ id: `${PLUGIN_ID}.doc`, title: "Doc", component: MyEditor });
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+### services.ui.keybindings
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: () => { /* ... */ },
+});
+```
+
+`register` 和 `registerMany` 返回清理函数。`mod` 在 macOS 上是 ⌘，在其他平台上是 Ctrl。
+
+### services.ui.notifications
+
+即发即忘的 toast 提示。`info`、`success`、`warning`、`error`。
+
+```ts
+app.services.ui.notifications.success("Saved");
+```
+
+### services.widgets
+
+注册 UI 编辑器的控件模块（编辑器侧）。同一控件类型的游戏侧渲染器需从 runtime 入口注册。
+
+```ts
+const off = app.services.widgets.register(myWidgetModule);
+app.services.widgets.get(type);
+app.services.widgets.list();
+app.services.widgets.has(type);
+```
+
+`register` / `registerMany` 返回清理函数。控件的 `type` 必须在 `contributes.widgets` 中声明。
+
+### services.story.actions
+
+场景编辑器选板中用于插入故事块的操作。这些块是标准的故事块——插入后文档不再依赖该插件。
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: () => ({ /* a story block */ }),
+});
+```
+
+`register` 和 `registerMany` 返回清理函数。
+
+### services.blueprintNodes
+
+```ts
+app.services.blueprintNodes.register(def);        // void — session-persistent
+app.services.blueprintNodes.registerMany(defs);   // void
+
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+- `register` / `registerMany` 添加编辑器定义（以及它们用于编辑器内预览的 `execute`）。它们返回 `void`：节点定义一旦注册就无法移除。每个类型都必须在 `contributes.blueprintNodes` 中声明。
+- `registerDynamicSelectOptionsSource(id, provider)` 为某个 `kind: "select"` 的检查器参数提供支持，其选项来自实时的插件状态；它返回一个清理函数。当该状态变化时，调用 `notifyDynamicSelectOptionsChanged()`，以便已打开的节点卡片刷新。
+
+### `ui` 套件
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+Studio 自己的组件，让面板与编辑器主题保持一致：`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`（及其子组件）、`ui.Modal`（及其子组件）、`ui.AssetSelector`，以及 `ui.Panel.*` 布局原语（`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`）。
+
+---
+
+## `narraleaf-studio/runtime`
+
+### defineRuntimePlugin
+
+```ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+`setup(app)` 在每个游戏进程（开发模式、预览、生产环境）中运行一次。它可以是异步的。没有清理返回值——游戏进程不会卸载插件。
+
+`app` 携带 `app.plugin`、`app.manifest` 和 `app.game`。
+
+### game.blueprintNodes
+
+```ts
+app.game.blueprintNodes.register({ type, execute });
+app.game.blueprintNodes.registerMany(defs);
+```
+
+为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `BlueprintNodeDef[]`（一个共享模块）——只会用到 `type` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`。
+
+### game.widgets
+
+```ts
+app.game.widgets.register({ type, render });
+app.game.widgets.registerMany(defs);
+```
+
+为某个控件类型注册游戏侧渲染器。`render` 收到的 props 与 Studio 传给内置元素渲染器的相同。每个类型都必须在 `contributes.widgets` 中声明。返回 `void`。
+
+### game.log
+
+```ts
+app.game.log("info", "loaded");    // "info" | "warning" | "error"
+```
+
+写入游戏宿主日志，可在开发模式中查看。
+
+### runtime 接口上没有 i18n
+
+runtime 入口运行在游戏中——在生产环境里没有编辑器，也没有编辑器语言，因此把这样一个接口暴露出来并不具备可移植性。游戏通过 NarraLeaf 的游戏本地化系统来本地化自己面向玩家的内容，而不是通过插件的 runtime API。
+
+---
+
+## 注意事项
+
+- **把宿主模块标记为 external。** `narraleaf-studio/plugin`、`narraleaf-studio/runtime` 和 React 相关包都由宿主提供。打包进你自己的副本会破坏加载。模板的 esbuild 配置已经列出了它们。
+- **蓝图节点需要两个入口**才能在发布游戏中工作——studio 用于选板，runtime 用于执行。只在 studio 注册的话，只会在编辑器预览中运行，一旦导出就什么都不做。
+- **插件无法读取数据输入引脚。** 请使用 `inspectorParams` + `ctx.params`。
+- **节点定义在整个会话中是永久的。** `blueprintNodes.register` 按设计返回 `void`；你无法注销某个节点类型。

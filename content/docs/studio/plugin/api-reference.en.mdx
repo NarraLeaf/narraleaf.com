@@ -1,0 +1,266 @@
+---
+title: API Reference
+description: The studio and runtime plugin surfaces, method by method, with examples and gotchas.
+---
+
+Two entry points, imported from the types-only `narraleaf-studio` package:
+
+- `narraleaf-studio/plugin` — the editor surface, used by the `studio` entry.
+- `narraleaf-studio/runtime` — the game surface, used by the `runtime` entry.
+
+## Conventions
+
+These hold across the whole studio surface:
+
+- **Registrations return a cleanup.** Every `register` / `registerMany` returns a `PluginCleanup` that removes exactly what it registered. The host also tracks each registration, so unloading the plugin reclaims everything even if you never call the cleanup. Cleanups are idempotent.
+- **Ids are namespaced.** Any id or type you register must be prefixed with your plugin id (`yourname.plugin.thing`). Registering an unprefixed id throws.
+- **Imperative calls return their value.** `editors.open`, `notifications.*`, `i18n.format*`, and `blueprintNodes.notifyDynamicSelectOptionsChanged` are actions, not registrations — they do not return a cleanup.
+- **One exception:** `blueprintNodes.register` / `registerMany` return `void`. Node definitions are session-persistent — removing one would orphan nodes in open documents — so there is nothing to dispose.
+
+The runtime surface has no cleanup lifecycle at all: a game process loads plugins once and never unloads them, so its `register` calls return `void`.
+
+---
+
+## `narraleaf-studio/plugin`
+
+### definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // register things
+        return () => { /* optional cleanup */ };
+    },
+});
+```
+
+`setup(app)` runs when the workspace window loads the plugin. It may be async. Return a cleanup function to run on unload; returning nothing is fine, since the host tracks each registration anyway.
+
+`app` carries:
+
+| Property | What |
+| --- | --- |
+| `app.plugin` | Identity: `id`, `name`, `version`, `publisher`. |
+| `app.manifest` | The normalized manifest. |
+| `app.services` | The curated API surface (below). |
+| `app.privileged` | Elevated capabilities (filesystem, bash) gated by manifest permissions. |
+
+### services.i18n
+
+Read access to the editor's language, for localizing your own strings.
+
+```ts
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi" }, zh: { hi: "你好" } },
+    fallbackLocale: "en",
+});
+i18n.t("hi"); // follows the editor locale
+
+const stop = app.services.i18n.onLocaleChange(locale => {
+    // re-render your UI for the new locale
+});
+```
+
+| Member | What |
+| --- | --- |
+| `locale` | The active editor locale code. |
+| `onLocaleChange(fn)` | Fires with the new locale on a language switch. Returns a cleanup. |
+| `createTranslator(bundle)` | A translator over *your* `{ locale: { key: string } }` tables. `t(key, params?)` resolves active → fallback → key, filling `{placeholders}`. |
+| `formatNumber` / `formatDate` / `formatList` | `Intl` formatters bound to the editor locale. |
+
+This is the **editor's** UI language. It is not a game's player-facing language — the runtime surface has no i18n; a game localizes through its own system.
+
+### services.storage
+
+Per-plugin JSON storage, scoped to the project.
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// readJson returns null when nothing is stored yet.
+```
+
+### services.assets
+
+Read the project's assets and turn them into object URLs for previews.
+
+```ts
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// ... use url ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+`getMap()`, `list(type)`, `get(type, id)`, `fetch(asset)`, `createObjectUrl(asset)`, `revokeObjectUrl(url)`. Revoke object URLs you create to avoid leaks.
+
+### services.ui.panels
+
+Sidebar and bottom panels.
+
+```ts
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    position: PanelPosition.Left,
+    component: () => <MyPanel />,
+});
+// off() removes it; unload removes it too.
+```
+
+`register(panel)` and `registerMany(panels)` return cleanups.
+
+### services.ui.actions
+
+Toolbar and menu actions, and action groups (dropdowns / native menu entries).
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+app.services.ui.actions.registerGroup({ id: `${PLUGIN_ID}.menu`, label: "My Menu", actions: [/* ... */] });
+```
+
+`register`, `registerMany`, and `registerGroup` return cleanups. A plugin group is confined to a menu of its own — it cannot merge into Studio's native Edit menu or claim standard command roles.
+
+### services.ui.editors
+
+Open and close editor tabs. Imperative — tabs are user-visible, so they are never force-closed on unload.
+
+```ts
+app.services.ui.editors.open({ id: `${PLUGIN_ID}.doc`, title: "Doc", component: MyEditor });
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+### services.ui.keybindings
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: () => { /* ... */ },
+});
+```
+
+`register` and `registerMany` return cleanups. `mod` is ⌘ on macOS and Ctrl elsewhere.
+
+### services.ui.notifications
+
+Fire-and-forget toasts. `info`, `success`, `warning`, `error`.
+
+```ts
+app.services.ui.notifications.success("Saved");
+```
+
+### services.widgets
+
+Register UI-editor widget modules (editor-side). The game-side renderer for the same widget type is registered from the runtime entry.
+
+```ts
+const off = app.services.widgets.register(myWidgetModule);
+app.services.widgets.get(type);
+app.services.widgets.list();
+app.services.widgets.has(type);
+```
+
+`register` / `registerMany` return cleanups. The widget `type` must be declared in `contributes.widgets`.
+
+### services.story.actions
+
+Scene-editor palette actions that insert story blocks. The blocks are standard story blocks — the document does not depend on the plugin after insertion.
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: () => ({ /* a story block */ }),
+});
+```
+
+`register` and `registerMany` return cleanups.
+
+### services.blueprintNodes
+
+```ts
+app.services.blueprintNodes.register(def);        // void — session-persistent
+app.services.blueprintNodes.registerMany(defs);   // void
+
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+- `register` / `registerMany` add editor definitions (and their in-editor-preview `execute`). They return `void`: node defs cannot be removed once registered. Each type must be declared in `contributes.blueprintNodes`.
+- `registerDynamicSelectOptionsSource(id, provider)` backs a `kind: "select"` inspector param whose options come from live plugin state; it returns a cleanup. Call `notifyDynamicSelectOptionsChanged()` when that state changes so open node cards refresh.
+
+### The `ui` kit
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+Studio's own components, so panels match the editor theme: `ui.Button`, `ui.IconButton`, `ui.Input`, `ui.TextArea`, `ui.Select`, `ui.Switch`, `ui.Card` (+ parts), `ui.Modal` (+ parts), `ui.AssetSelector`, and the `ui.Panel.*` layout primitives (`Root`, `Header`, `Toolbar`, `Section`, `Row`, `EmptyState`).
+
+---
+
+## `narraleaf-studio/runtime`
+
+### defineRuntimePlugin
+
+```ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+`setup(app)` runs once per game process (Dev Mode, Preview, Production). It may be async. There is no cleanup return — game processes do not unload plugins.
+
+`app` carries `app.plugin`, `app.manifest`, and `app.game`.
+
+### game.blueprintNodes
+
+```ts
+app.game.blueprintNodes.register({ type, execute });
+app.game.blueprintNodes.registerMany(defs);
+```
+
+Registers the game-side `execute` for each node type. Pass the same `BlueprintNodeDef[]` you register on the studio side (a shared module) — only `type` and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
+
+### game.widgets
+
+```ts
+app.game.widgets.register({ type, render });
+app.game.widgets.registerMany(defs);
+```
+
+Registers the game-side renderer for a widget type. `render` receives the same props Studio passes built-in element renderers. Each type must be declared in `contributes.widgets`. Returns `void`.
+
+### game.log
+
+```ts
+app.game.log("info", "loaded");    // "info" | "warning" | "error"
+```
+
+Writes to the game host log, visible in Dev Mode.
+
+### No i18n on the runtime surface
+
+The runtime entry runs in the game — in Production there is no editor and no editor locale, so exposing one would not be portable. A game localizes its own player-facing content through NarraLeaf's game localization system, not through the plugin runtime API.
+
+---
+
+## Gotchas
+
+- **Mark host modules external.** `narraleaf-studio/plugin`, `narraleaf-studio/runtime`, and the React packages are provided by the host. Bundling your own copies breaks loading. The template's esbuild config lists them.
+- **A blueprint node needs both entries** to work in a shipped game — studio for the palette, runtime for execution. Studio-only registration runs in the editor preview and then does nothing once exported.
+- **Plugins cannot read data input pins.** Use `inspectorParams` + `ctx.params`.
+- **Node defs are permanent for the session.** `blueprintNodes.register` returns `void` by design; you cannot unregister a node type.

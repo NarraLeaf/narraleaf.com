@@ -1,0 +1,56 @@
+---
+title: Install a Plugin
+description: Install a plugin from a folder, approve its permissions, and enable, disable, or remove it.
+---
+
+Studio installs plugins from a local folder — the folder that holds the plugin's `manifest.json` and its built entry files. A released plugin ships as a zip of that folder; unzip it first, then install.
+
+<Steps>
+<Step>
+
+### Get the plugin
+
+Download the plugin's release (a `.zip`) and unzip it. You should end up with a folder containing `manifest.json` at its top level:
+
+```
+hello-1.0.0/
+  manifest.json
+  main.js
+  runtime.js
+```
+
+</Step>
+<Step>
+
+### Install from folder
+
+Open the Launcher, go to **Plugins**, and choose **Install from folder**. Pick the unzipped folder (the one with `manifest.json`). Studio validates the manifest and copies the plugin into its own storage.
+
+</Step>
+<Step>
+
+### Approve permissions
+
+If the plugin declares elevated permissions — filesystem or API capabilities — Studio shows a prompt listing exactly what it asks for. Review it and approve or decline. A plugin with no declared permissions installs without a prompt.
+
+</Step>
+</Steps>
+
+<Callout type="warn">
+Plugins are not sandboxed. Once installed and enabled, a plugin runs with the same access as Studio, and its game-side code runs on your players' machines. Install plugins from sources you trust, and read the permission prompt before approving.
+</Callout>
+
+## Enable, disable, and uninstall
+
+The **Plugins** list in the Launcher shows every installed plugin. From there you can:
+
+- **Enable / disable** — a disabled plugin stays installed but does not load. Its editor contributions and its game-side code both stop. Toggling takes effect the next time a workspace or game loads.
+- **Uninstall** — removes the plugin's files.
+
+A plugin that provides a **language pack** adds its locales to Settings → Language while enabled; disabling or uninstalling it removes those locales. If it provided the language you were using, Studio falls back to English, and your choice returns if you re-enable the plugin.
+
+## When something goes wrong
+
+If a plugin's manifest is invalid, its entry files are missing, or it throws while loading, Studio marks it with an error state in the Plugins list and shows the message there. A plugin that fails to load never blocks Studio from starting, and one broken plugin does not stop the others.
+
+If a blueprint node or widget a project uses has no available provider — the plugin is missing, disabled, or a version that no longer declares it — Preview and export fail with a diagnostic naming the plugin and type, rather than shipping a game with a node that does nothing.

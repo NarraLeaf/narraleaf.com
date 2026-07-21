@@ -1,3 +1,33 @@
 ---
 title: Plugin
+description: Extend NarraLeaf Studio and the games it builds with installable plugins.
 ---
+
+A plugin is a folder with a `manifest.json` and one or two prebundled entry files. It can add editor panels, actions, keybindings, blueprint nodes, widgets, and language packs to Studio, and ship game-side code that runs inside the games you build.
+
+Plugins have two entry targets, and a plugin declares one or both:
+
+| Target | Runs in | API | Use it for |
+| --- | --- | --- | --- |
+| `studio` | The editor (workspace window) | `narraleaf-studio/plugin` | Panels, actions, keybindings, blueprint node editor metadata, widgets, language packs |
+| `runtime` | The game (Dev Mode, Preview, Production) | `narraleaf-studio/runtime` | Blueprint node execution, widget rendering, game-side logic |
+
+A blueprint node needs **both** targets to work in a shipped game: the `studio` entry registers its editor metadata and the `runtime` entry registers the code that runs when the game plays it. You write the definition once in a shared module and register it from each entry — see [Make a plugin](/docs/studio/plugin/create-first-plugin).
+
+<Cards>
+  <Card title="Make a plugin" href="/docs/studio/plugin/create-first-plugin" description="From an empty folder to an installed plugin: manifest, entries, a blueprint node, a panel, localization, and packaging." />
+  <Card title="API reference" href="/docs/studio/plugin/api-reference" description="Every method on the studio and runtime surfaces, with examples and the sharp edges." />
+  <Card title="Install a plugin" href="/docs/studio/plugin/install-plugin" description="Download a release, install it from a folder, and manage permissions." />
+</Cards>
+
+## The API is types-only
+
+`narraleaf-studio` is a types-only package. It ships declarations for `narraleaf-studio/plugin` and `narraleaf-studio/runtime`; the implementation comes from Studio at load time. Add it as a dev dependency and mark both specifiers external in your bundler (the [template](/docs/studio/plugin/create-first-plugin) does this for you).
+
+```bash
+yarn add -D narraleaf-studio
+```
+
+<Callout type="warn">
+Plugins are not sandboxed. An installed plugin runs with the same access as Studio itself, and its game-side code runs on players' machines. Install plugins you trust. Studio shows a permission prompt on install for anything a plugin declares beyond the default surface.
+</Callout>
