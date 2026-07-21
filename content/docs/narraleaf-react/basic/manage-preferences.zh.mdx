@@ -1,65 +1,87 @@
 ---
 title: "管理偏好"
 ---
-偏好设置是控制玩家行为的设置，例如自动前进、跳过等。
 
-管理偏好设置的最简单方法是使用 `usePreference` 钩子。
-
-- 有关偏好设置的列表，请参见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference).
+偏好设置控制自动播放、跳过行为、文字速度和音量。在 `GameProviders` 内渲染的 UI 中使用 `usePreference()`。
 
 ```tsx
 import { usePreference } from "narraleaf-react";
-```
 
-```tsx
-function AutoForwardButton() {
+export function AutoForwardButton() {
     const [autoForward, setAutoForward] = usePreference("autoForward");
 
-    function triggerAutoForward() {
-        setAutoForward(current => !current);
-    }
+    return (
+        <button onClick={() => setAutoForward(!autoForward)}>
+            自动播放：{autoForward ? "开" : "关"}
+        </button>
+    );
+}
+```
+
+setter 直接接收新值，不支持 React 的函数式更新写法。
+
+## 文字速度和音量
+
+```tsx
+function PreferencesPanel() {
+    const [cps, setCps] = usePreference("cps");
+    const [voiceVolume, setVoiceVolume] = usePreference("voiceVolume");
 
     return (
         <div>
-            自动前进: {autoForward ? "已启用" : "已禁用"}
-            
-            <button onClick={triggerAutoForward}>
-                切换自动前进
-            </button>
+            <label>
+                文字速度
+                <input
+                    type="range"
+                    min={1}
+                    max={60}
+                    value={cps}
+                    onChange={(event) => setCps(Number(event.target.value))}
+                />
+            </label>
+            <label>
+                语音音量
+                <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={voiceVolume}
+                    onChange={(event) => setVoiceVolume(Number(event.target.value))}
+                />
+            </label>
         </div>
     );
 }
 ```
 
-## 示例
+可用字段包括 `autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay` 和 `skipInterval`。类型与默认值见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)。
 
-以下是如何创建一个自动前进切换按钮的示例。
+## 持久化偏好设置
+
+偏好设置不属于 `SavedGame`，需要单独导出和保存。
 
 ```tsx
-import { usePreference, Stage } from "narraleaf-react";
+import { useEffect } from "react";
+import { useGame } from "narraleaf-react";
 
-const story = /* 你的故事在这里 */;
+function PreferenceStorage() {
+    const game = useGame();
 
-function App() {
-    return (
-        <div style={{width: "100%", height: "100%"}}>
-            <GameProviders>
-                <Player
-                    story={story}
-                    width="100%"
-                    height="100%"
-                    onReady={({liveGame}) => {
-                        liveGame.newGame();
-                    }}
-                >
+    useEffect(() => {
+        const raw = localStorage.getItem("game-preferences");
+        if (raw) game.preference.importPreferences(JSON.parse(raw));
 
-                    <Stage>
-                        <AutoForwardButton /> {/* 在此处添加 AutoForwardButton 组件 */}
-                    </Stage>
+        const token = game.preference.onPreferenceChange(() => {
+            localStorage.setItem(
+                "game-preferences",
+                JSON.stringify(game.preference.exportPreferences()),
+            );
+        });
 
-                </Player>
-            </GameProviders>
-        </div>
-    );
+        return token.cancel;
+    }, [game]);
+
+    return null;
 }
 ```

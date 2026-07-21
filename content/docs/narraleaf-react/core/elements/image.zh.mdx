@@ -15,7 +15,7 @@ title: "图像"
 <Step>
 
 <Callout type="warning">
-    你不能在同一图像中混合使用基于标签的图像和基于 src 的图像
+    一个图像只能是基于标签的、层叠的，或基于 src 的。你不能在同一图像中混合使用它们
 </Callout>
 
 - `config: Partial<IImageUserConfig>` - 图像配置，参见 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig)
@@ -60,6 +60,72 @@ const image = new Image({
 });
 ```
 </Callout>
+
+#### Layered Image
+
+如果你的美术资源是按**部件**导出的，而不是按组合导出的，就可以使用层叠图像。一个有 5 种表情和 4 套服装的角色，这样只需要 5 + 4 个文件，而不是 5 × 4 张预合成图
+
+```typescript
+const yuko = new Image({
+    src: {
+        // 从底到顶
+        layers: [
+            "yuko/body.png",                                          // 常驻层
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"}, // 互斥变体
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+            {noHat: null, straw: "yuko/straw_hat.png"},               // null 表示不绘制
+            (tags) => tags.has("sad") ? "yuko/tears.png" : null,      // 由其他层派生
+        ],
+        defaults: ["uniform", "happy", "noHat"],
+    },
+});
+```
+
+层叠图像由与基于标签的图像相同的 [char](#char) 方法驱动，标签的行为也完全一致：一个标签会替换掉它所在层的其他变体，并且不影响任何其他层
+
+```typescript
+yuko.char(["sad"]);                    // 只有表情层改变，服装保持不变
+yuko.char(["casual", "happy"]);        // 一次改变多层，顺序任意
+yuko.char(["sad"], new Dissolve(300)); // 转场的用法与任何图像一致
+```
+
+`layers` 的每一项可以是：
+
+- **字符串** — 常驻层，始终绘制
+- **变体映射** — 以标签为键的互斥 src，其中 `null` 表示该标签下这一层不绘制
+- **函数** — 根据当前生效的标签派生该层的 src。它自身不声明任何标签，因此可以对其他层做出反应
+- `null` — 不绘制
+
+数组顺序即叠放顺序，因此第一项在最底层。`defaults` 为每个变体层指定一个标签，顺序任意
+
+标签会从定义中自动推导，因此无需显式传入类型参数，`char()` 就能在编译期拒绝拼写错误的标签
+
+<Callout type="info">
+    同一图像的所有层应当共用一张画布，这也是图像编辑器导出图层时的默认行为。各层通过在图像上居中来对齐，因此不能单独定位某一层
+</Callout>
+
+<Callout type="info">
+    作用于整个图像的效果 —— 转场、`darken`，以及 `opacity`、`pos` 等变换 —— 都会作为一个整体施加到图层栈上，因此下层不会透过上层显示出来
+</Callout>
+
+<Callout type="warning">
+    一个标签只能由一个层声明，且每个变体层都必须在 `defaults` 中恰好列出它的一个标签
+
+```typescript
+const image = new Image({
+    src: {
+        layers: [
+            {none: null, hat: "hat.png"},
+            {none: null, scarf: "scarf.png"}, // 无效，标签 "none" 已在上面声明过
+            {happy: "happy.png", sad: "sad.png"},
+        ],
+        defaults: ["hat"], // 无效，表情层没有默认值
+    },
+});
+```
+</Callout>
+
+图层栈可能显示的每一个 src 都会在图像创建时注册预载。由于各层相互独立，这是所有变体之和而非它们的笛卡尔积 —— 层叠图像不会出现「资源未被预测」的警告。函数层返回的 src 对引擎不透明，如果没有其他层用到它，需要用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 手动注册
 
 #### Src-based Image
 
@@ -130,11 +196,11 @@ image.useLayer(layer);
 
 设置角色的形象
 
-- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>>` - 图像的源
+- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>> | LayerTagsOf<Layers>[]` - 图像的源
 - `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
-image.char("你的/图片/路径", new Fade(1000));
+image.char("你的/图片/路径", new Dissolve(1000));
 ```
 
 或对于基于标签的图像
@@ -142,22 +208,43 @@ image.char("你的/图片/路径", new Fade(1000));
 ```typescript
 // happy, shirt, trousers
 const image = new Image({
-    tag: {
+    src: {
         groups: [
             ["happy", "sad", "angry"],
             ["shirt", "jacket", "t-shirt"],
             ["trousers", "skirt", "shorts"],
         ],
         defaults: ["happy", "shirt", "trousers"],
+        /* ... */
     } as const,
-    /* ... */
 });
 
 //  happy , [jacket], [t-shirt]
-image.char(["jacket", "t-shirt"], new Fade(1000));
+image.char(["jacket", "t-shirt"], new Dissolve(1000));
 
 // [angry],  jacket ,  t-shirt
-image.char(["angry"], new Fade(1000));
+image.char(["angry"], new Dissolve(1000));
+```
+
+对于[层叠图像](#layered-image)，标签会选中它所在层的一个变体，其他所有层保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+//  uniform , [sad]
+yuko.char(["sad"], new Dissolve(300));
+
+// [casual],  sad
+yuko.char(["casual"]);
 ```
 </Step>
 </Steps>
@@ -170,11 +257,14 @@ image.char(["angry"], new Fade(1000));
 设置图像的黑暗程度
 
 - `darkness: number` - 图像的黑暗程度，介于 0 和 1 之间。0 是全亮，1 是全黑
-- `duration?: number` - 过渡的持续时间
-- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- `duration?: number` - 过渡的持续时间。不传时，新的黑暗程度立即生效
+- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)。不传时使用默认缓动
 
 ```typescript
 image.darken(0.5, 500, "easeIn");
+
+image.darken(0.5, 500); // 以默认缓动在 500ms 内播放动画
+image.darken(0.5);      // 立即生效
 ```
 </Step>
 </Steps>

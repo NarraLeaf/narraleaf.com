@@ -5,6 +5,10 @@ description: Learn the core NarraLeaf-React workflow for writing scenes, actions
 
 The Basic guide is the first place to go after you have a running NarraLeaf-React project. It walks through the story-writing workflow: define scenes, add actions, show dialog and images, connect scenes together, and then layer in interactivity, audio, data, voice, and player preferences.
 
+<Callout type="info">
+    These examples target NarraLeaf React 0.13.0 and React 19. Older projects may still contain removed options such as `Sound.sync` or dialog font defaults in `GameConfig`.
+</Callout>
+
 ## Prerequisites
 
 Before starting this section, create or prepare a NarraLeaf-React project:
@@ -125,3 +129,5 @@ Add [sound](/docs/narraleaf-react/basic/sound), [voice](/docs/narraleaf-react/ba
 ## Next Steps
 
 After the Basic guide, use [Solutions](/docs/narraleaf-react/solutions) for complete patterns, [Core](/docs/narraleaf-react/core) for the underlying story APIs, and [Player](/docs/narraleaf-react/player) for the React components and hooks that render the experience.
+
+For 0.13 projects, the [Show Image](/docs/narraleaf-react/basic/show-image) page includes layered sprites, and [Sound](/docs/narraleaf-react/basic/sound) shows the current non-blocking audio pattern with `Control.doAsync()`.

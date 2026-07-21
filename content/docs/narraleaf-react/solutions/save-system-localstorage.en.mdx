@@ -1,144 +1,172 @@
 ---
-title: "Save System with localStorage (Including Quick Save)"
+title: "Save System with localStorage"
 ---
-## Overview
 
-NarraLeaf-React does not include a built-in save UI, but provides [serialize](/docs/narraleaf-react/core/game/live-game#serialize) and [deserialize](/docs/narraleaf-react/core/game/live-game#deserialize) for serializing/deserializing game state. Combined with [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage), you can implement a simple browser-based save system, and use [KeyMap](/docs/narraleaf-react/core/game/key-map) for quick save (e.g. Ctrl+S) and quick load (e.g. F9).
+NarraLeaf provides the save data, not the storage UI. `serialize()` returns a `SavedGame`; `deserialize()` restores it. This example keeps five normal slots and one quick-save slot in localStorage.
 
-This guide demonstrates a full implementation with multiple save slots and quick save/load.
+<Callout type="warning">
+    localStorage is device-local, synchronous, and easy for users to edit. Use it for small browser games. Use IndexedDB, files, or a server when saves are large or must sync between devices.
+</Callout>
 
-## 1. Core Save and Load Logic
+## Storage helpers
 
-Use [useLiveGame](/docs/narraleaf-react/player/hooks/useLiveGame) or `game.getLiveGame()` to get [LiveGame](/docs/narraleaf-react/core/game/live-game), call `serialize()` to obtain [SavedGame](/docs/narraleaf-react/core/types/SavedGame), then store it in localStorage:
+Keep parsing and compatibility checks in one place.
 
-```tsx
-import { useGame } from "narraleaf-react";
+```ts title="save-storage.ts"
+import type { SavedGame } from "narraleaf-react";
 
-function useSaveSystem() {
-  const game = useGame();
-  const liveGame = game.getLiveGame();
+const PREFIX = "my-game:save:";
 
-  function save(slot: number) {
-    const saved = liveGame.serialize();
-    // Returns SavedGame: { name, meta, game }
-    localStorage.setItem(`save-slot-${slot}`, JSON.stringify(saved));
-  }
+export function writeSave(slot: string, save: SavedGame) {
+    localStorage.setItem(PREFIX + slot, JSON.stringify(save));
+}
 
-  function load(slot: number) {
-    const raw = localStorage.getItem(`save-slot-${slot}`);
-    if (!raw) return;
-    const saved = JSON.parse(raw);
-    liveGame.deserialize(saved);
-    // Replaces current game state, triggers stage reset
-  }
+export function readSave(slot: string): SavedGame | null {
+    const raw = localStorage.getItem(PREFIX + slot);
+    if (!raw) return null;
 
-  return { save, load };
+    try {
+        const value: unknown = JSON.parse(raw);
+        if (!isSavedGame(value)) return null;
+        return value;
+    } catch {
+        return null;
+    }
+}
+
+export function deleteSave(slot: string) {
+    localStorage.removeItem(PREFIX + slot);
+}
+
+function isSavedGame(value: unknown): value is SavedGame {
+    if (!value || typeof value !== "object") return false;
+    const save = value as Partial<SavedGame>;
+    return typeof save.name === "string"
+        && typeof save.meta?.updated === "number"
+        && typeof save.meta?.storyHash === "string"
+        && typeof save.game === "object";
 }
 ```
 
-## 2. Quick Save and Quick Load
+This is a minimal guard, not a full schema validator. Use Zod, Valibot, or a similar validator when save files come from uploads or a server.
 
-Listen for `keydown` and call save/load. F5/F9 is a common convention; Ctrl+S is an alternative (check both `event.ctrlKey` and `event.key`):
+## Save and load hook
+
+Check the story hash before replacing the current game. `deserialize()` does not perform this check for you.
+
+```tsx title="use-save-system.ts"
+import { useLiveGame } from "narraleaf-react";
+import { readSave, writeSave } from "./save-storage";
+
+export function useSaveSystem() {
+    const liveGame = useLiveGame();
+
+    function save(slot: string) {
+        const data = liveGame.serialize();
+        writeSave(slot, data);
+        return data.meta;
+    }
+
+    function load(slot: string) {
+        const data = readSave(slot);
+        if (!data || !liveGame.story) return false;
+
+        if (data.meta.storyHash !== liveGame.story.hash()) {
+            throw new Error("This save was created by an incompatible story version.");
+        }
+
+        liveGame.deserialize(data);
+        return true;
+    }
+
+    return { save, load };
+}
+```
+
+Changing action order, branches, scenes, or other story structure can invalidate old saves. Text-only edits normally keep the same non-strict hash.
+
+## Save slot UI
+
+Read metadata to display the timestamp and last line. Refresh the local state after writing a slot.
+
+```tsx
+import { useState } from "react";
+import type { SavedGameMetaData } from "narraleaf-react";
+import { readSave } from "./save-storage";
+import { useSaveSystem } from "./use-save-system";
+
+const SLOT_IDS = ["1", "2", "3", "4", "5"];
+
+export function SaveSlots() {
+    const { save, load } = useSaveSystem();
+    const [slots, setSlots] = useState(() => readMetadata());
+
+    function saveSlot(slot: string) {
+        save(slot);
+        setSlots(readMetadata());
+    }
+
+    return (
+        <div className="grid grid-cols-2 gap-3">
+            {SLOT_IDS.map((slot) => {
+                const meta = slots[slot];
+                return (
+                    <section key={slot} className="rounded border p-3">
+                        <strong>Slot {slot}</strong>
+                        {meta && (
+                            <>
+                                <p>{new Date(meta.updated).toLocaleString()}</p>
+                                <p>{meta.lastSpeaker ?? "Narrator"}: {meta.lastSentence}</p>
+                            </>
+                        )}
+                        <button onClick={() => saveSlot(slot)}>{meta ? "Overwrite" : "Save"}</button>
+                        <button disabled={!meta} onClick={() => load(slot)}>Load</button>
+                    </section>
+                );
+            })}
+        </div>
+    );
+}
+
+function readMetadata(): Record<string, SavedGameMetaData | null> {
+    return Object.fromEntries(
+        SLOT_IDS.map((slot) => [slot, readSave(slot)?.meta ?? null]),
+    );
+}
+```
+
+## Quick save and load
+
+Register keyboard listeners in an effect and remove them on cleanup. Avoid browser-reserved keys such as F5 and Ctrl+S unless you intentionally prevent their defaults.
 
 ```tsx
 import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { useSaveSystem } from "./use-save-system";
 
-const QUICK_SAVE_SLOT = 0;  // Slot 0 for quick save/load
+export function QuickSaveKeys() {
+    const { save, load } = useSaveSystem();
 
-function useQuickSave() {
-  const game = useGame();
-  const liveGame = game.getLiveGame();
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // F5: quick save
-      if (e.key === "F5") {
-        e.preventDefault();
-        const saved = liveGame.serialize();
-        localStorage.setItem(`save-slot-${QUICK_SAVE_SLOT}`, JSON.stringify(saved));
-        liveGame.notify("Saved", 2000);
-      }
-      // F9: quick load
-      else if (e.key === "F9") {
-        e.preventDefault();
-        const raw = localStorage.getItem(`save-slot-${QUICK_SAVE_SLOT}`);
-        if (raw) {
-          liveGame.deserialize(JSON.parse(raw));
-          liveGame.notify("Loaded", 2000);
+    useEffect(() => {
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key === "F6") {
+                event.preventDefault();
+                save("quick");
+            } else if (event.key === "F9") {
+                event.preventDefault();
+                load("quick");
+            }
         }
-      }
-      // Ctrl+S: alternative quick save (check both ctrlKey and key)
-      else if (e.ctrlKey && e.key === "s") {
-        e.preventDefault();
-        const saved = liveGame.serialize();
-        localStorage.setItem(`save-slot-${QUICK_SAVE_SLOT}`, JSON.stringify(saved));
-        liveGame.notify("Saved", 2000);
-      }
-    };
 
-    window.addEventListener("keydown", handler, true);
-    return () => window.removeEventListener("keydown", handler, true);
-  }, [game]);
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [save, load]);
+
+    return null;
 }
 ```
 
-## 3. Save Slot UI Example
+Mount `QuickSaveKeys` inside `GameProviders`. Add `liveGame.notify()` in the two branches if the game should confirm the result.
 
-In a save/load page, list slots and show info from [SavedGameMetaData](/docs/narraleaf-react/core/types/SavedGameMetaData):
+## What a save includes
 
-```tsx
-function SaveLoadPage() {
-  const { save, load } = useSaveSystem();
-  const [slots, setSlots] = useState<Record<number, SavedGameMetaData | null>>({});
-
-  useEffect(() => {
-    const data: Record<number, SavedGameMetaData | null> = {};
-    for (let i = 0; i < 5; i++) {
-      const raw = localStorage.getItem(`save-slot-${i}`);
-      if (raw) {
-        try {
-          const parsed = JSON.parse(raw);
-          data[i] = parsed.meta;  // { created, updated, lastSentence, lastSpeaker }
-        } catch {
-          data[i] = null;
-        }
-      } else {
-        data[i] = null;
-      }
-    }
-    setSlots(data);
-  }, []);
-
-  return (
-    <div className="grid grid-cols-5 gap-2">
-      {[0, 1, 2, 3, 4].map((slot) => (
-        <div key={slot} className="border rounded p-2">
-          {slots[slot] ? (
-            <>
-              <p className="text-sm">{new Date(slots[slot]!.updated).toLocaleString()}</p>
-              <p className="text-xs truncate">{slots[slot]!.lastSentence}</p>
-              <button onClick={() => save(slot)}>Overwrite</button>
-              <button onClick={() => load(slot)}>Load</button>
-            </>
-          ) : (
-            <button onClick={() => save(slot)}>Empty - Save</button>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-```
-
-## 4. Notes
-
-- **Script compatibility**: After changing the story script, old saves may not load correctly; see [LiveGame](/docs/narraleaf-react/core/game/live-game) docs.
-- **Storage limits**: localStorage is ~5–10MB; consider [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) or server storage for large saves.
-- **Storable and Service**: [Storable](/docs/narraleaf-react/core/game/storable) and registered [Service](/docs/narraleaf-react/core/types/ServiceHandlerCtx) (e.g. the built-in [Gallery](/docs/narraleaf-react/core/elements/built-in/gallery)) are saved and restored with `serialize`/`deserialize`.
-
-## See Also
-
-- [LiveGame.serialize / deserialize](/docs/narraleaf-react/core/game/live-game) - Serialization
-- [SavedGame](/docs/narraleaf-react/core/types/SavedGame) - Save data structure
-- [KeyMap](/docs/narraleaf-react/core/game/key-map) - Key bindings
+`SavedGame` contains Persistent namespaces, scene-local state, element state, the action stack, async stacks, player stage state, and registered Service data. Preferences are separate; export them with `game.preference.exportPreferences()`.

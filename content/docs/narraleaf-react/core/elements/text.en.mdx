@@ -17,7 +17,7 @@ const t1 = new Text("After that, another story happened...", {
 // turn the background to black with fade effect
 // then show a text "After that, another story happened..."
 scene2.action([
-    scene2.setBackground("#000", new Fade(1000)),
+    scene2.setBackground("#000", new Dissolve(1000)),
     t1.show({
         duration: 1000,
         ease: "easeInOut",

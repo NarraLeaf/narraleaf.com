@@ -1,0 +1,23 @@
+---
+title: "模糊溶解"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+在溶解的同时叠加模糊——当前图像一边模糊一边淡出，下一张图像由模糊逐渐清晰地淡入。适合回忆、梦境等氛围。
+
+## 用法
+
+```tsx
+import { BlurDissolve } from "narraleaf-react";
+
+image.char("image1.jpg", new BlurDissolve({ duration: 800, blur: 16 }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: BlurDissolveOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `blur?: number` - 交叉点处的峰值模糊半径，以像素为单位。默认为 `16`。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

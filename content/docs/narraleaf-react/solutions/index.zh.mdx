@@ -1,43 +1,46 @@
 ---
 title: "解决方案"
+description: UI、路由、存档、通知、画廊和迁移的完整实现模式。
 ---
 
-解决方案是解决常见问题的方法。例如：自定义字体、实现回顾功能等。
+解决方案把故事 API 和 React UI 组合起来。每一页都从可用的实现开始，并说明扩展位置。
 
-## 解决方案
+## 播放器 UI
 
-- [自定义字体](/zh/docs/narraleaf-react/solutions/font)
-- [从 Ren'Py 迁移](/zh/docs/narraleaf-react/solutions/from-renpy)
-- [快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu)
-- [对话框头像](/zh/docs/narraleaf-react/solutions/dialog-avatar)
-- [自定义对话框](/zh/docs/narraleaf-react/solutions/custom-dialog)
-- [自定义 NVL 对话框](/zh/docs/narraleaf-react/solutions/custom-nvl-dialog)
-- [自定义选项框](/zh/docs/narraleaf-react/solutions/custom-menu)
-- [覆盖式设置页](/zh/docs/narraleaf-react/solutions/page-overlay-settings)
-- [使用 localStorage 实现存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)
-- [自定义通知](/zh/docs/narraleaf-react/solutions/custom-notification)
-- [使用 localStorage 实现画廊服务](/zh/docs/narraleaf-react/solutions/gallery-service-localstorage)
+<Cards>
+    <Card title="自定义对话框" description="替换 ADV 对话框布局、文字默认值和动效。" href="/zh/docs/narraleaf-react/solutions/custom-dialog" />
+    <Card title="对话框头像" description="解析并显示角色对话头像。" href="/zh/docs/narraleaf-react/solutions/dialog-avatar" />
+    <Card title="自定义 NVL 对话框" description="替换 NVL 容器或只修改单条布局。" href="/zh/docs/narraleaf-react/solutions/custom-nvl-dialog" />
+    <Card title="自定义选项" description="设置选项样式、禁用状态和键盘快捷键。" href="/zh/docs/narraleaf-react/solutions/custom-menu" />
+    <Card title="自定义通知" description="渲染定时通知和常驻通知。" href="/zh/docs/narraleaf-react/solutions/custom-notification" />
+    <Card title="自定义字体" description="加载字体，并设置对话和选项默认样式。" href="/zh/docs/narraleaf-react/solutions/font" />
+</Cards>
+
+## 页面与游戏功能
+
+<Cards>
+    <Card title="快捷菜单" description="加入撤销、自动播放、保存、读取和设置操作。" href="/zh/docs/narraleaf-react/solutions/quick-menu" />
+    <Card title="页面叠层" description="使用页面路由构建设置、存档和画廊叠层。" href="/zh/docs/narraleaf-react/solutions/page-overlay-settings" />
+    <Card title="localStorage 存档" description="实现多槽位、快捷保存和快捷读取。" href="/zh/docs/narraleaf-react/solutions/save-system-localstorage" />
+    <Card title="持久画廊" description="使用 Service 和 localStorage 保存永久解锁内容。" href="/zh/docs/narraleaf-react/solutions/gallery-service-localstorage" />
+    <Card title="从 Ren'Py 迁移" description="对应 label、立绘、选项、变量和 Screen。" href="/zh/docs/narraleaf-react/solutions/from-renpy" />
+</Cards>
 
 ## 常见问题
 
-### 游戏实例是单例模式吗？
+### Game 是全局单例吗？
 
-是的，游戏实例是单例模式。您可以在任何 React 组件中访问它。
+不是。`useGame()` 返回最近一层 `GameProviders` 所持有的 `Game`。传入同一个实例会共享状态；不同 Provider 可以拥有不同游戏。
 
-```typescript
+```tsx
 const game = useGame();
+const liveGame = game.getLiveGame();
 ```
 
-### 如何保存游戏？
+### NarraLeaf 是否内置存档槽位？
 
-NarraLeaf-React 不提供保存/加载系统。它只有方法来序列化和反序列化游戏状态。
+NarraLeaf 通过 `liveGame.serialize()` 和 `liveGame.deserialize()` 序列化、恢复运行状态。应用自行选择 localStorage、IndexedDB、文件或服务器，并实现槽位 UI。见 [localStorage 存档](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
 
-然而，我们正在开发一个完整的桌面解决方案来管理混乱。例如：保存/加载、UI、打包等。
+### 自定义 UI 放在哪里？
 
-对于完整的 VN 引擎，请检查 [NarraLeaf](https://github.com/NarraLeaf/NarraLeaf)。
-
-### 如何自定义 UI？
-
-您可以通过使用插槽组件来自定义 UI。
-
-有关更多信息，请参阅 [Player](/zh/docs/narraleaf-react/player) 页面。
+对话框、选项、NVL 和通知使用 `Game` 配置替换。设置、历史、画廊和存档页使用 `Page`、`Layout` 放在 `Player` 内。

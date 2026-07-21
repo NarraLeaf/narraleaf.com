@@ -1,19 +1,18 @@
 ---
 title: "Custom Menu (In-Game Choices)"
 ---
-## Overview
+## What It Replaces
 
 The in-game Menu displays choice branches during the story; the player selects an option by click or keyboard shortcut to trigger the corresponding action. You can replace the default [Menu](/docs/narraleaf-react/player/menu) component via the `menu` option in [game.configure](/docs/narraleaf-react/core/game/game) to customize the choice appearance and layout.
 
-This guide shows how to build a custom menu with [GameMenu](/docs/narraleaf-react/player/menu) and [Item](/docs/narraleaf-react/player/menu), including `bindKey` support for keyboard shortcuts.
+Use [GameMenu](/docs/narraleaf-react/player/menu) as the choice container and [Item](/docs/narraleaf-react/player/menu) for each choice. `Item.bindKey` adds a keyboard shortcut.
 
 ## 1. Create the Custom Menu Component
 
 The custom menu component receives `items` (an array of choice indices), uses [GameMenu](/docs/narraleaf-react/player/menu) as the container, and [Item](/docs/narraleaf-react/player/menu) to render each option. `Item` automatically gets the text and click handler from context.
 
 ```tsx
-import { useEffect } from "react";
-import { GameMenu, Item, useGame } from "narraleaf-react";
+import { GameMenu, Item } from "narraleaf-react";
 
 function CustomMenu({ items }: { items: number[] }) {
   return (
@@ -33,13 +32,6 @@ function CustomMenu({ items }: { items: number[] }) {
   );
 }
 
-function App() {
-  const game = useGame();
-  useEffect(() => {
-    game.configure({ menu: CustomMenu });
-  }, [game]);
-  return /* ... */;
-}
 ```
 
 ## 2. Bind Keyboard Shortcuts
@@ -139,19 +131,16 @@ Menu.prompt("What do you do?")
 ## 6. Register with Game
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ menu: CustomMenu });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      menu: CustomMenu,  // Replace default menu component
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
 

@@ -104,27 +104,24 @@ export function GameDialog() {
 
 ## 3. Register your dialog component
 
-Tell the [`Game`](/docs/narraleaf-react/core/game/game) instance to use your dialog (same pattern as [Custom Dialog](/docs/narraleaf-react/solutions/custom-dialog)):
+Set the component when creating [`Game`](/docs/narraleaf-react/core/game/game), then pass the same instance to `GameProviders`:
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
 import { GameDialog } from "./GameDialog";
 
-export function RegisterDialog() {
-    const game = useGame();
+const game = new Game({ dialog: GameDialog });
 
-    useEffect(() => {
-        game.configure({
-            dialog: GameDialog,
-        });
-    }, [game]);
-
-    return null;
+export function GameView() {
+    return (
+        <GameProviders game={game}>
+            <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+        </GameProviders>
+    );
 }
 ```
 
-## 4. Common extras (still easy)
+## 4. Per-line and Per-sprite Rules
 
 ### One line without a portrait
 
@@ -140,7 +137,6 @@ When a stage `Image` is visible, you can tie a **different** dialog avatar to th
 const body = new Image({
     name: "alice-body",
     src: "/characters/alice/body-normal.png",
-    opacity: 1,
 });
 
 const alice = new Character("Alice", {

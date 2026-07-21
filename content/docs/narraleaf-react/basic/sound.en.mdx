@@ -1,66 +1,91 @@
 ---
 title: "Sound"
 ---
-In NarraLeaf-React, you can play sounds by using the [Sound](/docs/narraleaf-react/core/elements/sound) element.
 
-```typescript
-const sound = new Sound({
-    src: "https://YOUR_SOUND_URL.mp3",
-    volume: 0.5, // 0.0 to 1.0
-    loop: true, // loop the sound
-    sync: false, // do not wait for the sound to finish
+Use [Sound](/docs/narraleaf-react/core/elements/sound) for sound effects, background music, and voice clips. The static constructors mark each sound with the correct type.
+
+```ts
+import { Sound } from "narraleaf-react";
+
+const door = Sound.sound({
+    src: "/audio/door.ogg",
+    volume: 0.8,
+});
+
+const theme = Sound.bgm({
+    src: "/audio/theme.ogg",
+    volume: 0.5,
+    loop: true,
 });
 ```
 
-## Play Sound
+## Sound effects
 
-You can play the sound by adding it to the scene.
+`play()` is an action. By default, the story waits for the clip to finish.
 
-```typescript
-scene1.action([
-    sound.play(), // If the sound is sync, the scene will wait for the sound to finish
+```ts
+scene.action([
+    door.play(),
+    alice.say("Someone is here."),
 ]);
 ```
 
-## Sound Actions
+To let the story continue while a sound plays, run it on an asynchronous control stack.
 
-You can pause/resume/fade/stop/setVolume/setRate the sound.
+```ts
+import { Control } from "narraleaf-react";
 
-```typescript
-scene1.action([
-    sound.pause(),
-    character1.say`The sound is paused`,
-    sound.resume(),
-    character1.say`The sound is resumed`,
+scene.action([
+    Control.doAsync([door.play()]),
+    alice.say("The door closes behind you."),
 ]);
 ```
 
-For more information about the Sound, please read the [Sound](/docs/narraleaf-react/core/elements/sound) documentation.
+<Callout type="warning">
+    The old `sync` option no longer exists. Use `Control.doAsync()` or `Control.allAsync()` for non-blocking audio.
+</Callout>
 
-## Background Music
+## Background music
 
-You can add the music to the scene, the scene will automatically play the music when it starts.
+Set BGM on the scene config, or change it during the scene. The fade value is in milliseconds.
 
-```typescript
-const scene = new Scene("scene 1", {
-    backgroundMusic: YOUR_SOUND_INSTANCE,
-    backgroundMusicFade: 1000, // if specified, when the scene changes, the music will fade in/out in 1000ms
-});
-```
-
-## Sound Effects
-
-You can easily create a sound effect with these configurations.
-
-```typescript
-const soundEffect = new Sound({
-    src: "https://YOUR_SOUND_URL.mp3",
-    sync: false,
+```ts
+const room = new Scene("room", {
+    backgroundMusic: theme,
+    backgroundMusicFade: 800,
 });
 
-scene1.action([
-    soundEffect.play(),
+room.action([
+    room.setBackgroundMusic(Sound.bgm("/audio/night.ogg"), 800),
 ]);
 ```
 
-When the sound effect is played, it will not wait for the sound to finish.
+Pass `null` to stop the current BGM.
+
+```ts
+room.setBackgroundMusic(null, 500);
+```
+
+## Playback controls
+
+Sound actions can change playback state and values.
+
+```ts
+scene.action([
+    door.setVolume(0.3, 300),
+    door.setRate(1.2),
+    door.pause(200),
+    door.resume(200),
+    door.mute(),
+    door.unmute(),
+    door.stop(300),
+]);
+```
+
+Inside React UI, use `liveGame.playSound()` for immediate playback instead of adding a story action.
+
+```tsx
+const liveGame = useLiveGame();
+
+<button onClick={() => liveGame.playSound("/audio/click.ogg")}>Play</button>
+```

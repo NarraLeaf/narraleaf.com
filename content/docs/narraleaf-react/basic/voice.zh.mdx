@@ -1,24 +1,50 @@
 ---
 title: "配音"
 ---
-你可以通过使用 `voice` 配置为句子添加语音：
 
-```typescript
-new Sentence("你好", {
-    voice: "https://你的语音链接.mp3",
+在台词的 `voice` 配置中传入 URL 或 `Sound.voice()` 实例。
+
+```ts
+alice.say("早上好。", {
+    voice: "/voice/alice/good-morning.ogg",
 });
 ```
 
-或者使用现有的声音实例：
+```ts
+import { Sound } from "narraleaf-react";
 
-```typescript
-import {SoundType} from "narraleaf-react";
-
-const voice = new Sound({
-    src: "https://你的语音链接.mp3",
+const greeting = Sound.voice({
+    src: "/voice/alice/good-morning.ogg",
+    volume: 0.9,
 });
 
-new Sentence("你好", {
-    voice,
+alice.say("早上好。", { voice: greeting });
+```
+
+## 语音 ID
+
+台词较多时，可以在场景上定义语音表或解析函数，再用 ID 引用音频。这样不需要在每句台词中重复文件路径。
+
+```ts
+const room = new Scene("房间", {
+    voices: {
+        "alice-001": "/voice/alice/001.ogg",
+        "alice-002": Sound.voice("/voice/alice/002.ogg"),
+    },
+});
+
+room.action([
+    alice.say("早上好。", { voiceId: "alice-001" }),
+    alice.say("早餐准备好了。", { voiceId: "alice-002" }),
+]);
+```
+
+语音 ID 与文件名有固定规则时，可以使用解析函数。
+
+```ts
+const room = new Scene("房间", {
+    voices: (id) => `/voice/${id}.ogg`,
 });
 ```
+
+玩家侧的语音行为由 `voiceVolume`、`voiceFadeDuration` 和 `voiceEndMode` 控制。见[管理偏好](/zh/docs/narraleaf-react/basic/manage-preferences)。

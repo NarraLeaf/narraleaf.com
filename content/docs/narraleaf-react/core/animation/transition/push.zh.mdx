@@ -1,0 +1,23 @@
+---
+title: "推屏"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+下一张图像从一侧滑入，同时当前图像向相反方向滑出，如同镜头平移。
+
+## 用法
+
+```tsx
+import { Push } from "narraleaf-react";
+
+image.char("image1.jpg", new Push({ duration: 800, direction: "left" }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: PushOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `direction?: TransformDefinitions.WipeDirection` - 当前图像滑出的方向（`"left"`、`"right"`、`"top"`、`"bottom"`）；下一张图像从相反一侧滑入。默认为 `"left"`。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

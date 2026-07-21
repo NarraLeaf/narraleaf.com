@@ -1,24 +1,50 @@
 ---
 title: "Voice"
 ---
-You can add a voice to a sentence by using the `voice` config:
 
-```typescript
-new Sentence("hello", {
-    voice: "https://YOUR_VOICE_URL.mp3",
+Pass a URL or a `Sound.voice()` instance through the line's `voice` option.
+
+```ts
+alice.say("Good morning.", {
+    voice: "/voice/alice/good-morning.ogg",
 });
 ```
 
-Or use an existing sound instance:
+```ts
+import { Sound } from "narraleaf-react";
 
-```typescript
-import {SoundType} from "narraleaf-react";
-
-const voice = new Sound({
-    src: "https://YOUR_VOICE_URL.mp3",
+const greeting = Sound.voice({
+    src: "/voice/alice/good-morning.ogg",
+    volume: 0.9,
 });
 
-new Sentence("hello", {
-    voice,
+alice.say("Good morning.", { voice: greeting });
+```
+
+## Voice IDs
+
+For larger scripts, define a voice map or resolver on the scene, then reference clips by ID. This keeps file paths out of dialog lines.
+
+```ts
+const room = new Scene("room", {
+    voices: {
+        "alice-001": "/voice/alice/001.ogg",
+        "alice-002": Sound.voice("/voice/alice/002.ogg"),
+    },
+});
+
+room.action([
+    alice.say("Good morning.", { voiceId: "alice-001" }),
+    alice.say("Breakfast is ready.", { voiceId: "alice-002" }),
+]);
+```
+
+A resolver is useful when IDs follow a stable file naming rule.
+
+```ts
+const room = new Scene("room", {
+    voices: (id) => `/voice/${id}.ogg`,
 });
 ```
+
+Player-facing voice behavior is controlled by `voiceVolume`, `voiceFadeDuration`, and `voiceEndMode`. See [Manage Preferences](/docs/narraleaf-react/basic/manage-preferences).

@@ -1,0 +1,25 @@
+---
+title: "SoftIris"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Reveal the next image over the current one through an expanding circle with a feathered edge.  
+This is the soft-edged counterpart of `MaskTransition.circle`, which uses a hard clip-path.
+
+## Usage
+
+```tsx
+import { SoftIris } from "narraleaf-react";
+
+image.char("image1.jpg", new SoftIris({ duration: 800, center: "50% 50%" }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: SoftIrisOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `center?: string` - The centre of the iris, as a CSS position. Defaults to `"50% 50%"`.
+  - `feather?: number` - The width of the soft (feathered) edge band, in percent. Defaults to `12`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

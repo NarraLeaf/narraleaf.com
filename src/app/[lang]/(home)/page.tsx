@@ -111,11 +111,15 @@ const homeCopy = {
       cta: 'Explore Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio story editor showing a visual novel chapter and scene details',
-        'NarraLeaf Studio blueprint editor with the command search palette open',
-        'NarraLeaf Studio UI editor showing a menu screen canvas',
-        'NarraLeaf Studio UI editor with character properties selected',
-        'NarraLeaf Studio dev mode preview showing a dialogue scene',
+        'NarraLeaf Studio workspace overview',
+        'NarraLeaf Studio editor preview 2',
+        'NarraLeaf Studio editor preview 3',
+        'NarraLeaf Studio editor preview 4',
+        'NarraLeaf Studio editor preview 5',
+        'NarraLeaf Studio editor preview 6',
+        'NarraLeaf Studio editor preview 7',
+        'NarraLeaf Studio editor preview 8',
+        'NarraLeaf Studio editor preview 9',
       ],
       slideControls: {
         previous: 'Previous Studio preview',
@@ -287,11 +291,15 @@ const homeCopy = {
       cta: '探索 Studio',
       href: '/studio',
       slideAlts: [
-        'NarraLeaf Studio 故事编辑器中显示章节、场景与台词',
-        'NarraLeaf Studio 蓝图编辑器中打开的命令搜索面板',
-        'NarraLeaf Studio UI 编辑器中的菜单页面画布',
-        'NarraLeaf Studio UI 编辑器中选中的角色属性面板',
-        'NarraLeaf Studio Dev Mode 中预览的对话场景',
+        'NarraLeaf Studio 工作区概览',
+        'NarraLeaf Studio 编辑器预览 2',
+        'NarraLeaf Studio 编辑器预览 3',
+        'NarraLeaf Studio 编辑器预览 4',
+        'NarraLeaf Studio 编辑器预览 5',
+        'NarraLeaf Studio 编辑器预览 6',
+        'NarraLeaf Studio 编辑器预览 7',
+        'NarraLeaf Studio 编辑器预览 8',
+        'NarraLeaf Studio 编辑器预览 9',
       ],
       slideControls: {
         previous: '上一张 Studio 预览',
@@ -446,6 +454,10 @@ const editorSlideImages = [
   '/static/img/ui-editor-slides/feature-3.png',
   '/static/img/ui-editor-slides/feature-4.png',
   '/static/img/ui-editor-slides/feature-5.png',
+  '/static/img/ui-editor-slides/feature-6.png',
+  '/static/img/ui-editor-slides/feature-7.png',
+  '/static/img/ui-editor-slides/feature-8.png',
+  '/static/img/ui-editor-slides/feature-9.png',
 ] as const;
 
 const desktopCodeImage = '/static/img/home/desktop-code.png';
@@ -530,21 +542,17 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
 
           <div className="group relative z-20 -mx-6 h-[330px] overflow-visible sm:h-[420px] lg:mx-0 lg:h-[560px] lg:min-w-0 lg:flex-1 xl:h-[620px]">
             <div className="absolute top-4 right-0 left-6 h-[92%] sm:left-10 lg:top-1/2 lg:right-0 lg:left-0 lg:h-[540px] lg:-translate-y-1/2 xl:h-[600px]">
-              <div className="absolute top-0 left-1/2 h-full w-full -translate-x-1/2 transition-[width] duration-[350ms] ease-out group-hover:w-[96vw] sm:group-hover:w-[92vw] lg:group-hover:w-[965px] xl:group-hover:w-[1072px]">
+              <div className="absolute top-0 left-1/2 h-full w-full -translate-x-1/2 transition-[width] duration-[350ms] ease-out group-hover:w-[96vw] sm:group-hover:w-[92vw] lg:group-hover:w-[1121px] xl:group-hover:w-[1246px]">
                 <div className="h-full origin-center rotate-[-1.5deg] transition-transform duration-[350ms] ease-out will-change-transform group-hover:rotate-0">
-                  <div className="pointer-events-none absolute top-1/2 left-1/2 h-[115%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.18),rgba(34,211,238,0.08)_42%,transparent_70%)] blur-2xl transition-opacity duration-[350ms] group-hover:opacity-80" />
-                  <div className="relative h-full overflow-hidden rounded-xl border border-cyan-400/30 bg-[#05090d] shadow-[0_22px_60px_rgba(0,0,0,0.45),0_0_0_1px_rgba(255,255,255,0.05)_inset]">
+                  <div className="relative h-full overflow-hidden">
                     <Image
-                      src="/static/img/app.png"
+                      src="/static/img/home/studio-workspace.png"
                       alt={copy.hero.imageAlt}
                       fill
                       priority
-                      sizes="(min-width: 1280px) 1120px, (min-width: 1024px) 980px, 118vw"
+                      sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 118vw"
                       className="object-cover object-left-top"
                     />
-                    <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-transparent via-transparent to-fd-background/10" />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-[#05090d]/65 to-transparent" />
-                    <div className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-cyan-300/25" />
                   </div>
                 </div>
               </div>

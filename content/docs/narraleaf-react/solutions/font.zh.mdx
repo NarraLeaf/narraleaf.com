@@ -1,54 +1,85 @@
 ---
 title: "自定义字体"
 ---
-## 1. 定义字体系列
 
-游戏的字体可以通过样式表进行设置。您可以在CSS文件中定义自定义字体。
+字体分为两层：普通播放器 UI 继承 CSS；对话和选项文字还可以通过 `Texts`、`Item` 单独指定默认值。
+
+## 1. 加载字体
+
+网页优先使用 WOFF2，并保留系统字体作为回退。
 
 ```css
-/* 使用系统字体 */
-.font-family {
-    font-family: 'Arial', sans-serif;
-}
-
-/* 使用自定义字体文件 */
 @font-face {
-    font-family: 'CustomFont';
-    src: url('./fonts/custom-font.ttf') format('truetype');
-    font-weight: normal;
+    font-family: "GameText";
+    src: url("/fonts/game-text.woff2") format("woff2");
+    font-weight: 400 700;
     font-style: normal;
+    font-display: swap;
 }
 
-.custom-font {
-    font-family: 'CustomFont', sans-serif;
+.game-player {
+    font-family: "GameText", system-ui, sans-serif;
 }
 ```
 
-## 2. 使用字体系列
+Next.js 项目也可以使用 `next/font/local`，把生成的 className 放在同一个 Player 边界上。
 
-您可以通过传递类名将字体应用到Player组件：
+## 2. 应用到播放器
 
-```typescript
-import { Player } from "narraleaf-react";
-
-// 将字体应用到整个播放器
-<Player className="font-family" />
-
-// 或使用CSS选择器应用到特定元素
-<Player className="custom-font" />
+```tsx
+<GameProviders>
+    <Player
+        story={story}
+        className="game-player"
+        onReady={({ liveGame }) => liveGame.newGame()}
+    />
+</GameProviders>
 ```
 
-## 3. 最佳实践
+页面、按钮和其他继承 `font-family` 的 UI 都会使用该字体。
 
-- 始终提供备用字体，以防自定义字体加载失败
-- 考虑使用网络安全的字体以获得更好的兼容性
-- 对于自定义字体，确保字体文件正确加载且可访问
-- 在不同浏览器和设备上测试字体渲染效果
-- 考虑字体加载性能，使用适当的字体格式（WOFF2、WOFF、TTF）
+## 3. 设置对话文字默认值
 
-## 4. 常见问题
+从 NarraLeaf 0.10 开始，对话字体默认值属于组件 props，不再放在 `GameConfig` 中。
 
-- 字体未加载：检查字体文件路径和格式
-- 字体渲染问题：验证font-face声明和浏览器支持
-- 性能影响：使用font-display属性优化字体加载
-- 跨浏览器兼容性：在不同浏览器上进行测试
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+export function GameDialog() {
+    return (
+        <Dialog className="game-player rounded-xl bg-black/75 p-6">
+            <Nametag color="#fbbf24" />
+            <Texts
+                defaultColor="white"
+                fontFamily="GameText, system-ui, sans-serif"
+                fontSize={22}
+                fontWeight={400}
+                fontWeightBold={700}
+            />
+        </Dialog>
+    );
+}
+```
+
+Sentence 和 Word 上的局部样式仍然优先。
+
+## 4. 设置选项文字默认值
+
+自定义菜单在每个 `Item` 上设置文字样式。
+
+```tsx
+<Item
+    defaultColor="white"
+    fontFamily="GameText, system-ui, sans-serif"
+    fontSize={20}
+    fontWeight={400}
+    fontWeightBold={700}
+/>
+```
+
+## 检查项
+
+- 确认字体 URL 返回 200，且没有被 CORS 拦截。
+- 检查常规和粗体字重。缺少字重时浏览器会自行合成。
+- 保留 `font-display: swap`，避免加载期间文字长时间不可见。
+- 游戏使用中日韩文字时，检查字体是否包含对应字形。只有拉丁字符的字体会逐字回退到系统字体。

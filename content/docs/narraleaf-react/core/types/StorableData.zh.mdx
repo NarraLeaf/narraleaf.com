@@ -6,3 +6,7 @@ type StorableData<K extends string = string> = {
     [key in K]: number | boolean | string | StorableData | StorableData[] | undefined | null | Date;
 };
 ```
+
+这是命名空间内容在内存中的形状 —— 也就是你通过 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 读写的形式。
+
+它不是存档所携带的形状。在存档中，每个值都会被打上类型标签，好让 `Date` 能在 JSON 中存活，参见 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)。

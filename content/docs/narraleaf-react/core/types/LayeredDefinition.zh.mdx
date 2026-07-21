@@ -1,0 +1,61 @@
+---
+title: "LayeredDefinition"
+---
+层叠图像的 src，参见 [Image](/zh/docs/narraleaf-react/core/elements/image#layered-image)
+
+```typescript
+export type LayeredDefinition<L extends LayerGroupDefinition = LayerGroupDefinition> = {
+    /**
+     * 图层栈，从底到顶。数组顺序即叠放顺序
+     */
+    layers: L;
+    /**
+     * 每个变体层一个标签，顺序任意
+     */
+    defaults: readonly LayerTagsOf<L>[];
+};
+```
+
+```typescript
+/**
+ * 层叠图像的一层，从底到顶。可以是常量 src、`null`、变体映射，或解析函数
+ */
+export type LayerSlot = string | null | LayerVariants | LayerResolver;
+export type LayerGroupDefinition = readonly LayerSlot[];
+
+/**
+ * 一层的互斥变体集合，以标签为键
+ * `null` 表示该标签下这一层不绘制
+ */
+export type LayerVariants = Record<string, string | null>;
+
+/**
+ * 根据当前生效的标签派生该层的 src。自身不声明任何标签
+ */
+export type LayerResolver = (tags: ReadonlySet<string>) => string | null;
+
+/**
+ * 图层栈所声明的全部标签的联合类型
+ */
+export type LayerTagsOf<L> = L extends readonly (infer E)[]
+    ? (E extends LayerResolver ? never : E extends LayerVariants ? keyof E & string : never)
+    : never;
+```
+
+标签会从定义中自动推导，因此无需显式传入类型参数：
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+yuko.char(["sad"]);  // 正确
+yuko.char(["sda"]);  // 编译期报错
+```

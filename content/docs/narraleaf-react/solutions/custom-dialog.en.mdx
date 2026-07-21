@@ -1,11 +1,11 @@
 ---
 title: "Custom Dialog"
 ---
-## Overview
+## What It Replaces
 
 The Dialog component renders character dialogue in Say mode, including the character nametag and text content. You can replace the default [Dialog](/docs/narraleaf-react/player/dialog) component via [game.configure](/docs/narraleaf-react/core/game/game) to fully customize the dialog appearance.
 
-This guide shows how to create a custom dialog and use [Nametag](/docs/narraleaf-react/player/dialog) and [Texts](/docs/narraleaf-react/player/dialog) to adjust the nametag and text layout.
+The implementation below uses [Nametag](/docs/narraleaf-react/player/dialog) and [Texts](/docs/narraleaf-react/player/dialog) for the character name and line content.
 
 ## 1. Create the Custom Dialog Component
 
@@ -54,29 +54,27 @@ function GameDialog() {
 
 ## 3. Register in App
 
-Get the game instance via [useGame](/docs/narraleaf-react/player/hooks/useGame) and register the custom component in `useEffect` with [game.configure](/docs/narraleaf-react/core/game/game):
+Set the dialog component when creating [Game](/docs/narraleaf-react/core/game/game), then pass that instance to `GameProviders`. Creating the game outside the React component also avoids rebuilding it on every render.
 
 ```tsx
-import { useEffect } from "react";
-import { useGame, Player } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
 import GameDialog from "./GameDialog";
 
+const game = new Game({ dialog: GameDialog });
+
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      dialog: GameDialog,  // Replace default dialog with custom one
-    });
-  }, [game]);
-
   return (
-    <Player>
-      {/* ... */}
-    </Player>
+    <GameProviders game={game}>
+      <Player
+        story={story}
+        onReady={({ liveGame }) => liveGame.newGame()}
+      />
+    </GameProviders>
   );
 }
 ```
+
+Use `game.configure({ dialog: GameDialog })` when the component must be replaced at runtime.
 
 ## 4. Full Example (from [narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton))
 

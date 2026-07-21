@@ -1,41 +1,55 @@
 ---
 title: "创建场景"
 ---
-[Scene](/zh/docs/narraleaf-react/core/elements/scene) 是 NarraLeaf-React 的基本元素。它定义了一段时间以及背景。
 
-## 定义场景
+[Scene](/zh/docs/narraleaf-react/core/elements/scene) 表示故事中的一段内容。它包含背景、动作列表和场景内临时数据。
 
-你可以通过创建一个 `Scene` 实例来定义场景：
-
-```typescript
+```ts
 import { Scene } from "narraleaf-react";
-```
 
-```typescript
-const scene = new Scene("场景 1 - 醒来", {
-    background: "<你的图片链接>",
+const room = new Scene("清晨的房间", {
+    background: "/backgrounds/room-morning.webp",
 });
 ```
 
-场景构造函数的第一个参数应该是一个名称，这个名称用于标识场景。
+第一个参数是场景名称。名称应保持唯一，NarraLeaf 在构建故事和恢复存档时会使用它。第二个参数是可选的 [ISceneUserConfig](/zh/docs/narraleaf-react/core/types/ISceneUserConfig)。
 
-> 注意：名称应该是唯一的。
+## 背景
 
-第二个参数是一个可选的配置。你可以在[这里](/zh/docs/narraleaf-react/core/types/SceneConfig)找到配置文档 
+背景可以使用 URL、导入的图片或 CSS 颜色。
 
-> 提示：你可以通过 background 配置使用纯色背景
->
-> ```typescript
-> const scene = new Scene("场景 1 - 醒来", {
->     background: "#f0f0f0",
-> });
-> ```
->
-> 如果你使用的是 Next.js，你可以使用加载器导入图片：
->
-> ```typescript
-> import youImage from "./your-image.png";
->
-> const scene = new Scene("场景 1 - 醒来", {
->     background: youImage,
-> });
+```ts
+const blackScreen = new Scene("黑屏", {
+    background: "#000",
+});
+
+// Next.js、Vite 等构建工具可以解析导入的图片数据。
+import roomBackground from "./room.webp";
+
+const importedRoom = new Scene("导入背景的房间", {
+    background: roomBackground,
+});
+```
+
+使用 `setBackground()` 在剧情中更换背景。传入 Transition 后会播放过渡动画。
+
+```ts
+import { Dissolve } from "narraleaf-react";
+
+room.action([
+    room.setBackground("/backgrounds/room-night.webp", new Dissolve(600)),
+]);
+```
+
+## 场景内数据
+
+`scene.local` 用于保存临时值。离开场景后数据会被清除，也不需要注册到 Story。
+
+```ts
+room.action([
+    room.local.set("visitedWindow", true),
+    "你拉开了窗帘。",
+]);
+```
+
+需要跨场景保留的数据请使用 [Persistent](/zh/docs/narraleaf-react/basic/store-data)。

@@ -5897,9 +5897,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"narraleaf-react@npm:0.9.0":
-  version: 0.9.0
-  resolution: "narraleaf-react@npm:0.9.0"
+"narraleaf-react@npm:0.13.0":
+  version: 0.13.0
+  resolution: "narraleaf-react@npm:0.13.0"
   dependencies:
     "@narraleaf/sound": "npm:0.1.0"
     client-only: "npm:^0.0.1"
@@ -5919,7 +5919,7 @@ __metadata:
       optional: false
     react-dom:
       optional: false
-  checksum: 10c0/e19acc74ccfef044fda43df8208f341cecf3529ca85f2b5b0c5dacb12042b576f558439438012a8eca81b003f5d5342126ab7b8d1c65ae09d036d435e65cebdf
+  checksum: 10c0/4b76de55e4272f31d6454484c47cb502ada148a81a2f9ff0e3f0f27df3d7ab7adc05cc9332d9f8a126c5fab35f4895e978eb340c1674f7715773eee3af6e5c28
   languageName: node
   linkType: hard
 
@@ -5940,7 +5940,7 @@ __metadata:
     fumadocs-ui: "npm:16.8.7"
     lucide-react: "npm:^1.14.0"
     motion: "npm:11.18.2"
-    narraleaf-react: "npm:0.9.0"
+    narraleaf-react: "npm:0.13.0"
     next: "npm:16.2.4"
     postcss: "npm:^8.5.13"
     react: "npm:^19.2.5"

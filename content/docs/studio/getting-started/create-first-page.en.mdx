@@ -1,3 +1,62 @@
 ---
 title: Create Your First Page
+description: Use Main Page to build a small title interface that can run in Dev Mode.
 ---
+
+New projects include `Main Page`. This guide edits that default page, adds a background, title, and button, then checks the result in Dev Mode.
+
+## Open Main Page
+
+<Steps>
+<Step>
+
+### Open the UI panel
+
+Select **UI** on the left activity bar, set the interface type to **Page**, and open `Main Page`.
+
+The page opens in the center editor. The UI Outline is on the left, the canvas is in the center, Properties is on the right, and the insert bar is at the bottom of the canvas.
+</Step>
+<Step>
+
+### Add a background container
+
+Choose **Container** from the bottom insert bar, then click or drag on the canvas. With the container selected, set its position, size, and background in Properties.
+
+For an image background, you can also drag an image asset onto the canvas. Studio creates an Image widget linked to that asset.
+</Step>
+<Step>
+
+### Add a title
+
+Choose **Text** from the insert bar and place it on the canvas. Double-click the text to edit it in place. Set its font, size, color, and alignment in Properties.
+
+Drag a widget to move it and use its handles to resize it. Smart Snap aligns widgets with canvas edges, center lines, and nearby widgets.
+</Step>
+<Step>
+
+### Add a button
+
+Choose **Button** and place it on the canvas. Complete its label and appearance first. Its behavior can be connected later in the widget Blueprint.
+
+The button does not need an event binding if you are only checking layout.
+</Step>
+</Steps>
+
+## Use the UI Outline
+
+The UI Outline shows widget hierarchy. Containers can own other widgets, and their children move with them. The outline is also useful when overlapping or very small widgets are difficult to select on the canvas.
+
+Right-click a widget to rename it, show or hide it, change its stacking order, or add the selection to the component library. Create a component when a group of widgets is ready to be reused.
+
+## Undo and saving
+
+- Use `Ctrl+Z` to undo and `Ctrl+Shift+Z` to redo.
+- Use `Ctrl+C` and `Ctrl+V` to copy and paste widgets.
+- Deleting a page removes all of its widgets. `Main Page` cannot be deleted.
+- Page data is stored in the project's UI document; there is no separate Save As step.
+
+## Check the page
+
+Choose the play button in the upper-right corner of the canvas to open the current page in Dev Mode. Dev Mode uses the real runtime and is the right place to check scale, interaction, and Blueprint behavior.
+
+Continue with [Run and Package](/en/docs/studio/getting-started/run-and-package).

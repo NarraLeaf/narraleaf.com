@@ -1,40 +1,66 @@
 ---
-title: "Play Story"
+title: "Play a Story"
 ---
-You can wrap your entry scene with a [Story](/docs/narraleaf-react/core/elements/story) instance to create a story. 
 
-```ts
-import { Story, Scene } from "narraleaf";
+Create a [Story](/docs/narraleaf-react/core/elements/story) and set its entry scene.
 
-const story = new Story("My Story");
-const scene = new Scene(/* ... */);
+```ts title="story.ts"
+import { Character, Scene, Story } from "narraleaf-react";
 
-story.entry(scene);
+const alice = new Character("Alice");
+const opening = new Scene("opening", {
+    background: "/backgrounds/room.webp",
+}).action([
+    alice.say("Good morning."),
+]);
 
-export { story };
+export const story = new Story("My Story").entry(opening);
 ```
 
-After creating a abstract story, you can play it using react components. 
+Render the story inside `GameProviders`, then start it from `Player.onReady`.
 
-```tsx
+```tsx title="Game.tsx"
 "use client";
 
 import { GameProviders, Player } from "narraleaf-react";
-import { story } from "./my-story"; // Import your story here
+import { story } from "./story";
 
-export default function Page() {
+export default function Game() {
     return (
         <GameProviders>
-            <Player story={story} onReady={({ liveGame }) => {
-                liveGame.newGame(); // when the player is ready, start the game
-            }}
-                width="100%" // full width
-                height="100%" // full height
+            <Player
+                story={story}
+                width="100%"
+                height="100%"
+                onReady={({ liveGame }) => liveGame.newGame()}
             />
         </GameProviders>
     );
 }
 ```
 
-The [GameProviders](/docs/narraleaf-react/player/game-providers) component is required to play the story. It provides the context for the player and hooks to work.
-You can use hooks inside the GameProviders component to interact with the game instance.
+`GameProviders` supplies the game, router, scaling, and preload contexts. Hooks such as `useGame`, `useLiveGame`, and `useRouter` must run below this provider.
+
+## Start after the first frame is ready
+
+`onReady` means the Player instance is initialized. If an outer loading screen must stay visible until the first scene has rendered, use `onFirstSceneReady` for that UI state. Starting the story still belongs in `onReady`.
+
+```tsx
+<Player
+    story={story}
+    onReady={({ liveGame }) => liveGame.newGame()}
+    onFirstSceneReady={() => setLoading(false)}
+/>
+```
+
+To share a configured game instance with the provider, create it once and pass it through `game`:
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ waitForPreload: true });
+
+<GameProviders game={game}>
+    <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+</GameProviders>
+```

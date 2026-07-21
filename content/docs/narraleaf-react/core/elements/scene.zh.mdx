@@ -142,6 +142,8 @@ story.entry(
 
 手动注册图像源
 
+用于预加载器无法自行预测的图像源 —— 最常见的是[层叠图像](/zh/docs/narraleaf-react/core/elements/image#layered-image)中函数图层返回的源（对预加载器不透明），或是复杂到会触发「未预测的图像源」警告的外观变更。
+
 - `src: string | string[]` - 图像的 URL 或 URL 数组
 - 返回 `this`
 </Step>

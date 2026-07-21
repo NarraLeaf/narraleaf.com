@@ -1,0 +1,33 @@
+---
+title: "SerializedNamespaceData"
+---
+One namespace's contents as they appear in a saved game: every value wrapped by [WrappedStorableData](/docs/narraleaf-react/core/types/WrappedStorableData).
+
+```typescript
+export type SerializedNamespaceData = {
+    [key: string]: WrappedStorableData;
+}
+```
+
+This is what [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `store` holds for each namespace — one entry per namespace registered with `story.registerPersistent`, plus one per scene local.
+
+```typescript
+// savedGame.game.store
+{
+    "persistent:player": {
+        "name": {type: "any", data: "Yuko"},
+        "metHer": {type: "any", data: false},
+        "lastMet": {type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"},
+    },
+}
+```
+
+A namespace key is prefixed by its kind: `persistent:` for a namespace registered with `story.registerPersistent`, `local:` for a scene's `scene.local`.
+
+<Callout type="warning">
+    Read and write this through [Namespace](/docs/narraleaf-react/core/game/storable/namespace) rather than by hand. A value in a save is not the value itself but its tagged form, so a stored `false` is an object, and comparing it to `false` directly will not do what you expect.
+</Callout>
+
+## Compatibility
+
+`SavedGame`'s `store` was declared as [StorableData](/docs/narraleaf-react/core/types/StorableData) before 0.13.0 while already carrying this tagged form. Only the declaration changed — the save format itself did not. See [Incompatible Changes](/docs/narraleaf-react/info/incompatible-changes).

@@ -1,3 +1,83 @@
 ---
 title: Run and Package
+description: Check a project in Dev Mode and create release artifacts for players.
 ---
+
+Studio has two output workflows: Dev Mode for checks during production, and Build Release for distributable files. **Export Project** transfers the editable Studio project and does not create a player build.
+
+## Run in Dev Mode
+
+Start Dev Mode from any of these places:
+
+- Use the play button in the upper-right corner of the UI editor to start from the current Page or Game UI.
+- Choose **Develop > Dev Mode** to run the project's default entry.
+- Use the Dev Mode button in the top action bar.
+
+Dev Mode opens in a separate window. After changing a UI document or Blueprint, reload the running content. Runtime logs, node traces, and Host API calls appear in the debug tools or Console.
+
+Choose **Dev Mode** again to stop the current session.
+
+<Callout type="info">
+The editor canvas does not execute the complete game. Test page navigation, story progression, widget events, and saves in Dev Mode.
+</Callout>
+
+## Build a release
+
+<Steps>
+<Step>
+
+### Open Build Release
+
+Choose **Develop > Build Release**, or use the Build button in the top action bar.
+</Step>
+<Step>
+
+### Select targets
+
+Choose a platform, format, and architecture. Available targets depend on the host system:
+
+- Windows artifacts can be built on macOS, Windows, or Linux.
+- macOS artifacts must be built on macOS.
+- Linux artifacts can be built on macOS or Linux.
+- Web artifacts can be built on any supported desktop system.
+
+Mobile targets are still in development and should not be used as the basis of the current release workflow.
+</Step>
+<Step>
+
+### Check identity and content
+
+Confirm the version, product name, App ID, copyright, and icons. Use a semantic version such as `1.0.0`.
+
+The dialog also lists bundled plugins, locales, network policy, and asset protection. A Web build is always a deployable static site; asset protection does not apply to Web artifacts.
+</Step>
+<Step>
+
+### Choose an output directory
+
+Choose a writable directory and select a compression level. Existing artifacts with the same names may be overwritten.
+
+The Artifacts section shows expected filenames before the build starts.
+</Step>
+<Step>
+
+### Start the build
+
+Resolve blocking findings, then choose **Build**. The build runs in the background; progress and detailed output appear in the Console.
+</Step>
+</Steps>
+
+## Preflight findings
+
+The build dialog distinguishes blocking findings from warnings:
+
+- No targets, an invalid version, or an unwritable output directory blocks the build.
+- A missing icon does not block the build, but the default Electron icon is used.
+- Desktop artifacts are not automatically code-signed. Players may see a system security warning on first launch.
+- A cross-platform desktop build may download the matching Electron files the first time.
+
+## Export the Studio project
+
+To hand off or archive the editable project, choose **File > Export Project**. Studio creates an `.nlspkg` project package. The recipient imports it from the launcher and chooses an empty destination directory.
+
+An `.nlspkg` contains project content. It is not a release build and is not intended for players.

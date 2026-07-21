@@ -1,30 +1,31 @@
 ---
 title: "快捷菜单（Quick Menu）"
 ---
-## 概述
+## 范围
 
 快捷菜单是游戏中的一个上下文操作面板，允许玩家快速执行常用动作，例如撤销、历史、自动播放、保存 / 读取、设置以及退出。
 
-本文档演示如何用极简的方式实现一个**解耦且易扩展**的 `QuickMenu` 组件，便于你在项目中自由定制。
+下面的组件包含撤销、历史、自动播放、保存、读取、设置和退出。路由名称和退出逻辑由应用决定。
 
 ## 1. 创建组件
 
 ```tsx
-import { useGame, useRouter } from "narraleaf-react";
+import { useGame, usePreference, useRouter } from "narraleaf-react";
 import { ArrowLeft, History, Play, Save, FileText, Settings, Home } from "lucide-react";
 
 export default function QuickMenu() {
   const game = useGame();
   const router = useRouter();
   const liveGame = game.getLiveGame();
+  const [autoForward, setAutoForward] = usePreference("autoForward");
 
   // 基本操作 --------------------------------------------
   const undo = () => liveGame.undo();
-  const toHistory = () => router.navigate("/home/history");
-  const toggleAuto = () => game.preference.togglePreference("autoForward");
-  const save = () => router.navigate("/home/save");
-  const load = () => router.navigate("/home/load");
-  const openSettings = () => router.navigate("/home/settings");
+  const toHistory = () => router.navigate("/history");
+  const toggleAuto = () => setAutoForward(!autoForward);
+  const save = () => router.navigate("/save");
+  const load = () => router.navigate("/load");
+  const openSettings = () => router.navigate("/settings");
   const exitGame = () => /* 你的退出逻辑（例如 useApp().exitGame()） */ undefined;
 
   // 菜单项 ----------------------------------------------
@@ -40,7 +41,7 @@ export default function QuickMenu() {
       <div className="flex gap-2 bg-black/40 rounded-full px-4 py-1 pointer-events-auto">
         <Item icon={ArrowLeft} label="上一步" onClick={undo} />
         <Item icon={History} label="历史" onClick={toHistory} />
-        <Item icon={Play} label="自动" onClick={toggleAuto} />
+        <Item icon={Play} label={autoForward ? "自动：开" : "自动：关"} onClick={toggleAuto} />
         <Item icon={Save} label="保存" onClick={save} />
         <Item icon={FileText} label="读取" onClick={load} />
         <Item icon={Settings} label="设置" onClick={openSettings} />
@@ -53,32 +54,34 @@ export default function QuickMenu() {
 
 ## 2. 在 LayoutRouter 中使用
 
-将 `QuickMenu` 放在根 `Layout` 的默认 `Page`（路径 `/`）里，使菜单在无其他页面时显示：
+把 `QuickMenu` 放在根布局的默认 `Page`（路径 `/`）中。`Player` 已经自动创建根布局。
 
 ```tsx
-import { Layout, Page, Player } from "narraleaf-react";
+import { GameProviders, Page, Player } from "narraleaf-react";
 import QuickMenu from "./QuickMenu";
 
 function MyApp() {
   return (
-    <Player>
+    <GameProviders>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
         {/* QuickMenu 将在路由为 `/` 时显示，即默认页面 */}
         {/* 你也可以使用 `router.clear().navigate("/")` 在游戏中显示快捷菜单 */}
         {/* 这意味着关闭其他页面（设置、存档等）后快捷菜单会在舞台上显示 */}
         <Page name={null}>
           <QuickMenu />
         </Page>
-    </Player>
+      </Player>
+    </GameProviders>
   );
 }
 ```
 
 ## 3. 过渡动画
 
-上面的组件是静态的 —— 只需将顶级元素替换为 **Framer Motion** 的 `motion.*` 组件，即可为菜单添加进入 / 退出动画。当路由挂载或卸载页面时，动画会自动触发。
+上面的组件是静态的。把顶级元素换成 Motion 的 `motion.*` 组件即可添加进入和退出动画。页面路由会让组件保持挂载，直到退出动画完成。
 
 ```tsx
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export default function QuickMenu() {
   // ...hooks & helpers...
@@ -108,6 +111,4 @@ export default function QuickMenu() {
 - **根级 motion 元素** – 只需将最外层节点设置为 `motion.*`；内部内容可保持普通 JSX。
 - 通过自定义 `initial / animate / exit` 实现淡入、滑动、缩放等效果。
 - 如需更复杂的效果，可把每个按钮包裹在 `motion.button` 中或使用 Motion variants 进行分段动画。
-- 若自行条件渲染菜单，请使用 `<AnimatePresence>` 包裹以确保退出动画生效。
-
-做到这些即可 —— 剩下就交给 CSS 与 Framer Motion 的创意吧！
+- NarraLeaf 页面路由已经为 `Page` 内容管理 presence。只有在 `Page` 外自行条件渲染时，才需要额外使用 `<AnimatePresence>`。

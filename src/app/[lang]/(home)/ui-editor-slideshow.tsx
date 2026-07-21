@@ -71,7 +71,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
 
   return (
     <>
-      <div className="group relative aspect-[2968/1974] overflow-visible">
+      <div className="group relative aspect-[2956/1974] overflow-visible">
         {slides.map((slide, index) => {
           const active = index === activeIndex;
 
@@ -154,9 +154,9 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
           />
           <div
             className="relative z-10"
-            style={{ width: 'min(96vw, calc(88vh * 2968 / 1974))' }}
+            style={{ width: 'min(96vw, calc(88vh * 2956 / 1974))' }}
           >
-            <div className="relative aspect-[2968/1974] overflow-visible">
+            <div className="relative aspect-[2956/1974] overflow-visible">
               <Image
                 src={expandedSlide.src}
                 alt={expandedSlide.alt}

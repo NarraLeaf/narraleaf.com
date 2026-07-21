@@ -1,0 +1,59 @@
+---
+title: "ThroughColor"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Cover the frame with a solid colour, hold, then uncover on the next image — so the next image only appears **after** the colour frame. Depending on the factory used, the colour covers with a plain fade, a feathered directional edge, venetian slats, or a closing circle.
+
+Common uses: fade to black / white, soft wipe through black, blinds black hold, iris to black, and a flash (`hold: 0`).
+
+`ThroughColor` is created through its static factories (it has no public constructor).
+
+## Usage
+
+```tsx
+import { ThroughColor } from "narraleaf-react";
+
+// Fade to black, hold, then fade in the next image
+image.char("image1.jpg", ThroughColor.fade({ duration: 1000, color: "#000000", hold: 0.3 }));
+
+// Soft wipe through black
+image.char("image1.jpg", ThroughColor.wipe({ duration: 1100, direction: "left", feather: 15 }));
+
+// A quick white flash (no hold)
+image.char("image1.jpg", ThroughColor.fade({ duration: 700, color: "#ffffff", hold: 0 }));
+```
+
+## Public Methods
+
+All factories share these base options:
+
+- `duration: number` - The duration of the transition in milliseconds
+- `color?: string` - The hold colour. Defaults to `"#000000"`.
+- `hold?: number` - The fraction (`0`–`1`) of the duration spent fully covered by the colour. Use `0` for a flash. Defaults to `0.3`.
+- `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+
+### ThroughColor.fade
+
+The overlay fades in and out (fade-to-colour). Takes the base options only.
+
+### ThroughColor.wipe
+
+The colour covers with a feathered directional edge (a soft wipe through the colour). Adds:
+
+- `direction?: TransformDefinitions.WipeDirection` - The direction the edge travels toward. Defaults to `"left"`.
+- `feather?: number` - The width of the soft edge band, in percent. Defaults to `12`.
+
+### ThroughColor.blinds
+
+The colour covers with venetian slats. Adds:
+
+- `orientation?: BlindsOrientation` - The slat orientation, `"horizontal"` or `"vertical"`. Defaults to `"horizontal"`.
+- `slats?: number` - The number of slats. Defaults to `8`.
+
+### ThroughColor.iris
+
+The colour covers with a circle closing from the rim inward (an iris to the colour). Adds:
+
+- `center?: string` - The centre of the iris, as a CSS position. Defaults to `"50% 50%"`.
+- `feather?: number` - The width of the soft edge band, in percent. Defaults to `12`.

@@ -142,6 +142,8 @@ story.entry(
 
 Manually register image sources
 
+Use this for sources the preloader cannot predict on its own — most often a src returned by a [layered image](/docs/narraleaf-react/core/elements/image#layered-image)'s function layer, which is opaque to it, or an appearance change complex enough that it warns about an unpredicted source.
+
 - `src: string | string[]` - The URL of the image or an array of URLs
 - Returns `this`
 </Step>

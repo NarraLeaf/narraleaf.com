@@ -1,0 +1,27 @@
+---
+title: "WrappedStorableData"
+---
+存档中的单个存储值。
+
+```typescript
+export type WrappedStorableData<T extends StorableType = any> = {
+    type: "any" | "date";
+    data: T;
+}
+```
+
+写入存档时，值会被打上其类型的标签，好让 JSON 无法表达的类型也能完整往返。目前这样的类型只有 `Date`：它以 `date` 标签存为字符串，读档时再重建为 `Date`。其余的值都以 `any` 标签原样存储。
+
+```typescript
+{type: "any", data: 42}
+{type: "any", data: false}
+{type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"}
+```
+
+这是存档格式的一部分，而非实现细节 —— 它正是 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `store` 实际携带的内容，并由 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData) 按命名空间分组。
+
+<Callout type="warning">
+    请通过 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 读写存储的值，它会替你完成包装与解包。这个包装是一个对象，因此存入的 `false` 在解包前是 truthy 的 —— 手动读取存档时最容易在这里翻车。
+</Callout>
+
+`data` 保存的是一个 `StorableType`，即命名空间接受的值类型之一，参见 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)。

@@ -1,52 +1,77 @@
 ---
 title: "Show Dialog"
 ---
-To show a dialog, you can use a [Character](/docs/narraleaf-react/core/elements/character) element. 
 
-```typescript
-import { Scene, Character } from "narraleaf-react";
-```
+Create a [Character](/docs/narraleaf-react/core/elements/character), then place its `say()` actions in a scene.
 
-```typescript
-// Create a scene
-const scene1 = new Scene("scene 1 - wake up", {
-    // ...
-});
+```ts
+import { Character, Scene } from "narraleaf-react";
 
-// Create a character
-const character1 = new Character("John Smith");
-
-// Add actions to the scene
-scene1.action([
-    character1
-        .say`Hello, World!`
-        .say`Good morning!`,
+const alice = new Character("Alice", { color: "#f59e0b" });
+const opening = new Scene("opening").action([
+    alice.say("Hello."),
+    alice.say("Did you sleep well?"),
 ]);
 ```
 
-The character with the name "John Smith" will say "Hello, World!" and "Good morning!".
+Use the exported `Narrator`, or create a character with a `null` name, for narration.
 
-You can add some customization to the dialog by using the [Word](/docs/narraleaf-react/core/elements/character/word) and the [Sentence](/docs/narraleaf-react/core/elements/character/sentence) element.
+```ts
+import { Narrator } from "narraleaf-react";
 
-```typescript
-character1.say`Hello, my name is ${Word.bold("John")}!`; // will output "Hello, my name is John!" with "John" in bold
+opening.action([
+    Narrator.say("Rain taps against the window."),
+]);
 ```
 
-You can also construct a complex dialog using these elements.
+<Callout type="warning">
+    The example above is illustrative. Keep all actions in one `opening.action([...])` call in real code.
+</Callout>
 
-```typescript
-const timeWord = new Word(
-    (ctx) => new Date().toLocaleTimeString(),
-    { color: "red" }
+## Styled words
+
+Template strings accept [Word](/docs/narraleaf-react/core/elements/character/word) values.
+
+```ts
+import { Word } from "narraleaf-react";
+
+alice.say`Take the ${Word.bold("red key")}, not the ${Word.color("blue one", "#60a5fa")}.`;
+```
+
+The short helpers `b`, `i`, and `c` create bold, italic, and colored words.
+
+```ts
+import { b, c, i } from "narraleaf-react";
+
+alice.say(["This is ", b("important"), "."]);
+alice.say([i("Quietly"), ", she closes the door."]);
+alice.say(["Warning: ", c("low health", "#ef4444")]);
+```
+
+## Dynamic text
+
+A `Word` can evaluate game data when the line is displayed. Use [Persistent.get()](/docs/narraleaf-react/basic/store-data) for stored values, or provide a function for custom logic.
+
+```ts
+import { Word } from "narraleaf-react";
+
+const currentTime = new Word(
+    () => new Date().toLocaleTimeString(),
+    { color: "#f87171" },
 );
 
-/* ... */
-
-character1.say`Now it is ${timeWord}`; // will output "Now it is 12:00:00 PM" with "12:00:00 PM" in red
+alice.say`It is ${currentTime}.`;
 ```
 
-For more information about constructing a sentence, you can read the [Sentence](/docs/narraleaf-react/core/elements/character/sentence) documentation.
+## Per-line settings
 
-In this example, the character will say "Now it is " and the current time in red.
+Pass a second argument to control a single line. `pause: false` continues without waiting for a click; `metadata` is available to custom dialog UI through `useDialog()`.
 
-You can read more about the [Character](/docs/narraleaf-react/core/elements/character) element in the documentation.
+```ts
+alice.say("This line continues immediately.", { pause: false });
+alice.say("Quest started.", {
+    metadata: { event: "quest-start", questId: "find-key" },
+});
+```
+
+See [Sentence](/docs/narraleaf-react/core/elements/character/sentence) for pauses, voice, metadata, color, and font options.

@@ -1,58 +1,87 @@
 ---
 title: "Store Data"
 ---
-You can use [Persistent](/docs/narraleaf-react/core/elements/persistent) to store data in the game context.
 
-```typescript
-type PersisData = {
-    flag: boolean;
-    coin: number;
-    name: string;
-    // ...
-};
-const persis = new Persistent<PersisData>("persis", {
-    flag: false,
-    coin: 0,
-    name: "John Smith",
-    // ...
+Use [Persistent](/docs/narraleaf-react/core/elements/persistent) for values that must survive scene changes and be included in saves. `story.createPersistent()` creates and registers the namespace in one call.
+
+```ts
+import { Story } from "narraleaf-react";
+
+const story = new Story("my-story");
+
+const player = story.createPersistent("player", {
+    name: "Alex",
+    coins: 0,
+    hasKey: false,
+    startedAt: new Date(),
 });
+```
 
-// Register the persistent with the story
-story.registerPersistent(persis);
+If you construct `Persistent` yourself, register it before the story runs.
 
-const scene1 = new Scene("scene1");
-const char1 = new Character("John Smith");
-scene1.action([
-    persis.set("coin", 50),
+```ts
+import { Persistent } from "narraleaf-react";
 
-    char1.say`You have ${persis.get("coin")} coins!`,
+const player = new Persistent("player", { coins: 0 });
+story.registerPersistent(player);
+```
+
+## Change and display values
+
+`set()` and `assign()` create story actions. `get()` creates a dynamic Word that reads the latest value when the line appears.
+
+```ts
+scene.action([
+    player.set("coins", 50),
+    player.set("coins", (coins) => coins + 10),
+    player.assign({ hasKey: true }),
+    alice.say`You have ${player.get("coins")} coins.`,
 ]);
 ```
 
-<Callout type="warning">
-    If the script content contains Persistent, it must be registered with [Story](/docs/narraleaf-react/core/elements/story) using `story.registerPersistent(persis)`.
-</Callout>
+Use `equals`, `isTrue`, `isFalse`, and `evaluate` inside conditions.
 
-> **Note:** The stored content must be **serializable**, for more information, see [Persistent](/docs/narraleaf-react/core/elements/persistent).
-
-You can save the game data including the persistent data to anywhere you want, such as local storage, server, or cloud storage.
-
-```typescript
-const {game} = useGame(); // call this hook in a React component
-
-// ex, if the player click your component
-// you can save the game data to local storage
-const data = game.getLiveGame().serialize();
-console.log(data);
+```ts
+Condition.If(player.evaluate("coins", (coins) => coins >= 50), [
+    alice.say("You have enough coins."),
+]);
 ```
 
-And you can load the game data anytime you want.
+Stored values may contain strings, numbers, booleans, plain objects, arrays, `null`, `undefined`, and `Date`. Do not store class instances, functions, DOM nodes, or circular objects.
 
-```typescript
-const {game} = useGame();
+## Save the current game
 
-const data = /* ... */;
-game.getLiveGame().deserialize(data);
+`serialize()` returns a `SavedGame` object. Store the whole object, not only the persistent namespace.
+
+```tsx
+import { useLiveGame } from "narraleaf-react";
+
+function SaveButton() {
+    const liveGame = useLiveGame();
+
+    function save() {
+        const data = liveGame.serialize();
+        localStorage.setItem("save-slot-1", JSON.stringify(data));
+    }
+
+    return <button onClick={save}>Save</button>;
+}
 ```
 
-> **Note:** After loading the game data, current game data will be lost.
+## Load a save
+
+Parse the stored object and pass it to `deserialize()`. Loading replaces the current runtime state.
+
+```tsx
+import type { SavedGame } from "narraleaf-react";
+
+function load() {
+    const raw = localStorage.getItem("save-slot-1");
+    if (!raw) return;
+
+    const data = JSON.parse(raw) as SavedGame;
+    liveGame.deserialize(data);
+}
+```
+
+Treat localStorage and network data as untrusted in production. Validate its shape and catch parse or compatibility errors. See [Save System with localStorage](/docs/narraleaf-react/solutions/save-system-localstorage) for a complete example.

@@ -1,48 +1,63 @@
 ---
 title: "作出选择"
 ---
-你可以使用 [Menu](/zh/docs/narraleaf-react/core/elements/menu) 元素创建一个带有选择的菜单。
 
-```typescript
-const narrator = new Character(null);
+使用 [Menu](/zh/docs/narraleaf-react/core/elements/menu) 暂停剧情并显示选项。玩家选择后，会执行该选项自己的动作列表。
 
-/**
- * 我该怎么办？
- * - 向左走
- *    ~> *你向左走了。*
- *    ~> 跳转到场景 "scene_went_left"
- * 
- * - 向右走
- *    ~> *你向右走了。*
- *    ~> 跳转到场景 "scene_went_right"
- */
+```ts
+import { Menu, Narrator } from "narraleaf-react";
 
 scene.action([
-    Menu.prompt("我该怎么办？")
-
-        .choose("向左走", [
-            narrator.say("你向左走了。"),
-            /* ... */
-            scene.jumpTo(scene_went_left),
+    Menu.prompt("要去哪里？")
+        .choose("图书馆", [
+            Narrator.say("你向图书馆走去。"),
+            scene.jumpTo(library),
         ])
-
-        .choose("向右走", [
-            narrator.say("你向右走了。"),
-            /* ... */
-            scene.jumpTo(scene_went_right),
-        ]);
+        .choose("车站", [
+            Narrator.say("你向车站走去。"),
+            scene.jumpTo(station),
+        ]),
 ]);
 ```
 
-你可以使用自定义的 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 来显示菜单提示。
+不需要提问文字时，可以直接使用 `Menu.choose()`。
 
-```typescript
-// 使用自定义句子显示菜单提示
-Menu.prompt(
-    i("我该怎么办？")  // "我该怎么办？" 使用斜体样式
-).choose([
-    "向", b("左"), "走" // "向左走" 中的 "左" 使用粗体样式
-], [
-    /* ... */
-])
+```ts
+scene.action([
+    Menu.choose("继续", [scene.jumpTo(nextScene)]),
+]);
 ```
+
+## 设置选项文字样式
+
+问题和选项都可以使用字符串、Word，或两者组成的数组。
+
+```ts
+import { b, i, Menu } from "narraleaf-react";
+
+Menu.prompt(i("慎重选择。"))
+    .choose(["打开", b("左边的门")], [
+        scene.jumpTo(leftDoor),
+    ]);
+```
+
+## 隐藏或禁用选项
+
+`hideIf()` 在条件为真时隐藏最后一个选项。`disableIf()` 保留选项，但不允许选择。
+
+```ts
+const state = story.createPersistent("player", {
+    hasKey: false,
+    visitedRoof: false,
+});
+
+const menu = Menu.prompt("接下来做什么？")
+    .choose("打开上锁的门", [scene.jumpTo(vault)])
+        .disableIf(state.isFalse("hasKey"))
+    .choose("去屋顶", [scene.jumpTo(roof)])
+        .hideIf(state.isTrue("visitedRoof"));
+
+scene.action([menu]);
+```
+
+`enableWhen(condition, prompt, actions)` 和 `showWhen(condition, prompt, actions)` 是对应的正向写法。

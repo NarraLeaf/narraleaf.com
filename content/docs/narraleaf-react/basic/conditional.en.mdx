@@ -1,51 +1,54 @@
 ---
-title: "Conditional"
+title: "Conditional Branches"
 ---
-You can create a conditional statement by using the [Condition](/docs/narraleaf-react/core/elements/condition) element.
 
-```typescript
-scene1.action([
-    Condition
-        // if (persistent.get("favoriteTea") === "green")
-        .If(persistent.equals("favoriteTea", "green"), [
-            character1.say`You like green tea!`
-        ])
-])
-```
+Use [Condition](/docs/narraleaf-react/core/elements/condition) to choose an action list at runtime.
 
-In the condition statement, the game context is provided, you can learn more about the [ScriptCtx](/docs/narraleaf-react/core/types/ScriptCtx) object.
+```ts
+import { Condition } from "narraleaf-react";
 
-You can only have **1 If Statement** and **1 Else Statement** in a condition statement,
-but you can have **multiple Else If Statements**.
-
-```typescript
-scene1.action([
-    Condition
-        .If(/* ... */, [/* ... */])
-
-        .ElseIf(/* ... */, [/* ... */])
-        .ElseIf(/* ... */, [/* ... */])
-        .ElseIf(/* ... */, [/* ... */])
-
-        .Else(/* ... */, [/* ... */])
-])
-```
-
-> Note: If you put these statements in the wrong order, the condition will throw an error.
-
-[Persistent](/docs/narraleaf-react/core/elements/persistent) is a good way to store data in the game context.
-
-```typescript
-const persis = new Persistent<{ flag: boolean; }>("persis", { flag: false });
-```
-
-```typescript
 scene.action([
-    persis.set("flag", true),
-
-    Condition
-        .If(persis.isTrue("flag"), [
-            character1.say("Flag is true")
-        ])
+    Condition.If(player.equals("favoriteTea", "green"), [
+        alice.say("I made green tea."),
+    ]).Else([
+        alice.say("I made coffee."),
+    ]),
 ]);
 ```
+
+A condition may have one `If`, any number of `ElseIf` branches, and one final `Else`.
+
+```ts
+scene.action([
+    Condition.If(player.evaluate("coins", (coins) => coins >= 100), [
+        alice.say("You can afford the rare book."),
+    ])
+        .ElseIf(player.evaluate("coins", (coins) => coins >= 20), [
+            alice.say("You can afford the map."),
+        ])
+        .Else([
+            alice.say("Come back when you have more coins."),
+        ]),
+]);
+```
+
+## Read multiple values
+
+Pass a function when the condition depends on more than one value. The context provides `$()` for registered namespaces.
+
+```ts
+scene.action([
+    Condition.If(({ $ }) => {
+        const state = $("persistent:player");
+        return state.get("hasKey") && state.get("coins") >= 10;
+    }, [
+        alice.say("The gate opens."),
+    ]),
+]);
+```
+
+For a single field, prefer `equals`, `isTrue`, `isFalse`, or `evaluate`; they are shorter and keep the type of the value.
+
+<Callout type="warning">
+    Branch order is fixed. Call `ElseIf()` after `If()`, and `Else()` last. Adding another branch after `Else()` throws an error.
+</Callout>

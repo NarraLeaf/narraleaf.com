@@ -1,7 +1,7 @@
 ---
 title: "自定义 Notification"
 ---
-## 概述
+## 作用
 
 通知（Notification）用于在游戏中显示短暂提示，如「已保存」「已解锁」等。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `notification` 配置项，可替换默认的 [Notification](/zh/docs/narraleaf-react/player/notification) 组件，实现自定义样式和布局。
 
@@ -33,19 +33,16 @@ function CustomNotification({ notifications }: INotificationsProps) {
 ## 2. 注册到游戏
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ notification: CustomNotification });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      notification: CustomNotification,
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
 
@@ -63,15 +60,20 @@ liveGame.notify("已保存");
 liveGame.notify("已解锁新成就", 5000);
 
 // duration: null - do not auto-dismiss (stays until manually removed)
-liveGame.notify("重要提示", null);
+const notice = liveGame.notify("重要提示", null);
+
+// 稍后移除常驻通知。
+notice.cancel();
 ```
+
+`notify()` 返回 `NotificationToken`，其中包含 `cancel()` 和 `promise`。通知消失后，promise 会结束。
 
 ## 4. 带动画的示例
 
-使用 Framer Motion 为通知添加淡入淡出：
+使用 Motion 为通知添加淡入淡出：
 
 ```tsx
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import type { INotificationsProps } from "narraleaf-react";
 
 function AnimatedNotification({ notifications }: INotificationsProps) {

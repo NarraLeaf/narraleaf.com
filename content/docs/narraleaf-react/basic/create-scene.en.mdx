@@ -1,41 +1,55 @@
 ---
 title: "Create a Scene"
 ---
-[Scene](/docs/narraleaf-react/core/elements/scene) is the basic element of NarraLeaf-React. It defines a period of time and background.
 
-## Define a Scene
+A [Scene](/docs/narraleaf-react/core/elements/scene) is one section of the story. It owns a background, an action list, and scene-local data.
 
-You can define a scene by creating a `Scene` instance:
-
-```typescript
+```ts
 import { Scene } from "narraleaf-react";
-```
 
-```typescript
-const scene = new Scene("scene 1 - wake up", {
-    background: "<your background image url>",
+const room = new Scene("room-morning", {
+    background: "/backgrounds/room-morning.webp",
 });
 ```
 
-The first parameter of the scene constructor should be a name, this name is used to identify the scene.
+The first argument is the scene name. Keep it unique: NarraLeaf uses it when building the story and restoring saves. The second argument is an optional [ISceneUserConfig](/docs/narraleaf-react/core/types/ISceneUserConfig).
 
-> Note: the name should be unique.
+## Backgrounds
 
-The second parameter is an optional configuration. You can find the config doc [here](/docs/narraleaf-react/core/types/SceneConfig).
+Use a URL, an imported image, or a CSS color.
 
-> Tips: you can use a pure color background through the `background` config
->
-> ```typescript
-> const scene = new Scene("scene 1 - wake up", {
->     background: "#f0f0f0",
-> });
-> ```
->
-> If you are using Next.js, you can import an image using loader:
->
-> ```typescript
-> import youImage from "./your-image.png";
->
-> const scene = new Scene("scene 1 - wake up", {
->     background: youImage,
-> });
+```ts
+const blackScreen = new Scene("black-screen", {
+    background: "#000",
+});
+
+// Next.js, Vite, and similar bundlers can resolve imported image data.
+import roomBackground from "./room.webp";
+
+const importedRoom = new Scene("imported-room", {
+    background: roomBackground,
+});
+```
+
+Change the background later with `setBackground()`. Add a transition when the change should animate.
+
+```ts
+import { Dissolve } from "narraleaf-react";
+
+room.action([
+    room.setBackground("/backgrounds/room-night.webp", new Dissolve(600)),
+]);
+```
+
+## Scene-local data
+
+`scene.local` stores temporary values. It is cleared when the scene exits and does not need to be registered with the story.
+
+```ts
+room.action([
+    room.local.set("visitedWindow", true),
+    "You open the curtains.",
+]);
+```
+
+Use [Persistent](/docs/narraleaf-react/basic/store-data) for values that must survive between scenes.

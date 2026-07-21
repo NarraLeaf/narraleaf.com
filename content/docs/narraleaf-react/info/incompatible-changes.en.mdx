@@ -3,6 +3,12 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.13.0
+
+- `SavedGame`'s `store` is now typed as [SerializedNamespaceData](/docs/narraleaf-react/core/types/SerializedNamespaceData) instead of [StorableData](/docs/narraleaf-react/core/types/StorableData). It always carried the tagged form; only the declaration was wrong. The save format itself did not change, so existing saves keep loading — but code that read `savedGame.game.store` by hand and relied on the old declaration will now see the tagged shape it was actually getting all along
+- Saves written by 0.12.x and earlier load correctly again, with one exception: a save produced by **saving after loading** on an affected version has its values tagged twice on disk, which cannot be told apart from a value the game legitimately stored. Such saves are not repaired
+- `image.darken(darkness, duration)` now animates over `duration` instead of applying instantly. Previously the animation only ran when an easing was passed as well, and the duration was silently dropped otherwise. Pass `duration` of `0` for the old jump-in-place behavior
+
 ## 0.9.0
 
 - `JumpConfig.unloadScene` was removed
@@ -56,6 +62,7 @@ For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf
     - `asWearableOf` is a new alias for `bindWearable`
     - `init`, `setPosition`, `dispose`, `copy` are removed
     - `IImageTransition` is removed, use `ImageTransition` instead
+    - `Fade` is removed, use [Dissolve](/docs/narraleaf-react/core/animation/transition/dissolve) instead, which takes the same duration and easing
 - These methods of `Text` has been changed:
     - `applyTransform` -> `transform`
     - `applyTransition` is removed, applying transitions are still in planning

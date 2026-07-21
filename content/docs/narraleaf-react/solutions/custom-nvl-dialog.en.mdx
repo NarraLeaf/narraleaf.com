@@ -1,23 +1,21 @@
 ---
 title: "Custom NVL Dialog"
 ---
-## Overview
+## Choose a Customization Level
 
 NVL (Novel) mode displays multiple dialogue entries in a scrollable list, suitable for novel-style narration. You can replace the default [NvlContainer](/docs/narraleaf-react/player/nvl-container) via the `nvlDialog` option in [game.configure](/docs/narraleaf-react/core/game/game) to fully customize the NVL dialogue appearance.
 
-This guide demonstrates two approaches: **fully custom** (using `NvlContainer`) and **customizing per-dialogue layout only** (using `DefaultNvlContainer` + `renderDialogItem`).
+There are two useful levels: replace the whole container with `NvlContainer`, or keep `DefaultNvlContainer` and change only `renderDialogItem`.
 
 ## 1. Fully Custom NVL Container
 
 Use [NvlContainer](/docs/narraleaf-react/player/nvl-container) as the outer wrapper, receive the `dialogs` array, and render each dialogue yourself. `INvlContainerProps` includes `dialogs` and an optional `renderDialogItem`.
 
 ```tsx
-import { useEffect } from "react";
 import {
   NvlContainer,
   Nametag,
   Texts,
-  useGame,
   type INvlContainerProps,
 } from "narraleaf-react";
 
@@ -44,13 +42,6 @@ function CustomNvlContainer({ dialogs = [] }: INvlContainerProps) {
   );
 }
 
-function App() {
-  const game = useGame();
-  useEffect(() => {
-    game.configure({ nvlDialog: CustomNvlContainer });
-  }, []);
-  return /* ... */;
-}
 ```
 
 ## 2. Customize Per-Dialogue with renderDialogItem
@@ -78,8 +69,6 @@ function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps
     />
   );
 }
-
-// Register: game.configure({ nvlDialog: CustomNvlWithRenderer });
 ```
 
 ## 3. renderDialogItem Parameters
@@ -97,21 +86,20 @@ function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps
 ## 4. Register with Game
 
 ```tsx
-import { useEffect } from "react";
-import { useGame } from "narraleaf-react";
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ nvlDialog: CustomNvlContainer });
 
 function App() {
-  const game = useGame();
-
-  useEffect(() => {
-    game.configure({
-      nvlDialog: CustomNvlContainer,  // or CustomNvlWithRenderer
-    });
-  }, [game]);
-
-  return <Player>{/* ... */}</Player>;
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
 }
 ```
+
+Use `CustomNvlWithRenderer` instead when only the row layout needs to change.
 
 ## See Also
 

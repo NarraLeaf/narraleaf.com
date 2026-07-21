@@ -1,58 +1,87 @@
 ---
 title: "存储数据"
 ---
-你可以使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 在游戏上下文中存储数据。
 
-```typescript
-type PersisData = {
-    flag: boolean;
-    coin: number;
-    name: string;
-    // ...
-};
-const persis = new Persistent<PersisData>("persis", {
-    flag: false,
-    coin: 0,
-    name: "约翰·史密斯",
-    // ...
+需要跨场景保留并写入存档的数据使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)。`story.createPersistent()` 会一次完成创建和注册。
+
+```ts
+import { Story } from "narraleaf-react";
+
+const story = new Story("my-story");
+
+const player = story.createPersistent("player", {
+    name: "Alex",
+    coins: 0,
+    hasKey: false,
+    startedAt: new Date(),
 });
+```
 
-// 在故事中注册持久化数据
-story.registerPersistent(persis);
+如果手动创建 `Persistent`，必须在故事运行前注册。
 
-const scene1 = new Scene("场景1");
-const char1 = new Character("约翰·史密斯");
-scene1.action([
-    persis.set("coin", 50),
+```ts
+import { Persistent } from "narraleaf-react";
 
-    char1.say`你有 ${persis.get("coin")} 个硬币！`,
+const player = new Persistent("player", { coins: 0 });
+story.registerPersistent(player);
+```
+
+## 修改和显示数据
+
+`set()` 和 `assign()` 会创建剧情动作。`get()` 返回动态 Word，在台词显示时读取最新值。
+
+```ts
+scene.action([
+    player.set("coins", 50),
+    player.set("coins", (coins) => coins + 10),
+    player.assign({ hasKey: true }),
+    alice.say`你有 ${player.get("coins")} 枚硬币。`,
 ]);
 ```
 
-<Callout type="warning">
-    如果脚本内容包含 Persistent，必须使用 `story.registerPersistent(persis)` 在 [Story](/zh/docs/narraleaf-react/core/elements/story) 中注册。
-</Callout>
+条件中可以使用 `equals`、`isTrue`、`isFalse` 和 `evaluate`。
 
-> **注意：** 存储的内容必须是 **可序列化的**，更多信息请参见 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent).
-
-你可以将包括持久数据在内的游戏数据保存到你想要的任何地方，例如本地存储、服务器或云存储。
-
-```typescript
-const {game} = useGame(); // 在 React 组件中调用此钩子
-
-// 例如，如果玩家点击了你的组件
-// 你可以将游戏数据保存到本地存储
-const data = game.getLiveGame().serialize();
-console.log(data);
+```ts
+Condition.If(player.evaluate("coins", (coins) => coins >= 50), [
+    alice.say("你的硬币够了。"),
+]);
 ```
 
-你可以随时加载游戏数据。
+可存储字符串、数字、布尔值、普通对象、数组、`null`、`undefined` 和 `Date`。不要存储类实例、函数、DOM 节点或循环引用对象。
 
-```typescript
-const {game} = useGame();
+## 保存当前游戏
 
-const data = /* ... */;
-game.getLiveGame().deserialize(data);
+`serialize()` 返回完整的 `SavedGame` 对象。应保存整个对象，而不是只保存 Persistent 命名空间。
+
+```tsx
+import { useLiveGame } from "narraleaf-react";
+
+function SaveButton() {
+    const liveGame = useLiveGame();
+
+    function save() {
+        const data = liveGame.serialize();
+        localStorage.setItem("save-slot-1", JSON.stringify(data));
+    }
+
+    return <button onClick={save}>保存</button>;
+}
 ```
 
-> **注意：** 加载游戏数据后，当前游戏数据将丢失。
+## 读取存档
+
+解析保存的对象并传给 `deserialize()`。读取后，当前运行状态会被替换。
+
+```tsx
+import type { SavedGame } from "narraleaf-react";
+
+function load() {
+    const raw = localStorage.getItem("save-slot-1");
+    if (!raw) return;
+
+    const data = JSON.parse(raw) as SavedGame;
+    liveGame.deserialize(data);
+}
+```
+
+生产环境中应把 localStorage 和网络数据视为不可信输入：校验结构，并捕获解析或版本兼容错误。完整例子见 [localStorage 存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
