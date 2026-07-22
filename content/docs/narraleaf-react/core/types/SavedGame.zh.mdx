@@ -20,9 +20,12 @@ interface SavedGame {
         services: { [key: string]: unknown; };
         stackModel: StackModelRawData;
         asyncStackModels: StackModelRawData[];
+        history?: SerializedGameHistory[];
     };
 }
 ```
+
+> **注意：** 存档格式通过 [`meta.version`](/zh/docs/narraleaf-react/core/types/SavedGameMetaData) 进行版本管理（当前为 `2`）。在回溯被持久化之前写入的存档不含 `history`，读档后从空回溯开始。
 
 ## name
 
@@ -65,3 +68,7 @@ interface SavedGame {
 ### asyncStackModels
 
 与主执行栈并行运行的执行栈 —— 即由 `Control.doAsync` 和 `Control.allAsync` 启动的操作。
+
+### history
+
+被持久化的回溯历史（存档格式 v2 及以上）。每个条目将渲染后的 say/menu 内容与一个稳定的动作 id 以及该行处游戏的自包含快照配对；正是它让 `liveGame.getHistory()` 在读档后能返回完整回溯，并让 `liveGame.restoreToHistory(token)` 跳回其中任意一行。可选：旧存档没有 `history`，而当故事在存档后发生变化时，其动作已不存在的条目会被丢弃。

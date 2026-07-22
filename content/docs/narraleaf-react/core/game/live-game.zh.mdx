@@ -265,6 +265,8 @@ useEffect(() => {
 
 获取游戏历史。这个方法用于创建回溯。
 
+自存档格式 v2 起，回溯历史会被持久化，因此 `deserialize` 之后本方法会立即返回完整历史 —— 读档后的游戏不再从空回溯开始。
+
 ```typescript
 import { useGame, GameHistory } from "narraleaf-react";
 ```
@@ -311,6 +313,29 @@ game.undo(history.token);
 ```
 
 - `token?: string` - 历史项的令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。如果未提供，则撤销最后一个动作。
+
+> **注意：** `undo` 依赖仅在游戏运行期间存在的内存撤销历史。读档之后它已无内容可回退 —— 此时请使用 [restoreToHistory](#restoretohistory) 回到已读档游戏中的某一行。
+</Step>
+</Steps>
+
+### restoreToHistory
+
+<Steps>
+<Step>
+
+将游戏恢复到回溯历史中的某个过去行。
+
+与 [undo](#undo) 不同，本方法在**读档之后**依然有效：每个回溯条目都携带一份自包含的快照，恢复时会重新应用该快照并把回溯裁剪回该行，而不依赖内存中的撤销历史。
+
+```typescript
+const history = game.getHistory();
+
+// 跳回过去的某一行 —— 包括从已读档游戏中恢复出来的行。
+game.getLiveGame().restoreToHistory(history[0].token);
+```
+
+- `token: string` - 要恢复到的历史项令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。
+- 返回 `boolean` - 若成功恢复该行则为 `true`；若令牌未知或该条目没有恢复快照则为 `false`。
 </Step>
 </Steps>
 

@@ -4,12 +4,14 @@ title: "GameHistory"
 ```typescript
 export type GameHistory = GameHistoryAction & {
     element: GameElementHistory;
+    snapshot?: SerializedGameState | null;
 };
 ```
 
 The `GameHistory` type represents a complete game history entry, combining both the action information and the specific game element that was affected. It extends [GameHistoryAction](/docs/narraleaf-react/core/types/GameHistoryAction) and adds:
 
 - `element`: The specific game element (either a "say" or "menu" element) that was part of this history entry, see [GameElementHistory](/docs/narraleaf-react/core/types/GameElementHistory)
+- `snapshot`: A self-contained snapshot of the game state at this line, used by [restoreToHistory](/docs/narraleaf-react/core/game/live-game#restoretohistory) to jump back here. Populated automatically as the backlog grows and persisted with the save; you do not construct it yourself.
 
 For more information, see:
 - [GameHistoryAction](/docs/narraleaf-react/core/types/GameHistoryAction)

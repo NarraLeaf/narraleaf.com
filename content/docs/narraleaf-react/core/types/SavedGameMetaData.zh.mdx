@@ -9,6 +9,7 @@ interface SavedGameMetaData {
     lastSentence: string | null;
     lastSpeaker: string | null;
     storyHash: string;
+    version?: number;
 }
 ```
 
@@ -39,3 +40,7 @@ interface SavedGameMetaData {
 > **注意**: 故事哈希值不基于故事内容，而是基于故事的逻辑。
 >
 > 例如，改变动画的顺序会反映在故事哈希值上，但改变对话内容不会。
+
+## version
+
+存档格式版本。携带持久化回溯历史的存档为 `2`（参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `history`）；在该字段出现之前写入的旧存档没有此字段，读档后从空回溯开始且保持兼容。

@@ -265,7 +265,9 @@ useEffect(() => {
 <Steps>
 <Step>
 
-Get the game history. This method is used to create backlog. 
+Get the game history. This method is used to create backlog.
+
+Since save format v2 the backlog is persisted, so this returns the full history immediately after `deserialize` — a loaded game no longer starts with an empty backlog.
 
 ```typescript
 import { useGame, GameHistory } from "narraleaf-react";
@@ -313,6 +315,29 @@ game.undo(history.token);
 ```
 
 - `token?: string` - The token of the history item, see [GameHistory](/docs/narraleaf-react/core/types/GameHistory). If not provided, the last action will be undone.
+
+> **Note:** `undo` walks the in-memory undo history, which only exists while the game runs. After loading a save it has nothing to walk — use [restoreToHistory](#restoretohistory) to go back to a line from a loaded game.
+</Step>
+</Steps>
+
+### restoreToHistory
+
+<Steps>
+<Step>
+
+Restore the game to a past line in the backlog.
+
+Unlike [undo](#undo), this works **after loading a save**: every backlog entry carries a self-contained snapshot, so restoring re-applies that snapshot and trims the backlog back to that line, rather than relying on the in-memory undo history.
+
+```typescript
+const history = game.getHistory();
+
+// Jump back to a past line — including one restored from a loaded save.
+game.getLiveGame().restoreToHistory(history[0].token);
+```
+
+- `token: string` - The token of the history item to restore to, see [GameHistory](/docs/narraleaf-react/core/types/GameHistory).
+- Returns `boolean` - `true` if the line was restored; `false` if the token is unknown or the entry has no restore snapshot.
 </Step>
 </Steps>
 

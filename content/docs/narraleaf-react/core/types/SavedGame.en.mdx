@@ -20,9 +20,12 @@ interface SavedGame {
         services: { [key: string]: unknown; };
         stackModel: StackModelRawData;
         asyncStackModels: StackModelRawData[];
+        history?: SerializedGameHistory[];
     };
 }
 ```
+
+> **Note:** The save format is versioned through [`meta.version`](/docs/narraleaf-react/core/types/SavedGameMetaData) (currently `2`). Saves written before the backlog was persisted omit `history` and load with an empty backlog.
 
 ## name
 
@@ -65,3 +68,7 @@ The main execution stack, which is where the game resumes from when the save is 
 ### asyncStackModels
 
 The execution stacks running alongside the main one — the actions started by `Control.doAsync` and `Control.allAsync`.
+
+### history
+
+The persisted backlog (save format v2+). Each entry pairs the rendered say/menu content with a stable action id and a self-contained snapshot of the game at that line, which is what lets `liveGame.getHistory()` return a full backlog after a load and `liveGame.restoreToHistory(token)` jump back to any of these lines. Optional: legacy saves have no `history`, and a save whose story has since changed drops entries whose action no longer exists.
