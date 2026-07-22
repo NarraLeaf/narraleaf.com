@@ -515,3 +515,26 @@ game.getLiveGame().skipDialog();
 ```
 </Step>
 </Steps>
+
+### fastForward
+
+<Steps>
+<Step>
+
+将游戏快进到下一个菜单（或故事结尾）。
+
+其间的每一行都会被真实执行，因此回溯历史及其恢复快照会像正常游玩一样累积 —— 只是更快且静音。快进期间音频被静音，进行中的过渡立即结算，定时暂停（`Control.sleep`、自动前进）也会立即解决。一旦有菜单在等待选择，它就会停下，因此选择本身始终留给玩家。由于历史全程累积，[getHistory](#gethistory) 和 [restoreToHistory](#restoretohistory) 会像正常游玩一样覆盖被快进的区间。
+
+```typescript
+// 快进到下一个决策点。
+await game.getLiveGame().fastForward();
+
+// 或运行到故事结尾。
+await game.getLiveGame().fastForward({ until: "end" });
+```
+
+- `options.until?: "menu" | "end"` - `"menu"`（默认）在下一个菜单处停止；`"end"` 运行到故事结束。
+- `options.maxSteps?: number` - 前进步数的安全上限（默认为 `maxStackModelLoop` 配置）。
+- 返回 `Promise<{ reason: "menu" | "end" | "maxSteps" }>` - 停止的原因。
+</Step>
+</Steps>

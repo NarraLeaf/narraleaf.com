@@ -519,3 +519,26 @@ game.getLiveGame().skipDialog();
 ```
 </Step>
 </Steps>
+
+### fastForward
+
+<Steps>
+<Step>
+
+Fast-forward playback to the next menu (or the end of the story).
+
+Every line in between is executed for real, so the backlog and its restore snapshots accumulate exactly as in normal play — only faster and silent. Audio is muted for the duration, in-flight transitions settle immediately, and timed pauses (`Control.sleep`, auto-forward) resolve at once. It stops as soon as a menu is waiting for a choice, so the choice itself is always left to the player. Because history accumulates the whole way, [getHistory](#gethistory) and [restoreToHistory](#restoretohistory) cover the fast-forwarded span just like normal play.
+
+```typescript
+// Jump ahead to the next decision point.
+await game.getLiveGame().fastForward();
+
+// Or run to the end of the story.
+await game.getLiveGame().fastForward({ until: "end" });
+```
+
+- `options.until?: "menu" | "end"` - `"menu"` (default) stops at the next menu; `"end"` runs until the story finishes.
+- `options.maxSteps?: number` - safety bound on the number of advance steps (defaults to the `maxStackModelLoop` config).
+- Returns `Promise<{ reason: "menu" | "end" | "maxSteps" }>` - why it stopped.
+</Step>
+</Steps>
