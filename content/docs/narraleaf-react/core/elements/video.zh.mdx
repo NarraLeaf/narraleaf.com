@@ -68,5 +68,63 @@ video.show();
 <Step>
 
 播放视频并等待其完成。
+
+```typescript
+video.play();
+```
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+暂停视频，并保留当前的播放位置。
+
+```typescript
+video.pause();
+```
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+从当前位置继续播放。与 `play` 不同，它不会等待视频播放结束。
+
+```typescript
+video.resume();
+```
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+停止视频：暂停播放，并结束任何正在等待的 `play()`，让剧情继续推进。
+
+```typescript
+video.stop();
+```
+</Step>
+</Steps>
+
+### seek
+
+<Steps>
+<Step>
+
+- `time: number` - 要跳转到的时间（单位：秒）。
+
+跳转到指定的时间点。
+
+```typescript
+video.seek(3);
+```
 </Step>
 </Steps>

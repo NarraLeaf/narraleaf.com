@@ -74,3 +74,57 @@ video.play();
 ```
 </Step>
 </Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+Pause the video, keeping its current position.
+
+```typescript
+video.pause();
+```
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+Resume playback from the current position. Unlike `play`, this does not wait for the video to finish.
+
+```typescript
+video.resume();
+```
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+Stop the video: pause it and end any pending `play()` so the story continues.
+
+```typescript
+video.stop();
+```
+</Step>
+</Steps>
+
+### seek
+
+<Steps>
+<Step>
+
+- `time: number` - The time, in seconds, to seek to.
+
+Seek to a specific time.
+
+```typescript
+video.seek(3);
+```
+</Step>
+</Steps>
