@@ -1,0 +1,34 @@
+---
+title: "VfxConfig"
+---
+```typescript
+type VfxConfig = {
+    src: string;
+    blendMode: VfxBlendMode;
+    loop: boolean;
+    muted: boolean;
+    opacity: number;
+    playbackRate: number;
+    fit: "cover" | "contain" | "fill";
+    zIndex: number;
+};
+
+type VfxBlendMode =
+    | "normal"
+    | "screen"
+    | "multiply"
+    | "lighten"
+    | "color-dodge"
+    | "overlay";
+```
+
+- `src` — the video URL. Required.
+- `blendMode` — how the overlay is composited onto the stage. Default `"normal"`. `"normal"` is for true-alpha material (VP9 `yuva420p` alpha WebM); `"screen"` is additive blending for glow material rendered on a black background (dark pixels wash out on bright backdrops); `"multiply"` is for shadow material rendered on a white background.
+- `loop` — loop playback. Default `true`.
+- `muted` — default `true`. Unmuted autoplay may be rejected by the browser.
+- `opacity` — the overlay's target opacity (the fade-in end value). Default `1`.
+- `playbackRate` — initial playback speed. Default `1`.
+- `fit` — CSS `object-fit` for the video. Default `"cover"`.
+- `zIndex` — ordering between multiple Vfx overlays. Default `0`.
+
+See [Vfx](/docs/narraleaf-react/core/elements/vfx).

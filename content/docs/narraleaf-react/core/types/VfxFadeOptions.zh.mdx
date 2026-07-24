@@ -1,0 +1,14 @@
+---
+title: "VfxFadeOptions"
+---
+```typescript
+type VfxFadeOptions = {
+    duration?: number;
+    easing?: TransformDefinitions.EasingDefinition;
+};
+```
+
+- `duration` — 淡变时长（毫秒）。默认 `0`（立即完成）。
+- `easing` — [EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)。贝塞尔数组精确映射为 CSS `cubic-bezier`；命名缓动 `linear`、`easeIn`、`easeOut`、`easeInOut` 映射为对应的 CSS 缓动；其余回退为 CSS `ease`。
+
+参见 [Vfx](/zh/docs/narraleaf-react/core/elements/vfx)。

@@ -72,6 +72,8 @@
     "PreferenceEventToken",
     "KeyBindingType",
     "KeyBindingValue",
-    "FadeOptions"
+    "FadeOptions",
+    "VfxConfig",
+    "VfxFadeOptions"
   ]
 }

@@ -1,0 +1,146 @@
+---
+title: "视觉效果 (Vfx)"
+---
+
+<Callout type="info">
+    自 `0.16.0` 起可用。
+</Callout>
+
+Vfx 以**全屏循环视频叠加层**的形式播放粒子与氛围效果——落樱、光尘、雨、雪、雾、光斑——无需 canvas 或 WebGL。
+
+叠加层渲染在场景与正在播放的 [Video](/zh/docs/narraleaf-react/core/elements/video) 之上、舞台摄像机边界之内：[Camera](/zh/docs/narraleaf-react/core/elements/camera) 的平移/缩放/晃动会带着天气效果一起运动，而对话框 UI 保持固定。
+
+```ts
+import {Vfx} from "narraleaf-react";
+
+// 真 alpha 素材：任意背景下色彩保真（含暗色边缘的花瓣）
+const petals = new Vfx({src: "/fx/petals-alpha.webm"});
+
+// 黑底发光素材 + screen 混合：体积极小、可硬件解码
+const dust = new Vfx({src: "/fx/dust-black.webm", blendMode: "screen", opacity: 0.9});
+
+scene.action([
+    petals.show({duration: 800}),   // 淡入；动作会等待淡入完成
+    dust.show(),
+    character`花瓣飘下来了……`,
+    petals.setPlaybackRate(0.5),    // 慢速飘落
+    dust.pause(),                   // 冻结在当前帧
+    dust.resume(),
+    petals.hide({duration: 1200}),  // 淡出，然后停止播放并离开舞台
+]);
+```
+
+## 素材路线
+
+通过 [`blendMode`](/zh/docs/narraleaf-react/core/types/VfxConfig) 支持两条互补的素材路线：
+
+| 路线 | 素材 | `blendMode` | 取舍 |
+|---|---|---|---|
+| **真 alpha** | VP9 `yuva420p` alpha WebM | `"normal"`（默认） | 任意背景色彩保真；体积较大，alpha 解码走软解 |
+| **黑底发光** | VP9 `yuv420p`，效果绘制在黑底上 | `"screen"` | 体积小 5–10 倍、可硬件解码；加法混合会冲蚀暗色像素，只适合纯发光类效果 |
+
+```bash
+# 真 alpha 路线
+ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 34 fx-alpha.webm
+
+# 黑底路线
+ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-black.webm
+```
+
+<Callout type="warning">
+    含暗色或不透明像素的素材必须走 alpha 路线。循环素材应保证首尾帧一致，以获得无缝循环。
+</Callout>
+
+## 行为
+
+- 玩家跳过（skip）时，`show`/`hide` 的淡变**立即完成**；素材加载失败会记录错误并立即完成动作——损坏的资源永远不会阻塞剧情。
+- 舞台上的叠加层会被存档捕获，读档后直接重现——播放中，或（若被暂停）冻结状态——不重放淡入。`0.16.0` 之前的旧存档可以正常读取。
+- 撤销（undo）会恢复叠加层此前的可见性。
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config: Partial<VfxConfig> & {src: string}` - [VfxConfig](/zh/docs/narraleaf-react/core/types/VfxConfig)
+
+```ts
+const rain = new Vfx({src: "/fx/rain-black.webm", blendMode: "screen"});
+```
+</Step>
+</Steps>
+
+## 可链式方法
+
+### show
+
+<Steps>
+<Step>
+
+- `options?: VfxFadeOptions` - [VfxFadeOptions](/zh/docs/narraleaf-react/core/types/VfxFadeOptions)
+
+将叠加层加入舞台，等待首帧就绪后淡入，并开始循环播放。动作会等待淡入完成。在已显示时调用是幂等的（从当前不透明度重新应用淡入）。
+
+```ts
+petals.show({duration: 800, easing: "easeOut"});
+```
+</Step>
+</Steps>
+
+### hide
+
+<Steps>
+<Step>
+
+- `options?: VfxFadeOptions` - [VfxFadeOptions](/zh/docs/narraleaf-react/core/types/VfxFadeOptions)
+
+将叠加层淡出，然后停止播放并从舞台移除。动作会等待淡出完成。在未显示时调用是 no-op。
+
+```ts
+petals.hide({duration: 1200});
+```
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+将叠加层冻结在当前帧。
+
+```ts
+dust.pause();
+```
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+从当前帧继续播放。
+
+```ts
+dust.resume();
+```
+</Step>
+</Steps>
+
+### setPlaybackRate
+
+<Steps>
+<Step>
+
+- `rate: number` - 播放速度（例如 `0.5` 表示慢速飘落）。
+
+调整播放速度。运行期的速度变更不会持久化；读档后速度回到 `config.playbackRate`。
+
+```ts
+petals.setPlaybackRate(0.5);
+```
+</Step>
+</Steps>

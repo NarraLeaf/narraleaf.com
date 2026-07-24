@@ -1,0 +1,14 @@
+---
+title: "VfxFadeOptions"
+---
+```typescript
+type VfxFadeOptions = {
+    duration?: number;
+    easing?: TransformDefinitions.EasingDefinition;
+};
+```
+
+- `duration` — fade duration in milliseconds. Default `0` (instant).
+- `easing` — [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition). Bezier arrays map exactly to CSS `cubic-bezier`; the named easings `linear`, `easeIn`, `easeOut`, and `easeInOut` map to their CSS equivalents; anything else falls back to CSS `ease`.
+
+See [Vfx](/docs/narraleaf-react/core/elements/vfx).
