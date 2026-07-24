@@ -176,3 +176,49 @@ scene.action([
 - Returns `ChainedControl` - Chained Control instance
 </Step>
 </Steps>
+
+### label
+
+<Steps>
+<Step>
+
+Mark a named point inside the current scene that [`jump`](#jump) can jump to. A label is invisible at runtime — it simply passes through to the next action.
+
+Label names are scoped to the scene they are declared in, so the same name may be reused across different scenes. Declaring the same name twice in one scene fails the build.
+
+```typescript
+scene.action([
+    Control.label("intro"),
+    character.say("Let's begin."),
+]);
+```
+
+- `name: string` - the label name, unique within its scene
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>
+
+### jump
+
+<Steps>
+<Step>
+
+Jump to a [`label`](#label) elsewhere in the **same scene** and resume playing from there.
+
+Unlike [`Scene.jumpTo`](/docs/narraleaf-react/core/elements/scene#jumpto), this stays inside the current scene — no scene is unloaded or re-initialized, only the play head moves. The target must be a label declared in the same scene, otherwise the story fails to build.
+
+`Control.jump` redirects the main story flow, so place it as the last action of a branch (such as a menu choice). To loop a scene, drive the loop through a menu or condition rather than jumping out of a `repeat` / `while` body.
+
+```typescript
+scene.action([
+    Control.label("start"),
+    Menu.prompt("Again?")
+        .choose("Yes", [Control.jump("start")])
+        .choose("No", []),
+]);
+```
+
+- `name: string` - the name of the target label, declared in the same scene
+- Returns `ChainedControl` - Chained Control instance
+</Step>
+</Steps>

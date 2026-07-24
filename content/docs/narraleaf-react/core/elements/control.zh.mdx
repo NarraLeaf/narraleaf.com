@@ -176,3 +176,49 @@ scene.action([
 - 返回 `ChainedControl` - 链式控制实例
 </Step>
 </Steps>
+
+### label
+
+<Steps>
+<Step>
+
+在当前场景内标记一个命名的跳转点，供 [`jump`](#jump) 跳转。label 在运行时不可见——它只是直接跳过到下一个动作。
+
+label 的名称仅在其所在场景内有效，因此不同场景可以复用相同的名称。在同一场景内重复声明同一名称会导致构建失败。
+
+```typescript
+scene.action([
+    Control.label("intro"),
+    character.say("开始吧。"),
+]);
+```
+
+- `name: string` - label 名称，在其所在场景内唯一
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
+
+### jump
+
+<Steps>
+<Step>
+
+跳转到**同一场景**内的某个 [`label`](#label)，并从那里继续播放。
+
+与 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 不同，它停留在当前场景内——不会卸载或重新初始化任何场景，只移动播放头。目标必须是同一场景内声明的 label，否则故事将构建失败。
+
+`Control.jump` 会重定向主故事流程，因此应将它放在分支的最后一个动作（例如菜单选项）。若要循环一个场景，请通过菜单或条件来驱动循环，而不是从 `repeat` / `while` 循环体中跳出。
+
+```typescript
+scene.action([
+    Control.label("start"),
+    Menu.prompt("再来一次？")
+        .choose("是", [Control.jump("start")])
+        .choose("否", []),
+]);
+```
+
+- `name: string` - 目标 label 的名称，需在同一场景内声明
+- 返回 `ChainedControl` - 链式控制实例
+</Step>
+</Steps>
