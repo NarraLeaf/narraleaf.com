@@ -4,20 +4,24 @@ title: "FadeIn"
 > This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
 
 Fade in from the current image to the next image.  
-The next image will fade in.
+The next image will fade in, optionally travelling in from a pixel offset.
 
 ## Usage
 
 ```tsx
 import { FadeIn } from "narraleaf-react";
 
-image.char("image1.jpg", new FadeIn(3000));
+image.char("image1.jpg", new FadeIn({ duration: 3000 }));
+
+// Fade in while drifting into place from 50 pixels away
+image.char("image1.jpg", new FadeIn({ duration: 600, offset: [50, 50] }));
 ```
 
 ## Public Methods
 
 ### constructor
 
-- `duration: number` - The duration of the transition in milliseconds
-- `startPos: [xOffset: number, yOffset: number]` - The starting position of the image, default is `[0, 0]`. For example, `[50, 50]` will start the image 50 pixels to the right and 50 pixels up.
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: FadeInOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `offset?: [xOffset: number, yOffset: number]` - The pixel offset the next image travels in from, default is `[0, 0]`. For example, `[50, 50]` will start the image 50 pixels to the right and 50 pixels up (following the story's coordinate origin).
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

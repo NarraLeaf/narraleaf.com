@@ -86,7 +86,7 @@ const yuko = new Image({
 ```typescript
 yuko.char(["sad"]);                    // 只有表情层改变，服装保持不变
 yuko.char(["casual", "happy"]);        // 一次改变多层，顺序任意
-yuko.char(["sad"], new Dissolve(300)); // 转场的用法与任何图像一致
+yuko.char(["sad"], new Dissolve({ duration: 300 })); // 转场的用法与任何图像一致
 ```
 
 `layers` 的每一项可以是：
@@ -200,7 +200,7 @@ image.useLayer(layer);
 - `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
-image.char("你的/图片/路径", new Dissolve(1000));
+image.char("你的/图片/路径", new Dissolve({ duration: 1000 }));
 ```
 
 或对于基于标签的图像
@@ -220,10 +220,10 @@ const image = new Image({
 });
 
 //  happy , [jacket], [t-shirt]
-image.char(["jacket", "t-shirt"], new Dissolve(1000));
+image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
 
 // [angry],  jacket ,  t-shirt
-image.char(["angry"], new Dissolve(1000));
+image.char(["angry"], new Dissolve({ duration: 1000 }));
 ```
 
 对于[层叠图像](#layered-image)，标签会选中它所在层的一个变体，其他所有层保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
@@ -241,7 +241,7 @@ const yuko = new Image({
 });
 
 //  uniform , [sad]
-yuko.char(["sad"], new Dissolve(300));
+yuko.char(["sad"], new Dissolve({ duration: 300 }));
 
 // [casual],  sad
 yuko.char(["casual"]);

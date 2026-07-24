@@ -90,7 +90,7 @@ import {Dissolve} from "narraleaf-react";
 
 ```typescript
 scene1.action([
-    character1Happy.char("https://新图片链接", new Dissolve(300)),
+    character1Happy.char("https://新图片链接", new Dissolve({ duration: 300 })),
 ]);
 ```
 
@@ -123,7 +123,7 @@ const image = new Image({
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts"], new Dissolve(1000)), // 将图片更改为 `https://你的/图片/路径/angry_shirt_shorts.png`
+    image.char(["angry", "shorts"], new Dissolve({ duration: 1000 })), // 将图片更改为 `https://你的/图片/路径/angry_shirt_shorts.png`
 ]);
 ```
 
@@ -149,7 +149,7 @@ const image = new Image({
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts", "hat"], new Dissolve(1000)),
+    image.char(["angry", "shorts", "hat"], new Dissolve({ duration: 1000 })),
 ]);
 ```
 
@@ -192,6 +192,6 @@ scene1.action([
 
 ## 其他图片过渡
 
-NarraLeaf 0.13 内置 `Dissolve`、`FadeIn`、`SoftWipe`、`SoftIris`、`Blinds`、`BlurDissolve`、`Push`、`ThroughColor` 和 `MaskTransition`。这些过渡都支持普通图片、标签图片和层叠图片。
+NarraLeaf 0.16 内置 `Dissolve`、`FadeIn`、`BlurDissolve`、`Push`、`Reveal` 和 `ThroughColor` 这些转场方式，以及供 `Reveal` 和 `ThroughColor` 播放的 `Mask` 图案词汇（擦除、对开门、圈显、时钟、风车、百叶窗、圆点）。这些过渡都支持普通图片、标签图片和层叠图片。
 
 有关 Transform 的更多信息，请查看 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 文档.

@@ -1,0 +1,38 @@
+---
+title: "显现"
+---
+> 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
+
+通过任意[遮罩图案](/zh/docs/narraleaf-react/core/animation/transition/mask)，将下一张图像覆盖到当前图像之上显现——这是不经过纯色保持的 A→B 直接切换。`Reveal` 是 [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 的直切版本，后者让相同的图案经过一段纯色保持。
+
+几何形状完全由图案决定，因此同一个 `Mask` 工厂方法只需改一个词就能在两种引擎之间切换。
+
+## 用法
+
+```tsx
+import { Reveal, Mask } from "narraleaf-react";
+
+// 柔边方向性擦除
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "left" }) }));
+
+// 从中心展开的柔边圈显
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.iris() }));
+
+// 硬边擦除（零羽化）
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "right", feather: 0 }) }));
+
+// 百叶窗
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.blinds({ slats: 8 }) }));
+
+// 时钟扫掠
+image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: RevealOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `pattern: MaskPattern` - 下一张图像显现所经过的覆盖几何形状。使用 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) 上的静态工厂方法构建，或手写自定义图案。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

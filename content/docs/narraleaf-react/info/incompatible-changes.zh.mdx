@@ -3,6 +3,27 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
 
+## 0.16.0
+
+过渡 API 围绕两个理念进行了重构：**转场方式（引擎）**使用 `new` 实例化并只接受一个选项对象，而它们播放的**遮罩图案**由 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) 上的静态工厂方法构建，通过 `pattern` 选项传入。
+
+- `Dissolve` 和 `FadeIn` 不再接受位置参数
+  - `new Dissolve(1000, easing)` → `new Dissolve({duration: 1000, easing})`
+  - `new FadeIn(500, [x, y], easing)` → `new FadeIn({duration: 500, offset: [x, y], easing})` —— 注意参数从 `startPos` 改名为 `offset`
+- `SoftWipe`、`SoftIris` 和 `Blinds` 已移除，请使用 [Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) 搭配对应的图案
+  - `new SoftWipe({duration, direction, feather})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather})})`
+  - `new SoftIris({duration, center, feather})` → `new Reveal({duration, pattern: Mask.iris({center, feather})})`
+  - `new Blinds({duration, orientation, slats})` → `new Reveal({duration, pattern: Mask.blinds({orientation, slats})})`
+- `MaskTransition` 已移除，其硬边裁剪等价于使用零羽化图案的 `Reveal`
+  - `MaskTransition.circle({duration, center})` → `new Reveal({duration, pattern: Mask.iris({center, feather: 0})})`
+  - `MaskTransition.wipe({duration, direction})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather: 0})})`
+- `ThroughColor` 的静态工厂方法已移除，现在直接用 `new` 构造，几何形状通过 `pattern` 传入
+  - `ThroughColor.fade({duration, color, hold})` → `new ThroughColor({duration, color, hold})`
+  - `ThroughColor.wipe({direction, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.wipe({direction, feather})})`
+  - `ThroughColor.blinds({orientation, slats, ...rest})` → `new ThroughColor({...rest, pattern: Mask.blinds({orientation, slats})})`
+  - `ThroughColor.iris({center, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.iris({center, feather}), inverted: true})` —— 注意 `inverted: true`：经典的圈入到黑是从四周向中心收拢，即该图案的反转方向
+- 移除的选项类型：`SoftWipeOptions`、`SoftIrisOptions`、`BlindsOptions`、`MaskTransitionCircleOptions`、`MaskTransitionWipeOptions`、`ThroughColorFadeOptions`、`ThroughColorWipeOptions`、`ThroughColorBlindsOptions`、`ThroughColorIrisOptions`。新导出的类型：`DissolveOptions`、`FadeInOptions`、`RevealOptions`、`ThroughColorOptions`、`ThroughColorUncover`、`MaskPattern`，以及各工厂方法对应的 `*PatternOptions` 类型
+
 ## 0.13.0
 
 - `SavedGame` 的 `store` 现声明为 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)，不再是 [StorableData](/zh/docs/narraleaf-react/core/types/StorableData)。它携带的一直是带标签的形式，错的只是声明。存档格式本身没有变化，已有存档仍可正常读取 —— 但如果你的代码直接读取 `savedGame.game.store` 并依赖旧的声明，现在会看到它一直以来实际拿到的带标签形状

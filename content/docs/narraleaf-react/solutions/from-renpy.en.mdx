@@ -15,7 +15,7 @@ NarraLeaf uses TypeScript objects instead of a separate script language. The clo
 | `menu` | `Menu.prompt().choose()` |
 | `default` / persistent variable | `Persistent` |
 | screen language | React components inside `Player` |
-| `with dissolve` | `new Dissolve(duration)` |
+| `with dissolve` | `new Dissolve({ duration })` |
 
 The names are similar, but the boundaries differ. A NarraLeaf `Character` only owns dialog identity and avatar rules. A stage `Image` owns the sprite. A `Scene` is closer to a Ren'Py label than to Ren'Py's `scene` statement.
 
@@ -69,7 +69,7 @@ const start = new Scene("start", {
     background: "/backgrounds/room.webp",
 }).action((scene) => [
     aliceSprite.show(),
-    aliceSprite.char(["happy"], new Dissolve(400)),
+    aliceSprite.char(["happy"], new Dissolve({ duration: 400 })),
     alice.say("Good morning."),
     Menu.prompt("What should I do?")
         .choose("Open the window", [

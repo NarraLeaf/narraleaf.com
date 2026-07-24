@@ -2,34 +2,49 @@
 title: "过渡"
 ---
 <Callout type="warning">
-    本页面正在建设中
-</Callout>
-
-<Callout type="warning">
     测试功能，可能会有变动
 </Callout>
 
-在 NarraLeaf-React 中，过渡可以用于特定元素以创建视觉效果。
+在 NarraLeaf-React 中，过渡用于为图像之间的切换播放动画——角色立绘切换、背景更换或场景跳转。
+
+## 转场方式与图案
+
+过渡 API 把*切换如何播放*与*切换呈现什么形状*分离开：
+
+- **转场方式（引擎）**是过渡类，使用 `new` 实例化，且每个引擎只接受一个选项对象：`new Dissolve({ duration: 500 })`。
+- **图案**是几何形状，由 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) 上的静态工厂方法构建，并通过遮罩类引擎的 `pattern` 选项传入。图案是普通值——永远不会用 `new` 实例化。
+
+因此，一个过渡读作"转场方式（转场动画）"：引擎决定像素如何变化，图案就是它播放的动画。
+
+```tsx
+import { Reveal, ThroughColor, Mask } from "narraleaf-react";
+
+// 通过时钟扫掠直接显现下一张图像
+image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
+
+// 相同的几何形状，但经过黑场保持
+image.char("image1.jpg", new ThroughColor({ duration: 1800, pattern: Mask.clock() }));
+```
 
 ## 示例
 
 ```tsx
 import { Dissolve } from "narraleaf-react";
-```
 
-```tsx
-image.char("image1.jpg", new Dissolve(3000, "linear"));
+image.char("image1.jpg", new Dissolve({ duration: 3000, easing: "linear" }));
 ```
 
 ## 内置过渡
 
 ### 图像过渡
 
-- [Dissolve](/zh/docs/narraleaf-react/core/animation/transition/dissolve)
-- [Fade In](/zh/docs/narraleaf-react/core/animation/transition/fade-in)
-- [Soft Wipe](/zh/docs/narraleaf-react/core/animation/transition/soft-wipe)
-- [Soft Iris](/zh/docs/narraleaf-react/core/animation/transition/soft-iris)
-- [Blinds](/zh/docs/narraleaf-react/core/animation/transition/blinds)
-- [Blur Dissolve](/zh/docs/narraleaf-react/core/animation/transition/blur-dissolve)
-- [Push](/zh/docs/narraleaf-react/core/animation/transition/push)
-- [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color)
+- [Dissolve](/zh/docs/narraleaf-react/core/animation/transition/dissolve) - 两张图像交叉淡化
+- [Fade In](/zh/docs/narraleaf-react/core/animation/transition/fade-in) - 淡入下一张图像，可附带像素偏移的位移
+- [Blur Dissolve](/zh/docs/narraleaf-react/core/animation/transition/blur-dissolve) - 经过模糊的交叉淡化
+- [Push](/zh/docs/narraleaf-react/core/animation/transition/push) - 下一张图像滑入，当前图像滑出
+- [Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) - 通过任意遮罩图案直接显现下一张图像
+- [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) - 用纯色覆盖、保持，再揭开下一张图像
+
+### 遮罩图案
+
+- [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) - Reveal 与 Through Color 共享的图案词汇：擦除、对开门、圈显、时钟、风车、百叶窗和圆点，以及 `Mask.invert` 和手写自定义图案

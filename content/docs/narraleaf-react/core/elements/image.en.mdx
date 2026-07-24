@@ -86,7 +86,7 @@ A layered image is driven by the same [char](#char) method as a tag-based image,
 ```typescript
 yuko.char(["sad"]);                  // only the face layer changes; the outfit is kept
 yuko.char(["casual", "happy"]);      // several layers at once, in any order
-yuko.char(["sad"], new Dissolve(300)); // transitions work as they do on any image
+yuko.char(["sad"], new Dissolve({ duration: 300 })); // transitions work as they do on any image
 ```
 
 Each entry of `layers` is one of:
@@ -200,7 +200,7 @@ Set the figure of the character
 - `transition?: ImageTransition` - For ImageTransition, see [Transition](/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
-image.char("your/image/src", new Dissolve(1000));
+image.char("your/image/src", new Dissolve({ duration: 1000 }));
 ```
 
 or for tag-based image
@@ -220,10 +220,10 @@ const image = new Image({
 });
 
 //  happy , [jacket], [t-shirt]
-image.char(["jacket", "t-shirt"], new Dissolve(1000));
+image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
 
 // [angry],  jacket ,  t-shirt
-image.char(["angry"], new Dissolve(1000));
+image.char(["angry"], new Dissolve({ duration: 1000 }));
 ```
 
 For a [layered image](#layered-image), tags select a variant of their own layer and every other layer is kept. Tags may be given in any order, and a transition crossfades the whole stack.
@@ -241,7 +241,7 @@ const yuko = new Image({
 });
 
 //  uniform , [sad]
-yuko.char(["sad"], new Dissolve(300));
+yuko.char(["sad"], new Dissolve({ duration: 300 }));
 
 // [casual],  sad
 yuko.char(["casual"]);

@@ -3,57 +3,57 @@ title: "ThroughColor"
 ---
 > This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
 
-Cover the frame with a solid colour, hold, then uncover on the next image — so the next image only appears **after** the colour frame. Depending on the factory used, the colour covers with a plain fade, a feathered directional edge, venetian slats, or a closing circle.
+Cover the frame with a solid colour, hold, then uncover on the next image — so the next image only appears **after** the colour hold. The images swap behind the fully covered frame, unseen.
 
-Common uses: fade to black / white, soft wipe through black, blinds black hold, iris to black, and a flash (`hold: 0`).
-
-`ThroughColor` is created through its static factories (it has no public constructor).
+The colour covers through any [mask pattern](/docs/narraleaf-react/core/animation/transition/mask). Without a `pattern`, the colour simply fades in and out: a plain fade to black / white, or a flash with `hold: 0`. [Reveal](/docs/narraleaf-react/core/animation/transition/reveal) is the direct A→B counterpart that takes the same patterns.
 
 ## Usage
 
 ```tsx
-import { ThroughColor } from "narraleaf-react";
+import { ThroughColor, Mask } from "narraleaf-react";
 
 // Fade to black, hold, then fade in the next image
-image.char("image1.jpg", ThroughColor.fade({ duration: 1000, color: "#000000", hold: 0.3 }));
-
-// Soft wipe through black
-image.char("image1.jpg", ThroughColor.wipe({ duration: 1100, direction: "left", feather: 15 }));
+image.char("image1.jpg", new ThroughColor({ duration: 1000 }));
 
 // A quick white flash (no hold)
-image.char("image1.jpg", ThroughColor.fade({ duration: 700, color: "#ffffff", hold: 0 }));
+image.char("image1.jpg", new ThroughColor({ duration: 700, color: "#ffffff", hold: 0 }));
+
+// Soft wipe through black
+image.char("image1.jpg", new ThroughColor({ duration: 1100, pattern: Mask.wipe({ direction: "left", feather: 15 }) }));
+
+// Classic iris to black: the circle closes rim-in,
+// which is the iris pattern's inverted orientation
+image.char("image1.jpg", new ThroughColor({ duration: 1400, pattern: Mask.iris(), inverted: true }));
+
+// The clock hand keeps sweeping through the hold instead of backing out
+image.char("image1.jpg", new ThroughColor({ duration: 1800, pattern: Mask.clock(), uncover: "continue" }));
 ```
 
 ## Public Methods
 
-All factories share these base options:
+### constructor
 
-- `duration: number` - The duration of the transition in milliseconds
-- `color?: string` - The hold colour. Defaults to `"#000000"`.
-- `hold?: number` - The fraction (`0`–`1`) of the duration spent fully covered by the colour. Use `0` for a flash. Defaults to `0.3`.
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: ThroughColorOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `color?: string` - The hold colour. Defaults to `"#000000"`.
+  - `hold?: number` - The fraction (`0`–`1`) of the duration spent fully covered by the colour. Use `0` for a flash. Defaults to `0.3`.
+  - `pattern?: MaskPattern` - The coverage geometry the colour covers the frame through. See [Mask](/docs/narraleaf-react/core/animation/transition/mask). Omit for a plain fade through the colour.
+  - `inverted?: boolean` - Cover through the pattern's inverted (complementary) orientation instead — e.g. `Mask.iris()` covers centre-out by default, and rim-in (the classic "iris to black") with `inverted: true`. Defaults to `false`.
+  - `uncover?: ThroughColorUncover` - How the colour uncovers after the hold; see below. Ignored without a `pattern`. Defaults to `"retreat"`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
 
-### ThroughColor.fade
+## Uncover Modes
 
-The overlay fades in and out (fade-to-colour). Takes the base options only.
+After the hold, `uncover` picks how the second half plays:
 
-### ThroughColor.wipe
+- `"retreat"` (default) - The cover pattern backs out the way it came: a wipe that entered from the left leaves to the left, a closed iris reopens the way it closed.
+- `"continue"` - The edge keeps travelling in the same direction, so the pattern passes *through* the frame: a wipe exits out the far side, an iris that closed rim-in reopens centre-out, a clock hand completes a second lap.
+- a `MaskPattern` - The colour uncovers through an unrelated geometry of its own, for an asymmetric cover/uncover — for example, cover with a clock sweep and uncover with a wipe:
 
-The colour covers with a feathered directional edge (a soft wipe through the colour). Adds:
-
-- `direction?: TransformDefinitions.WipeDirection` - The direction the edge travels toward. Defaults to `"left"`.
-- `feather?: number` - The width of the soft edge band, in percent. Defaults to `12`.
-
-### ThroughColor.blinds
-
-The colour covers with venetian slats. Adds:
-
-- `orientation?: BlindsOrientation` - The slat orientation, `"horizontal"` or `"vertical"`. Defaults to `"horizontal"`.
-- `slats?: number` - The number of slats. Defaults to `8`.
-
-### ThroughColor.iris
-
-The colour covers with a circle closing from the rim inward (an iris to the colour). Adds:
-
-- `center?: string` - The centre of the iris, as a CSS position. Defaults to `"50% 50%"`.
-- `feather?: number` - The width of the soft edge band, in percent. Defaults to `12`.
+```tsx
+image.char("image1.jpg", new ThroughColor({
+    duration: 2000,
+    pattern: Mask.clock(),
+    uncover: Mask.wipe({ direction: "bottom" }),
+}));
+```

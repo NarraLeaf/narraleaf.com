@@ -3,6 +3,27 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.16.0
+
+The transition API was redesigned around two ideas: transition **engines** are instantiated with `new` and take a single options object, while the mask **patterns** they animate are built with the static factories on [Mask](/docs/narraleaf-react/core/animation/transition/mask) and passed as the `pattern` option.
+
+- `Dissolve` and `FadeIn` no longer take positional arguments
+  - `new Dissolve(1000, easing)` → `new Dissolve({duration: 1000, easing})`
+  - `new FadeIn(500, [x, y], easing)` → `new FadeIn({duration: 500, offset: [x, y], easing})` — note the parameter rename from `startPos` to `offset`
+- `SoftWipe`, `SoftIris`, and `Blinds` were removed; use [Reveal](/docs/narraleaf-react/core/animation/transition/reveal) with the matching pattern
+  - `new SoftWipe({duration, direction, feather})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather})})`
+  - `new SoftIris({duration, center, feather})` → `new Reveal({duration, pattern: Mask.iris({center, feather})})`
+  - `new Blinds({duration, orientation, slats})` → `new Reveal({duration, pattern: Mask.blinds({orientation, slats})})`
+- `MaskTransition` was removed; its hard-edged clips are `Reveal` with a zero-feather pattern
+  - `MaskTransition.circle({duration, center})` → `new Reveal({duration, pattern: Mask.iris({center, feather: 0})})`
+  - `MaskTransition.wipe({duration, direction})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather: 0})})`
+- `ThroughColor`'s static factories were removed; it is now constructed with `new` and takes its geometry as a `pattern`
+  - `ThroughColor.fade({duration, color, hold})` → `new ThroughColor({duration, color, hold})`
+  - `ThroughColor.wipe({direction, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.wipe({direction, feather})})`
+  - `ThroughColor.blinds({orientation, slats, ...rest})` → `new ThroughColor({...rest, pattern: Mask.blinds({orientation, slats})})`
+  - `ThroughColor.iris({center, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.iris({center, feather}), inverted: true})` — note the `inverted: true`: the classic iris-to-black closes rim-in, which is the pattern's inverted orientation
+- Removed option types: `SoftWipeOptions`, `SoftIrisOptions`, `BlindsOptions`, `MaskTransitionCircleOptions`, `MaskTransitionWipeOptions`, `ThroughColorFadeOptions`, `ThroughColorWipeOptions`, `ThroughColorBlindsOptions`, `ThroughColorIrisOptions`. New exported types: `DissolveOptions`, `FadeInOptions`, `RevealOptions`, `ThroughColorOptions`, `ThroughColorUncover`, `MaskPattern`, and the per-factory `*PatternOptions` types
+
 ## 0.13.0
 
 - `SavedGame`'s `store` is now typed as [SerializedNamespaceData](/docs/narraleaf-react/core/types/SerializedNamespaceData) instead of [StorableData](/docs/narraleaf-react/core/types/StorableData). It always carried the tagged form; only the declaration was wrong. The save format itself did not change, so existing saves keep loading — but code that read `savedGame.game.store` by hand and relied on the old declaration will now see the tagged shape it was actually getting all along

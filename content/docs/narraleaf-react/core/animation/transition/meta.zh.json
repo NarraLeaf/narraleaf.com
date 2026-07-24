@@ -3,11 +3,10 @@
   "pages": [
     "dissolve",
     "fade-in",
-    "soft-wipe",
-    "soft-iris",
-    "blinds",
     "blur-dissolve",
     "push",
-    "through-color"
+    "reveal",
+    "through-color",
+    "mask"
   ]
 }

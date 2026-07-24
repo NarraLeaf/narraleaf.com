@@ -37,7 +37,7 @@ const importedRoom = new Scene("导入背景的房间", {
 import { Dissolve } from "narraleaf-react";
 
 room.action([
-    room.setBackground("/backgrounds/room-night.webp", new Dissolve(600)),
+    room.setBackground("/backgrounds/room-night.webp", new Dissolve({ duration: 600 })),
 ]);
 ```
 

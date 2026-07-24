@@ -3,57 +3,57 @@ title: "过色"
 ---
 > 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
 
-用纯色覆盖画面、保持片刻，再揭开下一张图像——因此下一张图像只会在纯色画面**之后**出现。根据所用的工厂方法，纯色以纯淡入、柔化方向边缘、百叶窗叶片或收拢的圆形来覆盖。
+用纯色覆盖画面、保持片刻，再揭开下一张图像——因此下一张图像只会在纯色保持**之后**出现。两张图像在画面被完全覆盖时无形中完成交换。
 
-常见用途：过黑 / 过白、soft wipe 过黑、百叶窗黑场、圈入到黑，以及闪光（`hold: 0`）。
-
-`ThroughColor` 通过静态工厂方法创建（没有公共构造函数）。
+纯色可以通过任意[遮罩图案](/zh/docs/narraleaf-react/core/animation/transition/mask)进行覆盖。不传 `pattern` 时，纯色只是淡入再淡出：普通的过黑 / 过白，或使用 `hold: 0` 实现闪光。[Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) 是接受相同图案的 A→B 直切版本。
 
 ## 用法
 
 ```tsx
-import { ThroughColor } from "narraleaf-react";
+import { ThroughColor, Mask } from "narraleaf-react";
 
 // 过黑：淡入黑色、保持、再淡出到下一张图像
-image.char("image1.jpg", ThroughColor.fade({ duration: 1000, color: "#000000", hold: 0.3 }));
-
-// soft wipe 过黑
-image.char("image1.jpg", ThroughColor.wipe({ duration: 1100, direction: "left", feather: 15 }));
+image.char("image1.jpg", new ThroughColor({ duration: 1000 }));
 
 // 快速闪白（无保持）
-image.char("image1.jpg", ThroughColor.fade({ duration: 700, color: "#ffffff", hold: 0 }));
+image.char("image1.jpg", new ThroughColor({ duration: 700, color: "#ffffff", hold: 0 }));
+
+// soft wipe 过黑
+image.char("image1.jpg", new ThroughColor({ duration: 1100, pattern: Mask.wipe({ direction: "left", feather: 15 }) }));
+
+// 经典的圈入到黑：圆形从四周向中心收拢，
+// 即 iris 图案的反转方向
+image.char("image1.jpg", new ThroughColor({ duration: 1400, pattern: Mask.iris(), inverted: true }));
+
+// 时钟指针在保持之后继续扫掠，而不是原路退回
+image.char("image1.jpg", new ThroughColor({ duration: 1800, pattern: Mask.clock(), uncover: "continue" }));
 ```
 
 ## 公共方法
 
-所有工厂方法共享以下基础选项：
+### constructor
 
-- `duration: number` - 过渡效果的持续时间，以毫秒为单位
-- `color?: string` - 保持的颜色。默认为 `"#000000"`。
-- `hold?: number` - 完全被纯色覆盖所占的时长比例（`0`–`1`）。设为 `0` 即为闪光。默认为 `0.3`。
-- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: ThroughColorOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `color?: string` - 保持的颜色。默认为 `"#000000"`。
+  - `hold?: number` - 完全被纯色覆盖所占的时长比例（`0`–`1`）。设为 `0` 即为闪光。默认为 `0.3`。
+  - `pattern?: MaskPattern` - 纯色覆盖画面所经过的几何形状，参见 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask)。省略则为纯色淡入淡出。
+  - `inverted?: boolean` - 改用图案的反转（互补）方向进行覆盖——例如 `Mask.iris()` 默认从中心向外覆盖，`inverted: true` 时改为从四周向中心收拢（经典的"圈入到黑"）。默认为 `false`。
+  - `uncover?: ThroughColorUncover` - 保持之后纯色如何揭开，见下文。未传 `pattern` 时此选项被忽略。默认为 `"retreat"`。
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 
-### ThroughColor.fade
+## 揭开方式
 
-覆盖层纯淡入淡出（过某种颜色）。仅使用基础选项。
+保持之后，`uncover` 决定后半段如何播放：
 
-### ThroughColor.wipe
+- `"retreat"`（默认）- 覆盖图案原路退回：从左侧推入的擦除向左侧退出，收拢的圆形按原样重新张开。
+- `"continue"` - 边缘沿原方向继续推进，图案*穿过*整个画面：擦除从另一侧离场，从四周收拢的圆形改为从中心重新张开，时钟指针再扫一圈。
+- 传入一个 `MaskPattern` - 纯色以另一套独立的几何形状揭开，实现覆盖 / 揭开不对称——例如用时钟扫掠覆盖、用擦除揭开：
 
-以柔化的方向性边缘覆盖（soft wipe 过色）。额外选项：
-
-- `direction?: TransformDefinitions.WipeDirection` - 边缘推进的方向。默认为 `"left"`。
-- `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。
-
-### ThroughColor.blinds
-
-以百叶窗叶片覆盖。额外选项：
-
-- `orientation?: BlindsOrientation` - 叶片方向，`"horizontal"` 或 `"vertical"`。默认为 `"horizontal"`。
-- `slats?: number` - 叶片数量。默认为 `8`。
-
-### ThroughColor.iris
-
-以从四周向中心收拢的圆形覆盖（圈入到某种颜色）。额外选项：
-
-- `center?: string` - 圆形的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
-- `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。
+```tsx
+image.char("image1.jpg", new ThroughColor({
+    duration: 2000,
+    pattern: Mask.clock(),
+    uncover: Mask.wipe({ direction: "bottom" }),
+}));
+```

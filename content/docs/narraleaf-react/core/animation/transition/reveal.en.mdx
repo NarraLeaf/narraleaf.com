@@ -1,0 +1,38 @@
+---
+title: "Reveal"
+---
+> This transition is designed for [Image](/docs/narraleaf-react/core/elements/image) elements.
+
+Reveal the next image over the current one through any [mask pattern](/docs/narraleaf-react/core/animation/transition/mask) — a direct A→B cut with no colour hold in between. `Reveal` is the direct counterpart of [Through Color](/docs/narraleaf-react/core/animation/transition/through-color), which plays the same patterns through a solid-colour hold.
+
+The geometry lives entirely in the pattern, so the same `Mask` factory moves a transition between the two engines with a one-word edit.
+
+## Usage
+
+```tsx
+import { Reveal, Mask } from "narraleaf-react";
+
+// Soft directional wipe
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "left" }) }));
+
+// Feathered iris opening from the centre
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.iris() }));
+
+// Hard-edged wipe (zero feather)
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "right", feather: 0 }) }));
+
+// Venetian blinds
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.blinds({ slats: 8 }) }));
+
+// Clock sweep
+image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: RevealOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `pattern: MaskPattern` - The coverage geometry the next image is revealed through. Build one with the static factories on [Mask](/docs/narraleaf-react/core/animation/transition/mask), or hand-write your own.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

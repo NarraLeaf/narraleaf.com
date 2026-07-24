@@ -1,0 +1,152 @@
+---
+title: "Mask"
+---
+> Mask patterns are used by the [Reveal](/docs/narraleaf-react/core/animation/transition/reveal) and [Through Color](/docs/narraleaf-react/core/animation/transition/through-color) transition engines.
+
+`Mask` is the transition-animation vocabulary. Its static factories build `MaskPattern` values — parametric coverage geometries that a mask-driven engine animates from `0` (nothing covered) to `1` (fully covered).
+
+Patterns are plain values: you never instantiate them with `new`. Build one with a factory and pass it to an engine's `pattern` option:
+
+```tsx
+import { Reveal, ThroughColor, Mask } from "narraleaf-react";
+
+image.char("image1.jpg", new Reveal({ duration: 1000, pattern: Mask.wipe({ direction: "right" }) }));
+image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds() }));
+```
+
+Every pattern has a natural orientation and an inverted (complementary) one — the same geometry covering from the other side: a wipe grows from the opposite edge, an iris closes from the rim instead of growing from the centre, a clock hand sweeps the other way. Engines use the inverted orientation through `ThroughColor`'s `inverted` option and its `"continue"` uncover mode, and you can flip it permanently with [`Mask.invert`](#maskinvert).
+
+## Factories
+
+Each factory takes a single optional options object and returns a `MaskPattern`.
+
+### Mask.wipe
+
+A feathered directional wipe: one soft edge travels across the frame.
+
+- `options?: WipePatternOptions`
+  - `direction?: "left" | "right" | "top" | "bottom" | number` - The direction the covering edge travels toward — a keyword, or any CSS gradient angle in degrees (`0` = up, `90` = right). Defaults to `"left"`.
+  - `feather?: number` - The width of the soft edge band, in percent. Use `0` for a hard edge. Defaults to `12`.
+
+```tsx
+Mask.wipe({ direction: "right" });
+Mask.wipe({ direction: 45, feather: 20 }); // diagonal, extra soft
+```
+
+### Mask.barnDoor
+
+Barn doors: two feathered edges closing from opposite edges toward the centre. Inverted, a bar grows outward from the centre line instead.
+
+- `options?: BarnDoorPatternOptions`
+  - `axis?: "horizontal" | "vertical" | number` - The travel axis of the doors, or any CSS gradient angle in degrees. Defaults to `"horizontal"`.
+  - `feather?: number` - The width of the soft edge band, in percent. Defaults to `12`.
+
+### Mask.iris
+
+A feathered iris growing from the centre out. Inverted, it covers from the rim inward — the classic "iris to black" is `new ThroughColor({ pattern: Mask.iris(), inverted: true })`.
+
+- `options?: IrisPatternOptions`
+  - `center?: string` - The centre of the iris, as a CSS position. Defaults to `"50% 50%"`.
+  - `feather?: number` - The width of the soft edge band, in percent. Use `0` for a hard edge. Defaults to `12`.
+  - `shape?: "circle" | "ellipse"` - The ending shape of the iris. Defaults to `"circle"`.
+
+### Mask.clock
+
+A clock wipe: one feathered radial edge travelling a full turn around the centre. The trailing edge at the start angle is hard by nature, as in a classic clock wipe; only the leading edge is feathered.
+
+- `options?: ClockPatternOptions`
+  - `center?: string` - The centre of the sweep, as a CSS position. Defaults to `"50% 50%"`.
+  - `from?: number` - The angle the sweep starts from, in degrees (`0` = up). Defaults to `0`.
+  - `feather?: number` - The width of the soft leading edge, **in degrees**. Defaults to `24`.
+  - `direction?: "clockwise" | "counterclockwise"` - The sweep direction of the hand. Defaults to `"clockwise"`.
+
+### Mask.fan
+
+A windmill of parallel clock sweeps, each covering its own sector.
+
+- `options?: FanPatternOptions`
+  - `blades?: number` - The number of blades sweeping in parallel. Defaults to `4`.
+  - `center?: string` - The centre of the sweep, as a CSS position. Defaults to `"50% 50%"`.
+  - `from?: number` - The angle the sweep starts from, in degrees (`0` = up). Defaults to `0`.
+  - `feather?: number` - The width of each blade's soft leading edge, **in degrees**. Defaults to `10`.
+
+### Mask.blinds
+
+Venetian slats widening until they cover the frame. Hard-edged by default; raise `feather` for soft slats, or pass an angle for slanted ones.
+
+- `options?: BlindsPatternOptions`
+  - `orientation?: "horizontal" | "vertical" | number` - The slat orientation, or any CSS gradient angle in degrees. Defaults to `"horizontal"`.
+  - `slats?: number` - The number of slats. Defaults to `8`.
+  - `feather?: number` - The width of each slat's soft edge, in percent of the frame. Defaults to `0` (hard slats).
+
+### Mask.dots
+
+A tiled polka-dot flood: a dot grows inside every cell of a grid until the cells flood together.
+
+- `options?: DotsPatternOptions`
+  - `rows?: number` - The number of tile rows. Defaults to `6`.
+  - `cols?: number` - The number of tile columns. Defaults to `10`.
+  - `feather?: number` - The width of each dot's soft rim, in percent of its tile. Defaults to `20`.
+  - `stagger?: number` - Phase offset (`0`–`1`) of a second dot grid anchored on the tile corners, giving a staggered, checker-like fill instead of a uniform one. Defaults to `0`.
+
+```tsx
+Mask.dots({ rows: 4, cols: 7, stagger: 0.5 });
+```
+
+## Mask.invert
+
+Swap a pattern's orientations: the inverted geometry becomes the natural one and vice versa.
+
+- `pattern: MaskPattern` - The pattern to flip.
+
+```tsx
+// An iris that reveals rim-in instead of centre-out
+image.char("image1.jpg", new Reveal({ duration: 900, pattern: Mask.invert(Mask.iris()) }));
+```
+
+## Custom Patterns
+
+`MaskPattern` is a plain object type, so a hand-written pattern works anywhere a built-in one does:
+
+```ts
+type MaskPattern = {
+    // The CSS mask image whose opaque region covers fraction `t` (0–1) of the
+    // frame. May be a comma-separated multi-layer image list.
+    mask(t: number, inverted?: boolean): string;
+    // `mask-size` for tiled patterns. Defaults to "100% 100%".
+    size?: string;
+    // `mask-repeat` for tiled patterns. Defaults to "no-repeat".
+    repeat?: string;
+};
+```
+
+Every pattern should uphold three invariants:
+
+- `mask(0)` is fully transparent and `mask(1)` fully opaque, feather included — the soft band is swept completely off both ends of the run.
+- The opaque fraction grows monotonically with `t`.
+- `mask(t, true)` is the complementary orientation of the same geometry at the same coverage. This is what lets `ThroughColor` continue a pattern through the hold instead of backing it out.
+
+```tsx
+import { MaskPattern, Reveal } from "narraleaf-react";
+
+// A hard-edged diagonal split
+const diagonal: MaskPattern = {
+    mask: (t, inverted) => inverted
+        ? `linear-gradient(45deg, transparent ${(1 - t) * 100}%, #000 ${(1 - t) * 100}%)`
+        : `linear-gradient(45deg, #000 ${t * 100}%, transparent ${t * 100}%)`,
+};
+
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: diagonal }));
+```
+
+### Mask.toStyle
+
+For authors of custom transitions: returns the full CSS mask style block for a pattern at coverage `t` — the pattern's image plus its tiling, mirrored to the `-webkit-` prefixes.
+
+- `pattern: MaskPattern` - The pattern to render.
+- `t: number` - The coverage fraction (`0`–`1`).
+- `inverted?: boolean` - Render the inverted orientation. Defaults to `false`.
+
+```tsx
+const style = Mask.toStyle(Mask.iris(), 0.5);
+```

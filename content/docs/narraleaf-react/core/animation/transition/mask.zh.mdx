@@ -1,0 +1,152 @@
+---
+title: "遮罩图案"
+---
+> 遮罩图案由 [Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) 和 [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 两个转场引擎使用。
+
+`Mask` 是转场动画的词汇表。它的静态工厂方法构建 `MaskPattern` 值——参数化的覆盖几何形状，由遮罩类引擎从 `0`（完全未覆盖）动画到 `1`（完全覆盖）。
+
+图案是普通值：永远不会用 `new` 实例化。用工厂方法构建后传入引擎的 `pattern` 选项：
+
+```tsx
+import { Reveal, ThroughColor, Mask } from "narraleaf-react";
+
+image.char("image1.jpg", new Reveal({ duration: 1000, pattern: Mask.wipe({ direction: "right" }) }));
+image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds() }));
+```
+
+每种图案都有自然方向和反转（互补）方向——同一几何形状从另一侧覆盖：擦除从对侧推进，圈显从四周向中心收拢而不是从中心展开，时钟指针向另一方向扫掠。引擎通过 `ThroughColor` 的 `inverted` 选项及其 `"continue"` 揭开方式使用反转方向；也可以用 [`Mask.invert`](#maskinvert) 永久翻转。
+
+## 工厂方法
+
+每个工厂方法都接受一个可选的选项对象，并返回一个 `MaskPattern`。
+
+### Mask.wipe
+
+柔边方向性擦除：一条柔化边缘扫过画面。
+
+- `options?: WipePatternOptions`
+  - `direction?: "left" | "right" | "top" | "bottom" | number` - 覆盖边缘推进的方向——关键字，或任意 CSS 渐变角度（度，`0` = 向上，`90` = 向右）。默认为 `"left"`。
+  - `feather?: number` - 柔化边缘带的宽度，以百分比表示。设为 `0` 即为硬边。默认为 `12`。
+
+```tsx
+Mask.wipe({ direction: "right" });
+Mask.wipe({ direction: 45, feather: 20 }); // 对角线方向，边缘更柔
+```
+
+### Mask.barnDoor
+
+对开门：两条柔化边缘从画面两侧向中心合拢。反转时，改为一条从中线向外扩展的色带。
+
+- `options?: BarnDoorPatternOptions`
+  - `axis?: "horizontal" | "vertical" | number` - 门的运动轴向，或任意 CSS 渐变角度（度）。默认为 `"horizontal"`。
+  - `feather?: number` - 柔化边缘带的宽度，以百分比表示。默认为 `12`。
+
+### Mask.iris
+
+从中心向外扩展的柔边圈显。反转时改为从四周向中心收拢——经典的"圈入到黑"即 `new ThroughColor({ pattern: Mask.iris(), inverted: true })`。
+
+- `options?: IrisPatternOptions`
+  - `center?: string` - 圆形的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
+  - `feather?: number` - 柔化边缘带的宽度，以百分比表示。设为 `0` 即为硬边。默认为 `12`。
+  - `shape?: "circle" | "ellipse"` - 圈显的最终形状。默认为 `"circle"`。
+
+### Mask.clock
+
+时钟擦除：一条柔化的径向边缘绕中心扫掠一整圈。与经典时钟擦除一样，起始角处的后缘天然是硬边；只有前缘经过柔化。
+
+- `options?: ClockPatternOptions`
+  - `center?: string` - 扫掠的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
+  - `from?: number` - 扫掠的起始角度（度，`0` = 向上）。默认为 `0`。
+  - `feather?: number` - 柔化前缘的宽度，**以度为单位**。默认为 `24`。
+  - `direction?: "clockwise" | "counterclockwise"` - 指针的扫掠方向。默认为 `"clockwise"`。
+
+### Mask.fan
+
+由多条并行时钟扫掠组成的风车，每条扫掠覆盖自己的扇区。
+
+- `options?: FanPatternOptions`
+  - `blades?: number` - 并行扫掠的叶片数量。默认为 `4`。
+  - `center?: string` - 扫掠的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
+  - `from?: number` - 扫掠的起始角度（度，`0` = 向上）。默认为 `0`。
+  - `feather?: number` - 每片叶片柔化前缘的宽度，**以度为单位**。默认为 `10`。
+
+### Mask.blinds
+
+逐渐变宽、直至铺满画面的百叶窗叶片。默认硬边；增大 `feather` 可获得柔边叶片，传入角度可获得倾斜叶片。
+
+- `options?: BlindsPatternOptions`
+  - `orientation?: "horizontal" | "vertical" | number` - 叶片方向，或任意 CSS 渐变角度（度）。默认为 `"horizontal"`。
+  - `slats?: number` - 叶片数量。默认为 `8`。
+  - `feather?: number` - 每片叶片柔化边缘的宽度，以画面百分比表示。默认为 `0`（硬边叶片）。
+
+### Mask.dots
+
+平铺的圆点填充：网格中每个单元内的圆点逐渐扩大，直至连成一片。
+
+- `options?: DotsPatternOptions`
+  - `rows?: number` - 网格行数。默认为 `6`。
+  - `cols?: number` - 网格列数。默认为 `10`。
+  - `feather?: number` - 每个圆点柔化边缘的宽度，以其所在单元的百分比表示。默认为 `20`。
+  - `stagger?: number` - 锚定在单元角点上的第二组圆点网格的相位偏移（`0`–`1`），使填充呈交错的棋盘状而非均匀分布。默认为 `0`。
+
+```tsx
+Mask.dots({ rows: 4, cols: 7, stagger: 0.5 });
+```
+
+## Mask.invert
+
+交换图案的两个方向：反转几何形状成为自然方向，反之亦然。
+
+- `pattern: MaskPattern` - 要翻转的图案。
+
+```tsx
+// 从四周向中心显现（而非从中心向外）的圈显
+image.char("image1.jpg", new Reveal({ duration: 900, pattern: Mask.invert(Mask.iris()) }));
+```
+
+## 自定义图案
+
+`MaskPattern` 是一个普通对象类型，因此手写的图案可以用在任何内置图案能用的地方：
+
+```ts
+type MaskPattern = {
+    // CSS 遮罩图像，其不透明区域覆盖画面的 `t`（0–1）比例。
+    // 可以是以逗号分隔的多层图像列表。
+    mask(t: number, inverted?: boolean): string;
+    // 平铺图案的 `mask-size`。默认为 "100% 100%"。
+    size?: string;
+    // 平铺图案的 `mask-repeat`。默认为 "no-repeat"。
+    repeat?: string;
+};
+```
+
+每个图案都应当满足三条约定：
+
+- `mask(0)` 完全透明，`mask(1)` 完全不透明（包括柔化带在内）——柔化带在行程两端都被完全扫出画面。
+- 不透明区域的比例随 `t` 单调增长。
+- `mask(t, true)` 是同一几何形状在相同覆盖率下的互补方向。正是这一点让 `ThroughColor` 能够在保持之后让图案继续推进，而不是原路退回。
+
+```tsx
+import { MaskPattern, Reveal } from "narraleaf-react";
+
+// 硬边对角线分割
+const diagonal: MaskPattern = {
+    mask: (t, inverted) => inverted
+        ? `linear-gradient(45deg, transparent ${(1 - t) * 100}%, #000 ${(1 - t) * 100}%)`
+        : `linear-gradient(45deg, #000 ${t * 100}%, transparent ${t * 100}%)`,
+};
+
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: diagonal }));
+```
+
+### Mask.toStyle
+
+供自定义过渡的作者使用：返回图案在覆盖率 `t` 处的完整 CSS 遮罩样式块——图案的图像及其平铺设置，并同步到 `-webkit-` 前缀。
+
+- `pattern: MaskPattern` - 要渲染的图案。
+- `t: number` - 覆盖比例（`0`–`1`）。
+- `inverted?: boolean` - 渲染反转方向。默认为 `false`。
+
+```tsx
+const style = Mask.toStyle(Mask.iris(), 0.5);
+```

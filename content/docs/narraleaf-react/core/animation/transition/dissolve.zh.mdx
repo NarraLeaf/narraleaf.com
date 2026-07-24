@@ -11,12 +11,13 @@ title: "溶解"
 ```tsx
 import { Dissolve } from "narraleaf-react";
 
-image.char("image1.jpg", new Dissolve(3000));
+image.char("image1.jpg", new Dissolve({ duration: 3000 }));
 ```
 
 ## 公共方法
 
 ### constructor
 
-- `duration: number` - 过渡效果的持续时间，以毫秒为单位
-- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: DissolveOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

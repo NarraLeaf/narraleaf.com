@@ -90,7 +90,7 @@ import {Dissolve} from "narraleaf-react";
 
 ```typescript
 scene1.action([
-    character1Happy.char("https://NEW_IMAGE_URL", new Dissolve(300)),
+    character1Happy.char("https://NEW_IMAGE_URL", new Dissolve({ duration: 300 })),
 ]);
 ```
 
@@ -123,7 +123,7 @@ const image = new Image({
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts"], new Dissolve(1000)), // change the image to `https://your/image/src/angry_shirt_shorts.png`
+    image.char(["angry", "shorts"], new Dissolve({ duration: 1000 })), // change the image to `https://your/image/src/angry_shirt_shorts.png`
 ]);
 ```
 
@@ -149,7 +149,7 @@ const image = new Image({
 
 scene1.action([
     image.show(),
-    image.char(["angry", "shorts", "hat"], new Dissolve(1000)),
+    image.char(["angry", "shorts", "hat"], new Dissolve({ duration: 1000 })),
 ]);
 ```
 
@@ -192,6 +192,6 @@ The image moves to the right over 120 milliseconds with an ease-out curve.
 
 ## Other image transitions
 
-NarraLeaf 0.13 includes `Dissolve`, `FadeIn`, `SoftWipe`, `SoftIris`, `Blinds`, `BlurDissolve`, `Push`, `ThroughColor`, and `MaskTransition`. All image transitions work with static, tag-based, and layered images.
+NarraLeaf 0.16 includes the `Dissolve`, `FadeIn`, `BlurDissolve`, `Push`, `Reveal`, and `ThroughColor` engines, plus the `Mask` pattern vocabulary (wipe, barn door, iris, clock, fan, blinds, dots) that `Reveal` and `ThroughColor` animate. All image transitions work with static, tag-based, and layered images.
 
 For more information about the Transform, please check the [Transform](/docs/narraleaf-react/core/animation/transform) documentation.

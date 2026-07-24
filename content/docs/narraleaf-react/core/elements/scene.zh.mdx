@@ -58,7 +58,7 @@ scene.action([
 
 ```ts
 scene.background
-    .char("background.png", new Dissolve(1000, "linear"))
+    .char("background.png", new Dissolve({ duration: 1000, easing: "linear" }))
 ```
 </Step>
 </Steps>

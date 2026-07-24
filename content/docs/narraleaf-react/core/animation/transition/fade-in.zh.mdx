@@ -4,20 +4,24 @@ title: "淡入"
 > 此过渡效果专为[图像](/zh/docs/narraleaf-react/core/elements/image)元素设计
 
 从当前图像淡入到下一张图像  
-下一张图像将淡入
+下一张图像将淡入，并可附带从某个像素偏移处移入的位移
 
 ## 用法
 
 ```tsx
 import { FadeIn } from "narraleaf-react";
 
-image.char("image1.jpg", new FadeIn(3000));
+image.char("image1.jpg", new FadeIn({ duration: 3000 }));
+
+// 淡入的同时从 50 像素外的位置漂移就位
+image.char("image1.jpg", new FadeIn({ duration: 600, offset: [50, 50] }));
 ```
 
 ## 公共方法
 
 ### constructor
 
-- `duration: number` - 过渡效果的持续时间，以毫秒为单位
-- `startPos: [xOffset: number, yOffset: number]` - 图像的起始位置，默认为 `[0, 0]`。例如，`[50, 50]` 将使图像从右侧 50 像素和上方 50 像素的位置开始
-- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: FadeInOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `offset?: [xOffset: number, yOffset: number]` - 下一张图像移入时的像素偏移，默认为 `[0, 0]`。例如，`[50, 50]` 将使图像从右侧 50 像素和上方 50 像素的位置开始（遵循故事的坐标原点设置）
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

@@ -11,12 +11,13 @@ The current image will fade out, and the next image will fade in at the same tim
 ```tsx
 import { Dissolve } from "narraleaf-react";
 
-image.char("image1.jpg", new Dissolve(3000));
+image.char("image1.jpg", new Dissolve({ duration: 3000 }));
 ```
 
 ## Public Methods
 
 ### constructor
 
-- `duration: number` - The duration of the transition in milliseconds
-- `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+- `options: DissolveOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
