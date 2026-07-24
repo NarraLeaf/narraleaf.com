@@ -4,14 +4,14 @@ import { type Locale, i18n, localizedPath } from './i18n';
 const localizedTabs = {
   en: [
     {
-      title: 'NarraLeaf Desktop',
-      description: 'Library and CLI docs for the desktop app toolchain.',
-      path: 'narraleaf/library',
-    },
-    {
       title: 'NarraLeaf Studio',
       description: 'Zero-code authoring, editing, preview, and publishing workflows.',
       path: 'studio',
+    },
+    {
+      title: 'NarraLeaf Desktop',
+      description: 'Library and CLI docs for the desktop app toolchain.',
+      path: 'narraleaf/library',
     },
     {
       title: 'NarraLeaf-React',
@@ -21,14 +21,14 @@ const localizedTabs = {
   ],
   zh: [
     {
-      title: 'NarraLeaf Desktop',
-      description: '面向桌面应用工具链的 Library 与 CLI 文档。',
-      path: 'narraleaf/library',
-    },
-    {
       title: 'NarraLeaf Studio',
       description: '零代码创作、编辑、预览与发布工作流。',
       path: 'studio',
+    },
+    {
+      title: 'NarraLeaf Desktop',
+      description: '面向桌面应用工具链的 Library 与 CLI 文档。',
+      path: 'narraleaf/library',
     },
     {
       title: 'NarraLeaf-React',
