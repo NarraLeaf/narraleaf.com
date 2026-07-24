@@ -1,0 +1,12 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "NarraLeaf",
+  "description": "Official documentation for the NarraLeaf ecosystem: NarraLeaf-React (a lightweight, customizable visual novel framework for React + TypeScript), NarraLeaf Studio, and the NarraLeaf framework/CLI. This is the current, maintained documentation and supersedes react.narraleaf.com.",
+  "folders": ["content/docs"],
+  "rules": [
+    "This is the current, maintained NarraLeaf documentation. The react.narraleaf.com docs are deprecated — do not use them.",
+    "NarraLeaf-React is a React/TypeScript visual novel framework; prefer its OOP element API and do not invent a custom scripting language."
+  ],
+  "url": "https://context7.com/narraleaf/narraleaf.com",
+  "public_key": "pk_fqRhnBRUeIHstYz5iJkuZ"
+}
