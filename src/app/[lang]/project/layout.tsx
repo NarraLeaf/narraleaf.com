@@ -11,7 +11,18 @@ export default async function Layout({ children, params }: LayoutProps<'/[lang]/
   return (
     <>
       <DocsTopLevelNav locale={locale} active="project" />
-      <DocsLayout tree={projectSource.getPageTree(locale)} {...baseOptions(locale)}>
+      {/*
+        Project is a single page, so the docs sidebar has nothing to list.
+        Disabling it still leaves the mobile subnav's sidebar toggle, which would
+        open an empty drawer — hide that leftover trigger. Scoped to this route
+        because the layout only mounts on /project.
+      */}
+      <style>{`#nd-subnav button:has(svg.lucide-panel-left){display:none}`}</style>
+      <DocsLayout
+        tree={projectSource.getPageTree(locale)}
+        sidebar={{ enabled: false }}
+        {...baseOptions(locale)}
+      >
         {children}
       </DocsLayout>
     </>
