@@ -10,7 +10,7 @@ export default async function Layout({ children, params }: LayoutProps<'/[lang]/
 
   return (
     <>
-      <DocsTopLevelNav locale={locale} active="project" />
+      <DocsTopLevelNav locale={locale} active="project" showBrand />
       {/*
         Project is a single page, so the docs sidebar has nothing to list.
         Disabling it still leaves the mobile subnav's sidebar toggle, which would
