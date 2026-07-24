@@ -1,0 +1,124 @@
+---
+title: "Camera"
+---
+> This class extends [Displayble](/docs/narraleaf-react/core/elements/displayable)
+
+The camera transforms the **whole stage as one unit** — every [Scene](/docs/narraleaf-react/core/elements/scene), its backgrounds and sprites, and any playing [Video](/docs/narraleaf-react/core/elements/video) move together — while the dialog box, menus, and NVL layer stay fixed.
+
+Every [Story](/docs/narraleaf-react/core/elements/story) has exactly one camera, reachable as `story.camera`. You author camera actions like any other element action.
+
+```ts
+import { Story, Scene, Character } from "narraleaf-react";
+
+const story = new Story("entry");
+const scene = new Scene("scene 1");
+const aria = new Character("Aria");
+
+scene.action([
+    story.camera.zoom(2, 800, "easeInOut"),   // zoom the whole stage in
+    story.camera.pan({ xalign: 0.3 }, 800),   // slide the view across
+    story.camera.rotate(3, 400),              // tilt
+    story.camera.darken(0.6, 500),            // dim the stage
+    aria.say`It's getting dark...`,
+    story.camera.reset(600),                  // return to the neutral pose
+]);
+```
+
+<Callout type="info">
+    The camera reuses the same [Transform](/docs/narraleaf-react/core/animation/transform) pipeline as
+    images and layers, so it inherits every chainable transform method from
+    [Displayable](/docs/narraleaf-react/core/elements/displayable): `pos`, `zoom`, `scale`, `rotate`,
+    `opacity`, `transform`, `filter`, `effect`, and more. They all apply to the whole stage.
+</Callout>
+
+## Accessing the camera
+
+<Steps>
+<Step>
+
+`story.camera` is a single, always-present camera. There is exactly one per story, its pose persists across scene changes, and it is captured by save/load like any other element.
+
+```ts
+scene.action([
+    story.camera.zoom(1.5, 600),
+    story.camera.darken(0.4, 400),
+]);
+```
+</Step>
+</Steps>
+
+## Public Methods
+
+### pan
+
+<Steps>
+<Step>
+
+Pan the camera so the given [position](/docs/narraleaf-react/core/animation/transform/properties) sits at the centre of the view. This is an alias of the inherited `pos` method with camera-oriented naming.
+
+```ts
+story.camera.pan({ xalign: 0.3 }, 800, "easeInOut");
+```
+</Step>
+</Steps>
+
+### darken
+
+<Steps>
+<Step>
+
+Darken the whole stage. `darkness` is a value between `0` (normal) and `1` (black). Under the hood it drives the camera's CSS `filter` to `brightness(1 - darkness)`, the same mechanism as [`Image.darken`](/docs/narraleaf-react/core/elements/image).
+
+```ts
+story.camera.darken(0.6, 500, "easeInOut");
+```
+
+<Callout type="warning">
+    Darken shares the single CSS `filter` channel, so it overwrites (and is overwritten by) other
+    filters. To combine darken with another filter such as `blur`, write the full string yourself
+    via `camera.filter("blur(4px) brightness(0.4)")`.
+</Callout>
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+Return the camera to its neutral pose: centred, zoom `1`, no rotation, fully opaque, and no filter (which also clears `darken`).
+
+```ts
+story.camera.reset(600, "easeInOut");
+```
+</Step>
+</Steps>
+
+## Inherited transform methods
+
+The camera is a [Displayable](/docs/narraleaf-react/core/elements/displayable), so its full transform surface moves the whole stage:
+
+- `zoom(factor, duration?, easing?)` — zoom in/out uniformly.
+- `scale(scaleX, scaleY, duration?, easing?)` — non-uniform scale.
+- `rotate(deg, duration?, easing?)` — rotate the view.
+- `pos(position, duration?, easing?)` — pan (see [`pan`](#pan)).
+- `opacity(value, duration?, easing?)` — fade the whole stage.
+- `filter(css, options?)` / `effect(...)` — colour-grade the stage (e.g. `"contrast(1.2) saturate(1.3)"`).
+- `transform(new Transform(...))` — run a full multi-step [Transform](/docs/narraleaf-react/core/animation/transform) sequence.
+
+## Setting the initial pose
+
+There is exactly one camera per story. Pass your own only to set its starting pose:
+
+```ts
+import { Story, Camera } from "narraleaf-react";
+
+const story = new Story("entry", {
+    camera: new Camera({ zoom: 1.2 }),
+});
+```
+
+<Callout type="info">
+    The camera moves the visual stage only. The dialog box, menus, and the NVL layer are rendered
+    outside it and are intentionally unaffected, so text stays readable while the camera moves.
+</Callout>

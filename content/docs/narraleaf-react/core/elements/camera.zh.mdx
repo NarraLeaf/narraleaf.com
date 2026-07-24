@@ -1,0 +1,124 @@
+---
+title: "摄像机"
+---
+> 该类继承自 [Displayble](/zh/docs/narraleaf-react/core/elements/displayable)
+
+摄像机将**整个舞台作为一个整体**进行变换——每个 [Scene](/zh/docs/narraleaf-react/core/elements/scene)、它的背景与立绘，以及正在播放的 [Video](/zh/docs/narraleaf-react/core/elements/video) 会一起移动——而对话框、菜单和 NVL 层保持固定不动。
+
+每个 [Story](/zh/docs/narraleaf-react/core/elements/story) 都恰好拥有一个摄像机，可通过 `story.camera` 访问。你可以像编写其他元素的操作一样编写摄像机的操作。
+
+```ts
+import { Story, Scene, Character } from "narraleaf-react";
+
+const story = new Story("entry");
+const scene = new Scene("scene 1");
+const aria = new Character("Aria");
+
+scene.action([
+    story.camera.zoom(2, 800, "easeInOut"),   // 放大整个舞台
+    story.camera.pan({ xalign: 0.3 }, 800),   // 横向平移镜头
+    story.camera.rotate(3, 400),              // 倾斜
+    story.camera.darken(0.6, 500),            // 压暗舞台
+    aria.say`天色渐暗……`,
+    story.camera.reset(600),                  // 回到中性姿态
+]);
+```
+
+<Callout type="info">
+    摄像机复用与图片、图层相同的 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 管线，
+    因此它继承了 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable) 的全部可链式变换方法：
+    `pos`、`zoom`、`scale`、`rotate`、`opacity`、`transform`、`filter`、`effect` 等，
+    它们都会作用于整个舞台。
+</Callout>
+
+## 访问摄像机
+
+<Steps>
+<Step>
+
+`story.camera` 是一个始终存在的唯一摄像机。每个故事只有一个，其姿态在场景切换之间保持不变，并像其他元素一样被存档 / 读档所保存与恢复。
+
+```ts
+scene.action([
+    story.camera.zoom(1.5, 600),
+    story.camera.darken(0.4, 400),
+]);
+```
+</Step>
+</Steps>
+
+## 公共方法
+
+### pan
+
+<Steps>
+<Step>
+
+平移镜头，使给定的[位置](/zh/docs/narraleaf-react/core/animation/transform/properties)位于视图中心。这是继承的 `pos` 方法的别名，采用更贴合摄像机语义的命名。
+
+```ts
+story.camera.pan({ xalign: 0.3 }, 800, "easeInOut");
+```
+</Step>
+</Steps>
+
+### darken
+
+<Steps>
+<Step>
+
+压暗整个舞台。`darkness` 取值在 `0`（正常）到 `1`（全黑）之间。其底层将摄像机的 CSS `filter` 设为 `brightness(1 - darkness)`，与 [`Image.darken`](/zh/docs/narraleaf-react/core/elements/image) 的机制相同。
+
+```ts
+story.camera.darken(0.6, 500, "easeInOut");
+```
+
+<Callout type="warning">
+    darken 与其他滤镜共用同一个 CSS `filter` 通道，因此它会覆盖其他滤镜，也会被其他滤镜覆盖。
+    若要将 darken 与诸如 `blur` 的滤镜组合，请通过 `camera.filter("blur(4px) brightness(0.4)")`
+    自行写出完整的滤镜字符串。
+</Callout>
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+将摄像机恢复到中性姿态：居中、缩放为 `1`、无旋转、完全不透明、无滤镜（同时也会清除 `darken`）。
+
+```ts
+story.camera.reset(600, "easeInOut");
+```
+</Step>
+</Steps>
+
+## 继承的变换方法
+
+摄像机是一个 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)，因此其全部变换能力都会作用于整个舞台：
+
+- `zoom(factor, duration?, easing?)` —— 等比放大 / 缩小。
+- `scale(scaleX, scaleY, duration?, easing?)` —— 非等比缩放。
+- `rotate(deg, duration?, easing?)` —— 旋转视图。
+- `pos(position, duration?, easing?)` —— 平移（见 [`pan`](#pan)）。
+- `opacity(value, duration?, easing?)` —— 淡入 / 淡出整个舞台。
+- `filter(css, options?)` / `effect(...)` —— 对舞台进行调色（例如 `"contrast(1.2) saturate(1.3)"`）。
+- `transform(new Transform(...))` —— 运行完整的多步 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 序列。
+
+## 设置初始姿态
+
+每个故事只有一个摄像机。仅当你想设置它的初始姿态时，才需要传入自定义摄像机：
+
+```ts
+import { Story, Camera } from "narraleaf-react";
+
+const story = new Story("entry", {
+    camera: new Camera({ zoom: 1.2 }),
+});
+```
+
+<Callout type="info">
+    摄像机只移动视觉舞台。对话框、菜单和 NVL 层渲染在它之外，会被有意地排除在外，
+    因此镜头移动时文本依旧清晰可读。
+</Callout>
