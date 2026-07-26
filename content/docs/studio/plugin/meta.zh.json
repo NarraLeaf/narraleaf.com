@@ -3,9 +3,11 @@
   "pages": [
     "index",
     "create-first-plugin",
+    "manifest",
     "api-reference",
     "studio",
-    "host-api",
+    "runtime",
+    "build-dependencies",
     "install-plugin"
   ]
 }

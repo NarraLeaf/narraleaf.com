@@ -1,0 +1,54 @@
+---
+title: ui.overlay
+description: 在运行中的游戏之上绘制一个元素——以及它唯一去不了的地方。
+---
+
+`app.game.ui.overlay` 是插件绘制作者没有摆放过的东西的方式：一条成就提示、一个调试徽标、一个通知。注册的控件只会出现在作者放置它的地方；覆盖层出现，是因为你的插件决定要显示它。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["ui.overlay"]
+  }
+}
+```
+
+## 方法
+
+| 方法 | 签名 |
+| --- | --- |
+| `mount` | `(render: () => ReactElement \| null) => RuntimePluginCleanup` |
+
+你传入一个**渲染函数**，由宿主来调用它；清理函数负责卸载。
+
+```tsx
+export default defineRuntimePlugin({
+    setup(app) {
+        let message: string | null = null;
+
+        app.game.ui?.overlay.mount(() => message === null
+            ? null
+            : <div className="achievement-toast">{message}</div>);
+
+        app.game.events?.on("gameEnd", () => { message = "The End"; });
+    },
+});
+```
+
+返回 `null` 什么都不渲染，这就是一个只在某些时候可见的覆盖层不用卸载就能关掉自己的方式。
+
+## 渲染的是宿主，不是你
+
+游戏环境刻意不提供 `react-dom/client`，所以插件**无法挂载自己的 React root**——第二个 root 会在同一棵树上和宿主的打架。这也是为什么 `mount` 接受的是一个返回元素的函数，而不是一个用来渲染进去的容器。`react`、`react-dom` 和 JSX 运行时由宿主以 external 形式提供；请在你的打包器里把它们标记为 external，绝不要自带一份副本。
+
+## 层级，说清楚
+
+覆盖层位于**游戏舞台之上**、**应用界面之下**——菜单、存档界面、作者编写的页面都会画在它上面。
+
+<Callout type="warn">
+它同时也位于**对话框之上**，这多半不是你想要的。引擎把 say/NVL 渲染在它的 player 组件内部，而宿主唯一的注入点是在其之后发出的——DOM 中不存在一个位于对话之下、能容纳宿主层的位置。放在对话区域的覆盖层**会把它盖住**。在引擎长出一个真正的覆盖层插槽之前，请让覆盖层远离对话区域。
+</Callout>
+
+## 可用性
+
+`ui.overlay` 在每一个发布目标上都有支撑——桌面、Web 和移动端——开发模式中也有。它在编辑器内预览中缺席，那里没有可供绘制的游戏画面。一如既往，用 `app.game.ui?.overlay` 防护。

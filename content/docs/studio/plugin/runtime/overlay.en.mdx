@@ -1,0 +1,54 @@
+---
+title: ui.overlay
+description: Draw an element on top of the running game — and the one place it will not go.
+---
+
+`app.game.ui.overlay` is how a plugin draws something the author did not place: an achievement toast, a debug badge, a notification. Registered widgets only appear where an author put them; an overlay appears because your plugin decided to show it.
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["ui.overlay"]
+  }
+}
+```
+
+## Method
+
+| Method | Signature |
+| --- | --- |
+| `mount` | `(render: () => ReactElement \| null) => RuntimePluginCleanup` |
+
+You pass a **render function** and the host calls it; the cleanup unmounts.
+
+```tsx
+export default defineRuntimePlugin({
+    setup(app) {
+        let message: string | null = null;
+
+        app.game.ui?.overlay.mount(() => message === null
+            ? null
+            : <div className="achievement-toast">{message}</div>);
+
+        app.game.events?.on("gameEnd", () => { message = "The End"; });
+    },
+});
+```
+
+Returning `null` renders nothing, which is how an overlay that is only sometimes visible turns itself off without unmounting.
+
+## The host renders it, not you
+
+The game environment deliberately withholds `react-dom/client`, so a plugin **cannot mount its own React root** — a second root would fight the host's over the same tree. That is why `mount` takes a function returning an element rather than a container to render into. `react`, `react-dom`, and the JSX runtimes are provided as host externals; mark them external in your bundler and never ship your own copy.
+
+## Stacking, precisely
+
+The overlay sits **above the game stage** and **below the app surfaces** — menus, save screens, authored pages all draw over it.
+
+<Callout type="warn">
+It also sits **above the dialogue box**, which is probably not what you want. The engine renders say/NVL inside its player component, and the only injection point a host has is emitted after it — there is no DOM position beneath the dialogue for a host layer to take. An overlay placed where dialogue happens **will cover it**. Keep overlays out of the dialogue region until the engine grows a proper overlay slot.
+</Callout>
+
+## Availability
+
+`ui.overlay` is backed on every shipping target — desktop, web, and mobile — and in Dev Mode. It is absent in the in-editor preview, which has no game surface to draw on. As always, guard with `app.game.ui?.overlay`.

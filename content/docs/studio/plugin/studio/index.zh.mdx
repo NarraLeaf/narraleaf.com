@@ -5,7 +5,7 @@ description: 插件在编辑器中能触碰到的一切——definePlugin 入口
 
 Studio API 是 `narraleaf-studio/plugin` 接口：插件在**编辑器进程**（工作区窗口）中能触碰到的一切。它是插件向 Studio 本身贡献内容的地方——面板、操作、快捷键、蓝图节点元数据、控件、语言包——也是它读取项目资源和自身存储的地方。
 
-它是 [宿主 API](/docs/studio/plugin/host-api) 的编辑器侧对应物，后者作用于运行中的游戏。插件的 `studio` 入口对接 Studio API，`runtime` 入口对接游戏。参见 [两个入口](/docs/studio/plugin/create-first-plugin)。
+它是 [运行时接口](/docs/studio/plugin/runtime) 的编辑器侧对应物，后者作用于运行中的游戏。插件的 `studio` 入口对接 Studio API，`runtime` 入口对接游戏。参见 [两个入口](/docs/studio/plugin/create-first-plugin)。
 
 ## definePlugin
 

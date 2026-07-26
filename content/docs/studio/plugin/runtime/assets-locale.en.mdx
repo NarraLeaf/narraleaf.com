@@ -1,0 +1,57 @@
+---
+title: assets & locale
+description: Resolve a packaged asset id to a URL this shell can load, and follow the player's language.
+---
+
+Two small capabilities, declared independently:
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["assets", "locale"]
+  }
+}
+```
+
+## assets
+
+`app.game.assets` turns an asset id from the project's pack into a URL the current shell can load. Without it a plugin would have to hardcode the game's internal protocol string, which differs between the desktop shell and the web export.
+
+| Method | Signature |
+| --- | --- |
+| `url` | `(assetId: string) => string` |
+
+```tsx
+const src = app.game.assets?.url(String(ctx.params.iconAssetId ?? ""));
+```
+
+Synchronous, so it is safe inside a widget renderer or a pure node.
+
+<Callout type="warn">
+`assets` is **absent in Dev Mode**. Asset resolution there goes through asynchronous IPC, and this capability's signature is a synchronous `url()` — the two cannot be reconciled, so the domain is simply not offered. A plugin that renders asset-backed imagery must have a fallback for Dev Mode, or the author testing it will see an empty box and blame the plugin. It is available in Preview and in every exported build.
+</Callout>
+
+## locale
+
+`app.game.locale` is the **game's** display language — the one the player chose, set by the running project's localization data.
+
+| Member | Signature |
+| --- | --- |
+| `current` | `readonly string` |
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+
+```ts
+const locale = app.game.locale?.current ?? "en";
+
+const stop = app.game.locale?.onChange(next => {
+    // re-read your own translated strings for `next`
+});
+```
+
+This is read-only: a plugin can follow the player's language but cannot change it.
+
+<Callout type="info">
+Do not confuse this with [`app.services.i18n`](/docs/studio/plugin/studio/i18n), which is the **editor's** UI language and exists only on the studio entry. They are different languages set by different people — an author editing in English can be testing a game running in Japanese.
+</Callout>
+
+If your plugin ships its own translated strings for game-facing text, key them off `locale.current` and re-render on `onChange`. The runtime surface has no translator of its own.

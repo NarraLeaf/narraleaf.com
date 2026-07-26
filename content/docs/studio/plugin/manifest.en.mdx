@@ -1,0 +1,137 @@
+---
+title: Manifest
+description: Every field in manifest.json — the entries, the full contributes surface, and why most permissions are derived rather than written.
+---
+
+`manifest.json` is the only file Studio reads without executing your code. It declares what the plugin provides, and everything the install prompt shows is computed from it.
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": {
+    "blueprintNodes": ["yourname.hello.log"],
+    "runtimeCapabilities": ["store"]
+  },
+  "permissions": []
+}
+```
+
+## Top-level fields
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `manifestVersion` | yes | Always `2`. Version 1 is rejected. |
+| `id` | yes | Namespaced: `publisher.plugin-name`, lowercase, at least one dot. |
+| `name` | yes | Display name. |
+| `version` | yes | Semver (`1.0.0`), optionally with a prerelease or build suffix. |
+| `publisher` | no | Shown in the plugin list. |
+| `description` | no | One line, shown at install. |
+| `entries` | yes | `{ studio?, runtime? }` — package-relative ESM paths. At least one; both files must exist. |
+| `contributes` | no | Everything the plugin provides. Omitting a key is the same as an empty list. |
+| `permissions` | no | Author-declared privileged capabilities only — see [below](#permissions-are-derived). |
+
+Entry paths cannot be absolute or contain `..`, `.`, null bytes, `?`, or `#`.
+
+## contributes
+
+`contributes` is the **single source of truth** for what a plugin can do. Studio validates a project against it without running plugin code, and the install permission set is derived from it.
+
+| Key | Type | What it declares |
+| --- | --- | --- |
+| `blueprintNodes` | `string[]` | Blueprint node types this plugin provides. |
+| `widgets` | `string[]` | Widget element types this plugin provides. |
+| `locales` | object[] | Studio language packs — locales the plugin adds or fills. |
+| `runtimeData` | `string[]` | Plugin storage namespaces to publish with the game. |
+| `runtimeCapabilities` | `string[]` | Capability domains the runtime entry may use. |
+| `sidecars` | object[] | Native child processes shipped inside the author's game. |
+| `buildDependencies` | object[] | External binaries fetched and cached at build time. |
+
+Every node type, widget type, storage namespace, sidecar id, and build-dependency id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
+
+### blueprintNodes and widgets
+
+Registering a type you did not declare throws at load time, on both entries. The declaration is what lets Studio tell an author *before* a build that a node their project uses has no runtime provider — instead of shipping a game with a node that does nothing.
+
+### runtimeData
+
+Plugin storage lives under the project's editor directory, which is never packaged. If your runtime entry needs data an author authored in Studio — a catalog, a lookup table — list those namespaces here and read them with `app.game.data.readJson(namespace)`.
+
+```json
+{ "contributes": { "runtimeData": ["yourname.hello.catalog"] } }
+```
+
+The list is an explicit allowlist so editor-only plugin state cannot leak into a shipped game by accident. `readJson` is **synchronous** — the data travels with the pack — and returns `null` when the namespace was not declared, the project never wrote it, or the game predates the data being published. Degrade gracefully; do not assume authored data exists.
+
+### runtimeCapabilities
+
+The nine capability domains, each mapping onto one namespace of `app.game`. An undeclared domain is **absent from the object**, not a method that throws. Declaring one without an `entries.runtime` is a manifest error.
+
+```json
+{ "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
+```
+
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+
+The full model, what each one grants, and how environments narrow it further: [Runtime API](/docs/studio/plugin/runtime).
+
+### sidecars and buildDependencies
+
+The two heavy declarations. A [sidecar](/docs/studio/plugin/runtime/sidecar) is a native child process that ships inside the games an author builds; a [build dependency](/docs/studio/plugin/build-dependencies) is an external binary Studio downloads, verifies, and caches at build time. Both are keyed by `<platform>-<arch>` and both require a `sha256`.
+
+### locales
+
+A Studio language pack — a locale the plugin adds, or gaps it fills in a built-in one. See [Make a plugin](/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack). A manifest with only `contributes.locales` and no entry code is a valid plugin.
+
+## Permissions are derived
+
+Install permissions come in two families, and the split is the point.
+
+**Author-declared** — written by you in `permissions[]`. These are privileged Studio controls that have nothing to do with `contributes`:
+
+```json
+{
+  "permissions": [
+    { "kind": "filesystem", "path": "/absolute/path", "mode": "readwrite", "recursive": true },
+    { "kind": "api", "capability": "bash.execute" }
+  ]
+}
+```
+
+| Kind | Shape |
+| --- | --- |
+| `filesystem` | `{ path, mode: "read" \| "write" \| "readwrite", recursive }` — a real path string. |
+| `api` | `{ capability }` — currently only `bash.execute` is usable by a plugin. |
+
+These affect the **studio** entry only. Grants are recorded per `pluginId@version`, so bumping your version requires the author to approve again.
+
+**Derived** — computed by Studio from `contributes`, never written by you:
+
+| Kind | Derived from |
+| --- | --- |
+| `runtime` | Each entry in `contributes.runtimeCapabilities`. |
+| `sidecar` | Each `contributes.sidecars` entry, with the platform keys it ships. |
+| `buildDependency` | Each `contributes.buildDependencies` entry, with the hostnames it downloads from. |
+
+<Callout type="warn">
+Writing a `runtime`, `sidecar`, or `buildDependency` permission by hand is a **manifest error** — the plugin fails to install with *"permission kind … is derived from contributes and must not be declared by hand."* Declare the capability once, in `contributes`, and the permission follows.
+</Callout>
+
+This is what keeps the install prompt honest: a capability is declared in exactly one place, so what the prompt lists and what the plugin can actually reach cannot drift apart. It also makes updates behave — adding a capability widens the derived permission set, which re-prompts the author automatically, while a version that widens nothing inherits the existing grant.
+
+## Validation failures
+
+| Symptom | Check |
+| --- | --- |
+| Install rejected | `manifest.json` is not valid JSON, or `id` / `version` / `entries` failed validation. |
+| "requires a runtime entry" | `runtimeCapabilities` or `sidecars` declared without `entries.runtime`. |
+| "must not be declared by hand" | A derived permission kind written into `permissions[]`. |
+| "Unknown plugin runtime capability" | A typo in `runtimeCapabilities`. The list is closed. |
+| Registration throws at load | A node or widget type that is not in `contributes`, or not prefixed with the plugin id. |
+| Preview fails with "Plugin validation failed" | A node or widget the project uses has no runtime provider — plugin disabled, missing, no `entries.runtime`, or the type is not declared. |
+| Digest mismatch on install | A sidecar file's bytes do not match its `sha256`. |

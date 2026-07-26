@@ -3,7 +3,7 @@ title: i18n
 description: Read the editor's language and localize your own strings against it.
 ---
 
-`app.services.i18n` is read access to the **editor's** UI language, so a plugin can translate its own panels and react to a live language switch. This is the editor language, not a game's player-facing language — for that, a blueprint node uses [`hostApi.localization`](/docs/studio/plugin/host-api/localization).
+`app.services.i18n` is read access to the **editor's** UI language, so a plugin can translate its own panels and react to a live language switch. This is the editor language, not a game's player-facing language — for that, a runtime entry reads [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale) behind the `locale` capability.
 
 ## Members
 

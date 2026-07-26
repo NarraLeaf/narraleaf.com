@@ -1,0 +1,76 @@
+---
+title: store
+description: Plugin-scoped persistent key/value storage, kept beside the player's saves rather than inside them.
+---
+
+`app.game.store` is your plugin's own persistent area in the player's game. It lives **beside** the saves rather than inside them, so it survives starting a new game — which is what unlocked-content records, achievement mirrors, and "have they seen this yet" flags need.
+
+Declare it first:
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["store"]
+  }
+}
+```
+
+## Methods
+
+| Method | Signature |
+| --- | --- |
+| `get` | `<T>(key: string) => Promise<T \| null>` |
+| `set` | `<T>(key: string, value: T) => Promise<void>` |
+| `remove` | `(key: string) => Promise<void>` |
+| `keys` | `() => Promise<string[]>` |
+
+Everything is asynchronous, and `get` resolves to `null` when nothing is stored.
+
+```ts
+export default defineRuntimePlugin({
+    async setup(app) {
+        const seen = (await app.game.store?.get<string[]>("unlocked")) ?? [];
+        app.game.log("info", `${seen.length} unlocked`);
+    },
+});
+```
+
+## Keys are namespaced for you
+
+Write bare keys. The host prefixes every key with your plugin id before it reaches the backing store, so two plugins that both use `"unlocked"` never collide and you never have to repeat your own id.
+
+```ts
+await app.game.store?.set("unlocked", [...seen, "cg_01"]);
+const unlocked = await app.game.store?.get<string[]>("unlocked");
+```
+
+`keys()` returns your keys *without* the prefix, so what you get back is what you pass in.
+
+## Where it is stored
+
+| Target | Backing |
+| --- | --- |
+| Desktop game | The game's persistence file in the player's user data. |
+| Web export | IndexedDB. |
+| Android / iOS | The shell's persistence, same as desktop. |
+
+The store is not part of a save slot, and it is not the editor-side [`app.services.storage`](/docs/studio/plugin/studio/storage), which only exists while the workspace is open. If you need data you authored in Studio to reach the game, publish it with [`contributes.runtimeData`](/docs/studio/plugin/manifest#runtimedata) and read it through `app.game.data.readJson` instead — that is read-only and travels with the pack.
+
+<Callout type="info">
+The store is **not available in the in-editor preview**, where a node runs on the editor canvas with no game behind it. Guard with `app.game.store?.` and let the node do nothing there.
+</Callout>
+
+## Asynchronous, which affects your nodes
+
+Every method returns a promise. A blueprint node that awaits the store must be declared `isLatent: true`, and a latent node cannot be used inside an inline story expression — put it in an event or macro graph.
+
+```ts
+{
+    type: `${PLUGIN_ID}.isUnlocked`,
+    isLatent: true,
+    execute: async ctx => {
+        const unlocked = (await ctx.game.store?.get<string[]>("unlocked")) ?? [];
+        return { nextPort: "next", outputValues: { value: unlocked.includes(String(ctx.params.id ?? "")) } };
+    },
+}
+```

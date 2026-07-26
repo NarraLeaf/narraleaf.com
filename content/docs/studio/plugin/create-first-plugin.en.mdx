@@ -65,10 +65,25 @@ Open `manifest.json` and `package.json` and replace the id, name, and publisher 
 | `publisher` | no | Shown in the plugin list. |
 | `description` | no | One line. |
 | `entries` | yes | `{ studio?, runtime? }` — relative ESM paths. At least one. |
-| `contributes` | no | What the plugin provides: `blueprintNodes`, `widgets`, `locales`. |
-| `permissions` | no | Elevated capabilities (filesystem, API). Empty by default. |
+| `contributes` | no | Everything the plugin provides — see below. |
+| `permissions` | no | Author-declared privileged capabilities (filesystem, API) only. Empty by default. |
 
-`contributes` is a declaration Studio validates without running your code. Every blueprint node type and widget type you register must be listed here, prefixed with your plugin id. Registering a type you did not declare throws at load time, and a game that uses a node whose provider is missing fails to build with a clear error — the declaration is what makes that check possible.
+`contributes` is a declaration Studio validates without running your code, and it is the **single source of truth** for what the plugin can do:
+
+| Key | What it declares |
+| --- | --- |
+| `blueprintNodes` / `widgets` | The types this plugin provides. |
+| `locales` | Studio language packs. |
+| `runtimeData` | Plugin storage namespaces published with the game. |
+| `runtimeCapabilities` | Which capability domains the runtime entry may use. |
+| `sidecars` | Native child processes shipped inside the author's game. |
+| `buildDependencies` | External binaries fetched at build time. |
+
+Registering a type you did not declare throws at load time, and a game that uses a node whose provider is missing fails to build with a clear error — the declaration is what makes that check possible. The full field-by-field reference is on the [Manifest](/docs/studio/plugin/manifest) page.
+
+<Callout type="warn">
+Studio **derives** the install permission prompt from `contributes`. Do not write `runtime`, `sidecar`, or `buildDependency` permissions into `permissions[]` by hand — the manifest is rejected if you do. Declare the capability once, and the permission follows.
+</Callout>
 
 ## The two entries
 
@@ -148,7 +163,7 @@ export default defineRuntimePlugin({
 });
 ```
 
-Both `registerMany` calls accept the same `BlueprintNodeDef[]`; the runtime side uses only `type` and `execute` and ignores the editor metadata. This one-definition-two-entries shape is why the types package bundles both surfaces together — a `BlueprintNodeDef` from `/plugin` is assignable to what the `/runtime` register expects.
+Both `registerMany` calls accept the same `BlueprintNodeDef[]`; the runtime side uses only `type`, `displayName` and `execute` and ignores the editor metadata. This one-definition-two-entries shape is why the types package bundles both surfaces together — a `BlueprintNodeDef` from `/plugin` is assignable to what the `/runtime` register expects.
 
 ### Reading config
 
@@ -161,25 +176,40 @@ execute: async ctx => {
 }
 ```
 
-<Callout type="info">
-A plugin node cannot read a *data input pin*. Built-in nodes resolve wired data through an internal accessor that is not part of the plugin API. Drive plugin nodes from `inspectorParams` + `ctx.params` instead.
-</Callout>
-
-### Persisting game state
-
-Game-side execution reaches the host through `ctx.hostAdapter.blueprintRuntime?.hostApi`, which exposes `persistence` for reading and writing saved game state:
+To read a **wired data input pin** instead of a static field, use `ctx.resolveInput?.(pinId)`. It follows the edge lazily and returns `undefined` for an unwired or undeclared pin.
 
 ```ts
 execute: async ctx => {
-    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
-    if (!hostApi) {
-        throw new Error("This node requires game host APIs");
-    }
-    const seen = (await hostApi.persistence.get("yourname.hello.count")) ?? 0;
-    await hostApi.persistence.set("yourname.hello.count", Number(seen) + 1);
+    const message = String(ctx.resolveInput?.("message") ?? ctx.params.message ?? "");
+    // ...
+}
+```
+
+### Reaching the game
+
+A node's context is deliberately narrow. It carries `params`, `resolveInput`, `eventName`, `eventPayload`, `signal`, and `game` — and `ctx.game` is **the same object** `setup(app)` was handed as `app.game`. There is one API inside and outside a node, and it is exactly what your manifest declared.
+
+Declare a capability to get its namespace:
+
+```json
+{ "contributes": { "runtimeCapabilities": ["store"] } }
+```
+
+```ts
+execute: async ctx => {
+    // Undeclared, or unavailable in this environment: the namespace is absent,
+    // so optional chaining is the whole guard.
+    const seen = (await ctx.game.store?.get<number>("count")) ?? 0;
+    await ctx.game.store?.set("count", seen + 1);
     return { nextPort: "next" };
 }
 ```
+
+<Callout type="warn">
+An undeclared capability is **missing from `ctx.game`**, not a method that throws — there is nothing to catch. And there is no `ctx.hostAdapter`: earlier builds leaked the host's entire internal API through `ctx.hostAdapter.blueprintRuntime.hostApi`, with nothing declared and nothing shown to the author at install. If you are porting a plugin written against that path, everything it used now lives behind a declared capability on `ctx.game` — see the [Runtime API](/docs/studio/plugin/runtime).
+</Callout>
+
+The same `execute` also runs in the in-editor preview, where there is no game at all and **every** gated namespace is absent. Write nodes that degrade rather than nodes that assume.
 
 ## A panel with the `ui` kit
 
@@ -315,6 +345,10 @@ yarn typecheck
 
 An installable plugin is the `dist/` folder — `manifest.json`, the built entry files, and any locale JSON. Zip that folder (or its contents) for a release. To try it locally, point Studio at the built `dist/` directory: see [Install a plugin](/docs/studio/plugin/install-plugin).
 
+<Callout type="info">
+If your plugin ships a [sidecar](/docs/studio/plugin/runtime/sidecar), the zip will **not** preserve the executable bit — no plugin packaging path does. The game host repairs it before spawning, so this is not something you need to work around; just do not be alarmed by the mode on disk on macOS or Linux. Every shipped binary still needs its `sha256` in the manifest, verified at install and again at pack time.
+</Callout>
+
 <Files>
   <Folder name="dist" defaultOpen>
     <File name="manifest.json" />
@@ -326,4 +360,4 @@ An installable plugin is the `dist/` folder — `manifest.json`, the built entry
   </Folder>
 </Files>
 
-Next: the full [API reference](/docs/studio/plugin/api-reference) for every method on both surfaces.
+Next: the full [API reference](/docs/studio/plugin/api-reference) for every method on both surfaces, and [the capability model](/docs/studio/plugin/runtime) if your plugin needs anything from the running game.

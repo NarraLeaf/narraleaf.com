@@ -21,5 +21,5 @@ const data = await app.services.storage.readJson<{ count: number }>("state");
 `namespace` 是你插件自有存储内的一个键——无需加插件 id 前缀，因为该存储本就为插件私有。值是 JSON。
 
 <Callout type="info">
-这是编辑器侧状态，只在工作区打开时可用。它不是游戏的持久化——蓝图节点在运行时通过 [`hostApi.persistence`](/docs/studio/plugin/host-api/state) 读写可持久的游戏状态。
+这是编辑器侧状态，只在工作区打开时可用。它不是游戏的持久化——runtime 入口在 `store` 能力之下通过 [`app.game.store`](/docs/studio/plugin/runtime/store) 读写可持久的游戏侧状态。要把你在这里编写的数据发布给游戏读取，请把它的命名空间列入 [`contributes.runtimeData`](/docs/studio/plugin/manifest#runtimedata)，并用 `app.game.data.readJson` 读取。
 </Callout>

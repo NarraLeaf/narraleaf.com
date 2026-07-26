@@ -226,6 +226,8 @@ export default defineRuntimePlugin({
 
 `app` carries `app.plugin`, `app.manifest`, and `app.game`.
 
+`app.game` has four members that are always present — `blueprintNodes`, `widgets`, `data`, `log` — and a set of capability-gated namespaces that exist only when `contributes.runtimeCapabilities` declared them. An undeclared namespace is `undefined`, not a thrower. See the [Runtime API](/docs/studio/plugin/runtime) for the full model.
+
 ### game.blueprintNodes
 
 ```ts
@@ -233,9 +235,36 @@ app.game.blueprintNodes.register({ type, execute });
 app.game.blueprintNodes.registerMany(defs);
 ```
 
-Registers the game-side `execute` for each node type. Pass the same `BlueprintNodeDef[]` you register on the studio side (a shared module) — only `type` and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
+Registers the game-side `execute` for each node type. Pass the same `BlueprintNodeDef[]` you register on the studio side (a shared module) — only `type`, `displayName`, and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
 
-Inside `execute`, a node drives the running game through the **Host API** — `ctx.hostAdapter.blueprintRuntime?.hostApi`. See the [Host API reference](/docs/studio/plugin/host-api) for every family it exposes.
+#### The node context
+
+`execute(ctx)` receives exactly this, and nothing else:
+
+| Field | Type | What |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | Static parameter values authored on the node. |
+| `ctx.resolveInput?` | `(pinId: string) => unknown` | Reads one of the node's declared data input pins, following the wired edge. Lazy; `undefined` for an unwired or undeclared pin. |
+| `ctx.eventName?` | `string` | The event slot being handled, when the node runs inside an event graph. |
+| `ctx.eventPayload?` | `Record<string, unknown>` | That event's payload. |
+| `ctx.signal?` | `AbortSignal` | Aborted when the execution is cancelled. Honour it in long-running nodes. |
+| `ctx.game` | `RuntimePluginGame` | **The very same object** `setup(app)` received as `app.game`. |
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    const wired = ctx.resolveInput?.("value");
+
+    // Undeclared or unavailable here: the namespace is absent, so skip the work.
+    await ctx.game.store?.set("lastMessage", message);
+
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="warn">
+There is no `ctx.hostAdapter`. Earlier builds leaked the host's full internal API through `ctx.hostAdapter.blueprintRuntime.hostApi` — saves, localization, quitting the app — with nothing declared in the manifest and nothing shown to the author at install. That path is gone. Whatever a node touches, it touches through `ctx.game`, which is exactly the capability set `contributes` declared.
+</Callout>
 
 ### game.widgets
 
@@ -246,13 +275,36 @@ app.game.widgets.registerMany(defs);
 
 Registers the game-side renderer for a widget type. `render` receives the same props Studio passes built-in element renderers. Each type must be declared in `contributes.widgets`. Returns `void`.
 
+### game.data
+
+```ts
+const catalog = app.game.data.readJson<Catalog>("yourname.plugin.catalog");
+```
+
+Read-only access to plugin storage published with the game, for the namespaces declared in `contributes.runtimeData`. **Synchronous** — the data travels with the pack, so there is nothing to await. Returns `null` when the namespace was not declared, the project never wrote it, or the game predates the data being published.
+
 ### game.log
 
 ```ts
 app.game.log("info", "loaded");    // "info" | "warning" | "error"
 ```
 
-Writes to the game host log, visible in Dev Mode.
+Writes to the game host log with a `[plugin:{id}]` prefix. Dev Mode sends it to the window console; Preview and Production send it to the game process log.
+
+### The capability-gated namespaces
+
+Each of these exists only when `contributes.runtimeCapabilities` declared it *and* this environment can back it. Full reference: [Runtime API](/docs/studio/plugin/runtime).
+
+| Namespace | Capability | Reference |
+| --- | --- | --- |
+| `game.store` | `store` | [store](/docs/studio/plugin/runtime/store) |
+| `game.events` | `events` | [events](/docs/studio/plugin/runtime/events) |
+| `game.state` | `state.read` (`set` needs `state.write`) | [state](/docs/studio/plugin/runtime/state) |
+| `game.saves` | `saves.read` (`write` / `load` need `saves.write`) | [saves](/docs/studio/plugin/runtime/saves) |
+| `game.ui.overlay` | `ui.overlay` | [ui.overlay](/docs/studio/plugin/runtime/overlay) |
+| `game.assets` | `assets` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
+| `game.locale` | `locale` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
+| `game.sidecar` | none — a non-empty `contributes.sidecars` | [sidecar](/docs/studio/plugin/runtime/sidecar) |
 
 ### No i18n on the runtime surface
 
@@ -264,5 +316,7 @@ The runtime entry runs in the game — in Production there is no editor and no e
 
 - **Mark host modules external.** `narraleaf-studio/plugin`, `narraleaf-studio/runtime`, and the React packages are provided by the host. Bundling your own copies breaks loading. The template's esbuild config lists them.
 - **A blueprint node needs both entries** to work in a shipped game — studio for the palette, runtime for execution. Studio-only registration runs in the editor preview and then does nothing once exported.
-- **Plugins cannot read data input pins.** Use `inspectorParams` + `ctx.params`.
+- **Check for a namespace, do not catch.** An undeclared or unavailable capability is missing from `app.game`, so `app.game.store?.set(...)` is the guard. There is nothing to `try`.
+- **The editor cannot back any capability.** The same `execute` runs on the editor canvas, where every gated namespace is absent. A node that assumes a game will do nothing there — write it so that is fine.
 - **Node defs are permanent for the session.** `blueprintNodes.register` returns `void` by design; you cannot unregister a node type.
+- **Never hand-write a derived permission.** `runtime`, `sidecar`, and `buildDependency` permissions come from `contributes`; writing one into `permissions[]` fails the manifest.

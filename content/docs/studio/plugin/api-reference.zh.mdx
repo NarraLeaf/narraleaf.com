@@ -226,6 +226,8 @@ export default defineRuntimePlugin({
 
 `app` 携带 `app.plugin`、`app.manifest` 和 `app.game`。
 
+`app.game` 有四个始终存在的成员——`blueprintNodes`、`widgets`、`data`、`log`——以及一组受能力控制的命名空间，它们只在 `contributes.runtimeCapabilities` 声明过之后才存在。未声明的命名空间是 `undefined`，而不是一个会抛错的方法。完整模型见 [Runtime API](/docs/studio/plugin/runtime)。
+
 ### game.blueprintNodes
 
 ```ts
@@ -233,9 +235,36 @@ app.game.blueprintNodes.register({ type, execute });
 app.game.blueprintNodes.registerMany(defs);
 ```
 
-为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `BlueprintNodeDef[]`（一个共享模块）——只会用到 `type` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`。
+为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `BlueprintNodeDef[]`（一个共享模块）——只会用到 `type`、`displayName` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`。
 
-在 `execute` 内部，节点通过**宿主 API**——`ctx.hostAdapter.blueprintRuntime?.hostApi`——驱动运行中的游戏。它暴露的每个能力族见 [宿主 API 参考](/docs/studio/plugin/host-api)。
+#### 节点上下文
+
+`execute(ctx)` 收到的就是下面这些，别无其他：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | 在节点上填写的静态参数值。 |
+| `ctx.resolveInput?` | `(pinId: string) => unknown` | 沿着连线读取该节点声明过的某个数据输入引脚。惰性求值；引脚未连线或未声明时返回 `undefined`。 |
+| `ctx.eventName?` | `string` | 节点运行在事件图中时，当前处理的事件槽。 |
+| `ctx.eventPayload?` | `Record<string, unknown>` | 该事件的载荷。 |
+| `ctx.signal?` | `AbortSignal` | 执行被取消时进入中止状态。长时间运行的节点应当遵守它。 |
+| `ctx.game` | `RuntimePluginGame` | 与 `setup(app)` 收到的 `app.game` **完全是同一个对象**。 |
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    const wired = ctx.resolveInput?.("value");
+
+    // Undeclared or unavailable here: the namespace is absent, so skip the work.
+    await ctx.game.store?.set("lastMessage", message);
+
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="warn">
+没有 `ctx.hostAdapter` 这个东西。早期版本通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 把宿主完整的内部 API 泄漏了出去——存档、本地化、退出应用——清单里什么都没声明，安装时也什么都没展示给作者。那条路径已经没有了。节点触及的任何东西，都要经由 `ctx.game`，而它恰好就是 `contributes` 声明的那组能力。
+</Callout>
 
 ### game.widgets
 
@@ -246,13 +275,36 @@ app.game.widgets.registerMany(defs);
 
 为某个控件类型注册游戏侧渲染器。`render` 收到的 props 与 Studio 传给内置元素渲染器的相同。每个类型都必须在 `contributes.widgets` 中声明。返回 `void`。
 
+### game.data
+
+```ts
+const catalog = app.game.data.readJson<Catalog>("yourname.plugin.catalog");
+```
+
+对随游戏一并发布的插件存储的只读访问，范围是 `contributes.runtimeData` 中声明的那些命名空间。**同步**——数据随包一起分发，没有什么需要 await。当命名空间未被声明、项目从未写入过，或游戏早于该数据被发布时，返回 `null`。
+
 ### game.log
 
 ```ts
 app.game.log("info", "loaded");    // "info" | "warning" | "error"
 ```
 
-写入游戏宿主日志，可在开发模式中查看。
+以 `[plugin:{id}]` 前缀写入游戏宿主日志。开发模式把它送到窗口控制台；预览和生产环境把它送到游戏进程日志。
+
+### 受能力控制的命名空间
+
+只有当 `contributes.runtimeCapabilities` 声明了它*并且*当前环境能够支撑它时，下面这些才存在。完整参考：[Runtime API](/docs/studio/plugin/runtime)。
+
+| 命名空间 | 能力 | 参考 |
+| --- | --- | --- |
+| `game.store` | `store` | [store](/docs/studio/plugin/runtime/store) |
+| `game.events` | `events` | [events](/docs/studio/plugin/runtime/events) |
+| `game.state` | `state.read`（`set` 需要 `state.write`） | [state](/docs/studio/plugin/runtime/state) |
+| `game.saves` | `saves.read`（`write` / `load` 需要 `saves.write`） | [saves](/docs/studio/plugin/runtime/saves) |
+| `game.ui.overlay` | `ui.overlay` | [ui.overlay](/docs/studio/plugin/runtime/overlay) |
+| `game.assets` | `assets` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
+| `game.locale` | `locale` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
+| `game.sidecar` | 无——只需一个非空的 `contributes.sidecars` | [sidecar](/docs/studio/plugin/runtime/sidecar) |
 
 ### runtime 接口上没有 i18n
 
@@ -264,5 +316,7 @@ runtime 入口运行在游戏中——在生产环境里没有编辑器，也没
 
 - **把宿主模块标记为 external。** `narraleaf-studio/plugin`、`narraleaf-studio/runtime` 和 React 相关包都由宿主提供。打包进你自己的副本会破坏加载。模板的 esbuild 配置已经列出了它们。
 - **蓝图节点需要两个入口**才能在发布游戏中工作——studio 用于选板，runtime 用于执行。只在 studio 注册的话，只会在编辑器预览中运行，一旦导出就什么都不做。
-- **插件无法读取数据输入引脚。** 请使用 `inspectorParams` + `ctx.params`。
+- **检查命名空间是否存在，不要去 catch。** 未声明或不可用的能力在 `app.game` 上是缺失的，所以 `app.game.store?.set(...)` 就是全部的防护。没有什么可以 `try`。
+- **编辑器无法支撑任何能力。** 同一个 `execute` 也会在编辑器画布上运行，那里每一个受控命名空间都不存在。假定有游戏在跑的节点在那里什么都不会做——请把它写成这件事无所谓的样子。
 - **节点定义在整个会话中是永久的。** `blueprintNodes.register` 按设计返回 `void`；你无法注销某个节点类型。
+- **绝不要手写派生权限。** `runtime`、`sidecar` 和 `buildDependency` 权限都来自 `contributes`；把其中任何一个写进 `permissions[]` 都会让清单校验失败。

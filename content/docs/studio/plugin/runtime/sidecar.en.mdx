@@ -1,0 +1,203 @@
+---
+title: sidecar
+description: Ship a native child process inside the author's game, and talk to it over newline-delimited JSON.
+---
+
+A sidecar is a native program your plugin ships **inside the games an author builds**. It exists because a plugin's runtime entry is renderer code — no native modules, no dynamic libraries, no raw sockets — and some integrations (a platform SDK, a hardware bridge) simply cannot live there. The sidecar runs as a child process of the game's main process and talks to your plugin over stdio.
+
+This is the heaviest thing a plugin can declare: it is code that reaches the player's machine. It is deliberately explicit — per-platform binaries, mandatory digests, and an install permission the author sees by name.
+
+<Callout type="warn">
+Web and mobile builds have **no sidecar, ever**. There is no process to spawn in a browser, and the mobile shells are WebViews. A plugin that needs a sidecar must degrade to something useful without one, not fail. See [Degrade, always](#degrade-always).
+</Callout>
+
+## Declare it
+
+There is no capability string for sidecars: declaring one in `contributes.sidecars` **is** the request, and `app.game.sidecar` exists exactly when that list is non-empty.
+
+```json
+{
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": {
+    "sidecars": [
+      {
+        "id": "yourname.plugin.bridge",
+        "kind": "executable",
+        "transport": "stdio-jsonl",
+        "autostart": "onRequest",
+        "startupTimeoutMs": 5000,
+        "shutdownTimeoutMs": 3000,
+        "restart": { "maxRetries": 2, "backoffMs": 1000 },
+        "targets": {
+          "windows-x64": {
+            "entry": "bin/windows-x64/bridge.exe",
+            "include": [
+              "bin/windows-x64/bridge.exe",
+              "dep:yourname.plugin.sdk/bin/windows-x64/sdk.dll"
+            ],
+            "sha256": {
+              "bin/windows-x64/bridge.exe": "a1b2…64 hex chars"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+| Field | Default | Notes |
+| --- | --- | --- |
+| `id` | — | Must be prefixed with your plugin id, like every other contributed identifier. |
+| `kind` | `"executable"` | `"executable"` spawns the binary directly. `"node"` runs a `.js` file under the game's own Electron as Node. |
+| `transport` | `"stdio-jsonl"` | The only accepted value in v1. |
+| `autostart` | `"onGameStart"` | `"onGameStart"` spawns with the window; `"onRequest"` waits for the first call. |
+| `startupTimeoutMs` | `5000` | How long the handshake may take before the sidecar counts as unavailable. |
+| `shutdownTimeoutMs` | `3000` | Grace period between the shutdown message and `SIGTERM`. |
+| `restart` | `{ maxRetries: 3, backoffMs: 1000 }` | Crash-restart policy. |
+| `targets` | — | At least one platform key. |
+
+Declaring a sidecar without `entries.runtime` is a manifest error — it would ask the author to approve something nothing can use.
+
+### Platform keys
+
+Keys are `<platform>-<arch>`, and only desktop is addressable:
+
+`windows-x64` · `windows-arm64` · `macos-x64` · `macos-arm64` · `macos-universal` · `linux-x64` · `linux-arm64`
+
+(`universal` is accepted for macOS only.) A platform you declare nothing for simply has no sidecar there — a supported shape, not an omission. The build reports it as a warning so the author knows the feature is gone from that target before they ship it.
+
+### `include` and `sha256`
+
+`include` lists everything shipped for that platform. Entries are either package-relative paths, or `dep:<buildDependencyId>/<path>` to pull an artifact produced by a declared [build dependency](/docs/studio/plugin/build-dependencies) — that is how a redistributable you may not mirror yourself reaches the pack. The `entry` must also appear in `include`.
+
+`sha256` is **mandatory** for every package-relative entry in `include`, as lowercase hex. It is verified at install and again at pack time, so a tampered package fails to install rather than silently shipping a different binary. `dep:` entries are covered by the build dependency's own digest instead.
+
+<Callout type="info">
+`dep:` files land at the include path with the `dep:<id>/` prefix stripped. On Windows a DLL is searched for beside the executable, so map it into the same directory your `entry` lives in.
+</Callout>
+
+## Use it from the runtime entry
+
+| Method | Signature |
+| --- | --- |
+| `available` | `(sidecarId: string) => boolean` |
+| `start` | `(sidecarId: string) => Promise<RuntimePluginSidecarHandle>` |
+
+`start` is idempotent — repeated calls return the same running handle.
+
+```ts
+export default defineRuntimePlugin({
+    async setup(app) {
+        const sidecar = app.game.sidecar;
+        if (!sidecar?.available("yourname.plugin.bridge")) {
+            return; // web, mobile, or a desktop target that ships no binary
+        }
+
+        const bridge = await sidecar.start("yourname.plugin.bridge");
+        const version = await bridge.request<string>("version");
+        app.game.log("info", `bridge ${version}`);
+
+        bridge.onEvent((method, params) => { /* pushed from the sidecar */ });
+        bridge.onExit(({ code, signal }) => { /* it died; degrade */ });
+    },
+});
+```
+
+### The handle
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `request` | `<T>(method: string, params?: unknown) => Promise<T>` | Awaits a reply. Rejects if the sidecar dies mid-flight. Starts the sidecar if it is not running. |
+| `notify` | `(method: string, params?: unknown) => void` | Fire-and-forget. Also starts the sidecar; if that start fails the notify is dropped. |
+| `onEvent` | `(listener: (method: string, params: unknown) => void) => RuntimePluginCleanup` | Unsolicited messages from the sidecar. |
+| `onExit` | `(listener: (info: { code: number \| null; signal: string \| null }) => void) => RuntimePluginCleanup` | The process ended. |
+| `stop` | `() => Promise<void>` | Shut it down. Not counted as a crash; no restart is scheduled. |
+
+Correlation ids are the host's business — you call `request("method", params)` and get the result.
+
+## The wire protocol
+
+You write the other end of this. The transport is **newline-delimited JSON over stdio**: one JSON object per line on stdout, UTF-8, `\n`-terminated (a trailing `\r` is tolerated, so CRLF works). **stdout is the protocol; stderr is a plain log channel** and is never parsed — write your diagnostics there. In a Production build only stderr lines that look like warnings or errors are kept; in Preview everything is logged.
+
+A single line may be at most **1 MiB**. Longer lines are dropped with a warning rather than tearing down the connection. Non-JSON lines, non-object frames, and unknown frame types on stdout are likewise logged and skipped.
+
+Every frame carries a `t` discriminator.
+
+### Host → sidecar (on your stdin)
+
+```json
+{"t":"hello","protocol":1,"pluginId":"yourname.plugin","sidecarId":"yourname.plugin.bridge","cwd":"…","mode":"production","game":{"name":"My Game","version":"1.0.0"}}
+{"t":"req","id":1,"method":"achievements.unlock","params":{"id":"FIRST_END"}}
+{"t":"req","method":"stats.flush"}
+{"t":"bye"}
+```
+
+- `hello` is written **immediately after spawn**, synchronously. Read stdin from your first instruction — do not attach a reader later and expect it to still be there. `mode` is `"preview"` or `"production"`.
+- A `req` **with** `id` wants a reply. A `req` **without** `id` is a notification and wants none. `params` is omitted entirely when there is nothing to send.
+- `bye` is the shutdown request, followed by stdin EOF.
+
+### Sidecar → host (on your stdout)
+
+```json
+{"t":"ready","protocol":1,"caps":["achievements","stats"]}
+{"t":"res","id":1,"result":{"ok":true}}
+{"t":"res","id":2,"error":{"message":"Steam is not running","code":"NO_STEAM"}}
+{"t":"evt","method":"overlay.shown","params":{"achievement":"FIRST_END"}}
+```
+
+- `ready` completes the handshake and must arrive within `startupTimeoutMs`. `protocol` must be `1` if you send it. `caps` is logged for diagnostics; the host gates nothing on it.
+- `res` answers a `req` by `id`. A response with an `error` object rejects the plugin's promise; otherwise `result` resolves it. The plugin sees an `Error` whose message names the sidecar, the method, and your `message`, with `code` appended when present.
+- `evt` is a push with no acknowledgement. There is no way for a sidecar to make a request *of* the host — only `res` and `evt` are recognized.
+
+### Lifecycle
+
+| Moment | What the host does |
+| --- | --- |
+| Spawn | Writes `hello` at once and starts the handshake timer. |
+| No `ready` in `startupTimeoutMs` | `SIGKILL` immediately, the pending `start()` rejects, one restart failure is charged. |
+| Protocol mismatch | Same as a handshake failure. |
+| Crash or unexpected exit | Pending requests reject; `onExit` fires; a restart is scheduled. |
+| Restart | Backoff doubles from `backoffMs`, capped at 30s. A run that stayed ready for a minute resets the counter. |
+| Past `maxRetries` | Permanently unavailable for the rest of the process. `available()` turns false and further `start()` calls reject. |
+| Shutdown | `{"t":"bye"}`, then stdin EOF; `SIGTERM` after `shutdownTimeoutMs`; `SIGKILL` two seconds later. |
+
+<Callout type="warn">
+**Treat stdin EOF as "terminate now."** On an abrupt application quit the host has no time for a graceful `bye` and kills the process outright. A sidecar that keeps running after its stdin closes becomes an orphan on the player's machine.
+</Callout>
+
+### Process environment
+
+- **cwd** is a per-sidecar writable directory in the game's user data (`sidecars/<pluginId>/<sidecarId>/`), created for you. It is *not* the install directory, which is read-only in a real install. Put runtime files you need to write there.
+- **Environment variables** are the game main process's own, unchanged except for `ELECTRON_RUN_AS_NODE`, which is set for `kind: "node"` and removed for `kind: "executable"`. Nothing else is injected — all context arrives in `hello`.
+- **Shared libraries** load from beside the executable (Windows) or via rpath (POSIX), not from cwd. Ship them next to `entry`.
+
+## Degrade, always
+
+`available()` returning false is the normal case on most targets, not an error path:
+
+| Target | Sidecar |
+| --- | --- |
+| Desktop build, arch declared | yes |
+| Desktop build, arch not declared | no — the build warns the author |
+| Web export | never |
+| Android / iOS | never |
+| Preview | yes, using the host machine's platform key |
+| Dev Mode | **no** — the Dev Mode window hosts no child processes |
+
+Write the plugin so the feature it provides has a local answer without the sidecar, and treat the native path as an enhancement. A plugin that throws when `available()` is false is broken on the majority of targets an author can build.
+
+<Callout type="info">
+Sidecars cannot be exercised in **Dev Mode** — that window is a Studio window, not a game shell, and it hosts no child processes. Use **Preview** to test one; it packages the sidecar for the host machine's own platform key and runs the same shell a shipped game runs.
+</Callout>
+
+## Known boundaries
+
+These are current, real limits — not hypotheticals.
+
+- **A plugin zip does not carry the executable bit.** Neither the registry's packaging nor Studio's extraction records file modes, so on macOS and Linux a sidecar lands non-executable and could never spawn. The host repairs this immediately before spawning: on POSIX it checks the owner-execute bit and adds execute only where read is already granted, never widening visibility. If the `chmod` fails, the sidecar is marked unavailable rather than silently not working. You do not need to do anything, but do not be surprised by the mode on disk.
+- **Building several desktop targets at once ships no sidecars at all.** The packaging pipeline currently serves every desktop target from one staged application directory, while sidecars are per `<platform>-<arch>`. When more than one desktop target is selected, the build emits a warning and packages **none** of them — putting a Windows executable inside a `.app` would be worse. Build one desktop target at a time when a sidecar matters.
+- **macOS signing.** A nested executable must be signed together with the host application or Gatekeeper rejects it harder than an unsigned app. Until a signing pass lands, macOS builds carrying a sidecar are for your own use.
+- **Sidecars are not packed into the archive.** Executables and dynamic libraries cannot run from inside an asar, so they ship unpacked beside it. Under a sealed (encrypted) build they stay unpacked too — a sidecar is an executable, and pretending it is protected would only mislead.
+- **Plugins are not isolated from each other in the renderer.** Every runtime plugin is same-origin ESM in one renderer process, and the channel that reaches the sidecar host cannot cryptographically prove which plugin called it. The declaration boundary still holds — the host only ever spawns a sidecar some manifest declared — but do not treat a sidecar as a private channel between it and one plugin.
+- **A failed sidecar copy fails the whole Preview compile** rather than degrading to "no sidecar this run". A missing `dep:` artifact or a digest mismatch will stop Preview from starting. In a production build that is the right behaviour; in Preview it is sharper than it should be.

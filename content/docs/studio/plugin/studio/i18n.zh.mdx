@@ -3,7 +3,7 @@ title: i18n
 description: 读取编辑器语言，并据此本地化你自己的字符串。
 ---
 
-`app.services.i18n` 是对**编辑器** UI 语言的只读访问，让插件能翻译自己的面板并响应实时的语言切换。这是编辑器语言，不是游戏面向玩家的语言——后者由蓝图节点通过 [`hostApi.localization`](/docs/studio/plugin/host-api/localization) 处理。
+`app.services.i18n` 是对**编辑器** UI 语言的只读访问，让插件能翻译自己的面板并响应实时的语言切换。这是编辑器语言，不是游戏面向玩家的语言——后者由 runtime 入口在 `locale` 能力之下读取 [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale)。
 
 ## 成员
 

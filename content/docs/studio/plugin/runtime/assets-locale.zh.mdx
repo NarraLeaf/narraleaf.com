@@ -1,0 +1,57 @@
+---
+title: assets 与 locale
+description: 把打包资源的 id 解析成当前外壳能加载的 URL，并跟随玩家的语言。
+---
+
+两项小能力，各自独立声明：
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["assets", "locale"]
+  }
+}
+```
+
+## assets
+
+`app.game.assets` 把项目包中的资源 id 变成当前外壳能加载的 URL。没有它，插件就只能硬编码游戏的内部协议字符串，而这个字符串在桌面外壳和 Web 导出之间是不一样的。
+
+| 方法 | 签名 |
+| --- | --- |
+| `url` | `(assetId: string) => string` |
+
+```tsx
+const src = app.game.assets?.url(String(ctx.params.iconAssetId ?? ""));
+```
+
+它是同步的，所以在控件渲染器或纯节点里用都是安全的。
+
+<Callout type="warn">
+`assets` 在**开发模式中缺席**。那里的资源解析要走异步 IPC，而这项能力的签名是同步的 `url()`——两者无法调和，所以这个域干脆就不提供。会渲染资源图像的插件必须为开发模式准备一条退路，否则测试它的作者只会看到一个空白框，然后怪罪插件。它在预览和每一种导出构建中都可用。
+</Callout>
+
+## locale
+
+`app.game.locale` 是**游戏的**显示语言——玩家选择的那个，由运行中的项目的本地化数据设定。
+
+| 成员 | 签名 |
+| --- | --- |
+| `current` | `readonly string` |
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+
+```ts
+const locale = app.game.locale?.current ?? "en";
+
+const stop = app.game.locale?.onChange(next => {
+    // 按 `next` 重新读取你自己的翻译字符串
+});
+```
+
+这是只读的：插件可以跟随玩家的语言，但不能改变它。
+
+<Callout type="info">
+不要把它和 [`app.services.i18n`](/docs/studio/plugin/studio/i18n) 搞混，后者是**编辑器的** UI 语言，且只存在于 studio 入口上。它们是由不同的人设定的不同语言——用英文编辑的作者，完全可能在测试一个跑日文的游戏。
+</Callout>
+
+如果你的插件为面向游戏的文本自带翻译字符串，请以 `locale.current` 为键，并在 `onChange` 时重新渲染。运行时接口自己没有翻译器。

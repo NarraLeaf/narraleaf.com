@@ -35,20 +35,23 @@ description: 在编辑器侧注册蓝图节点定义与动态下拉选项。
 
 引脚（`BlueprintNodePinDef`）为 `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`。
 
-## execute 与宿主 API
+## execute 与节点上下文
 
-`execute(ctx)` 从 `ctx.params` 读取检查器字段，并通过宿主 API 驱动运行中的游戏：
+`execute(ctx)` 收到的是一个窄而固定的上下文——`params`、`resolveInput`、`eventName`、`eventPayload`、`signal` 和 `game`。`ctx.game` 就是那个受能力把关的游戏面，与 runtime 入口的 `setup(app)` 收到的 `app.game` 是同一个对象。
 
 ```ts
 execute: async ctx => {
     const message = String(ctx.params.message ?? "");
-    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
-    hostApi?.devtools.log("info", message);
+    ctx.game.log("info", message);
     return { nextPort: "next" };
 }
 ```
 
-从 `ctx.hostAdapter.blueprintRuntime?.hostApi` 可触及的一切，都记录在 [宿主 API 参考](/docs/studio/plugin/host-api) 中。
+<Callout type="warn">
+从 **studio** 入口注册节点，意味着它同样会在编辑器画布预览中运行，而那里没有游戏——`ctx.game` 上每个受能力把关的命名空间都缺席。请用可选链防护（`ctx.game.store?.…`），让同一份 `execute` 在编辑器里降级、在发行的游戏里正常工作。
+</Callout>
+
+从 `ctx.game` 可触及的一切，都记录在 [运行时接口参考](/docs/studio/plugin/runtime) 中。
 
 ## 动态下拉选项
 
@@ -64,5 +67,5 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 声明为 `{ kind: "select", dynamicOptionsSource: "yourname.plugin.items" }` 的检查器参数会渲染该源返回的选项。
 
 <Callout type="info">
-插件节点无法读取*数据输入引脚*——那个访问器是内部的。改用 `inspectorParams` + `ctx.params` 来驱动插件节点。
+要读取已连线的**数据输入引脚**，在 `execute` 内调用 `ctx.resolveInput?.(pinId)`。它沿着连线惰性求值，对未连线或未声明的引脚返回 `undefined`。卡片上的静态字段仍然来自 `inspectorParams` + `ctx.params`。
 </Callout>

@@ -1,0 +1,100 @@
+---
+title: Build Dependencies
+description: Declare external binaries Studio downloads, verifies, and caches at build time — and the offline path that always works.
+---
+
+`contributes.buildDependencies` is the answer for a redistributable whose license lets the **game** ship it but does not let a public plugin registry mirror it. You declare where the bytes come from and what their digest is; Studio fetches them during the author's build, verifies them, caches them by content, and hands them to your [sidecar](/docs/studio/plugin/runtime/sidecar).
+
+## When you do not need this
+
+Three ways a plugin can get at a binary, and only the middle one is Studio's job:
+
+| Path | Who handles it |
+| --- | --- |
+| Ship the binary inside your own plugin package | You — just list it in the sidecar's `include`. |
+| Declare an external URL, downloaded at build time | **Studio** — this page. |
+| Ask the author to download it and point at the file | You — with your studio entry and `app.privileged.fs`. |
+
+If you may redistribute the binary yourself, put it in the package. This exists for the case where you may not.
+
+## Declare it
+
+```json
+{
+  "contributes": {
+    "buildDependencies": [
+      {
+        "id": "yourname.plugin.sdk",
+        "description": "Vendor SDK redistributable binaries",
+        "targets": {
+          "windows-x64": {
+            "url": "https://example.com/sdk_1.6.2.zip",
+            "sha256": "a1b2…64 hex chars",
+            "archive": "zip",
+            "files": {
+              "sdk/redistributable_bin/win64/sdk.dll": "bin/windows-x64/sdk.dll"
+            }
+          },
+          "linux-x64": {
+            "url": "https://example.com/libsdk.so",
+            "sha256": "c3d4…64 hex chars",
+            "archive": "none",
+            "fileName": "bin/linux-x64/libsdk.so"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` | Prefixed with your plugin id. This is what `dep:<id>/…` includes refer to. |
+| `description` | Shown to the author at install and in build logs. Say what the binaries are. |
+| `targets` | Keyed by `<platform>-<arch>`, the same desktop keys sidecars use. |
+
+Per target:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `url` | yes | Must be `https`. |
+| `sha256` | yes | No digest, no download. It doubles as the cache key. |
+| `archive` | yes | `"zip"` or `"none"`. |
+| `files` | with `"zip"` | Archive-internal path → path inside the produced dependency directory. |
+| `fileName` | with `"none"` | Name the downloaded file takes inside the produced dependency directory. |
+
+## Reaching the files from a sidecar
+
+A sidecar `include` entry of the form `dep:<dependencyId>/<path>` pulls an artifact this dependency produced. The file lands at the include path with the `dep:<id>/` prefix stripped, so lay it out where your executable expects it — on Windows a DLL is searched for beside the `.exe`, so map it into the same directory as the sidecar `entry`.
+
+```json
+"include": [
+  "bin/windows-x64/bridge.exe",
+  "dep:yourname.plugin.sdk/bin/windows-x64/sdk.dll"
+]
+```
+
+`dep:` entries are covered by the dependency's own `sha256`, so they do not need one in the sidecar's digest map. Referencing an undeclared dependency id is a manifest error.
+
+## Caching, and what the author sees
+
+The cache key is the **content digest**, not the URL, so re-pointing a URL at identical bytes never re-downloads. A cache hit never touches the network. A verification failure leaves nothing behind under the cache key, so a poisoned download can never be mistaken for a good one on the next build.
+
+At install, the derived `buildDependency` permission shows the author the dependency id and the **hostnames** the binaries would be fetched from. Downloading an external binary into somebody's game is not something to slip past them.
+
+## The offline path
+
+An author's build machine may have no network, or your `url` may go away. There is always a way through: the build reports the exact path to drop the file at.
+
+<Callout type="info">
+When a dependency is neither cached nor reachable, the build's preflight fails with `build-dependency-unavailable` and names a `source` file path under the build cache. Save the downloaded file there — under the digest's own directory, with no extension — and build again. Whatever is found there is verified against the declared `sha256`, so a wrong file fails loudly instead of shipping.
+</Callout>
+
+If your dependency is behind a login — a partner portal, an SDK that requires accepting terms — the manual path is not a fallback, it is the *only* path, and your plugin's README should document it as the normal procedure rather than as a workaround.
+
+## What Studio deliberately does not do
+
+- No version resolution, no dependency graph, no mirror fallback.
+- No license acceptance flow.
+- No download at install time — build dependencies are fetched when a game is built, not when the plugin is installed.

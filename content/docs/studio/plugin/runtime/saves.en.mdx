@@ -1,0 +1,58 @@
+---
+title: saves
+description: List and read save slots, and — with the heavier capability — overwrite one or load it.
+---
+
+`app.game.saves` reaches the player's save slots. It is split across two capabilities because listing saves and destroying a playthrough are not the same request:
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["saves.read", "saves.write"]
+  }
+}
+```
+
+## Methods
+
+| Method | Signature | Needs |
+| --- | --- | --- |
+| `listIds` | `() => Promise<string[]>` | `saves.read` |
+| `readMetadata` | `(id: string) => Promise<RuntimePluginSaveMetadata \| null>` | `saves.read` |
+| `write` | `(id: string, metadata?: unknown) => Promise<void>` | `saves.write` |
+| `load` | `(id: string) => Promise<void>` | `saves.write` |
+
+```ts
+type RuntimePluginSaveMetadata = {
+    id: string;
+    updatedAt?: number;
+    metadata?: unknown;
+};
+```
+
+`write` and `load` are absent from the object without `saves.write`, so guard them: `app.game.saves?.write?.(...)`.
+
+## Quick save, in full
+
+```ts
+const SLOT = "yourname.quick-save.slot";
+
+// write
+await app.game.saves?.write?.(SLOT, { at: "chapter-2" });
+
+// read back
+const meta = await app.game.saves?.readMetadata(SLOT);
+
+// load — replaces the running playthrough
+await app.game.saves?.load?.(SLOT);
+```
+
+Pick a slot id namespaced with your plugin id so it never collides with a slot the player named. `metadata` round-trips through JSON — pass plain data only.
+
+<Callout type="warn">
+`write` **overwrites** the slot and `load` **abandons the current playthrough**. The install prompt tells the author exactly that, in those words. Declare `saves.write` only if overwriting a slot is the point of your plugin — a quick-save plugin, a chapter-select — and never as a convenience on top of `saves.read`.
+</Callout>
+
+## What is not here
+
+There is no `deleteSave`, no screenshot capture, and no way to enumerate another plugin's slots beyond the ids `listIds` returns. A plugin can see that slots exist and what metadata was stored with them; the contents of a playthrough are not readable through this API.

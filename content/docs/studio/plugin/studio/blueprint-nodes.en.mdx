@@ -35,20 +35,23 @@ The essential fields:
 
 A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`.
 
-## execute and the Host API
+## execute and the node context
 
-`execute(ctx)` reads its inspector fields from `ctx.params` and drives the running game through the Host API:
+`execute(ctx)` receives a narrow, fixed context — `params`, `resolveInput`, `eventName`, `eventPayload`, `signal`, and `game`. `ctx.game` is the capability-gated game surface, the same object a runtime entry's `setup(app)` receives as `app.game`.
 
 ```ts
 execute: async ctx => {
     const message = String(ctx.params.message ?? "");
-    const hostApi = ctx.hostAdapter.blueprintRuntime?.hostApi;
-    hostApi?.devtools.log("info", message);
+    ctx.game.log("info", message);
     return { nextPort: "next" };
 }
 ```
 
-Everything reachable from `ctx.hostAdapter.blueprintRuntime?.hostApi` is documented in the [Host API reference](/docs/studio/plugin/host-api).
+<Callout type="warn">
+Registering a node from the **studio** entry means it also runs in the editor's canvas preview, where there is no game — every capability-gated namespace on `ctx.game` is absent there. Guard with optional chaining (`ctx.game.store?.…`) so the same `execute` degrades in the editor and works in the shipped game.
+</Callout>
+
+Everything reachable from `ctx.game` is documented in the [Runtime API reference](/docs/studio/plugin/runtime).
 
 ## Dynamic select options
 
@@ -64,5 +67,5 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 An inspector param declared as `{ kind: "select", dynamicOptionsSource: "yourname.plugin.items" }` renders the options this source returns.
 
 <Callout type="info">
-A plugin node cannot read a *data input pin* — that accessor is internal. Drive plugin nodes from `inspectorParams` + `ctx.params` instead.
+To read a wired **data input pin**, call `ctx.resolveInput?.(pinId)` inside `execute`. It resolves lazily along the wired edge and returns `undefined` for an unwired or undeclared pin. Static on-card fields still come from `inspectorParams` + `ctx.params`.
 </Callout>

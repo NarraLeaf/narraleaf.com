@@ -1,0 +1,77 @@
+---
+title: events
+description: Subscribe to game lifecycle and story events, and check whether this environment can ever fire one.
+---
+
+`app.game.events` lets a plugin react to the running game without being wired into a graph — preload finishing, a line ending, a choice being made, the window being closed.
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["events"]
+  }
+}
+```
+
+## Methods
+
+| Method | Signature |
+| --- | --- |
+| `on` | `<K>(event: K, listener: (payload) => void) => RuntimePluginCleanup` |
+| `available` | `(event) => boolean` |
+
+`on` returns a cleanup that removes the subscription. The host also tracks every listener, so a plugin that fails cannot leak them.
+
+```ts
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.events?.on("choiceMade", ({ text }) => {
+            app.game.log("info", `player chose: ${text}`);
+        });
+    },
+});
+```
+
+## The events
+
+| Event | Payload | Notes |
+| --- | --- | --- |
+| `preloadComplete` | `void` | First-pass preload finished. **Replayed** — subscribing late still fires. |
+| `firstSceneReady` | `void` | First scene mounted and painted once. **Replayed**. |
+| `sceneEnter` | `{ sceneId: string \| null }` | A scene component **mounted**. See the warning below. |
+| `sceneExit` | `{ sceneId: string \| null }` | The counterpart unmount. |
+| `dialogueEnd` | `void` | One line of dialogue finished displaying. |
+| `choiceMade` | `{ text: string }` | The player picked a choice. |
+| `characterPrompt` | `{ character: string \| null; text: string }` | A character line was shown. |
+| `gameEnd` | `void` | The action stack drained with a save context present. |
+| `beforeRestore` | `void` | A save is about to be restored. |
+| `afterRestore` | `void` | A save has been restored. |
+| `fullscreenChanged` | `boolean` | The new fullscreen state. |
+| `closeRequested` | `void` | The player asked to close the window. **Desktop only.** |
+| `saveWritten` | `{ id: string }` | A save slot was written. |
+
+<Callout type="warn">
+`sceneEnter` / `sceneExit` are **rendering** events, not "the story reached this scene". A remount fires `sceneEnter` again for a scene the player never re-entered. If you need story progress, drive it from the story itself (a blueprint node) rather than from mounting.
+</Callout>
+
+## Check availability, do not assume a shell
+
+Some events cannot exist in some environments. `closeRequested` is the clear case: the web export has no window to close, so a listener registered there will never fire — a bug that only shows up on one target.
+
+```ts
+if (app.game.events?.available("closeRequested")) {
+    app.game.events.on("closeRequested", () => { /* flush something */ });
+} else {
+    // web: flush on `dialogueEnd` or on your own schedule instead
+}
+```
+
+<Callout type="info">
+A `closeRequested` listener is an **observer, not a veto**. Plugins are consulted in parallel and each is isolated; throwing from your listener is read as "no objection", not as a request to cancel the close. Nothing a plugin does can keep the window open.
+</Callout>
+
+## Replayed versus live
+
+`preloadComplete` and `firstSceneReady` replay: if the plugin subscribes after they already happened, the listener fires immediately. Every other event is live only — a listener registered after the fact hears nothing about the past.
+
+This matters because `setup` may be async. A plugin that awaits something before subscribing can miss live events fired in the meantime, but will still receive the two replayed ones.

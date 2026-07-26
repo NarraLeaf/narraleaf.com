@@ -1,0 +1,135 @@
+---
+title: Runtime API
+description: The game-side surface — what a runtime entry can reach, how capabilities gate it, and why an undeclared domain simply is not there.
+---
+
+The runtime API is the `narraleaf-studio/runtime` surface: everything a plugin can reach inside a **running game** — the Dev Mode window, Preview, and the exported Production build. It is where a plugin's blueprint nodes execute, where its widgets render, and where it stores data, listens to the story, and draws over the game.
+
+Everything hangs off one object, `app.game`, handed to `setup(app)` and to every node `execute` as `ctx.game`.
+
+```ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+        app.game.log("info", "runtime bindings registered");
+    },
+});
+```
+
+## Four members are always there
+
+| Member | What |
+| --- | --- |
+| `game.blueprintNodes` | `register` / `registerMany` the game-side `execute` for your node types. |
+| `game.widgets` | `register` / `registerMany` the game-side renderer for your widget types. |
+| `game.data` | `readJson(namespace)` — read plugin storage published with the game. |
+| `game.log` | `log(level, message)` into the host log. |
+
+Every type you register must be declared in `contributes.blueprintNodes` / `contributes.widgets`, and `game.data` only sees namespaces listed in `contributes.runtimeData`. See the [manifest reference](/docs/studio/plugin/manifest).
+
+## Everything else is capability-gated
+
+Beyond those four, each namespace on `app.game` exists **only if your manifest declared it** in `contributes.runtimeCapabilities`:
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["store", "events", "state.read"]
+  }
+}
+```
+
+<Callout type="warn">
+An undeclared domain is **absent from the object**, not a method that throws. `app.game.state` is `undefined` if you did not declare `state.read` — there is nothing to call and nothing to catch. Check for presence, do not wrap in `try`.
+</Callout>
+
+That is the whole contract. The install prompt lists exactly the domains present on `app.game`, so what the author approved at install and what your plugin can do are the same set by construction. You never write these permissions by hand — Studio derives them from `contributes`, and a hand-written one is a [manifest error](/docs/studio/plugin/manifest#permissions-are-derived).
+
+### The nine capabilities
+
+| Capability | Grants | What it is for |
+| --- | --- | --- |
+| `store` | [`app.game.store`](/docs/studio/plugin/runtime/store) | Plugin-scoped persistent key/value storage, kept beside the player's saves. |
+| `events` | [`app.game.events`](/docs/studio/plugin/runtime/events) | Subscribe to game lifecycle and story events. |
+| `state.read` | [`app.game.state`](/docs/studio/plugin/runtime/state) — `get`, `onChange` | Read and observe story variables. |
+| `state.write` | `app.game.state.set` | Write story variables. Implies `state.read`. |
+| `saves.read` | [`app.game.saves`](/docs/studio/plugin/runtime/saves) — `listIds`, `readMetadata` | List save slots and read their metadata. |
+| `saves.write` | `app.game.saves.write` / `.load` | Overwrite a slot, or replace the running playthrough. |
+| `ui.overlay` | [`app.game.ui.overlay`](/docs/studio/plugin/runtime/overlay) | Draw an element on top of the game. |
+| `assets` | [`app.game.assets`](/docs/studio/plugin/runtime/assets-locale) | Resolve a packaged asset id to a URL. |
+| `locale` | [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale) | Read and observe the game's display language. |
+
+The list is closed. An unrecognized capability string fails manifest validation rather than being ignored, so a typo can never read as "asked for nothing".
+
+Two of these deliberately split a domain in half:
+
+- **`state.write` implies `state.read`.** Declaring only `write` would under-report what the plugin can do — anything you can write, you can observe. Studio adds `state.read` for you.
+- **`saves.write` is heavier than `saves.read`** and separate from it: it can overwrite a slot or abandon a playthrough. The install prompt says so in as many words.
+
+### Sidecars have no capability string
+
+[`app.game.sidecar`](/docs/studio/plugin/runtime/sidecar) exists exactly when `contributes.sidecars` is non-empty. Declaring the sidecar *is* the request, so there is nothing extra to forget.
+
+## Gating is an intersection
+
+A domain appears when **the manifest declared it** *and* **this environment can back it**. The first half is approval; the second is physical reality — a browser has no child process to spawn, and the editor has no game to read.
+
+When a declared capability has no backing here, the namespace is absent and the host writes a warning to the log saying which one and why. Your plugin still loads.
+
+| Domain | Desktop build | Web export | Android / iOS | Preview | Dev Mode | In-editor preview |
+| --- | --- | --- | --- | --- | --- | --- |
+| `store` | yes | yes (IndexedDB) | yes | yes | yes | no |
+| `events` | yes | partial — see below | partial | yes | yes | no |
+| `state` | yes | yes | yes | yes | yes | no |
+| `saves` | yes | yes | yes | yes | yes | no |
+| `ui.overlay` | yes | yes | yes | yes | yes | no |
+| `assets` | yes | yes | yes | yes | **no** | no |
+| `locale` | yes | yes | yes | yes | yes | no |
+| `sidecar` | yes | **never** | **never** | yes | **no** | no |
+
+- `events.closeRequested` never fires on the web — there is no window to close. Use [`events.available(name)`](/docs/studio/plugin/runtime/events) rather than assuming a desktop shell.
+- **Dev Mode is not Preview.** Preview runs the same shell a shipped game runs; the Dev Mode window is a Studio window driving the project directly. Two capabilities differ there: `assets` is absent because asset resolution goes through async IPC while the capability's signature is a synchronous `url()`, and `sidecar` is absent because the Dev Mode window hosts no child processes. Test either of those in Preview.
+- The **in-editor preview** (running a node on the editor canvas) has no game at all, so every gated domain is absent. `game.data.readJson` returns `null` there too, and calling `game.blueprintNodes.register` throws — registration belongs to `app.services.*` on the studio entry. The same `execute` runs in both places, which is why a node must degrade rather than assume.
+
+## Write nodes that degrade
+
+Because an absent domain is `undefined`, the guard is ordinary optional chaining — no environment sniffing, no `try`.
+
+```ts
+execute: async ctx => {
+    // Undeclared, or unavailable here: skip the work, keep the flow going.
+    await ctx.game.store?.set("seen", true);
+
+    if (ctx.game.events?.available("closeRequested")) {
+        // desktop only
+    }
+
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="info">
+`ctx.game` in a node's `execute` is **the same object** `setup(app)` received as `app.game`. One API, one capability set, inside and outside a node.
+</Callout>
+
+## Sub-pages
+
+<Cards>
+  <Card title="store" href="/docs/studio/plugin/runtime/store" description="Plugin-scoped persistent key/value storage that survives a new game." />
+  <Card title="events" href="/docs/studio/plugin/runtime/events" description="Thirteen game and story events, with per-environment availability." />
+  <Card title="state" href="/docs/studio/plugin/runtime/state" description="Read, write, and observe scene / saved / persistent story variables." />
+  <Card title="saves" href="/docs/studio/plugin/runtime/saves" description="List and read save slots; overwrite or load one with the heavier capability." />
+  <Card title="ui.overlay" href="/docs/studio/plugin/runtime/overlay" description="Draw an element above the game — and the one place it will not go." />
+  <Card title="assets & locale" href="/docs/studio/plugin/runtime/assets-locale" description="Resolve packaged asset URLs and follow the player's language." />
+  <Card title="sidecar" href="/docs/studio/plugin/runtime/sidecar" description="Ship a native child process inside the author's game and talk to it over NDJSON." />
+</Cards>
+
+## What the runtime surface does not have
+
+- **No `hostAdapter`.** A node's `ctx` carries `params`, `resolveInput`, `eventName`, `eventPayload`, `signal`, and `game` — nothing else. Earlier builds leaked the host's full internal API through `ctx.hostAdapter.blueprintRuntime.hostApi`; that path is gone. Everything now goes through `ctx.game`, which is exactly what the manifest declared.
+- **No editor services.** `app.services`, `app.privileged`, and the `ui` kit are the [studio entry](/docs/studio/plugin/studio) only. A runtime entry is game code.
+- **No `react-dom/client`.** The host provides `react`, `react-dom`, and the JSX runtimes as externals, but a plugin must never mount its own React root — a second root would fight the host's over the same tree. Return elements and let the host render them.
+- **No editor i18n.** `app.services.i18n` is the editor's UI language. A game localizes its player-facing content through NarraLeaf's own localization system; the runtime surface only tells you which locale is active.
+- **No cleanup lifecycle.** A game process loads plugins once and never unloads them, so `setup` has no cleanup return and `register` returns `void`.

@@ -21,5 +21,5 @@ const data = await app.services.storage.readJson<{ count: number }>("state");
 `namespace` is a key within your plugin's own store — you do not need to prefix it with your plugin id, since the store is already private to the plugin. Values are JSON.
 
 <Callout type="info">
-This is editor-side state, available only while the workspace is open. It is not the game's persistence — a blueprint node reads and writes durable game state through [`hostApi.persistence`](/docs/studio/plugin/host-api/state) at runtime instead.
+This is editor-side state, available only while the workspace is open. It is not the game's persistence — a runtime entry reads and writes durable game-side state through [`app.game.store`](/docs/studio/plugin/runtime/store) behind the `store` capability. To publish data you authored here so the game can read it, list its namespace in [`contributes.runtimeData`](/docs/studio/plugin/manifest#runtimedata) and read it with `app.game.data.readJson`.
 </Callout>

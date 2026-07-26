@@ -31,10 +31,33 @@ Open the Launcher, go to **Plugins**, and choose **Install from folder**. Pick t
 
 ### Approve permissions
 
-If the plugin declares elevated permissions — filesystem or API capabilities — Studio shows a prompt listing exactly what it asks for. Review it and approve or decline. A plugin with no declared permissions installs without a prompt.
+Studio shows a prompt listing exactly what the plugin asks for. Review it and approve or decline. A plugin that asks for nothing installs without a prompt.
 
 </Step>
 </Steps>
+
+## What the prompt lists
+
+The prompt is not a summary a plugin author wrote — most of it is **computed from the plugin's declarations**, so it cannot understate what the plugin can do.
+
+| Entry | Comes from |
+| --- | --- |
+| Filesystem access to a path | The author writing a `filesystem` permission. Affects the editor only. |
+| An API capability such as `bash.execute` | The author writing an `api` permission. Editor only. |
+| A game-side capability — storage, story variables, saves, an on-screen overlay, packaged assets, the game language | Each entry the plugin declared in `contributes.runtimeCapabilities`. |
+| A native program bundled into games you build | Each declared sidecar, with the platforms it ships binaries for and its fingerprint. |
+| Binaries downloaded when you build | Each declared build dependency, with the hostnames it fetches from. |
+
+The last three are **derived**: Studio computes them from `contributes` and rejects a manifest that tries to write them by hand. That is what stops "what the prompt said" from drifting away from "what the plugin can reach" — a capability is declared in exactly one place, and the plugin's API surface is built from that same declaration. An undeclared capability is not merely un-prompted; it is absent from the plugin's API object entirely.
+
+Two entries deserve a second look before you approve:
+
+- **Overwriting saves.** A plugin with `saves.write` can overwrite a save slot and load one, which replaces the running playthrough. Quick-save plugins legitimately need this; most plugins do not.
+- **A bundled native program.** This is code that will reach your players' machines inside the game you ship. Studio verifies its fingerprint at install and again when packaging, so a tampered package fails rather than shipping quietly — but the decision to include it is yours.
+
+## Updates re-prompt when they widen
+
+Grants are recorded per plugin version along with the permission set you actually approved. A new version that asks for no more than you already approved inherits the grant. A version that adds a capability widens the derived set, so Studio prompts again showing what changed.
 
 <Callout type="warn">
 Plugins are not sandboxed. Once installed and enabled, a plugin runs with the same access as Studio, and its game-side code runs on your players' machines. Install plugins from sources you trust, and read the permission prompt before approving.

@@ -1,0 +1,66 @@
+---
+title: state
+description: Read, write, and observe the story variables of the running playthrough.
+---
+
+`app.game.state` reaches the story variables an author declared in Studio — scene locals, saved variables, and persistent ones. Reading a playthrough and rewriting it are very different things to hand a plugin, so they are two capabilities:
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["state.read", "state.write"]
+  }
+}
+```
+
+`state.read` grants `get` and `onChange`. `state.write` additionally grants `set` — and **implies** `state.read`, so Studio adds the read half for you if you declare only `write`.
+
+## Methods
+
+| Method | Signature | Needs |
+| --- | --- | --- |
+| `get` | `<T>(scope, key: string) => T \| null` | `state.read` |
+| `onChange` | `(listener: (change) => void) => RuntimePluginCleanup` | `state.read` |
+| `set` | `(scope, key: string, value: unknown) => void` | `state.write` |
+
+`get` and `set` are **synchronous** — the variable tables are in memory. `set` is absent from the object entirely without `state.write`, so call it as `app.game.state.set?.(...)` if your plugin can run with either declaration.
+
+## Scopes
+
+| Scope | Lifetime |
+| --- | --- |
+| `"scene"` | The current scene. Gone when the scene ends. |
+| `"saved"` | The playthrough. Written into and restored from save slots. |
+| `"persistent"` | The player, across every playthrough. Survives starting a new game. |
+
+```ts
+const count = app.game.state?.get<number>("saved", "timesAsked") ?? 0;
+app.game.state?.set?.("saved", "timesAsked", count + 1);
+```
+
+## Observing changes
+
+```ts
+type RuntimePluginStateChange = {
+    scope: "scene" | "saved" | "persistent";
+    key: string;
+    previous: unknown;
+    next: unknown;
+};
+
+const stop = app.game.state?.onChange(change => {
+    if (change.scope === "persistent" && change.key === "trueEndingSeen" && change.next === true) {
+        // unlock something
+    }
+});
+```
+
+`onChange` fires for writes from the story, from another plugin, and from your own `set`. It returns a cleanup.
+
+<Callout type="info">
+Persistent variables are observed exactly — the change arrives in the same frame as the write. Scene and saved variables are compared against a snapshot at the points where the story could have written them (an action change, a line ending, a scene mounting or unmounting, a save being restored, and your own `set`), and only when something is actually listening. In practice you see every change; what you cannot rely on is the *instant* within a frame that a scene or saved change is reported.
+</Callout>
+
+## This is not the plugin store
+
+`state` is the **author's** data: variables they declared in Studio and wired into their story. [`app.game.store`](/docs/studio/plugin/runtime/store) is your **plugin's** data, in its own namespace, invisible to the story. Use `state` to participate in the author's script; use `store` to remember things that are yours.

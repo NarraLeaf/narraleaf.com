@@ -1,0 +1,100 @@
+---
+title: 构建时依赖
+description: 声明那些 Studio 在构建时下载、校验并缓存的外部二进制文件——以及那条永远走得通的离线路径。
+---
+
+`contributes.buildDependencies` 针对的是这样一类可再分发文件：它的许可证允许**游戏**随包分发它，却不允许公开的插件注册表镜像它。你声明这些字节来自哪里、摘要是什么；Studio 会在作者构建期间抓取它们、校验它们、按内容缓存它们，并把它们交给你的 [sidecar](/docs/studio/plugin/runtime/sidecar)。
+
+## 什么时候不需要它
+
+插件拿到一个二进制文件有三条途径，只有中间那条是 Studio 的事：
+
+| 途径 | 由谁负责 |
+| --- | --- |
+| 把二进制文件放进你自己的插件包 | 你——在 sidecar 的 `include` 里列出来即可。 |
+| 声明一个外部 URL，在构建时下载 | **Studio**——也就是本页。 |
+| 让作者自己下载，并指向那个文件 | 你——用你的 studio 入口和 `app.privileged.fs`。 |
+
+如果你有权自行再分发该二进制文件，就把它放进包里。这套机制是为你无权分发的情况准备的。
+
+## 声明它
+
+```json
+{
+  "contributes": {
+    "buildDependencies": [
+      {
+        "id": "yourname.plugin.sdk",
+        "description": "Vendor SDK redistributable binaries",
+        "targets": {
+          "windows-x64": {
+            "url": "https://example.com/sdk_1.6.2.zip",
+            "sha256": "a1b2…64 hex chars",
+            "archive": "zip",
+            "files": {
+              "sdk/redistributable_bin/win64/sdk.dll": "bin/windows-x64/sdk.dll"
+            }
+          },
+          "linux-x64": {
+            "url": "https://example.com/libsdk.so",
+            "sha256": "c3d4…64 hex chars",
+            "archive": "none",
+            "fileName": "bin/linux-x64/libsdk.so"
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `id` | 以你的插件 id 为前缀。`dep:<id>/…` 形式的 include 指向的就是它。 |
+| `description` | 在安装时和构建日志中展示给作者。写明这些二进制文件是什么。 |
+| `targets` | 以 `<platform>-<arch>` 为键，与 sidecar 使用的桌面平台键相同。 |
+
+每个 target：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `url` | 是 | 必须是 `https`。 |
+| `sha256` | 是 | 没有摘要就不下载。它同时充当缓存键。 |
+| `archive` | 是 | `"zip"` 或 `"none"`。 |
+| `files` | 配合 `"zip"` | 归档内路径 → 产出的依赖目录内的路径。 |
+| `fileName` | 配合 `"none"` | 下载下来的文件在产出的依赖目录内使用的名字。 |
+
+## 从 sidecar 访问这些文件
+
+形如 `dep:<dependencyId>/<path>` 的 sidecar `include` 条目会取用该依赖产出的一个文件。文件会落在去掉 `dep:<id>/` 前缀后的那个 include 路径上，所以请按你的可执行文件期望的位置来布局——在 Windows 上，DLL 是在 `.exe` 旁边查找的，所以把它映射到与 sidecar `entry` 相同的目录。
+
+```json
+"include": [
+  "bin/windows-x64/bridge.exe",
+  "dep:yourname.plugin.sdk/bin/windows-x64/sdk.dll"
+]
+```
+
+`dep:` 条目已经被该依赖自身的 `sha256` 覆盖，因此不需要再出现在 sidecar 的摘要映射里。引用一个未声明的依赖 id 是清单错误。
+
+## 缓存，以及作者看到的东西
+
+缓存键是**内容摘要**，而不是 URL，所以把某个 URL 改指到完全相同的字节永远不会重新下载。缓存命中时完全不碰网络。校验失败不会在该缓存键下留下任何东西，因此被污染的下载绝不会在下一次构建中被当成好文件。
+
+安装时，派生出的 `buildDependency` 权限会向作者展示依赖 id，以及这些二进制文件将从哪些**主机名**抓取。把一个外部二进制文件下载进别人的游戏里，不是可以蒙混过去的事。
+
+## 离线路径
+
+作者的构建机器可能没有网络，你的 `url` 也可能失效。总有一条路走得通：构建会报出该把文件放到哪个确切路径。
+
+<Callout type="info">
+当某个依赖既没有缓存、又无法访问时，构建的预检会以 `build-dependency-unavailable` 失败，并指明构建缓存下的一个 `source` 文件路径。把下载好的文件存到那里——放在该摘要自己的目录下，不带扩展名——然后重新构建。放在那里的东西同样会用声明的 `sha256` 校验，所以放错文件会大声失败，而不是被发布出去。
+</Callout>
+
+如果你的依赖需要登录才能取得——合作伙伴门户，或某个必须先接受条款的 SDK——那么手动路径就不是回退方案，而是*唯一*的路径，你插件的 README 应当把它当作正常流程来说明，而不是当成变通办法。
+
+## Studio 刻意不做的事
+
+- 不做版本解析，不做依赖图，不做镜像回退。
+- 不做许可证接受流程。
+- 安装时不下载——构建时依赖是在构建游戏时抓取的，而不是在安装插件时。

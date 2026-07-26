@@ -16,11 +16,17 @@ A blueprint node needs **both** targets to work in a shipped game: the `studio` 
 
 <Cards>
   <Card title="Make a plugin" href="/docs/studio/plugin/create-first-plugin" description="From an empty folder to an installed plugin: manifest, entries, a blueprint node, a panel, localization, and packaging." />
+  <Card title="Manifest" href="/docs/studio/plugin/manifest" description="Every field, the full contributes surface, and why most permissions are derived rather than written." />
   <Card title="API reference" href="/docs/studio/plugin/api-reference" description="Every method on the studio and runtime surfaces, with examples and the sharp edges." />
   <Card title="Studio API" href="/docs/studio/plugin/studio" description="Everything a plugin touches in the editor: services, the ui kit, and privileged capabilities." />
-  <Card title="Host API" href="/docs/studio/plugin/host-api" description="The capability tree a blueprint node calls at game runtime, family by family." />
+  <Card title="Runtime API" href="/docs/studio/plugin/runtime" description="The capability-gated game surface: what each declared capability buys you on app.game." />
+  <Card title="Build dependencies" href="/docs/studio/plugin/build-dependencies" description="External binaries Studio downloads, verifies, and caches at build time." />
   <Card title="Install a plugin" href="/docs/studio/plugin/install-plugin" description="Download a release, install it from a folder, and manage permissions." />
 </Cards>
+
+## Capabilities are declared, not discovered
+
+Anything a plugin's game-side code can reach beyond registering nodes and widgets — storage, story variables, saves, an overlay, a native child process — must be declared in `contributes`. Studio derives the install permission prompt from that declaration, and an undeclared capability is **absent from the API object** rather than a call that fails. Read [the capability model](/docs/studio/plugin/runtime) before writing a runtime entry; it is the one thing that shapes everything else.
 
 ## The API is types-only
 

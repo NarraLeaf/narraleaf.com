@@ -1,0 +1,137 @@
+---
+title: 清单
+description: manifest.json 中的每一个字段——入口、完整的 contributes 接口，以及为什么大多数权限是派生出来的、而不是手写的。
+---
+
+`manifest.json` 是 Studio 唯一会在不执行你的代码的情况下读取的文件。它声明插件提供了什么，而安装提示中显示的一切都由它计算得出。
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": {
+    "blueprintNodes": ["yourname.hello.log"],
+    "runtimeCapabilities": ["store"]
+  },
+  "permissions": []
+}
+```
+
+## 顶层字段
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `manifestVersion` | 是 | 始终为 `2`。版本 1 会被拒绝。 |
+| `id` | 是 | 带命名空间：`publisher.plugin-name`，全小写，至少一个点。 |
+| `name` | 是 | 显示名称。 |
+| `version` | 是 | 语义化版本（`1.0.0`），可带预发布或构建后缀。 |
+| `publisher` | 否 | 显示在插件列表中。 |
+| `description` | 否 | 一行简介，安装时显示。 |
+| `entries` | 是 | `{ studio?, runtime? }`——相对于包的 ESM 路径。至少一个；两个文件都必须存在。 |
+| `contributes` | 否 | 插件提供的一切。省略某个键等同于空列表。 |
+| `permissions` | 否 | 只包含作者声明的提权能力——见[下文](#permissions-are-derived)。 |
+
+入口路径不能是绝对路径，也不能包含 `..`、`.`、空字节、`?` 或 `#`。
+
+## contributes
+
+`contributes` 是插件能做什么的**唯一真相来源**。Studio 无需运行插件代码就能据此校验一个项目，安装时的权限集合也由它派生而来。
+
+| 键 | 类型 | 声明了什么 |
+| --- | --- | --- |
+| `blueprintNodes` | `string[]` | 本插件提供的蓝图节点类型。 |
+| `widgets` | `string[]` | 本插件提供的控件元素类型。 |
+| `locales` | object[] | Studio 语言包——插件新增或补全的语言。 |
+| `runtimeData` | `string[]` | 随游戏一并发布的插件存储命名空间。 |
+| `runtimeCapabilities` | `string[]` | runtime 入口可以使用的能力域。 |
+| `sidecars` | object[] | 随作者游戏一同发布的原生子进程。 |
+| `buildDependencies` | object[] | 构建时抓取并缓存的外部二进制文件。 |
+
+每一个节点类型、控件类型、存储命名空间、sidecar id 和构建时依赖 id 都必须以你的插件 id 为前缀。`contributes` 下出现未知的键会被拒绝，而不是被忽略。
+
+### blueprintNodes 与 widgets
+
+注册一个你没有声明的类型会在加载时抛错，两个入口都是如此。正是这份声明，让 Studio 能在构建*之前*就告诉作者：项目里用到的某个节点没有 runtime 提供方——而不是发布一个带着无效节点的游戏。
+
+### runtimeData
+
+插件存储位于项目的编辑器目录下，而那个目录永远不会被打包。如果你的 runtime 入口需要作者在 Studio 中编写的数据——一份目录表、一张查找表——就把这些命名空间列在这里，并用 `app.game.data.readJson(namespace)` 读取。
+
+```json
+{ "contributes": { "runtimeData": ["yourname.hello.catalog"] } }
+```
+
+这个列表是一份显式白名单，这样纯编辑器的插件状态就不会意外泄漏进发布的游戏。`readJson` 是**同步**的——数据随包一起分发——当命名空间未被声明、项目从未写入过，或游戏早于该数据被发布时，它返回 `null`。请优雅降级；不要假定作者数据一定存在。
+
+### runtimeCapabilities
+
+九个能力域，每一个对应 `app.game` 的一个命名空间。未声明的域**在对象上根本不存在**，而不是一个会抛错的方法。声明了它却没有 `entries.runtime` 是清单错误。
+
+```json
+{ "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
+```
+
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+
+完整模型、每个能力具体授予什么，以及各环境如何进一步收窄它：[Runtime API](/docs/studio/plugin/runtime)。
+
+### sidecars 与 buildDependencies
+
+两个重量级声明。[sidecar](/docs/studio/plugin/runtime/sidecar) 是随作者构建的游戏一起发布的原生子进程；[构建时依赖](/docs/studio/plugin/build-dependencies) 是 Studio 在构建时下载、校验并缓存的外部二进制文件。两者都以 `<platform>-<arch>` 为键，也都必须提供 `sha256`。
+
+### locales
+
+一个 Studio 语言包——插件新增的语言，或它为内置语言补上的缺口。参见 [创建第一个插件](/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack)。只包含 `contributes.locales`、没有任何入口代码的清单也是一个有效的插件。
+
+## 权限是派生的 [#permissions-are-derived]
+
+安装权限分为两类，这个划分正是重点所在。
+
+**作者声明的**——由你写在 `permissions[]` 里。它们是与 `contributes` 无关的 Studio 提权控制项：
+
+```json
+{
+  "permissions": [
+    { "kind": "filesystem", "path": "/absolute/path", "mode": "readwrite", "recursive": true },
+    { "kind": "api", "capability": "bash.execute" }
+  ]
+}
+```
+
+| 类别 | 形状 |
+| --- | --- |
+| `filesystem` | `{ path, mode: "read" \| "write" \| "readwrite", recursive }`——一个真实的路径字符串。 |
+| `api` | `{ capability }`——目前插件只能使用 `bash.execute`。 |
+
+这些只影响 **studio** 入口。授权按 `pluginId@version` 记录，所以提升版本号就需要作者重新批准一次。
+
+**派生的**——由 Studio 从 `contributes` 计算得出，绝不由你手写：
+
+| 类别 | 派生自 |
+| --- | --- |
+| `runtime` | `contributes.runtimeCapabilities` 中的每一项。 |
+| `sidecar` | 每个 `contributes.sidecars` 条目，以及它所发布的平台键。 |
+| `buildDependency` | 每个 `contributes.buildDependencies` 条目，以及它下载所用的主机名。 |
+
+<Callout type="warn">
+手写 `runtime`、`sidecar` 或 `buildDependency` 权限是**清单错误**——插件会安装失败，并提示 *"permission kind … is derived from contributes and must not be declared by hand."*。在 `contributes` 中把能力声明一次，权限自然随之而来。
+</Callout>
+
+这正是安装提示能保持诚实的原因：一项能力只在一个地方声明，因此提示列出的内容与插件真正能触及的内容不可能漂移开来。它也让更新的行为变得正常——新增一项能力会扩大派生出的权限集，于是自动重新向作者索取批准；而没有扩大任何范围的版本则沿用已有的授权。
+
+## 校验失败
+
+| 症状 | 检查 |
+| --- | --- |
+| 安装被拒绝 | `manifest.json` 不是合法 JSON，或 `id` / `version` / `entries` 未通过校验。 |
+| "requires a runtime entry" | 声明了 `runtimeCapabilities` 或 `sidecars`，却没有 `entries.runtime`。 |
+| "must not be declared by hand" | 把某个派生类别的权限写进了 `permissions[]`。 |
+| "Unknown plugin runtime capability" | `runtimeCapabilities` 里有拼写错误。这个列表是封闭的。 |
+| 加载时注册抛错 | 某个节点或控件类型不在 `contributes` 中，或没有以插件 id 为前缀。 |
+| 预览报 "Plugin validation failed" | 项目用到的某个节点或控件没有 runtime 提供方——插件被禁用、缺失、没有 `entries.runtime`，或该类型未被声明。 |
+| 安装时摘要不匹配 | 某个 sidecar 文件的字节与它的 `sha256` 不符。 |
