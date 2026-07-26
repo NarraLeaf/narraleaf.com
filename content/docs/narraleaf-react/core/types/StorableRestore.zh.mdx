@@ -1,0 +1,14 @@
+---
+title: "StorableRestore"
+---
+一次批量的值应用 —— 读入存档，或把某个命名空间回退到快照。由 [Storable.onRestore](/zh/docs/narraleaf-react/core/game/storable#onrestore) 报告，用以**代替**它本会隐含的那些逐键 [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange) 事件。
+
+```typescript
+type StorableRestore = {
+    namespaces: string[];
+};
+```
+
+- `namespaces` - 内容被整体替换的命名空间键。
+
+存档携带了它所知道的每个命名空间的每一个键，因此逐键报告读档只会描述一段玩家从未经历过的历史。当此事件触发时，请重新读取你从存储派生出的一切。参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。

@@ -1,0 +1,20 @@
+---
+title: "StorableChange"
+---
+One stored value changing. Reported by [Storable.onChange](/docs/narraleaf-react/core/game/storable#onchange) after the new value is already readable through `getNamespace(namespace).get(key)`.
+
+```typescript
+type StorableChange<T extends StorableType = any> = {
+    namespace: string;
+    key: string;
+    previous: T | undefined;
+    next: T | undefined;
+};
+```
+
+- `namespace` - The key the namespace is registered under in the [Storable](/docs/narraleaf-react/core/game/storable) — the same string `getNamespace` takes, and the one a save file carries. For a namespace declared with `new Persistent("player", ...)` this is `"persistent:player"`.
+- `key` - The key inside that namespace.
+- `previous` - The value that was there. `undefined` if the key had never been written.
+- `next` - The value that is there now. `undefined` if the key was dropped, which is what [reset](/docs/narraleaf-react/core/game/storable/namespace#reset) does to a key written after construction.
+
+A write is only reported when the value actually moved, and loading a save reports [StorableRestore](/docs/narraleaf-react/core/types/StorableRestore) instead of a change per key. See [Watching stored values](/docs/narraleaf-react/core/game/storable/events).

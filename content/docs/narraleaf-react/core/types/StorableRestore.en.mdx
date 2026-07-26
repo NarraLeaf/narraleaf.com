@@ -1,0 +1,14 @@
+---
+title: "StorableRestore"
+---
+A bulk value application — a save being loaded, or a namespace being rewound to a snapshot. Reported by [Storable.onRestore](/docs/narraleaf-react/core/game/storable#onrestore) *instead of* the per-key [StorableChange](/docs/narraleaf-react/core/types/StorableChange) events it would otherwise imply.
+
+```typescript
+type StorableRestore = {
+    namespaces: string[];
+};
+```
+
+- `namespaces` - The namespace keys whose contents were replaced.
+
+A save carries every key of every namespace it knew about, so reporting a load key by key would describe a history the player never lived through. Re-read whatever you derive from the store when this fires. See [Watching stored values](/docs/narraleaf-react/core/game/storable/events).

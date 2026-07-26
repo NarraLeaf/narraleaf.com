@@ -1,6 +1,7 @@
 {
   "title": "Storable",
   "pages": [
-    "namespace"
+    "namespace",
+    "events"
   ]
 }

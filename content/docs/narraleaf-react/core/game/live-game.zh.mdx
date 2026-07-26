@@ -22,6 +22,8 @@ LiveGame 是代表游戏当前状态的主类。
 
 返回 [Storable](/zh/docs/narraleaf-react/core/game/storable) 实例
 
+在整个 `LiveGame` 的生命周期内始终是同一个实例——`newGame()` 与 `deserialize()` 重建的是其中的命名空间，而不是存储本身；这正是[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)中建立的订阅能够在这两种情况下存活的原因。
+
 - `return: Storable` - [Storable](/zh/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>

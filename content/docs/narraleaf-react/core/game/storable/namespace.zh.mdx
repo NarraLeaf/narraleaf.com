@@ -3,6 +3,8 @@ title: "Namespace\\<T extends NameSpaceContent\\<keyof T\\>\\>"
 ---
 Namespace 是一个类，表示 [Storable](.) 的命名空间。
 
+通过 `set`、`assign` 或 `reset` 进行的每一次写入都会报告给它所注册的存储，宿主可以据此作出反应——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。请在 `Storable` 上订阅，而不是在这里：`newGame()` 与读档都会替换 `Namespace` 对象。
+
 ## 公共属性
 
 ### name

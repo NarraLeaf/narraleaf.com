@@ -40,6 +40,17 @@ const persis = new Persistent<PersisData>("persis", {
 story.registerPersistent(persis);
 ```
 
+## 从宿主监听这些值
+
+下面这些方法构造的是**动作**，因此属于场景。故事之外的 React 代码——HUD、成就监听、编辑器面板——通过 [Storable](/zh/docs/narraleaf-react/core/game/storable) 读写同一批值，也可以订阅它们：
+
+```typescript
+game.getLiveGame().getStorable()
+    .onChange("persistent:persis", "coin", ({previous, next}) => {...});
+```
+
+请注意命名空间的**键**：名为 `"persis"` 的 `Persistent` 注册时的键是 `"persistent:persis"`。请在 `Storable` 而不是 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 上订阅，并把 `onChange` 与 `onRestore` 搭配使用，以免漏掉读入的存档——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+
 ## Public Methods
 
 ### constructor

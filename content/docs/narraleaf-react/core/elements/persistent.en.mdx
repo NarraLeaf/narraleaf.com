@@ -44,6 +44,17 @@ story.registerPersistent(persis);
 
 </Callout>
 
+## Watching these values from the host
+
+The methods below build **actions**, so they belong in a scene. React code outside the story — a HUD, an achievement watcher, an editor panel — reads and writes the same values through [Storable](/docs/narraleaf-react/core/game/storable), and can subscribe to them:
+
+```typescript
+game.getLiveGame().getStorable()
+    .onChange("persistent:persis", "coin", ({previous, next}) => {...});
+```
+
+Note the namespace **key**: a `Persistent` named `"persis"` is registered as `"persistent:persis"`. Subscribe on the `Storable` rather than on the [Namespace](/docs/narraleaf-react/core/game/storable/namespace), and pair `onChange` with `onRestore` so a loaded save is not missed — see [Watching stored values](/docs/narraleaf-react/core/game/storable/events).
+
 ## Public Methods
 
 ### constructor

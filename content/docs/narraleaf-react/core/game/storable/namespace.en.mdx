@@ -3,6 +3,8 @@ title: "Namespace\\<T extends NameSpaceContent\\<keyof T\\>\\>"
 ---
 Namespace is a class that represents a namespace of a [Storable](.)
 
+Every write through `set`, `assign` or `reset` is reported to the store it is registered in, so a host can react to it — see [Watching stored values](/docs/narraleaf-react/core/game/storable/events). Subscribe on the `Storable`, not here: `newGame()` and loading a save both replace the `Namespace` objects.
+
 ## Public Properties
 
 ### name

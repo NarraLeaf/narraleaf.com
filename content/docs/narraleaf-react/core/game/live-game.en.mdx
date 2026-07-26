@@ -22,6 +22,8 @@ The current [Story](/docs/narraleaf-react/core/elements/story) instance
 
 Returns the [Storable](/docs/narraleaf-react/core/game/storable) instance
 
+The same instance for the life of the `LiveGame` — `newGame()` and `deserialize()` rebuild the namespaces inside it, not the store itself, which is why a subscription made through [Watching stored values](/docs/narraleaf-react/core/game/storable/events) survives both.
+
 - `return: Storable` - [Storable](/docs/narraleaf-react/core/game/storable)
 </Step>
 </Steps>

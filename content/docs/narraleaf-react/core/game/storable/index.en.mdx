@@ -52,6 +52,12 @@ Create a new namespace
 </Step>
 </Steps>
 
+## Public Properties
+
+### events
+
+- `EventDispatcher<StorableEvents>` - The dispatcher every store event goes through: `event:storable.change` carrying a [StorableChange](/docs/narraleaf-react/core/types/StorableChange), and `event:storable.restore` carrying a [StorableRestore](/docs/narraleaf-react/core/types/StorableRestore). Prefer [onChange](#onchange), which filters by namespace and key. See [Watching stored values](/docs/narraleaf-react/core/game/storable/events).
+
 ## Public Methods
 
 ### addNamespace\<T extends NameSpaceContent\<keyof T\>\>
@@ -140,3 +146,90 @@ Create a new namespace
 - Returns `[string, Namespace<any>][]`
 </Step>
 </Steps>
+
+### onChange
+
+<Callout type="info">
+    Available since `0.19.0`.
+</Callout>
+
+Listen for a stored value changing.
+
+The listener runs after the new value is readable, and only when the value actually moved — writing a value equal to the one already there reports nothing, and equality is structural, so rebuilding an object with the same contents is also a no-op. **Loading a save does not report changes**; see [onRestore](#onrestore).
+
+Subscriptions outlive the namespaces they watch: `newGame()` and loading a save both rebuild every namespace from scratch, and a listener registered here survives that. For the whole story, see [Watching stored values](/docs/narraleaf-react/core/game/storable/events).
+
+<Steps>
+<Step>
+
+#### Overload 1 of 3
+
+Every change, in any registered namespace.
+
+```typescript
+storable.onChange(({namespace, key, previous, next}) => {
+    console.log(`${namespace}.${key}: ${previous} -> ${next}`);
+});
+```
+
+- `listener: (change: StorableChange) => void` - See [StorableChange](/docs/narraleaf-react/core/types/StorableChange)
+- Returns `EventToken` - A token whose `cancel()` removes the listener
+
+#### Overload 2 of 3
+
+Changes in one namespace.
+
+```typescript
+storable.onChange("persistent:player", ({key, next}) => {...});
+```
+
+- `namespace: string` - The namespace key, e.g. `"persistent:player"` for `new Persistent("player", ...)`
+- `listener: (change: StorableChange) => void`
+- Returns `EventToken`
+
+#### Overload 3 of 3
+
+Changes to one key.
+
+```typescript
+const token = storable.onChange("persistent:player", "gold", ({next}) => {
+    if (next === 100) achievements.unlock("rich");
+});
+
+token.cancel();
+```
+
+- `namespace: string` - The namespace key
+- `key: string` - The key inside that namespace
+- `listener: (change: StorableChange) => void`
+- Returns `EventToken`
+</Step>
+</Steps>
+
+### onRestore
+
+<Callout type="info">
+    Available since `0.19.0`.
+</Callout>
+
+Listen for the store being replaced wholesale — loading a save, or rewinding a namespace to a snapshot. Fires once per bulk application, naming the namespaces involved, instead of the changes it implies.
+
+Re-read whatever you derive from the store when this fires.
+
+<Steps>
+<Step>
+
+```typescript
+storable.onRestore(({namespaces}) => {
+    if (namespaces.includes("persistent:player")) rereadPlayerView();
+});
+```
+
+- `listener: (restore: StorableRestore) => void` - See [StorableRestore](/docs/narraleaf-react/core/types/StorableRestore)
+- Returns `EventToken` - A token whose `cancel()` removes the listener
+</Step>
+</Steps>
+
+<Callout type="warning">
+    Watching a value across a save load takes **both** signals. `onChange` is deliberately silent during a load, so a listener that must also fire when a loaded save *arrives* already at the interesting value has to re-check it on `onRestore`.
+</Callout>
