@@ -70,35 +70,41 @@ const yuko = new Image({
     src: {
         // bottom to top
         layers: [
-            "yuko/body.png",                                          // constant layer
-            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"}, // mutually exclusive variants
-            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
-            {noHat: null, straw: "yuko/straw_hat.png"},               // null draws nothing
-            (tags) => tags.has("sad") ? "yuko/tears.png" : null,      // derived from other layers
+            "yuko/body.png",                                              // constant layer
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},     // outfit group
+            {uniform: null, casual: "yuko/jacket.png"},                   // follows the outfit group
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},   // expression group
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},   // follows the expression group
+            {happy: null, sad: "yuko/tears.png"},                         // null draws nothing
         ],
-        defaults: ["uniform", "happy", "noHat"],
+        defaults: ["uniform", "happy"],
     },
 });
 ```
 
-A layered image is driven by the same [char](#char) method as a tag-based image, and tags behave the same way: a tag replaces the other variants of its own layer and leaves every other layer untouched.
+A layered image is driven by the same [char](#char) method as a tag-based image. A **group** is identified by its *tag set*, not by the layer that offers it, so **every layer offering the same tags is driven by one group**:
 
 ```typescript
-yuko.char(["sad"]);                  // only the face layer changes; the outfit is kept
-yuko.char(["casual", "happy"]);      // several layers at once, in any order
+yuko.char(["sad"]);                  // brows, mouth and tears move together; the outfit is kept
+yuko.char(["casual"]);               // outfit and jacket move together; the expression is kept
+yuko.char(["casual", "sad"]);        // several groups at once, in any order
 yuko.char(["sad"], new Dissolve({ duration: 300 })); // transitions work as they do on any image
 ```
+
+That is the shape a layered sprite needs: "angry" is not a mouth, it is a mouth *and* a pair of brows *and* whatever else the artist split out, and one tag now moves all of them.
 
 Each entry of `layers` is one of:
 
 - a **string** — a constant layer, always drawn
-- a **variant map** — mutually exclusive srcs keyed by tag, where `null` means the layer draws nothing for that tag
-- a **function** — derives the layer's src from the currently active tags. It declares no tags of its own, so it can react to the other layers.
+- a **variant map** — mutually exclusive srcs keyed by tag, where `null` means the layer draws nothing for that tag. Its key set is the group it belongs to.
+- a **function** — a [LayerResolver](/docs/narraleaf-react/core/types/LayeredDefinition), deriving the layer's src from the currently active tags. It declares no tags of its own, and its sources are invisible to the preloader — prefer a variant map, including for a layer that follows another layer's group.
 - `null` — draws nothing
 
-Array order is the stacking order, so the first entry is at the bottom. `defaults` takes one tag per variant layer, in any order.
+Array order is the stacking order, so the first entry is at the bottom. `defaults` takes one tag per **group**, in any order — layers that share a group share that one default.
 
 Tags are inferred from the definition, so `char()` rejects a misspelled tag at compile time without an explicit type argument.
+
+Because a layer may draw nothing for some tags of the group it follows, a **variant-specific part** — the jacket only the casual outfit has — is expressed by repeating the whole tag set and putting `null` where the layer is absent. One stack can therefore carry a character's whole wardrobe: a change of clothes keeps the current expression and cross-fades like any other tag change, so there is no reason to model an outfit as a separate image.
 
 <Callout type="info">
     Every layer of one image is expected to share a canvas, which is what image editors export by default when you export layers. Layers are aligned by centering them on the image, so a layer is not positioned individually.
@@ -109,23 +115,24 @@ Tags are inferred from the definition, so `char()` rejects a misspelled tag at c
 </Callout>
 
 <Callout type="warning">
-    A tag can only be declared by one layer, and every variant layer needs exactly one of its tags listed in `defaults`.
+    A layer that follows a group must repeat the group's **whole** tag set. Offering only part of it declares a *different* group, whose tags then collide with the group that already owns them — this is the easy mistake to make. Every group also needs exactly one of its tags listed in `defaults`.
 
 ```typescript
 const image = new Image({
     src: {
         layers: [
-            {none: null, hat: "hat.png"},
-            {none: null, scarf: "scarf.png"}, // INVALID, tag "none" is already declared above
             {happy: "happy.png", sad: "sad.png"},
+            {sad: "tears.png"},        // INVALID, declares a new group {sad}, colliding with the one above
+            // {happy: null, sad: "tears.png"},   // correct: repeat the set, null where nothing is drawn
+            {none: null, hat: "hat.png"},
         ],
-        defaults: ["hat"], // INVALID, the face layer has no default
+        defaults: ["happy"], // INVALID, the hat group has no default
     },
 });
 ```
 </Callout>
 
-Every src a layer stack can show is registered for preload when the image is created. Layers are independent, so this is the sum of the variants rather than their cross product — a layered image never warns about an unpredicted source. A src returned by a function layer is opaque and must be registered with [scene.preloadImage](/docs/narraleaf-react/core/elements/scene#preloadimage) if no other layer uses it.
+Every src a layer stack can show is registered for preload when the image is created. Layers do not multiply each other, so this is the sum of every layer's variants rather than their cross product — a layered image never warns about an unpredicted source. A follower layer is an ordinary variant map, so its srcs are enumerable and covered by that registration, and switching a tag costs no fetch. A src returned by a **function layer** is opaque: the preloader cannot see it, so it is fetched on first use — on the frame the tag changes. Register such a source with [scene.preloadImage](/docs/narraleaf-react/core/elements/scene#preloadimage) if no other layer uses it.
 
 #### Src-based Image
 
@@ -226,7 +233,7 @@ image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
 image.char(["angry"], new Dissolve({ duration: 1000 }));
 ```
 
-For a [layered image](#layered-image), tags select a variant of their own layer and every other layer is kept. Tags may be given in any order, and a transition crossfades the whole stack.
+For a [layered image](#layered-image), a tag selects a variant of its **group**, and every layer offering that group's tag set moves with it. Groups the tags do not name are kept. Tags may be given in any order, and a transition crossfades the whole stack.
 
 ```typescript
 const yuko = new Image({
@@ -234,16 +241,18 @@ const yuko = new Image({
         layers: [
             "yuko/body.png",
             {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
-            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+            {uniform: null, casual: "yuko/jacket.png"},
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},
         ],
         defaults: ["uniform", "happy"],
     },
 });
 
-//  uniform , [sad]
+//  uniform , [sad] — brows and mouth both change
 yuko.char(["sad"], new Dissolve({ duration: 300 }));
 
-// [casual],  sad
+// [casual],  sad  — outfit and jacket both change, the expression is kept
 yuko.char(["casual"]);
 ```
 </Step>

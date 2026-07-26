@@ -54,6 +54,42 @@ export default function Page() {
 
 当播放器准备就绪时调用的回调函数。它返回 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象
 
+`newGame()` 应该写在这里。它**既不**保证预加载完成，**也不**保证已经渲染——参见下面的 `onPreloadComplete` 与 `onFirstSceneReady`。
+
+### onPreloadComplete
+
+可选
+
+在首次预加载真正完成时调用一次。
+
+<Callout type="warning">
+    自 `0.17.0` 起，它在**进入游戏之前**触发，此时菜单可能还在屏幕上、且没有任何场景被挂载——因为入口场景在故事被加载时就已开始预热。如果你此前把它读作"游戏内容已经上屏"，请改用 `onFirstSceneReady`。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)。
+</Callout>
+
+回调收到 `{game, gameState, liveGame, storable, scene}`，其中 `scene` 可能是*预加载中*的场景而不是已挂载的场景。每个游戏生命周期内最多调用一次。
+
+```tsx
+<Player story={story} onPreloadComplete={() => setLoadingBarDone(true)} />
+```
+
+### onFirstSceneReady
+
+可选
+
+在预加载完成、第一个场景已挂载、并且浏览器已经有一帧的时间把它渲染出来之后调用一次。这是"游戏在视觉上已经准备好"最直接的信号。
+
+回调收到与 `onPreloadComplete` 相同的上下文对象，且每个游戏生命周期内最多调用一次。
+
+```tsx
+<Player story={story} onFirstSceneReady={() => setLoadingOverlay(false)} />
+```
+
+### onPreloadedReady
+
+可选，已废弃
+
+请改用 `onPreloadComplete`。
+
 ### onEnd
 
 当播放器结束时调用

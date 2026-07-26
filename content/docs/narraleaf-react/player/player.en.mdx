@@ -63,6 +63,42 @@ The class name of the player.
 
 A callback function that is called when the player is ready. It returns the [ScriptCtx](/docs/narraleaf-react/core/types/ScriptCtx) object.
 
+This is where `newGame()` belongs. It is **not** a preload or a first-render guarantee — see `onPreloadComplete` and `onFirstSceneReady` below.
+
+### onPreloadComplete
+
+> optional
+
+Called once the initial preload pass has actually completed.
+
+<Callout type="warning">
+    Since `0.17.0` this fires **before the game is entered**, while a menu may still be on screen and no scene is mounted — the entry scene is warmed as soon as the story is loaded. If you were reading this as "the game has content on screen", use `onFirstSceneReady` instead. See [Preloading](/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on).
+</Callout>
+
+Receives `{game, gameState, liveGame, storable, scene}`, where `scene` may be the *preloading* scene rather than a mounted one. Called at most once per game lifecycle.
+
+```tsx
+<Player story={story} onPreloadComplete={() => setLoadingBarDone(true)} />
+```
+
+### onFirstSceneReady
+
+> optional
+
+Called once the preload pass has finished, the first scene has mounted, and the browser has had a frame to render it. This is the most direct signal that the game is visually ready for the player.
+
+Receives the same context object as `onPreloadComplete`, and is called at most once per game lifecycle.
+
+```tsx
+<Player story={story} onFirstSceneReady={() => setLoadingOverlay(false)} />
+```
+
+### onPreloadedReady
+
+> optional, deprecated
+
+Use `onPreloadComplete` instead.
+
 ### onEnd
 
 > optional

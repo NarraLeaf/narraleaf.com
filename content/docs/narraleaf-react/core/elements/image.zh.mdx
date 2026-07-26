@@ -70,35 +70,41 @@ const yuko = new Image({
     src: {
         // 从底到顶
         layers: [
-            "yuko/body.png",                                          // 常驻层
-            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"}, // 互斥变体
-            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
-            {noHat: null, straw: "yuko/straw_hat.png"},               // null 表示不绘制
-            (tags) => tags.has("sad") ? "yuko/tears.png" : null,      // 由其他层派生
+            "yuko/body.png",                                              // 常驻层
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},     // 服装组
+            {uniform: null, casual: "yuko/jacket.png"},                   // 跟随服装组
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},   // 表情组
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},   // 跟随表情组
+            {happy: null, sad: "yuko/tears.png"},                         // null 表示不绘制
         ],
-        defaults: ["uniform", "happy", "noHat"],
+        defaults: ["uniform", "happy"],
     },
 });
 ```
 
-层叠图像由与基于标签的图像相同的 [char](#char) 方法驱动，标签的行为也完全一致：一个标签会替换掉它所在层的其他变体，并且不影响任何其他层
+层叠图像由与基于标签的图像相同的 [char](#char) 方法驱动。一个**组**由它的**标签集合**标识，而不是由提供它的层标识，因此**提供同一组标签的每一层都由同一个组驱动**：
 
 ```typescript
-yuko.char(["sad"]);                    // 只有表情层改变，服装保持不变
-yuko.char(["casual", "happy"]);        // 一次改变多层，顺序任意
+yuko.char(["sad"]);                    // 眉毛、嘴巴、眼泪一起改变，服装保持不变
+yuko.char(["casual"]);                 // 服装和外套一起改变，表情保持不变
+yuko.char(["casual", "sad"]);          // 一次改变多个组，顺序任意
 yuko.char(["sad"], new Dissolve({ duration: 300 })); // 转场的用法与任何图像一致
 ```
+
+这正是分层立绘需要的形状：「angry」不是一张嘴，而是一张嘴**加上**一对眉毛**再加上**美术拆出来的任何其他部件，现在一个标签就能把它们全部移动
 
 `layers` 的每一项可以是：
 
 - **字符串** — 常驻层，始终绘制
-- **变体映射** — 以标签为键的互斥 src，其中 `null` 表示该标签下这一层不绘制
-- **函数** — 根据当前生效的标签派生该层的 src。它自身不声明任何标签，因此可以对其他层做出反应
+- **变体映射** — 以标签为键的互斥 src，其中 `null` 表示该标签下这一层不绘制。它的键集合就是它所属的组
+- **函数** — 即 [LayerResolver](/zh/docs/narraleaf-react/core/types/LayeredDefinition)，根据当前生效的标签派生该层的 src。它自身不声明任何标签，且它返回的 src 对预载器不可见 —— 请优先使用变体映射，包括用于跟随其他层的组的层
 - `null` — 不绘制
 
-数组顺序即叠放顺序，因此第一项在最底层。`defaults` 为每个变体层指定一个标签，顺序任意
+数组顺序即叠放顺序，因此第一项在最底层。`defaults` 为每个**组**指定一个标签，顺序任意 —— 共享同一个组的层也共享这一个默认值
 
 标签会从定义中自动推导，因此无需显式传入类型参数，`char()` 就能在编译期拒绝拼写错误的标签
+
+由于一个层可以在它所跟随的组的某些标签下什么都不画，**某个变体专属的部件** —— 比如只有便服才有的外套 —— 就通过重复整个标签集合、并在该层不存在的标签上写 `null` 来表达。因此一套图层栈可以装下角色的整个衣柜：换装会保留当前表情，并像任何其他标签切换一样交叉淡入，也就没有理由再把一套衣服建模成另一张 image 了
 
 <Callout type="info">
     同一图像的所有层应当共用一张画布，这也是图像编辑器导出图层时的默认行为。各层通过在图像上居中来对齐，因此不能单独定位某一层
@@ -109,23 +115,24 @@ yuko.char(["sad"], new Dissolve({ duration: 300 })); // 转场的用法与任何
 </Callout>
 
 <Callout type="warning">
-    一个标签只能由一个层声明，且每个变体层都必须在 `defaults` 中恰好列出它的一个标签
+    跟随一个组的层必须重复该组的**完整**标签集合。只提供其中一部分，等于声明了**另一个**组，它的标签会和已经拥有这些标签的组冲突 —— 这是最容易犯的错误。此外，每个组都必须在 `defaults` 中恰好列出它的一个标签
 
 ```typescript
 const image = new Image({
     src: {
         layers: [
-            {none: null, hat: "hat.png"},
-            {none: null, scarf: "scarf.png"}, // 无效，标签 "none" 已在上面声明过
             {happy: "happy.png", sad: "sad.png"},
+            {sad: "tears.png"},        // 无效，声明了新的组 {sad}，与上面的组冲突
+            // {happy: null, sad: "tears.png"},   // 正确：重复整个集合，不绘制处写 null
+            {none: null, hat: "hat.png"},
         ],
-        defaults: ["hat"], // 无效，表情层没有默认值
+        defaults: ["happy"], // 无效，帽子组没有默认值
     },
 });
 ```
 </Callout>
 
-图层栈可能显示的每一个 src 都会在图像创建时注册预载。由于各层相互独立，这是所有变体之和而非它们的笛卡尔积 —— 层叠图像不会出现「资源未被预测」的警告。函数层返回的 src 对引擎不透明，如果没有其他层用到它，需要用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 手动注册
+图层栈可能显示的每一个 src 都会在图像创建时注册预载。各层之间不会相乘，因此这是每一层变体的总和，而非它们的笛卡尔积 —— 层叠图像不会出现「资源未被预测」的警告。跟随组的层就是普通的变体映射，因此它的 src 是可枚举的、会被这次注册覆盖，切换标签不需要任何额外请求。而**函数层**返回的 src 是不透明的：预载器看不到它，因此它会在首次使用时才被获取 —— 也就是标签切换的那一帧。如果没有其他层用到这个 src，需要用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 手动注册
 
 #### Src-based Image
 
@@ -226,7 +233,7 @@ image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
 image.char(["angry"], new Dissolve({ duration: 1000 }));
 ```
 
-对于[层叠图像](#layered-image)，标签会选中它所在层的一个变体，其他所有层保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
+对于[层叠图像](#layered-image)，一个标签会选中它所属**组**的一个变体，提供该组标签集合的每一层都会随之改变；标签没有点到的组保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
 
 ```typescript
 const yuko = new Image({
@@ -234,16 +241,18 @@ const yuko = new Image({
         layers: [
             "yuko/body.png",
             {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
-            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+            {uniform: null, casual: "yuko/jacket.png"},
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},
         ],
         defaults: ["uniform", "happy"],
     },
 });
 
-//  uniform , [sad]
+//  uniform , [sad] —— 眉毛和嘴巴一起改变
 yuko.char(["sad"], new Dissolve({ duration: 300 }));
 
-// [casual],  sad
+// [casual],  sad  —— 服装和外套一起改变，表情保持不变
 yuko.char(["casual"]);
 ```
 </Step>

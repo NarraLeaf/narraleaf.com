@@ -1,0 +1,357 @@
+---
+title: "DevTools"
+---
+`DevTools` is a static utility class for **editor hosts** — a live preview, an inspector, a stage editor, a thumbnail renderer. It exposes the few engine internals such a host needs and that the ordinary story API deliberately does not: action identity, direct registration of a displayable, the current dialog line, and a layered image's per-layer sources.
+
+You never need it to write a game.
+
+```typescript
+import {DevTools} from "narraleaf-react/built-in";
+```
+
+<Callout type="info">
+    Every member is static — there is nothing to construct. `DevTools` is also re-exported from the package root (`narraleaf-react`), but the `narraleaf-react/built-in` entry is the one to prefer.
+</Callout>
+
+## Action Identity
+
+Every action in a story receives an id when the story is constructed: a generated one (`a-0`, `a-1`, ...) unless a **static id** was assigned to it, in which case that id is used instead. A static id is what makes an action addressable across rebuilds of the story — for example as the target of [fastForward](/docs/narraleaf-react/core/game/live-game). Duplicate static ids are rejected at story construction.
+
+### getActionId
+
+<Steps>
+<Step>
+
+Read the resolved id of an action.
+
+- `action: LogicAction.Actions` - The action
+- Returns `string` - The id assigned at story construction
+
+```typescript
+const id = DevTools.getActionId(action);
+```
+</Step>
+</Steps>
+
+### setActionId
+
+<Steps>
+<Step>
+
+Overwrite the resolved id of an action.
+
+- `action: LogicAction.Actions` - The action
+- `id: string` - The new id
+- Returns `LogicAction.Actions` - The same action
+
+```typescript
+DevTools.setActionId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+### getStaticId
+
+<Steps>
+<Step>
+
+Read the static id of an action, or `null` when it has none and therefore takes a generated one.
+
+- `action: LogicAction.Actions` - The action
+- Returns `string | null`
+
+```typescript
+const staticId = DevTools.getStaticId(action);
+```
+</Step>
+</Steps>
+
+### setStaticId
+
+<Steps>
+<Step>
+
+Assign the static id an action keeps across story construction. Pass `null` to drop it and fall back to a generated id.
+
+- `action: LogicAction.Actions` - The action
+- `id: string | null` - The static id
+- Returns `LogicAction.Actions` - The same action
+
+```typescript
+DevTools.setStaticId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+## Chains and Actions
+
+### chainToActions
+
+<Steps>
+<Step>
+
+Unwrap a chainable expression into the flat list of actions it produced.
+
+- `chain: Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - A chained expression, see [ChainedActions](/docs/narraleaf-react/core/types/ChainedActions)
+- Returns `LogicAction.Actions[]`
+
+```typescript
+const actions = DevTools.chainToActions(
+    image.char(["sad"]).darken(0.5, 300)
+);
+```
+</Step>
+</Steps>
+
+### wrapAction
+
+<Steps>
+<Step>
+
+Wrap actions — or a chain — into a single [Control](/docs/narraleaf-react/core/elements/control) action, so a whole sequence can be handled as one statement.
+
+- `action: LogicAction.Actions[] | Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - The actions or chain to wrap
+- Returns `ControlAction`
+
+```typescript
+const wrapped = DevTools.wrapAction(image.char(["sad"]).darken(0.5, 300));
+```
+</Step>
+</Steps>
+
+## Stage Introspection
+
+### getCurrentScene
+
+<Steps>
+<Step>
+
+The scene currently mounted, or `null` when none is.
+
+- `gameState: GameState` - See [GameState](/docs/narraleaf-react/core/game/game-state)
+- Returns `Scene | null` - See [Scene](/docs/narraleaf-react/core/elements/scene)
+
+```typescript
+const scene = DevTools.getCurrentScene(gameState);
+```
+</Step>
+</Steps>
+
+### getLayerSrcs
+
+<Steps>
+<Step>
+
+The src of each of a [layered image](/docs/narraleaf-react/core/elements/image#layered-image)'s layers, **bottom to top**. A `null` entry is a layer that draws nothing for the given tags. A non-layered image yields an empty array.
+
+A layered image has no single src to read — it is a stack — so a host rendering its own thumbnail of an on-stage element has to composite these itself, in order.
+
+- `image: Image` - See [Image](/docs/narraleaf-react/core/elements/image)
+- `tags?: string[]` - The tags to resolve against. Defaults to the image's current tags.
+- Returns `(string | null)[]`
+
+```typescript
+// what the image is showing right now
+const srcs = DevTools.getLayerSrcs(yuko);
+// => ["yuko/body.png", "yuko/casual.png", "yuko/jacket.png", null, "yuko/mouth_sad.png"]
+
+// what it would show for another set of tags, without touching the stage
+const preview = DevTools.getLayerSrcs(yuko, ["uniform", "happy"]);
+
+for (const src of preview) {
+    if (src === null) continue; // this layer draws nothing
+    // draw src onto your own canvas, in order
+}
+```
+</Step>
+</Steps>
+
+### getDisplayableTransformProps
+
+<Steps>
+<Step>
+
+Read a displayable's current transform-state props — position, opacity, zoom, rotation, scale, effects. Returns a shallow copy, so mutating it changes nothing on stage.
+
+Intended for capturing a live pose, for example to prefill a motion editor with an element's current stage state.
+
+- `displayable: LogicAction.DisplayableElements` - See [Displayable](/docs/narraleaf-react/core/elements/displayable)
+- Returns `Record<string, unknown>`
+
+```typescript
+const pose = DevTools.getDisplayableTransformProps(image);
+```
+</Step>
+</Steps>
+
+### setDisplayableTransformProps
+
+<Steps>
+<Step>
+
+Overwrite a displayable's transform-state props with no animation, and push the result to the DOM immediately when the element is mounted.
+
+By default the given props are merged over the current state; with `merge: false` the previous state is discarded entirely.
+
+- `gameState: GameState` - See [GameState](/docs/narraleaf-react/core/game/game-state)
+- `displayable: LogicAction.DisplayableElements` - The element to update
+- `props: Record<string, unknown>` - The transform props to write
+- `options?: { merge?: boolean }` - `merge` defaults to `true`
+
+```typescript
+DevTools.setDisplayableTransformProps(gameState, image, {opacity: 0.5});
+
+// replace the whole state instead of merging into it
+DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
+```
+
+<Callout type="warning">
+    Throws if the transform state is locked by an in-flight transform. Only inject while the stage is idle.
+</Callout>
+</Step>
+</Steps>
+
+### registerDisplayable
+
+<Steps>
+<Step>
+
+Register a displayable into a scene's render tree **without** emitting a `displayable:init` action. The element renders immediately at its constructor-config transform state; visibility is governed by `opacity > 0`.
+
+Intended for hosts that pre-pose a stage: construct elements with their computed state as constructor config — config state survives `element.reset()` and `newGame()` — then register them from a [Script](/docs/narraleaf-react/core/elements/script) action or after mount.
+
+The call is idempotent: an element the scene root's auto-init actions already registered is left alone.
+
+- `gameState: GameState` - See [GameState](/docs/narraleaf-react/core/game/game-state)
+- `displayable: LogicAction.DisplayableElements` - The element to register
+- `scene?: Scene | null` - Defaults to `null`, see [Scene](/docs/narraleaf-react/core/elements/scene)
+- `layer?: Layer | null` - Defaults to `null`, see [Layer](/docs/narraleaf-react/core/elements/layer)
+
+```typescript
+const ghost = new Image({src: "yuko/body.png", opacity: 0.4});
+
+DevTools.setElementId(ghost, "preview:ghost");
+DevTools.registerDisplayable(gameState, ghost, scene, layer);
+```
+</Step>
+</Steps>
+
+### setElementId
+
+<Steps>
+<Step>
+
+Assign an explicit element id.
+
+Elements reachable from a scene's action tree receive generated ids (`e-0`, `e-1`, ...) at story construction. An element registered directly via [registerDisplayable](#registerdisplayable) is outside that tree and would otherwise keep the default id, colliding with others as a React key — so give it a unique id, with a distinct prefix so it never collides with a generated one.
+
+- `element: LogicAction.GameElement` - The element
+- `id: string` - The id to assign
+
+```typescript
+DevTools.setElementId(ghost, "preview:ghost");
+```
+</Step>
+</Steps>
+
+## Dialog
+
+### getCurrentDialog
+
+<Steps>
+<Step>
+
+Read the dialog line currently presented to the player, or `null` when no dialog is on screen. Covers both ADV and NVL presentation.
+
+- `gameState: GameState` - See [GameState](/docs/narraleaf-react/core/game/game-state)
+- Returns `DevToolsCurrentDialog | null` - See [DevToolsCurrentDialog](#devtoolscurrentdialog)
+
+```typescript
+const dialog = DevTools.getCurrentDialog(gameState);
+
+if (dialog?.ended) {
+    console.log("waiting for the player to advance", dialog.actionId);
+}
+```
+</Step>
+</Steps>
+
+### onDialogStateChange
+
+<Steps>
+<Step>
+
+Subscribe to changes of the currently presented dialog line — creation, typing completion, advance and settle — across both ADV and NVL modes.
+
+The listener carries no payload; call [getCurrentDialog](#getcurrentdialog) to read the new state.
+
+- `gameState: GameState` - See [GameState](/docs/narraleaf-react/core/game/game-state)
+- `listener: () => void` - Called on every change
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+
+```typescript
+const token = DevTools.onDialogStateChange(gameState, () => {
+    const dialog = DevTools.getCurrentDialog(gameState);
+    highlightRow(dialog?.actionId ?? null);
+});
+
+return function cleanup() {
+    token.cancel();
+};
+```
+</Step>
+</Steps>
+
+### DevToolsCurrentDialog
+
+<Steps>
+<Step>
+
+Snapshot of the dialog line currently presented to the player.
+
+```typescript
+type DevToolsCurrentDialog = {
+    /** Id of the say action that produced the line (static id when assigned). */
+    actionId: string | null;
+    /** True once the line finished displaying and awaits advance. */
+    ended: boolean;
+    mode: "adv" | "nvl";
+};
+```
+</Step>
+</Steps>
+
+## Persistent
+
+### getNamespaceName
+
+<Steps>
+<Step>
+
+The name a [Persistent](/docs/narraleaf-react/core/elements/persistent) is registered under in the store — the same string [Storable.getNamespace](/docs/narraleaf-react/core/game/storable) takes.
+
+- `persistent: Persistent<any>` - See [Persistent](/docs/narraleaf-react/core/elements/persistent)
+- Returns `string`
+
+```typescript
+const name = DevTools.getNamespaceName(playerPersistent);
+```
+</Step>
+</Steps>
+
+### DynamicPersistent
+
+<Steps>
+<Step>
+
+The `DynamicPersistent` class, which is otherwise not exported from the package. It is the internal `Persistent` variant whose namespace is prefixed and created at runtime — a scene's locals are one.
+
+```typescript
+const Dynamic = DevTools.DynamicPersistent;
+```
+
+<Callout type="warning">
+    Internal by design. It is reachable here for hosts that have to mirror the engine's own namespaces, not for story code.
+</Callout>
+</Step>
+</Steps>

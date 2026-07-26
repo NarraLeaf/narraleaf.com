@@ -1,6 +1,7 @@
 {
   "title": "内置",
   "pages": [
-    "gallery"
+    "gallery",
+    "dev-tools"
   ]
 }

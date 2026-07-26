@@ -3,6 +3,18 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.17.1
+
+- [fastForward](/docs/narraleaf-react/core/game/live-game#fastforward)'s `reason` gained `"stalled"`. Runtime behaviour for the existing values is unchanged, but the return type is wider: an exhaustive `switch` over `reason` needs the extra arm to keep compiling. Hosts that ignore the result are unaffected
+- A fast-forward run can now end early on a step that cannot be skipped. Each suspended line is given `options.stepTimeout` ms (default `10000`) to settle; a step that outlives it ends the run with `"stalled"` instead of continuing past it. Previously the run hung there and the promise settled neither way, so nothing that works today starts failing — but a host that treats any non-`"menu"` reason as success should now distinguish `"stalled"`. Raise `stepTimeout` for a story that fast-forwards through long unskippable media
+
+## 0.17.0
+
+- `onPreloadComplete`, `oncePreloadComplete`, `whenPreloadComplete()` and `event:preloaded.complete` now fire **before the game is entered** — while a menu may still be on screen — rather than after `newGame()` has mounted a scene. The entry scene is registered for preloading as soon as the story is loaded, which is the point of the release. Nothing fails to compile; the callback simply runs at a different moment
+  - If you used it to gate a **loading step**, it now does its job better and needs no change
+  - If you used it to mean **"the game has content on screen"**, switch to `onFirstSceneReady` / `whenFirstSceneReady()`. Those are unchanged and still require a real mounted scene
+  - See [Preloading](/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on)
+
 ## 0.16.0
 
 The transition API was redesigned around two ideas: transition **engines** are instantiated with `new` and take a single options object, while the mask **patterns** they animate are built with the static factories on [Mask](/docs/narraleaf-react/core/animation/transition/mask) and passed as the `pattern` option.

@@ -10,7 +10,8 @@ export type LayeredDefinition<L extends LayerGroupDefinition = LayerGroupDefinit
      */
     layers: L;
     /**
-     * 每个变体层一个标签，顺序任意
+     * 每个组一个标签，顺序任意。提供同一标签集合的层共享同一个组，
+     * 因此也共享这一个默认值
      */
     defaults: readonly LayerTagsOf<L>[];
 };
@@ -25,12 +26,22 @@ export type LayerGroupDefinition = readonly LayerSlot[];
 
 /**
  * 一层的互斥变体集合，以标签为键
+ *
  * `null` 表示该标签下这一层不绘制
+ *
+ * 标签集合就是组的身份：提供**相同**标签集合的每一层都由同一个组驱动，
+ * 这正是一次 `char(["angry"])` 能同时移动眉毛、眼睛和嘴巴的原因。
+ * 要跟随一个组，就在该层上重复它的完整标签集合，并在该层不绘制的标签上写 `null`。
+ * 只提供集合的一部分，等于声明了**另一个**组，共享的标签随即冲突
  */
 export type LayerVariants = Record<string, string | null>;
 
 /**
  * 根据当前生效的标签派生该层的 src。自身不声明任何标签
+ *
+ * 解析函数是不透明的，它可能返回的 src 对预载器不可见，会在首次使用时才被获取。
+ * 请优先使用 LayerVariants —— 包括用于跟随其他层的组的层，它已经不再需要解析函数 ——
+ * 只把解析函数留给确实无法枚举的来源
  */
 export type LayerResolver = (tags: ReadonlySet<string>) => string | null;
 

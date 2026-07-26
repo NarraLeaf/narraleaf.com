@@ -527,9 +527,11 @@ game.getLiveGame().skipDialog();
 <Steps>
 <Step>
 
-Fast-forward playback to the next menu (or the end of the story).
+Fast-forward playback to the next menu, to the end of the story, or to a specific action.
 
-Every line in between is executed for real, so the backlog and its restore snapshots accumulate exactly as in normal play — only faster and silent. Audio is muted for the duration, in-flight transitions settle immediately, and timed pauses (`Control.sleep`, auto-forward) resolve at once. It stops as soon as a menu is waiting for a choice, so the choice itself is always left to the player. Because history accumulates the whole way, [getHistory](#gethistory) and [restoreToHistory](#restoretohistory) cover the fast-forwarded span just like normal play.
+Every line in between is executed for real, so the backlog and its restore snapshots accumulate exactly as in normal play — only faster and silent. Audio is muted for the duration, and the timed pauses the run executes (`Control.sleep`, auto-forward) resolve at once. It stops as soon as a menu is waiting for a choice, so the choice itself is always left to the player. Because history accumulates the whole way, [getHistory](#gethistory) and [restoreToHistory](#restoretohistory) cover the fast-forwarded span just like normal play.
+
+Skipping a line is a *request* broadcast to the renderer, not a synchronous state change, so it is re-issued until the line settles. A line that never answers ends the run with `"stalled"` rather than hanging — this method always settles.
 
 ```typescript
 // Jump ahead to the next decision point.
@@ -537,10 +539,32 @@ await game.getLiveGame().fastForward();
 
 // Or run to the end of the story.
 await game.getLiveGame().fastForward({ until: "end" });
+
+// Or park the play head on a specific action, without running it.
+const result = await game.getLiveGame().fastForward({ until: { actionId: "act-42" } });
+
+if (result.reason === "action") {
+    // parked on act-42, not yet executed
+} else if (result.reachedTarget === false) {
+    // a menu blocked the path, the stack drained, maxSteps was hit, or a line stalled
+}
 ```
 
-- `options.until?: "menu" | "end"` - `"menu"` (default) stops at the next menu; `"end"` runs until the story finishes.
+- `options.until?: "menu" | "end" | { actionId: string }` - `"menu"` (default) stops at the next menu; `"end"` runs until the story finishes; `{ actionId }` runs until that action surfaces as the next thing to execute and stops **just before** running it, so the play head is left parked on that line. Only the root execution stack is scanned — an id buried inside an in-flight `Control.all` / `Control.any` or async branch is not a stop point. A menu that blocks the path stops an `actionId` run too, since the target cannot be reached until the player decides.
 - `options.maxSteps?: number` - safety bound on the number of advance steps (defaults to the `maxStackModelLoop` config).
-- Returns `Promise<{ reason: "menu" | "end" | "maxSteps" }>` - why it stopped.
+- `options.stepTimeout?: number` - how long, in milliseconds, a single suspended line is given to settle before the run reports `"stalled"`. Default `10000`. Raise it for a story that fast-forwards through long unskippable media.
+- Returns `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>` - why it stopped.
+    - `reason` - `"action"` reached `until.actionId`; `"menu"` a menu is waiting for a choice; `"end"` the stack drained; `"maxSteps"` the step cap was hit; `"stalled"` a line refused to settle within `stepTimeout`.
+    - `reachedTarget` - present **only** when `until: { actionId }` was requested, and `true` only for reason `"action"`. A `"menu"` / `"end"` run keeps its plain `{ reason }` shape.
 </Step>
 </Steps>
+
+<Callout type="info">
+    `until: { actionId }`, the `"action"` reason and `reachedTarget` are available since `0.16.0`. `options.stepTimeout` and the `"stalled"` reason are available since `0.17.1`.
+</Callout>
+
+<Callout type="warning">
+    **A run can end early on a step that cannot be skipped.** A step already in flight when the run started, a video (`allowSkipVideo` is `false` by default), and a camera or layer transition all ignore the skip request. Such a step still settles on its own if it finishes within `stepTimeout`, so only one that outlives the timeout ends the run — with `"stalled"`, and with volume and the fast-forward flag restored on the way out.
+
+    Before `0.17.1` the run parked on such a step instead: the promise settled neither way, the game stayed muted and permanently in fast-forward mode. Nothing that worked before starts failing, but a host that treats any non-`"menu"` reason as success should now distinguish `"stalled"`, and an exhaustive `switch` over `reason` needs the extra arm to keep compiling.
+</Callout>

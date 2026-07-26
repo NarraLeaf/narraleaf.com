@@ -53,6 +53,8 @@ export default function Game() {
 />
 ```
 
+注意 `onPreloadComplete` 是*另一个*时点：自 `0.17.0` 起，入口场景在故事被加载时就已开始预热，因此该回调在进入游戏之前就会触发，此时菜单可能还在屏幕上。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)。
+
 需要指定 Game 配置时，创建一次 Game 实例，再传给 Provider：
 
 ```tsx

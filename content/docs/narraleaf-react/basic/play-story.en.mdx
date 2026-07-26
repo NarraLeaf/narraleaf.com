@@ -53,6 +53,8 @@ export default function Game() {
 />
 ```
 
+Note that `onPreloadComplete` is a *different* point: since `0.17.0` the entry scene is warmed as soon as the story is loaded, so that callback fires before the game is entered, while a menu may still be on screen. See [Preloading](/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on).
+
 To share a configured game instance with the provider, create it once and pass it through `game`:
 
 ```tsx

@@ -1,0 +1,130 @@
+---
+title: "Preloading"
+---
+
+<Callout type="info">
+    The behaviour described on this page is available since `0.17.0`.
+</Callout>
+
+The player fetches and decodes a scene's assets before that scene paints. Since `0.17.0` that work starts as soon as the story is loaded — not when the game is entered — and it is split into two tiers, so the first frame waits only on what it actually needs.
+
+<Callout type="warning">
+    **`onPreloadComplete` moved.** It now fires *before* the game is entered, while a menu may still be on screen. If you were reading it as "the game has content on screen", see [Which signal to wait on](#which-signal-to-wait-on) — that meaning is now `onFirstSceneReady`.
+</Callout>
+
+## The entry scene is warmed before the game is entered
+
+The preloader derives its work list from a scene, and before `0.17.0` there was no scene to derive it from until [newGame](/docs/narraleaf-react/core/game/live-game#newgame) mounted one. A game that shows a main menu first therefore did all of its fetching, encoding and decoding between the player pressing "start" and the first painted frame.
+
+`Player` now registers `story.entryScene` as the preloading scene the moment the story is loaded, so that work happens behind whatever the player is already looking at, and entering the game becomes a reveal rather than a load. Nothing is mounted and no action runs — only the assets are warmed.
+
+The automatic registration only applies when there is neither a preloading scene nor a mounted scene yet, so a host that already calls [preloadScene](/docs/narraleaf-react/core/game/game-state#preloadscene) itself keeps its own choice.
+
+## Two tiers: critical and look-ahead
+
+A scene's asset list reaches transitively — it carries the whole asset set of every scene reachable from it. Treating that as one pass meant a large story could not show its first frame until every reachable scene's images had been fetched and decoded, seconds spent on assets the player was not about to see.
+
+The pass now runs in two tiers:
+
+| Tier | What it holds | How it runs |
+| --- | --- | --- |
+| **Critical** | What the scene about to paint registers directly: its own backgrounds and images, plus the immediate background of any scene it jumps to | Unpaced, and the only tier that gates `event:preloaded.complete` — that is, the first painted frame |
+| **Look-ahead** | The full asset set of every scene reachable from here, minus anything already in the critical tier | Runs after the critical tier, paced by `preloadDelay`, and **nothing waits for it** |
+
+`preloadDelay` therefore no longer charges the first frame: it exists to keep speculative work from saturating the network, not to throttle assets the player is already waiting on. The cache-eviction pass runs once over the union of both tiers, and is skipped entirely for a superseded pass, so switching scenes mid-preload no longer drops the images the current scene just cached.
+
+Games running with `preloadAllImages: false` keep their existing predict-by-action behaviour unchanged, and none of this applies to them.
+
+## Decoded bitmaps are kept for the scene about to paint
+
+A decoded bitmap only survives while something still references it. The critical tier holds its decoded elements until the source leaves the cache, so the first visible frame does not decode from scratch after all that fetching.
+
+The look-ahead tier deliberately does not: a full-resolution bitmap costs width × height × 4 bytes, which is worth paying for the one scene about to paint and not for a whole reachable graph.
+
+## The scene's sounds are warmed too
+
+A scene whose BGM is still being fetched when it opens stutters into its own first line. The critical tier therefore also warms the current scene's sounds, through `preload` on the audio manager:
+
+```typescript
+<Player
+    story={story}
+    onReady={({ gameState }) => {
+        // fetch and decode a source into the audio cache without playing it
+        void gameState.audioManager.preload(bgm);
+    }}
+/>
+```
+
+- `preload(sound: Sound): Promise<void>` — resolves when the source is in the audio cache. A source that fails to load is logged as a warning and loads on first play instead, so the promise never rejects.
+
+<Callout type="warning">
+    **Never gate anything on this promise.** The audio context stays locked until the browser's autoplay policy is satisfied by a user gesture, so an audio warm-up can legitimately sit pending on a page nobody has touched yet. The engine's own call is fire-and-forget for exactly this reason.
+</Callout>
+
+Only the current scene's sounds are warmed automatically — a look-ahead scene's audio is left to that scene's own pass.
+
+## Which signal to wait on
+
+Three lifecycle points are easy to confuse, and `0.17.0` moved the middle one:
+
+| Signal | Fires when |
+| --- | --- |
+| [onReady](/docs/narraleaf-react/player/player#onready) | The `Player` instance is initialized. This is where `newGame()` belongs. It is not a preload or a first-render guarantee. |
+| `onPreloadComplete` | The initial preload pass (the critical tier) has finished. Since `0.17.0` this is **before the game is entered** — a menu may still be on screen and no scene is mounted. |
+| `onFirstSceneReady` | The preload pass has finished, the first scene component has mounted, **and** the browser has had a frame to render it. This is the "there is content on screen" signal. |
+
+Both of the latter two exist as a `Player` prop and as a `Game` method, and each fires at most once per game lifecycle:
+
+```tsx
+<Player
+    story={story}
+    onReady={({ liveGame }) => liveGame.newGame()}
+    onPreloadComplete={() => setLoadingBarDone(true)}   // menu may still be up
+    onFirstSceneReady={() => setLoadingOverlay(false)}  // the scene is painted
+/>
+```
+
+```typescript
+// Same points, for code that is not the Player element.
+await game.whenPreloadComplete();
+await game.whenFirstSceneReady();
+
+game.isPreloadComplete();
+game.isFirstSceneReady();
+```
+
+See [Game](/docs/narraleaf-react/core/game/game#onpreloadcomplete) for the full listener set — `on*`, `once*`, `when*` and `is*` for both points.
+
+### Upgrading from 0.16 and earlier
+
+<Callout type="warning">
+    **This is a behavioural break, not a new API.** `onPreloadComplete`, `oncePreloadComplete`, `whenPreloadComplete()` and `event:preloaded.complete` all fire earlier than they used to: before the game is entered, rather than after `newGame()` has mounted a scene. The names and signatures did not change, so nothing fails to compile — the callback simply runs at a different moment, and a host that hid its loading screen there will now uncover an unmounted stage.
+
+    - If you used it to **gate a loading step** — a progress bar, a "Start" button that should not be pressable while assets are still coming down — it now does its job better and needs no change. That is the point of the release.
+    - If you used it to mean **"the game has content on screen"**, switch to `onFirstSceneReady` / `whenFirstSceneReady()`. Those are unchanged and still require a real mounted scene.
+
+    The `ctx.scene` a `preloadComplete` listener receives may now be the *preloading* scene rather than a mounted one, which is another way to notice the difference.
+</Callout>
+
+`onPreloadedReady` is deprecated in favour of `onPreloadComplete`.
+
+## Preloading a scene yourself
+
+A host that knows better than the entry-scene default — a save-slot screen that knows which scene the player is about to resume into, for instance — can name the scene to warm:
+
+```typescript
+gameState.preloadScene(scene);   // or a Story, which uses its entry scene
+```
+
+Doing this before the Player registers the entry scene keeps the automatic registration from happening at all.
+
+## Configuration
+
+These live on [GameConfig](/docs/narraleaf-react/core/types/GameConfig):
+
+- `preloadAllImages` (default `true`) — run the two-tier scene pass. With `false`, the player falls back to predicting the next `maxPreloadActions` actions and preloading their sources instead.
+- `preloadConcurrency` (default `5`) — how many images are fetched at once, in both tiers.
+- `preloadDelay` (default `100`) — pacing between look-ahead batches. The critical tier is not paced.
+- `waitForPreload` (default `true`) — hold the player's reveal until the critical tier is done.
+- `forceClearCache` (default `false`) — clear the image cache when the scene changes.
+- `maxPreloadActions` (default `10`) — how many actions ahead the `preloadAllImages: false` path predicts.

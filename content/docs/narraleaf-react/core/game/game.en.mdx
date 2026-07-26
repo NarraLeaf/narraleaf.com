@@ -149,3 +149,125 @@ game.freeze(["ratioUpdateInterval", "cursor"]);
 - `fields: (StringKeyOf<GameConfig>)[]` - Array of configuration field names to freeze
 </Step>
 </Steps>
+
+## Lifecycle Events
+
+Two points in a game's start-up can be listened for. Each fires at most once per game lifecycle, and every listener receives the same context object: `{game, gameState, liveGame, storable, scene}`, where `scene` may be `null`.
+
+<Callout type="warning">
+    **`preloadComplete` moved in `0.17.0`.** It now fires *before* the game is entered, while a menu may still be on screen — not after `newGame()` has mounted a scene. Use it to gate a loading step; use `firstSceneReady` for "the game has content on screen". See [Preloading](/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on).
+</Callout>
+
+### onPreloadComplete
+
+<Steps>
+<Step>
+
+Listen for the initial preload pass completing. Since `0.17.0` this is before the game is entered.
+
+```typescript
+const token = game.onPreloadComplete(({scene}) => {
+    setLoadingBarDone(true);
+});
+
+token.cancel();
+```
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- Returns [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### oncePreloadComplete
+
+<Steps>
+<Step>
+
+Same, removed after the first call.
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- Returns [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### whenPreloadComplete
+
+<Steps>
+<Step>
+
+Resolve when the initial preload pass has completed. Resolves immediately if it already has, so this is the safe form when the listener may be registered late.
+
+```typescript
+const {scene} = await game.whenPreloadComplete();
+```
+
+- `return: Promise<GameLifecycleEventContext>`
+</Step>
+</Steps>
+
+### isPreloadComplete
+
+<Steps>
+<Step>
+
+Whether the initial preload pass has completed.
+
+- `return: boolean`
+</Step>
+</Steps>
+
+### onFirstSceneReady
+
+<Steps>
+<Step>
+
+Listen for the first scene being fully ready: the preload pass has finished, the first scene component has mounted, **and** the browser has had a frame to render it. This is the most direct signal that the game is visually ready for the player.
+
+```typescript
+const token = game.onFirstSceneReady(() => hideLoadingOverlay());
+
+token.cancel();
+```
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- Returns [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### onceFirstSceneReady
+
+<Steps>
+<Step>
+
+Same, removed after the first call.
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- Returns [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### whenFirstSceneReady
+
+<Steps>
+<Step>
+
+Resolve when the first scene is fully ready. Resolves immediately if it already is.
+
+```typescript
+await game.whenFirstSceneReady();
+```
+
+- `return: Promise<GameLifecycleEventContext>`
+</Step>
+</Steps>
+
+### isFirstSceneReady
+
+<Steps>
+<Step>
+
+Whether the first scene is fully ready.
+
+- `return: boolean`
+</Step>
+</Steps>

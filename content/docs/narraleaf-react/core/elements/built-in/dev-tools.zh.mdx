@@ -1,0 +1,357 @@
+---
+title: "DevTools"
+---
+`DevTools` 是一个面向**编辑器宿主**的静态工具类 —— 实时预览、检查器、舞台编辑器、缩略图渲染器等。它暴露了这类宿主所需、而常规剧本 API 有意不提供的少数引擎内部能力：动作标识、直接注册可显示元素、当前对话行，以及层叠图像的逐层 src。
+
+编写游戏本身完全不需要它。
+
+```typescript
+import {DevTools} from "narraleaf-react/built-in";
+```
+
+<Callout type="info">
+    所有成员都是静态的 —— 没有需要构造的实例。`DevTools` 同时也从包根入口（`narraleaf-react`）重新导出，但请优先使用 `narraleaf-react/built-in` 这个入口。
+</Callout>
+
+## 动作标识
+
+故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址 —— 例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝。
+
+### getActionId
+
+<Steps>
+<Step>
+
+读取一个动作已解析出的 id
+
+- `action: LogicAction.Actions` - 动作
+- 返回 `string` - 故事构造时分配的 id
+
+```typescript
+const id = DevTools.getActionId(action);
+```
+</Step>
+</Steps>
+
+### setActionId
+
+<Steps>
+<Step>
+
+覆盖一个动作已解析出的 id
+
+- `action: LogicAction.Actions` - 动作
+- `id: string` - 新的 id
+- 返回 `LogicAction.Actions` - 同一个动作
+
+```typescript
+DevTools.setActionId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+### getStaticId
+
+<Steps>
+<Step>
+
+读取一个动作的静态 id；若它没有静态 id（因而使用生成的 id），返回 `null`
+
+- `action: LogicAction.Actions` - 动作
+- 返回 `string | null`
+
+```typescript
+const staticId = DevTools.getStaticId(action);
+```
+</Step>
+</Steps>
+
+### setStaticId
+
+<Steps>
+<Step>
+
+指定一个动作在故事构造过程中保持不变的静态 id。传入 `null` 可以取消它，退回到生成的 id
+
+- `action: LogicAction.Actions` - 动作
+- `id: string | null` - 静态 id
+- 返回 `LogicAction.Actions` - 同一个动作
+
+```typescript
+DevTools.setStaticId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+## 链与动作
+
+### chainToActions
+
+<Steps>
+<Step>
+
+把一个链式表达式拆解成它所产生的扁平动作列表
+
+- `chain: Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - 链式表达式，参见 [ChainedActions](/zh/docs/narraleaf-react/core/types/ChainedActions)
+- 返回 `LogicAction.Actions[]`
+
+```typescript
+const actions = DevTools.chainToActions(
+    image.char(["sad"]).darken(0.5, 300)
+);
+```
+</Step>
+</Steps>
+
+### wrapAction
+
+<Steps>
+<Step>
+
+把一组动作 —— 或一条链 —— 包装成单个 [Control](/zh/docs/narraleaf-react/core/elements/control) 动作，从而把整个序列当作一条语句处理
+
+- `action: LogicAction.Actions[] | Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - 要包装的动作或链
+- 返回 `ControlAction`
+
+```typescript
+const wrapped = DevTools.wrapAction(image.char(["sad"]).darken(0.5, 300));
+```
+</Step>
+</Steps>
+
+## 舞台检查
+
+### getCurrentScene
+
+<Steps>
+<Step>
+
+当前已挂载的场景；没有挂载时返回 `null`
+
+- `gameState: GameState` - 参见 [GameState](/zh/docs/narraleaf-react/core/game/game-state)
+- 返回 `Scene | null` - 参见 [Scene](/zh/docs/narraleaf-react/core/elements/scene)
+
+```typescript
+const scene = DevTools.getCurrentScene(gameState);
+```
+</Step>
+</Steps>
+
+### getLayerSrcs
+
+<Steps>
+<Step>
+
+[层叠图像](/zh/docs/narraleaf-react/core/elements/image#layered-image)每一层的 src，**自下而上**。值为 `null` 的项表示该层在给定标签下不绘制任何东西。非层叠图像返回空数组
+
+层叠图像没有单一的 src 可读 —— 它是一个图层栈 —— 因此需要自行渲染舞台元素缩略图的宿主，必须按顺序自己合成这些 src
+
+- `image: Image` - 参见 [Image](/zh/docs/narraleaf-react/core/elements/image)
+- `tags?: string[]` - 用于解析的标签。省略时使用图像当前的标签
+- 返回 `(string | null)[]`
+
+```typescript
+// 图像此刻正在显示的内容
+const srcs = DevTools.getLayerSrcs(yuko);
+// => ["yuko/body.png", "yuko/casual.png", "yuko/jacket.png", null, "yuko/mouth_sad.png"]
+
+// 换一组标签会显示成什么，且不影响舞台
+const preview = DevTools.getLayerSrcs(yuko, ["uniform", "happy"]);
+
+for (const src of preview) {
+    if (src === null) continue; // 这一层什么都不画
+    // 按顺序把 src 画到你自己的画布上
+}
+```
+</Step>
+</Steps>
+
+### getDisplayableTransformProps
+
+<Steps>
+<Step>
+
+读取一个可显示元素当前的变换状态属性 —— 位置、不透明度、缩放、旋转、比例、特效。返回的是浅拷贝，修改它不会影响舞台
+
+适用于捕获实时姿态，例如用元素当前的舞台状态预填一个动作编辑器
+
+- `displayable: LogicAction.DisplayableElements` - 参见 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)
+- 返回 `Record<string, unknown>`
+
+```typescript
+const pose = DevTools.getDisplayableTransformProps(image);
+```
+</Step>
+</Steps>
+
+### setDisplayableTransformProps
+
+<Steps>
+<Step>
+
+不带动画地覆写一个可显示元素的变换状态属性，并在元素已挂载时立即把结果推到 DOM
+
+默认会把给定属性合并到当前状态之上；传入 `merge: false` 则完全丢弃此前的状态
+
+- `gameState: GameState` - 参见 [GameState](/zh/docs/narraleaf-react/core/game/game-state)
+- `displayable: LogicAction.DisplayableElements` - 要更新的元素
+- `props: Record<string, unknown>` - 要写入的变换属性
+- `options?: { merge?: boolean }` - `merge` 默认为 `true`
+
+```typescript
+DevTools.setDisplayableTransformProps(gameState, image, {opacity: 0.5});
+
+// 整体替换状态，而不是合并
+DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
+```
+
+<Callout type="warning">
+    如果变换状态被一个正在进行的变换锁定，此方法会抛出异常。请只在舞台空闲时注入。
+</Callout>
+</Step>
+</Steps>
+
+### registerDisplayable
+
+<Steps>
+<Step>
+
+把一个可显示元素注册进场景的渲染树，**不**发出 `displayable:init` 动作。元素会立即以其构造配置中的变换状态渲染；是否可见由 `opacity > 0` 决定
+
+适用于需要预先摆好舞台的宿主：用算好的状态作为构造配置来创建元素（构造配置中的状态能在 `element.reset()` / `newGame()` 之后保留），然后在 [Script](/zh/docs/narraleaf-react/core/elements/script) 动作中或挂载之后注册它们
+
+此调用是幂等的：如果场景根的自动初始化动作已经注册过该元素，这里不会重复注册
+
+- `gameState: GameState` - 参见 [GameState](/zh/docs/narraleaf-react/core/game/game-state)
+- `displayable: LogicAction.DisplayableElements` - 要注册的元素
+- `scene?: Scene | null` - 默认为 `null`，参见 [Scene](/zh/docs/narraleaf-react/core/elements/scene)
+- `layer?: Layer | null` - 默认为 `null`，参见 [Layer](/zh/docs/narraleaf-react/core/elements/layer)
+
+```typescript
+const ghost = new Image({src: "yuko/body.png", opacity: 0.4});
+
+DevTools.setElementId(ghost, "preview:ghost");
+DevTools.registerDisplayable(gameState, ghost, scene, layer);
+```
+</Step>
+</Steps>
+
+### setElementId
+
+<Steps>
+<Step>
+
+为元素指定一个明确的 id
+
+能从场景动作树到达的元素会在故事构造时得到生成的 id（`e-0`、`e-1`……）。而通过 [registerDisplayable](#registerdisplayable) 直接注册的元素不在这棵树里，否则会一直沿用默认 id，作为 React key 与其他元素冲突 —— 所以要给它一个唯一 id，并使用一个独特的前缀，确保永远不会撞上生成的 id
+
+- `element: LogicAction.GameElement` - 元素
+- `id: string` - 要指定的 id
+
+```typescript
+DevTools.setElementId(ghost, "preview:ghost");
+```
+</Step>
+</Steps>
+
+## 对话
+
+### getCurrentDialog
+
+<Steps>
+<Step>
+
+读取当前呈现给玩家的对话行；屏幕上没有对话时返回 `null`。ADV 与 NVL 两种呈现方式都覆盖
+
+- `gameState: GameState` - 参见 [GameState](/zh/docs/narraleaf-react/core/game/game-state)
+- 返回 `DevToolsCurrentDialog | null` - 参见 [DevToolsCurrentDialog](#devtoolscurrentdialog)
+
+```typescript
+const dialog = DevTools.getCurrentDialog(gameState);
+
+if (dialog?.ended) {
+    console.log("正在等待玩家推进", dialog.actionId);
+}
+```
+</Step>
+</Steps>
+
+### onDialogStateChange
+
+<Steps>
+<Step>
+
+订阅当前对话行的变化 —— 创建、打字完成、推进与结算 —— 同时覆盖 ADV 与 NVL 模式
+
+监听器不携带任何载荷；请调用 [getCurrentDialog](#getcurrentdialog) 读取新状态
+
+- `gameState: GameState` - 参见 [GameState](/zh/docs/narraleaf-react/core/game/game-state)
+- `listener: () => void` - 每次变化时调用
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
+
+```typescript
+const token = DevTools.onDialogStateChange(gameState, () => {
+    const dialog = DevTools.getCurrentDialog(gameState);
+    highlightRow(dialog?.actionId ?? null);
+});
+
+return function cleanup() {
+    token.cancel();
+};
+```
+</Step>
+</Steps>
+
+### DevToolsCurrentDialog
+
+<Steps>
+<Step>
+
+当前呈现给玩家的对话行的快照
+
+```typescript
+type DevToolsCurrentDialog = {
+    /** 产生该行的 say 动作的 id（指定了静态 id 时即为静态 id） */
+    actionId: string | null;
+    /** 该行显示完毕、正在等待推进时为 true */
+    ended: boolean;
+    mode: "adv" | "nvl";
+};
+```
+</Step>
+</Steps>
+
+## 持久化
+
+### getNamespaceName
+
+<Steps>
+<Step>
+
+一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 在存储中注册所用的名字 —— 也就是 [Storable.getNamespace](/zh/docs/narraleaf-react/core/game/storable) 接受的那个字符串
+
+- `persistent: Persistent<any>` - 参见 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)
+- 返回 `string`
+
+```typescript
+const name = DevTools.getNamespaceName(playerPersistent);
+```
+</Step>
+</Steps>
+
+### DynamicPersistent
+
+<Steps>
+<Step>
+
+`DynamicPersistent` 类本身；除此之外它不从包中导出。它是 `Persistent` 的内部变体，命名空间带前缀且在运行时创建 —— 场景的局部变量就是其中一例
+
+```typescript
+const Dynamic = DevTools.DynamicPersistent;
+```
+
+<Callout type="warning">
+    这是有意保持内部的能力。它在这里可达，是为了让宿主能够镜像引擎自己的命名空间，而不是给剧本代码使用的。
+</Callout>
+</Step>
+</Steps>

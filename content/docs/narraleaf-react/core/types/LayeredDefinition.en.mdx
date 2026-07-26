@@ -10,7 +10,8 @@ export type LayeredDefinition<L extends LayerGroupDefinition = LayerGroupDefinit
      */
     layers: L;
     /**
-     * One tag per variant layer, in any order.
+     * One tag per group, in any order. Layers that offer the same tag set share a group and so
+     * share that one default.
      */
     defaults: readonly LayerTagsOf<L>[];
 };
@@ -26,12 +27,24 @@ export type LayerGroupDefinition = readonly LayerSlot[];
 
 /**
  * A set of mutually exclusive variants for one layer, keyed by tag.
+ *
  * `null` means the layer draws nothing for that tag.
+ *
+ * The tag set is the group's identity: every layer offering the *same* set of tags is driven by
+ * one group, which is how a single `char(["angry"])` moves the brows, the eyes and the mouth at
+ * once. To follow a group, repeat its whole tag set on the layer and use `null` for the tags
+ * where that layer draws nothing. Offering only part of a set instead declares a *different*
+ * group, and the shared tags then collide.
  */
 export type LayerVariants = Record<string, string | null>;
 
 /**
  * Derives a layer's src from the currently active tags. Declares no tags of its own.
+ *
+ * A resolver is opaque, so the srcs it can return are invisible to the preloader and are fetched
+ * on first use. Prefer LayerVariants — including for a layer that follows another layer's
+ * group, which no longer needs a resolver — and keep resolvers for sources that genuinely cannot
+ * be enumerated.
  */
 export type LayerResolver = (tags: ReadonlySet<string>) => string | null;
 
