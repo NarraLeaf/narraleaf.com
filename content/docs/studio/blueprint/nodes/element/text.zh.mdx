@@ -1,0 +1,358 @@
+---
+title: 文本
+description: 读写连入的 nl.text 元素的内容、排版与效果，以及连入的 nl.textInput 的值。
+---
+
+`nl.text` 和 `nl.textInput` 是两种不同的控件，却共用了三个节点名。把两族放在同一页，是为了让这次撞名一眼可见；所有 Element 节点共通的规则见 [Element](/docs/studio/blueprint/nodes/element)。
+
+## Text
+
+Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。Self 形态见 [Text](/docs/studio/blueprint/nodes/text)。
+
+### Get Text
+
+`blueprint.element.text.getText` · Pure
+
+读取元素当前的文本内容。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+
+### Set Text
+
+`blueprint.element.text.setText` · Latent
+
+替换文本内容。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Append Text
+
+`blueprint.element.text.appendText` · Latent
+
+在当前文本末尾追加内容。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Clear Text
+
+`blueprint.element.text.clearText` · Latent
+
+把文本清空为空字符串。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+
+### Get Font
+
+`blueprint.element.text.getFont` · Pure
+
+读取当前使用的字体资源 ID。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | out · data | `string` |  |
+
+### Set Font
+
+`blueprint.element.text.setFont` · Latent
+
+设置字体资源 ID。传入空字符串会清除字体，回到默认。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Get Font Size
+
+`blueprint.element.text.getFontSize` · Pure
+
+读取字号。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | out · data | `float` |  |
+
+### Set Font Size
+
+`blueprint.element.text.setFontSize` · Latent
+
+设置字号。小于 `1` 的值会被抬到 `1`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | in · data | `float` | 可在卡片上直接填字面量。 |
+
+### Get Font Weight
+
+`blueprint.element.text.getFontWeight` · Pure
+
+读取字重。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | out · data | `string` |  |
+
+### Set Font Weight
+
+`blueprint.element.text.setFontWeight` · Latent
+
+设置字重，可选 `normal`、`600`、`bold`。其它值不会改变当前值。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Get Text Color
+
+`blueprint.element.text.getTextColor` · Pure
+
+读取文本颜色。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | out · data | `RGBAColor` |  |
+
+### Set Text Color
+
+`blueprint.element.text.setTextColor` · Latent
+
+设置文本颜色。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | in · data | `RGBAColor` |  |
+
+### Get Text Align
+
+`blueprint.element.text.getTextAlign` · Pure
+
+读取横向对齐方式。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | out · data | `string` |  |
+
+### Set Text Align
+
+`blueprint.element.text.setTextAlign` · Latent
+
+设置横向对齐方式，可选 `left`、`center`、`right`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Get Text Vertical Align
+
+`blueprint.element.text.getTextVerticalAlign` · Pure
+
+读取纵向对齐方式。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+
+### Set Text Vertical Align
+
+`blueprint.element.text.setTextVerticalAlign` · Latent
+
+设置纵向对齐方式，可选 `start`、`center`、`end`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Get Line Height
+
+`blueprint.element.text.getLineHeight` · Pure
+
+读取行高。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | out · data | `float` |  |
+
+### Set Line Height
+
+`blueprint.element.text.setLineHeight` · Latent
+
+设置行高。小于 `0.1` 的值会被抬到 `0.1`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | in · data | `float` | 可在卡片上直接填字面量。 |
+
+### Get Wrap Mode
+
+`blueprint.element.text.getWrapMode` · Pure
+
+读取换行模式。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | out · data | `string` |  |
+
+### Set Wrap Mode
+
+`blueprint.element.text.setWrapMode` · Latent
+
+设置换行模式，可选 `word`、`character`、`nowrap`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Get Effects
+
+`blueprint.element.text.getEffects` · Pure
+
+以 `json` 读取文本静态效果。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | out · data | `json` |  |
+
+### Set Effects
+
+`blueprint.element.text.setEffects` · Latent
+
+写入文本静态效果。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | in · data | `json` |  |
+
+### Get All Properties
+
+`blueprint.element.text.getAllProperties` · Pure
+
+一次读取给出十个输出，省掉铺十个节点。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+| `fontAssetId` | out · data | `string` |  |
+| `fontSize` | out · data | `float` |  |
+| `fontWeight` | out · data | `string` |  |
+| `color` | out · data | `RGBAColor` |  |
+| `textAlign` | out · data | `string` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+| `lineHeight` | out · data | `float` |  |
+| `textWrapMode` | out · data | `string` |  |
+| `effects` | out · data | `json` |  |
+
+### Set All Properties
+
+`blueprint.element.text.setAllProperties` · Latent
+
+一次写入全部十个属性。任何一个输入解析不到值时都回退到元素当前值，所以只驱动你真正关心的那两个是安全的。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `fontAssetId` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `fontSize` | in · data | `float` | 可在卡片上直接填字面量。 |
+| `fontWeight` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `color` | in · data | `RGBAColor` |  |
+| `textAlign` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `textVerticalAlign` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `lineHeight` | in · data | `float` | 可在卡片上直接填字面量。 |
+| `textWrapMode` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `effects` | in · data | `json` |  |
+
+## Text Input
+
+这些节点的目标是 `nl.textInput`，不是 `nl.text`，而它们在创建浮窗里的名字和上面的 Text 节点正面撞车：两个 `Get Text`、两个 `Set Text`、两个 `Clear Text`。区分它们的是引脚——Text Input 节点带 `textInput`，类型是 `element:nl.textInput`；Text 节点带 `element`，类型是 `element:nl.text`——实际使用中你一次只会看到其中一个，因为创建浮窗只列出与当前图已有绑定匹配的那个。Self 形态见 [Text Input](/docs/studio/blueprint/nodes/text-input)。
+
+### Get Text
+
+`blueprint.element.textInput.getValue` · Pure
+
+读取输入框当前的值和长度。`length` 声明为 `float`，不是 `integer`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | out · data | `string` |  |
+| `length` | out · data | `float` |  |
+
+### Set Text
+
+`blueprint.element.textInput.setValue` · Latent
+
+替换输入框的值。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Clear Text
+
+`blueprint.element.textInput.clear` · Latent
+
+把输入框的值清空为空字符串。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |

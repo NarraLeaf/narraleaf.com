@@ -1,0 +1,200 @@
+---
+title: Image
+description: Reading and rewriting an nl.image widget's asset, fill mode, crop rectangle, and flip.
+---
+
+These nodes drive the interface image widget `nl.image` — the picture in a title screen, a save slot thumbnail, a decorative frame. They have nothing to do with stage images, character sprites, or anything a story shows during a playthrough; those are story assets, not UI widgets.
+
+## Conventions
+
+- **Self nodes only.** Nothing here takes an `Element` input; the target is always the `nl.image` that owns the blueprint. The versions that act on a wired element are `blueprint.element.image.*` in [Element](/docs/studio/blueprint/nodes/element), each with an `element:nl.image` input, and they appear only once the graph already holds a compatible binding.
+- **Graph kinds.** The getters are pure and run in `event`, `function`, and `macro` graphs, including inside a Blueprint Value. The writers are latent and run in `event` and `macro` only.
+- **`ImageAsset` is a structured value**, `{ kind: "imageAsset", assetId }` — not a bare id string. The nullable form `ImageAsset|null` accepts `null` to mean *no image*. A plain `string` on one of these pins is still read as an asset id, which is how graphs saved before the type existed keep running.
+- **Writes rewrite the widget's `imageFill`** (`mode`, `assetId`, `cropPlacement`) or its `imageFlipX` / `imageFlipY`, then queue a flush of the element. A write whose values match what is already there does nothing at all — no patch, no flush.
+- **An unusable input falls back to the current value.** An unrecognised or empty fit mode, a non-numeric crop percentage, and an unwired boolean all leave that property as it was, rather than resetting it.
+- **Geometry, opacity, and variants are not here.** Position, size, rotation, and opacity belong to [Displayable](/docs/studio/blueprint/nodes/displayable), and a non-Default appearance variant never overrides the Default's fill mode or crop — so switching to a translucent variant cannot leave the picture stuck in `crop`.
+
+## Image Asset
+
+`blueprint.image.assetLiteral` · Pure
+
+The asset literal. The card shows the current thumbnail, the asset name, or a missing-asset state; clicking it opens the image asset picker.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `ImageAsset` | |
+
+With no image chosen the node outputs nothing, which on an `ImageAsset|null` input reads as *clear it*.
+
+## Get Image Asset
+
+`blueprint.image.getImageAsset` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `asset` | out · data | `ImageAsset\|null` | `null` when the widget has no image. |
+
+## Set Image Asset
+
+`blueprint.image.setImageAsset` · Latent
+
+Points the widget at a different image and flushes it. The fill mode and crop rectangle are left alone.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `asset` | in · data | `ImageAsset\|null` | Accepts an on-card literal. |
+
+Left unwired, the pin expands into a picture picker on the card: choosing an image writes it into the node's parameters, clearing it writes `null`. Wire the pin and the wired value wins.
+
+## Clear Image Asset
+
+`blueprint.image.clearImageAsset` · Latent
+
+Removes the widget's image — the same thing as `Set Image Asset` with `null`, without the pin.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Get Image Fit Mode
+
+`blueprint.image.getFitMode` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `fitMode` | out · data | `string` | One of `cover`, `contain`, `stretch`, `crop`, `tile`. `cover` when the widget has no fill yet. |
+
+**Modes**
+
+| Mode | How the picture fills the box |
+| --- | --- |
+| `cover` | Scaled to cover the box, overflow clipped. |
+| `contain` | Scaled to fit inside the box, letterboxed. |
+| `stretch` | Stretched to the box, aspect ratio ignored. |
+| `crop` | Placed by the crop rectangle. |
+| `tile` | Repeated at its natural size from the top-left. |
+
+## Set Image Fit Mode
+
+`blueprint.image.setFitMode` · Latent
+
+Changes how the picture fills the box, keeping the current asset and crop rectangle.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fitMode` | in · data | `string` | Accepts an on-card literal. Anything outside the five modes is ignored and the current mode stays. |
+
+## Get Image Crop Rect
+
+`blueprint.image.getCropRect` · Pure
+
+Reads the crop rectangle. The four numbers are percentages **of the widget's own box**, not of the source image: `leftPct` / `topPct` place the picture's top-left corner inside the box, `widthPct` / `heightPct` are the size it is drawn at. So `0, 0, 100, 100` — what you get when nothing has been cropped — means *fill the box exactly*, and values above 100 or below 0 are how a picture larger than its box is expressed.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `leftPct` | out · data | `float` | |
+| `topPct` | out · data | `float` | |
+| `widthPct` | out · data | `float` | |
+| `heightPct` | out · data | `float` | |
+
+## Set Image Crop Rect
+
+`blueprint.image.setCropRect` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `leftPct` | in · data | `float` | Accepts an on-card literal. |
+| `topPct` | in · data | `float` | Accepts an on-card literal. |
+| `widthPct` | in · data | `float` | Accepts an on-card literal. |
+| `heightPct` | in · data | `float` | Accepts an on-card literal. |
+
+<Callout type="warn">
+This node also sets the fit mode to `crop`. It has to: the placement rectangle is what `crop` mode reads, and under any other mode the four numbers would be stored and ignored. If you need the previous mode back, follow with `Set Image Fit Mode`.
+</Callout>
+
+## Get Image Flip X
+
+`blueprint.image.getFlipX` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `flipX` | out · data | `boolean` | |
+
+## Set Image Flip X
+
+`blueprint.image.setFlipX` · Latent
+
+Mirrors the picture horizontally about its centre. Only the image content layer flips — the widget's box, border, and children are untouched.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipX` | in · data | `boolean` | |
+
+## Get Image Flip Y
+
+`blueprint.image.getFlipY` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `flipY` | out · data | `boolean` | |
+
+## Set Image Flip Y
+
+`blueprint.image.setFlipY` · Latent
+
+Mirrors the picture vertically about its centre.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipY` | in · data | `boolean` | |
+
+## Get Visible
+
+`blueprint.image.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+This is the same visibility Displayable exposes as its `visible` property key — one value, two ways to read it. For hiding a widget without removing it from the rendered tree, use Displayable's `Set Display` instead.
+
+## Set Visible
+
+`blueprint.image.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.image.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.image.setEnabled` · Latent
+
+Turns interaction on the widget on or off. It maps to the underlying disable mechanism; there is no author-facing `interactionDisabled` property.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |

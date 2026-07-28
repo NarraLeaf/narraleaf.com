@@ -1,0 +1,114 @@
+---
+title: Frame
+description: Which Page a Frame shows, and the params handed to that Page.
+---
+
+Self nodes for `nl.frame`. A Frame is a rectangle on one Page that renders another Page inside itself, so these nodes are how a running graph swaps what is on screen without leaving the Page the player is on — a tab strip, a settings pane, a router. Each one acts on the Frame whose blueprint it sits in, takes no `Element` input, and only appears in that Frame's own blueprint. To reach a different Frame, use its counterpart in [Element](/docs/studio/blueprint/nodes/element).
+
+## Conventions
+
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **A Frame holds two things: a target Page and a `params` object.** The target must be a Page; the card's dropdown lists Pages only, minus the Page this Frame lives on and any Page that would nest its way back to it. See [Surfaces and Pages](/docs/studio/blueprint/surfaces) for what a Page is and how it differs from a Game UI Surface.
+- **`params` is the embedded Page's Page props.** The Page inside the Frame reads the whole object with `Get Page Props` in [App](/docs/studio/blueprint/nodes/app), and gets `null` for a field that is not there. It answers back with `Emit Page Event`, which arrives at this Frame's `Page Event` head in [Events](/docs/studio/blueprint/nodes/events).
+- **A write that changes nothing does nothing.** Both writers compare the incoming target and params against the current ones, params by JSON equality, and return early when both match. Re-running them does not remount the Page or replay its enter animation.
+- **None of these run inside a Blueprint Value.** The `Get` nodes are pure, but a Blueprint Value evaluates on a `widgetValue` owner and every node on this page is scoped to the Frame's main blueprint. To read the Frame from inside a Blueprint Value, place an `Element` literal for it and use the Element-category reader.
+
+## Set Frame Page
+
+`blueprint.frameWidget.setTargetPage` · Latent
+
+Switches the Page this Frame shows, and optionally replaces its params in the same write. The swap runs through the Frame's Page animation — its own settings, or the target Page's when the Frame is set to inherit them.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `props` | in · data | `json` | Optional. Leave it unwired to keep the current params. A non-object result is stored as `{}`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `targetSurfaceId` | The Page to show. The empty option, `None`, clears the Frame. |
+
+<Callout type="warn">
+The card's Page selection is written on every execution, not only when you changed it. A `Set Frame Page` left on `None` clears the Frame even if the only thing you wired was `Page props`. To change the props without touching the target, use `Set Params`.
+</Callout>
+
+## Get Target Page
+
+`blueprint.frameWidget.getTargetPage` · Pure
+
+Reads the id of the Page the Frame is currently showing. This is the Surface id stored in the document, not the name shown in the editor.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `targetSurfaceId` | out · data | `string` | Empty while the Frame shows no Page. |
+
+## Set Params
+
+`blueprint.frameWidget.setParams` · Latent
+
+Replaces the params object handed to the embedded Page. It replaces — it does not merge — so build the whole object, reading the current one with `Get Params` first if you only mean to change a field.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `params` | in · data | `json` | Anything that is not a plain object, including an array or `null`, is stored as `{}`. |
+
+The pin takes no on-card literal and has no fallback to the current value: executing this node with nothing wired writes `{}` and wipes the params.
+
+## Get Params
+
+`blueprint.frameWidget.getParams` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `params` | out · data | `json` | Always an object; `{}` when the Frame has no params. |
+
+<Callout type="info">
+`props.params` is one of the properties a Blueprint Value can drive. A Blueprint Value bound to it must return a JSON object — any other result, including an array, `null`, or a number, is normalised to `{}` before the Page sees it. While the binding is live its result overrides the stored params at render time only: `Set Params` and `Set Frame Page`'s `Page props` still write the stored value and `Get Params` still returns it, so those writes never reach the Page.
+</Callout>
+
+## Set Enabled
+
+`blueprint.frame.setEnabled` · Latent
+
+`false` disables interaction for the Frame. It stays rendered and laid out, and so does the Page inside it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+Booleans here take no on-card literal and fall back to the current value: with nothing wired, or an edge that resolves to `null`, the property is left as it is. A wired non-boolean counts as true only when it is the string `"true"` or `"1"`.
+
+## Get Enabled
+
+`blueprint.frame.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.frame.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+`visible` false removes the Frame and the whole Page inside it from the runtime element tree — it is not a CSS hide. The embedded Page unmounts, every blueprint in it stops, and their `Init` runs again when the Frame comes back. A hidden Frame cannot show itself: something else has to call `Set Element Visible` on it. Use [Displayable](/docs/studio/blueprint/nodes/displayable) `Set Display` when you want it hidden but mounted.
+
+## Get Visible
+
+`blueprint.frame.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |

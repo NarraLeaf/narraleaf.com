@@ -1,0 +1,233 @@
+---
+title: 可显示对象
+description: 每个可视控件共有的几何与外观接口——属性、Appearance Variant 和属性动画。
+---
+
+每个可视控件都是一个 Displayable：它有位置、尺寸、旋转、不透明度，定义了 Appearance Variant 的控件还有变体。这些节点在控件自己的蓝图里读写这套共有接口，因此同一个节点对 Text、Image 或 Container 一样有效。
+
+## 约定
+
+- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的控件。作用于连入元素的版本放在 [Element](/docs/studio/blueprint/nodes/element) 分类，叫`Get Element Property`、`Set Element Variant`等。`Stop Element Animation`也归在那里，尽管它没有`Element`输入——一个`AnimationToken`已经指明了某个控件上的某个动画，没有别的目标可指。
+- **出现位置。** 出现在`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.slider`、`nl.list`和`nl.frame`的`widgetMain`蓝图中。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant。
+- **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`。
+- **写入落在运行时 patch 层**，不改 authored UI document。没有真正改变任何值的写入不会排队 flush。
+- **坐标使用 Surface 设计坐标系**——和检视器 Position `X` / `Y` 显示的是同一组数字。
+- **单位。** 卡片会在每个数字输入框旁标出单位：`x` / `y` / `offsetX` / `offsetY` / `width` / `height`用`px`，`rotation`用`deg`，`scale`用`x`，时长用`s`，`opacity`用`%`。除不透明度外，其它属性按输入原样保存。不透明度在卡片上是百分比，在运行时是`0`–`1`的小数，所有读取节点返回的也是`0`–`1`。
+- **无法使用的输入会回退到当前值。** 布尔输入不接受卡片字面量，因此未接线的`display`或`visible`解析为空，节点会把已有的值原样写回。数字属性收到非数值时同理。
+
+<Callout type="warn">
+两个写不透明度的节点对百分比的理解并不一致。`Animate Property`总是把`From` / `To`除以 100，所以那里的`1`表示 1%。`Set Property`只在值大于 1 时才除，所以那里的`1`表示完全不透明，1% 无法表达。这个不对称是有意的：它让把不透明度存成`0`–`1`小数的旧图继续照常运行。
+</Callout>
+
+## Get Property
+
+`blueprint.displayable.getProperty` · Pure
+
+Get Property（获取属性）读取拥有该蓝图的控件的某个属性。属性键在卡片上选择，因此这一个节点取代了本页末尾那些固定读取节点。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | 形状取决于所选的属性键。 |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | 要读取的属性键。 |
+
+**Property keys**
+
+| Key | Reads |
+| --- | --- |
+| `position` | `{ x, y }`——控件左上角。 |
+| `size` | `{ width, height }`。 |
+| `bounds` | `{ x, y, width, height }`。 |
+| `x`、`y` | 左上角的两个分量，数值。 |
+| `offsetX`、`offsetY` | 相对 authored layout 的视觉位移。 |
+| `width`、`height` | 尺寸的两个分量，数值。 |
+| `rotation` | 角度。 |
+| `opacity` | `0`–`1`，不是百分比。 |
+| `visible` | `boolean`。 |
+
+## Set Property
+
+`blueprint.displayable.setProperty` · Latent
+
+Set Property（设置属性）写入所属控件的某个属性。可写的属性键是`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity`和`visible`——`position`、`size`和`bounds`是只读的聚合值，也没有`variant`键，因为变体有自己的节点。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | 接线后卡片上的 Value 控件会禁用，以连线值为准。 |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | 要写入的属性键。 |
+| `value` | 属性值，在`value`引脚未接线时使用。`visible`是 Visible / Hidden 下拉，`opacity`按百分比输入，其它属性使用数字输入。 |
+
+`offsetX`和`offsetY`保存在控件持久的运行时 transform 中，而不是一次性的 motion 槽里，因此之后接管该控件的动画不会把位移丢掉。
+
+## Get Display
+
+`blueprint.displayable.getDisplay` · Pure
+
+Get Display（获取显示状态）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `display` | out · data | `boolean` | 默认为`true`，直到有节点改写它。 |
+
+## Set Display
+
+`blueprint.displayable.setDisplay` · Latent
+
+Set Display（设置显示状态）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `display` | in · data | `boolean` | |
+
+`display = false`用 CSS `display: none`隐藏控件及其子树，同时保持挂载。这正是它和`visible`的全部区别：`visible = false`的控件会连同子树一起从渲染树中移除。
+
+## Set Variant
+
+`blueprint.displayable.setVariant` · Latent
+
+Set Variant（设置变体）为所属控件应用运行时 Appearance Variant 覆盖。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Variant` | 目标变体，从该控件已有的变体中按名称选择。 |
+| `Wait For Animation` | `No`立即继续。`Yes`会等目标变体上最长的那条字段 transition 结束后才进入`Next`；没有 transition 时无需等待。 |
+
+节点没有`variantId`数据引脚，也无法手动输入 id：卡片把变体的内部 id 作为隐藏值写入，作者只会看到名称。对不支持 Appearance Variant 的控件执行该节点会提交图执行错误，而不是静默忽略。
+
+设置变体还会清理旧的运行时不透明度覆盖，让新变体自己决定透明度。这正是「先`Set Variant`切到透明变体，再`Animate Property opacity 0 → 100`」能正常工作的原因：淡入从变体的透明状态开始，而不会被过期的覆盖值锁住。
+
+## Get Variant
+
+`blueprint.displayable.getVariant` · Pure
+
+Get Variant（获取变体）在创建浮窗中隐藏，保留是为了让当前变体卡片之前保存的旧图继续运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | 有运行时覆盖时返回覆盖值，否则返回 authored 默认变体，再否则返回第一个变体。控件没有变体时为`""`。 |
+
+## Animate Property
+
+`blueprint.displayable.animateProperty` · Latent
+
+Animate Property（动画属性）对单个属性做补间。它是基础节点而不是动画库：没有 Fade、Shake 或 Pulse 节点，那些要以宏的形式基于本节点搭建。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 动画自然结束或被停止后触发。 |
+| `animation` | out · data | `AnimationToken` | 传给`Stop Animation`可提前结束动画。 |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | `opacity`、`offsetX`、`offsetY`、`x`、`y`、`scale`或`rotation`。 |
+| `from` | 可选起始值。留空表示从控件当前运行时状态开始。 |
+| `to` | 目标值。 |
+| `duration` | 秒。默认`0.3`。 |
+| `delay` | 秒。 |
+| `easing` | `linear`、`easeIn`、`easeOut`、`easeInOut`、`circIn`、`circOut`或`circInOut`。默认`easeOut`。 |
+| `after` | `hold`保持最终值，`reset`回到 authored layout 与 appearance。默认`hold`。 |
+
+`offsetX`和`offsetY`动画的是相对 authored layout 的视觉位移。`x`和`y`动画的是绝对布局位置：`hold`模式下最终位置会写回运行时 layout patch，并清理残留位移，因此不会回弹。`scale`是缩放倍率，`1`为原始大小；`opacity`在卡片上按百分比输入。
+
+`animation` token 在动画启动的那一刻就发布，早于`Next`触发。由于节点自己的执行链会挂起到动画结束，这也是停止它的唯一途径：同一蓝图中的另一条执行链在动画进行中读取该引脚。
+
+<Callout type="info">
+对`x`和`y`来说，只有你亲手输入的`From = 0`才算数——卡片会记录这次输入。旧图里继承下来的`0`会当作留空处理，动画从当前位置开始，这也正是那些旧图原本的意思。
+</Callout>
+
+## Stop Animation
+
+`blueprint.displayable.stopAnimation` · Latent
+
+Stop Animation（停止动画）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `animation` | in · data | `AnimationToken` | 来自`Animate Property`或`Animate Element Property`的 token。 |
+
+只停止 token 指明的那一个动画，并释放正在等待它的`Animate Property`，让后者立即进入自己的`Next`。传入缺失的 token、其它类型的 token，或对应动画已经结束的 token 时静默 no-op；无论哪种情况执行都会从`next`继续。
+
+## Get Position
+
+`blueprint.displayable.getPosition` · Pure
+
+Get Position（获取位置）已由`Get Property`的`position`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `position` | out · data | `Vector2D` | `{ x, y }`，控件左上角。 |
+
+## Get Size
+
+`blueprint.displayable.getSize` · Pure
+
+Get Size（获取尺寸）已由`Get Property`的`size`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `size` | out · data | `Vector2D` | 引脚类型是`Vector2D`，但值的键是`width`和`height`。 |
+
+## Get Bounds
+
+`blueprint.displayable.getBounds` · Pure
+
+Get Bounds（获取边界）已由`Get Property`的`bounds`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `bounds` | out · data | `json` | `{ x, y, width, height }`。 |
+
+## Get Rotation
+
+`blueprint.displayable.getRotation` · Pure
+
+Get Rotation（获取旋转）已由`Get Property`的`rotation`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `rotation` | out · data | `float` | 角度。 |
+
+## Get Opacity
+
+`blueprint.displayable.getOpacity` · Pure
+
+Get Opacity（获取不透明度）已由`Get Property`的`opacity`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `opacity` | out · data | `float` | `0`–`1`，不是百分比。 |
+
+## Get Visible
+
+`blueprint.displayable.getVisible` · Pure
+
+Get Visible（获取可见性）已由`Get Property`的`visible`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |

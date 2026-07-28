@@ -1,0 +1,177 @@
+---
+title: Math
+description: Arithmetic, rounding, randomness, boolean logic, and comparison — the pure value nodes.
+---
+
+Math is where a value gets worked out rather than stored: arithmetic, rounding, min and max, random numbers, boolean logic, and comparison. You reach for these whenever something downstream needs a number or a condition — an `If` branch in [Flow](/docs/studio/blueprint/nodes/flow), a widget size, the next value of a counter. The palette folds the Boolean and Compare node groups into this category as well, so all three are documented here.
+
+## Conventions
+
+- **Every node on this page is `Pure`.** None of them has an exec pin. Each computes when something reads its `result`, and each is legal in `event`, `function` and `macro` graphs, and inside a Blueprint Value.
+- **Nothing is cached.** A node runs again on every read, so two edges out of one node evaluate it twice. Harmless for `+`; not harmless for `Random Float`.
+- **A wired edge beats the card field.** Pins marked *Accepts an on-card literal* draw a field on the node card, and that field is read only while the pin has no edge.
+- **Anything that is not a finite number reads as NaN.** A numeric pin takes a finite number as-is, `true` and `false` as `1` and `0`, and a numeric string by parsing it. Everything else — `null`, an empty card field, `Infinity` — is NaN, and a node handed NaN outputs NaN. One missing operand turns every result downstream of it into NaN.
+- **`integer` flows into `float`, never the reverse.** `Round`, `Floor` and `Ceil` output `integer`, which connects to any `float` input; a `float` output will not connect to an `integer` input. Both connect to a `string` input, which is how a computed number reaches [`Log`](/docs/studio/blueprint/nodes/debug).
+
+## Arithmetic
+
+Two operands in, one number out.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | Accepts an on-card literal. |
+| `b` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `float` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `+` | `blueprint.math.add` | `a` plus `b`, plus any further operands. |
+| `−` | `blueprint.math.subtract` | `a` minus `b`. |
+| `×` | `blueprint.math.multiply` | `a` times `b`. |
+| `÷` | `blueprint.math.divide` | `a` divided by `b`. |
+| `Modulo` | `blueprint.math.modulo` | The remainder of `a` divided by `b`, carrying the sign of `a`: `−7` and `3` give `−1`, not `2`. |
+
+`+` is the only one of the five that takes more than two operands. The add-input control on its card appends `in_1`, `in_2`, … , labelled `Input 3` onward, and the node sums every data input it has. The table above lists only the two pins it starts with.
+
+<Callout type="warn">
+`÷` does not guard its divisor. Dividing by zero produces `Infinity` or `−Infinity`, and `0 ÷ 0` produces NaN. Neither survives the next node — a non-finite number reads as NaN everywhere on this page — so the fault surfaces several nodes away from the division that caused it. Compare the divisor against `0` first.
+</Callout>
+
+## Rounding and sign
+
+One operand in, one number out.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `float` or `integer` | `Round`, `Floor` and `Ceil` output `integer`; the other three output `float`. |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `+1` | `blueprint.math.increment` | `value` plus one. |
+| `−1` | `blueprint.math.decrement` | `value` minus one. |
+| `Abs` | `blueprint.math.abs` | The magnitude of `value`, sign dropped. |
+| `Round` | `blueprint.math.round` | The nearest integer. Halves round upward, so `2.5` becomes `3` and `−2.5` becomes `−2`. |
+| `Floor` | `blueprint.math.floor` | The largest integer no greater than `value`. |
+| `Ceil` | `blueprint.math.ceil` | The smallest integer no less than `value`. |
+
+`+1` and `−1` compute; they do not store. Advancing a counter is still `Get Var` into `+1` into `Set Var` — see [Variables](/docs/studio/blueprint/variables).
+
+## Min and Max
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | Accepts an on-card literal. |
+| `b` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `float` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `Min` | `blueprint.math.min` | The smallest of its operands. |
+| `Max` | `blueprint.math.max` | The largest of its operands. |
+
+Both take further operands the way `+` does: the add-input control appends `in_1`, `in_2`, … , and the comparison covers every data input on the node, not just the two above. If any one operand is not a finite number the node outputs NaN — it does not drop the bad operand and compare the rest.
+
+## Random Float
+
+`blueprint.math.randomFloat` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `min` | in · data | `float` | Accepts an on-card literal. Falls back to `0` when it is not a number. |
+| `max` | in · data | `float` | Accepts an on-card literal. Falls back to `1` when it is not a number. |
+| `result` | out · data | `float` | |
+
+Uniform over `[min, max)`: `min` can come out, `max` cannot. The two bounds are sorted before use, so wiring the larger number into `min` gives the same range rather than an error or an empty one.
+
+## Random Integer
+
+`blueprint.math.randomInteger` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `min` | in · data | `integer` | Accepts an on-card literal. Falls back to `0` when it is not a number. |
+| `max` | in · data | `integer` | Accepts an on-card literal. Falls back to `1` when it is not a number. |
+| `result` | out · data | `integer` | |
+
+Uniform over the whole numbers from `min` to `max`, **both ends included** — `1` and `6` is a die, not a five-sided one. The bounds are sorted, then pulled inward to whole numbers (`min` up, `max` down); if that leaves nothing between them, the result is `min` rounded up.
+
+<Callout type="info">
+Neither random node takes a seed, and neither result is remembered. Every read re-rolls: one `Random Integer` wired to two pins hands each of them a different number, and reading it again later gives another. Write the roll into a variable when the same number has to be used twice.
+</Callout>
+
+## Boolean
+
+Inputs here are `boolean` and take no card literal, so both operands have to be wired; an unwired boolean pin reads as `false`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `boolean` | Labelled `Value` on `Not`. |
+| `b` | in · data | `boolean` | `Not` does not have this pin. |
+| `result` | out · data | `boolean` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `And` | `blueprint.boolean.and` | True when both operands are true. |
+| `Or` | `blueprint.boolean.or` | True when either operand is true. |
+| `Not` | `blueprint.boolean.not` | The inverse of `a`. |
+| `Xor` | `blueprint.boolean.xor` | True when exactly one operand is true. |
+
+A non-boolean input is coerced rather than refused. A finite non-zero number is true, `0` is false, and `Infinity` is false. Strings are trimmed and matched case-insensitively: `"true"`, `"1"` and `"yes"` are true; `""`, `"false"`, `"0"` and `"no"` are false; every other non-empty string is true.
+
+## Compare
+
+`Equal` and `Not Equal` take `any` on both sides and compare with JavaScript `===` and `!==`, without coercion. The number `1` and the string `"1"` are not equal, and two separately built arrays with identical contents are not equal either — identity is what is being tested.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `any` | |
+| `b` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `Equal` | `blueprint.compare.equal` | True when `a` and `b` are strictly equal. |
+| `Not Equal` | `blueprint.compare.notEqual` | True when they are not. |
+
+Neither pin accepts a card literal, and an unwired one resolves to nothing at all — so an `Equal` with both pins empty compares nothing against nothing and reports `true`. Wire both sides.
+
+The four numeric comparisons take `float` instead, and coerce the way the rest of the page does.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | Accepts an on-card literal. |
+| `b` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `Greater Than` | `blueprint.compare.greaterThan` | `a` is above `b`. |
+| `Greater Than Or Equal` | `blueprint.compare.greaterThanOrEqual` | `a` is above or level with `b`. |
+| `Less Than` | `blueprint.compare.lessThan` | `a` is below `b`. |
+| `Less Than Or Equal` | `blueprint.compare.lessThanOrEqual` | `a` is below or level with `b`. |
+
+When either operand fails to resolve to a finite number, all four output `false`. A comparison and its opposite are then both false, so never treat one as the negation of the other: invert with `Not` rather than by picking the opposite node.
+
+## Symbol comparisons
+
+The older comparison set, kept registered because existing graphs use it. Same shape as the numeric `Compare` nodes, different rules.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | Accepts an on-card literal. |
+| `b` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+| Node | Type | Result |
+| --- | --- | --- |
+| `=` | `blueprint.math.equal` | The two numbers are equal. |
+| `≠` | `blueprint.math.notEqual` | They are not. |
+| `<` | `blueprint.math.less` | `a` is below `b`. |
+| `≤` | `blueprint.math.lessOrEqual` | `a` is below or level with `b`. |
+| `>` | `blueprint.math.greater` | `a` is above `b`. |
+| `≥` | `blueprint.math.greaterOrEqual` | `a` is above or level with `b`. |
+
+Both operands are coerced to numbers first, so `=` finds the number `1` and the string `"1"` equal where `Equal` does not. Choose by the question you are asking: `=` for numeric equality, `Equal` for identity.
+
+When either operand is not a number, `≠` outputs `true` and the other five output `false`.

@@ -1,0 +1,71 @@
+---
+title: 函数
+description: 声明一段可调用的图、从中返回结果，并在它可见的范围内调用它。
+---
+
+fn 是一段有名字、可以被别的图运行的图。`Fn`声明它并持有参数，`Fn Return`结束它并交还结果，`Call Fn`调用它并等待答案。三个节点只为一件事：别再把同样的八个节点抄进每个需要它的控件里。
+
+## 约定
+
+- **三个节点都属于`event`图。** fn 的函数体**不是**`function`图。`function`是另一种[图类型](/docs/studio/blueprint)——由`Function Entry`进入，不允许有副作用的节点，也不允许 latent（会挂起执行）节点——而 fn 的函数体就是普通的 event 图，event 图能做的它都能做。
+- **fn 的身份是它的头节点，不是它的名字。** 在卡片上改名，所有调用方会跟着改标签而不会断掉。同一作用域里两个 fn 同名也仍然解析正确，编辑器会提示这次撞名，因为名字是给你看的，绑定走的是 id。
+- **可见性由宿主决定。** 声明在`globalMain`蓝图上的 fn 处处可调用；声明在`surfaceMain`或`widgetMain`蓝图上的 fn 只能被同一 [Surface](/docs/studio/blueprint/surfaces) 调用。Blueprint Value 能调用但永远不能声明；`componentWidgetMain`和`sharedAsset`蓝图两样都不行。
+- **参数和结果引脚是作者写出来的，不是固定的。** `Fn`和`Fn Return`的数据引脚由卡片上的按钮生成，每个引脚带一个名字和一个类型，类型从`string`、`integer`、`float`、`boolean`、`json`、`any`中选。
+- **递归上限为 32 层。** 超过就直接失败。编辑器一旦能看出某个 fn 直接或间接调用了自己，就会给出警告。
+
+## Fn
+
+`blueprint.fn.head`
+
+Fn（函数）是一个可调用 fn 的头节点。它没有执行入口——图里没有任何东西接**进**它；它之所以开始执行，是因为有人调用了它，而函数体挂在`then`上。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | 卡片上标为 Body。被调用时开始执行。 |
+
+**卡上字段**
+
+| Field | What |
+| --- | --- |
+| `name` | fn 的名字，也就是调用方 Function 下拉里看到的那个。 |
+
+**Add parameter** 为每个参数追加一个数据**输出**引脚（`param_N_value`），标签和类型都在卡片上设定。参数值在函数体开始前就已注入，所以函数体的第一个节点上，参数引脚已经拿着调用方传来的值。
+
+## Fn Return
+
+`blueprint.fn.return`
+
+Fn Return（函数返回）结束函数体并交还结果。它是尾节点——没有执行出口，它之后不会再有东西执行。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+**Add return value** 为每个结果追加一个数据**输入**引脚（`ret_N_value`）。结果引脚从不提供卡上字面量：结果必须从接线的值来源取得，这样图上永远能看出返回值是在哪里产生的。
+
+fn 的签名取自从头节点出发能到达的第一个`Fn Return`。其它分支上还有`Fn Return`没问题，只要它们声明同样的结果；声明得不一样时编辑器会把不一致的那些标出来，而调用方看到的仍然是第一个的引脚。任何头节点都到不了的`Fn Return`同样会被标出。
+
+## Call Fn
+
+`blueprint.fn.call` · Latent
+
+Call Fn（调用函数）调用一个可见的 fn 并等它跑完。在`Function`里选好目标，卡片就会按参数长出数据输入、按结果长出数据输出。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 函数体执行完后继续。 |
+
+**卡上字段**
+
+| Field | What |
+| --- | --- |
+| `fnRef` | 要调用的 fn。下拉列出此处可见的全部 fn，标签形如`name (scope)`。 |
+
+这些参数和结果引脚是按节点上存的签名快照重建的，所以卡片不必加载被调用方的蓝图就能渲染。类型允许时，参数引脚可以在卡上填字面量。被调用方的签名发生变化后，快照就过期了，graph validation 会要求你重新选一次该 fn 来同步引脚——在你重选之前，这次调用一直按旧的形状运行。
+
+函数体是作为调用方执行的一部分跑的：取消调用方就会取消这个 fn，函数体里抛出的错误会落在`Call Fn`节点上。
+
+<Callout type="info">
+`Call Fn`是 latent 节点，而 Blueprint Value 图拒绝 latent 节点——只有这一个例外。取值器可以调用 fn，函数体以宿主控件的身份运行；它对世界做了什么，由你自己负责。
+</Callout>

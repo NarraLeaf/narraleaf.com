@@ -1,0 +1,339 @@
+---
+title: Text
+description: Self nodes for the nl.text widget — reading and writing content, typography, colour, and static effects.
+---
+
+The Text category is the Self node set of the `nl.text` widget: the string it shows, the typeface and metrics it shows it in, and the static effects layered on top. These nodes appear only in the palette of an `nl.text` element's own `widgetMain` blueprint, and every one of them acts on that element. To reach a *different* text element, use the `blueprint.element.text.*` node of the same name from the [Element](/docs/studio/blueprint/nodes/element) category — the same properties, plus an `element:nl.text` input to aim it.
+
+## Conventions
+
+- **No target pin.** A Self node has no `Element` input; it resolves its target from the blueprint's execution owner. There is nothing to wire, and nothing to aim at the wrong element.
+- **Reads are `Pure`, writes are `Latent`.** Every getter is side-effect free and legal in `event`, `function` and `macro` graphs. Every setter suspends the graph while the host applies the patch, which bars it from `function` graphs — a function returns synchronously to its caller and has nowhere to hold a pending write.
+- **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain`, so the getters never appear in that palette even though they are pure. To read text properties from a Blueprint Value, use the Element-targeted getters with an `Element` literal.
+- **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a setter fails with `Host API unavailable (use Dev Mode)`, and a getter produces nothing at all.
+- **A write that changes nothing does nothing.** Each setter normalizes its patch, compares it against the element's current properties, and returns early when they match — no repaint and no `On Flush` for that element. Getters never queue a flush either, so a graph can poll properties without driving itself in a loop.
+- **An unwired or unrecognised input is not "leave it alone".** With no edge, nothing typed on the card, or a value outside the allowed set, most setters write a fixed fallback instead of keeping the current value: `Set Text` writes an empty string, `Set Font` clears the font, `Set Font Size` writes `16`, `Set Line Height` writes `1.4`, and each enum setter writes the first value of its list. Nothing is rejected and nothing throws. Only `Set Text Color`, `Set Effects`, and every pin of `Set All Properties` fall back to what the element already has.
+
+## Get Text
+
+`blueprint.text.getText` · Pure
+
+Reads the string the element is currently carrying.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+
+## Set Text
+
+`blueprint.text.setText` · Latent
+
+Replaces the whole string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | Writes an empty string when nothing resolves. Accepts an on-card literal. |
+
+<Callout type="warn">
+If the element's `props.text` is bound to a [Blueprint Value](/docs/studio/blueprint), the binding wins. The computed value is layered over `props.text` on every render and is never written back, so `Set Text` stores a string nobody sees and `Get Text` reads the stored string rather than the one on screen. Change the data the value graph reads instead.
+</Callout>
+
+## Append Text
+
+`blueprint.text.appendText` · Latent
+
+Reads the current string and writes it back with `text` on the end. Appending an empty string resolves to the same string and is therefore a no-op.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | Appended verbatim — no separator. Accepts an on-card literal. |
+
+## Clear Text
+
+`blueprint.text.clearText` · Latent
+
+Writes an empty string. Identical to `Set Text` with nothing wired, but says so on the card.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Get Font
+
+`blueprint.text.getFont` · Pure
+
+Reads the id of the project font asset the element uses.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `fontAssetId` | out · data | `string` | Empty string when no font asset is set and the element inherits the canvas default typeface. |
+
+## Set Font
+
+`blueprint.text.setFont` · Latent
+
+Points the element at a project font asset.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontAssetId` | in · data | `string` | A blank or unresolved value clears the font and returns the element to the canvas default typeface. Accepts an on-card literal. |
+
+## Get Font Size
+
+`blueprint.text.getFontSize` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `fontSize` | out · data | `float` | Surface design pixels. |
+
+## Set Font Size
+
+`blueprint.text.setFontSize` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontSize` | in · data | `float` | Clamped to at least `1`; the inspector's 8–256 range does not apply to a blueprint write. Falls back to `16`. Accepts an on-card literal. |
+
+## Get Font Weight
+
+`blueprint.text.getFontWeight` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `fontWeight` | out · data | `string` | One of `normal`, `600`, `bold`. |
+
+## Set Font Weight
+
+`blueprint.text.setFontWeight` · Latent
+
+The weight is a three-value enum, not a numeric CSS weight. `700` is not a synonym for `bold` here — it is outside the set, so it falls back to `normal`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontWeight` | in · data | `string` | `normal`, `600`, or `bold` — the string `"600"`, not the number. Anything else falls back to `normal`. Accepts an on-card literal. |
+
+## Get Text Color
+
+`blueprint.text.getTextColor` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `color` | out · data | `RGBAColor` | |
+
+## Set Text Color
+
+`blueprint.text.setTextColor` · Latent
+
+The element stores its colour as a CSS colour string; these pins convert in both directions, so the pin type is `RGBAColor` and not `string`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `color` | in · data | `RGBAColor` | No on-card literal — wire a colour constant from [Data](/docs/studio/blueprint/nodes/data), or another node's `RGBAColor` output. Falls back to the current colour. |
+
+## Get Text Align
+
+`blueprint.text.getTextAlign` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textAlign` | out · data | `string` | One of `left`, `center`, `right`. |
+
+## Set Text Align
+
+`blueprint.text.setTextAlign` · Latent
+
+Aligns the lines horizontally inside the element's box. It does not move or resize the box.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textAlign` | in · data | `string` | `left`, `center`, or `right`. Anything else falls back to `left`. Accepts an on-card literal. |
+
+## Get Text Vertical Align
+
+`blueprint.text.getTextVerticalAlign` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textVerticalAlign` | out · data | `string` | One of `start`, `center`, `end`. |
+
+## Set Text Vertical Align
+
+`blueprint.text.setTextVerticalAlign` · Latent
+
+Distributes the lines inside the element's box. It moves the text within the box; it does not resize the box.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textVerticalAlign` | in · data | `string` | `start`, `center`, or `end`. Anything else falls back to `start`. Accepts an on-card literal. |
+
+## Get Line Height
+
+`blueprint.text.getLineHeight` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `lineHeight` | out · data | `float` | A unitless multiplier of the font size, not a pixel distance. |
+
+## Set Line Height
+
+`blueprint.text.setLineHeight` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `lineHeight` | in · data | `float` | Multiplier, clamped to at least `0.1`. Falls back to `1.4`. Accepts an on-card literal. |
+
+## Get Wrap Mode
+
+`blueprint.text.getWrapMode` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textWrapMode` | out · data | `string` | One of `word`, `character`, `nowrap`. |
+
+## Set Wrap Mode
+
+`blueprint.text.setWrapMode` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textWrapMode` | in · data | `string` | `word` breaks between words, `character` breaks inside them, `nowrap` never breaks. Anything else falls back to `word`. Accepts an on-card literal. |
+
+## Get Effects
+
+`blueprint.text.getEffects` · Pure
+
+Reads the element's static effect block as one JSON object, always with every field present:
+
+```json
+{
+    "effectBlur": 0,
+    "effectBackgroundBlur": 0,
+    "effectShadow": null,
+    "effectTextShadow": null,
+    "effectInnerShadow": null,
+    "effectBlend": "",
+    "effectGlow": null,
+    "effectFilter": null
+}
+```
+
+A text element honours only `effectBlur`, `effectTextShadow`, `effectBlend` and `effectFilter` — it draws its shadow with CSS `text-shadow`, and the box-shadow fields belong to chrome widgets. `effectShadow`, `effectInnerShadow` and `effectGlow` therefore always read back as `null` on a text element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `effects` | out · data | `json` | |
+
+## Set Effects
+
+`blueprint.text.setEffects` · Latent
+
+Replaces the whole effect block — this is not a merge, so read with `Get Effects` and edit the object if you only mean to change one field.
+
+Writing a box-shadow field is not silently dropped: on the next read, `effectShadow` (or, failing that, `effectGlow`) is promoted into `effectTextShadow` when no text shadow is set, and the box-shadow field itself comes back `null`. The shadow does appear, but not under the key you wrote it to.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `effects` | in · data | `json` | Missing or malformed fields are filled from the defaults above, not from the current effects. Falls back whole to the current effects when nothing resolves. |
+
+## Get All Properties
+
+`blueprint.text.getAllProperties` · Pure
+
+Every text property from one card. Each output carries exactly what its dedicated getter would return.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+| `fontAssetId` | out · data | `string` | Empty string when no font asset is set. |
+| `fontSize` | out · data | `float` | |
+| `fontWeight` | out · data | `string` | |
+| `color` | out · data | `RGBAColor` | |
+| `textAlign` | out · data | `string` | |
+| `textVerticalAlign` | out · data | `string` | |
+| `lineHeight` | out · data | `float` | |
+| `textWrapMode` | out · data | `string` | |
+| `effects` | out · data | `json` | |
+
+## Set All Properties
+
+`blueprint.text.setAllProperties` · Latent
+
+Writes every text property in one patch, so the element repaints once instead of ten times. It reads the current properties first and uses them as the fallback for **every** pin, which makes it the one setter where leaving a pin unwired keeps the current value — the opposite of the single-property setters.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | Accepts an on-card literal. |
+| `fontAssetId` | in · data | `string` | An explicit `null` still clears the font. Accepts an on-card literal. |
+| `fontSize` | in · data | `float` | Clamped to at least `1`. Accepts an on-card literal. |
+| `fontWeight` | in · data | `string` | `normal`, `600`, or `bold`. Accepts an on-card literal. |
+| `color` | in · data | `RGBAColor` | No on-card literal. |
+| `textAlign` | in · data | `string` | `left`, `center`, or `right`. Accepts an on-card literal. |
+| `textVerticalAlign` | in · data | `string` | `start`, `center`, or `end`. Accepts an on-card literal. |
+| `lineHeight` | in · data | `float` | Multiplier, clamped to at least `0.1`. Accepts an on-card literal. |
+| `textWrapMode` | in · data | `string` | `word`, `character`, or `nowrap`. Accepts an on-card literal. |
+| `effects` | in · data | `json` | No on-card literal. |
+
+## Get Visible
+
+`blueprint.text.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.text.setVisible` · Latent
+
+Sets the element's `visible` property. This is not the same switch as `Set Display` in the [Displayable](/docs/studio/blueprint/nodes/displayable) category: `display` is the runtime render switch that hides the element and its subtree with CSS while keeping them mounted, whereas `visible` is the layout visibility property the inspector exposes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | No on-card literal — wire a boolean. Falls back to the current value. |
+
+## Get Enabled
+
+`blueprint.text.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.text.setEnabled` · Latent
+
+`false` maps onto the underlying interaction-disable mechanism; the raw `interactionDisabled` property is not exposed to authors, so this pair is the whole interface.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | No on-card literal — wire a boolean. Falls back to the current value. |

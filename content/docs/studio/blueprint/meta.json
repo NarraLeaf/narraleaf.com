@@ -1,0 +1,9 @@
+{
+  "title": "Blueprint",
+  "pages": [
+    "index",
+    "variables",
+    "surfaces",
+    "nodes"
+  ]
+}

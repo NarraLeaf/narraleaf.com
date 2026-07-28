@@ -1,0 +1,187 @@
+---
+title: 流程
+description: 执行线路的分流、循环与排队，以及那个会挂起整张图的等待节点。
+---
+
+Flow 节点决定执行接下来去哪里。其它节点都在计算或改变什么，只有这一类节点单纯地为执行线路指路。一张图需要提问、需要重复、需要等待或需要提前收尾时，你要找的就是它们。
+
+## 约定
+
+- **图类型。** 所有 Flow 节点都可用于`event`图，除`Return Value`外也都可用于`macro`图。它们都不出现在`function`图里：那种图只提供纯的、非 latent（会挂起执行）的节点，而本页每个节点都声明为有副作用。
+- **引脚命名。** `in`是执行入口。`next`、`true`、`false`、`then`、`else`、`then0`…、`case0`…、`default`、`loop`、`completed`是执行出口，卡片上其余引脚都是数据引脚。
+- **卡上字面量是按引脚给的，不是按类型给的。** 下面表格里注明可以填字面量的引脚，才能直接在卡片上输入而不必接线。没有任何一个`condition`引脚可以这样填：`If`、`If Else`和`While`的布尔条件永远要接线。
+- **循环使用单游标推进。** `For Loop`、`For Each`和`While`每次进入只走一步。把循环体末尾接回**同一个**节点的`in`引脚，节点才会从`loop`交出下一轮，并最终从`completed`离开。没有接回`in`的循环体只会执行一次。
+- **`Max iterations`留空时默认为 1000。** 它是刹车而不是目标：触发上限时会像正常跑完一样从`completed`离开。没有无上限模式。
+- **[Blueprint Value](/docs/studio/blueprint) 接受 Flow，但不含计时器。** `Delay`和`Skip Delay`在那里被排除——一个会挂起的取值器会让它负责的属性一直悬着。
+
+## If
+
+`if`
+
+If（如果）按布尔值分流。每次执行有且只有一个出口触发。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `true` | out · exec | — | |
+| `false` | out · exec | — | |
+| `condition` | in · data | `boolean` | 必须接线。 |
+
+## If Else
+
+`blueprint.flow.ifElse`
+
+If Else（如果否则）是一张卡片上的 if / else if / else 阶梯。条件按顺序判断，第一个为真的胜出；都不为真时走`else`。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then` | out · exec | — | `condition`为真时走这里。 |
+| `else` | out · exec | — | 没有任何条件为真时走这里。 |
+| `condition` | in · data | `boolean` | 必须接线。 |
+
+卡片上的 **Add If condition** 追加一条分支：一个`boolean`输入`if_N_condition`和与之配对的执行出口`if_N_then`，插在固定的`else`之前。追加的条件排在`condition`之后，按添加顺序依次判断。
+
+## Switch String
+
+`blueprint.flow.switchString`
+
+Switch String（字符串分支）拿一个字符串逐个比对各 Case 的匹配值，命中第一个匹配的出口；都不匹配时走`default`。从未设置过值的 Case 永远不会匹配——空着的卡片不是通配符，而是一个永远到不了的分支。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `case0` | out · exec | — | |
+| `case1` | out · exec | — | |
+| `default` | out · exec | — | 没有 Case 匹配时走这里。 |
+| `value` | in · data | `string` | 用于匹配的字符串。可在卡上填字面量。 |
+| `case0Value` | in · data | `string` | `case0`的匹配值。可在卡上填字面量。 |
+| `case1Value` | in · data | `string` | `case1`的匹配值。可在卡上填字面量。 |
+
+**Add Case** 追加一个`string`输入`case_N_value`和与之配对的执行出口`case_N_output`，插在固定的`default`之前。追加的 Case 排在`case0`和`case1`之后匹配。
+
+## Sequence
+
+`blueprint.flow.sequence`
+
+Sequence（顺序执行）把各个出口排队，依次执行：前一条分支跑完，下一条才开始。未连接的出口会被跳过。某条分支里执行到`Return`时，队列中剩下的分支全部作废。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then0` | out · exec | — | 卡片上标为 Then 1。 |
+| `then1` | out · exec | — | Then 2。 |
+| `then2` | out · exec | — | Then 3。 |
+| `then3` | out · exec | — | Then 4。 |
+
+## For Loop
+
+`blueprint.flow.forLoop`
+
+For Loop（For 循环）从`start`按`step`走向`end`，每个取值触发一次`loop`，并通过`index`输出当前值。方向由`step`的正负决定：只要索引还没越过`end`就继续。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 一轮循环。循环体末尾接回`in`。 |
+| `completed` | out · exec | — | 区间已走完。 |
+| `start` | in · data | `integer` | 可在卡上填字面量。 |
+| `end` | in · data | `integer` | 包含该值。可在卡上填字面量。 |
+| `step` | in · data | `integer` | 步长为`0`时按`1`处理。可在卡上填字面量。 |
+| `maxIterations` | in · data | `integer` | 默认 1000。可在卡上填字面量。 |
+| `index` | out · data | `integer` | 当前取值。 |
+
+## For Each
+
+`blueprint.flow.forEach`
+
+For Each（遍历）走一遍 JSON 数组，每一项触发一次`loop`，同时给出`item`和`index`。`items`不是数组时不会报错，而是直接从`completed`离开。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 一个数组项。循环体末尾接回`in`。 |
+| `completed` | out · exec | — | 数组已遍历完。 |
+| `items` | in · data | `json` | 要遍历的数组。 |
+| `maxIterations` | in · data | `integer` | 默认 1000。可在卡上填字面量。 |
+| `item` | out · data | `json` | 当前项。 |
+| `index` | out · data | `integer` | 当前下标。 |
+
+## While
+
+`blueprint.flow.while`
+
+While（While 循环）只要`condition`成立就持续触发`loop`。条件在每次进入时重新读取，所以它必须是循环体真的能改变的东西——一个变量、一次运行时读取——而不是进入循环前算好的定值。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 一轮循环。循环体末尾接回`in`。 |
+| `completed` | out · exec | — | 条件为假，或刹车触发。 |
+| `condition` | in · data | `boolean` | 必须接线。 |
+| `maxIterations` | in · data | `integer` | 默认 1000。可在卡上填字面量。 |
+
+## Delay
+
+`blueprint.flow.delay` · Latent
+
+Delay（延迟）等待一段时间，然后从`completed`继续。它是唯一的 latent Flow 节点：它会挂起进入它的那条执行链，这也正是它不能出现在`function`图里的原因——函数要同步把结果交还给调用者，没有地方安放一次尚未完成的等待。
+
+`token`在等待开始**之前**就已输出，所以这条链挂起期间，另一条链可以读到它并用`Skip Delay`提前结束等待。时长为`0`或更小时根本不会挂起。等待期间整次图执行被取消时，等待以取消收场，`completed`不会触发。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `completed` | out · exec | — | 等待结束后触发，被跳过时立即触发。 |
+| `duration` | in · data | `float` | 单位秒，`0.25`即 250 ms。可在卡上填字面量。 |
+| `token` | out · data | `Timer` | 传给`Skip Delay`。 |
+
+<Callout type="warn">
+一个`Timer`标识的是运行时作用域内的那个`Delay`节点，而不是某一次具体的等待。如果同时有两条执行链停在同一个`Delay`上，一次`Skip Delay`会把它们一起放行。
+</Callout>
+
+## Skip Delay
+
+`blueprint.flow.skipDelay`
+
+Skip Delay（跳过延迟）提前完成一次挂起中的`Delay`。目标从它自己的`completed`离开；`Skip Delay`自己不等待，直接从`next`继续。传入的不是`Delay`的 token，或者那个`Delay`当前并没有在等待时，它静默 no-op——执行照样从`next`继续。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 跳过请求提交后立即继续。 |
+| `timer` | in · data | `Timer` | 想要提前结束的那个`Delay`输出的 token。 |
+
+## Return
+
+`blueprint.flow.return`
+
+Return（返回）结束当前执行链。它没有执行出口，同时也会作废`Sequence`还排在队列里的分支。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+## Return Value
+
+`blueprint.data.returnValue`
+
+Return Value（返回值）把一个值交还给发起求值的一方，并结束当前链。它是 Blueprint Value 图的尾节点——决定被绑定属性取什么值的那个节点。它只属于`event`图，且只出现在需要产出值的宿主上；放错地方时 graph validation 会指出来。取值图跑完却没有走到它时，上一次解析出的值继续生效。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `value` | in · data | `any` | 属性要取的值。 |
+
+要从一个 fn 返回，用的是`Fn Return`，见 [Functions](/docs/studio/blueprint/nodes/functions)。
+
+## Noop
+
+`blueprint.flow.noop`
+
+Noop（空操作）什么都不改，直接把执行传下去。适合做多条分支汇合到同一条后续线路的汇聚点，也适合在链路改到一半时占位。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |

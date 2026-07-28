@@ -1,0 +1,50 @@
+---
+title: Debug
+description: Print a line while a graph runs, and leave a note on the canvas for whoever opens it next.
+---
+
+Two nodes, and only one of them executes. `Log` writes a line you can read while the game is running; `Comment` is a box of text on the canvas that the runtime never sees.
+
+## Log
+
+`blueprint.log`
+
+Writes one line and carries on. It is the cheapest way to answer "did this branch actually run, and what was in that pin".
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | Fires after the line is written. |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+
+The line lands in the **Console** panel on the [Blueprint channel](/docs/studio/getting-started/workspace-overview), tagged `Blueprint Log`, at info level; anything past 4096 characters is cut and marked `… [truncated]`. The same line is mirrored in full to the window's developer console with a `[Blueprint]` prefix.
+
+`value` is not the only input the node can have. The add-input control on the card appends further `string` pins — `in_1`, `in_2`, … , labelled `Input 2` onward — and they are joined into a single line with no separator between them, so `"score: "` and a number give `score: 42` without a `Concat` node in between. The table above lists only the pin the node starts with. Anything that is not a string is JSON-encoded first; a value JSON cannot encode falls back to its plain string form.
+
+When none of its inputs resolves to a value at all, the line reads `Log node reached` — that default exists so `Init` wired straight into `Log` proves a path executes without you typing anything into it. An empty string still counts as a value, and logs an empty line.
+
+`Log` is available in `event` and `macro` graphs only. It has an effect on the world outside the graph, and a `function` graph is not allowed to.
+
+<Callout type="info">
+The Console panel is fed by a running game. On the editor canvas there is no runtime host to receive the line, so only the window's developer console gets it — check `Log` output in Dev Mode.
+</Callout>
+
+## Comment
+
+`blueprint.flow.comment` · Pure
+
+A resizable note on the canvas. It declares no pins at all: nothing connects to it, it never executes, and it produces no value. Legal in `event`, `function` and `macro` graphs, and inside a Blueprint Value, because there is nothing in it that could misbehave.
+
+The card *is* the comment — there is no inspector for it. What you edit is the box:
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `text` | The body of the note. Multi-line, typed straight into the box. |
+| `color` | `amber` (the default), `cyan`, `violet` or `slate`, from the swatches that appear on the header while you hover the box. |
+| `background` | On by default. Switch it off and the box keeps its fill but renders beneath the other nodes, which is how you frame a group of them instead of covering them. |
+| `width` | The width of the box. Drag the handle in its bottom-right corner. |
+| `height` | The height of the box, dragged from the same handle. |
+
+The type id still reads `blueprint.flow.comment`. It is kept unchanged so graphs authored before the node moved into the Debug category keep loading; the category is where you will find it in the palette.

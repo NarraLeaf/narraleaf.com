@@ -1,0 +1,1060 @@
+---
+title: Data
+description: Literals, type conversion, type tests, and every string, array, object, and JSON operation a graph is built out of.
+---
+
+Data holds the values a blueprint computes with. Reach for it when you need a constant, when a value arrives as the wrong type, or when you have to take apart a string, an array, or a JSON document. Nothing here has an exec pin — a Data node is read by whoever is wired to its output.
+
+## Value types
+
+Nine `valueType`s appear on the pins below.
+
+| `valueType` | Holds | Produced by |
+| --- | --- | --- |
+| `string` | Text. | `String`, every string node. |
+| `integer` | A whole number. | `Integer`, lengths, indices, counts. |
+| `float` | A number. | `Float`, `To Float`, `Parse Float`. |
+| `boolean` | True or false. | `Boolean`, every type test and string test. |
+| `json` | Any JSON value: object, array, string, number, boolean, or `null`. | `JSON`, `Rect`, `Parse JSON`, `Get JSON Field`, `Make JSON Object`. |
+| `array` | A JSON array, as a type of its own. | `Make JSON Array`, the `Array …` nodes that return an array, `Object Keys`, `Object Values`. |
+| `any` | Anything. | — |
+| `RGBAColor` | `{ r, g, b, a }`. | `Color`. |
+| `Vector2D` | `{ x, y }`. | `Vector2D`. |
+
+An edge between two data pins is allowed when the types are identical, or when one of these holds:
+
+| From | To | Why |
+| --- | --- | --- |
+| `integer` | `float` | Every integer is a float. |
+| `integer`, `float` | `string` | The number is converted to text as the input is read. This is the only coercion that rewrites the value — every other permitted edge passes it through untouched. |
+| `array` | `json` | An array is a JSON value. |
+| `any` | anything | `any` matches in both directions. |
+| anything | `any` | |
+
+Everything else is refused, including the reverses authors expect to work:
+
+- **`json` → `array`.** The rule runs one way only.
+- **`float` → `integer`.** Insert `To Integer`, which truncates toward zero.
+- **`string` → `integer` or `float`.** Insert `Parse Int`, `Parse Float`, `To Integer`, or `To Float`.
+- **`boolean` → `string`, `json` → `string`.** Only numbers coerce to text. Insert `To String` or `Stringify JSON`.
+- **`string`, `integer`, `float`, `boolean` → `json`.** `array` is the only type that reaches a `json` input implicitly. Insert `To JSON`.
+- **`RGBAColor` → `json`, `Vector2D` → `json`.** They are structured types of their own, not JSON documents. `Rect` is the exception: it already outputs `json`.
+
+<Callout type="info">
+`array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array — `Split`'s result, `Parse JSON`, `Get JSON Field` — will not connect to an `array` input such as `Array Length` or List's `Set Items`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
+</Callout>
+
+## Conventions
+
+- **Every node here is pure.** There are no exec pins to connect, so a Data node cannot sit on the execution path. Its output is computed when a consumer reads it, and recomputed on the next read.
+- **All three graph kinds accept them** — `event`, `function`, and `macro` — and so does a Blueprint Value graph.
+- **Nothing is modified in place.** A node that writes returns a new value on its output pin and leaves its input alone.
+- **On-card literals exist for `string`, `integer`, `float`, and `boolean` pins only.** A `json` or `array` input has no on-card editor; feed it a `JSON` literal or a `Make JSON …` node.
+- **An unwired input is not an error.** It reads the pin's on-card literal, or nothing when there is none, and each node normalizes: a missing array reads as empty, a missing string as `""`, a missing number as `0`.
+- **A chain of pure nodes resolves at most 32 links deep.** Past that the read returns nothing, silently.
+
+<Callout type="warn">
+`Array Push`, `Set JSON Field`, `Object Set Field`, and every other writer on this page hand you a **new** value and leave the input untouched. Wiring `Get Var → Array Push` changes nothing on its own — you have to wire the result back into `Set Var`. See [Variables](/docs/studio/blueprint/variables).
+</Callout>
+
+## Literals
+
+A literal has one output pin and an on-card field. Its type is fixed by the node you pick, which is what makes the rest of the graph type-check.
+
+### String
+
+`blueprint.data.stringLiteral` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | The text. |
+
+### Integer
+
+`blueprint.data.integerLiteral` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `integer` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A number. Truncated to a whole number when read. |
+
+### Float
+
+`blueprint.data.floatLiteral` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A number. A value that is not finite reads as `0`. |
+
+### Boolean
+
+`blueprint.data.booleanLiteral` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A True / False dropdown. |
+
+### Null
+
+`blueprint.data.nullLiteral` · Pure
+
+The only literal with no on-card field — there is nothing to configure about `null`. Its output is typed `json`, so it reaches any `json` or `any` input.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `json` | Always `null`. |
+
+### JSON
+
+`blueprint.data.jsonLiteral` · Pure
+
+The card shows the root type and a summary; editing opens a tree form with named fields for an object and ordered entries for an array. A new node starts as an empty object.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `json` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | The document, edited as a tree. Everything it writes is JSON-safe. |
+
+### Color
+
+`blueprint.data.colorLiteral` · Pure
+
+Edited with a color picker and shown as 8-digit RGBA hex. The output is always the normalized `{ r, g, b, a }` record — `r`, `g`, `b` as bytes, `a` from `0` to `1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `RGBAColor` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A color picker. |
+
+### Vector2D
+
+`blueprint.data.vector2dLiteral` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `Vector2D` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A fixed `x` / `y` number schema. Extra fields are rejected, and a field that is missing or not a number reads as `0`. |
+
+### Rect
+
+`blueprint.data.rectLiteral` · Pure
+
+Unlike `Color` and `Vector2D`, `Rect` outputs plain `json` rather than a type of its own, so it connects to any `json` input.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `json` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A fixed `x` / `y` / `width` / `height` number schema, validated the same way as `Vector2D`. |
+
+### Number
+
+`blueprint.data.numberLiteral` · Pure
+
+The legacy number constant, hidden from the palette so it cannot be added to a new graph. It stays registered so old graphs keep resolving. Use `Float`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | A number. |
+
+### Literal
+
+`blueprint.data.literal` · Pure
+
+The legacy untyped constant, also hidden from the palette. Its `any` output type-checks against everything, which is exactly why the typed literals replaced it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `value` | An untyped value. |
+
+## Conversion
+
+These are the nodes the connection rules send you to. None of them fail: an input that cannot be read produces the type's zero value rather than an error.
+
+### To String
+
+`blueprint.string.toString` · Pure
+
+`null` and an unwired input both read as `""`. An object or an array is serialized to JSON text.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `string` | |
+
+### To Integer
+
+`blueprint.data.toInteger` · Pure
+
+Truncates toward zero — `-2.7` becomes `-2`, not `-3`. `true` reads as `1`, `false` as `0`, a numeric string is accepted, and anything else gives `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `integer` | |
+
+### To Float
+
+`blueprint.data.toFloat` · Pure
+
+Same acceptance as `To Integer`, without the truncation. A value that is not a finite number gives `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `float` | |
+
+### To Boolean
+
+`blueprint.data.toBoolean` · Pure
+
+Strings are matched after trimming and lowercasing: `""`, `"false"`, `"0"`, and `"no"` are false; `"true"`, `"1"`, and `"yes"` are true; any other non-empty string is true. `0` and a non-finite number are false.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### To JSON
+
+`blueprint.data.toJson` · Pure
+
+A string is parsed as JSON, and kept as the original string when it does not parse — so this node never destroys text. Other values are made JSON-safe: a non-finite number and a cycle become `null`, a function or symbol becomes its text form.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `json` | |
+
+### Parse Int
+
+`blueprint.data.parseInt` · Pure
+
+Base 10, and the leading number wins — `"12px"` gives `12`. No digits at all gives `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `integer` | |
+
+### Parse Float
+
+`blueprint.data.parseFloat` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `float` | |
+
+### Parse JSON
+
+`blueprint.data.parseJson` · Pure
+
+Strict: text that does not parse, and an empty string, both give `null`. Use `To JSON` instead when you would rather keep the original text.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `json` | |
+
+### Stringify JSON
+
+`blueprint.data.stringifyJson` · Pure
+
+An unwired input gives the text `"null"`. A value that cannot be serialized gives `""`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `json` | |
+| `result` | out · data | `string` | |
+
+## Type tests
+
+Each takes `any` and answers a question about the value that actually arrived, which is how you find out what a `json` or `any` pin is really carrying.
+
+### Is String
+
+`blueprint.data.isString` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Number
+
+`blueprint.data.isNumber` · Pure
+
+Finite numbers only — `NaN` and the infinities are false, and so is a numeric string. This asks about the type, not about parseability.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Boolean
+
+`blueprint.data.isBoolean` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Array
+
+`blueprint.data.isArray` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Object
+
+`blueprint.data.isObject` · Pure
+
+True for a non-null object that is not an array. An array answers `Is Array`, not this.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Null
+
+`blueprint.data.isNull` · Pure
+
+True for `null`, and also for an input that resolved to nothing — an unwired pin reads as null here.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Not Null
+
+`blueprint.data.notNull` · Pure
+
+The negation of `Is Null`, so you do not have to hang a `Not` off it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Empty Value
+
+`blueprint.data.isEmptyValue` · Pure
+
+True for `null`, `""`, an empty array, and an empty object. `0` and `false` are values, not emptiness, and both answer false.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+## Strings
+
+Every `value` input here takes an on-card literal, so a one-off string does not need its own literal node. Indices are zero-based, and out-of-range indices are clamped rather than rejected.
+
+### Concat
+
+`blueprint.string.concat` · Pure
+
+Joins its inputs in pin order with nothing between them. The card has an add-input control: beyond `a` and `b` you can append further `string` inputs, and the signature below shows only the two it starts with.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | Accepts an on-card literal. |
+| `b` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Format
+
+`blueprint.string.format` · Pure
+
+Replaces `{name}` in the template with the matching field of `values`, or `{0}`, `{1}` … when `values` is an array. A placeholder with no match becomes empty, and every placeholder becomes empty when `values` is neither an object nor an array.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `template` | in · data | `string` | Accepts an on-card literal. |
+| `values` | in · data | `json` | Wire a `JSON` literal or a `Make JSON Object`. |
+| `result` | out · data | `string` | |
+
+### Length
+
+`blueprint.string.length` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `length` | out · data | `integer` | |
+
+### Is Empty
+
+`blueprint.string.isEmpty` · Pure
+
+Length zero. A string of spaces is not empty — that is `Is Blank`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Is Blank
+
+`blueprint.string.isBlank` · Pure
+
+Empty, or nothing but whitespace.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Trim
+
+`blueprint.string.trim` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Trim Start
+
+`blueprint.string.trimStart` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Trim End
+
+`blueprint.string.trimEnd` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### To Upper Case
+
+`blueprint.string.toUpperCase` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### To Lower Case
+
+`blueprint.string.toLowerCase` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Capitalize
+
+`blueprint.string.capitalize` · Pure
+
+Upper-cases the first character and leaves the rest exactly as it is — this is not title case.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Equals
+
+`blueprint.string.equals` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | Accepts an on-card literal. |
+| `b` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Equals Ignore Case
+
+`blueprint.string.equalsIgnoreCase` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | Accepts an on-card literal. |
+| `b` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Contains
+
+`blueprint.string.contains` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Starts With
+
+`blueprint.string.startsWith` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Ends With
+
+`blueprint.string.endsWith` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Index Of
+
+`blueprint.string.indexOf` · Pure
+
+Searches forward from `start` and gives `-1` when there is no match. `start` is clamped into the string, so an out-of-range value searches from the beginning or the end rather than failing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `start` | in · data | `integer` | Accepts an on-card literal. Defaults to `0`. |
+| `index` | out · data | `integer` | |
+
+### Last Index Of
+
+`blueprint.string.lastIndexOf` · Pure
+
+Searches backward from the end. There is no `start` pin — that is the one asymmetry with `Index Of`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `index` | out · data | `integer` | |
+
+### Count
+
+`blueprint.string.count` · Pure
+
+Counts non-overlapping occurrences. An empty `search` gives `0`, not the string length.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `count` | out · data | `integer` | |
+
+### Char At
+
+`blueprint.string.charAt` · Pure
+
+An index outside the string gives `""`, not an error.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `char` | out · data | `string` | |
+
+### Substring
+
+`blueprint.string.substring` · Pure
+
+The second pin is a **length**, not an end index. Both are clamped into the string, and an unwired `length` takes everything from `start` onwards.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `start` | in · data | `integer` | Accepts an on-card literal. |
+| `length` | in · data | `integer` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Insert
+
+`blueprint.string.insert` · Pure
+
+`index` is clamped into the string, and an index that cannot be read appends at the end.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `insert` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Replace
+
+`blueprint.string.replace` · Pure
+
+Replaces the first occurrence only. An empty `search` returns the value unchanged rather than splicing at every position.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `replacement` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Replace All
+
+`blueprint.string.replaceAll` · Pure
+
+Every occurrence. `search` is plain text, not a pattern — an empty `search` again returns the value unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `search` | in · data | `string` | Accepts an on-card literal. |
+| `replacement` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Repeat
+
+`blueprint.string.repeat` · Pure
+
+`count` is clamped to `0`–`10000`, so a runaway number cannot build an unbounded string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `count` | in · data | `integer` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Pad Start
+
+`blueprint.string.padStart` · Pure
+
+`length` is the target total length, not the number of characters to add. A string that is already long enough comes back unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `length` | in · data | `integer` | Accepts an on-card literal. |
+| `pad` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Pad End
+
+`blueprint.string.padEnd` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `length` | in · data | `integer` | Accepts an on-card literal. |
+| `pad` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Split
+
+`blueprint.string.split` · Pure
+
+The result is typed `json`, not `array`, so it reaches `Join`, `For Each`, and any other `json` input — but not the `Array …` nodes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `separator` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `json` | |
+
+### Join
+
+`blueprint.string.join` · Pure
+
+Takes `json`, unlike `Array Join`, which takes `array`. A `values` that is not an array gives `""`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `values` | in · data | `json` | |
+| `separator` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Matches Regex
+
+`blueprint.string.matchesRegex` · Pure
+
+`pattern` is the expression source with no delimiters and no flags. A pattern that does not compile gives `false` rather than raising.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `pattern` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Extract Regex
+
+`blueprint.string.extractRegex` · Pure
+
+Returns the first capture group when the pattern has one, otherwise the whole match. No match, or a pattern that does not compile, gives `""`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `pattern` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### Normalize Line Breaks
+
+`blueprint.string.normalizeLineBreaks` · Pure
+
+Rewrites `\r\n` and lone `\r` to `\n`, so text pasted from any platform compares and splits consistently.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+## Arrays
+
+Every one of these reads its `array` input as an array and substitutes an empty one when it is not, so nothing throws. Every one that writes returns a new array on `result`.
+
+### Array Length
+
+`blueprint.collection.arrayLength` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `length` | out · data | `integer` | |
+
+### Array Get
+
+`blueprint.collection.arrayGet` · Pure
+
+An index that is negative or past the end gives `null`. The output is `json` because an array element can be any JSON value.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | out · data | `json` | |
+
+### Array Set
+
+`blueprint.collection.arraySet` · Pure
+
+Writes at `index` and returns the new array. A negative index, or one above `10000`, returns the input unchanged; an index past the end extends the array, leaving the skipped slots empty.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Push
+
+`blueprint.collection.arrayPush` · Pure
+
+Appends to the end.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Insert
+
+`blueprint.collection.arrayInsert` · Pure
+
+`index` is clamped to `0`–length, so an out-of-range index appends rather than failing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Remove
+
+`blueprint.collection.arrayRemove` · Pure
+
+Removes the first item equal to `item`, compared by JSON value — two objects with the same fields match, even though they are different objects. No match returns the input unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Remove At
+
+`blueprint.collection.arrayRemoveAt` · Pure
+
+Removes one item and closes the gap. An out-of-range index returns the input unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `result` | out · data | `array` | |
+
+### Array Contains
+
+`blueprint.collection.arrayContains` · Pure
+
+JSON-value equality, the same rule as `Array Remove`. This is deliberately looser than `Equal` in [Math](/docs/studio/blueprint/nodes/math), which compares identity.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Array Slice
+
+`blueprint.collection.arraySlice` · Pure
+
+`end` is exclusive. Both bounds are clamped into the array, and an unwired `end` runs to the end.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `start` | in · data | `integer` | Accepts an on-card literal. |
+| `end` | in · data | `integer` | Accepts an on-card literal. |
+| `result` | out · data | `array` | |
+
+### Array Join
+
+`blueprint.collection.arrayJoin` · Pure
+
+Converts each item to text — objects and arrays become JSON — and joins them. Takes `array`, where the string `Join` takes `json`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `separator` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+### JSON Array Length
+
+`blueprint.data.jsonArrayLength` · Pure
+
+The older name for `Array Length`, kept so existing graphs keep resolving. A value that is not an array gives `0`. Use `Array Length` in new graphs.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `array` | |
+| `length` | out · data | `integer` | |
+
+## Objects
+
+These act on one field at a time, by name. They take no path — for a nested write use `Set JSON Field`. An input that is not an object is read as `{}`.
+
+### Object Keys
+
+`blueprint.collection.objectKeys` · Pure
+
+Field names in insertion order. An array or any other non-object gives an empty array.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `result` | out · data | `array` | |
+
+### Object Values
+
+`blueprint.collection.objectValues` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `result` | out · data | `array` | |
+
+### Object Set Field
+
+`blueprint.collection.objectSetField` · Pure
+
+`field` is a plain name, and a dot in it is part of the name rather than a path step. A blank name returns the copy unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `field` | in · data | `string` | Accepts an on-card literal. |
+| `value` | in · data | `any` | |
+| `result` | out · data | `json` | |
+
+### Object Remove Field
+
+`blueprint.collection.objectRemoveField` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `field` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `json` | |
+
+### Object Merge
+
+`blueprint.collection.objectMerge` · Pure
+
+Shallow merge; `b` wins on a collision. Nested objects are replaced, not merged. `Merge JSON Object` is the same operation under a second type id.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `json` | |
+| `b` | in · data | `json` | |
+| `result` | out · data | `json` | |
+
+## JSON
+
+The path nodes address a document with dot notation: `user.profile.name`, and a numeric segment for an array index, `items.0`. Escape a literal dot in a key as `\.`. An empty path means the whole document, so `Set JSON Field` with no path replaces it outright.
+
+### Get JSON Field
+
+`blueprint.data.jsonGet` · Pure
+
+A path that does not exist gives `null`, so a missing field and a field holding `null` read the same. Use `Has JSON Field` when the difference matters.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `json` | |
+
+### Has JSON Field
+
+`blueprint.data.jsonHas` · Pure
+
+Presence, not truthiness: a field whose value is `null` still exists.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+### Set JSON Field
+
+`blueprint.data.jsonSet` · Pure
+
+Copies the input and writes into the copy. Missing containers along the path are created — an array when the next segment is a number, an object otherwise — so writing `stats.hp` into an empty document produces `{ "stats": { "hp": … } }`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | Accepts an on-card literal. |
+| `value` | in · data | `any` | Stored JSON-safe. |
+| `result` | out · data | `json` | |
+
+### Remove JSON Field
+
+`blueprint.data.jsonRemove` · Pure
+
+Deletes an object field, or splices out an array entry so the later items shift down. A path that does not exist gives back the copy unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | Accepts an on-card literal. |
+| `result` | out · data | `json` | |
+
+### Make JSON Object
+
+`blueprint.data.jsonMakeObject` · Pure
+
+Builds an object from dynamic pin pairs, so the signature below is only the output. Each field on the card adds a `Name` input (`string`, takes an on-card literal) and a `Value` input (`any`); a new node starts with one pair. Names are read at run time, so a wired `Name` computes the key. A field whose name is blank, or repeats an earlier name, is skipped.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `result` | out · data | `json` | |
+
+### Make JSON Array
+
+`blueprint.data.jsonMakeArray` · Pure
+
+Builds an array from dynamic `Item` inputs in pin order, so the signature below is only the output. A new node starts with none — add them on the card. This is the node that produces the `array` type, and therefore the way to hand a built array to `Array Length` or List's `Set Items`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `result` | out · data | `array` | |
+
+### Merge JSON Object
+
+`blueprint.data.jsonMergeObject` · Pure
+
+Shallow merge with `b` winning, identical to `Object Merge`. A non-object input is treated as `{}`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `json` | |
+| `b` | in · data | `json` | |
+| `result` | out · data | `json` | |
+
+### Clone JSON
+
+`blueprint.data.jsonClone` · Pure
+
+A deep, JSON-safe copy. The writer nodes already copy their input, so you only need this when you are about to hand the same document to two branches that must not see each other's edits.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `json` | |
+| `result` | out · data | `json` | |

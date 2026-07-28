@@ -1,0 +1,126 @@
+---
+title: Slider
+description: 读取和改写滑块控件的运行时数值与范围。
+---
+
+Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行时数值与范围——比如一个要在 `Init` 时载入已存音量的音量控件，或者一个范围随难度模式变化的选择器。拖拽事件本身在 [Events](/docs/studio/blueprint/nodes/events)。
+
+## 约定
+
+- **除了一个节点，其余全都在说映射值。** `props.value` 及其 Blueprint Value、`dragStart` / `valueChanged` / `dragEnd` 的载荷、`Get Value`（获取值）和 `Set Slider Value`（设置滑块值），携带的都是 `min…max` 单位下的值。`0…1` 的比值只存在于 `Get Normalized Value`（获取归一化值），别处没有——把它接到填充宽度上，而把 `Get Value` 接到玩家会当作数字读的地方。
+- **写入的值先 clamp，再 snap，然后再 clamp 一次。** snap 是从 `min` 起按整步数取的，而第二次 clamp 才是那道保险：它避免了一个除不尽范围的步进把值顶过 `max`。
+
+  ```text
+  clamped = clamp(value, min, max)
+  snapped = min + round((clamped - min) / step) * step
+  value   = clamp(snapped, min, max)
+  ```
+
+- **`step` 为 `0` 时关闭 snap。** 此时值在范围内连续变化。负的 `step` 按 `0` 处理。
+- **范围在被使用之前会先被修正。** 只要 `max` 不大于 `min`，它就会被强制成 `min + 1`，因此滑块永远不会有一个零宽度的范围。不是有限数字的值会走回退——读到损坏的范围时回退到控件默认值（`min` 0、`max` 100、`step` 1），而 `Set Slider Range`（设置滑块范围）回退到该字段当前的运行时值。
+- **读取是纯节点，写入是 latent。** `Get Value`、`Get Normalized Value` 和 `Get Slider Range`（获取滑块范围）可用于 `event`、`function` 和 `macro` 图，也允许出现在 Blueprint Value 图中。两个写入节点是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入。
+- **这些都是 Self 节点。** 它们作用于拥有当前图的那个 Slider，并且没有目标引脚。要操作另一个 Slider，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.slider.*` 对应节点，它们带有 `slider` 输入，且只在当前图中已存在绑定到 `nl.slider` 的节点时才出现。
+
+<Callout type="warn">
+`Set Slider Value` 和 `Set Slider Range` 只改运行时状态。它们不会派发 `valueChanged`、`dragStart` 或 `dragEnd`，因此当蓝图去挪这个滑块时，靠这些事件做出反应的图不会被跑起来——请把后续动作接在同一条执行链上。它们也从不写回 UIDocument，所以控件下次挂载时，Slider 仍然从 authored 的值起步。
+</Callout>
+
+## Set Slider Value
+
+`blueprint.slider.setValue` · Latent
+
+`Set Slider Value` 设置映射值，并按当前的 `min` / `max` / `step` 规范化。不是有限数字的值按 `0` 处理，再夹进范围，因此在 `min` 大于零时，一个没接线或接错的输入会把滑块停在 `min`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `float` | 映射单位，不是 `0…1`。可在卡片上直接填写字面量。 |
+
+## Set Slider Range
+
+`blueprint.slider.setRange` · Latent
+
+`Set Slider Range` 一次性设置 `min`、`max` 和 `step`，然后按新范围重新规范化当前值。因此收窄范围会挪动滑块、加粗 `step` 会把它吸附过去——值绝不会被留在你刚刚声明的范围之外。
+
+每个引脚在解析不出有限数字时都回退到该字段当前的运行时值，所以你可以让某个引脚既不接线、卡片上的字面量也留空，从而保持范围的那一部分不变。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `min` | in · data | `float` | 可在卡片上直接填写字面量。 |
+| `max` | in · data | `float` | 不大于 `min` 时强制成 `min + 1`。可在卡片上直接填写字面量。 |
+| `step` | in · data | `float` | `0` 关闭 snap；负数按 `0` 处理。可在卡片上直接填写字面量。 |
+
+## Set Visible
+
+`blueprint.slider.setVisible` · Latent
+
+`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.slider.setEnabled` · Latent
+
+`Set Enabled`（设置启用）打开或关闭 Slider 的运行时交互。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Value
+
+`blueprint.slider.getValue` · Pure
+
+`Get Value` 输出当前映射值——已经按 `min` / `max` / `step` clamp 和 snap 过。要存进存档、或者显示在控件旁边的，就是这个数。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+## Get Normalized Value
+
+`blueprint.slider.getNormalizedValue` · Pure
+
+`Get Normalized Value` 输出映射值在范围内的位置，取值 `0…1`。它由 clamp 和 snap 之后的值推导而来，所以较粗的 `step` 会让这个输出也一跳一跳地走。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `normalizedValue` | out · data | `float` | |
+
+## Get Slider Range
+
+`blueprint.slider.getRange` · Pure
+
+`Get Slider Range` 用三个引脚输出当前运行时范围。它们是修正之后的值，不是 authored 的原样——`max` 已经体现了 `min + 1` 的下限，`step` 也绝不为负。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `min` | out · data | `float` | |
+| `max` | out · data | `float` | |
+| `step` | out · data | `float` | |
+
+## Get Visible
+
+`blueprint.slider.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.slider.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |

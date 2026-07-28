@@ -1,0 +1,67 @@
+---
+title: 蓝图
+description: 可视化编程层——什么是蓝图、一份蓝图归属于谁，以及它被允许做什么。
+---
+
+蓝图是一份可视化程序：节点由连线串起，由游戏运行时执行。项目靠蓝图获得行为而不必写代码——打开某个界面的按钮、列出存档的菜单、知道有没有进度可以继续的标题画面。
+
+在放下第一个节点之前，每份蓝图都先回答三个问题：谁是它的宿主、它是哪种图类型，以及由此决定的——创建浮窗会给你哪些节点。
+
+## 宿主
+
+**宿主**决定蓝图归属何处，也决定它的生命周期和可触及的范围。
+
+| 宿主 | 归属于 | 存活时长 |
+| --- | --- | --- |
+| `globalMain` | 项目 | 整个应用 |
+| `surfaceMain` | 单个 [Surface](/docs/studio/blueprint/surfaces) | 该 Surface 实例 |
+| `widgetMain` | 单个控件实例 | 该控件实例 |
+| `widgetValue` | 单个控件的单个属性 | 拥有它的绑定 |
+| `componentWidgetMain` | 可复用的组件控件 | 组件的每个实例 |
+| `sharedAsset` | 共享蓝图资源 | 引用它的一方 |
+
+`widgetMain` 蓝图通过 **Self 节点**操作自己所属的控件，这类节点没有 `Element` 输入。要操作**别的**控件，则把一个 `Element` 引用接进 **Element 节点**。这条区分贯穿整个节点目录，也是理解创建浮窗的第一件事。
+
+## 图类型
+
+每张图都声明自己的**图类型**，而图类型是一套规则，不是一个标签。
+
+| 类型 | 副作用节点 | 入口节点 | 可从控件 UI 绑定 |
+| --- | --- | --- | --- |
+| `event` | 允许 | 事件头（`Init`、`On Click`……）；非强制 | 是 |
+| `function` | **不允许** | `Function Entry`，必需 | 否 |
+| `macro` | 允许 | 不需要 | 否 |
+
+latent（会挂起执行）节点——例如 `Delay` 或一次存档写入——不能出现在 `function` 图中。函数要同步把结果返回给调用方，没有地方安放一个待定的结果。
+
+## Blueprint Value
+
+**Blueprint Value** 是绑定到单个属性上的 `widgetValue` 蓝图，属性因此由计算得出而非直接填写。当前支持的目标是 `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.frame` → `props.params`、`nl.slider` → `props.value`。
+
+它的创建浮窗被刻意收窄：事件头、非 latent 的流程节点、纯 Data 与 Math、本地变量读写、`Element` 字面量，以及纯读取节点。没有改写、没有导航、没有持久变量、没有 latent 节点。一个能改变世界的取值器，会在世界改变的那一刻重新进入自己。
+
+<Callout type="info">
+编辑器画布是排版工具。它会解析蓝图到足以预览一个值绑定的程度，但并不运行游戏——需要活动游玩的节点在那里没有对话对象。蓝图行为请在开发模式中验证。
+</Callout>
+
+## 接下来
+
+<Cards>
+    <Card
+        title="变量"
+        description="作用域、生命周期，以及什么能挺过一次读档。"
+        href="/docs/studio/blueprint/variables"
+    />
+    <Card
+        title="Surface"
+        description="界面、导航栈，以及游戏舞台。"
+        href="/docs/studio/blueprint/surfaces"
+    />
+    <Card
+        title="节点"
+        description="按分类列出的全部节点及其签名。"
+        href="/docs/studio/blueprint/nodes"
+    />
+</Cards>
+
+若要发布自己的节点而非使用内置节点，参见插件 API 的 [blueprintNodes](/docs/studio/plugin/studio/blueprint-nodes)。

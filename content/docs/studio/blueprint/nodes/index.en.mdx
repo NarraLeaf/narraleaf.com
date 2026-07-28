@@ -1,0 +1,71 @@
+---
+title: Nodes
+description: The built-in node catalog, one page per palette category, with every node's signature.
+---
+
+The built-in catalog is 492 nodes across 20 categories. A category is the grouping you navigate in the palette, so these pages are organised the way the editor is.
+
+## How to read a node
+
+Each node is written like this:
+
+> **Delay**
+>
+> `blueprint.flow.delay` · Latent
+
+The first line under the heading is the node's **type id** — the value stored in the document, and what you would register from a plugin. After it come the flags that are true for that node:
+
+| Flag | Means |
+| --- | --- |
+| `Pure` | No side effects. Usable in `function` graphs. |
+| `Latent` | Suspends the graph until it resolves. Never available in a `function` graph. |
+
+`Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories — Data, List, Math, Text, Slider, Displayable, Element, Game — plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow, local variable access, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
+
+Then the pin table:
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `duration` | in · data | `float` | Seconds. Accepts an on-card literal. |
+| `completed` | out · exec | — | Fires after the wait. |
+| `token` | out · data | `Timer` | Feed to `Skip Delay` to cut the wait short. |
+
+Exec pins carry execution; data pins carry values. *Accepts an on-card literal* means you can type the value into the node card instead of wiring an edge. Some nodes have **dynamic pins** — projected from a selected variable, a chosen function signature, or a case you appended — and those are described in prose, because there is no fixed table to print.
+
+## Availability
+
+A node appearing in this catalog does not mean it appears in your palette. Three filters apply:
+
+- **Graph kind.** `function` graphs refuse effectful and latent nodes.
+- **Owner and widget capability.** Self nodes only show in the blueprint of a widget that has that capability; a `Set Slider Value` is not offered inside a Text widget's blueprint.
+- **Present bindings.** An Element node only appears once the graph already holds a compatible `Element`, `Element Flush`, or `Element Click` node to wire it to.
+
+<Callout type="info">
+When several compatible sources exist, the palette lists the node once. Adding it auto-connects to the source if there is exactly one; with more than one it leaves the target input open for you to choose.
+</Callout>
+
+## Categories
+
+| Category | Nodes | Covers |
+| --- | --- | --- |
+| [Events](/docs/studio/blueprint/nodes/events) | 48 | Entry points: lifecycle, input, Surface transitions, Broadcast. |
+| [Flow](/docs/studio/blueprint/nodes/flow) | 12 | Branching, loops, sequencing, delays. |
+| [Functions](/docs/studio/blueprint/nodes/functions) | 3 | Function entry, call, return. |
+| [Variables](/docs/studio/blueprint/nodes/variables) | 9 | Declaring and reading blueprint and persistent variables. |
+| [Data](/docs/studio/blueprint/nodes/data) | 84 | Literals, conversion, predicates, JSON, strings, arrays. |
+| [Math](/docs/studio/blueprint/nodes/math) | 31 | Arithmetic, rounding, boolean logic, comparison. |
+| [Game](/docs/studio/blueprint/nodes/game) | 53 | Story control, dialog, preferences, saves, backlog. |
+| [App](/docs/studio/blueprint/nodes/app) | 10 | Surface navigation, window, application lifetime. |
+| [Localization](/docs/studio/blueprint/nodes/localization) | 6 | The game's player-facing locale. |
+| [Displayable](/docs/studio/blueprint/nodes/displayable) | 14 | Geometry, appearance variants, property animation. |
+| [Element](/docs/studio/blueprint/nodes/element) | 116 | Everything above, aimed at a wired `Element` instead of self. |
+| [Image](/docs/studio/blueprint/nodes/image) | 16 | Image assets and fill. |
+| [Text](/docs/studio/blueprint/nodes/text) | 28 | Text content and typography. |
+| [Text Input](/docs/studio/blueprint/nodes/text-input) | 3 | Editable text fields. |
+| [Button](/docs/studio/blueprint/nodes/button) | 9 | Button label and pointer. |
+| [Container](/docs/studio/blueprint/nodes/container) | 8 | Container layout and children. |
+| [Frame](/docs/studio/blueprint/nodes/frame) | 8 | The Page a Frame shows, and its params. |
+| [List](/docs/studio/blueprint/nodes/list) | 23 | Runtime items, selection, scrolling, item context. |
+| [Slider](/docs/studio/blueprint/nodes/slider) | 9 | Value, range, and snapping. |
+| [Debug](/docs/studio/blueprint/nodes/debug) | 2 | Logging and in-graph comments. |

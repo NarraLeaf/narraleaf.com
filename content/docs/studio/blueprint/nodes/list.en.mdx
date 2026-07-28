@@ -1,0 +1,276 @@
+---
+title: List
+description: Runtime item content, selection, scrolling, and per-item context for list widgets.
+---
+
+List nodes drive the runtime content, selection, and scroll position of the list widget whose private blueprint you are editing. Reach for them when the rows are decided while the game runs — save slots, a backlog, a settings menu — instead of being authored once in the inspector. Reshaping arrays and objects before you hand them over stays in [Data](/docs/studio/blueprint/nodes/data).
+
+## Conventions
+
+- **The runtime item array is what the List renders.** `Set List Content` writes an instance-level runtime array; `Append`, `Insert`, `Remove`, `Clear` and `Refresh` update that same store. Items are stored JSON-safe, so anything that does not survive a JSON round trip is dropped on the way in.
+- **`itemsBinding` is only a fallback.** The element's items binding is read while no runtime items have been written, and the inspector's preview items stand in when there is no binding either. The first write to the runtime store ends that.
+- **Mutations promote the fallback.** Every mutation except `Set List Content` and `Clear List` reads the current items first and writes the whole array back. On a List that has never been written to, that read comes from the fallback and the write turns the snapshot into runtime items — the binding stops applying from then on.
+- **Unmount clears the instance.** When the List instance fully unmounts, runtime items, selection, and pending scroll commands are dropped. Nothing is persisted for you; write the content to a variable or to state and restore it explicitly when the List comes back.
+- **Reads are pure, mutations are latent.** The `Get` nodes run in `event`, `function`, and `macro` graphs. Every mutation is latent and is limited to `event` and `macro` — a function returns synchronously to its caller and has nowhere to hand a pending write.
+- **Content and selection writes queue a flush; scroll nodes do not.** A scroll node only records an intent for the renderer to consume, so it never re-runs flush-driven work.
+- **These are Self nodes.** They act on the list-like widget that owns the graph — `nl.list`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list` — and take no target pin. To drive a different List, use the `blueprint.element.list.*` twins in [Element](/docs/studio/blueprint/nodes/element), which carry a `list` input and only appear once the graph holds a binding node for an `nl.list`.
+- **Item context needs a template descendant.** The four `Get List Item …` nodes appear only in blueprints owned by an element inside the List's item template, and read the item scope that element is currently rendering under.
+
+<Callout type="warn">
+`Clear List` writes an empty runtime array, and an empty array is still written content — `itemsBinding` does not come back, and the List stays empty until you write items again. Unmounting the List instance is the only thing that restores the fallback, and it discards selection and scroll state with it.
+</Callout>
+
+## Set List Content
+
+`blueprint.list.setItems` · Latent
+
+Replaces the runtime item array wholesale. A value that is not an array is written as an empty array rather than rejected, so a mistyped `items` edge silently empties the List.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `items` | in · data | `array` | Non-array values are written as an empty array. |
+
+## Append List Item
+
+`blueprint.list.appendItem` · Latent
+
+Reads the current items, adds one at the end, and writes the whole array back.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Insert List Item
+
+`blueprint.list.insertItem` · Latent
+
+Inserts before the given index. The index is clamped to `0…length`, and an index that is not a number falls back to the end, so this never throws for an out-of-range position.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | Clamped to `0…length`. Accepts an on-card literal. |
+| `item` | in · data | `any` | |
+
+## Remove List Item
+
+`blueprint.list.removeItem` · Latent
+
+Removes the first item that is JSON-equal to `item` — comparison is by serialized value, not by reference, so an object rebuilt with the same fields still matches. When nothing matches, the array is left untouched and execution continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Remove List Item At
+
+`blueprint.list.removeItemAt` · Latent
+
+Removes the item at the given index. An index outside `0…length-1`, or one that is not a number, leaves the array untouched and continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+
+## Clear List
+
+`blueprint.list.clear` · Latent
+
+Writes an empty runtime array. It has no pins beyond the execution pair.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Refresh List Items
+
+`blueprint.list.refreshItems` · Latent
+
+Writes the current items back unchanged, which re-renders every row and refreshes the item context its descendants read. Use it when an item's contents changed underneath the array — a mutated object, a value the rows read from state — and the array itself did not.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Set Selected Index
+
+`blueprint.list.setSelectedIndex` · Latent
+
+Stores the selected index as given. It is truncated but not clamped: an index outside the current items is kept, and `Get Selected Item` reports `null` for it. An index that is not a number resolves to `-1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | Not clamped to the item range. Accepts an on-card literal. |
+
+## Set Selected Item
+
+`blueprint.list.setSelectedItem` · Latent
+
+Finds the first item JSON-equal to `item` and selects its index. When nothing matches, the current selection is left alone — this is a silent no-op, not an error.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Scroll To Index
+
+`blueprint.list.scrollToIndex` · Latent
+
+Queues a scroll request for the given row. Negative and non-numeric indices resolve to `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | Floors at `0`. Accepts an on-card literal. |
+
+## Scroll To Top
+
+`blueprint.list.scrollToTop` · Latent
+
+Queues a scroll request for the start of the List.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Scroll To Bottom
+
+`blueprint.list.scrollToBottom` · Latent
+
+Queues a scroll request for the end of the List. Pair it with `Append List Item` to keep a log pinned to its newest row.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Set Visible
+
+`blueprint.list.setVisible` · Latent
+
+Sets the widget's runtime visibility. This is the authored `visible` property, not the Displayable render switch — see `Set Display` in [Displayable](/docs/studio/blueprint/nodes/displayable) when you want the element to stay mounted behind `display: none`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.list.setEnabled` · Latent
+
+Turns runtime interaction on or off for the List.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get List Content
+
+`blueprint.list.getItems` · Pure
+
+Outputs the runtime item array, or the `itemsBinding` / preview fallback while nothing has been written.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `items` | out · data | `array` | |
+
+## Get Selected Index
+
+`blueprint.list.getSelectedIndex` · Pure
+
+Outputs the runtime selected index, falling back to the element's authored `selectedIndex`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `index` | out · data | `integer` | |
+
+## Get Selected Item
+
+`blueprint.list.getSelectedItem` · Pure
+
+Outputs the item at the selected index, or `null` when that index falls outside the current items.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `item` | out · data | `json` | |
+
+## Get Visible
+
+`blueprint.list.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.list.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Get List Item Props
+
+`blueprint.list.getItemProps` · Pure
+
+Outputs the item the current row is rendering: the item itself when it is an object, otherwise `{ value: item }`, so a List of plain strings still gives you a field to read. Outside item context it outputs `{ value: null }`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `props` | out · data | `json` | |
+
+<Callout type="info">
+The four item context nodes read the item scope of the row being rendered, and they work in Blueprint Value graphs as well as event graphs — that is how one text element inside the template shows a different string per row. Repeated rows are isolated from each other, so each copy keeps its own event locals and its own resolved Blueprint Value even though every copy comes from the same source element id.
+</Callout>
+
+## Get List Item Index
+
+`blueprint.list.getItemIndex` · Pure
+
+Outputs the current row's index. Outside item context it outputs `-1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `index` | out · data | `integer` | |
+
+## Get List Item Count
+
+`blueprint.list.getItemCount` · Pure
+
+Outputs the number of rows in the current render pass. Outside item context it outputs `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `count` | out · data | `integer` | |
+
+## Get List Item Key
+
+`blueprint.list.getItemKey` · Pure
+
+Outputs the row's key: the value at the List's `itemKeyPath` when that value is a string or a number, and the row index as a string otherwise. Outside item context it outputs an empty string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `key` | out · data | `string` | |

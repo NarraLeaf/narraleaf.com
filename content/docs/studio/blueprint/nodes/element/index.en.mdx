@@ -1,0 +1,66 @@
+---
+title: Element
+description: The derived form of every widget method — how an Element node differs from a Self node, when the palette offers one, and the three nodes that do the wiring.
+---
+
+An Element node is the derived form of a widget method: instead of acting on the widget that owns the blueprint, it acts on an element you name explicitly and wire into it. The Self form of the same method takes no target pin and stays in its own widget's category; this category is where every targeted form ends up, whichever widget it came from. You reach for one the moment a graph has to touch something other than itself — a button that clears a text field, an `Init` graph that lays out three sibling images.
+
+None of them appear in the [palette](/docs/studio/blueprint) on their own. An Element node is offered only once the graph already holds a binding node for a compatible widget type: an `Element` literal, or one of the `Element Flush` / `Element Click` event heads from [Events](/docs/studio/blueprint/nodes/events). Place the binding first.
+
+The 116 nodes are split across four pages:
+
+- [Displayable](/docs/studio/blueprint/nodes/element/displayable) — geometry, opacity, Variants and property animation, plus the `visible` and `enabled` pair every widget repeats. 42 nodes.
+- [Text](/docs/studio/blueprint/nodes/element/text) — `nl.text` content, typography and effects, and `nl.textInput` values. 27 nodes.
+- [List, Slider, Image](/docs/studio/blueprint/nodes/element/content) — list items and selection, slider value and range, image asset, fit mode and crop. 31 nodes.
+- [Button, Container, Frame](/docs/studio/blueprint/nodes/element/widget) — button label and pointer, container clipping, and the Page a Frame shows. 13 nodes.
+
+## Conventions
+
+These hold for every Element node, on this page and the four above.
+
+- **The target arrives on a data pin.** Displayable, Text, Button, Container, Image and Frame nodes call it `element`; List nodes use `list`, Slider nodes use `slider`, Text Input nodes use `textInput`. Its `valueType` is bare `element` for the Displayable family and `element:<widgetType>` everywhere else, which is what stops you feeding a Slider into a Text node.
+- **One palette entry per node type, never one per element.** If the graph holds exactly one compatible binding, placing the node wires the target pin to it for you. With two or more the pin is left empty and you pick.
+- **Same Surface only.** An `Element` literal can only name an element on its own Surface, and the runtime checks again at execution time — a reference whose Surface differs from the executing owner's is rejected. See [Surfaces](/docs/studio/blueprint/surfaces).
+- **Readers are `Pure`, writers are `Latent`.** Readers are legal in `event`, `function` and `macro` graphs and may back a Blueprint Value; writers are legal in `event` and `macro` only, because they await the host.
+- **Writes land on the runtime patch layer**, not on the authored UI document. A write that actually changes a value queues a flush for the target element; writing the value that is already there does not, and neither do reads or scroll requests.
+- **Inside a Blueprint Value, a read records what it read.** The binding re-evaluates when one of the element properties it actually touched changes, rather than on every flush.
+
+<Callout type="warn">
+A target pin that is unwired, points at another Surface, or carries the wrong widget type does not fail the same way on both sides. A reader returns `undefined` and the graph carries on as if nothing happened; a writer throws a blueprint execution error. When a value downstream of an Element reader is empty, suspect the reference before you suspect the property.
+</Callout>
+
+## Reference and event bubbling
+
+Three nodes that are about the wiring itself rather than about a widget's properties.
+
+### Element
+
+`blueprint.element.ref` · Pure
+
+The binding every other Element node waits for. Click the card and Studio switches to the UI editor for the same Surface; pick a non-root element, confirm, and the node stores `surfaceId`, `elementId` and `elementType` before returning you to the blueprint. One `Element` node can fan out to as many readers and writers as you want.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | out · data | `element` | `element` while unbound, `element:<widgetType>` once bound — `element:nl.text` for a Text element. That typed form is what a Text or Slider node will accept. |
+
+### Continue Event Bubble
+
+`blueprint.element.continueEventBubble` · Latent
+
+Re-dispatches the event currently being handled, with its original payload, to the structural parent element. A child button's `Mouse Click` graph runs this and the parent container's `Mouse Click` graph runs next; the parent can bubble further up. It needs both an element owner and a live event, so a function graph, an event-less macro, or a root element with no parent produces no parent event at all.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+
+### Stop Event Bubble
+
+`blueprint.element.stopEventBubble`
+
+Marks the current event handled, then carries on down `next` with the rest of the local graph. Any later `Continue Event Bubble` becomes a no-op, and the same keyboard event stops reaching further Surface and widget listeners. The usual use is a foreground overlay's `On Key Down` swallowing Space before the game underneath sees it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |

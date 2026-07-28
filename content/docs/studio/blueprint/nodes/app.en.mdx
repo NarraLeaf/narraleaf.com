@@ -1,0 +1,156 @@
+---
+title: App
+description: Surface navigation, the application window, and what a Page knows about itself.
+---
+
+App nodes are where a blueprint reaches the application it is running inside: open a Surface, close the top one, go fullscreen, quit. The Surface model itself — the stack, the layers, the game stage — is described in [Surfaces](/docs/studio/blueprint/surfaces).
+
+## Conventions
+
+- **Every node here is `event` and `macro` only.** None of them is available in a `function` graph.
+- **Two of them are tail nodes.** `Go Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
+- **The type ids say `page`.** This group was called Page before it grew window and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*` and `blueprint.frame.*` are this category.
+- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in a global blueprint, which has no current Page to ask about. The navigation and window nodes have no owner restriction.
+- **The editor canvas has no application to talk to.** On the author-time canvas every effectful node here fails with `Host API unavailable (use Dev Mode)`; the pure reads degrade quietly instead, so `Get Page Props` reads `{}` and the three `Is Surface …` reads report `false`. In the story editor's Game UI preview, navigation and quit reach stubs and do nothing, and the two fullscreen nodes report that they are not available there. Verify all of it in Dev Mode.
+
+## Go Page
+
+`blueprint.page.go` · Latent
+
+Opens the Surface picked on the card, through the same navigation path the runtime uses for every Page change — same enter and exit animations, same Surface lifecycle, same widget blueprints. Picking `None` instead closes the current top Page layer.
+
+There is no back node. `Go Page` with `None` is the only way to close a layer, and `Go Page` with a target is the only way to open one.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `props` | in · data | `json` | Handed to the target Page as its Page props, where `Get Page Props` reads it. Optional — unwired it is `{}`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Page` | The Surface to open, chosen from the project's app Surfaces. `None` closes the current top Page layer instead. |
+
+Once a game is running, the Page stack is hidden beneath the stage. `Go Page` then opens its target as a UI layer *above* the stage, and `None` closes that layer to reveal the stage again. To leave the game itself, use `Quit Game` from [Game](/docs/studio/blueprint/nodes/game) — it names the Page to return to.
+
+## Quit Application
+
+`blueprint.page.quit` · Latent
+
+Asks the runtime to shut the application down cleanly — leaving room for state saving and crash reporting — rather than killing the process. In Dev Mode it ends the Dev Mode session and returns you to Studio; it does not close Studio itself.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+This is a runtime-initiated quit, so it deliberately does **not** fire `On Window Close Requested`. That event exists for the player closing the window, and a confirmation handler hanging off it must not be triggered by the node that already decided to quit.
+
+## Set Fullscreen
+
+`blueprint.app.setFullscreen` · Latent
+
+Puts the application window into or out of fullscreen.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Mode` | `Enter Fullscreen`, `Exit Fullscreen`, or `Toggle Fullscreen`. An unset dropdown behaves as toggle — the useful default for a fullscreen button. |
+
+`Toggle Fullscreen` reads the current window state first and inverts it, so one button covers both directions without you tracking the state yourself.
+
+## Get Fullscreen
+
+`blueprint.app.getFullscreen` · Latent
+
+Reads whether the application window is currently fullscreen.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `isFullscreen` | out · data | `boolean` | |
+
+It is latent rather than pure because the answer comes from the window, not from the graph — which also means it cannot back a Blueprint Value. Drive a fullscreen indicator from an event graph instead.
+
+## Get Page Props
+
+`blueprint.page.getProps` · Pure
+
+The whole props object of the Page this blueprint runs in. A Page opened by `Go Page` reads that node's `props` input; a Page embedded in an `nl.frame` reads the Frame's `params`. Never null — a Page opened with nothing reads `{}`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `props` | out · data | `json` | |
+
+Pull a single field out with `Get JSON Field` from [Data](/docs/studio/blueprint/nodes/data), which takes a dotted path.
+
+## Get Page Param
+
+`blueprint.frame.getParam` · Pure
+
+Reads one field of the current Page props by name.
+
+**This node is not in the palette.** You cannot add one; it is documented because older documents still contain it and it still runs. It was replaced by `Get Page Props` followed by `Get JSON Field`, which reads nested paths instead of one flat key.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `key` | in · data | `string` | Accepts an on-card literal. |
+| `value` | out · data | `json` | A field that is not there reads as `null`. |
+
+## Emit Page Event
+
+`blueprint.frame.emit` · Latent
+
+Sends an event from an embedded Page up to the `nl.frame` element that embeds it. The Frame's own blueprint receives it through the `Page Event` head in [Events](/docs/studio/blueprint/nodes/events), which hands on the same name and payload.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `event` | in · data | `string` | Event name. Accepts an on-card literal. |
+| `data` | in · data | `json` | Payload delivered to the handler. |
+
+<Callout type="warn">
+A top-level Page has no parent Frame. The node still completes and execution continues out of `next` — the event just has nobody to reach, and nothing reports it. An empty event name is the opposite: that is an execution error, not a silent no-op.
+</Callout>
+
+## Is Surface Entering
+
+`blueprint.page.isSurfaceEntering` · Pure
+
+True from the moment this Surface's runtime scope mounts until its enter animation has finished.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isEntering` | out · data | `boolean` | |
+
+<Callout type="info">
+The flag is cleared *before* `After Surface Enter` fires, so reading it inside that event gives `false`. That is deliberate: by the time the event runs, the Surface has finished entering.
+</Callout>
+
+## Is Surface Exiting
+
+`blueprint.page.isSurfaceExiting` · Pure
+
+True from the moment `Before Surface Exit` fires and the exit animation starts, until the Surface unmounts. Use it to refuse input on a screen that is already leaving.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isExiting` | out · data | `boolean` | |
+
+## Is Surface Transitioning
+
+`blueprint.page.isSurfaceTransitioning` · Pure
+
+True while either of the other two is — one read for "this screen is not settled yet".
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isTransitioning` | out · data | `boolean` | |

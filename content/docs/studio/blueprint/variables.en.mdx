@@ -1,0 +1,164 @@
+---
+title: Variables
+description: Where a value lives, how long it survives, and which scope to reach for.
+---
+
+Every value in a project has to live somewhere, and that choice is really a choice of lifetime: a counter that dies with the screen it counts on, a flag that has to ride the player's save, a setting that has to outlive every playthrough. There are four scopes, and reaching for the wrong one is the most common source of "my value disappeared".
+
+Pin-by-pin signatures are on [Variables](/docs/studio/blueprint/nodes/variables). This page is about which scope to reach for and what happens to the value afterwards.
+
+## The four scopes
+
+| Scope | Declared with | Value lives in | Starts over when |
+| --- | --- | --- | --- |
+| Blueprint variable | a `Var` node in a graph | memory, one store per owner instance | that owner instance goes away |
+| Scene variable | a `/local` row in a scene | the save file, as that scene's `Scene.local` | the scene is entered |
+| Saved variable | a `/save` row in the story | the save file, as one `Storable` namespace | a new game starts |
+| Persistent variable | the blueprint editor's member panel, or a `/global` row | host storage outside the project, keyed by `storageKey` | never — only you clear it |
+
+### Blueprint variables
+
+Drop a `Var` node anywhere in a blueprint and it declares a variable for the whole blueprint. `Var` has no pins and never runs: the runtime scans every graph in the blueprint — events, functions, and macros alike — before the first event fires, and each `Var` it finds becomes a slot in that blueprint's store. Give it a `Name`, a `Data type`, and a `Default`. Every owner except `widgetValue` can declare them.
+
+The value lives in a store attached to the **owner instance**, not to the graph and not to the event chain. Two clicks on the same button read the same counter. What counts as an instance depends on the owner:
+
+| Owner | One store per | What starts it over |
+| --- | --- | --- |
+| `globalMain` | the global blueprint | nothing, while the application runs |
+| `surfaceMain` | each push of that [Surface](/docs/studio/blueprint/surfaces) onto the navigation stack | leaving the Surface and opening it again |
+| `widgetMain` · `componentWidgetMain` | widget instance — a repeated list item is its own instance | the widget unmounting |
+| `sharedAsset` | the shared blueprint | nothing, while the application runs |
+| `storyAction` | one call of the graph | every call |
+
+`Get Var` and `Set Var` offer three groups, always in this order: **Page** (the `surfaceMain` blueprint of the Surface this graph belongs to), **Blueprint** (the one you are editing), and **Global** (the `globalMain` blueprint). A blueprint that is already one of the others appears once, not twice. Names are sorted inside each group, and the scope label is printed beside a name **only** when two accessible variables share that name — so the usual list stays clean and a genuine clash is impossible to miss.
+
+Editing a graph does not wipe live values. When a store is re-acquired, a newly declared variable is seeded with its default, a variable that is no longer declared is dropped, and every other slot keeps the value it was holding.
+
+<Callout type="warn">
+A blueprint variable is never written to a save. It holds a value for the life of one owner instance and not a moment longer — nothing about it survives a save and load, a new game, or the window closing. If a value has to come back with the player, it belongs in a scene, saved, or persistent variable.
+</Callout>
+
+### Scene variables
+
+A scene variable belongs to one story scene and is backed by NarraLeaf's `Scene.local`. Declare it as a row inside the scene. The row *is* the variable: a declaration nested inside a branch still declares for the whole scene, and disabling the row does not undeclare it, because a declaration is not a statement that runs.
+
+`Scene.local` is cleared every time the scene is entered, and declared defaults are re-applied on entry. So a scene variable is in the save file and comes back with a load taken mid-scene — but walking into that scene again starts it from its default.
+
+### Saved variables
+
+A saved variable belongs to the story document rather than to any one scene, and every scene in that story can see it. It is backed by a single `Storable` namespace created with all declared defaults, so a new game begins at those defaults and a load restores whatever the save holds.
+
+Saved and persistent values must be serializable; a write of a function, a symbol, or a bigint is refused at run time rather than silently producing a save that cannot be read back.
+
+### Persistent variables
+
+A persistent variable is project-level: one definition, visible to every blueprint and every story, with its value outside the save file entirely. Language choice, "has seen the intro", gallery unlocks.
+
+Definitions live in the project's variable registry (`editor/variables.json`) and are authored from the **Persistent variables** group in the blueprint editor's member panel. An edit there rides the same undo stack as the blueprint you are editing, so one Ctrl+Z takes back the variable change and the node change together. The registry travels baked into the Dev Mode bundle and the game pack; the runtime reads it and never writes to it.
+
+Values live in host-managed storage keyed by the entry's `storageKey`, and never inside the project folder. While you author, they sit in Studio's own user data under a per-project key; in a shipped game they sit in the game's user data. Copying a project to another machine does not carry them.
+
+`Get Persistent` and `Set Persistent` are latent, because the host read and write are asynchronous — which is also why they cannot appear in a `function` graph. `Get Persistent` falls back to the authored default when nothing has ever been stored under that key, and hands you a deep copy of it, so mutating what you read cannot edit the definition.
+
+<Callout type="warn">
+`storageKey` is minted once and never changes when you rename the variable — that is what keeps a player's stored value resolving after a rename. The flip side: deleting a persistent variable does **not** delete the value already stored under its key, and a replacement created with the same name gets a *new* key and reads the default. Rename; do not delete and re-create.
+</Callout>
+
+## Which scope to pick
+
+Read down and stop at the first line that is true:
+
+- The value only matters while this screen, widget, or action is alive → **blueprint variable**.
+- It describes where the player stands inside one scene → **scene variable**.
+- The player would be annoyed to lose it on a load → **saved variable**.
+- It has to hold across every save file the player owns → **persistent variable**.
+
+Prefer the narrowest scope that works. A wider one is not free: every saved variable enlarges every save file, and every persistent variable is a value you will have to migrate by hand the day its meaning changes.
+
+## What survives
+
+| Scope | Save and load | A new game | Rebuilding the project |
+| --- | --- | --- | --- |
+| Blueprint variable | Gone — never written to a save. | Gone. | Nothing was stored. |
+| Scene variable | Restored with the save, then reset again on the next entry to that scene. | Back to its declared default. | Existing saves keep their values. |
+| Saved variable | Restored with the save. | Back to its declared default. | Existing saves keep their values. |
+| Persistent variable | Unaffected — it is not in the save. | Unaffected. | Kept, as long as `storageKey` is unchanged. |
+
+## Types
+
+`Var` offers nine types. The one you pick decides the `Default` editor on the card and the type projected onto `Get Var` and `Set Var`.
+
+| `valueType` | Default | Notes |
+| --- | --- | --- |
+| `string` | `""` | |
+| `integer` | `0` | Connects to a `float` or a `string` input. |
+| `float` | `0` | Connects to a `string` input. |
+| `boolean` | `false` | |
+| `json` | `{}` | Accepts an `array` source. |
+| `array` | `[]` | Connects to a `json` input; `json` does not connect back. |
+| `Timer` | `null` | Holds the token [`Delay`](/docs/studio/blueprint/nodes/flow) hands back. |
+| `AnimationToken` | `null` | Holds the token an animation hands back. |
+| `any` | `null` | The `Default` field is disabled — see below. |
+
+Numeric-to-`string` edges are coerced when the value is read. Every other allowed pairing is exact or widening; nothing is narrowed behind your back.
+
+Scene, saved, and persistent variables use a narrower closed set — `boolean`, `number`, `string`, `json` — because those values are serialized into a save file or into host storage, and there is nothing to serialize a live `Timer` into.
+
+### Defaults
+
+A default is stored as a real JSON value, not as stringified JSON. A `json` default of `{"hp": 3}` is an object in the document and an `array` default is an array, which is what lets the editor type-check the literal you type and lets the runtime hand it over with no parse step in between.
+
+Defaults are deep-cloned when a store is created. Every owner instance starts from its own copy, so writing into a `json` variable at run time can never reach back and edit the authored default, and two list items sharing one template do not share one object.
+
+A variable declared with no default at all starts as `null`.
+
+`any` is the one type whose starting value you do not choose. It is always `null`, and the card shows that as a disabled `null` field to say so. Give it a value with `Set Var`.
+
+### Type inference on `Get Var` and `Set Var`
+
+Both nodes declare their `value` pin as `any` and the editor projects the selected variable's type onto it. `Get Persistent` and `Set Persistent` work the same way. That one projection drives everything downstream: what the node card prints, which pins highlight while you drag an edge, which nodes the palette offers when you release it, whether a connection is accepted at all, and what graph validation checks.
+
+Change a `Var`'s `Data type` and the projection is rewritten on every `Get Var` and `Set Var` in that graph pointing at it.
+
+If the rewrite makes an existing edge incompatible, **the edge stays**. Validation reports a type mismatch on it and leaves it in the graph — silently deleting an author's connection to enforce a type they changed one second ago destroys more work than it saves. Fix the edge, or change the type back.
+
+A `Get Var` or `Set Var` whose selected variable no longer exists — deleted, or no longer reachable from where the node sits — is handled the same way: a diagnostic on the node, not a rewrite of the graph.
+
+## The registry and collisions
+
+Persistent variables have two authoring surfaces: the project registry and story declaration rows. Every consumer — the story compiler, the story variable panel, the blueprint member panel — reads one merged view of the two, keyed by `storageKey`, so they cannot end up disagreeing about which variables exist.
+
+A display name that appears on **both** surfaces is a real ambiguity, because the author now sees two variables wearing one name. Compiling reports it as a warning that names the variable and says references to it are ambiguous. Two rows on the same surface sharing a name never get that far: the duplicate is refused where it is typed.
+
+## Blueprint Value
+
+A [Blueprint Value](/docs/studio/blueprint) is a `widgetValue` blueprint bound to a single widget property, and its palette is deliberately restricted to safe value-producing nodes. Three consequences for variables:
+
+- **It cannot declare `Var`.** The node is not in its palette, and the declared-variable scan skips `widgetValue` owners outright.
+- **It cannot read or write persistent variables.** `Get Persistent` and `Set Persistent` are latent, and a value binding has to produce a value in the tick it is asked for — there is nobody to hand a pending promise to.
+- **It can still read and write the variables it can see.** `Get Var` and `Set Var` are on the whitelist and resolve against the Page and Global blueprints, which is the entire accessible set, since a value blueprint declares none of its own.
+
+## Story variables and expressions
+
+Story variables and blueprint variables are separate mechanisms that meet at exactly one point: the persistent scope, which both sides declare into and both sides read.
+
+Declare a story variable by typing a command row in the scene editor:
+
+```text
+/local hp 100 type=number desc='Player health'
+/save chapter 1 type=number
+/global seenIntro false type=boolean
+```
+
+`/local` declares a scene variable, `/save` a saved variable, and `/global` a persistent one. `/var` and `/persis` still resolve, as aliases of `/save` and `/global`. Without an explicit `type=`, the default's own type decides; a declaration with no default at all is a `boolean`.
+
+Story expressions — the right-hand side of `/set`, the test in `/if`, and inline text interpolations — address variables by name. A bare name walks **scene → saved → persistent** and stops at the first hit, so the narrowest scope wins. Name the scope outright when a name is shadowed:
+
+```text
+/set gold gold + 10
+/if scene.gold >= 100
+```
+
+The prefixes are `scene.` / `local.`, `saved.` / `var.`, and `persis.` / `persistent.` / `global.`. An expression is parsed the moment you type it and the document stores the tree rather than the text, so nothing is re-parsed at run time; nothing in the language can name a host object either, so there is no sandbox to escape.
+
+A story-action blueprint reaches all three story scopes: `Get Scene Var` / `Set Scene Var`, `Get Saved Var` / `Set Saved Var`, and `Get Persistent` / `Set Persistent`. The four story nodes exist only for `storyAction` owners — outside a running story there is no scene and no `Storable` to talk to.

@@ -1,0 +1,216 @@
+---
+title: 图片
+description: 读取和改写 nl.image 控件的图片资源、填充模式、裁剪矩形和翻转状态。
+---
+
+这些节点操作界面图片控件`nl.image`——标题画面上的插图、存档槽的缩略图、装饰边框。它们与舞台图片、角色立绘以及剧情演出中的任何资源无关；那些是剧情资源，不是界面控件。
+
+## 约定
+
+- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的`nl.image`。作用于连入元素的版本是 [Element](/docs/studio/blueprint/nodes/element) 分类中的`blueprint.element.image.*`，各自带一个`element:nl.image`输入，且只有当前图中已存在兼容绑定时才会出现。
+- **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`。
+- **`ImageAsset`是结构化值**，即`{ kind: "imageAsset", assetId }`，而不是一个裸的 id 字符串。可空形式`ImageAsset|null`用`null`表示*没有图片*。这些引脚上的普通`string`仍会被当作 asset id 读取，这样在该类型出现之前保存的旧图才能继续运行。
+- **写入改写控件的`imageFill`**（`mode`、`assetId`、`cropPlacement`）或`imageFlipX` / `imageFlipY`，随后排队 flush 该元素。如果写入的值和现有值完全一致，则什么也不做——不写 patch，也不 flush。
+- **无法使用的输入会回退到当前值。** 无法识别或为空的填充模式、非数值的裁剪百分比、未接线的布尔输入，都会让该属性保持原样，而不是被重置。
+- **几何、不透明度和变体不在这里。** 位置、尺寸、旋转和不透明度属于 [Displayable](/docs/studio/blueprint/nodes/displayable)；非 Default 的 Appearance Variant 也永远不会覆盖 Default 的填充模式和裁剪——因此切到半透明变体不会把图片卡在`crop`上。
+
+## Image Asset
+
+`blueprint.image.assetLiteral` · Pure
+
+Image Asset（图片资源）是图片资产字面量卡片。卡片显示当前缩略图、资产名或 missing 状态；点击卡片打开图片资产选择器。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `ImageAsset` | |
+
+未选择图片时该节点输出空值，接到`ImageAsset|null`输入上等同于*清空*。
+
+## Get Image Asset
+
+`blueprint.image.getImageAsset` · Pure
+
+Get Image Asset（获取图片资源）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `asset` | out · data | `ImageAsset\|null` | 控件没有图片时为`null`。 |
+
+## Set Image Asset
+
+`blueprint.image.setImageAsset` · Latent
+
+Set Image Asset（设置图片资源）把控件指向另一张图片并触发 flush。填充模式和裁剪矩形保持不变。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `asset` | in · data | `ImageAsset\|null` | 可在节点卡片上填字面量。 |
+
+未接线时，该引脚会在卡片上展开为图片选择器：选择图片会写入节点参数，清空会写入`null`。接线之后以连线值为准。
+
+## Clear Image Asset
+
+`blueprint.image.clearImageAsset` · Latent
+
+Clear Image Asset（清除图片资源）移除控件的图片——等同于把`Set Image Asset`的`asset`设为`null`，只是不带引脚。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Get Image Fit Mode
+
+`blueprint.image.getFitMode` · Pure
+
+Get Image Fit Mode（获取图片适配模式）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `fitMode` | out · data | `string` | `cover`、`contain`、`stretch`、`crop`、`tile`之一。控件尚无填充时为`cover`。 |
+
+**Modes**
+
+| Mode | How the picture fills the box |
+| --- | --- |
+| `cover` | 缩放到铺满控件框，超出部分被裁掉。 |
+| `contain` | 缩放到完整放进控件框，留出留白。 |
+| `stretch` | 拉伸到控件框，不保持宽高比。 |
+| `crop` | 由裁剪矩形决定摆放。 |
+| `tile` | 按原始尺寸从左上角起平铺。 |
+
+## Set Image Fit Mode
+
+`blueprint.image.setFitMode` · Latent
+
+Set Image Fit Mode（设置图片适配模式）改变图片如何填充控件框，同时保留当前资源和裁剪矩形。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fitMode` | in · data | `string` | 可在节点卡片上填字面量。五种模式以外的值会被忽略，保持当前模式。 |
+
+## Get Image Crop Rect
+
+`blueprint.image.getCropRect` · Pure
+
+Get Image Crop Rect（获取图片裁剪矩形）读取裁剪矩形。这四个数是**相对控件自身框**的百分比，而不是相对源图：`leftPct` / `topPct`把图片左上角放到框内的位置，`widthPct` / `heightPct`是图片被绘制出的尺寸。因此`0, 0, 100, 100`——没有裁剪过时拿到的值——表示*正好铺满控件框*，大于 100 或小于 0 的值则用来表达比控件框更大的图片。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `leftPct` | out · data | `float` | |
+| `topPct` | out · data | `float` | |
+| `widthPct` | out · data | `float` | |
+| `heightPct` | out · data | `float` | |
+
+## Set Image Crop Rect
+
+`blueprint.image.setCropRect` · Latent
+
+Set Image Crop Rect（设置图片裁剪矩形）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `leftPct` | in · data | `float` | 可在节点卡片上填字面量。 |
+| `topPct` | in · data | `float` | 可在节点卡片上填字面量。 |
+| `widthPct` | in · data | `float` | 可在节点卡片上填字面量。 |
+| `heightPct` | in · data | `float` | 可在节点卡片上填字面量。 |
+
+<Callout type="warn">
+该节点同时会把填充模式切换为`crop`。这是必须的：摆放矩形只有`crop`模式才会读取，在其它模式下这四个数会被保存但被忽略。需要恢复原来的模式时，后面接一个`Set Image Fit Mode`。
+</Callout>
+
+## Get Image Flip X
+
+`blueprint.image.getFlipX` · Pure
+
+Get Image Flip X（获取图片水平翻转）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `flipX` | out · data | `boolean` | |
+
+## Set Image Flip X
+
+`blueprint.image.setFlipX` · Latent
+
+Set Image Flip X（设置图片水平翻转）以中心为轴水平镜像图片。只有图片内容层会翻转——控件框、描边和子元素不受影响。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipX` | in · data | `boolean` | |
+
+## Get Image Flip Y
+
+`blueprint.image.getFlipY` · Pure
+
+Get Image Flip Y（获取图片垂直翻转）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `flipY` | out · data | `boolean` | |
+
+## Set Image Flip Y
+
+`blueprint.image.setFlipY` · Latent
+
+Set Image Flip Y（设置图片垂直翻转）以中心为轴垂直镜像图片。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipY` | in · data | `boolean` | |
+
+## Get Visible
+
+`blueprint.image.getVisible` · Pure
+
+Get Visible（获取可见性）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+它读的就是 Displayable 以`visible`属性键暴露的那份可见性——同一个值，两种读法。如果只想隐藏控件而不把它从渲染树中移除，请改用 Displayable 的`Set Display`。
+
+## Set Visible
+
+`blueprint.image.setVisible` · Latent
+
+Set Visible（设置可见）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.image.getEnabled` · Pure
+
+Get Enabled（获取启用状态）。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.image.setEnabled` · Latent
+
+Set Enabled（设置启用）开关控件上的交互。它映射到底层的禁用交互机制，作者侧不暴露`interactionDisabled`属性。
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |

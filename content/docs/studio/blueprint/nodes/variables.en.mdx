@@ -1,0 +1,174 @@
+---
+title: Variables
+description: The nodes that declare a variable, read it, write it, and reach the persistent and story stores.
+---
+
+These nodes are the only way a graph touches a variable. Which scopes exist, how long each one lives, and what survives a save is covered on [Variables](/docs/studio/blueprint/variables); this page is the signatures.
+
+## Conventions
+
+- **`Get Var` and `Set Var` project their `value` pin type from the selected variable.** The pin is declared `any`, but on the card it takes the type of whatever you picked in `Variable`, and the editor uses that projected type for the pin label, the connection preview, and validation.
+- **A later type change keeps your edges.** Change a `Var`'s Data type and any edge that no longer fits stays exactly where it is; validation reports a type mismatch instead of the editor quietly deleting the connection. You decide what to rewire.
+- **Purity decides where a node is offered.** `Var` and `Get Var` are pure and are the only Variables nodes available in `function` graphs. The rest are exec nodes for `event` and `macro` graphs, and the Persistent pair is latent on top of that, which also keeps it out of [Blueprint Value](/docs/studio/blueprint).
+- **Blueprint Value cannot declare.** A `widgetValue` owner has no `Var` node at all. It can still read and write the variables it can reach, through `Get Var` and `Set Var`.
+- **The Scene and Saved nodes belong to Story Action blueprints** and fail at runtime anywhere there is no running story.
+
+## Var
+
+`blueprint.local.declareVar` · Pure
+
+A declaration, not a step in the flow — and the only node here with no pins. Put it anywhere on the canvas; the runtime collects every `Var` in the blueprint before execution starts, and those declarations are what the `Variable` dropdowns offer.
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `name` | The variable's name, as it appears in every `Variable` dropdown. |
+| `valueType` | Data type: `String`, `Integer`, `Float`, `Boolean`, `JSON`, `Array`, `Timer`, `AnimationToken`, or `Any`. |
+| `defaultValue` | The starting value. It is deep-copied into the store, so mutating the variable at runtime never edits the default you authored. |
+
+<Callout type="info">
+Picking `Any` locks Default to a disabled `null`. An `Any` variable always starts as `null` — there is no type to seed a sensible default from. Give it a value with `Set Var` before anything reads it.
+</Callout>
+
+## Get Var
+
+`blueprint.local.get` · Pure
+
+Reads a variable the current blueprint can reach. Being pure, it has no exec pins: it is not a step in the chain, it is a value that resolves when something reads it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | Projected to the selected variable's type. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `variableId` | The variable to read. The dropdown lists everything this blueprint can reach; entries that share a name carry a scope hint. |
+
+## Set Var
+
+`blueprint.local.set`
+
+Writes a variable the current blueprint can reach, then continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | Projected to the selected variable's type. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `variableId` | The variable to write. |
+
+## Get Persistent
+
+`blueprint.persistent.get` · Latent
+
+Reads a project-level Persistent variable from host-managed storage. It is latent because that storage is asynchronous, and it is an exec node rather than a pure read for the same reason — it sits in the chain and publishes the result on `value` when the read lands. Nothing saved under that variable yet gives you its authored default, not an empty value.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | The stored value, or the variable's default. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `persistentVariableId` | The Persistent variable to read. |
+
+## Set Persistent
+
+`blueprint.persistent.set` · Latent
+
+Writes a Persistent variable through host-managed storage, then continues through `next`. The write is awaited, so `next` means the value is committed.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | The value to store. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `persistentVariableId` | The Persistent variable to write. |
+
+## Get Scene Var
+
+`blueprint.scene.get`
+
+Reads a Scene variable from the running story's scene-local store. Note the exec pins: unlike `Get Var`, the story reads are steps in the chain, and `value` is only meaningful downstream of `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | The variable's current value. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `sceneVariableId` | The Scene variable to read. |
+
+## Set Scene Var
+
+`blueprint.scene.set`
+
+Writes a Scene variable, then continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | The value to write. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `sceneVariableId` | The Scene variable to write. |
+
+## Get Saved Var
+
+`blueprint.saved.get`
+
+Reads a Saved variable from the running story's saved store — the one a save file carries.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | The variable's current value. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `savedVariableId` | The Saved variable to read. |
+
+## Set Saved Var
+
+`blueprint.saved.set`
+
+Writes a Saved variable, then continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | The value to write. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `savedVariableId` | The Saved variable to write. |

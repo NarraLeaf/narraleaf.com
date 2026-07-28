@@ -1,0 +1,71 @@
+---
+title: Functions
+description: Declare a callable stretch of graph, return results from it, and invoke it from anywhere it is visible.
+---
+
+A fn is a named stretch of graph that other graphs can run. `Fn` declares one and holds its parameters, `Fn Return` ends it and hands back results, and `Call Fn` invokes it and waits for the answer. Three nodes, one purpose: stop copying the same eight nodes into every widget that needs them.
+
+## Conventions
+
+- **All three nodes belong to `event` graphs.** A fn body is *not* a `function` graph. `function` is a separate [graph kind](/docs/studio/blueprint) — entered by `Function Entry`, no effectful nodes, no latent nodes — while a fn body is ordinary event-graph territory and may do anything an event graph may do.
+- **A fn is identified by its head node, not by its name.** Rename it on the card and every caller re-labels itself without breaking. Two fns sharing a name in one scope still resolve correctly, and the editor flags the collision, because the name is for you and the binding is by id.
+- **Visibility follows the owner.** A fn declared on a `globalMain` blueprint is callable everywhere. One declared on a `surfaceMain` or `widgetMain` blueprint is callable only from the same [Surface](/docs/studio/blueprint/surfaces). A Blueprint Value can call but never declare; `componentWidgetMain` and `sharedAsset` blueprints do neither.
+- **Parameter and result pins are authored, not fixed.** `Fn` and `Fn Return` grow their data pins from buttons on the card, and each pin carries a name and a type chosen from `string`, `integer`, `float`, `boolean`, `json`, or `any`.
+- **Recursion is capped at 32 frames.** Past that the call fails outright. The editor warns as soon as it can see that a fn calls itself, directly or through another fn.
+
+## Fn
+
+`blueprint.fn.head`
+
+The head of a callable fn. It has no exec input — nothing in the graph wires *into* it; it starts running because someone called it, and the body hangs off `then`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | Labelled Body. Runs when a caller invokes the fn. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `name` | The fn's name, as callers see it in their Function dropdown. |
+
+**Add parameter** appends one data *output* pin per parameter (`param_N_value`), each with the label and type you set on the card. Arguments are seeded before the body starts, so the parameter pins already hold the caller's values at the first node of the body.
+
+## Fn Return
+
+`blueprint.fn.return`
+
+Ends the fn body and hands its results back. Terminal — there is no exec output, and nothing after it runs.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+**Add return value** appends one data *input* pin per result (`ret_N_value`). Result pins never offer an on-card literal: a result must come from a wired value source, so the graph always shows where the returned value was produced.
+
+A fn's signature is taken from the first `Fn Return` reachable from the head. Further `Fn Return` nodes on other branches are fine as long as they declare the same results — declare different ones and the editor flags them, while callers keep seeing the first one's pins. A `Fn Return` that no head can reach is flagged too.
+
+## Call Fn
+
+`blueprint.fn.call` · Latent
+
+Invokes a visible fn and waits for it to finish. Pick the target in `Function` and the card grows one data input per parameter and one data output per result.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | Continues once the fn body has finished. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `fnRef` | The fn to call. The dropdown lists every fn visible from here, labelled `name (scope)`. |
+
+Those argument and result pins are rebuilt from a signature snapshot stored on the node itself, so the card can render without loading the callee's blueprint. Argument pins accept on-card literals where the type allows it. When the callee's signature changes, the snapshot goes stale and validation asks you to re-select the fn to resync the pins — the call keeps working against the old shape until you do.
+
+The body runs as part of the caller's execution: cancelling the caller cancels the fn, and an error thrown inside the body surfaces on the `Call Fn` node.
+
+<Callout type="info">
+`Call Fn` is latent, and a Blueprint Value graph refuses latent nodes — with this one exception. A value provider may call a fn, which runs with the host widget's identity; whatever the body does to the world is yours to own.
+</Callout>

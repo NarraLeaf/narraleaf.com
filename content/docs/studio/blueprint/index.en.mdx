@@ -1,0 +1,67 @@
+---
+title: Blueprint
+description: The visual programming layer — what a blueprint is, where one lives, and what it is allowed to do.
+---
+
+A blueprint is a visual program: nodes joined by edges, executed by the game runtime. Blueprints are how a project gets behaviour without code — a button that opens a screen, a menu that lists saves, a title screen that knows whether there is anything to continue.
+
+Every blueprint answers three questions before you place a single node: who owns it, what kind of graph it is, and therefore which nodes the palette will offer you.
+
+## Owners
+
+The **owner** is where a blueprint lives. It decides the blueprint's lifetime and what it can reach.
+
+| Owner | Belongs to | Lives as long as |
+| --- | --- | --- |
+| `globalMain` | the project | the application |
+| `surfaceMain` | one [Surface](/docs/studio/blueprint/surfaces) | that Surface's instance |
+| `widgetMain` | one widget instance | that widget instance |
+| `widgetValue` | one property of one widget | the binding that owns it |
+| `componentWidgetMain` | a reusable component widget | each instance of the component |
+| `sharedAsset` | a shared blueprint asset | whatever imports it |
+
+A `widgetMain` blueprint acts on its own widget through **Self nodes**, which take no `Element` input. To act on a *different* widget you wire an `Element` reference into an **Element node**. That split runs through the whole node catalog, and it is the first thing to understand about the palette.
+
+## Graph kinds
+
+Each graph declares a **graph kind**, and the kind is a rule set, not a label.
+
+| Kind | Effectful nodes | Entry node | Bindable from widget UI |
+| --- | --- | --- | --- |
+| `event` | allowed | an event head (`Init`, `On Click`, …); not mandatory | yes |
+| `function` | **not** allowed | `Function Entry`, required | no |
+| `macro` | allowed | none required | no |
+
+Latent nodes — anything that suspends the graph, such as `Delay` or a save write — cannot appear in a `function` graph. A function returns synchronously to whoever called it and has nowhere to hand a pending result.
+
+## Blueprint Value
+
+A **Blueprint Value** is a `widgetValue` blueprint bound to one property, so the property is computed instead of authored. The current targets are `nl.text` → `props.text`, `nl.button` → `props.label`, `nl.frame` → `props.params`, and `nl.slider` → `props.value`.
+
+Its palette is deliberately narrow: event heads, non-latent flow, pure Data and Math, local variable access, `Element` literals, and pure reads. No mutations, no navigation, no persistent variables, no latent nodes. A value provider that could change the world would re-enter itself the moment the world changed.
+
+<Callout type="info">
+The editor canvas is a layout tool. It resolves enough of a blueprint to preview a value binding, but it runs no game — nodes that need a running playthrough have nothing to talk to there. Verify blueprint behaviour in Dev Mode.
+</Callout>
+
+## Where to go next
+
+<Cards>
+    <Card
+        title="Variables"
+        description="Scopes, lifetimes, and what survives a save."
+        href="/docs/studio/blueprint/variables"
+    />
+    <Card
+        title="Surfaces"
+        description="Screens, the navigation stack, and the game stage."
+        href="/docs/studio/blueprint/surfaces"
+    />
+    <Card
+        title="Nodes"
+        description="Every node, by category, with its signature."
+        href="/docs/studio/blueprint/nodes"
+    />
+</Cards>
+
+To ship your own nodes instead of using the built-in ones, see [blueprintNodes](/docs/studio/plugin/studio/blueprint-nodes) in the plugin API.

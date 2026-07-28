@@ -1,0 +1,156 @@
+---
+title: 应用
+description: Surface 导航、应用窗口，以及一个 Page 对自身的认知。
+---
+
+App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一个 Surface、关掉最上面那个、进入全屏、退出应用。Surface 模型本身——栈、层叠、游戏舞台——在 [Surfaces](/docs/studio/blueprint/surfaces) 中说明。
+
+## 约定
+
+- **这里的每个节点都只支持 `event` 和 `macro`。** 它们都不能用于 `function` 图。
+- **其中两个是尾节点。** `Go Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑。
+- **type id 里写的是 `page`。** 这一组在长出窗口和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*` 和 `blueprint.frame.*` 就是本分类。
+- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航与窗口节点没有宿主限制。
+- **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `Host API unavailable (use Dev Mode)` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的 Game UI 预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证。
+
+## Go Page
+
+`blueprint.page.go` · Latent
+
+Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时切换 Page 时的同一条导航路径——同样的进退场动画、同样的 Surface 生命周期、同样的控件蓝图。选择 `None` 则改为关闭当前顶层 Page 叠层。
+
+没有用来返回的节点。带 `None` 的 `Go Page` 是关闭一层的唯一手段，带目标的 `Go Page` 是打开一层的唯一手段。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `props` | in · data | `json` | 作为目标 Page 的 Page props 传入，在那边由`Get Page Props`读取。可选——未连线时为`{}`。 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Page` | 要打开的 Surface，从项目的 app Surface 中选择。选`None`则改为关闭当前顶层 Page 叠层。 |
+
+游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭该叠层、重新露出舞台。要离开游戏本身，请用 [Game](/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page。
+
+## Quit Application
+
+`blueprint.page.quit` · Latent
+
+Quit Application（退出应用程序）请求运行时干净地关闭应用——给状态保存、崩溃上报留出余地——而不是直接杀进程。在开发模式中，它结束当前开发模式会话并把你送回 Studio；它不会关闭 Studio 本身。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+这是运行时发起的退出，因此它刻意**不**触发 `On Window Close Requested`。那个事件是为玩家关闭窗口而存在的，挂在它上面的确认处理不应该被一个已经决定要退出的节点触发。
+
+## Set Fullscreen
+
+`blueprint.app.setFullscreen` · Latent
+
+Set Fullscreen（设置全屏状态）让应用窗口进入或退出全屏。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Mode` | `Enter Fullscreen`、`Exit Fullscreen` 或 `Toggle Fullscreen`。下拉未设置时按 toggle 处理——这是全屏按钮最有用的默认值。 |
+
+`Toggle Fullscreen` 会先读当前窗口状态再取反，所以一个按钮就能覆盖两个方向，你不必自己记录状态。
+
+## Get Fullscreen
+
+`blueprint.app.getFullscreen` · Latent
+
+Get Fullscreen（获取全屏状态）读取应用窗口当前是否处于全屏。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `isFullscreen` | out · data | `boolean` | |
+
+它是 latent 而不是 pure，因为答案来自窗口而不是来自图——这也意味着它无法支撑 Blueprint Value。请改在事件图里驱动全屏指示。
+
+## Get Page Props
+
+`blueprint.page.getProps` · Pure
+
+Get Page Props（获取页面属性）读取当前蓝图所在 Page 的完整 props 对象。由 `Go Page` 打开的 Page 读到的是该节点的 `props` 输入；被 `nl.frame` 嵌入的 Page 读到的是 Frame 的 `params`。它永远不为 null——什么都没传就打开的 Page 读到 `{}`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `props` | out · data | `json` | |
+
+要取出其中某个字段，用 [Data](/docs/studio/blueprint/nodes/data) 里的 `Get JSON Field`，它接受点分路径。
+
+## Get Page Param
+
+`blueprint.frame.getParam` · Pure
+
+Get Page Param（获取页面参数）按名字读取当前 Page props 中的单个字段。
+
+**这个节点不在创建浮窗里。** 你无法新增它；这里记录它，是因为更早写下的文档里仍然存在它，而且它仍然能跑。它的替代是 `Get Page Props` 接 `Get JSON Field`，后者读的是嵌套路径而不是一个扁平的 key。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `key` | in · data | `string` | 可在节点卡上直接填字面量。 |
+| `value` | out · data | `json` | 字段不存在时读到`null`。 |
+
+## Emit Page Event
+
+`blueprint.frame.emit` · Latent
+
+Emit Page Event（触发页面事件）把事件从被嵌入的 Page 向上发给嵌入它的那个 `nl.frame` 元素。Frame 自己的蓝图通过 [Events](/docs/studio/blueprint/nodes/events) 里的 `Page Event` 事件 Head 接收，并原样拿到同一个名字和载荷。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `event` | in · data | `string` | 事件名。可在节点卡上直接填字面量。 |
+| `data` | in · data | `json` | 交给处理方的载荷。 |
+
+<Callout type="warn">
+顶层 Page 没有父级 Frame。节点仍会正常完成、执行也会继续从 `next` 出去——只是这个事件没有任何人能收到，而且没有任何提示。空事件名则相反：那是执行错误，不是静默的 no-op。
+</Callout>
+
+## Is Surface Entering
+
+`blueprint.page.isSurfaceEntering` · Pure
+
+Is Surface Entering（画面是否进入中）：从该 Surface 的 runtime scope 挂载那一刻起，直到它的进入动画结束为止，返回 true。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isEntering` | out · data | `boolean` | |
+
+<Callout type="info">
+这个标记会在 `After Surface Enter` 触发*之前*被清掉，所以在该事件里读它会得到 `false`。这是刻意的：事件跑起来的时候，Surface 已经进入完成了。
+</Callout>
+
+## Is Surface Exiting
+
+`blueprint.page.isSurfaceExiting` · Pure
+
+Is Surface Exiting（画面是否退出中）：从 `Before Surface Exit` 触发、退出动画开始那一刻起，直到 Surface 卸载为止，返回 true。可以用它拒绝一个正在离开的界面上的输入。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isExiting` | out · data | `boolean` | |
+
+## Is Surface Transitioning
+
+`blueprint.page.isSurfaceTransitioning` · Pure
+
+Is Surface Transitioning（画面是否过渡中）：上面两者任一为 true 时它就为 true——用一次读取回答这个界面是否还没稳定下来。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isTransitioning` | out · data | `boolean` | |

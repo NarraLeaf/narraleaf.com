@@ -1,0 +1,407 @@
+---
+title: List, Slider, Image
+description: List items and selection, slider value and range, image asset, fit mode and crop — all on a wired element.
+---
+
+Three widgets that carry state of their own — a List's items, a Slider's value, an Image's asset — reached here through a wired reference instead of from inside the widget. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
+
+## List
+
+List nodes take a `list` pin typed `element:nl.list`. They act on the List instance's runtime items, and those items live only in that instance: a full unmount clears them and nothing restores them, so write them back from a variable or another data source yourself. `itemsBinding` is consulted only as a read fallback when there are no runtime items.
+
+Item-context readers — index, count, key, props — are not Element nodes at all; they read the template scope of the item they are rendered inside, and they live in [List](/docs/studio/blueprint/nodes/list) with the Self forms.
+
+### Get List Content
+
+`blueprint.element.list.getItems` · Pure
+
+Reads the runtime items. With none set, it falls back to `itemsBinding` or the preview data.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `items` | out · data | `array` |  |
+
+### Set List Content
+
+`blueprint.element.list.setItems` · Latent
+
+Replaces the runtime items. A non-array is treated as an empty array.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `items` | in · data | `array` |  |
+
+### Clear List
+
+`blueprint.element.list.clear` · Latent
+
+Sets the runtime items to an empty array.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+### Append List Item
+
+`blueprint.element.list.appendItem` · Latent
+
+Appends one item to the end.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `item` | in · data | `any` |  |
+
+### Insert List Item
+
+`blueprint.element.list.insertItem` · Latent
+
+Inserts one item at an index. The index is clamped to the valid range rather than rejected.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | in · data | `any` |  |
+
+### Remove List Item
+
+`blueprint.element.list.removeItem` · Latent
+
+Removes the first item that is JSON-equal to `item`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `item` | in · data | `any` |  |
+
+### Remove List Item At
+
+`blueprint.element.list.removeItemAt` · Latent
+
+Removes the item at an index.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+
+### Refresh List Items
+
+`blueprint.element.list.refreshItems` · Latent
+
+Writes the current items back unchanged, which forces the item template to re-render.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+### Get Selected Item
+
+`blueprint.element.list.getSelectedItem` · Pure
+
+Outputs `null` when there is no valid selection.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `item` | out · data | `json` |  |
+
+### Set Selected Item
+
+`blueprint.element.list.setSelectedItem` · Latent
+
+Finds the item by JSON equality and selects it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `item` | in · data | `any` |  |
+
+### Get Selected Index
+
+`blueprint.element.list.getSelectedIndex` · Pure
+
+Reads the selected index.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | out · data | `integer` |  |
+
+### Set Selected Index
+
+`blueprint.element.list.setSelectedIndex` · Latent
+
+Sets the selected index.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+
+### Scroll To Index
+
+`blueprint.element.list.scrollToIndex` · Latent
+
+Scrolls to one item.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+
+### Scroll To Top
+
+`blueprint.element.list.scrollToTop` · Latent
+
+Scrolls to the top.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+### Scroll To Bottom
+
+`blueprint.element.list.scrollToBottom` · Latent
+
+Scrolls to the bottom.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+## Slider
+
+Slider nodes take a `slider` pin typed `element:nl.slider`. Everywhere a slider reports a value — `props.value`, its Blueprint Value, its event payloads, `Get Slider Value` — that value is the mapped one, already clamped and snapped to `min`, `max` and `step`. The `0..1` ratio is reachable only through `Get Slider Normalized Value`. The Self forms are in [Slider](/docs/studio/blueprint/nodes/slider).
+
+### Get Slider Value
+
+`blueprint.element.slider.getValue` · Pure
+
+Reads the mapped runtime value — already clamped and snapped.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `slider` | in · data | `element:nl.slider` |  |
+| `value` | out · data | `float` |  |
+
+### Set Slider Value
+
+`blueprint.element.slider.setValue` · Latent
+
+Writes the mapped value and normalizes it against the current range and step. It updates runtime state only: no `valueChanged`, `dragStart` or `dragEnd` event is dispatched, and nothing is written back to the UI document.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `slider` | in · data | `element:nl.slider` |  |
+| `value` | in · data | `float` | Accepts an on-card literal. |
+
+### Get Slider Normalized Value
+
+`blueprint.element.slider.getNormalizedValue` · Pure
+
+Reads the `0..1` ratio. This is the only node that gives it to you.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `slider` | in · data | `element:nl.slider` |  |
+| `normalizedValue` | out · data | `float` |  |
+
+### Get Slider Range
+
+`blueprint.element.slider.getRange` · Pure
+
+Reads `min`, `max` and `step` in one go.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `slider` | in · data | `element:nl.slider` |  |
+| `min` | out · data | `float` |  |
+| `max` | out · data | `float` |  |
+| `step` | out · data | `float` |  |
+
+### Set Slider Range
+
+`blueprint.element.slider.setRange` · Latent
+
+Writes `min`, `max` and `step`, then re-normalizes the current runtime value against them. Just as silent about events as `Set Slider Value`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `slider` | in · data | `element:nl.slider` |  |
+| `min` | in · data | `float` | Accepts an on-card literal. |
+| `max` | in · data | `float` | Accepts an on-card literal. |
+| `step` | in · data | `float` | Accepts an on-card literal. |
+
+## Image
+
+Image nodes take an `element:nl.image` pin. They are about the interface image widget only — not stage images, not character sprites, not anything the story performs. The literal card that produces an `ImageAsset` is not derived and stays in [Image](/docs/studio/blueprint/nodes/image) with the Self forms.
+
+### Get Image Asset
+
+`blueprint.element.image.getImageAsset` · Pure
+
+`null` when the widget has no image.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `asset` | out · data | `ImageAsset\|null` |  |
+
+### Set Image Asset
+
+`blueprint.element.image.setImageAsset` · Latent
+
+Leave `asset` unwired and the card expands into an image picker; wire it and the wired value wins. `null` clears the image. Graphs that pass a plain `assetId` string still run, but new work should carry an `ImageAsset`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `asset` | in · data | `ImageAsset\|null` | Accepts an on-card literal. |
+
+### Clear Image Asset
+
+`blueprint.element.image.clearImageAsset` · Latent
+
+Equivalent to `Set Image Asset` with `null`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+
+### Get Image Fit Mode
+
+`blueprint.element.image.getFitMode` · Pure
+
+Reads `imageFill.mode`: `cover`, `contain`, `stretch`, `crop` or `tile`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `fitMode` | out · data | `string` |  |
+
+### Set Image Fit Mode
+
+`blueprint.element.image.setFitMode` · Latent
+
+Sets `imageFill.mode`, keeping the current asset and crop rect. An unknown or empty string falls back to the current mode instead of failing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `fitMode` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Image Crop Rect
+
+`blueprint.element.image.getCropRect` · Pure
+
+Reads `imageFill.cropPlacement`. With no explicit crop it reports the full image.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `leftPct` | out · data | `float` |  |
+| `topPct` | out · data | `float` |  |
+| `widthPct` | out · data | `float` |  |
+| `heightPct` | out · data | `float` |  |
+
+### Set Image Crop Rect
+
+`blueprint.element.image.setCropRect` · Latent
+
+Writes the crop rect and switches `fitMode` to `crop` as a side effect.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `leftPct` | in · data | `float` | Accepts an on-card literal. |
+| `topPct` | in · data | `float` | Accepts an on-card literal. |
+| `widthPct` | in · data | `float` | Accepts an on-card literal. |
+| `heightPct` | in · data | `float` | Accepts an on-card literal. |
+
+### Get Image Flip X
+
+`blueprint.element.image.getFlipX` · Pure
+
+Reads the horizontal flip of the image content layer.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `flipX` | out · data | `boolean` |  |
+
+### Set Image Flip X
+
+`blueprint.element.image.setFlipX` · Latent
+
+Sets the horizontal flip.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `flipX` | in · data | `boolean` |  |
+
+### Get Image Flip Y
+
+`blueprint.element.image.getFlipY` · Pure
+
+Reads the vertical flip of the image content layer.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `flipY` | out · data | `boolean` |  |
+
+### Set Image Flip Y
+
+`blueprint.element.image.setFlipY` · Latent
+
+Sets the vertical flip.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `flipY` | in · data | `boolean` |  |

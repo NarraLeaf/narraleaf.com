@@ -1,0 +1,53 @@
+---
+title: 文本输入框
+description: nl.textInput 控件的 Self 节点——读取、替换和清空玩家输入的值。
+---
+
+Text Input 分类是 `nl.textInput` 控件的 Self 节点集合。一共三个节点，而且它们碰的是同一样东西：输入框的运行时值。它们只出现在某个 `nl.textInput` 元素自身 `widgetMain` 蓝图的创建浮窗中，并作用于该元素。要操作**别的**输入框，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类中同名的 `blueprint.element.textInput.*` 节点，它带一个`element:nl.textInput`输入。
+
+只有三个节点，是因为运行时值除了这个字符串什么都不带。`placeholder`、`readOnly`、`disabled`、`inputMode` 和 `maxLength` 仍然是作者填写的 props——蓝图对它们的补丁会被静默丢弃，因此干脆不提供对应节点。要响应玩家输入，请使用 [Events](/docs/studio/blueprint/nodes/events) 分类中该控件的 `Value Changed` 和 `Submit` 事件。
+
+## 约定
+
+- **没有目标引脚。** Self 节点没有 `Element` 输入，它从蓝图的执行宿主解析目标。
+- **这个值是会话状态。** 玩家输入的内容存活在本次会话的运行时存储中，永远不会写回项目文档。`Get Text` 读的是这份存储，`Set Text` 和 `Clear Text` 写的也是它，而作者填写的 `props.value` 只是它回退时使用的起始值。
+- **`Get Text` 是 `Pure`，两个写入节点是 `Latent`。** 读取在 `event`、`function` 和 `macro` 图中都合法。写入会挂起执行，因此不能出现在 `function` 图中——函数要同步返回，没有地方安放一次待定的写入。
+- **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain`，所以 `Get Text` 不会出现在那份创建浮窗里。要在 Blueprint Value 中读取某个输入框，请配合 `Element` 字面量使用 Element 形态的 `Get Text`。
+- **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，写入节点会以`Host API unavailable (use Dev Mode)`失败，而 `Get Text` 什么都取不到。
+- **写入的值同样会被钳制。** 换行会被压成一个空格——单行输入框不允许从图里夹带换行符进来——并且在 `maxLength` 不为零时按它截断。但 `inputMode` 过滤不会生效：它是在键盘输入处拦截非法按键的，所以蓝图可以往 `number` 输入框里写字母。
+- **蓝图写入不是一次按键。** 它只是移动值并排队一次 flush，仅此而已。`Value Changed` 和 `Submit` 由玩家输入触发，`Set Text` 和 `Clear Text` 永远不会触发它们，因此在处理器里回写自己的输入框不会打转。
+- **没有产生变化的写入什么也不做。** 写入它已经持有的那个值同样不会排队 flush，元素也就不会触发`On Flush`。
+
+## Get Text
+
+`blueprint.textInput.getValue` · Pure
+
+Get Text（获取文本）读取输入框的当前值，并顺带给出长度，让「是否为空 / 够不够长」这类常见判断不必再接一个字符串节点。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | out · data | `string` | |
+| `length` | out · data | `float` | 按 code point 计数而非 UTF-16 单元，所以一个 emoji 只算一个。这也正是 `maxLength` 所用的计量单位。类型虽是 `float`，但它永远是整数。 |
+
+## Set Text
+
+`blueprint.textInput.setValue` · Latent
+
+Set Text（设置文本）替换输入框的值。它直接写运行时存储，不会移动焦点。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `string` | 什么都解析不到时写入空字符串。可在卡片上直接填值。 |
+
+## Clear Text
+
+`blueprint.textInput.clear` · Latent
+
+Clear Text（清空文本）写入空字符串。它与什么都不接的 `Set Text` 等价，只是在卡片上把意图写明了。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |

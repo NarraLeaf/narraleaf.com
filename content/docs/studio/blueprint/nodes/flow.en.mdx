@@ -1,0 +1,187 @@
+---
+title: Flow
+description: Execution routing — branches, loops, sequencing, and the latent wait that suspends a graph.
+---
+
+Flow nodes decide where execution goes next. Every other node computes or changes something; these only steer the exec line through them. You reach for one the moment a graph has to ask a question, repeat itself, wait, or stop early.
+
+## Conventions
+
+- **Graph kinds.** Every Flow node is available in `event` graphs, and all but `Return Value` in `macro` graphs. None of them appears in a `function` graph: that kind is offered only pure, non-latent nodes, and every node on this page is declared effectful.
+- **Pin names.** `in` is the exec entry. `next`, `true`, `false`, `then`, `else`, `then0`…, `case0`…, `default`, `loop`, and `completed` are exec exits. Everything else on the card is a data pin.
+- **On-card literals are granted per pin, not per type.** Where a table row below says a pin accepts one, you can type the value onto the card instead of wiring it. No `condition` pin does: `If`, `If Else`, and `While` always want a wired boolean.
+- **Loops advance on one cursor.** `For Loop`, `For Each`, and `While` take one step per entry. Wire the end of the loop body back into the *same* node's `in` pin; the node then hands you the next iteration through `loop` and eventually leaves through `completed`. A body that never returns to `in` runs exactly once.
+- **`Max iterations` defaults to 1000** when left empty. It is a brake, not a target: hitting it leaves through `completed` as if the work were finished. There is no unbounded mode.
+- **[Blueprint Value](/docs/studio/blueprint) accepts Flow, minus the timers.** `Delay` and `Skip Delay` are excluded there — a provider that suspends would leave its property unresolved.
+
+## If
+
+`if`
+
+Routes execution by a boolean. Exactly one exit fires, every time.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `true` | out · exec | — | |
+| `false` | out · exec | — | |
+| `condition` | in · data | `boolean` | Must be wired. |
+
+## If Else
+
+`blueprint.flow.ifElse`
+
+An if / else-if / else ladder on one card. Conditions are tested in order and the first true one wins; `else` fires when none does.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then` | out · exec | — | Taken when `condition` is true. |
+| `else` | out · exec | — | Taken when no condition is true. |
+| `condition` | in · data | `boolean` | Must be wired. |
+
+**Add If condition** on the card appends a further branch: one `boolean` input `if_N_condition` and its matching exec output `if_N_then`, inserted above the fixed `else`. Added conditions are tested after `condition`, in the order they were added.
+
+## Switch String
+
+`blueprint.flow.switchString`
+
+Compares one string against each case value and fires the first match; `default` fires when nothing matches. A case whose value was never set never matches, so an empty card is not a wildcard — it is a case that can never be reached.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `case0` | out · exec | — | |
+| `case1` | out · exec | — | |
+| `default` | out · exec | — | Taken when no case matches. |
+| `value` | in · data | `string` | The string to match. Accepts an on-card literal. |
+| `case0Value` | in · data | `string` | Match value for `case0`. Accepts an on-card literal. |
+| `case1Value` | in · data | `string` | Match value for `case1`. Accepts an on-card literal. |
+
+**Add Case** appends a `string` input `case_N_value` and its exec output `case_N_output`, inserted above the fixed `default`. Added cases are matched after `case0` and `case1`.
+
+## Sequence
+
+`blueprint.flow.sequence`
+
+Queues its outputs and runs them in order, each branch to completion before the next one starts. Unconnected outputs are skipped. A `Return` reached inside one branch drops everything still queued behind it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then0` | out · exec | — | Labelled Then 1 on the card. |
+| `then1` | out · exec | — | Then 2. |
+| `then2` | out · exec | — | Then 3. |
+| `then3` | out · exec | — | Then 4. |
+
+## For Loop
+
+`blueprint.flow.forLoop`
+
+Counts from `start` towards `end` by `step`, firing `loop` once per value and reporting it on `index`. The sign of `step` decides the direction: it runs while the index has not passed `end`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | One iteration. Wire the body's tail back to `in`. |
+| `completed` | out · exec | — | The range is exhausted. |
+| `start` | in · data | `integer` | Accepts an on-card literal. |
+| `end` | in · data | `integer` | Inclusive. Accepts an on-card literal. |
+| `step` | in · data | `integer` | A step of `0` is treated as `1`. Accepts an on-card literal. |
+| `maxIterations` | in · data | `integer` | Defaults to 1000. Accepts an on-card literal. |
+| `index` | out · data | `integer` | The current value. |
+
+## For Each
+
+`blueprint.flow.forEach`
+
+Walks a JSON array, firing `loop` once per entry with `item` and `index` set. An `items` value that is not an array leaves through `completed` immediately rather than failing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | One entry. Wire the body's tail back to `in`. |
+| `completed` | out · exec | — | The array is exhausted. |
+| `items` | in · data | `json` | The array to walk. |
+| `maxIterations` | in · data | `integer` | Defaults to 1000. Accepts an on-card literal. |
+| `item` | out · data | `json` | The current entry. |
+| `index` | out · data | `integer` | The current position. |
+
+## While
+
+`blueprint.flow.while`
+
+Fires `loop` for as long as `condition` holds. The condition is re-read on every entry, so it has to be something the loop body can actually change — a variable, a runtime read — not a value computed once before the loop.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | One iteration. Wire the body's tail back to `in`. |
+| `completed` | out · exec | — | The condition is false, or the brake tripped. |
+| `condition` | in · data | `boolean` | Must be wired. |
+| `maxIterations` | in · data | `integer` | Defaults to 1000. Accepts an on-card literal. |
+
+## Delay
+
+`blueprint.flow.delay` · Latent
+
+Waits, then continues through `completed`. It is the only latent Flow node: it suspends the chain that entered it, which is why it cannot appear in a `function` graph — a function returns synchronously to its caller and has nowhere to park a pending wait.
+
+`token` is published *before* the wait begins, so another chain can read it while this one is suspended and cut the wait short with `Skip Delay`. A duration of `0` or less does not suspend at all. If the graph run is cancelled while the wait is pending, the wait ends as a cancellation and `completed` never fires.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `completed` | out · exec | — | Fires after the wait, or as soon as the wait is skipped. |
+| `duration` | in · data | `float` | Seconds; `0.25` is 250 ms. Accepts an on-card literal. |
+| `token` | out · data | `Timer` | Feed to `Skip Delay`. |
+
+<Callout type="warn">
+A `Timer` identifies the `Delay` node within its runtime scope, not one particular wait. If two execution chains are parked on the same `Delay` at once, one `Skip Delay` releases both.
+</Callout>
+
+## Skip Delay
+
+`blueprint.flow.skipDelay`
+
+Completes a pending `Delay` early. The target leaves through its own `completed`; `Skip Delay` itself continues through `next` without waiting for it. Hand it something that is not a `Delay` token, or a `Delay` that is not currently waiting, and it is a silent no-op — execution still continues through `next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | Continues as soon as the skip is submitted. |
+| `timer` | in · data | `Timer` | The token from the `Delay` you want to cut short. |
+
+## Return
+
+`blueprint.flow.return`
+
+Ends the current execution chain. It has no exec output, and it also drops any branches `Sequence` still had queued.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+## Return Value
+
+`blueprint.data.returnValue`
+
+Hands a value back to whatever asked for it, and ends the chain. This is the terminal of a Blueprint Value graph — the node that decides what the bound property is. It belongs to `event` graphs only, and only on owners that produce a value; validation says so if you place it elsewhere. If a value graph finishes without reaching it, the previously resolved value stands.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `value` | in · data | `any` | The value the property takes. |
+
+To return from a fn instead, use `Fn Return` — see [Functions](/docs/studio/blueprint/nodes/functions).
+
+## Noop
+
+`blueprint.flow.noop`
+
+Passes execution straight through, changing nothing. Useful as a junction where several branches merge into one continuation, and as a placeholder while a chain is half-rewired.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |

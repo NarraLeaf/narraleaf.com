@@ -1,0 +1,710 @@
+---
+title: Events
+description: Event heads that start an event graph, the payload each one carries, and the broadcast nodes that pass messages between blueprints.
+---
+
+An event head is where an `event` graph begins. It has no execution input — the runtime enters the graph at the head and the chain runs from `then`. Everything else on this page hangs off that: a head's data outputs are the event's payload, and which heads you are even offered depends on where the blueprint lives.
+
+## Conventions
+
+- **A head has no exec input.** There is nothing to wire into it. A graph may hold several heads, and each one runs its own chain when its event arrives.
+- **Data outputs are the payload.** Every output pin other than `then` reads one field of the runtime event payload, keyed by the pin id. A field the dispatch did not set reads `null` — not `0`, not `""`.
+- **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
+- **Graph kinds.** Every node here is `event`-only, except `Send Broadcast` and `Get Listener Count`, which also run in `macro` graphs. A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
+- **A disabled element stays silent.** A widget that is disabled, or in text-editing state, does not dispatch its interaction heads at all.
+
+## Where a head is offered
+
+The palette filters heads by the blueprint's owner. A head that is not listed for your owner is not hidden behind a setting — it does not exist there.
+
+| Owner | Heads offered |
+| --- | --- |
+| Global blueprint (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Close Requested`, the four keyboard heads, both preference heads |
+| Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Close Requested`, the four keyboard heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
+| Widget blueprint (`widgetMain`, `componentWidgetMain`) | whatever that widget type declares — see the table below |
+| Blueprint Value (`widgetValue`) | `Init` and `On Flush` |
+| Story action blueprint | `On Call` |
+
+For a widget the owner is only half the rule: each built-in widget type declares a set of event capabilities, and a head appears only if the widget's own capabilities list it. That is why a `nl.list` offers no `Mouse Enter` and a `nl.container` offers no `Item Click`.
+
+| Widget type | Heads |
+| --- | --- |
+| every widget with a private blueprint | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter`, the four keyboard heads, `On Fullscreen Changed`, `On Broadcast`, `On Any Broadcast`, `Element Flush`, `Element Click` |
+| `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.dialog.sentence`, `nl.nvl.texts` | the nine mouse heads, `Focus`, `Blur`, `List Item Refresh` |
+| `nl.list`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list` | `Scroll`, `Scroll End`, `Item Render`, `Item Click`, `Item Hover`, `Selection Changed` |
+| `nl.slider` | `Drag Start`, `Value Changed`, `Drag End` |
+| `nl.textInput` | `Value Changed`, `Submit`, `Focus`, `Blur` |
+| `nl.frame` | `Page Event` |
+
+Two further narrowings apply inside a widget blueprint. `List Item Refresh` is offered only when the element actually sits inside a List item template. And an event layer created bound to a specific event offers only that event's heads; a layer created with the Event field left at `-` is unbound and offers everything the widget type allows.
+
+## Event bubbling
+
+An element event fires on the element the runtime targeted and stops there — it does not climb to ancestors, and a parent does not silently take over its children's events. Two nodes in the [Element category](/docs/studio/blueprint/nodes/element) control that:
+
+- `Continue Event Bubble` re-dispatches the current event to the structural parent under the same event name and the original payload, then carries on from `next`. Widget blueprints only, and it fails if there is no event in flight to forward.
+- `Stop Event Bubble` marks the event handled. Later parent dispatches are skipped, and so is the app-level keyboard dispatch.
+
+That second use is the one that matters most often. Keyboard events reach a focused widget through DOM bubbling first, then a window listener dispatches them to the global blueprint and then the active Surface blueprint. A `Stop Event Bubble` in the widget's key handler cuts both of those off — which is how an overlay Page swallows Space instead of letting it advance the game underneath. The same node cancels a window close inside `On Window Close Requested`.
+
+<Callout type="warn">
+While focus is in a text-entry element, the window-level keyboard dispatch is skipped entirely: the global and Surface `On Key Down` / `Any Key Down` heads do not run, so typing a name cannot advance dialogue on Space or open the menu on Escape. The focused widget's own keyboard heads still fire — they arrive through DOM bubbling, not the window listener.
+</Callout>
+
+## Application lifecycle
+
+Global-blueprint entry points, plus the two window events that also reach Surfaces and widgets.
+
+### App Boot
+
+`blueprint.event.head.appBoot`
+
+Fires once when the UI runtime has finished starting and holds a runnable global blueprint.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### On Game Ready
+
+`blueprint.event.head.gameReady`
+
+Fires once per accepted NarraLeaf session: the `LiveGame` object exists and is stored in the Studio runtime, but `liveGame.newGame()` has not started the first scene yet.
+
+The runtime initialises the NarraLeaf environment as a boot step, *before* the Surface system comes up. It mounts a Player on the compiled story of the Story library's default story entry scene, so `LiveGame` exists and that scene's assets begin preheating while the player is still on the main menu. Actually entering the game happens only on `Start Game` or a load, and it reuses that same initialised `LiveGame`: when `Start Game` targets the already-preheated default scene, entry is instant and this head does **not** fire again. Only a `Start Game` aimed at a different scene remounts the environment and fires it a second time. With no default story configured, an empty environment is mounted and the head still fires at boot.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+<Callout type="info">
+Initialise NarraLeaf preferences here — `Set Auto Forward`, `Set Game Speed`, `Set Voice Volume`, `Set Sentence Speed` — so they are in place before the player enters a game. Not in `App Boot`: despite the name it does not run first (`On Game Ready` fires ahead of it), and it carries no guarantee that a live game exists.
+</Callout>
+
+### On Fullscreen Changed
+
+`blueprint.event.head.fullscreenChanged`
+
+Fires when the application window enters or leaves fullscreen, including a change made outside the game. This is an ambient window event, so the dispatch fans out: global blueprint, then the active Surface blueprint, then every widget blueprint on that Surface that declares the head. That is why a settings control can track the window without owning the Page.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `isFullscreen` | out · data | `boolean` | The state after the change. |
+
+### On Window Close Requested
+
+`blueprint.event.head.windowCloseRequested`
+
+Fires when the player asks to close the window. The main process holds the close open while the global blueprint runs and then the Surface blueprint; a `Stop Event Bubble` in either cancels the close, and absent one the window proceeds to close. In Dev Mode this covers the Dev Mode window; in preview and production, the game window.
+
+Global and Surface blueprints only. Cancellation travels on the dispatch's shared event control, which the widget dispatch path does not thread — the same reason the keyboard heads stop at the Surface.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## Surface lifecycle and transitions
+
+`Surface Init` and `Surface Unmount` belong to the Surface blueprint. The two transition heads also work in an element's private blueprint, but that element only receives them if it is mounted and alive at that moment.
+
+### Surface Init
+
+`blueprint.event.head.surfaceInit`
+
+Fires when a Page or Game UI Surface first enters the current runtime scope. A top-level Surface uses its own id as the scope; a sub-Page embedded through a Page component gets its own `runtimeScopeId`, so the same Page referenced by two Page components stays isolated.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Surface Unmount
+
+`blueprint.event.head.surfaceUnmount`
+
+Fires when the Page or Game UI Surface leaves the current runtime scope, is replaced, or its embedding Page component instance unmounts.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Before Surface Exit
+
+`blueprint.event.head.beforeSurfaceExit`
+
+Fires just before the current Page — or an embedded sub-Page — starts its exit animation.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### After Surface Enter
+
+`blueprint.event.head.afterSurfaceEnter`
+
+Fires after the current Page finishes its enter animation. With no animation, or under reduced motion, it fires once prepaint completes and the Surface settles into steady display.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## Element lifecycle
+
+### Init
+
+`blueprint.event.head.init`
+
+Fires once when an element that supports a private blueprint has completed its first render and mounted. It is not a pre-render hook. A Dev Mode bundle revision that remounts the Surface or the element fires it again. In a Blueprint Value it is the initial evaluation entry; later evaluations come from the hidden Element property dependencies, or from an explicit `On Flush`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Unmount
+
+`blueprint.event.head.unmount`
+
+Fires when the element leaves the runtime element tree: the Surface closes or is replaced, a Frame switches sub-Page, a List item instance is removed, or visibility stops the element rendering at all. Runtime `display: none` only hides the element and keeps it mounted, so it does not fire.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### On Flush
+
+`blueprint.event.head.flush`
+
+Fires when this blueprint's own element has a property changed explicitly through the blueprint Host API and that change causes a redraw. Automatic CSS state styling — a hover or focus variant computed by the renderer — does not fire it. In a Blueprint Value it doubles as an explicit re-evaluation entry: the default Dialog Nametag refreshes as the dialogue advances through this head, without the Dialog remounting.
+
+Flush is a batched post-commit notification. The runtime coalesces flushes for one element per frame, and a flush handler that writes to the element again lands its new flush in the *next* frame's batch — there is no synchronous re-entry.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | The element that was flushed. |
+
+## Pointer
+
+Available on the displayable widgets. `Mouse Click` and `Right Click` are additionally available on a Surface blueprint, where they mean "anywhere in this Surface". During a Surface transition, mouse and click events wait until the Surface is interaction-ready before dispatching.
+
+### Mouse Click
+
+`blueprint.event.head.mouseClick`
+
+Fires on a completed click on the element. On a Surface blueprint it means any click inside the Surface, and reports Surface design coordinates.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Double Click
+
+`blueprint.event.head.mouseDoubleClick`
+
+Fires on a completed double click on the element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Down
+
+`blueprint.event.head.mouseDown`
+
+Fires when a mouse button goes down on the element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `button` | out · data | `integer` | Mouse button number. |
+
+### Mouse Up
+
+`blueprint.event.head.mouseUp`
+
+Fires when a mouse button is released on the element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `button` | out · data | `integer` | Mouse button number. |
+
+### Mouse Enter
+
+`blueprint.event.head.mouseEnter`
+
+Fires when the pointer enters the element's area.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Leave
+
+`blueprint.event.head.mouseLeave`
+
+Fires when the pointer leaves the element's area.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Move
+
+`blueprint.event.head.mouseMove`
+
+Fires as the pointer moves over the element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Wheel
+
+`blueprint.event.head.mouseWheel`
+
+Fires when the wheel scrolls over the element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `deltaX` | out · data | `float` | Horizontal scroll amount. |
+| `deltaY` | out · data | `float` | Vertical scroll amount. |
+
+### Right Click
+
+`blueprint.event.head.rightClick`
+
+Fires on the element's context-menu event. On a Surface blueprint it means any right click inside the Surface, in Surface design coordinates. When the event dispatches successfully, the default context menu is suppressed.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+## Focus
+
+### Focus
+
+`blueprint.event.head.focus`
+
+Fires when the element takes keyboard, mouse or gamepad focus.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Blur
+
+`blueprint.event.head.blur`
+
+Fires when the element loses focus.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## Keyboard
+
+Keyboard events are dispatched from a window-level listener, not from element focus. The global blueprint, the active Surface blueprint and every mounted widget carrying the head all see the same window event, and each runs its own chain. A widget's keyboard listener is registered when the widget mounts and removed when it unmounts.
+
+Once the Surface has finished prepaint, key events keep arriving through a Page's enter and exit animations. To suppress them during a transition, branch in the graph on the Page category's `Is Surface Entering`, `Is Surface Exiting` or `Is Surface Transitioning`.
+
+Pick the filtered pair when you want one binding, and the `Any Key` pair when you want the key itself: `On Key Down` / `On Key Up` match a binding configured on the card and carry no payload, while `Any Key Down` / `Any Key Up` fire on every key and hand you `key` plus the modifier flags.
+
+### On Key Down
+
+`blueprint.event.head.keyDown`
+
+Fires when the runtime window receives a matching key-down. No element needs to hold focus.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Key` | The key binding. The card shows the current binding; click it and a capture popover opens above the button — press any key to bind, with `Ctrl` / `Alt` / `Shift` / `Meta` combinations supported. A single key matches `KeyboardEvent.key` case-insensitively; a binding that includes modifiers also requires the modifier state to match. An empty binding never fires — use `Any Key Down` for "any key". |
+
+### On Key Up
+
+`blueprint.event.head.keyUp`
+
+Fires when the runtime window receives a matching key-up.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Key` | Same binding control as `On Key Down`. An empty binding never fires — use `Any Key Up` for "any key". |
+
+### Any Key Down
+
+`blueprint.event.head.anyKeyDown`
+
+Fires on every key-down the runtime window receives.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | The key's semantic value, matching `KeyboardEvent.key`. |
+| `altKey` | out · data | `boolean` | |
+| `ctrlKey` | out · data | `boolean` | |
+| `shiftKey` | out · data | `boolean` | |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows. |
+
+### Any Key Up
+
+`blueprint.event.head.anyKeyUp`
+
+Fires on every key-up the runtime window receives.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | The key's semantic value, matching `KeyboardEvent.key`. |
+| `altKey` | out · data | `boolean` | |
+| `ctrlKey` | out · data | `boolean` | |
+| `shiftKey` | out · data | `boolean` | |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows. |
+
+## Bound element heads
+
+These two heads bind a target widget on the same Surface — the way an `Element` node does — and then listen to *that* widget instead of their own. They also count as element bindings: an Element-targeted node only appears in the palette when the graph already holds a compatible `Element`, `Element Flush` or `Element Click`, and their `element` output can be wired straight into such a node's target input.
+
+### Element Flush
+
+`blueprint.event.head.elementFlush`
+
+Listens to the bound target's flush. When the target has a property changed explicitly through the Host API and redraws, this head runs in the current blueprint.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | The bound element that was flushed. |
+
+### Element Click
+
+`blueprint.event.head.elementClick`
+
+Listens to the bound target's own `mouseClick`. A real click on the target runs this head; it does not depend on click-through or on parent bubbling. The default Dialog template uses this to concentrate advance logic in one place: the Dialog Content blueprint takes its own `Mouse Click` and additionally binds the full-screen transparent Dialog Interaction Layer, the visible Dialog Panel and the default content children through `Element Click`, all wired into a single Game `Next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | The bound element that was clicked. |
+| `x` | out · data | `float` | In the target element's local design coordinates. |
+| `y` | out · data | `float` | In the target element's local design coordinates. |
+| `button` | out · data | `integer` | Mouse button number. |
+
+## List
+
+Heads on a list-like widget — `nl.list` and the Game UI wrappers `nl.notification.list`, `nl.choice.list`, `nl.nvl.list`. See the [List nodes](/docs/studio/blueprint/nodes/list) for reading and writing the runtime content. `List Item Refresh` is the odd one out: it fires on the private blueprints of the elements *inside* the item template, not on the list.
+
+### Item Render
+
+`blueprint.event.head.itemRender`
+
+Fires when the List renders one item instance, whether from bound data, preview data or a preview count. The payload comes from that item's scope.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | Items rendered in this pass. |
+| `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
+| `item` | out · data | `json` | The item's data. |
+
+### Item Click
+
+`blueprint.event.head.itemClick`
+
+Fires when an item container is clicked. A click on a child element inside the item template is attributed to that item.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | Items rendered in this pass. |
+| `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
+| `item` | out · data | `json` | The item's data. |
+
+### Item Hover
+
+`blueprint.event.head.itemHover`
+
+Fires when the pointer enters an item container.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | Items rendered in this pass. |
+| `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
+| `item` | out · data | `json` | The item's data. |
+
+### Selection Changed
+
+`blueprint.event.head.selectionChanged`
+
+Fires when an item click moves the runtime selected index. The List seeds its selection from the `selectedIndex` property; clicking the already-selected item again within one runtime instance does not fire.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | The newly selected item. |
+| `previousIndex` | out · data | `integer` | `-1` when nothing was selected. |
+| `count` | out · data | `integer` | Items rendered in this pass. |
+| `key` | out · data | `string` | Key of the newly selected item. |
+| `item` | out · data | `json` | Data of the newly selected item. |
+
+### Scroll
+
+`blueprint.event.head.scroll`
+
+Fires as the List's scroll container scrolls.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `offset` | out · data | `float` | Current scroll position. |
+| `maxOffset` | out · data | `float` | Maximum scroll position. |
+| `progress` | out · data | `float` | Normally `0` to `1`. |
+
+### Scroll End
+
+`blueprint.event.head.scrollEnd`
+
+Fires when the scroll container reaches the end from somewhere else. It does not re-fire on further scroll events while already parked at the end; leave the end and return, and it fires again.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `offset` | out · data | `float` | Current scroll position. |
+| `maxOffset` | out · data | `float` | Maximum scroll position. |
+| `progress` | out · data | `float` | Normally `0` to `1`. |
+
+### List Item Refresh
+
+`blueprint.event.head.listItemRefresh`
+
+Dispatched to the private blueprints of the elements under an item template whenever `nl.list` renders or refreshes that item. This is how a template child reads the current item's data. Each repeated item instance gets its own instance key and item scope, so two items sharing an element id do not share locals.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `props` | out · data | `json` | The item itself when it is an object, otherwise `{ value: item }`. |
+| `item` | out · data | `json` | The item's data. |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | Items rendered in this pass. |
+| `key` | out · data | `string` | |
+
+## Slider
+
+Heads on `nl.slider`. Every value here is the mapped value, matching `props.value` and the [Slider nodes](/docs/studio/blueprint/nodes/slider) — the 0–1 normalized value is only available from the dedicated read node.
+
+### Drag Start
+
+`blueprint.event.head.sliderDragStart`
+
+Fires when a drag on the handle begins.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | Mapped value. |
+
+### Value Changed
+
+`blueprint.event.head.sliderValueChanged`
+
+Fires when the runtime value changes. Dispatches are coalesced to one per animation frame, and while one chain is still running further changes collapse into a single pending dispatch — so a drag does not fire once per pixel, and `previousValue` spans everything that was coalesced. Writing the value with `Set Slider Value` does not dispatch this head.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | Mapped value. |
+| `previousValue` | out · data | `float` | Mapped value. |
+
+### Drag End
+
+`blueprint.event.head.sliderDragEnd`
+
+Fires when a drag on the handle ends.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | Mapped value. |
+
+## Text input
+
+Heads on `nl.textInput`. See the [Text input nodes](/docs/studio/blueprint/nodes/text-input) for reading and writing the field.
+
+### Value Changed
+
+`blueprint.event.head.textInputValueChanged`
+
+Fires as the field's value changes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `string` | |
+| `previousValue` | out · data | `string` | |
+
+### Submit
+
+`blueprint.event.head.textInputSubmit`
+
+Fires when `Enter` is pressed in the field. It deliberately does not stop propagation, so a widget `On Key Down` bound to `Enter` on the same field keeps firing alongside `Submit`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `string` | The value at submit time. |
+
+## Page
+
+### Page Event
+
+`blueprint.event.head.pageEvent`
+
+Fires in the private blueprint of the parent `nl.frame` when the sub-Page embedded in that Page component calls `Emit Page Event`. `nl.frame` is the only widget that offers it; the sending half lives in the [App nodes](/docs/studio/blueprint/nodes/app).
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `event` | out · data | `string` | Event name the sub-Page emitted. |
+| `data` | out · data | `json` | Event data the sub-Page emitted. |
+
+## Game preferences
+
+Both heads subscribe to the active `LiveGame`'s preference dispatcher, so they are offered on the global blueprint and the active Surface blueprint only. With no live game running there is no subscription and nothing fires; after `On Game Ready` the runtime re-subscribes on the new `LiveGame`. Preference setters like `Set BGM Volume` and NarraLeaf's own internal writes both trigger these heads, and a write of an identical value is not guaranteed to be deduplicated — so do not write a preference from the graph that listens to it, or you build a self-triggering loop. See the [Game nodes](/docs/studio/blueprint/nodes/game) for the getters and setters.
+
+### On Preference Changed
+
+`blueprint.event.head.preferenceChanged`
+
+Fires when the selected preference key changes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `json` | The new value. The pin is generic `json`; the runtime type follows the selected key — `boolean` for `autoForward` / `skip` / `showDialog`, `string` for `voiceEndMode`, `number` for the rest. Convert with `To Float` or `To Boolean` before feeding a typed input such as `Set Slider Value`. |
+| `previousValue` | out · data | `json` | The runtime's cached previous value, same type as `value`. `null` when this session has no earlier snapshot for the key. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Preference` | The key to watch: `autoForward`, `skip`, `showDialog`, `gameSpeed`, `cps`, `voiceVolume`, `voiceFadeDuration`, `voiceEndMode`, `bgmVolume`, `soundVolume`, `globalVolume`, `skipDelay`, `skipInterval`. Empty subscribes to nothing — use `On Any Preference Changed` for "any key". |
+
+### On Any Preference Changed
+
+`blueprint.event.head.anyPreferenceChanged`
+
+Fires when any preference key changes. Use it to handle settings centrally — persisting the whole set, or refreshing an entire settings panel in one pass.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | The canonical key name that changed, e.g. `bgmVolume`. |
+| `value` | out · data | `json` | The new value; runtime type follows `key`. |
+| `previousValue` | out · data | `json` | Same type as `value`; `null` with no earlier snapshot. |
+
+## Broadcast
+
+Broadcast moves a named message between blueprints on the active Surface: the Surface's own blueprint plus every widget blueprint on it. It does not reach the global blueprint and does not cross Surfaces, and the sender receives its own broadcast if it also listens. Targets are resolved from the document, not from the mounted React tree. All four nodes are offered on Surface and widget blueprints only.
+
+### On Broadcast
+
+`blueprint.event.head.onBroadcast`
+
+Fires when a broadcast with the configured name arrives.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `data` | out · data | `json` | The broadcast payload. |
+| `sender` | out · data | `string` | Element id of the sender; empty string when there is none. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Event` | The broadcast name to listen for. Matched exactly, after trimming. |
+
+### On Any Broadcast
+
+`blueprint.event.head.onAnyBroadcast`
+
+Fires on every broadcast this blueprint receives, whatever its name.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `event` | out · data | `string` | The broadcast name. |
+| `data` | out · data | `json` | The broadcast payload. |
+| `sender` | out · data | `string` | Element id of the sender; empty string when there is none. |
+
+### Send Broadcast
+
+`blueprint.broadcast.send` · Latent
+
+Sends a broadcast to the running UI and continues from `next` once every listener chain has run. An empty or whitespace-only event name is an execution error, not a silent no-op. The sender id is filled in from the executing blueprint's element.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `event` | in · data | `string` | Accepts an on-card literal. |
+| `data` | in · data | `json` | |
+
+### Get Listener Count
+
+`blueprint.broadcast.getListenerCount` · Pure
+
+How many listeners are currently registered for a broadcast name on this Surface.
+
+The count is of *heads*, not blueprints: a graph holding two matching heads counts twice, and an `On Any Broadcast` counts for every name. Heads are counted from the document, so an element that is not currently mounted still counts.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `event` | in · data | `string` | Accepts an on-card literal. |
+| `count` | out · data | `integer` | |
+
+## Story actions
+
+### On Call
+
+`blueprint.event.head.onCall`
+
+The single entry point of a Story Action Blueprint — a blueprint bound one-to-one to a story action. It is offered nowhere else. Story-action graphs are compiled into a NarraLeaf `Script` action and run through the story compiler, never through the UI event dispatch, which is why none of the UI heads on this page appear in that owner.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |

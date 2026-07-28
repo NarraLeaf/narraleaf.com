@@ -1,0 +1,102 @@
+---
+title: Container
+description: Content clipping and interaction state for the container that owns the blueprint.
+---
+
+Self nodes for `nl.container`. Each one acts on the container whose blueprint it sits in, takes no `Element` input, and only appears in that container's own blueprint. To reach a different container, use its counterpart in [Element](/docs/studio/blueprint/nodes/element).
+
+## Conventions
+
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **A write that changes nothing does nothing.** The host compares the incoming value against the current one and returns early when they match, so no redraw is queued and no `On Flush` fires.
+- **Boolean inputs fall back to the current value.** `clipContent`, `enabled`, and `visible` take no on-card literal; if nothing is wired, or the edge resolves to `null`, the property is left as it is. A wired non-boolean counts as true only when it is the string `"true"` or `"1"`.
+- **Layout is author-time only.** Layout mode, stack direction, gap, and padding have no nodes — clipping is the one box property a running graph can change. Position and size come from [Displayable](/docs/studio/blueprint/nodes/displayable), which also owns opacity and appearance variants.
+- **Two nodes on this page are not in the palette.** `Get Variant` and `Set Variant` were superseded by the Displayable variant nodes and hidden. They are documented because blueprints authored before that switch still hold them and still run — not because you can add one.
+- **None of these run inside a Blueprint Value.** The `Get` nodes are pure, but a Blueprint Value evaluates on a `widgetValue` owner and every node on this page is scoped to the container's main blueprint. To read the container from inside a Blueprint Value, place an `Element` literal for it and use the Element-category reader. `nl.container` has no property of its own that a Blueprint Value can drive.
+
+## Set Clip Content
+
+`blueprint.container.setClipContent` · Latent
+
+Clips the container's children to its own box. On by default. Clipping applies to the children layer, not to the container's own chrome, so a box shadow or filter on the container is still drawn outside the bounds.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `clipContent` | in · data | `boolean` | |
+
+This is independent of a scrolling layout. A container in scroll mode already clips one axis and scrolls the other as part of that mode; `clipContent` still decides whether the whole stack is cut to the container box.
+
+## Get Clip Content
+
+`blueprint.container.getClipContent` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `clipContent` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.container.setEnabled` · Latent
+
+`false` disables interaction for the container. It stays rendered and laid out.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.container.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.container.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+<Callout type="warn">
+`visible` false removes the container **and everything inside it** from the runtime element tree — it is not a CSS hide. Every child widget unmounts, their blueprints stop, and their `Init` runs again when the container comes back. A hidden container cannot show itself: something else has to call `Set Element Visible` on it. Use Displayable `Set Display` when you want the subtree hidden but mounted.
+</Callout>
+
+## Get Visible
+
+`blueprint.container.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Set Variant
+
+`blueprint.container.setVariant` · Latent
+
+Hidden from the palette — you cannot add this node. It is superseded by Displayable `Set Variant`, which picks the variant by name on the card and covers every widget that has variants. It still executes, so blueprints authored before the switch keep working.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+The variant id comes from the `variantId` input an older document stored on the node; the current definition declares no such pin, so a freshly placed card has nothing to set. An id the container does not own raises a graph execution error; an empty id resets it to the default variant.
+
+## Get Variant
+
+`blueprint.container.getVariant` · Pure
+
+Hidden from the palette for the same reason, and it has no supported replacement: the Displayable `Get Variant` is hidden too, and the variant UUID this outputs is an internal persistence value that nothing in a new blueprint consumes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | Empty while the container is on its default variant. |

@@ -1,0 +1,358 @@
+---
+title: Text
+description: Reading and writing the content, typography and effects of a wired nl.text element, and the value of a wired nl.textInput.
+---
+
+`nl.text` and `nl.textInput` are different widgets that share three node names between them. Both families sit here so that collision is visible in one place; the rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
+
+## Text
+
+Text nodes carry an `element:nl.text` pin, so the palette offers them only once the graph binds an `nl.text` element. The Self forms are in [Text](/docs/studio/blueprint/nodes/text).
+
+### Get Text
+
+`blueprint.element.text.getText` · Pure
+
+Reads the element's current text content.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+
+### Set Text
+
+`blueprint.element.text.setText` · Latent
+
+Replaces the text content.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | Accepts an on-card literal. |
+
+### Append Text
+
+`blueprint.element.text.appendText` · Latent
+
+Concatenates onto the end of the current text.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | Accepts an on-card literal. |
+
+### Clear Text
+
+`blueprint.element.text.clearText` · Latent
+
+Sets the text to the empty string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+
+### Get Font
+
+`blueprint.element.text.getFont` · Pure
+
+Reads the font asset id in use.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | out · data | `string` |  |
+
+### Set Font
+
+`blueprint.element.text.setFont` · Latent
+
+Sets the font asset id. An empty string clears the font back to the default.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Font Size
+
+`blueprint.element.text.getFontSize` · Pure
+
+Reads the font size.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | out · data | `float` |  |
+
+### Set Font Size
+
+`blueprint.element.text.setFontSize` · Latent
+
+Sets the font size. Values below `1` are raised to `1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | in · data | `float` | Accepts an on-card literal. |
+
+### Get Font Weight
+
+`blueprint.element.text.getFontWeight` · Pure
+
+Reads the font weight.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | out · data | `string` |  |
+
+### Set Font Weight
+
+`blueprint.element.text.setFontWeight` · Latent
+
+Sets the font weight: `normal`, `600` or `bold`. Anything else leaves the current value alone.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Text Color
+
+`blueprint.element.text.getTextColor` · Pure
+
+Reads the text colour.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | out · data | `RGBAColor` |  |
+
+### Set Text Color
+
+`blueprint.element.text.setTextColor` · Latent
+
+Sets the text colour.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | in · data | `RGBAColor` |  |
+
+### Get Text Align
+
+`blueprint.element.text.getTextAlign` · Pure
+
+Reads the horizontal alignment.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | out · data | `string` |  |
+
+### Set Text Align
+
+`blueprint.element.text.setTextAlign` · Latent
+
+Sets the horizontal alignment: `left`, `center` or `right`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Text Vertical Align
+
+`blueprint.element.text.getTextVerticalAlign` · Pure
+
+Reads the vertical alignment.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+
+### Set Text Vertical Align
+
+`blueprint.element.text.setTextVerticalAlign` · Latent
+
+Sets the vertical alignment: `start`, `center` or `end`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Line Height
+
+`blueprint.element.text.getLineHeight` · Pure
+
+Reads the line height.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | out · data | `float` |  |
+
+### Set Line Height
+
+`blueprint.element.text.setLineHeight` · Latent
+
+Sets the line height. Values below `0.1` are raised to `0.1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | in · data | `float` | Accepts an on-card literal. |
+
+### Get Wrap Mode
+
+`blueprint.element.text.getWrapMode` · Pure
+
+Reads the wrap mode.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | out · data | `string` |  |
+
+### Set Wrap Mode
+
+`blueprint.element.text.setWrapMode` · Latent
+
+Sets the wrap mode: `word`, `character` or `nowrap`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Effects
+
+`blueprint.element.text.getEffects` · Pure
+
+Reads the static text effects as `json`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | out · data | `json` |  |
+
+### Set Effects
+
+`blueprint.element.text.setEffects` · Latent
+
+Writes the static text effects.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | in · data | `json` |  |
+
+### Get All Properties
+
+`blueprint.element.text.getAllProperties` · Pure
+
+Ten outputs from one read, for when you want the whole text state without ten nodes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+| `fontAssetId` | out · data | `string` |  |
+| `fontSize` | out · data | `float` |  |
+| `fontWeight` | out · data | `string` |  |
+| `color` | out · data | `RGBAColor` |  |
+| `textAlign` | out · data | `string` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+| `lineHeight` | out · data | `float` |  |
+| `textWrapMode` | out · data | `string` |  |
+| `effects` | out · data | `json` |  |
+
+### Set All Properties
+
+`blueprint.element.text.setAllProperties` · Latent
+
+Writes all ten in one call. Every input falls back to the element's current value when it resolves to nothing, so driving only the two you care about is safe.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | Accepts an on-card literal. |
+| `fontAssetId` | in · data | `string` | Accepts an on-card literal. |
+| `fontSize` | in · data | `float` | Accepts an on-card literal. |
+| `fontWeight` | in · data | `string` | Accepts an on-card literal. |
+| `color` | in · data | `RGBAColor` |  |
+| `textAlign` | in · data | `string` | Accepts an on-card literal. |
+| `textVerticalAlign` | in · data | `string` | Accepts an on-card literal. |
+| `lineHeight` | in · data | `float` | Accepts an on-card literal. |
+| `textWrapMode` | in · data | `string` | Accepts an on-card literal. |
+| `effects` | in · data | `json` |  |
+
+## Text Input
+
+These target `nl.textInput`, not `nl.text`, and their palette names collide head-on with the Text nodes above: two entries called `Get Text`, two called `Set Text`, two called `Clear Text`. The pin is what tells them apart — a Text Input node takes `textInput` typed `element:nl.textInput`, a Text node takes `element` typed `element:nl.text` — and in practice you only ever see one of each pair, because the palette offers whichever matches the binding your graph already holds. The Self forms are in [Text Input](/docs/studio/blueprint/nodes/text-input).
+
+### Get Text
+
+`blueprint.element.textInput.getValue` · Pure
+
+Reads the field's current value and its length. `length` is declared `float`, not `integer`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | out · data | `string` |  |
+| `length` | out · data | `float` |  |
+
+### Set Text
+
+`blueprint.element.textInput.setValue` · Latent
+
+Replaces the field's value.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+
+### Clear Text
+
+`blueprint.element.textInput.clear` · Latent
+
+Sets the field's value to the empty string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |

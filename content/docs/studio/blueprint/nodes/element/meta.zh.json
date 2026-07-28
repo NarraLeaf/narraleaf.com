@@ -1,0 +1,10 @@
+{
+  "title": "Element",
+  "pages": [
+    "index",
+    "displayable",
+    "text",
+    "content",
+    "widget"
+  ]
+}

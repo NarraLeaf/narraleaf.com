@@ -1,0 +1,184 @@
+---
+title: Button、Container、Frame
+description: 按钮文本与指针、容器裁剪，以及 Frame 展示哪个 Page——全部作用于连入的元素。
+---
+
+三组比较小的属性面：Button 的文本与指针、Container 的裁剪，以及 Frame 展示的 Page。所有 Element 节点共通的规则见 [Element](/docs/studio/blueprint/nodes/element)。
+
+## Button
+
+Button 节点带 `element:nl.button` 引脚。Self 形态见 [Button](/docs/studio/blueprint/nodes/button)。
+
+### Get Button Label
+
+`blueprint.element.button.getLabel` · Pure
+
+读取按钮文本。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | out · data | `string` |  |
+
+### Set Button Label
+
+`blueprint.element.button.setLabel` · Latent
+
+设置按钮文本。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | in · data | `string` | 可在卡片上直接填字面量。 |
+
+### Set Button Pointer
+
+`blueprint.element.button.setPointer` · Latent
+
+选择按钮的默认指针形态。它没有数据引脚——卡片使用和按钮 Appearance 检视器 Mouse 区一样的带图标下拉框。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `cursor` | `Auto`、`Default`、`Pointer`、`Text`、`Move`、`Grab`、`Grabbing`、`Crosshair`、`Help`、`Wait`、`Progress`、`Not allowed`。`Auto` 在运行时按按钮是否可点击解析为点击指针或普通默认指针；禁用的按钮无论如何都由渲染器显示 `not-allowed`。 |
+
+### Get Button Variant
+
+`blueprint.element.button.getVariant` · Pure
+
+旧的按 id 读取。为已有图保留注册，创建浮窗中不再提供。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Button Variant
+
+`blueprint.element.button.setVariant` · Latent
+
+旧的按 id 写入，同样隐藏。它没有 `variantId` 引脚——读的是保存下来的参数——而作者侧已经没有填这个参数的入口了。请改用按名称选 Variant 的 `Set Element Variant`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+## Container
+
+Container 节点带 `element:nl.container` 引脚。Self 形态见 [Container](/docs/studio/blueprint/nodes/container)。
+
+### Get Container Clip Content
+
+`blueprint.element.container.getClipContent` · Pure
+
+读取容器是否裁剪溢出内容。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | out · data | `boolean` |  |
+
+### Set Container Clip Content
+
+`blueprint.element.container.setClipContent` · Latent
+
+设置容器是否裁剪溢出内容。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | in · data | `boolean` |  |
+
+### Get Container Variant
+
+`blueprint.element.container.getVariant` · Pure
+
+旧的按 id 读取，出于和 Button 那一对相同的原因在创建浮窗中隐藏。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Container Variant
+
+`blueprint.element.container.setVariant` · Latent
+
+旧的按 id 写入，在创建浮窗中隐藏。请改用 `Set Element Variant`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+
+## Frame
+
+Frame 节点带 `element:nl.frame` 引脚，操作的是该 Frame 自己的目标 Page 和参数。把玩家带到另一个 Page 是另一回事，由 [App](/docs/studio/blueprint/nodes/app) 里的 `Go Page` 负责。Self 形态见 [Frame](/docs/studio/blueprint/nodes/frame)。
+
+### Get Frame Target Page
+
+`blueprint.element.frame.getTargetPage` · Pure
+
+读取目标 Page 的 surface id；Frame 没有目标时为空字符串。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `targetSurfaceId` | out · data | `string` |  |
+
+### Set Frame Page
+
+`blueprint.element.frame.setTargetPage` · Latent
+
+把 Frame 切到另一个 Page。下拉框会过滤掉该 Frame 所在的 Page 以及会形成循环嵌套的 Page——Element 形态是靠读取连入的 `Element` 节点所在 Surface 来判断的，所以引用没接上时列表是空的。切换后由 Frame 控件走它原有的进场/出场动画。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `props` | in · data | `json` | 会写入该 Frame 的 `params`，作为被嵌入 Page 的 props。未连接时保留当前 `params`——它不是清空。 可选。 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `targetSurfaceId` | 动态选项：该 Frame 合法可选的 Page。空选项标为 None，用于清除目标。 |
+
+### Get Frame Params
+
+`blueprint.element.frame.getParams` · Pure
+
+读取传给被嵌入 Page 的参数 object。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | out · data | `json` |  |
+
+### Set Frame Params
+
+`blueprint.element.frame.setParams` · Latent
+
+写入参数 object。非 object 值会归一为空 object。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | in · data | `json` |  |

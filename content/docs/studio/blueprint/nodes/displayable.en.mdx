@@ -1,0 +1,227 @@
+---
+title: Displayable
+description: The geometry and appearance surface every visual widget shares — properties, appearance variants, and property animation.
+---
+
+Every visual widget is a Displayable: it has a position, a size, a rotation, an opacity, and — for the widgets that define them — appearance variants. These nodes read and rewrite that shared surface from inside the widget's own blueprint, so the same node works on a Text, an Image, or a Container.
+
+## Conventions
+
+- **Self nodes only.** Nothing in this category takes an `Element` input; the target is always the widget that owns the blueprint. The versions that act on a wired element live in [Element](/docs/studio/blueprint/nodes/element) as `Get Element Property`, `Set Element Variant`, and so on. `Stop Element Animation` is filed there too even though it takes no `Element` input — an `AnimationToken` already names one animation on one widget, so there is nothing left to target.
+- **Where they appear.** In the `widgetMain` blueprint of `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.slider`, `nl.list`, and `nl.frame`. `Set Variant` and `Get Variant` are narrower: only `nl.container`, `nl.text`, `nl.image`, and `nl.button` carry appearance variants.
+- **Graph kinds.** The getters are pure and run in `event`, `function`, and `macro` graphs, including inside a Blueprint Value. The writers are latent and run in `event` and `macro` only.
+- **Writes land on a runtime patch layer**, not on the authored UI document. A write that changes nothing queues no flush.
+- **Coordinates are Surface design pixels** — the same numbers the inspector's Position `X` / `Y` show.
+- **Units.** The card prints the unit beside each number field: `px` for `x` / `y` / `offsetX` / `offsetY` / `width` / `height`, `deg` for `rotation`, `x` for `scale`, `s` for durations, `%` for `opacity`. Everything but opacity is stored as typed. Opacity is a percentage on the card and a `0`–`1` fraction at runtime, and `0`–`1` is what every getter returns.
+- **An unusable input falls back to the current value.** The boolean inputs take no on-card literal, so an unwired `display` or `visible` resolves to nothing and the node writes back what is already there. The same is true of a non-numeric value on a number property.
+
+<Callout type="warn">
+The two opacity writers disagree on how to read a percentage. `Animate Property` always divides `From` / `To` by 100, so `1` there means 1%. `Set Property` divides only when the value is above 1, so `1` there means fully opaque and 1% is unreachable. The asymmetry is deliberate: it keeps graphs that stored opacity as a `0`–`1` fraction running unchanged.
+</Callout>
+
+## Get Property
+
+`blueprint.displayable.getProperty` · Pure
+
+Reads one property of the widget that owns the blueprint. The key is picked on the card, so this one node replaces the fixed getters at the bottom of this page.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | Shape follows the selected key. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | The key to read. |
+
+**Property keys**
+
+| Key | Reads |
+| --- | --- |
+| `position` | `{ x, y }` — the widget's top-left. |
+| `size` | `{ width, height }`. |
+| `bounds` | `{ x, y, width, height }`. |
+| `x`, `y` | The top-left components, as numbers. |
+| `offsetX`, `offsetY` | The visual offset from the authored layout. |
+| `width`, `height` | The size components, as numbers. |
+| `rotation` | Degrees. |
+| `opacity` | `0`–`1`, not a percentage. |
+| `visible` | `boolean`. |
+
+## Set Property
+
+`blueprint.displayable.setProperty` · Latent
+
+Writes one property on the owning widget. The writable keys are `x`, `y`, `offsetX`, `offsetY`, `width`, `height`, `rotation`, `opacity`, and `visible` — `position`, `size`, and `bounds` are read-only aggregates, and there is no `variant` key because variants have their own node.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | Wiring it disables the card's Value field; the wired value wins. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | The key to write. |
+| `value` | The value, used when the `value` pin is unwired. `visible` is a Visible / Hidden dropdown, `opacity` a percentage, everything else a number. |
+
+`offsetX` and `offsetY` are stored in the widget's persistent runtime transform rather than in the one-shot motion slot, so a later animation taking over the widget does not throw the offset away.
+
+## Get Display
+
+`blueprint.displayable.getDisplay` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `display` | out · data | `boolean` | `true` until something sets it otherwise. |
+
+## Set Display
+
+`blueprint.displayable.setDisplay` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `display` | in · data | `boolean` | |
+
+`display = false` hides the widget and its subtree with CSS `display: none` and leaves it mounted. That is the whole difference from `visible`: a widget with `visible = false` is dropped out of the rendered tree, subtree included.
+
+## Set Variant
+
+`blueprint.displayable.setVariant` · Latent
+
+Applies a runtime appearance-variant override to the owning widget.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Variant` | The target variant, chosen by name from the widget's own variants. |
+| `Wait For Animation` | `No` continues immediately. `Yes` holds `Next` until the longest field transition on the target variant finishes; with no transitions there is nothing to wait for. |
+
+There is no `variantId` data pin and no way to type an id: the card writes the variant's internal id as a hidden value, and you only ever see names. Running the node against a widget that has no appearance variants raises a graph execution error rather than silently doing nothing.
+
+Setting a variant also clears any runtime opacity override, so the incoming variant decides opacity. That is what makes `Set Variant` to a transparent variant followed by `Animate Property opacity 0 → 100` work: the fade starts from the variant's transparency instead of being pinned by a stale override.
+
+## Get Variant
+
+`blueprint.displayable.getVariant` · Pure
+
+Hidden from the palette; kept so graphs saved before the current variant card keep running.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | The runtime override if one is set, else the authored default, else the first variant. `""` when the widget has none. |
+
+## Animate Property
+
+`blueprint.displayable.animateProperty` · Latent
+
+Tweens one property. This is the primitive, not a library: there is no Fade, Shake, or Pulse node, and those are built on top of this one as macros.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | Fires when the animation finishes or something stops it. |
+| `animation` | out · data | `AnimationToken` | Feed to `Stop Animation` to cut it short. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | `opacity`, `offsetX`, `offsetY`, `x`, `y`, `scale`, or `rotation`. |
+| `from` | Optional start value. Empty means start from the widget's current runtime state. |
+| `to` | Target value. |
+| `duration` | Seconds. `0.3` by default. |
+| `delay` | Seconds. |
+| `easing` | `linear`, `easeIn`, `easeOut`, `easeInOut`, `circIn`, `circOut`, or `circInOut`. `easeOut` by default. |
+| `after` | `hold` keeps the final value, `reset` returns to the authored layout and appearance. `hold` by default. |
+
+`offsetX` and `offsetY` animate a visual offset from the authored layout. `x` and `y` animate the absolute layout position: under `hold` the final position is committed to the runtime layout patch and the leftover offset is cleared, so nothing snaps back. `scale` is a multiplier where `1` is original size, and `opacity` is a percentage on the card.
+
+The `animation` token is published the moment the animation starts, before `Next` fires. Since the node's own chain is suspended until the animation ends, that is the only way to stop it: another chain in the same blueprint reads the pin while the animation is in flight.
+
+<Callout type="info">
+For `x` and `y`, a `From` of `0` counts only if you typed it — the card records that you did. A `0` inherited from an older graph is read as empty and the animation starts from the current position, which is what those graphs meant.
+</Callout>
+
+## Stop Animation
+
+`blueprint.displayable.stopAnimation` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `animation` | in · data | `AnimationToken` | The token from `Animate Property` or `Animate Element Property`. |
+
+Stops the one animation the token names and releases the `Animate Property` waiting on it, which then continues through its `Next`. A missing token, a token of another kind, or one whose animation already settled is a silent no-op; execution continues through `next` in every case.
+
+## Get Position
+
+`blueprint.displayable.getPosition` · Pure
+
+Superseded by `Get Property` with the `position` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `position` | out · data | `Vector2D` | `{ x, y }`, the widget's top-left. |
+
+## Get Size
+
+`blueprint.displayable.getSize` · Pure
+
+Superseded by `Get Property` with the `size` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `size` | out · data | `Vector2D` | The pin is typed `Vector2D`, but the value's keys are `width` and `height`. |
+
+## Get Bounds
+
+`blueprint.displayable.getBounds` · Pure
+
+Superseded by `Get Property` with the `bounds` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `bounds` | out · data | `json` | `{ x, y, width, height }`. |
+
+## Get Rotation
+
+`blueprint.displayable.getRotation` · Pure
+
+Superseded by `Get Property` with the `rotation` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `rotation` | out · data | `float` | Degrees. |
+
+## Get Opacity
+
+`blueprint.displayable.getOpacity` · Pure
+
+Superseded by `Get Property` with the `opacity` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `opacity` | out · data | `float` | `0`–`1`, not a percentage. |
+
+## Get Visible
+
+`blueprint.displayable.getVisible` · Pure
+
+Superseded by `Get Property` with the `visible` key; hidden from the palette but still runs in graphs that hold it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |

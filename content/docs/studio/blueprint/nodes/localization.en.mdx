@@ -1,0 +1,126 @@
+---
+title: Localization
+description: Reading and switching the game's player-facing language, and resolving named text keys.
+---
+
+These six nodes are how a game changes its own language: a settings screen lists the project's locales, the player picks one, and the choice is remembered. The languages, the translation tables, and the named keys are set up in [Localization](/docs/studio/workspace/localization) — the nodes only read what is already there.
+
+## Conventions
+
+- **All six are latent, none is pure.** Each one reaches the host and returns asynchronously, so none of them can appear in a `function` graph or back a Blueprint Value. All six declare `event` and `macro`.
+- **This is the game's language, not the editor's.** Studio's own interface language is a separate setting that no node here reads or writes. The two are free to differ, and normally do — you author in your language while the game runs in the player's.
+- **Where the choice lives.** `Set Language` writes to the host's persistent store under the key `nls.locale`, one record per project, on the same channel as persistent variables. It survives quitting the game and is *not* part of a save file, so loading a save never changes the language. On first launch, when nothing valid is stored, the player's system language is matched against the configured locales and persisted; from then on the stored choice wins.
+- **Lookup walks a fallback chain.** Text is looked up in the current locale, then in that locale's configured fallback, and so on — stopping before the source language, whose text is the compiled default rather than a table entry. Falling off the end of the chain means the source text renders.
+- **The voice language is separate.** Dub language and subtitle language are deliberately different settings; nothing here touches the voice track.
+- **The editor canvas cannot run them.** There is no host on the author-time canvas, so all six fail there with `Host API unavailable (use Dev Mode)`, and the canvas renders source-language text by design.
+
+## Get Current Language
+
+`blueprint.localization.getCurrentLanguage` · Latent
+
+The locale code the game is running in: the player's stored choice while it is still one of the project's locales, otherwise the project's source language. A project with no localization set up reads an empty string.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `string` | Labelled `Language`. |
+
+## Set Language
+
+`blueprint.localization.setLanguage` · Latent
+
+Switches the game's language and remembers the choice.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `language` | in · data | `string` | A locale code from the project's configured locales. |
+
+The code is checked against the configured locales *before* anything is written, so a typo cannot strand a player in a language that does not exist: an unknown or empty code is an execution error, and so is running this node in a project with no languages configured at all.
+
+What the switch reaches, and what it does not:
+
+- Text on widgets — a Text's content, a Button's label, a Text Input's placeholder — re-resolves and re-renders straight away. Nothing has to be remounted.
+- Story lines that have a translation compile to values that re-resolve per render, so the new language applies without a recompile or a restart.
+- The speaker's nametag is resolved at the moment the line enters the dialog state, so a switch made mid-line takes effect from the next line on.
+- A string a graph already produced — a `Get Text` result written somewhere — is a plain string by then. It does not re-resolve. Run the graph again.
+
+## Get Available Languages
+
+`blueprint.localization.getAvailableLanguages` · Latent
+
+Every locale the project is configured for, in the order the project lists them.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | Labelled `Languages`. Empty when the project has no localization. |
+
+Each entry carries `code`, `displayName`, and `isSource`. `displayName` is the autonym the author entered — 日本語, never "Japanese" — which is what a language picker shows the player; `code` is what you hand back to `Set Language`. The pin is typed `any` because the value is a list of objects rather than one of the scalar blueprint types.
+
+## Get Text
+
+`blueprint.localization.getText` · Latent
+
+Resolves one named key to the text for the current language. Named keys are the project's developer-authored strings: the ones that are neither story lines nor typed onto a widget card.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `key` | in · data | `string` | Overrides the on-card field when wired. |
+| `value` | out · data | `string` | Labelled `Text`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Key` | The named key, chosen from the project's registry. Each option shows its source text with the key name after it, so you pick by what the string says. |
+
+Resolution order is the current locale's translation, through the fallback chain; then the key's own source text; then, when the key is not in the registry at all, the key name itself — so a key you deleted or mistyped shows up in the running game instead of rendering blank.
+
+Text you typed onto a widget card does not need this node: text-bearing widgets resolve their own display text against the current locale. Reach for `Get Text` when the string is one a graph decides.
+
+## Has Text
+
+`blueprint.localization.hasText` · Latent
+
+Whether a named key exists in the project.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `key` | in · data | `string` | Overrides the on-card field when wired. An empty key reads `false` rather than failing. |
+| `value` | out · data | `boolean` | Labelled `Exists`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Key` | The named key, chosen from the project's registry. |
+
+<Callout type="warn">
+This answers *is the key defined*, not *is it translated*. A key with no translation for the current locale still reports `true`, because its source text is what will render. Translation coverage is a question for the localization editor, not for a running game.
+</Callout>
+
+## Format Text
+
+`blueprint.localization.formatText` · Latent
+
+Fills the `{0}`, `{1}`, … placeholders of a template with values, by position.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | The template, usually a `Get Text` result. |
+| `values` | in · data | `list` | Substituted by index. |
+| `value` | out · data | `string` | Labelled `Result`. |
+
+The placeholder form is the one translators see, so a translation is free to move a placeholder to wherever its language needs it. That is the reason to format rather than concatenate: concatenation fixes the word order of whichever language you wrote first.
+
+A placeholder with no matching value renders as an empty string, and surplus values are ignored. A `values` input that is not a list is treated as a single value; an empty one as no values at all.

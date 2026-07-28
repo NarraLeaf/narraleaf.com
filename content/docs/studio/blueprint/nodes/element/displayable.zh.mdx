@@ -1,0 +1,493 @@
+---
+title: 可显示对象
+description: 对连入元素的几何、透明度、Variant 和属性动画操作，以及每个控件都带的 visible / enabled 四件套。
+---
+
+两组适用于所有控件类型的节点：Displayable 的几何与外观节点，以及每个内建控件都重复一遍的 `visible` / `enabled` 四件套。所有 Element 节点共通的规则——创建浮窗何时提供它、目标缺失时如何失败——见 [Element](/docs/studio/blueprint/nodes/element)。
+
+## Displayable
+
+这些节点用的是通用 `element` 引脚，因此接受任意可显示元素的引用，而不限定某一种控件类型。坐标使用当前 Surface 的设计坐标系——和 Inspector 里显示的是同一套数。透明度只有一份有效值：Appearance Variant 的 `transformOpacity` 会解析到它，`nl.image` Variant 中相对 Default 改动过的 `fillOpacity` 也会解析到它，`Get Element Property`、`Set Element Property` 和 `Animate Element Property` 操作的都是这同一个数。
+
+本节末尾的七个读取节点——position、size、bounds、rotation、opacity、visible 和 variant——已被 `Get Element Property` 取代，并在创建浮窗中隐藏。它们仍然注册，好让已经用到它们的蓝图继续能跑。这里列出它们是因为你会在旧图里遇到，而不是建议你新建。
+
+它们全部的 Self 形态见 [Displayable](/docs/studio/blueprint/nodes/displayable)。
+
+### Get Element Property
+
+`blueprint.element.displayable.getProperty` · Pure
+
+推荐使用的读取入口。在卡片上选属性，`value` 引脚输出对应的值。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `value` | out · data | `any` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `property` | `position` 返回 `{ x, y }`，`size` 返回 `{ width, height }`，`bounds` 返回 `{ x, y, width, height }`。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` 返回 number；`visible` 返回 boolean。`opacity` 读回来是 `0..1`。 |
+
+### Set Element Property
+
+`blueprint.element.displayable.setProperty` · Latent
+
+写入目标元素的一个运行时属性。列表里刻意没有 `variant`——Variant 走 `Set Element Variant`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `value` | in · data | `any` | 接线后卡片上的 Value 控件会禁用，运行时以连线值为准。 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `property` | `x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity`、`visible`。 |
+| `value` | 卡片会显示单位：位置和尺寸用 `px`，`rotation` 用 `deg`，`opacity` 用 `%`。`visible` 换成 Visible / Hidden 下拉。数字输入采用草稿编辑——按 Enter 或失去焦点时提交，按 Esc 放弃。 |
+
+### Animate Element Property
+
+`blueprint.element.displayable.animateProperty` · Latent
+
+启动一段属性动画。动画一开始就先写出 `animation` token；执行链要等动画自然结束、或被 `Stop Element Animation` 提前跳过之后才进入 `next`。它是属性驱动的基础节点，不内建 Fade / Shake 之类的序列——那些可以基于它做成宏。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `animation` | out · data | `AnimationToken` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `property` | `opacity`、`offsetX`、`offsetY`、`x`、`y`、`scale`、`rotation`。`offsetX` / `offsetY` 是相对 authored layout 的视觉位移；`x` / `y` 动画的是布局位置本身。 |
+| `from` | 留空时从元素当前运行时状态开始。`x` / `y` 如果要从坐标 0 开始，必须显式填 `0`——留空不等于 0。 |
+| `to` | 目标值。 |
+| `duration` | 秒。`0.3` 表示 300ms。 |
+| `delay` | 秒。 |
+| `easing` | `linear`、`easeIn`、`easeOut`、`easeInOut`、`circIn`、`circOut`、`circInOut`。 |
+| `after` | `hold` 保持最终值，并把它写回运行时 patch，后续刷新不会再把它压回去。`reset` 在动画结束后回到 authored layout / appearance。 |
+
+<Callout type="warn">
+`opacity` 的 `From` / `To` 按百分比输入：`100` 是不透明，`1` 是百分之一。`Set Element Property` 对同一个属性的解读不一样——大于 `1` 的值当百分比，小于等于 `1` 的值当 `0..1` 的比例，所以那里的 `1` 表示完全不透明。同一个属性、两个节点，数字 `1` 的含义正好相反。
+</Callout>
+
+### Stop Element Animation
+
+`blueprint.element.displayable.stopAnimation` · Latent
+
+这个分类里唯一没有元素目标的节点：token 本身已经定位到某个元素上的某段动画。它只停止 token 对应的那一段，并让正在等待它的 `Animate Element Property` 提前进入 `next`。传入缺失值、非 `AnimationToken`、或者已经不再 pending 的 token 时静默 no-op 并继续执行。也正因为它不需要绑定，它是创建浮窗中唯一无条件出现的 Element 节点。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `animation` | in · data | `AnimationToken` |  |
+
+### Set Element Variant
+
+`blueprint.element.displayable.setVariant` · Latent
+
+设置目标元素的运行时 Appearance Variant 覆盖。节点没有 `variantId` 引脚，也无法手输 id：当连入的引用让目标可以被静态推断时，卡片会按名称列出该元素已有的 Variants，内部 UUID 只作为隐藏值保存。卡片上还有一个 Wait For Animation 字段，用来选择立即继续、还是等所选 Variant 上最长的字段 transition 结束。对不支持 Appearance Variant 的元素执行时会提交错误，而不是静默忽略。
+
+它还会清理之前的 runtime opacity override，让当前 Variant 决定透明度——所以先切到透明 Variant、再把 `opacity` 从 0 动画到 100，会从那个透明状态正常进入，而不会被锁在 0。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` | 只接受支持 Appearance Variant 的控件类型。 |
+
+### Get Element Display
+
+`blueprint.element.displayable.getDisplay` · Pure
+
+读取运行时渲染开关，默认为 `true`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `display` | out · data | `boolean` |  |
+
+### Set Element Display
+
+`blueprint.element.displayable.setDisplay` · Latent
+
+设为 `false` 时，元素和它的子树通过 CSS `display: none` 隐藏，但仍然挂载在 SurfaceElementTree 中。它不是 `visible`：`visible` 仍然是布局/可见性属性，通过 `Get Element Property` / `Set Element Property` 读写。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `display` | in · data | `boolean` |  |
+
+### Get Element Position
+
+`blueprint.element.displayable.getPosition` · Pure
+
+以设计坐标读取布局位置，输出 `Vector2D`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `position` | out · data | `Vector2D` |  |
+
+### Get Element Size
+
+`blueprint.element.displayable.getSize` · Pure
+
+读取宽高，输出 `Vector2D`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `size` | out · data | `Vector2D` |  |
+
+### Get Element Bounds
+
+`blueprint.element.displayable.getBounds` · Pure
+
+一次读取 `{ x, y, width, height }`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `bounds` | out · data | `json` |  |
+
+### Get Element Rotation
+
+`blueprint.element.displayable.getRotation` · Pure
+
+读取视觉旋转角度，单位为度。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `rotation` | out · data | `float` |  |
+
+### Get Element Opacity
+
+`blueprint.element.displayable.getOpacity` · Pure
+
+读取有效透明度，范围 `0..1`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `opacity` | out · data | `float` |  |
+
+### Get Element Visible
+
+`blueprint.element.displayable.getVisible` · Pure
+
+读取 `visible` 属性——不是 `display`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Get Element Variant
+
+`blueprint.element.displayable.getVariant` · Pure
+
+读取当前 Variant 的内部 UUID。现在的编辑器不再要求作者接触这个 id，整条基于 id 的 Variant 路径因此被淘汰。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `variantId` | out · data | `string` |  |
+
+## Visible 与 Enabled
+
+每个内建控件都带同样的四个节点：读写 `visible`、读写 `enabled`。它们各自的目标引脚按自己的控件类型定型，所以创建浮窗提供哪四个，取决于当前图绑定了哪些控件类型。`Set … Enabled` 传 `false` 会映射到渲染器的禁用交互机制；节点面上刻意不暴露 `interactionDisabled`。
+
+要隐藏元素但不卸载它，用 `Set Element Display`——`visible` 和 `display` 是两个开关，只有 `display` 会折叠整棵子树。
+
+### Get Button Visible
+
+`blueprint.element.button.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Button Visible
+
+`blueprint.element.button.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Button Enabled
+
+`blueprint.element.button.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Button Enabled
+
+`blueprint.element.button.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Container Visible
+
+`blueprint.element.container.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Container Visible
+
+`blueprint.element.container.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Container Enabled
+
+`blueprint.element.container.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Container Enabled
+
+`blueprint.element.container.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Frame Visible
+
+`blueprint.element.frame.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Frame Visible
+
+`blueprint.element.frame.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Frame Enabled
+
+`blueprint.element.frame.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Frame Enabled
+
+`blueprint.element.frame.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Image Visible
+
+`blueprint.element.image.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Image Visible
+
+`blueprint.element.image.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Image Enabled
+
+`blueprint.element.image.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Image Enabled
+
+`blueprint.element.image.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get List Visible
+
+`blueprint.element.list.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set List Visible
+
+`blueprint.element.list.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get List Enabled
+
+`blueprint.element.list.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set List Enabled
+
+`blueprint.element.list.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Slider Visible
+
+`blueprint.element.slider.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Slider Visible
+
+`blueprint.element.slider.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Slider Enabled
+
+`blueprint.element.slider.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Slider Enabled
+
+`blueprint.element.slider.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Text Visible
+
+`blueprint.element.text.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Text Visible
+
+`blueprint.element.text.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Text Enabled
+
+`blueprint.element.text.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Text Enabled
+
+`blueprint.element.text.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | in · data | `boolean` |  |

@@ -1,0 +1,126 @@
+---
+title: Slider
+description: Reading and writing the runtime value and range of a slider widget.
+---
+
+Slider nodes read and write the runtime value and range of the `nl.slider` whose private blueprint you are editing — a volume control that has to load a saved level on `Init`, a difficulty picker whose range changes with the mode. The drag events themselves live in [Events](/docs/studio/blueprint/nodes/events).
+
+## Conventions
+
+- **Everything but one node speaks the mapped value.** `props.value` and its Blueprint Value, the `dragStart` / `valueChanged` / `dragEnd` payloads, `Get Value`, and `Set Slider Value` all carry the value in `min…max` units. The `0…1` ratio exists on `Get Normalized Value` and nowhere else — wire that one to a fill width, and `Get Value` to anything the player reads as a number.
+- **A written value is clamped, then snapped, then clamped again.** Snapping counts whole steps up from `min`, and the second clamp is what stops a step that does not divide the range from pushing the value past `max`.
+
+  ```text
+  clamped = clamp(value, min, max)
+  snapped = min + round((clamped - min) / step) * step
+  value   = clamp(snapped, min, max)
+  ```
+
+- **A `step` of `0` disables snapping.** The value then moves continuously inside the range. A negative `step` is treated as `0`.
+- **The range is repaired before it is used.** `max` is forced to `min + 1` whenever it is not greater than `min`, so a slider can never have a zero-width range. Values that are not finite numbers fall back — to the widget defaults (`min` 0, `max` 100, `step` 1) when reading a broken range, and to the current runtime field on `Set Slider Range`.
+- **Reads are pure, writes are latent.** `Get Value`, `Get Normalized Value` and `Get Slider Range` run in `event`, `function`, and `macro` graphs, and are allowed in Blueprint Value graphs. The two write nodes are latent and limited to `event` and `macro` — a function returns synchronously to its caller and has nowhere to hand a pending write.
+- **These are Self nodes.** They act on the Slider that owns the graph and take no target pin. To drive a different Slider, use the `blueprint.element.slider.*` twins in [Element](/docs/studio/blueprint/nodes/element), which carry a `slider` input and only appear once the graph holds a binding node for an `nl.slider`.
+
+<Callout type="warn">
+`Set Slider Value` and `Set Slider Range` change runtime state only. They do not dispatch `valueChanged`, `dragStart` or `dragEnd`, so a graph that reacts to the slider through those events will not run when a blueprint moves it — do the follow-up work on the same execution chain instead. They also never write back to the UI document, so the authored value is what the Slider starts from the next time the widget mounts.
+</Callout>
+
+## Set Slider Value
+
+`blueprint.slider.setValue` · Latent
+
+Sets the mapped value, normalized against the current `min` / `max` / `step`. A value that is not a finite number is treated as `0` and then clamped into the range, so an unwired or broken input parks the handle at `min` whenever `min` is above zero.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `float` | Mapped units, not `0…1`. Accepts an on-card literal. |
+
+## Set Slider Range
+
+`blueprint.slider.setRange` · Latent
+
+Sets `min`, `max` and `step` together, then re-normalizes the current value against the new range. Narrowing a range therefore moves the handle, and coarsening `step` snaps it — the value is never left outside the range you just declared.
+
+Each pin falls back to the current runtime value for that field when it does not resolve to a finite number, so you can leave a pin unwired and its on-card literal empty to keep that part of the range as it is.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `min` | in · data | `float` | Accepts an on-card literal. |
+| `max` | in · data | `float` | Forced to `min + 1` when not greater than `min`. Accepts an on-card literal. |
+| `step` | in · data | `float` | `0` disables snapping; negatives are treated as `0`. Accepts an on-card literal. |
+
+## Set Visible
+
+`blueprint.slider.setVisible` · Latent
+
+Sets the widget's runtime visibility. This is the authored `visible` property, not the Displayable render switch — see `Set Display` in [Displayable](/docs/studio/blueprint/nodes/displayable) when you want the element to stay mounted behind `display: none`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.slider.setEnabled` · Latent
+
+Turns runtime interaction on or off for the Slider.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Value
+
+`blueprint.slider.getValue` · Pure
+
+Outputs the current mapped value — already clamped and snapped against `min` / `max` / `step`. This is the number to store in a save or show next to the control.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+## Get Normalized Value
+
+`blueprint.slider.getNormalizedValue` · Pure
+
+Outputs the mapped value's position in the range as `0…1`. It is derived from the clamped and snapped value, so a coarse `step` makes this output move in jumps too.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `normalizedValue` | out · data | `float` | |
+
+## Get Slider Range
+
+`blueprint.slider.getRange` · Pure
+
+Outputs the current runtime range on three pins. These are the repaired values, not whatever was authored — `max` already reflects the `min + 1` floor, and `step` is never negative.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `min` | out · data | `float` | |
+| `max` | out · data | `float` | |
+| `step` | out · data | `float` | |
+
+## Get Visible
+
+`blueprint.slider.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.slider.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |

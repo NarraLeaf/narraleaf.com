@@ -1,0 +1,133 @@
+---
+title: Surfaces
+description: Screens — the two kinds, the navigation stack, the enter and exit lifecycle, and how the game stage is composed from them.
+---
+
+A Surface is one screen: a root element, a design size, and the element tree underneath. Every screen in a game is a Surface — the title menu, the settings panel, the dialog box the story speaks through. A project keeps all of them in one UI document, and the runtime shows them two ways: stacked on a navigation stack, or mounted into a slot of the running game stage.
+
+## The two kinds
+
+| Kind | `host` | Where it shows | Reach for this when |
+| --- | --- | --- | --- |
+| `appSurface` | `app` | as a layer on the navigation stack | you need a screen the player opens and leaves: title, settings, saves, gallery. |
+| `stageSurface` | `player` | in one slot of the running game stage | you need to replace part of the running game's own interface: the dialog box, the choice menu, the notification stack. |
+
+There is no third kind. Both records carry `id`, `name`, `designSize`, `rootElementId`, and optional `settings` (background colour and page animation); a `stageSurface` additionally carries a `mount` naming its slot, and is created with a transparent background because it sits over the stage.
+
+Studio's UI manager labels them **Page** and **Game UI**, and the node names follow that labelling — `Go Page` opens an `appSurface`.
+
+## Design size
+
+`designSize` belongs to each Surface, not to the project. It is the coordinate system you author in: layouts are written in design pixels and the runtime scales the whole tree to the window, letterboxing to keep the aspect ratio.
+
+- The **active** Surface's design size sets the viewport box. The entry Surface's design size is also the game window's initial size.
+- Creating a Page offers a canvas size, prefilled from a Surface already in the document. Creating a Game UI offers no size field — it takes the project's design size, because it has to share the stage's coordinate system.
+
+<Callout type="info">
+The NarraLeaf stage is built at the design size of whichever Surface is active at the moment the game session mounts — not from the project setting, and not from the Game UI surfaces filling its slots. Whatever design size the Page your player presses `Start Game` on happens to have, the stage gets.
+</Callout>
+
+## The navigation stack
+
+The runtime keeps one stack of **layers**. A layer is an *instance* of a Surface, not the Surface itself: it carries its own props, its own runtime scope, and its own presentation. Open the same Surface twice and you get two independent layers that share nothing.
+
+- On boot the stack is reset to a single layer — the host's entry Surface, or the first `appSurface` in the document.
+- **Opening pushes.** `Go Page` pushes the selected Page with whatever you wired into its `props` input.
+- **Closing pops the top layer.** `Go Page` with its Page selector set to `None` *is* the close: an empty target closes the top layer instead of opening anything. There is no separate back node.
+- **The floor is permanent.** A close is refused when only one layer is left, so the entry Surface is always underneath something. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
+
+### Presentation
+
+Every layer is either `appPage` or `gameOverlay`. The runtime picks, not the author:
+
+- Before a game is running, `Go Page` opens `appPage` layers. What shows through underneath is the previous Page.
+- `Start Game` and `Load Save` **hide** every layer currently on the stack and reveal the game stage. The stack still holds them; they simply stop rendering.
+- While the stack is hidden, `Go Page` opens `gameOverlay` layers, drawn above the stage. Underneath one of these is the game, not the Pages you came from — this is what a pause menu, an in-game save screen, or mid-scene settings are.
+- `Quit Game` tears down the session and opens its return Page as `appPage` again — it sits with the other [Game nodes](/docs/studio/blueprint/nodes/game). `Quit Application` ends the runtime instead; in Dev Mode it stops the Dev Mode session rather than closing Studio, and it deliberately does not fire the window-close event, which is only for the player closing the window.
+
+`Is Game Overlay` reads this flag. It is fixed to the layer instance, so an exiting pause menu keeps its overlay answer through its whole exit animation even though the session is already being cleared. Every stage-slot Surface answers `true`, and a Page embedded inside an overlay inherits the answer from the layer holding it.
+
+Closing a `gameOverlay` when the layer beneath is one of the hidden ones plays the exit animation and reveals the stage. Nothing enters, because nothing underneath is rendering.
+
+## Lifecycle
+
+One layer, in order:
+
+1. It mounts **hidden** and paints once. Widget `Init` runs during that hidden pass, so first-frame changes settle before anything is visible.
+2. Prepaint finishes → `Surface Init`. It fires once per runtime scope; opening the same Surface again is a new scope, so it fires again.
+3. The enter animation plays.
+4. `After Surface Enter` — after the animation completes. With no animation, or under reduced motion, it follows prepaint immediately. Exactly once per enter, no matter which internal path reported completion.
+5. `Before Surface Exit` — *before* the exit animation starts.
+6. The exit animation plays, the layer unmounts → `Surface Unmount`.
+
+Three pure nodes report the same thing as state instead of as an edge:
+
+| Node | `true` while |
+| --- | --- |
+| `Is Surface Entering` | from mount until the enter animation completes |
+| `Is Surface Exiting` | from `Before Surface Exit` until the layer unmounts |
+| `Is Surface Transitioning` | either of the above |
+
+The state flips **before** the matching event head runs. Inside `After Surface Enter`, `Is Surface Entering` already reads `false`; inside `Before Surface Exit`, `Is Surface Exiting` already reads `true`. Read them to ask *what is happening now*; use the event heads for *when it happened*. In an environment with no animation layer at all, all three read `false`.
+
+`Before Surface Exit` and `After Surface Enter` also reach the private blueprints of mounted widgets — only those alive at that instant. `Surface Init` and `Surface Unmount` do not; they belong to the Surface. A widget's own pair is `Init` and `Unmount`. All the heads are listed under [Events nodes](/docs/studio/blueprint/nodes/events).
+
+<Callout type="warn">
+Pointer input and keyboard input are not held back alike during a transition. Clicks are blocked until the enter animation completes and dropped again at `Before Surface Exit`, but key presses keep arriving from the end of prepaint straight through both animations. A graph that must ignore keys mid-transition has to branch on `Is Surface Transitioning` itself.
+</Callout>
+
+## Surface, Page, and Frame
+
+`nl.frame` is a widget that renders **another app Surface inside the current one**. What it shows is a **Page**.
+
+Page is a role, not a separate document type. The same `appSurface` can be a layer on the navigation stack in one place and a Page inside a Frame in another. A Frame is not an iframe either — the target renders through the same renderer, in the same document.
+
+- The target must be another app Surface. Pointing a Frame at itself, at a Game UI, at a missing Surface, or at anything that leads back to the Surface holding the Frame is rejected, and the Frame shows a placeholder instead of breaking the render.
+- Each Frame instance gets its own runtime scope, derived from the parent scope, the Frame element, and the target. Two Frames showing the same Page share no surface state, no widget locals, and no lifecycle. The embedded Page fires its own `Surface Init` when the Frame first mounts it, and `Surface Unmount` when the target changes or the Frame goes away.
+
+`params` is how values reach a Page:
+
+- A Frame's `params` prop **is** the embedded Page's props. `Get Page Props` inside that Page reads it.
+- For a layer on the navigation stack, the props are what `Go Page` passed. Same node, same read — which is why a Page works in both positions without knowing where it is.
+- A non-object value normalizes to `{}`, and a field that is not there reads as `null`.
+- `Set Frame Page` switches the target and can write params in the same call; leaving its props input unwired keeps the existing params. See [Frame nodes](/docs/studio/blueprint/nodes/frame).
+- The child talks back with `Emit Page Event`, received by the `Page Event` head on the Frame element's own blueprint. A top-level layer has no parent Frame, so emitting there reaches nobody.
+
+## Stage slots
+
+While a story runs, NarraLeaf owns the stage and Studio hands it your Game UI surfaces. There are five slots, and one active Game UI each.
+
+| Slot | Takes over | Build here |
+| --- | --- | --- |
+| `dialog` | the dialog box | the nametag and a `Sentence`, plus whatever advances the line |
+| `choice` | the choice menu | a `Choice List` over `{ text, index, disabled }`, with `Item Click` wired to `Select Choice` |
+| `notification` | the notification stack | a `Notification List` over `{ id, message }` |
+| `nvl` | full-screen novel-mode dialog | an `NVL List` over `{ nametag, isActive, index }`, plus `NVL Texts` |
+| `onStage` | nothing — it is an extra layer | a HUD over the running stage |
+
+A slot you leave empty keeps NarraLeaf's own built-in component, so deleting your Dialog surface does not leave the game without a dialog box. The slot picker disables slots already taken; if a document somehow holds two Surfaces for one slot, the runtime uses the first in document order and warns.
+
+`onStage` is the exception in the list. NarraLeaf has no injection point for it, so it mounts as a child of the Player, above the stage. It renders only while the stage is visible, and its shell is click-through on purpose — empty space must still advance the story. A full-screen interactive container placed in it will swallow those clicks.
+
+Each slot Surface runs in its own runtime scope, keyed by the game session, the slot, and the Surface, and `Is Game Overlay` is `true` inside all of them.
+
+## The Surface blueprint
+
+Each Surface has one blueprint, owner `surfaceMain`. It lives exactly as long as the layer or Frame instance that mounted it: open a Surface twice and its blueprint runs twice, with separate locals and separate surface state.
+
+What it can reach:
+
+- **Its own elements.** The `Element` literal stores `{ surfaceId, elementId, elementType }` and is same-Surface by construction. Nothing reaches into another Surface's tree.
+- **Its own surface state**, keyed by the layer's runtime scope, so two layers of the same Surface never collide. Scopes and lifetimes are on [Variables](/docs/studio/blueprint/variables).
+- **Its own props**, through `Get Page Props`.
+- Everything that is not per-Surface anyway: persistent variables, global state, saves, the running game.
+
+Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, the keyboard heads, the game-preference heads, fullscreen changes, the window-close request, and the broadcast receivers.
+
+`Mouse Click` and `Right Click` behave differently here than on a widget: on a Surface they fire for **any** click inside it and output coordinates in that Surface's design space, where the widget version only fires for its own element. A Page embedded in a Frame gets its own Surface click before the parent Surface sees one.
+
+Against widget-level blueprints:
+
+- A `widgetMain` blueprint belongs to one widget instance and mounts and unmounts with it. `Init` and `Unmount` are its lifecycle; the Surface's is `Surface Init` and `Surface Unmount`.
+- Keyboard heads dispatch to the global blueprint, the active Surface blueprint, **and** every mounted widget that declares one. Put the same head in all three and all three run.
+- Element nodes are how a Surface blueprint acts on a widget it does not own — that is the whole reason the Self/Element split exists.

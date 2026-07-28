@@ -1,0 +1,123 @@
+---
+title: Button
+description: The label, pointer, and interaction state of the button that owns the blueprint.
+---
+
+Self nodes for `nl.button`. Each one acts on the button whose blueprint it sits in, takes no `Element` input, and only appears in that button's own blueprint. To reach a different button, use its counterpart in [Element](/docs/studio/blueprint/nodes/element).
+
+## Conventions
+
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **A write that changes nothing does nothing.** The host compares the incoming value against the current one and returns early when they match, so no redraw is queued and no `On Flush` fires.
+- **Boolean inputs fall back to the current value.** `enabled` and `visible` take no on-card literal; if nothing is wired, or the edge resolves to `null`, the property is left as it is. A wired non-boolean counts as true only when it is the string `"true"` or `"1"`.
+- **Appearance lives in [Displayable](/docs/studio/blueprint/nodes/displayable).** Geometry, opacity, and appearance variants are set there, for every widget, not here.
+- **Two nodes on this page are not in the palette.** `Get Variant` and `Set Variant` were superseded by the Displayable variant nodes and hidden. They are documented because blueprints authored before that switch still hold them and still run — not because you can add one.
+- **None of these run inside a Blueprint Value.** The `Get` nodes are pure, but a Blueprint Value evaluates on a `widgetValue` owner and every node on this page is scoped to the button's main blueprint. To read the button from inside a Blueprint Value, place an `Element` literal for it and use the Element-category reader. `props.label` is itself a property a Blueprint Value can drive.
+
+## Set Label
+
+`blueprint.button.setLabel` · Latent
+
+Writes the button's text. With nothing wired and the card field left empty it writes an empty string — it blanks the label rather than leaving it alone.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `label` | in · data | `string` | Accepts an on-card literal. |
+
+## Get Label
+
+`blueprint.button.getLabel` · Pure
+
+Reads the stored `props.label`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `label` | out · data | `string` | |
+
+When a Blueprint Value drives `props.label`, it overrides the stored value at render time only. `Set Label` still writes the stored value and `Get Label` still returns it, so the pair keeps working on a value the player is not looking at.
+
+## Set Pointer
+
+`blueprint.button.setPointer` · Latent
+
+Sets the button's default mouse pointer — the same field the Mouse section of the Appearance inspector writes. There is no `Get Pointer`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `cursor` | One of `auto`, `default`, `pointer`, `text`, `move`, `grab`, `grabbing`, `crosshair`, `help`, `wait`, `progress`, `not-allowed`. |
+
+`auto` is resolved at runtime rather than stored as a shape: `pointer` when the button can dispatch a click, `default` when it cannot. A button with `enabled` false shows `not-allowed` whatever you set here, so pointer changes on a disabled button are invisible until you enable it again.
+
+## Set Enabled
+
+`blueprint.button.setEnabled` · Latent
+
+`false` disables interaction. The button stays rendered and laid out; it stops taking clicks and switches to the `not-allowed` pointer.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.button.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.button.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+<Callout type="warn">
+`visible` false removes the button and its subtree from the runtime element tree — it is not a CSS hide. The widget unmounts, this blueprint stops, and `Init` runs again when it comes back, so a hidden button cannot show itself: something else has to call `Set Element Visible` on it. Use Displayable `Set Display` when you want it hidden but mounted.
+</Callout>
+
+## Get Visible
+
+`blueprint.button.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Set Variant
+
+`blueprint.button.setVariant` · Latent
+
+Hidden from the palette — you cannot add this node. It is superseded by Displayable `Set Variant`, which picks the variant by name on the card and covers every widget that has variants. It still executes, so blueprints authored before the switch keep working.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+The variant id comes from the `variantId` input an older document stored on the node; the current definition declares no such pin, so a freshly placed card has nothing to set. An id the button does not own raises a graph execution error; an empty id resets it to the default variant.
+
+## Get Variant
+
+`blueprint.button.getVariant` · Pure
+
+Hidden from the palette for the same reason, and it has no supported replacement: the Displayable `Get Variant` is hidden too, and the variant UUID this outputs is an internal persistence value that nothing in a new blueprint consumes.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | Empty while the button is on its default variant. |

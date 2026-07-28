@@ -1,0 +1,184 @@
+---
+title: Button, Container, Frame
+description: Button label and pointer, container clipping, and the Page a Frame shows — all on a wired element.
+---
+
+Three small property surfaces: a Button's label and cursor, a Container's clipping, and the Page a Frame shows. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
+
+## Button
+
+Button nodes take an `element:nl.button` pin. The Self forms are in [Button](/docs/studio/blueprint/nodes/button).
+
+### Get Button Label
+
+`blueprint.element.button.getLabel` · Pure
+
+Reads the button's label text.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | out · data | `string` |  |
+
+### Set Button Label
+
+`blueprint.element.button.setLabel` · Latent
+
+Sets the button's label text.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | in · data | `string` | Accepts an on-card literal. |
+
+### Set Button Pointer
+
+`blueprint.element.button.setPointer` · Latent
+
+Chooses the button's default cursor. There is no data pin for it — the card carries the same icon dropdown as the button's Appearance inspector.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `cursor` | `Auto`, `Default`, `Pointer`, `Text`, `Move`, `Grab`, `Grabbing`, `Crosshair`, `Help`, `Wait`, `Progress`, `Not allowed`. `Auto` resolves at runtime to a click cursor or the plain default depending on whether the button is clickable; a disabled button is rendered `not-allowed` either way. |
+
+### Get Button Variant
+
+`blueprint.element.button.getVariant` · Pure
+
+The old id-based read. Kept registered so graphs that already contain it keep running; the palette does not offer it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Button Variant
+
+`blueprint.element.button.setVariant` · Latent
+
+The old id-based write, likewise hidden. It has no `variantId` pin — it reads a stored parameter — and there is no author-facing way to fill that parameter any more. Use `Set Element Variant`, which picks Variants by name.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+## Container
+
+Container nodes take an `element:nl.container` pin. The Self forms are in [Container](/docs/studio/blueprint/nodes/container).
+
+### Get Container Clip Content
+
+`blueprint.element.container.getClipContent` · Pure
+
+Reads whether the container clips its overflowing content.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | out · data | `boolean` |  |
+
+### Set Container Clip Content
+
+`blueprint.element.container.setClipContent` · Latent
+
+Sets whether the container clips its overflowing content.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | in · data | `boolean` |  |
+
+### Get Container Variant
+
+`blueprint.element.container.getVariant` · Pure
+
+The old id-based read, hidden from the palette for the same reason as the Button pair.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Container Variant
+
+`blueprint.element.container.setVariant` · Latent
+
+The old id-based write, hidden from the palette. Use `Set Element Variant`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+
+## Frame
+
+Frame nodes take an `element:nl.frame` pin and act on the Frame's own target Page and params. Moving the player to a different Page is a different job, done by `Go Page` in [App](/docs/studio/blueprint/nodes/app). The Self forms are in [Frame](/docs/studio/blueprint/nodes/frame).
+
+### Get Frame Target Page
+
+`blueprint.element.frame.getTargetPage` · Pure
+
+Reads the target Page's surface id, or an empty string when the Frame shows nothing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `targetSurfaceId` | out · data | `string` |  |
+
+### Set Frame Page
+
+`blueprint.element.frame.setTargetPage` · Latent
+
+Switches the Frame to another Page. The dropdown filters out the Page the Frame itself sits on and any Page that would nest cyclically — and for this Element form it works that out by reading the wired `Element` node's own Surface, so the list only populates once the reference is connected. The Frame then plays its normal enter and exit animation.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `props` | in · data | `json` | Written into the Frame's `params` and handed to the embedded Page as its props. Unwired, the current `params` are kept — this is not a clear. Optional. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `targetSurfaceId` | Dynamic options: the Pages this Frame may legally show. The empty option is labelled None and clears the target. |
+
+### Get Frame Params
+
+`blueprint.element.frame.getParams` · Pure
+
+Reads the params object handed to the embedded Page.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | out · data | `json` |  |
+
+### Set Frame Params
+
+`blueprint.element.frame.setParams` · Latent
+
+Writes the params object. A non-object value is normalized to an empty object.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | in · data | `json` |  |

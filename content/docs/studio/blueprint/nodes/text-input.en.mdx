@@ -1,0 +1,53 @@
+---
+title: Text Input
+description: Self nodes for the nl.textInput widget — reading, replacing, and clearing the value the player typed.
+---
+
+The Text Input category is the Self node set of the `nl.textInput` widget. Three nodes, and they all touch the same thing: the field's runtime value. They appear only in the palette of an `nl.textInput` element's own `widgetMain` blueprint, and they act on that element. To reach a *different* field, use the `blueprint.element.textInput.*` node of the same name from the [Element](/docs/studio/blueprint/nodes/element) category, which takes an `element:nl.textInput` input.
+
+Three nodes is the whole surface because the runtime value carries nothing but the string. `placeholder`, `readOnly`, `disabled`, `inputMode` and `maxLength` stay authored props — a blueprint patch to any of them would be silently dropped, so no node offers one. To react to typing, handle the widget's `Value Changed` and `Submit` events from the [Events](/docs/studio/blueprint/nodes/events) category.
+
+## Conventions
+
+- **No target pin.** A Self node has no `Element` input; it resolves its target from the blueprint's execution owner.
+- **The value is session state.** What the player types lives in the runtime store for the session and is never written back to the project document. `Get Text` reads that store, `Set Text` and `Clear Text` write to it, and the authored `props.value` is only the starting point it falls back to.
+- **`Get Text` is `Pure`, the two writers are `Latent`.** The read is legal in `event`, `function` and `macro` graphs. The writers suspend the graph, which bars them from `function` graphs — a function returns synchronously and has nowhere to hold a pending write.
+- **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain`, so `Get Text` never appears in that palette. Read a field from a Blueprint Value with the Element-targeted `Get Text` and an `Element` literal.
+- **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a writer fails with `Host API unavailable (use Dev Mode)`, and `Get Text` produces nothing.
+- **Written values are still clamped.** Line breaks collapse to a single space — a single-line field must not smuggle a newline in from a graph — and the string is truncated to `maxLength` when that prop is non-zero. The `inputMode` filter is not applied, though: it rejects illegal keystrokes at the keyboard, so a blueprint can write letters into a `number` field.
+- **A blueprint write is not a keystroke.** It moves the value and queues a flush, and that is all. `Value Changed` and `Submit` are raised by the player typing, never by `Set Text` or `Clear Text`, so a handler that writes back to its own field cannot spin.
+- **A write that changes nothing does nothing.** Setting the value the field already holds queues no flush either, so the element does not fire `On Flush`.
+
+## Get Text
+
+`blueprint.textInput.getValue` · Pure
+
+Reads the field's current value, and its length alongside it so you do not need a separate string node for the common "is it empty / is it long enough" check.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `string` | |
+| `length` | out · data | `float` | Counted in code points, not UTF-16 units, so an emoji counts once. This is the same unit `maxLength` is measured in. Typed `float` even though it is always a whole number. |
+
+## Set Text
+
+`blueprint.textInput.setValue` · Latent
+
+Replaces the field's value. It writes the runtime store directly and does not move focus.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `string` | Writes an empty string when nothing resolves. Accepts an on-card literal. |
+
+## Clear Text
+
+`blueprint.textInput.clear` · Latent
+
+Writes an empty string. Identical to `Set Text` with nothing wired, but says so on the card.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |

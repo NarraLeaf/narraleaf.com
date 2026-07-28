@@ -1,0 +1,493 @@
+---
+title: Displayable
+description: Geometry, opacity, Variants and property animation on a wired element, plus the visible and enabled pair every widget carries.
+---
+
+Two families that apply to every widget type: the Displayable geometry and appearance nodes, and the `visible` / `enabled` pair each built-in widget repeats. The rules that govern all Element nodes — when the palette offers one, and how a missing target fails — are in [Element](/docs/studio/blueprint/nodes/element).
+
+## Displayable
+
+These take the generic `element` pin, so they accept a reference to any displayable element instead of one widget type. Coordinates are the Surface's design coordinates — the same numbers the inspector shows. Opacity is a single effective value: an Appearance Variant's `transformOpacity` resolves into it, an `nl.image` Variant's changed `fillOpacity` resolves into it, and `Get Element Property`, `Set Element Property` and `Animate Element Property` all touch that one number.
+
+Seven readers at the end of this section — position, size, bounds, rotation, opacity, visible and variant — are superseded by `Get Element Property` and hidden from the palette. They stay registered so blueprints that already contain them keep running. They are documented because you will meet them in old graphs, not because you should add one.
+
+The Self forms of all of these live in [Displayable](/docs/studio/blueprint/nodes/displayable).
+
+### Get Element Property
+
+`blueprint.element.displayable.getProperty` · Pure
+
+The reader to use. Pick the property on the card and the `value` pin carries it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `value` | out · data | `any` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | `position` gives `{ x, y }`, `size` gives `{ width, height }`, `bounds` gives `{ x, y, width, height }`. `x`, `y`, `offsetX`, `offsetY`, `width`, `height`, `rotation` and `opacity` give a number; `visible` gives a boolean. `opacity` comes back as `0..1`. |
+
+### Set Element Property
+
+`blueprint.element.displayable.setProperty` · Latent
+
+Writes one runtime property on the target. `variant` is deliberately absent from the list — Variants go through `Set Element Variant`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `value` | in · data | `any` | Wiring it disables the card's Value control; the wired value wins. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | `x`, `y`, `offsetX`, `offsetY`, `width`, `height`, `rotation`, `opacity`, `visible`. |
+| `value` | The card shows the unit: `px` for the positions and sizes, `deg` for `rotation`, `%` for `opacity`. `visible` becomes a Visible / Hidden dropdown. Number fields are draft-edited — the value commits on Enter or on losing focus, and Esc discards it. |
+
+### Animate Element Property
+
+`blueprint.element.displayable.animateProperty` · Latent
+
+Starts a property tween. The `animation` token is written out the moment the animation starts; `next` fires once the animation finishes on its own or is cut short by `Stop Element Animation`. It is a property node, not an effect library — build Fade or Shake on top of it as a macro.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `animation` | out · data | `AnimationToken` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `property` | `opacity`, `offsetX`, `offsetY`, `x`, `y`, `scale`, `rotation`. `offsetX` / `offsetY` are a visual displacement from the authored layout; `x` / `y` animate the layout position itself. |
+| `from` | Leave it empty and the tween starts from the element's current runtime state. If you want `x` or `y` to start at coordinate zero you must type `0` — empty is not zero. |
+| `to` | The target value. |
+| `duration` | Seconds. `0.3` is 300ms. |
+| `delay` | Seconds. |
+| `easing` | `linear`, `easeIn`, `easeOut`, `easeInOut`, `circIn`, `circOut`, `circInOut`. |
+| `after` | `hold` keeps the final value and writes it back to the runtime patch, so a later refresh cannot undo it. `reset` returns to the authored layout and appearance. |
+
+<Callout type="warn">
+`From` and `To` are percentages for `opacity`: `100` is opaque and `1` is one percent. `Set Element Property` reads the same property differently — it treats anything above `1` as a percentage and anything at or below `1` as a `0..1` fraction, so `1` there means fully opaque. Same property, two nodes, opposite meanings for the number `1`.
+</Callout>
+
+### Stop Element Animation
+
+`blueprint.element.displayable.stopAnimation` · Latent
+
+The one node in this category with no element target: the token already identifies one animation on one element. It stops exactly that animation and lets the `Animate Element Property` waiting on it reach `next` early. A missing value, a value that is not an `AnimationToken`, or a token that is no longer pending is a silent no-op. Because it needs no binding, it is also the only Element node the palette offers unconditionally.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `animation` | in · data | `AnimationToken` |  |
+
+### Set Element Variant
+
+`blueprint.element.displayable.setVariant` · Latent
+
+Sets the runtime Appearance Variant override. There is no `variantId` pin and no way to type an id: once the wired reference makes the target statically knowable, the card lists that element's own Variants by name and stores the internal UUID as a hidden value. A second card field, Wait For Animation, chooses between continuing immediately and waiting for the longest field transition on the chosen Variant. Running it against an element that does not support Appearance Variants raises an execution error rather than doing nothing.
+
+It also clears any earlier runtime opacity override, letting the Variant decide the opacity — which is why switching to a transparent Variant and then animating `opacity` from 0 to 100 enters from that transparent state instead of sticking at zero.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` | Only widget types that support Appearance Variants are accepted here. |
+
+### Get Element Display
+
+`blueprint.element.displayable.getDisplay` · Pure
+
+Reads the runtime render switch, which defaults to `true`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `display` | out · data | `boolean` |  |
+
+### Set Element Display
+
+`blueprint.element.displayable.setDisplay` · Latent
+
+`false` applies CSS `display: none` to the element and its subtree while leaving it mounted in the Surface element tree. It is not `visible`: that remains a layout and visibility property, reached through `Get Element Property` / `Set Element Property`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `display` | in · data | `boolean` |  |
+
+### Get Element Position
+
+`blueprint.element.displayable.getPosition` · Pure
+
+Reads the layout position as a `Vector2D` in design coordinates.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `position` | out · data | `Vector2D` |  |
+
+### Get Element Size
+
+`blueprint.element.displayable.getSize` · Pure
+
+Reads width and height as a `Vector2D`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `size` | out · data | `Vector2D` |  |
+
+### Get Element Bounds
+
+`blueprint.element.displayable.getBounds` · Pure
+
+Reads `{ x, y, width, height }` in one object.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `bounds` | out · data | `json` |  |
+
+### Get Element Rotation
+
+`blueprint.element.displayable.getRotation` · Pure
+
+Reads the visual rotation in degrees.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `rotation` | out · data | `float` |  |
+
+### Get Element Opacity
+
+`blueprint.element.displayable.getOpacity` · Pure
+
+Reads the effective opacity as `0..1`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `opacity` | out · data | `float` |  |
+
+### Get Element Visible
+
+`blueprint.element.displayable.getVisible` · Pure
+
+Reads the `visible` property — not `display`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Get Element Variant
+
+`blueprint.element.displayable.getVariant` · Pure
+
+Reads the active Variant's internal UUID. Nothing in the current editor asks an author to handle that id, which is why the whole id-based Variant path is retired.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `variantId` | out · data | `string` |  |
+
+## Visible and Enabled
+
+Every built-in widget carries the same four nodes: read and write `visible`, read and write `enabled`. Each takes a target pin typed to its own widget, so which four the palette offers depends on which widget types the graph binds. `Set … Enabled` mapped to `false` goes through the renderer's interaction-disable path; the node surface deliberately never exposes `interactionDisabled`.
+
+To hide an element without unmounting it, reach for `Set Element Display` instead — `visible` and `display` are different switches, and only `display` collapses the subtree.
+
+### Get Button Visible
+
+`blueprint.element.button.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Button Visible
+
+`blueprint.element.button.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Button Enabled
+
+`blueprint.element.button.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Button Enabled
+
+`blueprint.element.button.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Container Visible
+
+`blueprint.element.container.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Container Visible
+
+`blueprint.element.container.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Container Enabled
+
+`blueprint.element.container.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Container Enabled
+
+`blueprint.element.container.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Frame Visible
+
+`blueprint.element.frame.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Frame Visible
+
+`blueprint.element.frame.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Frame Enabled
+
+`blueprint.element.frame.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Frame Enabled
+
+`blueprint.element.frame.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Image Visible
+
+`blueprint.element.image.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Image Visible
+
+`blueprint.element.image.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Image Enabled
+
+`blueprint.element.image.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Image Enabled
+
+`blueprint.element.image.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get List Visible
+
+`blueprint.element.list.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set List Visible
+
+`blueprint.element.list.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get List Enabled
+
+`blueprint.element.list.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set List Enabled
+
+`blueprint.element.list.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Slider Visible
+
+`blueprint.element.slider.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Slider Visible
+
+`blueprint.element.slider.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Slider Enabled
+
+`blueprint.element.slider.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Slider Enabled
+
+`blueprint.element.slider.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Text Visible
+
+`blueprint.element.text.getVisible` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Text Visible
+
+`blueprint.element.text.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Text Enabled
+
+`blueprint.element.text.getEnabled` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Text Enabled
+
+`blueprint.element.text.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | in · data | `boolean` |  |
