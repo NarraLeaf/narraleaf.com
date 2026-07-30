@@ -1,0 +1,143 @@
+---
+title: Spine
+description: 自行构建 Spine 运行时适配器并安装进工程，把 Spine 骨骼动画当作 Studio 角色使用。
+---
+
+Spine 通过**骨骼**做动画：骨架驱动从打包图集中取出的附件。一个 Spine 模型由骨骼文件（`.json` 或 `.skel`）、一个 `.atlas`，以及图集指名的贴图页组成。
+
+Studio 支持 Spine 角色，但与 [Live2D](/zh/docs/studio/model-runtimes/live2d) 不同，它**不能替你构建适配器**。你构建一次，然后安装结果。如果你写过运行时适配器，[编写自己的运行时](/zh/docs/studio/model-runtimes/custom) 是参考手册；本页讲 Spine 特有的部分。
+
+## 为什么要你自己构建
+
+<Callout type="warn">
+    **Spine Runtimes 的授权方是 Esoteric Software。** 其 Editor License Agreement 要求把 Spine 运行时**集成**进工具的一方持有有效的 Spine Editor 授权，**Trial 不算**。NarraLeaf 未持有 Spine 授权，所以 Studio 不含任何 Spine 代码，也不提供「替我构建」这一步——那一步正是该协议所规范的集成行为。
+</Callout>
+
+这对你意味着什么，按顺序：
+
+1. **每个使用 Spine 的人都需要自己的 Editor 授权。** 它按人算，不按工程算。见 [Spine 的购买页](https://esotericsoftware.com/spine-purchase)。
+2. **由你**通过构建下述适配器完成集成。你的 Editor 授权覆盖这件事。
+3. **Spine Runtimes License 必须随你发行的游戏一并提供**——全文，放在随产品的文档中。这是 Esoteric 对你的要求，Studio 不会替你做。
+
+## 构建适配器
+
+适配器是一个 ES 模块，把 Spine 运行时桥接到引擎的 puppet 契约上。Esoteric 自己在 npm 上发布运行时，以 npm 依赖引用是干净的路径——**不要 vendor 它的源码**。
+
+<Steps>
+<Step>
+
+### 建一个小工程
+
+```bash
+mkdir spine-adapter && cd spine-adapter
+npm init -y
+npm install @esotericsoftware/spine-webgl esbuild
+```
+
+</Step>
+<Step>
+
+### 写适配器
+
+一个文件。形状是引擎的 `PuppetBackend`，而 Spine 特有的部分是：骨骼与图集是分开的文件，所以图集必须相对宿主给你的入口来解析；以及 Spine 需要它自己的 WebGL 上下文。
+
+```js title="src/index.js"
+import {
+    AnimationState, AnimationStateData, AtlasAttachmentLoader,
+    GLTexture, ManagedWebGLRenderingContext, Physics,
+    SceneRenderer, Skeleton, SkeletonBinary, SkeletonJson, TextureAtlas,
+} from "@esotericsoftware/spine-webgl";
+
+export default function createPuppetBackends({ log }) {
+    log("info", "spine backend registered");
+    return {
+        name: "spine",
+        mount(container, ctx) {
+            // ctx.src 是骨骼文件；ctx.resolveSibling() 用来取图集及其贴图页。
+            // ctx.options 归你所有——用它来指定图集名。
+            // 按引擎的 Puppet 契约返回 { ready, apply, command, resize, dispose }。
+            // ...
+        },
+    };
+}
+```
+
+引擎的 [木偶 (Puppet)](/zh/docs/narraleaf-react/core/elements/puppet) 页面记录了每个方法、各自何时被调用、以及「完整状态」的含义。映射方式是：`motion` → 一个 Spine 动画名，`skin` → 一个 Spine 皮肤，`expression` → 你的绑定用什么表示表情，或者不用。
+
+</Step>
+<Step>
+
+### 打包
+
+产物必须是**单个自包含的 ES 模块**，因为 Studio 加载的就是它。
+
+```js title="build.mjs"
+import { build } from "esbuild";
+await build({
+    entryPoints: ["src/index.js"],
+    outfile: "dist/index.js",
+    bundle: true,
+    format: "esm",
+    platform: "browser",
+    target: "es2022",
+    // 让 Spine Runtimes 的许可头留在产物里，它本就该在那儿。
+    legalComments: "inline",
+});
+```
+
+</Step>
+</Steps>
+
+## 安装它
+
+<Steps>
+<Step>
+
+### 打开安装器
+
+从用 **新建角色 → Spine** 创建的角色，点它*绘制运行时*那行的 **安装**；或走 **项目 → 运行时 → Spine → 安装**。
+
+</Step>
+<Step>
+
+### 阅读条款并继续
+
+对话框会重述上面的许可立场。勾选确认。
+
+</Step>
+<Step>
+
+### 把你构建的东西交给 Studio
+
+单个打包好的 `index.js` 用 **选择文件**；如果你的适配器有运行时才加载的兄弟文件，用 **选择目录**——那种情况下整个目录会被复制。
+
+</Step>
+<Step>
+
+### Studio 校验它
+
+它会以游戏将要采用的同一方式加载该模块，确认它**确实**产出了一个后端。产不出后端的模块会被**拒绝并回滚**，而不是留在原地看起来装好了——一个看起来装好却画不出东西的目录比没装更糟，因为它只在角色上台的那一刻才失败。
+
+</Step>
+</Steps>
+
+<Callout type="info">
+    **目录会以你的模块所注册的 backend 名命名。** 如果你的模块把自己注册为 `spine-pro`，而你按 `spine` 安装，Studio 会把目录改名为 `spine-pro` 并告知你——因为引擎按**注册名**解析角色的运行时，而编辑器列出的是目录名，两者不一致就会在舞台上画出一个空盒子，同时在你能看到的每个地方都显示「运行时已正确安装」。
+</Callout>
+
+## 加入模型
+
+Spine 模型是一个目录——骨骼、图集、贴图页——所以像任何模型包一样按目录导入。有两个细节属于 Spine 而非 Studio：
+
+- **入口文件。** Studio 会挑它认得的骨骼。如果你的包里有两套骨骼共用一个图集，在 **入口** 字段里指名这个角色要的那一套。
+- **图集。** 文件名本身无法告诉 Studio 哪个文件是图集，所以由你的适配器决定——惯例是从 **选项** 里读：
+
+```json
+{ "atlas": "spineboy/spineboy-pma.atlas", "format": "binary" }
+```
+
+选项会原样交给你的适配器；Studio 不读其中任何一个键。
+
+## 这个角色支持什么
+
+取决于你的适配器报告什么。如果它实现了引擎的 `describe()`，Studio 会从模型填出动作 / 皮肤 / 参数字段——动画名、皮肤名，以及你暴露的任何参数——预览也会以静止姿态画出骨骼。如果它没实现，每个字段都是文本框、由你输入名字；这同样能正常工作，对于只给自己用的适配器来说是个合理选择。

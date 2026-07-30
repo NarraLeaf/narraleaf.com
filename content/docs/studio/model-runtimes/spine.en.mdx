@@ -1,0 +1,144 @@
+---
+title: Spine
+description: Use a Spine skeleton as a Studio character by building the runtime adapter yourself and installing it into your project.
+---
+
+Spine animates by bones: a skeleton drives attachments drawn from a packed texture atlas. A Spine model is a skeleton file (`.json` or `.skel`), an `.atlas`, and the texture pages the atlas names.
+
+Studio supports Spine characters, but unlike [Live2D](/docs/studio/model-runtimes/live2d) it **cannot build the adapter for you**. You build it once and install the result. If you have written a runtime adapter before, [Write your own](/docs/studio/model-runtimes/custom) is the reference; this page is the Spine-specific part.
+
+## Why you build it
+
+<Callout type="warn">
+    **Spine Runtimes are licensed by Esoteric Software.** Their Editor License Agreement requires whoever *integrates* a Spine runtime into a tool to hold a valid Spine Editor licence, and a trial does not count. NarraLeaf holds no Spine licence, so Studio ships no Spine code and offers no "build it for me" step — that step would be the integration the licence governs.
+</Callout>
+
+What this means for you, in order:
+
+1. **Everyone who works with Spine needs their own Editor licence.** It is per person, not per project. See [Spine's purchase page](https://esotericsoftware.com/spine-purchase).
+2. **You** integrate the runtime, by building the adapter described below. Your Editor licence covers that.
+3. **The Spine Runtimes License must travel with the game you ship** — its full text, in the documentation accompanying your product. That is Esoteric's requirement of you, and Studio does not do it for you.
+
+## Build the adapter
+
+The adapter is one ES module that bridges a Spine runtime to the engine's puppet contract. Esoteric publishes the runtime on npm, which is the clean way to depend on it — do not vendor its source.
+
+<Steps>
+<Step>
+
+### Set up a small project
+
+```bash
+mkdir spine-adapter && cd spine-adapter
+npm init -y
+npm install @esotericsoftware/spine-webgl esbuild
+```
+
+</Step>
+<Step>
+
+### Write the adapter
+
+One file. The shape is the engine's `PuppetBackend`, and the pieces specific to Spine are: the skeleton and atlas are separate files, so the atlas has to be resolved relative to the entry the host gives you; and Spine wants its own WebGL context.
+
+```js title="src/index.js"
+import {
+    AnimationState, AnimationStateData, AtlasAttachmentLoader,
+    GLTexture, ManagedWebGLRenderingContext, Physics,
+    SceneRenderer, Skeleton, SkeletonBinary, SkeletonJson, TextureAtlas,
+} from "@esotericsoftware/spine-webgl";
+
+export default function createPuppetBackends({ log }) {
+    log("info", "spine backend registered");
+    return {
+        name: "spine",
+        mount(container, ctx) {
+            // ctx.src is the skeleton file; ctx.resolveSibling() reaches the atlas
+            // and its pages. ctx.options is yours - use it for the atlas name.
+            // Return { ready, apply, command, resize, dispose } as the engine's
+            // Puppet contract describes.
+            // ...
+        },
+    };
+}
+```
+
+The engine's [Puppet](/docs/narraleaf-react/core/elements/puppet) page documents every method, when each is called, and what a complete state means. Map it as: `motion` → a Spine animation name, `skin` → a Spine skin, `expression` → whatever your rig uses for one, or nothing.
+
+</Step>
+<Step>
+
+### Bundle it
+
+The output must be a single self-contained ES module, because that is what Studio loads.
+
+```js title="build.mjs"
+import { build } from "esbuild";
+await build({
+    entryPoints: ["src/index.js"],
+    outfile: "dist/index.js",
+    bundle: true,
+    format: "esm",
+    platform: "browser",
+    target: "es2022",
+    // Keeps the Spine Runtimes licence header in the output, where it belongs.
+    legalComments: "inline",
+});
+```
+
+</Step>
+</Steps>
+
+## Install it
+
+<Steps>
+<Step>
+
+### Open the installer
+
+From a character created with **New character → Spine**, use **Install** on its *Drawing runtime* row; or **Project → Runtimes → Spine → Install**.
+
+</Step>
+<Step>
+
+### Read the terms and continue
+
+The dialog restates the licence position above. Tick the acknowledgement.
+
+</Step>
+<Step>
+
+### Point Studio at what you built
+
+**Choose file** for a single bundled `index.js`, or **Choose folder** if your adapter has siblings it loads at runtime — the whole folder is copied in that case.
+
+</Step>
+<Step>
+
+### Studio checks it
+
+It loads the module the same way the game will and confirms it actually produces a backend. A module that yields nothing is **rejected and rolled back**, rather than left in place looking installed — a folder that looks installed and cannot draw is worse than no install, because it only fails when a character reaches the stage.
+
+</Step>
+</Steps>
+
+<Callout type="info">
+    **The folder is named after the backend your module registers.** If your module registers itself as `spine-pro` and you installed it as `spine`, Studio renames the folder to `spine-pro` and tells you — because the engine resolves a character's runtime by the *registered* name, and a mismatch would produce an empty box on stage while the runtime looked correctly installed everywhere you could see.
+</Callout>
+
+## Add a model
+
+A Spine model is a folder — skeleton, atlas, texture pages — so it imports as a folder, like any model bundle. Two details are Spine's rather than Studio's:
+
+- **The entry file.** Studio picks the skeleton it recognises. If your bundle has two skeletons sharing one atlas, name the one this character wants in the **Entry** field.
+- **The atlas.** Nothing in the file names tells Studio which file is the atlas, so your adapter decides — conventionally by reading it from **Options**:
+
+```json
+{ "atlas": "spineboy/spineboy-pma.atlas", "format": "binary" }
+```
+
+Options are handed to your adapter untouched; Studio never reads a key of them.
+
+## What the character supports
+
+Whatever your adapter reports. If it implements the engine's `describe()`, Studio fills the Motion / Skin / Parameter fields from the model — animation names, skin names, and any parameters you expose — and the preview draws the skeleton in its resting pose. If it does not, every field is a text box and you type the names, which works exactly as well and is a legitimate choice for an adapter you only use yourself.

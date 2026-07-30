@@ -1,0 +1,5 @@
+{
+  "title": "Model Runtimes",
+  "description": "Live2D and Spine characters: what a drawing runtime is, why you supply it, and how to install one.",
+  "pages": ["index", "live2d", "spine", "custom"]
+}

@@ -1,3 +1,11 @@
 ---
 title: Character Manager
 ---
+
+Characters are created in the **Characters** panel. The kind is chosen at creation, because the kinds share no data and switching discards what the previous one held:
+
+| Kind | Is |
+| --- | --- |
+| **Preset sprites** | One finished image per named pose. A single-image character is just N = 1. |
+| **Layered sprite** | A stack of layers composited at runtime and switched by tag, so one "angry" can move the brows and the mouth together. |
+| **Live2D Cubism** / **Spine** / **Custom runtime** | A rigged model drawn by a runtime you supply. See [Model Runtimes](/docs/studio/model-runtimes). |

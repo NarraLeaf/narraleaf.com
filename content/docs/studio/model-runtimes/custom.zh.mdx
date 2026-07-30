@@ -1,0 +1,83 @@
+---
+title: 编写自己的运行时
+description: 绘制运行时需要满足的模块契约，以及 Studio 如何发现、校验并打包它。
+---
+
+Studio 的模型角色并不绑定 Live2D 或 Spine。任何能往一个容器里绘制的东西都是候选——你已有的渲染器、一套粒子系统、一个精灵表播放器、一个 WebGL 场景。作为 **自定义运行时** 安装它，其余方面它与那两个具名产品的行为完全一致。
+
+## Studio 对模块的要求
+
+`runtimes/puppet/` 下一个文件夹，内含一个 `index.js`，它必须是浏览器可加载的 **ES 模块**。该模块必须产出一个满足引擎 `PuppetBackend` 的对象：
+
+```js title="runtimes/puppet/my-renderer/index.js"
+export default function createPuppetBackends({ game, resolveFile, log }) {
+    log("info", "my-renderer registered");
+    return {
+        name: "my-renderer",
+        mount(container, ctx) {
+            // 在 `container` 里绘制。返回引擎要驱动的实例。
+            return {
+                ready: () => loadedPromise,
+                apply: (state) => { /* 完整状态，永远不是增量 */ },
+                command: (name, payload) => { /* 一次性效果 */ },
+                describe: () => ({ motions: [], expressions: [], skins: [], params: [] }),
+                resize: (size) => { /* 盒子变了 */ },
+                dispose: () => { /* 容器会由 Studio 清空 */ },
+            };
+        },
+    };
+}
+```
+
+只有 `name` 与 `mount` 是必需的。`name` 不能为空，且它就是角色所引用的名字——见下面关于命名的说明。
+
+引擎的 [木偶 (Puppet)](/zh/docs/narraleaf-react/core/elements/puppet) 页面是权威契约：每个方法收到什么、何时被调用、为什么 `apply` 收到的是完整状态而不是变化量、以及读档为什么是一次 `apply` 而不是回放。写运行时前先读它；会让人意外的部分都在那儿。
+
+### 接受的导出形状
+
+Studio 对你的导出方式刻意宽容，因为一个模块往往还要导出别的东西：
+
+| 导出 | 视作 |
+| --- | --- |
+| `export default function (ctx)` | 工厂。以宿主上下文调用；可返回一个后端、一个数组，或一个 promise。 |
+| `export default backend` | 后端对象本身。 |
+| `export default [a, b]` | 一个模块给出多个后端。 |
+| `export const createPuppetBackends` / `puppetBackends` / `puppetBackend` | 以上任意一种，具名导出，这样 default 槽位仍归你。 |
+
+工厂返回空**不是错误**——它要么已通过别的途径注册，要么判断这个游戏不适用于它。
+
+### 宿主上下文
+
+工厂会收到：
+
+| 字段 | 是 |
+| --- | --- |
+| `game` | 这些后端将注册进去的 `Game`。 |
+| `resolveFile(path)` | **你的模块旁边**某个文件的 URL，供有自己兄弟文件的运行时使用——wasm core、shader、查找表。被限制在你自己的目录内。 |
+| `log(level, message)` | 向宿主控制台报告，会带上你模块名的前缀。 |
+
+注意 `resolveFile`（**你的模块**旁边的文件）与挂载上下文上的 `ctx.resolveSibling`（**模型**旁边的文件）之间的区别。两者都存在，因为运行时和它绘制的模型是分开的两个包。
+
+## 安装它
+
+**项目 → 运行时 → 自定义运行时**，起个名字，然后把单个打包好的 `index.js` 或一个要整体复制的目录交给 Studio。
+
+随后 Studio 会以游戏将要采用的方式加载该模块，确认它产出了后端。这件事比听起来更重要：一个**看起来**装好了却什么都不产出的目录能通过你看得见的每一项检查、被打包进游戏，然后只在角色上台的那一刻失败——表现为一个空盒子加一条控制台警告。所以不注册任何东西的模块会被拒绝，复制也会回滚。
+
+<Callout type="warn">
+    **目录最终以你的模块所注册的 backend 名命名**，而不是你输入的名字。引擎按注册名解析角色的运行时，而编辑器列出的是目录名，两者不一致正是上面那种静默失败。Studio 会把目录改名到一致，并告知你它选了什么。
+</Callout>
+
+## 构建时会发生什么
+
+`runtimes/puppet/` 下每个含 `index.js` 的文件夹都会被复制进你构建的游戏，游戏会在第一个场景挂载前加载它。没有 `index.js` 的文件夹会被跳过并给出警告，而不是让构建失败——因为那与半成品安装无法区分，而游戏的其余部分依然是好的。
+
+后端始终没到位的 puppet **不会让游戏崩溃**。引擎保留那个盒子——它的位置、变换、存档状态——只是内部什么都不画。这是刻意的降级：缺一个运行时的代价是一个不绘制的角色，而不是一个起不来的游戏。
+
+## 实务提示
+
+- **能打成一个文件就打成一个文件。** 单个自包含的 ES 模块没有任何解析上的疑问。只有当你的运行时确实在运行时加载兄弟文件时才用目录。
+- **你的模块每个 game 只加载一次。** 你永远不必推理自己在为哪个 game 绘制。
+- **能实现 `describe()` 就实现。** 正是它把 Studio 的动作与表情字段从文本框变成列表，也正是它让角色编辑器画出预览。它是可选的，编辑器没有它也能工作。
+- **`dispose()` 不必清空容器。** Studio 会做，包括你的 mount 抛错的情况。
+- **选项归你。** Studio 原样传递角色的选项映射，不读其中任何一个键。凡是你的运行时需要而又不属于引擎那三个状态通道的东西，都放进它。

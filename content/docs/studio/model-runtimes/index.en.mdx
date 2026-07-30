@@ -1,0 +1,120 @@
+---
+title: Model Runtimes
+description: Live2D and Spine characters in Studio — what a drawing runtime is, why you supply it rather than Studio shipping it, and where it lives in your project.
+---
+
+Most characters in a visual novel are pictures: one finished sprite per pose, or a stack of layers switched by tag. Studio draws both of those itself.
+
+A **Live2D** or **Spine** character is not a picture. It is a rigged model with its own animation system, and the thing that draws it is a *runtime* — a renderer written by the company that makes the model format. Studio does not contain either one, and it never downloads them for you. You supply the runtime, once per project, and Studio then treats the character like any other: it stands where the script puts it, moves with the camera, poses from the story, and comes back correctly from a saved game.
+
+<Cards>
+    <Card title="Live2D" href="/docs/studio/model-runtimes/live2d" description="Install from the Cubism SDK for Web archive you download. Studio builds the adapter on your machine." />
+    <Card title="Spine" href="/docs/studio/model-runtimes/spine" description="Build the adapter yourself and point Studio at it. Requires your own Spine Editor licence." />
+    <Card title="Write your own" href="/docs/studio/model-runtimes/custom" description="The module contract, for any renderer you already have." />
+</Cards>
+
+## Why you supply it
+
+This is a licensing consequence, not a missing feature.
+
+Studio is free software with published source. The licences these renderers ship under do not permit that combination — Live2D's forbids letting a source-available, freely modifiable licence cover its code at all, and Spine's requires whoever integrates a runtime to hold a paid Editor licence. So NarraLeaf cannot put either renderer in Studio, and **fetching one on your behalf would be distributing it**, which is the same problem wearing a different hat.
+
+What Studio can do is everything around the renderer:
+
+| Studio does | You do |
+| --- | --- |
+| Owns the character: where it stands, its layer, transform, opacity, saved-game entry | Obtain the runtime from the vendor, accepting their licence as you do |
+| Installs the runtime into your project and validates it | Own the licence obligations for the game you ship |
+| Reads the model and fills in its motions, expressions and parameters | Supply the model itself |
+| Packages the runtime into the game you build | |
+
+The practical effect is that **you are the one distributing the renderer**, inside the game you build. That is the same arrangement Ren'Py and TyranoScript use for Live2D, and it is why no free engine bundles Cubism Core.
+
+<Callout type="warn">
+    Read the vendor's terms before you ship commercially. Studio shows you the essentials when you install, but it is not a substitute for the vendor's own licence — and NarraLeaf is not a party to it.
+</Callout>
+
+## Where a runtime lives
+
+One folder per runtime, inside your project:
+
+<Files>
+    <Folder name="runtimes" defaultOpen>
+        <Folder name="puppet" defaultOpen>
+            <Folder name="live2d" defaultOpen>
+                <File name="index.js" />
+                <File name="README.md" />
+                <Folder name="licenses" />
+            </Folder>
+            <Folder name="spine">
+                <File name="index.js" />
+            </Folder>
+        </Folder>
+    </Folder>
+</Files>
+
+The folder name **is** the runtime's name — it is what a character refers to, and what the engine resolves at runtime. `index.js` is the only required file; a folder without one is reported as an incomplete install and is skipped when packaging rather than shipped broken.
+
+This is project content, not a cache. It belongs in version control alongside your assets, and it is copied into every game you build. For Live2D that file is around a megabyte, because the renderer is compiled into it.
+
+## Managing runtimes
+
+**Project → Runtimes** lists every runtime Studio knows about and every one it found in your project, with its state:
+
+| State | Meaning |
+| --- | --- |
+| **Installed** | `index.js` is there and loads. |
+| **Installed but incomplete** | The folder exists but has no `index.js` — a half-finished install, or the wrong thing unzipped into it. |
+| **Not installed in this project** | Nothing there. Normal for a project that uses no models. |
+
+The same install flow is reachable from a character that needs it, which is usually where you meet it first.
+
+<Callout type="info">
+    A character created on a machine that had the runtime still names it on a machine that does not. The character is not broken and Studio will not rewrite it — it reports **Not installed in this project** and offers to install. This is the normal state of a fresh clone.
+</Callout>
+
+## Creating a character
+
+Choose the runtime when you create the character, not afterwards: **New character → Live2D Cubism / Spine / Custom runtime**. The kind is fixed at creation because the three character kinds share no data, and switching discards what the previous one held.
+
+A new model character shows two things to set up:
+
+<Steps>
+<Step>
+
+### Drawing runtime
+
+Whether the runtime this character wants is installed here. If it is not, **Install** opens the flow for that product.
+
+</Step>
+<Step>
+
+### Model
+
+The model itself, as a project asset. A model is a **folder** — its manifest plus the textures, motions and physics the manifest names — so it is imported as a folder, not a file. If your project has no model assets yet, the row offers to import one directly.
+
+</Step>
+</Steps>
+
+Only once both are satisfied does the rest of the inspector appear, because the rest of it is *read from the model*: Studio mounts the model through the runtime you installed and asks it what it contains. Motions, expressions, skins and parameters become lists you pick from, and the preview above them draws the actual model in its resting pose.
+
+<Callout type="info">
+    A runtime is free not to answer. If it does not report what a model contains, every control degrades to a text field and you type the names yourself — nothing else changes.
+</Callout>
+
+## Posing from the story
+
+Model characters take four commands, alongside everything ordinary characters take:
+
+| Command | Aliases | Sets |
+| --- | --- | --- |
+| `/motion Doll run` | `/anim` | The animation. With no name, clears it — the model rests. |
+| `/face Doll smile` | `/expr`, `/expression` | The expression. Same command that switches a picture character's pose. |
+| `/skin Doll winter` | `/costume` | The skin, for formats that have them. |
+| `/param Doll ParamAngleX 12` | | One numeric parameter of the model. |
+
+Each name is offered from what the model reported, so you are choosing from a list rather than remembering a string.
+
+## What the engine sees
+
+Underneath, a model character compiles to the engine's [Puppet](/docs/narraleaf-react/core/elements/puppet) element — a box the engine owns and a backend draws the inside of. Studio's job is to install that backend and hand it a model; the engine's job is everything about the box. If you are writing a runtime, or want to understand what a runtime is being asked to do, that page is the contract.

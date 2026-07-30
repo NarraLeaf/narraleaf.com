@@ -1,0 +1,83 @@
+---
+title: Write your own
+description: The module contract a drawing runtime has to satisfy, and how Studio finds, validates and packages it.
+---
+
+Studio's model characters are not tied to Live2D or Spine. Anything that can draw into a container is a candidate — a renderer you already own, a particle system, a sprite-sheet player, a WebGL scene. Install it as a **Custom runtime** and it behaves like the two named products in every other respect.
+
+## What Studio asks of a module
+
+One folder under `runtimes/puppet/`, containing an `index.js` that is a browser-loadable **ES module**. That module must yield an object satisfying the engine's `PuppetBackend`:
+
+```js title="runtimes/puppet/my-renderer/index.js"
+export default function createPuppetBackends({ game, resolveFile, log }) {
+    log("info", "my-renderer registered");
+    return {
+        name: "my-renderer",
+        mount(container, ctx) {
+            // Draw inside `container`. Return the instance the engine drives.
+            return {
+                ready: () => loadedPromise,
+                apply: (state) => { /* a COMPLETE state, never a diff */ },
+                command: (name, payload) => { /* one-shot things */ },
+                describe: () => ({ motions: [], expressions: [], skins: [], params: [] }),
+                resize: (size) => { /* the box changed */ },
+                dispose: () => { /* container is emptied for you */ },
+            };
+        },
+    };
+}
+```
+
+Only `name` and `mount` are required. `name` must be non-empty, and it is what a character refers to — see the note about naming below.
+
+The engine's [Puppet](/docs/narraleaf-react/core/elements/puppet) page is the authoritative contract: what each method receives, when it is called, why `apply` gets a whole state rather than a change, and how a saved game is restored with a single `apply` rather than a replay. Read it before writing a runtime; the parts that surprise people are all there.
+
+### Accepted export shapes
+
+Studio is deliberately permissive about how you export, because a module often has other things to export too:
+
+| Export | Treated as |
+| --- | --- |
+| `export default function (ctx)` | A factory. Called with the host context; may return a backend, an array of them, or a promise. |
+| `export default backend` | The backend object itself. |
+| `export default [a, b]` | Several backends from one module. |
+| `export const createPuppetBackends` / `puppetBackends` / `puppetBackend` | Any of the above, under a name, so the default slot stays yours. |
+
+A factory that returns nothing is not an error — it has either registered by other means or decided this game is not for it.
+
+### The host context
+
+The factory receives:
+
+| Field | Is |
+| --- | --- |
+| `game` | The `Game` these backends are being registered into. |
+| `resolveFile(path)` | A URL for a file **next to your module**, for a runtime with siblings of its own — a wasm core, a shader, a lookup table. Confined to your own folder. |
+| `log(level, message)` | Reports to the host console, prefixed with your module's name. |
+
+Note the difference between `resolveFile` — files next to *your module* — and `ctx.resolveSibling` on the mount context, which reaches files next to the *model*. Both exist because a runtime and the models it draws are separate bundles.
+
+## Install it
+
+**Project → Runtimes → Custom runtime**, name it, then point Studio at a single bundled `index.js` or at a folder to copy whole.
+
+Studio then loads the module exactly as the game will and confirms it produces a backend. This matters more than it sounds: a folder that *looks* installed but yields nothing passes every check you can see, packages into the game, and fails only when a character reaches the stage — as an empty box with a console warning. So a module that registers nothing is rejected and the copy is rolled back.
+
+<Callout type="warn">
+    **The folder ends up named after the backend your module registers**, not after what you typed. The engine resolves a character's runtime by the registered name while the editor lists folders, so a mismatch between them is exactly the silent failure above. Studio renames the folder to agree and tells you what it chose.
+</Callout>
+
+## What happens at build time
+
+Every folder under `runtimes/puppet/` that has an `index.js` is copied into the game you build, and the game loads it before the first scene mounts. A folder without an `index.js` is skipped with a warning rather than failing the build, because that is indistinguishable from a half-finished install and the rest of the game is still fine.
+
+A puppet whose backend never arrives **does not crash the game**. The engine keeps the box — its position, its transform, its saved state — and draws nothing inside it. That is a deliberate degradation, so a missing runtime costs you a character that does not draw rather than a game that does not start.
+
+## Practical notes
+
+- **Bundle to one file where you can.** A single self-contained ES module has no resolution questions. Reach for a folder only when your runtime genuinely loads siblings at runtime.
+- **Your module is loaded once per game.** You never have to reason about which game you are drawing for.
+- **Implement `describe()` if you can.** It is what turns Studio's motion and expression fields from text boxes into lists, and it is what draws the preview in the character editor. It is optional and the editor works without it.
+- **`dispose()` need not empty the container.** Studio does that, including when your mount threw.
+- **Options are yours.** Studio passes the character's option map through without reading a key of it. Use it for anything your runtime needs that is not one of the engine's three state channels.
