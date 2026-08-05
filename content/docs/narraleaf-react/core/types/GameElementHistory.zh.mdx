@@ -7,11 +7,12 @@ type GameElementHistory =
         type: "say";
         text: string;
         voice: string | null;
+        voiceId?: string | number | null;
         character: string | null;
     }
     | {
         type: "menu";
-        text: string;
+        text: string | null;
         selected: string | null;
     };
 ```
@@ -21,9 +22,26 @@ type GameElementHistory =
 1. "say" 元素：
    - `text`: 说出的文本
    - `voice`: 语音源 URL 或 null 如果未使用语音
+   - `voiceId`: 该行语音归档所用的 `voiceId`，未使用语音映射时为 null。0.24.0 起提供
    - `character`: 角色名称或 null 如果句子不是由角色说出
 
 
 2. "menu" 元素：
-   - `text`: 菜单文本
+   - `text`: 菜单提示文本，没有提示时为 null
    - `selected`: 选中的选项或 null 如果菜单仍处于挂起状态
+
+## 重播回想录里的语音
+
+`voice` 是已经解析好的音频 URL，也就是玩家刚才听到的那一份；`voiceId` 才是该行归档时用的 id，
+而宿主是**按 id** 去找自己的语音表的——所以回想录上的「重播」按钮要用 `voiceId` 而不是 `voice`。
+
+```ts
+for (const entry of liveGame.getHistory()) {
+    if (entry.element.type === "say" && entry.element.voiceId) {
+        replay(entry.element.voiceId);
+    }
+}
+```
+
+若该行的语音是通过行内 `voice` 选项而非场景语音映射给出的，`voiceId` 为 null；
+0.24.0 之前记录的条目则根本没有这个字段——旧存档照常读取，不受影响。

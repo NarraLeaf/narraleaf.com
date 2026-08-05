@@ -89,6 +89,9 @@ type GamePreference = {
 
 游戏将在前进前等待 [GameConfig.elements.say.autoForwardDelay](/zh/docs/narraleaf-react/core/types/GameConfig) 指定的时间。
 
+一行「完成」的判据是：文字打完**并且**该行语音播完。0.24.0 起，有语音的行会先等语音播完再开始计时，
+自动模式因此不会在台词说到一半时翻页；没有语音、或语音已经结束的行，行为与以前完全一致。
+
 ## skip
 
 启用后，玩家可以通过按下 [GameConfig.elements.say.nextKey](/zh/docs/narraleaf-react/core/types/GameConfig) 来跳过当前句子。

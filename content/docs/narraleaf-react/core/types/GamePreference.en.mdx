@@ -89,6 +89,10 @@ When enabled, the game will automatically forward to the next sentence when the 
 
 The game will wait for a duration of [GameConfig.elements.say.autoForwardDelay](/docs/narraleaf-react/core/types/GameConfig) before forwarding.
 
+A line is finished when its text has typed out **and** its voice has played out. Since 0.24.0 a
+voiced line waits for its clip to end and only then starts the delay, so auto mode never advances
+mid-sentence. An unvoiced line, or one whose clip has already ended, behaves exactly as before.
+
 ## skip
 
 When enabled, the player can skip the current sentence by pressing the [GameConfig.elements.say.nextKey](/docs/narraleaf-react/core/types/GameConfig).

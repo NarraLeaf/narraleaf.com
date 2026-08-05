@@ -7,11 +7,12 @@ type GameElementHistory =
         type: "say";
         text: string;
         voice: string | null;
+        voiceId?: string | number | null;
         character: string | null;
     }
     | {
         type: "menu";
-        text: string;
+        text: string | null;
         selected: string | null;
     };
 ```
@@ -21,8 +22,26 @@ The `GameElementHistory` type represents different types of game elements that c
 1. A "say" element:
    - `text`: The spoken text
    - `voice`: The voice src URL or null if no voice was used
+   - `voiceId`: The `voiceId` the line was filed under, or null. Available since 0.24.0
    - `character`: The character name or null if the sentence is not spoken by a character
 
 2. A "menu" element:
-   - `text`: The menu text
+   - `text`: The menu prompt, or null if the menu had none
    - `selected`: The selected option or null if the menu is still pending
+
+## Replaying a backlog line's voice
+
+`voice` is a resolved clip URL, which is what the player already played. `voiceId` is the id the
+line was filed under, which is what a host addresses its own voice table with — so a backlog replay
+button is built from `voiceId`, not from `voice`.
+
+```ts
+for (const entry of liveGame.getHistory()) {
+    if (entry.element.type === "say" && entry.element.voiceId) {
+        replay(entry.element.voiceId);
+    }
+}
+```
+
+`voiceId` is null on a line voiced through the inline `voice` option rather than the scene's voice
+map, and absent on entries recorded before 0.24.0 — an old save loads unchanged.
