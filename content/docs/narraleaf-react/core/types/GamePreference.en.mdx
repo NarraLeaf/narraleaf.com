@@ -130,7 +130,10 @@ Controls how voice playback ends when a sentence completes.
 
 - `fade`: fade out the voice over `voiceFadeDuration` milliseconds.
 - `stop`: stop playback immediately (default).
-- `none`: leave the voice running even after the sentence ends.
+- `none`: leave the voice running even after the sentence ends. It plays until it finishes on its own
+  or until the next **voiced** line starts, whichever comes first — an unvoiced line passes over a
+  clip that is still finishing without cutting it. Two voices never play at once. (Before 0.24.1
+  nothing cut the trailing clip, so advancing through voiced dialogue layered them.)
 
 Use `voiceFadeDuration` together with `fade` when you need a smooth transition.
 
