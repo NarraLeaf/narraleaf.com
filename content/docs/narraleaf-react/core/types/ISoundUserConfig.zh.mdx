@@ -11,7 +11,7 @@ interface ISoundUserConfig {
      */
     src: string;
     /**
-     * Whether to loop, if sync and loop are both true, sync will be treated as **false**
+     * Whether the clip repeats when it reaches its end
      * @default false
      */
     loop: boolean;
@@ -33,16 +33,78 @@ interface ISoundUserConfig {
      */
     streaming: boolean;
     /**
-     * Initial position in seconds
+     * Initial position in seconds - the clip's **in point**.
+     *
+     * When `loop` is set together with `endTime`, this is also where each repeat restarts from,
+     * so the two together describe a loop region rather than just a starting offset - unless
+     * `loopStart` moves the repeat's in point somewhere else.
      * @default 0
      */
     seek: number;
     /**
-     * The type of the sound
+     * Position in seconds where the clip ends - its **out point**.
+     * Omit to play through to the end of the file.
+     *
+     * Without `loop` the clip simply stops there. With `loop` it jumps back to `loopStart`,
+     * or to `seek` when no loop in point was given.
+     * @default undefined
+     */
+    endTime?: number;
+    /**
+     * Position in seconds the clip returns to on every repeat - the **loop in point**.
+     *
+     * Only meaningful together with `loop` and `endTime`.
+     * A value outside `[seek, endTime)` falls back to `seek`.
+     * @default undefined
+     */
+    loopStart?: number;
+    /**
+     * The audio bus this clip plays on
      * @default SoundType.Sound
      */
-    type: SoundType;
+    type: SoundBusId;
 }
 ```
 
-有关 `SoundType` 的更多信息，请参见 [SoundType](/zh/docs/narraleaf-react/core/types/SoundType).
+## seek、endTime 和 loopStart
+
+`seek` 是音频的**入点**——第一遍播放开始的位置；`endTime` 是**出点**。同时给出两者，播放就只覆盖文件中的这一段：
+
+```ts
+Sound.bgm({src: "theme.mp3", seek: 4.2, endTime: 92.5});
+```
+
+没有 `loop` 时，音频在 `endTime` 处停止；有 `loop` 时它会重复，而每一遍回到哪里由 `loopStart` 决定。
+不写 `loopStart`，每一遍都回到 `seek`，这就是没有单独前奏的音频的行为。
+
+把两者分开，才能表达最常见的「前奏 + 循环」式背景音乐——从头完整播一遍，然后只循环主体：
+
+```ts
+Sound.bgm({src: "theme.mp3", loop: true, seek: 0, loopStart: 12, endTime: 90});
+```
+
+循环用的是 Web Audio 节点自身的循环区间，因此是采样级精确的：接缝处没有空隙，连续播放数小时也不会漂移。
+
+<Callout type="info">
+    结束不晚于开始的区间描述不出任何可播放的内容，会被忽略而不是播放。落在 `[seek, endTime)` 之外的
+    `loopStart` 会退回到 `seek`。
+
+    `streaming` 的音频没有循环区间，只有整段重复，因此循环区间对它不生效。
+
+    读档时播放位置恢复到存档中记录的位置，但循环仍然回到循环入点，而不是玩家存档时所处的位置。
+</Callout>
+
+## type
+
+音频播放所在的总线。可以是引擎始终预置的三条总线之一——`voice`、`bgm`、`sound`——也可以是在
+[`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的任意总线 id：
+
+```ts
+Sound.voice({src: "alice-01.mp3", type: "alice"});
+```
+
+总线只决定哪一个音量控制管辖这段音频，除此之外别无影响——任何总线上的音频都可以照常播放、停止、淡入淡出和跳转。
+
+- 有关 `SoundBusId`，请参见 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)。
+- 有关 `SoundType`，请参见 [SoundType](/zh/docs/narraleaf-react/core/types/SoundType)。
+- 有关总线树，请参见 [音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。

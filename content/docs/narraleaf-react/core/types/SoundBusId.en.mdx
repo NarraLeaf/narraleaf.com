@@ -1,0 +1,25 @@
+---
+title: "SoundBusId"
+---
+```ts
+type SoundBusId = SoundType | (string & {});
+```
+
+The audio bus a clip plays on, as given by [ISoundUserConfig](/docs/narraleaf-react/core/types/ISoundUserConfig)`.type`.
+
+The three [SoundType](/docs/narraleaf-react/core/types/SoundType) values are buses the engine always
+seeds, and they mean exactly what they have always meant. Any other string is a bus the host
+declared in [`GameConfig.audioBuses`](/docs/narraleaf-react/core/game/audio-buses) — `"alice"` under
+`"voice"`, `"ambience"` under `"bgm"`, as deep as makes sense.
+
+The `(string & {})` half is what widens the type without giving up the completions: an editor still
+offers `"bgm" | "sound" | "voice"` first, and a `SoundType` still narrows where one is expected.
+
+```ts
+Sound.voice({src: "alice-01.mp3", type: "alice"});
+```
+
+<Callout type="info">
+    Added in `0.23.0`. `Sound.config.type` used to be `SoundType`. `SoundType` is unchanged and
+    still exported, so existing code keeps type-checking.
+</Callout>

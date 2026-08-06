@@ -47,4 +47,25 @@ const room = new Scene("room", {
 });
 ```
 
+## Per-character volume
+
+`voiceVolume` governs the whole cast at once. To give the player a control per character, declare a
+bus for each under `voice` and put the clip on it:
+
+```ts
+const game = new Game({
+    audioBuses: [
+        {id: "alice", parentId: "voice"},
+        {id: "bob", parentId: "voice"},
+    ],
+});
+
+alice.say("Good morning.", {
+    voice: Sound.voice({src: "/voice/alice/001.ogg", type: "alice"}),
+});
+```
+
+`game.audioBuses.setVolume("alice", 0.5)` then applies to clips that are already playing. See
+[Audio Buses](/docs/narraleaf-react/core/game/audio-buses).
+
 Player-facing voice behavior is controlled by `voiceVolume`, `voiceFadeDuration`, and `voiceEndMode`. See [Manage Preferences](/docs/narraleaf-react/basic/manage-preferences).

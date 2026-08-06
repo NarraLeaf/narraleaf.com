@@ -4,6 +4,7 @@ import { Callout } from 'fumadocs-ui/components/callout';
 import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { StudioDownloads } from '@/components/studio-downloads';
 import type { MDXComponents } from 'mdx/types';
 
 export function getMDXComponents(components?: MDXComponents) {
@@ -19,6 +20,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Tabs,
     Step,
     Steps,
+    StudioDownloads,
     ...components,
   } satisfies MDXComponents;
 }

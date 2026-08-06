@@ -1,0 +1,66 @@
+---
+title: "AudioBusDeclaration"
+---
+```ts
+type AudioBusDeclaration = {
+    /**
+     * Stable, unique across the whole tree, and the string a Sound's `type` names.
+     * Two buses may not share an id even under different parents.
+     */
+    id: string;
+    /**
+     * The bus this one feeds into, or `null`/omitted for the master output.
+     */
+    parentId?: string | null;
+    /**
+     * The author's mix position for this bus, 0..1.
+     * @default 1
+     */
+    volume?: number;
+};
+```
+
+宿主在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的一条总线。
+只有 `id` 是必填的。
+
+```ts
+new Game({
+    audioBuses: [
+        {id: "ambience", parentId: "bgm", volume: 0.6},
+        {id: "cast", parentId: "voice"},
+        {id: "alice", parentId: "cast"},
+    ],
+});
+```
+
+## volume
+
+**作者混音中的位置**，既不是音频实际播放的音量，也不是玩家的滑条。「音效在我的混音里压低 40%」就是 `volume: 0.6`。
+
+玩家的控制是*另一个*数字，叠乘在它之上，默认值为 1。因此什么都没改过的玩家听到的是作者做的那份混音，
+而把滑条拉到最大的玩家拿到的是作者的意图，而不是一条满增益的总线。
+参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+
+## AudioBusNode
+
+总线树解析之后的一条总线——`game.audioBuses.getTree().getNodes()` 返回的就是它。
+
+```ts
+type AudioBusNode = {
+    id: string;
+    parentId: string | null;
+    /**
+     * The author's mix position, straight off the declaration.
+     * Fixed for the life of the game.
+     */
+    volume: number;
+    /**
+     * 1 for a bus directly under the master output.
+     */
+    depth: number;
+};
+```
+
+<Callout type="info">
+    `0.23.0` 新增。
+</Callout>

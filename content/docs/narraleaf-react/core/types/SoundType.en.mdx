@@ -8,3 +8,11 @@ export enum SoundType {
     Sound = "sound",
 }
 ```
+
+The three values are the ids of the audio buses the engine seeds for every game, whether or not the
+host declares anything. They select which volume control governs a clip, and nothing else.
+
+Since `0.23.0` a clip's `type` is a [SoundBusId](/docs/narraleaf-react/core/types/SoundBusId), which
+also accepts the id of any bus declared in
+[`GameConfig.audioBuses`](/docs/narraleaf-react/core/game/audio-buses). `SoundType` itself is
+unchanged and still exported.

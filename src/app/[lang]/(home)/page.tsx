@@ -2,7 +2,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
 import { appName, docsRoute, gitConfig, projectRoute, siteIconPath } from '@/lib/shared';
-import { type Locale, localizedPath } from '@/lib/i18n';
+import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
+import { notFound } from 'next/navigation';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
 import { ProjectModelTabs, type ProjectModelTabCopy } from './project-model-tabs';
 import { DesktopDemoShowcase } from './desktop-demo-showcase';
@@ -508,6 +509,13 @@ function CtaLinks(props: {
 
 export default async function HomePage(props: PageProps<'/[lang]'>) {
   const { lang } = await props.params;
+  // The proxy skips i18n rewriting for paths containing a dot, so requests for
+  // static-looking files (/favicon.ico, /robots.txt) reach this catch-all route
+  // with `lang` set to the filename. The layout already calls notFound() for
+  // those, but layout and page render concurrently — without this guard the
+  // page throws on `homeCopy[locale]` before the 404 wins.
+  if (!isLocale(lang)) notFound();
+
   const locale = lang as Locale;
   const copy = homeCopy[locale];
   const projectUrl = localizedPath(projectRoute, locale);

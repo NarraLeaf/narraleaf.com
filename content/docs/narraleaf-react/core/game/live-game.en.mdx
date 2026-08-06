@@ -394,6 +394,19 @@ game.getLiveGame()
     });
 ```
 
+The clip starts at the volume its `Sound` was configured with — `Sound.voice({src, volume: 0.4})`
+starts at 0.4, not at full volume. A source given as a string or `URL` becomes a default `Sound`,
+which is full volume; pass a `Sound` to say otherwise.
+
+<Callout type="info">
+    Before `0.22.0`, "no volume said" was read as *full* volume here, so a configured `volume` was
+    discarded. A clip replayed after `setVolume` now comes back at the volume it was last set to
+    instead of jumping to full.
+
+    There is no fade: the token's volume is already settled when this resolves and no ramp is left
+    running, so a `setVolume` or a fade driven on the returned token afterwards wins outright.
+</Callout>
+
 - `sound: Sound | string | URL` - The sound instance, sound source string, or URL
 - Returns `Promise<SoundToken>` - See [`@NarraLeaf/Sound`](https://github.com/NarraLeaf/Sound) for more information about the soundToken instance
 </Step>

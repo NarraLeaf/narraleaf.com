@@ -1,3 +1,34 @@
 ---
 title: Installation
+description: Download NarraLeaf Studio for Windows or macOS.
 ---
+
+<StudioDownloads />
+
+Links always point at the current release. Older versions are on the [releases page](https://github.com/NarraLeaf/NarraLeaf-Studio/releases).
+
+## Install
+
+**Windows** — run the `.exe`. It installs for the current user, so it never asks for administrator rights.
+
+**macOS** — open the `.dmg` and drag NarraLeaf Studio into Applications.
+
+<Callout type="warn">
+Builds are not code-signed, so the first launch is blocked.
+
+On Windows, **More info → Run anyway**. On macOS, **System Settings → Privacy & Security → Open Anyway**, or:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
+```
+</Callout>
+
+Studio does not update itself — to update, download the new installer and run it over the existing installation.
+
+<Cards>
+    <Card
+        title="Create your first project"
+        description="Make a blank project and see what Studio prepares on first open."
+        href="/docs/studio/getting-started"
+    />
+</Cards>

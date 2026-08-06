@@ -8,3 +8,10 @@ export enum SoundType {
     Sound = "sound",
 }
 ```
+
+这三个值是引擎为每个游戏预置的音频总线的 id，无论宿主是否声明过任何东西它们都存在。它们只决定哪一个音量控制
+管辖这段音频，除此之外别无影响。
+
+从 `0.23.0` 起，音频的 `type` 是 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)，
+它同时接受在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的任意总线 id。
+`SoundType` 本身没有改动，也依然导出。

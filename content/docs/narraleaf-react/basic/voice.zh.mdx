@@ -47,4 +47,25 @@ const room = new Scene("房间", {
 });
 ```
 
+## 按角色分别控制音量
+
+`voiceVolume` 一次管辖全部角色。要为每个角色单独提供一个控制，就在 `voice` 之下为每个角色声明一条总线，
+并把语音放到那条总线上：
+
+```ts
+const game = new Game({
+    audioBuses: [
+        {id: "alice", parentId: "voice"},
+        {id: "bob", parentId: "voice"},
+    ],
+});
+
+alice.say("早上好。", {
+    voice: Sound.voice({src: "/voice/alice/001.ogg", type: "alice"}),
+});
+```
+
+之后 `game.audioBuses.setVolume("alice", 0.5)` 会作用于正在播放的音频。
+参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+
 玩家侧的语音行为由 `voiceVolume`、`voiceFadeDuration` 和 `voiceEndMode` 控制。见[管理偏好](/zh/docs/narraleaf-react/basic/manage-preferences)。

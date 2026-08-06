@@ -22,6 +22,23 @@ game.preference.setPreference("autoForward", true);
 </Step>
 </Steps>
 
+### audioBuses
+
+<Steps>
+<Step>
+
+音频总线混音器：`GameConfig.audioBuses` 中声明的总线树，以及玩家对它做过的改动。
+在 `new Game(...)` 之后的任何时刻都可以使用——包括音频上下文解锁之前、播放器挂载之前。
+
+- `AudioBusMixer` - 参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
+
+```typescript
+game.audioBuses.setVolume("alice", 0.5);
+localStorage.setItem("mixer", JSON.stringify(game.audioBuses.getVolumes()));
+```
+</Step>
+</Steps>
+
 ### keyMap
 
 <Steps>

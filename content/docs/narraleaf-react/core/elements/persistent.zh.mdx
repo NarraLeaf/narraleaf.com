@@ -264,7 +264,7 @@ scene.action([
 
 - `key: K` - 要设置值的键
 - `value: T[K]` - 要设置的值
-- 返回: `ChainedPersistent<T>`
+- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -276,7 +276,7 @@ scene.action([
 
 - `key: K` - 要设置值的键
 - `handler: (value: T[K]) => T[K]` - 用于修改值的处理程序
-- 返回: `ChainedPersistent<T>`
+- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -294,7 +294,7 @@ scene.action([
 <Step>
 
 - `value: Partial<T> | ((value: T) => Partial<T>)` - 要分配给状态的值
-- 返回: `ChainedPersistent<T>`
+- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([

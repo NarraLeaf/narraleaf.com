@@ -360,4 +360,20 @@ If your plugin ships a [sidecar](/docs/studio/plugin/runtime/sidecar), the zip w
   </Folder>
 </Files>
 
+## Publish
+
+A zip and a download link are enough — Studio installs from any folder, and nothing about a plugin depends on where it came from.
+
+To list it in Studio's built-in store instead, submit it to the [NarraLeaf/Plugins](https://github.com/NarraLeaf/Plugins) registry. That repository holds plugins the NarraLeaf team reviews and vouches for, so open an issue describing what the plugin does and which permissions it needs before writing the pull request. Its `CONTRIBUTING.md` has the workflow: the directory name must equal your manifest `id`, and a local validator run plus a regenerated `index.json` go in the same commit.
+
+Whichever route you take, version by what you changed for the projects using it:
+
+| Bump | For |
+| --- | --- |
+| patch | Fixes that change no node type, pin, or param. |
+| minor | New nodes, widgets, or optional pins. |
+| major | Removing or renaming a contributed type, removing a pin, or changing what an existing node does to an existing graph. |
+
+A major version is a break the tooling acts on: projects authored against the old major mark your plugin incompatible and skip it. See [Project dependencies](/docs/studio/plugin/project-dependencies).
+
 Next: the full [API reference](/docs/studio/plugin/api-reference) for every method on both surfaces, and [the capability model](/docs/studio/plugin/runtime) if your plugin needs anything from the running game.

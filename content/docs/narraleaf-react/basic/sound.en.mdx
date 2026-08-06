@@ -66,6 +66,39 @@ Pass `null` to stop the current BGM.
 room.setBackgroundMusic(null, 500);
 ```
 
+## Intros and loop regions
+
+`seek` is a clip's in point and `endTime` is its out point. With `loop`, the pair becomes a loop
+region, and `loopStart` says where each repeat returns to — which is how background music with an
+intro plays the opening once and then repeats only its body.
+
+```ts
+const theme = Sound.bgm({
+    src: "/audio/theme.ogg",
+    loop: true,
+    seek: 0,       // the first pass starts at the top
+    loopStart: 12, // every repeat returns here, after the intro
+    endTime: 90,
+});
+```
+
+The repeat is sample-accurate — no gap at the seam, no drift over a long session. See
+[ISoundUserConfig](/docs/narraleaf-react/core/types/ISoundUserConfig).
+
+To move the play head of a clip that is already playing, use `seek()` as an action:
+
+```ts
+room.action([
+    theme.seek(12), // skip the intro
+]);
+```
+
+## Volume and buses
+
+Every clip plays on an audio bus, chosen by its `type`. A game gets `bgm`, `sound` and `voice`
+without asking, and can declare more — a bus per character, say — to give the player controls the
+three fixed ones cannot express. See [Audio Buses](/docs/narraleaf-react/core/game/audio-buses).
+
 ## Playback controls
 
 Sound actions can change playback state and values.

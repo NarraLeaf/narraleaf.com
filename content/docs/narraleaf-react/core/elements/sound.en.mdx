@@ -32,6 +32,13 @@ const voice = new Sound({
 });
 ```
 
+`type` is a **default** here, not an override. Pass one to put the line on a bus beneath `voice` —
+which is how a game gives each member of its cast a volume of its own.
+
+```ts
+const line = Sound.voice({src: 'alice-01.mp3', type: 'alice'});
+```
+
 - `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](/docs/narraleaf-react/core/types/ISoundUserConfig)
 - Returns `Sound`
 </Step>
@@ -42,7 +49,7 @@ const voice = new Sound({
 <Steps>
 <Step>
 
-Create a bgm sound
+Create a bgm sound. `type` defaults to `bgm` and may name any bus beneath it.
 
 - `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](/docs/narraleaf-react/core/types/ISoundUserConfig)
 - Returns `Sound`
@@ -54,7 +61,7 @@ Create a bgm sound
 <Steps>
 <Step>
 
-Create a sound
+Create a sound. `type` defaults to `sound` and may name any bus beneath it.
 
 - `arg0: Partial<ISoundUserConfig> | string` - The config of the sound or the source of the sound, see [ISoundUserConfig](/docs/narraleaf-react/core/types/ISoundUserConfig)
 - Returns `Sound`
@@ -87,8 +94,6 @@ Create a sound
 
 Play the sound and wait for it to finish
 
-> **Note**: Sounds marked as `Bgm` cannot be played directly.
-
 ```ts
 const sound = new Sound({
     src: 'sound.mp3',
@@ -97,6 +102,18 @@ scene.action([
     sound.play(1000), // play and fade in 1 second
 ]);
 ```
+
+A clip on any bus may be played this way, including a `bgm` one. `type` selects which volume
+control governs the clip and nothing else, so putting an ambience track on `bgm` — so the player's
+music slider controls it — and then playing it from an ordinary line is a legitimate thing to want.
+
+<Callout type="info">
+    **This is not the same as `scene.setBackgroundMusic()`.** A clip played here is not in the
+    scene's background-music slot, so leaving the scene will not stop it and no cross-fade is
+    arranged for it. Playing a `bgm`-typed clip this way logs a `console.warn` saying exactly that;
+    it is a nudge, not an error. Before `0.22.0` it threw and failed the whole story at chain-build
+    time.
+</Callout>
 
 - `duration?: number` - Fade duration in milliseconds
 </Step>
@@ -113,16 +130,12 @@ Stop the sound. After stopping, the sound will go back to the beginning
 </Step>
 </Steps>
 
-### fade
+### setVolume
 
 <Steps>
 <Step>
 
-Fade the sound
-
-- `start: number | undefined` - Start volume, from 0 to 1, default is current volume
-- `end: number` - End volume, from 0 to 1
-- `duration: number` - Duration in milliseconds
+Set the volume of the sound. Given a duration, the change is a fade rather than a jump.
 
 ```ts
 const sound = new Sound({
@@ -132,18 +145,9 @@ const sound = new Sound({
 scene.action([
     sound
         .play()
-        .fade(0, 1, 1000), // fade in 1 second
+        .setVolume(1, 1000), // fade in 1 second
 ]);
 ```
-</Step>
-</Steps>
-
-### setVolume
-
-<Steps>
-<Step>
-
-Set the volume of the sound
 
 - `volume: number` - Volume, from 0 to 1
 - `duration?: number` - Fade duration in milliseconds
@@ -166,7 +170,7 @@ scene.action([
 ```
 
 - `muted?: boolean` - `true` to mute the sound, `false` to restore volume (defaults to `true`)
-- Returns `ChainedSound` - Chained Sound instance
+- Returns `Proxied<Sound, Chained<LogicAction.Actions>>` - Chained Sound instance
 </Step>
 </Steps>
 
@@ -177,7 +181,7 @@ scene.action([
 
 Alias of `mute(false)` to restore the original volume.
 
-- Returns `ChainedSound` - Chained Sound instance
+- Returns `Proxied<Sound, Chained<LogicAction.Actions>>` - Chained Sound instance
 </Step>
 </Steps>
 
@@ -207,5 +211,28 @@ Set the rate of the sound
 <Step>
 
 - `fade?: number` - Fade duration in milliseconds
+</Step>
+</Steps>
+
+### seek
+
+<Steps>
+<Step>
+
+Jump to a position in the clip, in seconds, and keep playing from there. This is the write
+counterpart to reading the play head — a music-player screen or a "skip the intro" line needs it.
+
+```ts
+scene.action([
+    theme.seek(30),
+]);
+```
+
+A no-op on a sound that is not currently playing: there is nothing to move. The loop region (see
+[`endTime`](/docs/narraleaf-react/core/types/ISoundUserConfig)) survives the jump, so seeking inside
+a looping track does not quietly turn it into a one-shot.
+
+- `time: number` - Position in seconds, measured from the start of the file (not from the in point)
+- Returns `Proxied<Sound, Chained<LogicAction.Actions>>` - Chained Sound instance
 </Step>
 </Steps>

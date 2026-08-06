@@ -22,6 +22,24 @@ game.preference.setPreference("autoForward", true);
 </Step>
 </Steps>
 
+### audioBuses
+
+<Steps>
+<Step>
+
+The audio bus mixer: the tree declared in `GameConfig.audioBuses`, and what the player has done to
+it. Available at any point after `new Game(...)` — before the audio context has unlocked and before
+the player has mounted.
+
+- `AudioBusMixer` - See [Audio Buses](/docs/narraleaf-react/core/game/audio-buses)
+
+```typescript
+game.audioBuses.setVolume("alice", 0.5);
+localStorage.setItem("mixer", JSON.stringify(game.audioBuses.getVolumes()));
+```
+</Step>
+</Steps>
+
 ### keyMap
 
 <Steps>

@@ -390,6 +390,17 @@ game.getLiveGame()
     });
 ```
 
+音频会以它所属 `Sound` 配置的音量开始播放——`Sound.voice({src, volume: 0.4})` 从 0.4 开始，而不是满音量。
+以字符串或 `URL` 给出的音源会变成一个默认的 `Sound`，也就是满音量；要另行指定，请传入一个 `Sound`。
+
+<Callout type="info">
+    在 `0.22.0` 之前，这里把「没说音量」当成了*满音量*，因此配置好的 `volume` 会被丢弃。
+    现在调用过 `setVolume` 之后再次播放的音频，会回到它最后被设定的音量，而不是跳到满音量。
+
+    这里没有淡入淡出：这个 Promise 解决时音量已经稳定，也没有留下正在进行的渐变，
+    因此之后在返回的 token 上调用 `setVolume` 或驱动淡入淡出，一定是最后的写入者。
+</Callout>
+
 - `sound: Sound | string | URL` - 声音实例、声音地址或 URL
 - 返回 `Promise<SoundToken>` - 关于声音实例的更多信息，参见 [`@NarraLeaf/Sound`](https://github.com/NarraLeaf/Sound)
 </Step>

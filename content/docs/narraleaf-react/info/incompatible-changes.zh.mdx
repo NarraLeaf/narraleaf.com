@@ -3,6 +3,25 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
 
+## 0.23.0
+
+- [Sound](/zh/docs/narraleaf-react/core/elements/sound) 的 `type` 现在是 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)（`SoundType | (string & {})`），不再是 `SoundType`。`SoundType` 没有改动，依然导出，三个取值的含义也完全一致，因此只用这三个值的代码无需改动——但如果代码对音频的 `type` 做穷举 `switch`、依赖它只有三个成员，现在需要补上 default 分支
+- `Sound.voice()`、`Sound.bgm()` 和 `Sound.sound()` 现在为 `type` 提供**默认值**，而不是强制覆盖。`Sound.voice({src, type: "alice"})` 此前会悄悄产生一段 `voice` 音频，现在产生的是 `alice` 总线上的音频。此前向工厂方法传入 `type` 并依赖它被忽略的代码，现在会真正生效
+- `Preference` 会复制传给它的默认值对象，而不是直接写入其中。同一进程中的两个 `Game` 不再共用同一个设置对象，拖动滑条也不再改写此后整个进程的 `Game.DefaultPreference`。刻意去修改那个共享对象的宿主，现在必须改走 `game.preference`
+
+## 0.22.0
+
+- [`LiveGame.playSound`](/zh/docs/narraleaf-react/core/game/live-game#playsound) 以及对话行的语音，现在以 `Sound` **配置的**音量开始播放，而不是满音量。`Sound.voice({src, volume: 0.4})` 经这两条路径播放时，此前听起来是 1，现在是 0.4。显式传入目标音量的调用方不受影响
+- 对 `bgm` 类型的音频调用 `Sound.play()` 不再抛出 `StaticScriptWarning`，而是打印一条 `console.warn` 并正常播放。此前依靠这次抛出在构建链时明确失败的剧情，现在会照常运行
+
+## 0.20.0
+
+- `Chained*` 系列类型别名——`ChainedControl`、`ChainedPersistent` 及其同类——已被移除。它们本就是 `@internal`，从未出现在产出的声明文件中；此前使用它们的公开签名现在直接写出所代表的链式类型：`Control.do()` 返回 `Proxied<Control, Chained<LogicAction.Actions>>`，`Persistent.set()` 返回 `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`。没有任何签名的形状发生变化，运行时行为也没有变动
+
+## 0.19.1
+
+- `StackFrameSnapshot.branches` 现在是 `StackSnapshot[]`，不再是「帧数组的数组」，因此一个分支会完整地到达——连同它的 `loop` 和 `tag`——而不是被削减成它的帧。`branches[i][0]` 变成 `branches[i].frames[0]`。这个类型是实验性且只读的，所以选择直接纠正它，而不是另开一个平行字段
+
 ## 0.17.1
 
 - [fastForward](/zh/docs/narraleaf-react/core/game/live-game#fastforward) 的 `reason` 新增了 `"stalled"`。既有取值的运行时行为不变，但返回类型变宽了：对 `reason` 做穷举 `switch` 的代码需要补上这个分支才能通过编译。忽略返回值的宿主不受影响

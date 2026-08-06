@@ -360,4 +360,20 @@ yarn typecheck
   </Folder>
 </Files>
 
+## 发布
+
+一个 zip 加一个下载链接就够了——Studio 从任意文件夹都能安装，插件的任何行为都不取决于它从哪来。
+
+如果想让它出现在 Studio 内置的商店里，把它提交到 [NarraLeaf/Plugins](https://github.com/NarraLeaf/Plugins) 注册表。那个仓库收录的是 NarraLeaf 团队审查并为之背书的插件，所以在动手写 pull request 之前，先开一个 issue，说明插件做什么、需要哪些权限。具体流程见它的 `CONTRIBUTING.md`：目录名必须等于你清单里的 `id`，并且要在同一个提交里带上本地校验的结果和重新生成的 `index.json`。
+
+无论走哪条路，版本号都按「你对使用它的项目改变了什么」来定：
+
+| 递增位 | 适用于 |
+| --- | --- |
+| patch | 不改变任何节点类型、引脚或参数的修复。 |
+| minor | 新增节点、控件或可选引脚。 |
+| major | 移除或重命名已贡献的类型、移除引脚，或改变已有节点对已有图的作用。 |
+
+主版本号是工具链会据此行动的破坏性变更：按旧主版本创作的项目会把你的插件判为不兼容并跳过它。参见[项目依赖](/docs/studio/plugin/project-dependencies)。
+
 下一步：查看完整的 [API 参考](/docs/studio/plugin/api-reference)，了解两个接口上的每个方法；如果你的插件需要从运行中的游戏取得任何东西，再读一读[能力模型](/docs/studio/plugin/runtime)。

@@ -3,6 +3,25 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.23.0
+
+- A [Sound](/docs/narraleaf-react/core/elements/sound)'s `type` is now [SoundBusId](/docs/narraleaf-react/core/types/SoundBusId) (`SoundType | (string & {})`) rather than `SoundType`. `SoundType` is unchanged, still exported, and its three values still mean what they meant, so nothing that uses only those values needs to change — but a `switch` over a sound's `type` that relied on it being an exhaustive union of three now needs a default arm
+- `Sound.voice()`, `Sound.bgm()` and `Sound.sound()` **default** `type` instead of overwriting it. `Sound.voice({src, type: "alice"})` used to silently produce a `voice` clip; it now produces one on the `alice` bus. Code that passed a `type` to a factory and depended on it being ignored will now be honoured
+- A `Preference` copies the defaults object it is handed rather than writing into it. Two `Game`s in one process no longer share one settings object, and moving a slider no longer rewrites `Game.DefaultPreference` for the rest of the process. A host that mutated the shared object on purpose must now go through `game.preference`
+
+## 0.22.0
+
+- [`LiveGame.playSound`](/docs/narraleaf-react/core/game/live-game#playsound) and a dialog line's voice start a clip at the `Sound`'s **configured** volume rather than at full volume. `Sound.voice({src, volume: 0.4})` played through either path used to sound at 1 and now sounds at 0.4. Callers that pass an explicit target are unaffected
+- `Sound.play()` on a `bgm`-typed clip no longer throws `StaticScriptWarning`. It logs a `console.warn` and plays. A story that relied on the throw to fail loudly at chain-build time now runs
+
+## 0.20.0
+
+- The `Chained*` type aliases — `ChainedControl`, `ChainedPersistent`, and their siblings — were removed. They were `@internal`, so they never appeared in the emitted declarations, and the public signatures that used them now name the chained type directly: `Control.do()` returns `Proxied<Control, Chained<LogicAction.Actions>>`, `Persistent.set()` returns `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`. No signature changed shape and no runtime behaviour moved
+
+## 0.19.1
+
+- `StackFrameSnapshot.branches` is now `StackSnapshot[]` rather than an array of frame arrays, so a branch arrives whole — with its `loop` and `tag` — instead of being reduced to its frames. `branches[i][0]` becomes `branches[i].frames[0]`. The type is experimental and read-only, which is why it was corrected rather than duplicated into a parallel field
+
 ## 0.17.1
 
 - [fastForward](/docs/narraleaf-react/core/game/live-game#fastforward)'s `reason` gained `"stalled"`. Runtime behaviour for the existing values is unchanged, but the return type is wider: an exhaustive `switch` over `reason` needs the extra arm to keep compiling. Hosts that ignore the result are unaffected

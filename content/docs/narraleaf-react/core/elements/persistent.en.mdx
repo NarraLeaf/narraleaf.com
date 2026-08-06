@@ -268,7 +268,7 @@ Create an action to set a value in the persistent storage for the given key
 
 - `key: K` - the key to set the value for
 - `value: T[K]` - the value to set
-- Returns: `ChainedPersistent<T>`
+- Returns: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -280,7 +280,7 @@ scene.action([
 
 - `key: K` - the key to set the value for
 - `handler: (value: T[K]) => T[K]` - the handler to modify the value
-- Returns: `ChainedPersistent<T>`
+- Returns: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -298,7 +298,7 @@ Create an action to assign a value to the persistent storage
 <Step>
 
 - `value: Partial<T> | ((value: T) => Partial<T>)` - the value to assign to the state
-- Returns: `ChainedPersistent<T>`
+- Returns: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([

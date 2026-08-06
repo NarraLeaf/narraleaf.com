@@ -88,6 +88,25 @@ type GameConfig = {
      */
     maxPreloadActions: number;
     /**
+     * 音频总线树，由宿主在启动时声明
+     *
+     * 总线是一个增益节点，路由到它的每一段音频都会经过它；总线可以嵌套，因此一条总线的增益会向下
+     * 级联到它之下的一切。这里的 `volume` 是**作者混音中的位置**，不是玩家的滑条。
+     *
+     * 无论是否出现在这里，`bgm`、`sound`、`voice` 始终存在。该字段在音频子系统启动时读取一次。
+     * @default []
+     * @example
+     * ```ts
+     * new Game({
+     *     audioBuses: [
+     *         {id: "cast", parentId: "voice"},
+     *         {id: "alice", parentId: "cast", volume: 0.8},
+     *     ],
+     * });
+     * ```
+     */
+    audioBuses: AudioBusDeclaration[];
+    /**
      * 光标图片的源地址，如果为null，游戏将显示默认光标
      * @default null
      */
@@ -266,3 +285,5 @@ type GameConfig = {
     maxActionHistory: number;
 };
 ```
+
+- 有关 `AudioBusDeclaration`，请参见 [AudioBusDeclaration](/zh/docs/narraleaf-react/core/types/AudioBusDeclaration) 和[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。

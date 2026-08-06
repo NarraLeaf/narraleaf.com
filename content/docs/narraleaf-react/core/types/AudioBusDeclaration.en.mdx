@@ -1,0 +1,68 @@
+---
+title: "AudioBusDeclaration"
+---
+```ts
+type AudioBusDeclaration = {
+    /**
+     * Stable, unique across the whole tree, and the string a Sound's `type` names.
+     * Two buses may not share an id even under different parents.
+     */
+    id: string;
+    /**
+     * The bus this one feeds into, or `null`/omitted for the master output.
+     */
+    parentId?: string | null;
+    /**
+     * The author's mix position for this bus, 0..1.
+     * @default 1
+     */
+    volume?: number;
+};
+```
+
+One bus, as a host declares it in
+[`GameConfig.audioBuses`](/docs/narraleaf-react/core/game/audio-buses). Only `id` is required.
+
+```ts
+new Game({
+    audioBuses: [
+        {id: "ambience", parentId: "bgm", volume: 0.6},
+        {id: "cast", parentId: "voice"},
+        {id: "alice", parentId: "cast"},
+    ],
+});
+```
+
+## volume
+
+**The author's mix position**, not the volume a clip plays at and not the player's slider. "SFX
+sits 40% down in my mix" is `volume: 0.6`.
+
+The player's control is a *separate* number that multiplies on top of this one and defaults to 1, so
+a player who has changed nothing hears the mix the author built, and a player who pushes a slider to
+maximum gets the author's intent rather than a bus at full gain. See
+[Audio Buses](/docs/narraleaf-react/core/game/audio-buses).
+
+## AudioBusNode
+
+A bus after the tree has been resolved — what `game.audioBuses.getTree().getNodes()` returns.
+
+```ts
+type AudioBusNode = {
+    id: string;
+    parentId: string | null;
+    /**
+     * The author's mix position, straight off the declaration.
+     * Fixed for the life of the game.
+     */
+    volume: number;
+    /**
+     * 1 for a bus directly under the master output.
+     */
+    depth: number;
+};
+```
+
+<Callout type="info">
+    Added in `0.23.0`.
+</Callout>

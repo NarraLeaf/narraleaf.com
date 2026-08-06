@@ -1,0 +1,63 @@
+---
+title: Project Dependencies
+description: How a project records the plugins it uses, what happens when one is missing or incompatible, and which plugins ship inside a built game.
+---
+
+A project records which plugins its documents actually use. The table lives in the `.nlproj` manifest, is derived by scanning the project, and is never hand-authored. It answers two questions: what a machine needs installed to open this project, and which plugins belong inside the game you build from it.
+
+Open it at **Project → Dependencies** in the workspace sidebar.
+
+## Hard and soft
+
+| Kind | Recorded when | If the plugin is gone |
+| --- | --- | --- |
+| Hard | The project references a *type* the plugin owns — a blueprint node type or a widget type. | The document is broken. Studio acts on it. |
+| Soft | The plugin only wrote project storage. | Nothing breaks. Informational only. |
+
+A plugin can be both: a hard dependency that also keeps a store is still hard.
+
+## When the table is written
+
+- **On open**, Studio resolves the *persisted* table before loading any plugin, so it knows what to skip before a plugin's `setup` can register anything.
+- **On export**, the project is rescanned and the table is rewritten, so the exported package records exactly what it needs.
+- **On demand**, from **Rescan** in the Dependencies panel.
+
+Opening the panel resolves the current state without writing the manifest.
+
+A scan only re-derives entries for plugins that are loaded and contributing types. Entries for plugins that are absent or disabled are preserved as-is — dropping them would quietly erase a requirement the moment you opened the project on a machine that lacks the plugin.
+
+## Status
+
+| Status | Meaning |
+| --- | --- |
+| Ready | Installed at a compatible version. |
+| Outdated | Same major version, but older than the one the project was authored against. Still loads. |
+| Missing | Not installed on this machine. |
+| Incompatible | Installed at a different major version than the project was authored against. |
+| Disabled | A hard dependency that is Missing or Incompatible. The plugin is skipped for this project. |
+
+Compatibility is major-version only: `2.4.0` satisfies a project authored against `2.1.0`, and `3.0.0` does not. An unparseable version counts as incompatible.
+
+## What being skipped means
+
+A hard dependency that is Missing or Incompatible suppresses that plugin **for this project**. Studio never imports its entry, so `setup` never runs and its nodes, widgets, and actions never register — a node type registered by the wrong major version could rewrite documents it no longer understands. You get a warning naming the plugin, and the project opens.
+
+Suppression is per project. The plugin stays installed and enabled everywhere else.
+
+Soft dependencies never suppress anything.
+
+## What ships in a built game
+
+Packing follows the table, not the installed list:
+
+- **Only hard dependencies ship.** An enabled plugin with a runtime entry that this project does not use is left out of the pack.
+- **A used type with no provider fails the build.** If a node or widget the project uses has no shipping plugin that declares it in `contributes`, Preview and export stop with a message naming the plugin and the types — rather than shipping a game where that node does nothing on a player's machine.
+- **A project with no table at all** — never scanned, never exported — falls back to shipping every enabled runtime plugin. Rescan or export once and the selection becomes exact.
+
+## Version numbers are a contract
+
+For plugin authors, this is the part that reaches your users:
+
+- **A major bump breaks every project authored against the old major.** Those projects mark your plugin Incompatible and skip it. Bump major when you mean to break, not to signal that a release is significant.
+- **Keep type ids stable.** A project stores node and widget types by string. Renaming one is a break that no version number can describe — add the new type and leave the old one registered.
+- **Built-in plugins are versioned with Studio.** A Studio update can be what flips a project to Incompatible; that is the case the whole mechanism was built for.

@@ -88,6 +88,27 @@ type GameConfig = {
      */
     maxPreloadActions: number;
     /**
+     * The audio bus tree, declared by the host at boot
+     *
+     * A bus is a gain node every sound routed to it passes through, and buses nest, so a bus's
+     * gain cascades onto everything beneath it. A bus's `volume` here is the **author's mix
+     * position**, not the player's slider.
+     *
+     * `bgm`, `sound` and `voice` are always present whether or not they appear here.
+     * Read once, when the audio subsystem starts.
+     * @default []
+     * @example
+     * ```ts
+     * new Game({
+     *     audioBuses: [
+     *         {id: "cast", parentId: "voice"},
+     *         {id: "alice", parentId: "cast", volume: 0.8},
+     *     ],
+     * });
+     * ```
+     */
+    audioBuses: AudioBusDeclaration[];
+    /**
      * Src of the cursor image, if null, the game will show the default cursor
      * @default null
      */
@@ -266,3 +287,5 @@ type GameConfig = {
     maxActionHistory: number;
 };
 ```
+
+- For `AudioBusDeclaration`, see [AudioBusDeclaration](/docs/narraleaf-react/core/types/AudioBusDeclaration) and [Audio Buses](/docs/narraleaf-react/core/game/audio-buses).
