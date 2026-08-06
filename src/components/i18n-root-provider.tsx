@@ -3,7 +3,14 @@
 import { type ReactNode, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import { type Locale, i18nUI, isLocale, localizedPath } from '@/lib/i18n';
+import {
+  type Locale,
+  i18nUI,
+  isLocale,
+  localizedPath,
+  LOCALE_COOKIE,
+  LOCALE_COOKIE_MAX_AGE,
+} from '@/lib/i18n';
 
 function localizedPathname(pathname: string, targetLocale: Locale): string {
   const segments = pathname.split('/').filter(Boolean);
@@ -25,6 +32,11 @@ export function I18nRootProvider(props: { children: ReactNode; locale: Locale })
       ...i18nUI.provider(locale),
       onLocaleChange: (value: string) => {
         if (!isLocale(value)) return;
+        // Record the choice before navigating. The proxy falls back to
+        // Accept-Language only when this cookie is missing, so without it a
+        // browser set to Chinese would be redirected off the English pages
+        // again the instant this navigation landed.
+        document.cookie = `${LOCALE_COOKIE}=${value};path=/;max-age=${LOCALE_COOKIE_MAX_AGE};samesite=lax`;
         window.location.assign(localizedPathname(pathname, value));
       },
     }),

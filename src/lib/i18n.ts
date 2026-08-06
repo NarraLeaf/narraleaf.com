@@ -10,6 +10,19 @@ export const i18n = defineI18n({
 
 export type Locale = (typeof i18n.languages)[number];
 
+/**
+ * Holds a language the visitor picked by hand in the language switcher.
+ *
+ * The proxy negotiates from `Accept-Language` only when this is absent, so an
+ * explicit choice always outranks what the browser advertises. Without it the
+ * switcher would not work at all: a browser set to Chinese would be sent back
+ * to Chinese the moment it asked for an English page.
+ */
+export const LOCALE_COOKIE = 'NEXT_LOCALE';
+
+/** One year, refreshed every time the visitor picks a language. */
+export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
 export const i18nUI = defineI18nUI(i18n, {
   en: {
     displayName: 'English',
