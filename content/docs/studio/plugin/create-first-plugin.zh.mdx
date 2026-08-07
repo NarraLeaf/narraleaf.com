@@ -79,7 +79,7 @@ yarn install
 | `sidecars` | 随作者游戏一同发布的原生子进程。 |
 | `buildDependencies` | 构建时抓取的外部二进制文件。 |
 
-注册一个你没有声明的类型会在加载时抛错；而使用了某个缺少提供方的节点的游戏会在构建时失败并给出明确错误——正是这份声明让这项检查成为可能。逐字段的完整参考在 [清单](/docs/studio/plugin/manifest) 页。
+注册一个你没有声明的类型会在加载时抛错；而使用了某个缺少提供方的节点的游戏会在构建时失败并给出明确错误——正是这份声明让这项检查成为可能。逐字段的完整参考在 [清单](/zh/docs/studio/plugin/manifest) 页。
 
 <Callout type="warn">
 Studio 会从 `contributes` **派生**出安装时的权限提示。不要把 `runtime`、`sidecar` 或 `buildDependency` 权限手写进 `permissions[]`——一旦这么做，清单就会被拒绝。把能力声明一次，权限自然随之而来。
@@ -206,7 +206,7 @@ execute: async ctx => {
 ```
 
 <Callout type="warn">
-未声明的能力是**从 `ctx.game` 上缺失**，而不是一个会抛错的方法——没有什么可以 catch。而且不存在 `ctx.hostAdapter`：早期版本通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 把宿主完整的内部 API 泄漏了出去，既没有任何声明，安装时也没有向作者展示任何东西。如果你正在移植一个基于那条路径写成的插件，它用到的一切现在都位于 `ctx.game` 上某项已声明的能力之后——参见 [Runtime API](/docs/studio/plugin/runtime)。
+未声明的能力是**从 `ctx.game` 上缺失**，而不是一个会抛错的方法——没有什么可以 catch。而且不存在 `ctx.hostAdapter`：早期版本通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 把宿主完整的内部 API 泄漏了出去，既没有任何声明，安装时也没有向作者展示任何东西。如果你正在移植一个基于那条路径写成的插件，它用到的一切现在都位于 `ctx.game` 上某项已声明的能力之后——参见 [Runtime API](/zh/docs/studio/plugin/runtime)。
 </Callout>
 
 同一个 `execute` 也会在编辑器内预览中运行，那里根本没有游戏，**每一个**受控命名空间都不存在。请写会降级的节点，而不是会假定的节点。
@@ -343,10 +343,10 @@ yarn typecheck
 
 ## 打包
 
-可安装的插件就是 `dist/` 文件夹——`manifest.json`、构建出的入口文件，以及任何语言 JSON。把该文件夹（或其内容）打成 zip 即可发布。想在本地试用，就让 Studio 指向构建出的 `dist/` 目录：参见 [安装插件](/docs/studio/plugin/install-plugin)。
+可安装的插件就是 `dist/` 文件夹——`manifest.json`、构建出的入口文件，以及任何语言 JSON。把该文件夹（或其内容）打成 zip 即可发布。想在本地试用，就让 Studio 指向构建出的 `dist/` 目录：参见 [安装插件](/zh/docs/studio/plugin/install-plugin)。
 
 <Callout type="info">
-如果你的插件附带 [sidecar](/docs/studio/plugin/runtime/sidecar)，zip **不会**保留可执行位——没有任何一条插件打包路径会保留它。游戏宿主会在启动它之前修复该位，所以这不是你需要绕开的问题；只是别被 macOS 或 Linux 上磁盘里的权限位吓到。每个随包发布的二进制文件仍然需要在清单里给出 `sha256`，安装时校验一次，打包时再校验一次。
+如果你的插件附带 [sidecar](/zh/docs/studio/plugin/runtime/sidecar)，zip **不会**保留可执行位——没有任何一条插件打包路径会保留它。游戏宿主会在启动它之前修复该位，所以这不是你需要绕开的问题；只是别被 macOS 或 Linux 上磁盘里的权限位吓到。每个随包发布的二进制文件仍然需要在清单里给出 `sha256`，安装时校验一次，打包时再校验一次。
 </Callout>
 
 <Files>
@@ -374,6 +374,6 @@ yarn typecheck
 | minor | 新增节点、控件或可选引脚。 |
 | major | 移除或重命名已贡献的类型、移除引脚，或改变已有节点对已有图的作用。 |
 
-主版本号是工具链会据此行动的破坏性变更：按旧主版本创作的项目会把你的插件判为不兼容并跳过它。参见[项目依赖](/docs/studio/plugin/project-dependencies)。
+主版本号是工具链会据此行动的破坏性变更：按旧主版本创作的项目会把你的插件判为不兼容并跳过它。参见[项目依赖](/zh/docs/studio/plugin/project-dependencies)。
 
-下一步：查看完整的 [API 参考](/docs/studio/plugin/api-reference)，了解两个接口上的每个方法；如果你的插件需要从运行中的游戏取得任何东西，再读一读[能力模型](/docs/studio/plugin/runtime)。
+下一步：查看完整的 [API 参考](/zh/docs/studio/plugin/api-reference)，了解两个接口上的每个方法；如果你的插件需要从运行中的游戏取得任何东西，再读一读[能力模型](/zh/docs/studio/plugin/runtime)。

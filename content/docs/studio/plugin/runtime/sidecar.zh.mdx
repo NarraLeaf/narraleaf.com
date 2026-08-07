@@ -69,7 +69,7 @@ sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就�
 
 ### `include` 与 `sha256`
 
-`include` 列出为该平台分发的一切。条目要么是相对于包的路径，要么是 `dep:<buildDependencyId>/<path>`，用来取出某个已声明的[构建时依赖](/docs/studio/plugin/build-dependencies)产出的产物——你自己可能无权镜像的可再分发文件就是这样进包的。`entry` 也必须出现在 `include` 里。
+`include` 列出为该平台分发的一切。条目要么是相对于包的路径，要么是 `dep:<buildDependencyId>/<path>`，用来取出某个已声明的[构建时依赖](/zh/docs/studio/plugin/build-dependencies)产出的产物——你自己可能无权镜像的可再分发文件就是这样进包的。`entry` 也必须出现在 `include` 里。
 
 `sha256` 对 `include` 中每个相对于包的条目都是**强制**的，用小写十六进制。它在安装时校验一次、打包时再校验一次，所以被篡改的包会安装失败，而不是悄悄发布一个不同的二进制。`dep:` 条目则由构建时依赖自身的摘要覆盖。
 

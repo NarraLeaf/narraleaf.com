@@ -9,7 +9,7 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 
 - **Head 没有执行入口。** 没有任何东西可以连进去。一张图里可以放多个 Head，各自的事件到达时各跑各的执行链。
 - **数据输出就是 payload。** 除`then`以外的每个输出引脚，都按引脚 id 读取本次运行时事件 payload 的一个字段。派发没有设置的字段读到`null`——不是`0`，也不是`""`。
-- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/docs/studio/blueprint/surfaces) 的设计坐标系。
+- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系。
 - **图类型。** 本页节点都只允许`event`图，只有`Send Broadcast`和`Get Listener Count`同时允许`macro`图。Blueprint Value 图只接受两个 Head：`Init`和`On Flush`。
 - **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head。
 
@@ -40,7 +40,7 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 
 ## 事件冒泡
 
-元素事件只在运行时命中的那个元素上触发，然后就停在那里——它不会向上传给祖先，父元素也不会默默接管子元素的事件。[Element 分类](/docs/studio/blueprint/nodes/element)里的两个节点负责改变这一点：
+元素事件只在运行时命中的那个元素上触发，然后就停在那里——它不会向上传给祖先，父元素也不会默默接管子元素的事件。[Element 分类](/zh/docs/studio/blueprint/nodes/element)里的两个节点负责改变这一点：
 
 - `Continue Event Bubble`沿用当前事件名和原始 payload，把当前事件继续派发给结构父元素，然后从`next`继续执行。只能用于控件蓝图；当前没有进行中的事件可转发时执行失败。
 - `Stop Event Bubble`把事件标记为已处理。后续的父级派发会被跳过，应用层的键盘派发同样会被跳过。
@@ -422,7 +422,7 @@ Element Click（元素点击）监听绑定目标自己的`mouseClick`。目标�
 
 ## List
 
-这些 Head 属于 list-like 控件——`nl.list`以及 Game UI 包装控件`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`。读写运行时内容见 [List 节点](/docs/studio/blueprint/nodes/list)。`List Item Refresh`是个例外：它派发到 item 模板**内部**元素的私有蓝图，而不是 List 本身。
+这些 Head 属于 list-like 控件——`nl.list`以及 Game UI 包装控件`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`。读写运行时内容见 [List 节点](/zh/docs/studio/blueprint/nodes/list)。`List Item Refresh`是个例外：它派发到 item 模板**内部**元素的私有蓝图，而不是 List 本身。
 
 ### Item Render
 
@@ -524,7 +524,7 @@ List Item Refresh（列表项刷新）在`nl.list`渲染或刷新某个条目时
 
 ## Slider
 
-这些 Head 属于`nl.slider`。这里的所有值都是映射后的值，和`props.value`以及 [Slider 节点](/docs/studio/blueprint/nodes/slider)一致——0–1 normalized 值只能通过专用读节点取得。
+这些 Head 属于`nl.slider`。这里的所有值都是映射后的值，和`props.value`以及 [Slider 节点](/zh/docs/studio/blueprint/nodes/slider)一致——0–1 normalized 值只能通过专用读节点取得。
 
 ### Drag Start
 
@@ -562,7 +562,7 @@ Drag End（拖拽结束）在滑块拖拽结束时触发。
 
 ## 文本输入
 
-这些 Head 属于`nl.textInput`。读写字段内容见 [Text input 节点](/docs/studio/blueprint/nodes/text-input)。
+这些 Head 属于`nl.textInput`。读写字段内容见 [Text input 节点](/zh/docs/studio/blueprint/nodes/text-input)。
 
 ### Value Changed
 
@@ -593,7 +593,7 @@ Submit（提交）在输入框内按下`Enter`时触发。它刻意不阻止事�
 
 `blueprint.event.head.pageEvent`
 
-Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit Page Event`时，于父级`nl.frame`的私有蓝图中触发。只有`nl.frame`提供该 Head；发送侧位于 [App 节点](/docs/studio/blueprint/nodes/app)。
+Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit Page Event`时，于父级`nl.frame`的私有蓝图中触发。只有`nl.frame`提供该 Head；发送侧位于 [App 节点](/zh/docs/studio/blueprint/nodes/app)。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -603,7 +603,7 @@ Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit P
 
 ## Game Preference
 
-两个 Head 都订阅当前活动`LiveGame`的 preference 派发器，因此只在全局蓝图和当前 active Surface 蓝图中提供。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/docs/studio/blueprint/nodes/game)。
+两个 Head 都订阅当前活动`LiveGame`的 preference 派发器，因此只在全局蓝图和当前 active Surface 蓝图中提供。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/zh/docs/studio/blueprint/nodes/game)。
 
 ### On Preference Changed
 

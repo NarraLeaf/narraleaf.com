@@ -7,9 +7,9 @@ fn 是一段有名字、可以被别的图运行的图。`Fn`声明它并持有�
 
 ## 约定
 
-- **三个节点都属于`event`图。** fn 的函数体**不是**`function`图。`function`是另一种[图类型](/docs/studio/blueprint)——由`Function Entry`进入，不允许有副作用的节点，也不允许 latent（会挂起执行）节点——而 fn 的函数体就是普通的 event 图，event 图能做的它都能做。
+- **三个节点都属于`event`图。** fn 的函数体**不是**`function`图。`function`是另一种[图类型](/zh/docs/studio/blueprint)——由`Function Entry`进入，不允许有副作用的节点，也不允许 latent（会挂起执行）节点——而 fn 的函数体就是普通的 event 图，event 图能做的它都能做。
 - **fn 的身份是它的头节点，不是它的名字。** 在卡片上改名，所有调用方会跟着改标签而不会断掉。同一作用域里两个 fn 同名也仍然解析正确，编辑器会提示这次撞名，因为名字是给你看的，绑定走的是 id。
-- **可见性由宿主决定。** 声明在`globalMain`蓝图上的 fn 处处可调用；声明在`surfaceMain`或`widgetMain`蓝图上的 fn 只能被同一 [Surface](/docs/studio/blueprint/surfaces) 调用。Blueprint Value 能调用但永远不能声明；`componentWidgetMain`和`sharedAsset`蓝图两样都不行。
+- **可见性由宿主决定。** 声明在`globalMain`蓝图上的 fn 处处可调用；声明在`surfaceMain`或`widgetMain`蓝图上的 fn 只能被同一 [Surface](/zh/docs/studio/blueprint/surfaces) 调用。Blueprint Value 能调用但永远不能声明；`componentWidgetMain`和`sharedAsset`蓝图两样都不行。
 - **参数和结果引脚是作者写出来的，不是固定的。** `Fn`和`Fn Return`的数据引脚由卡片上的按钮生成，每个引脚带一个名字和一个类型，类型从`string`、`integer`、`float`、`boolean`、`json`、`any`中选。
 - **递归上限为 32 层。** 超过就直接失败。编辑器一旦能看出某个 fn 直接或间接调用了自己，就会给出警告。
 

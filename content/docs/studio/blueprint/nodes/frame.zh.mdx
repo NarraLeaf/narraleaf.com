@@ -3,13 +3,13 @@ title: Frame
 description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params。
 ---
 
-`nl.frame` 的 Self 节点。Frame 是某个 Page 上的一块矩形，它在自己内部渲染另一个 Page，因此这些节点就是运行中的图在不离开玩家当前 Page 的前提下换掉画面内容的手段——标签页、设置面板、路由都靠它。每个节点作用于自己蓝图所属的那个 Frame，不带 `Element` 输入，也只出现在该 Frame 自己的蓝图里。要操作另一个 Frame，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类中对应的节点。
+`nl.frame` 的 Self 节点。Frame 是某个 Page 上的一块矩形，它在自己内部渲染另一个 Page，因此这些节点就是运行中的图在不离开玩家当前 Page 的前提下换掉画面内容的手段——标签页、设置面板、路由都靠它。每个节点作用于自己蓝图所属的那个 Frame，不带 `Element` 输入，也只出现在该 Frame 自己的蓝图里。要操作另一个 Frame，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点。
 
 ## 约定
 
 - **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果。
-- **一个 Frame 持有两样东西：目标 Page 和一个 `params` 对象。** 目标必须是 Page；卡片下拉框只列出 Page，并排除该 Frame 所在的 Page 以及任何会绕回自身形成嵌套循环的 Page。Page 是什么、它和 Game UI Surface 有何区别，见 [Surface 与 Page](/docs/studio/blueprint/surfaces)。
-- **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/docs/studio/blueprint/nodes/app) 分类的 `Get Page Props` 读取整个对象，读取不存在的字段得到 `null`。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/docs/studio/blueprint/nodes/events)。
+- **一个 Frame 持有两样东西：目标 Page 和一个 `params` 对象。** 目标必须是 Page；卡片下拉框只列出 Page，并排除该 Frame 所在的 Page 以及任何会绕回自身形成嵌套循环的 Page。Page 是什么、它和 Game UI Surface 有何区别，见 [Surface 与 Page](/zh/docs/studio/blueprint/surfaces)。
+- **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/zh/docs/studio/blueprint/nodes/app) 分类的 `Get Page Props` 读取整个对象，读取不存在的字段得到 `null`。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/zh/docs/studio/blueprint/nodes/events)。
 - **没有改变任何东西的写入什么都不做。** 两个写入节点都会把传入的目标和 params 与当前值比对（params 按 JSON 相等比对），两者都相同时直接返回。重复执行它们不会重新挂载 Page，也不会重放进场动画。
 - **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在 Frame 自己的主蓝图。要在 Blueprint Value 里读这个 Frame，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。
 
@@ -109,7 +109,7 @@ Set Visible（设置可见性）。
 | `next` | out · exec | — | |
 | `visible` | in · data | `boolean` | |
 
-`visible` 传 false 会把该 Frame 连同里面整个 Page 从运行时元素树上摘掉——这不是 CSS 隐藏。被嵌入的 Page 会卸载，其中每个蓝图随之停止，Frame 回来时它们的 `Init` 会重新执行。隐藏后的 Frame 无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想要隐藏但保持挂载，请使用 [Displayable](/docs/studio/blueprint/nodes/displayable) `Set Display`。
+`visible` 传 false 会把该 Frame 连同里面整个 Page 从运行时元素树上摘掉——这不是 CSS 隐藏。被嵌入的 Page 会卸载，其中每个蓝图随之停止，Frame 回来时它们的 `Init` 会重新执行。隐藏后的 Frame 无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想要隐藏但保持挂载，请使用 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) `Set Display`。
 
 ## Get Visible
 

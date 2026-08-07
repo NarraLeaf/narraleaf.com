@@ -27,7 +27,7 @@ export default defineRuntimePlugin({
 | `game.data` | `readJson(namespace)`——读取随游戏一同发布的插件存储。 |
 | `game.log` | 向宿主日志写入 `log(level, message)`。 |
 
-你注册的每个类型都必须在 `contributes.blueprintNodes` / `contributes.widgets` 中声明，而 `game.data` 只看得到 `contributes.runtimeData` 里列出的命名空间。参见 [清单参考](/docs/studio/plugin/manifest)。
+你注册的每个类型都必须在 `contributes.blueprintNodes` / `contributes.widgets` 中声明，而 `game.data` 只看得到 `contributes.runtimeData` 里列出的命名空间。参见 [清单参考](/zh/docs/studio/plugin/manifest)。
 
 ## 其余一切都由能力把关
 
@@ -45,21 +45,21 @@ export default defineRuntimePlugin({
 未声明的域是**从对象上缺席**，而不是一个会抛错的方法。如果你没有声明 `state.read`，`app.game.state` 就是 `undefined`——没有东西可调用，也没有东西可捕获。请检查它是否存在，不要用 `try` 包起来。
 </Callout>
 
-整份契约就这么多。安装提示列出的正是 `app.game` 上存在的那些域，所以作者批准的内容和你的插件能做的事，在构造上就是同一个集合。这些权限永远不用你手写——Studio 会从 `contributes` 派生它们，手写的权限是一种 [清单错误](/docs/studio/plugin/manifest#permissions-are-derived)。
+整份契约就这么多。安装提示列出的正是 `app.game` 上存在的那些域，所以作者批准的内容和你的插件能做的事，在构造上就是同一个集合。这些权限永远不用你手写——Studio 会从 `contributes` 派生它们，手写的权限是一种 [清单错误](/zh/docs/studio/plugin/manifest#permissions-are-derived)。
 
 ### 九项能力
 
 | 能力 | 授予 | 用途 |
 | --- | --- | --- |
-| `store` | [`app.game.store`](/docs/studio/plugin/runtime/store) | 插件作用域的持久键值存储，存放在玩家的存档旁边。 |
-| `events` | [`app.game.events`](/docs/studio/plugin/runtime/events) | 订阅游戏生命周期与故事事件。 |
-| `state.read` | [`app.game.state`](/docs/studio/plugin/runtime/state)——`get`、`onChange` | 读取并观察故事变量。 |
+| `store` | [`app.game.store`](/zh/docs/studio/plugin/runtime/store) | 插件作用域的持久键值存储，存放在玩家的存档旁边。 |
+| `events` | [`app.game.events`](/zh/docs/studio/plugin/runtime/events) | 订阅游戏生命周期与故事事件。 |
+| `state.read` | [`app.game.state`](/zh/docs/studio/plugin/runtime/state)——`get`、`onChange` | 读取并观察故事变量。 |
 | `state.write` | `app.game.state.set` | 写入故事变量。隐含 `state.read`。 |
-| `saves.read` | [`app.game.saves`](/docs/studio/plugin/runtime/saves)——`listIds`、`readMetadata` | 列出存档槽位并读取它们的元数据。 |
+| `saves.read` | [`app.game.saves`](/zh/docs/studio/plugin/runtime/saves)——`listIds`、`readMetadata` | 列出存档槽位并读取它们的元数据。 |
 | `saves.write` | `app.game.saves.write` / `.load` | 覆盖一个槽位，或替换正在进行的游玩进程。 |
-| `ui.overlay` | [`app.game.ui.overlay`](/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素。 |
-| `assets` | [`app.game.assets`](/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL。 |
-| `locale` | [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言。 |
+| `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素。 |
+| `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL。 |
+| `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言。 |
 
 这份列表是封闭的。无法识别的能力字符串会让清单校验失败，而不是被忽略，所以拼错永远不会被读成“什么都没申请”。
 
@@ -70,7 +70,7 @@ export default defineRuntimePlugin({
 
 ### sidecar 没有能力字符串
 
-当且仅当 `contributes.sidecars` 非空时，[`app.game.sidecar`](/docs/studio/plugin/runtime/sidecar) 才存在。声明这个 sidecar *就是*那次申请，所以没有额外的东西可以忘。
+当且仅当 `contributes.sidecars` 非空时，[`app.game.sidecar`](/zh/docs/studio/plugin/runtime/sidecar) 才存在。声明这个 sidecar *就是*那次申请，所以没有额外的东西可以忘。
 
 ## 把关是一个交集
 
@@ -89,7 +89,7 @@ export default defineRuntimePlugin({
 | `locale` | 是 | 是 | 是 | 是 | 是 | 否 |
 | `sidecar` | 是 | **从不** | **从不** | 是 | **否** | 否 |
 
-- `events.closeRequested` 在 Web 上从不触发——那里没有窗口可关。请用 [`events.available(name)`](/docs/studio/plugin/runtime/events)，而不是假定存在桌面外壳。
+- `events.closeRequested` 在 Web 上从不触发——那里没有窗口可关。请用 [`events.available(name)`](/zh/docs/studio/plugin/runtime/events)，而不是假定存在桌面外壳。
 - **开发模式不等于预览。** 预览跑的是发行游戏跑的同一套外壳；开发模式窗口是一个直接驱动项目的 Studio 窗口。两项能力在那里不同：`assets` 缺席，因为那里的资源解析要走异步 IPC，而这项能力的签名是同步的 `url()`；`sidecar` 缺席，因为开发模式窗口不托管任何子进程。这两项都请在预览里验证。
 - **编辑器内预览**（在编辑器画布上运行节点）根本没有游戏，所以每个受把关的域都缺席。那里 `game.data.readJson` 也返回 `null`，调用 `game.blueprintNodes.register` 会抛错——注册属于 studio 入口的 `app.services.*`。同一份 `execute` 会在两处运行，这正是节点必须降级、而不能想当然的原因。
 
@@ -117,19 +117,19 @@ execute: async ctx => {
 ## 子页面
 
 <Cards>
-  <Card title="store" href="/docs/studio/plugin/runtime/store" description="插件作用域的持久键值存储，开新游戏也不会丢。" />
-  <Card title="events" href="/docs/studio/plugin/runtime/events" description="十三个游戏与故事事件，以及各环境下的可用性。" />
-  <Card title="state" href="/docs/studio/plugin/runtime/state" description="读取、写入并观察 scene / saved / persistent 故事变量。" />
-  <Card title="saves" href="/docs/studio/plugin/runtime/saves" description="列出并读取存档槽位；用更重的能力覆盖或载入某一个。" />
-  <Card title="ui.overlay" href="/docs/studio/plugin/runtime/overlay" description="在游戏之上绘制元素——以及它唯一去不了的地方。" />
-  <Card title="assets 与 locale" href="/docs/studio/plugin/runtime/assets-locale" description="解析打包资源的 URL，并跟随玩家的语言。" />
-  <Card title="sidecar" href="/docs/studio/plugin/runtime/sidecar" description="在作者的游戏里随附一个原生子进程，并用 NDJSON 与它对话。" />
+  <Card title="store" href="/zh/docs/studio/plugin/runtime/store" description="插件作用域的持久键值存储，开新游戏也不会丢。" />
+  <Card title="events" href="/zh/docs/studio/plugin/runtime/events" description="十三个游戏与故事事件，以及各环境下的可用性。" />
+  <Card title="state" href="/zh/docs/studio/plugin/runtime/state" description="读取、写入并观察 scene / saved / persistent 故事变量。" />
+  <Card title="saves" href="/zh/docs/studio/plugin/runtime/saves" description="列出并读取存档槽位；用更重的能力覆盖或载入某一个。" />
+  <Card title="ui.overlay" href="/zh/docs/studio/plugin/runtime/overlay" description="在游戏之上绘制元素——以及它唯一去不了的地方。" />
+  <Card title="assets 与 locale" href="/zh/docs/studio/plugin/runtime/assets-locale" description="解析打包资源的 URL，并跟随玩家的语言。" />
+  <Card title="sidecar" href="/zh/docs/studio/plugin/runtime/sidecar" description="在作者的游戏里随附一个原生子进程，并用 NDJSON 与它对话。" />
 </Cards>
 
 ## 运行时接口没有什么
 
 - **没有 `hostAdapter`。** 节点的 `ctx` 只带 `params`、`resolveInput`、`eventName`、`eventPayload`、`signal` 和 `game`——别无其他。早期构建通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 泄漏了宿主完整的内部 API；那条路径已经没了。现在一切都走 `ctx.game`，而它恰好就是清单声明的那些。
-- **没有编辑器服务。** `app.services`、`app.privileged` 和 `ui` 套件只属于 [studio 入口](/docs/studio/plugin/studio)。runtime 入口是游戏代码。
+- **没有编辑器服务。** `app.services`、`app.privileged` 和 `ui` 套件只属于 [studio 入口](/zh/docs/studio/plugin/studio)。runtime 入口是游戏代码。
 - **没有 `react-dom/client`。** 宿主以 external 的形式提供 `react`、`react-dom` 和 JSX 运行时，但插件绝不能挂载自己的 React root——第二个 root 会在同一棵树上和宿主的打架。返回元素，让宿主去渲染。
 - **没有编辑器 i18n。** `app.services.i18n` 是编辑器的 UI 语言。游戏通过 NarraLeaf 自己的本地化系统来本地化面向玩家的内容；运行时接口只告诉你当前是哪个 locale。
 - **没有清理生命周期。** 游戏进程只加载一次插件，从不卸载，所以 `setup` 没有要返回的清理函数，`register` 返回 `void`。

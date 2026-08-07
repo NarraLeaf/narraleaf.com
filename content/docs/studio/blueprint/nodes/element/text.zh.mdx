@@ -3,11 +3,11 @@ title: 文本
 description: 读写连入的 nl.text 元素的内容、排版与效果，以及连入的 nl.textInput 的值。
 ---
 
-`nl.text` 和 `nl.textInput` 是两种不同的控件，却共用了三个节点名。把两族放在同一页，是为了让这次撞名一眼可见；所有 Element 节点共通的规则见 [Element](/docs/studio/blueprint/nodes/element)。
+`nl.text` 和 `nl.textInput` 是两种不同的控件，却共用了三个节点名。把两族放在同一页，是为了让这次撞名一眼可见；所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)。
 
 ## Text
 
-Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。Self 形态见 [Text](/docs/studio/blueprint/nodes/text)。
+Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)。
 
 ### Get Text
 
@@ -318,7 +318,7 @@ Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.tex
 
 ## Text Input
 
-这些节点的目标是 `nl.textInput`，不是 `nl.text`，而它们在创建浮窗里的名字和上面的 Text 节点正面撞车：两个 `Get Text`、两个 `Set Text`、两个 `Clear Text`。区分它们的是引脚——Text Input 节点带 `textInput`，类型是 `element:nl.textInput`；Text 节点带 `element`，类型是 `element:nl.text`——实际使用中你一次只会看到其中一个，因为创建浮窗只列出与当前图已有绑定匹配的那个。Self 形态见 [Text Input](/docs/studio/blueprint/nodes/text-input)。
+这些节点的目标是 `nl.textInput`，不是 `nl.text`，而它们在创建浮窗里的名字和上面的 Text 节点正面撞车：两个 `Get Text`、两个 `Set Text`、两个 `Clear Text`。区分它们的是引脚——Text Input 节点带 `textInput`，类型是 `element:nl.textInput`；Text 节点带 `element`，类型是 `element:nl.text`——实际使用中你一次只会看到其中一个，因为创建浮窗只列出与当前图已有绑定匹配的那个。Self 形态见 [Text Input](/zh/docs/studio/blueprint/nodes/text-input)。
 
 ### Get Text
 

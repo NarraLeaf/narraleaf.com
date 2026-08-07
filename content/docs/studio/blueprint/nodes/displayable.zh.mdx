@@ -7,7 +7,7 @@ description: 每个可视控件共有的几何与外观接口——属性、Appe
 
 ## 约定
 
-- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的控件。作用于连入元素的版本放在 [Element](/docs/studio/blueprint/nodes/element) 分类，叫`Get Element Property`、`Set Element Variant`等。`Stop Element Animation`也归在那里，尽管它没有`Element`输入——一个`AnimationToken`已经指明了某个控件上的某个动画，没有别的目标可指。
+- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的控件。作用于连入元素的版本放在 [Element](/zh/docs/studio/blueprint/nodes/element) 分类，叫`Get Element Property`、`Set Element Variant`等。`Stop Element Animation`也归在那里，尽管它没有`Element`输入——一个`AnimationToken`已经指明了某个控件上的某个动画，没有别的目标可指。
 - **出现位置。** 出现在`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.slider`、`nl.list`和`nl.frame`的`widgetMain`蓝图中。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant。
 - **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`。
 - **写入落在运行时 patch 层**，不改 authored UI document。没有真正改变任何值的写入不会排队 flush。

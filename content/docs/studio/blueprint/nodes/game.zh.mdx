@@ -14,7 +14,7 @@ Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和
 - **要么 pure，要么 latent，没有中间态。** 二十个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。其余三十三个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果。
 - **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败。
 - **状态取值节点会降级，偏好取值节点不会。** `Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`和`Is Text Read`在什么都没有播放时给出中性值——`false`、`null`、`0`、空数组——正因如此，同一个共享 Page 才能按它们分支。十二个偏好取值节点读的是活动`GamePreference`，没有游戏就失败。
-- **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/docs/studio/blueprint/nodes/events)。
+- **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)。
 - **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里。
 
 ## 游玩
@@ -52,7 +52,7 @@ Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page
 
 | 字段 | 含义 |
 | --- | --- |
-| `Page` | 游戏结束后打开的 [Surface](/docs/studio/blueprint/surfaces)。必填。 |
+| `Page` | 游戏结束后打开的 [Surface](/zh/docs/studio/blueprint/surfaces)。必填。 |
 
 ### Is In Game
 
@@ -152,7 +152,7 @@ Get Speaker Avatar（获取说话人头像）：说话角色的对话头像。�
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `avatar` | out · data | `ImageAsset\|null` | 可接给[图片](/docs/studio/blueprint/nodes/image)节点或图片 Blueprint Value。 |
+| `avatar` | out · data | `ImageAsset\|null` | 可接给[图片](/zh/docs/studio/blueprint/nodes/image)节点或图片 Blueprint Value。 |
 
 ### Is NVL Mode
 
@@ -181,7 +181,7 @@ Get Notifications（获取通知）：运行时当前正在显示的通知，镜
 | `id` | 通知 id。 |
 | `message` | 通知文本。 |
 
-默认通知模板不使用该节点：它的[列表](/docs/studio/blueprint/nodes/list)项模板直接从项属性里读`message`。
+默认通知模板不使用该节点：它的[列表](/zh/docs/studio/blueprint/nodes/list)项模板直接从项属性里读`message`。
 
 ### Show Dialog
 
@@ -511,7 +511,7 @@ Save Game（保存游戏）把活动游戏序列化进项目的本地存档库�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量。 |
-| `metadata` | in · data | `json` | 可选。任意 [JSON](/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`。 |
+| `metadata` | in · data | `json` | 可选。任意 [JSON](/zh/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`。 |
 | `screenshot` | in · data | `boolean` | 可选。卡片上标为 **Capture**。支持卡片字面量。 |
 
 没有活动游戏会话时会失败。

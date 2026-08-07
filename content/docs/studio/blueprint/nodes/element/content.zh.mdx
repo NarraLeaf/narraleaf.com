@@ -3,13 +3,13 @@ title: List、Slider、Image
 description: 列表内容与选中项、滑块数值与范围、图片资源、填充模式与裁剪——全部作用于连入的元素。
 ---
 
-三种自己持有状态的控件——List 的条目、Slider 的值、Image 的资源——在这里通过连入的引用操作，而不是从控件内部操作。所有 Element 节点共通的规则见 [Element](/docs/studio/blueprint/nodes/element)。
+三种自己持有状态的控件——List 的条目、Slider 的值、Image 的资源——在这里通过连入的引用操作，而不是从控件内部操作。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)。
 
 ## List
 
 List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 List 实例的运行时 items，而这些 items 只存在于该实例中：完全卸载后就没了，也不会自动恢复，需要作者自己从变量或其它数据源重新写入。`itemsBinding` 只在没有运行时 items 时作为读取 fallback。
 
-条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/docs/studio/blueprint/nodes/list)。
+条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/zh/docs/studio/blueprint/nodes/list)。
 
 ### Get List Content
 
@@ -199,7 +199,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 ## Slider
 
-Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告值的每一处——`props.value`、它的 Blueprint Value、事件 payload、`Get Slider Value`——给的都是映射后的值，已经按 `min`、`max`、`step` clamp 和 snap 过。`0..1` 的 normalized 值只能通过 `Get Slider Normalized Value` 取得。Self 形态见 [Slider](/docs/studio/blueprint/nodes/slider)。
+Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告值的每一处——`props.value`、它的 Blueprint Value、事件 payload、`Get Slider Value`——给的都是映射后的值，已经按 `min`、`max`、`step` clamp 和 snap 过。`0..1` 的 normalized 值只能通过 `Get Slider Normalized Value` 取得。Self 形态见 [Slider](/zh/docs/studio/blueprint/nodes/slider)。
 
 ### Get Slider Value
 
@@ -266,7 +266,7 @@ Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告�
 
 ## Image
 
-Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控件——不表示舞台表演图片、角色立绘或剧情演出资源。产出 `ImageAsset` 的字面量卡片没有派生形态，和 Self 形态一起留在 [Image](/docs/studio/blueprint/nodes/image)。
+Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控件——不表示舞台表演图片、角色立绘或剧情演出资源。产出 `ImageAsset` 的字面量卡片没有派生形态，和 Self 形态一起留在 [Image](/zh/docs/studio/blueprint/nodes/image)。
 
 ### Get Image Asset
 

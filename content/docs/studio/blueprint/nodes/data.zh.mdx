@@ -41,7 +41,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 - **`RGBAColor` → `json`、`Vector2D` → `json`。** 它们是各自独立的结构化类型，不是 JSON 文档。`Rect`是例外：它本来输出的就是`json`。
 
 <Callout type="info">
-`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行。
+`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行。
 </Callout>
 
 ## 约定
@@ -54,7 +54,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 - **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到。
 
 <Callout type="warn">
-`Array Push`、`Set JSON Field`、`Object Set Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/docs/studio/blueprint/variables)。
+`Array Push`、`Set JSON Field`、`Object Set Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)。
 </Callout>
 
 ## 常量
@@ -904,7 +904,7 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayContains` · Pure
 
-按 JSON 值相等判断，与`Array Remove`同一套规则。这比 [Math](/docs/studio/blueprint/nodes/math) 里按同一性比较的`Equal`故意放宽了一层。
+按 JSON 值相等判断，与`Array Remove`同一套规则。这比 [Math](/zh/docs/studio/blueprint/nodes/math) 里按同一性比较的`Equal`故意放宽了一层。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

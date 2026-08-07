@@ -3,7 +3,7 @@ title: widgets
 description: 注册 UI 编辑器的控件模块——自定义控件的编辑器侧。
 ---
 
-`app.services.widgets` 注册**控件模块**：自定义控件类型的编辑器一半。一个模块负责该控件的画布渲染、属性检查器和 docker 栏控件。同一类型的游戏侧渲染器由 runtime 入口通过 [`app.game.widgets`](/docs/studio/plugin/api-reference) 单独注册。
+`app.services.widgets` 注册**控件模块**：自定义控件类型的编辑器一半。一个模块负责该控件的画布渲染、属性检查器和 docker 栏控件。同一类型的游戏侧渲染器由 runtime 入口通过 [`app.game.widgets`](/zh/docs/studio/plugin/api-reference) 单独注册。
 
 每个 `type` 都必须在 `contributes.widgets` 中声明，并以你的插件 id 为前缀。
 

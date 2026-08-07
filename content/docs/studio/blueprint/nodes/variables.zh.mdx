@@ -3,13 +3,13 @@ title: 变量
 description: 声明变量、读取变量、写入变量，以及访问 Persistent 存储与剧情存储的节点。
 ---
 
-一张图要碰变量，只能经由这些节点。有哪些作用域、各自活多久、什么能被存档带走，都在[变量](/docs/studio/blueprint/variables)一页；这一页讲的是签名。
+一张图要碰变量，只能经由这些节点。有哪些作用域、各自活多久、什么能被存档带走，都在[变量](/zh/docs/studio/blueprint/variables)一页；这一页讲的是签名。
 
 ## 约定
 
 - **`Get Var`和`Set Var`的`value`引脚类型由所选变量投影而来。** 引脚声明成`any`，但在卡片上它会取你在`Variable`里选中的那个变量的类型，编辑器的引脚标签、连线预览和 graph validation 都用这份投影结果。
 - **之后改类型不会动你的连线。** 改掉某个`Var`的 Data type 后，已不再匹配的连线原地保留；graph validation 报告类型不匹配，而不是由编辑器悄悄删掉这条连线。重接哪一根由你决定。
-- **纯不纯决定节点在哪里可用。** `Var`和`Get Var`是纯节点，也是 Variables 分类里唯二能出现在`function`图中的节点。其余都是`event`和`macro`图的执行节点，Persistent 那一对还额外是 latent（会挂起执行）节点，因此也进不了 [Blueprint Value](/docs/studio/blueprint)。
+- **纯不纯决定节点在哪里可用。** `Var`和`Get Var`是纯节点，也是 Variables 分类里唯二能出现在`function`图中的节点。其余都是`event`和`macro`图的执行节点，Persistent 那一对还额外是 latent（会挂起执行）节点，因此也进不了 [Blueprint Value](/zh/docs/studio/blueprint)。
 - **Blueprint Value 不能声明变量。** `widgetValue`宿主根本没有`Var`节点，但它仍然可以用`Get Var`和`Set Var`读写自己够得到的变量。
 - **Scene 与 Saved 这几个节点属于 Story Action 蓝图**，在没有运行中剧情的地方执行会直接失败。
 

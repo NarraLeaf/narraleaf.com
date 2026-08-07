@@ -3,7 +3,7 @@ title: 应用
 description: Surface 导航、应用窗口，以及一个 Page 对自身的认知。
 ---
 
-App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一个 Surface、关掉最上面那个、进入全屏、退出应用。Surface 模型本身——栈、层叠、游戏舞台——在 [Surfaces](/docs/studio/blueprint/surfaces) 中说明。
+App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一个 Surface、关掉最上面那个、进入全屏、退出应用。Surface 模型本身——栈、层叠、游戏舞台——在 [Surfaces](/zh/docs/studio/blueprint/surfaces) 中说明。
 
 ## 约定
 
@@ -32,7 +32,7 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 | --- | --- |
 | `Page` | 要打开的 Surface，从项目的 app Surface 中选择。选`None`则改为关闭当前顶层 Page 叠层。 |
 
-游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭该叠层、重新露出舞台。要离开游戏本身，请用 [Game](/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page。
+游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭该叠层、重新露出舞台。要离开游戏本身，请用 [Game](/zh/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page。
 
 ## Quit Application
 
@@ -89,7 +89,7 @@ Get Page Props（获取页面属性）读取当前蓝图所在 Page 的完整 pr
 | --- | --- | --- | --- |
 | `props` | out · data | `json` | |
 
-要取出其中某个字段，用 [Data](/docs/studio/blueprint/nodes/data) 里的 `Get JSON Field`，它接受点分路径。
+要取出其中某个字段，用 [Data](/zh/docs/studio/blueprint/nodes/data) 里的 `Get JSON Field`，它接受点分路径。
 
 ## Get Page Param
 
@@ -108,7 +108,7 @@ Get Page Param（获取页面参数）按名字读取当前 Page props 中的单
 
 `blueprint.frame.emit` · Latent
 
-Emit Page Event（触发页面事件）把事件从被嵌入的 Page 向上发给嵌入它的那个 `nl.frame` 元素。Frame 自己的蓝图通过 [Events](/docs/studio/blueprint/nodes/events) 里的 `Page Event` 事件 Head 接收，并原样拿到同一个名字和载荷。
+Emit Page Event（触发页面事件）把事件从被嵌入的 Page 向上发给嵌入它的那个 `nl.frame` 元素。Frame 自己的蓝图通过 [Events](/zh/docs/studio/blueprint/nodes/events) 里的 `Page Event` 事件 Head 接收，并原样拿到同一个名字和载荷。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

@@ -3,7 +3,7 @@ title: 数学
 description: 四则运算、取整、随机数、布尔逻辑与比较——全部纯值节点。
 ---
 
-Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。创建浮窗把 Boolean 与 Compare 两个节点组也并入本分类，因此三者都写在这一页。
+Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。创建浮窗把 Boolean 与 Compare 两个节点组也并入本分类，因此三者都写在这一页。
 
 ## 约定
 
@@ -11,7 +11,7 @@ Math 分类负责算出一个值，而不是存下一个值：四则运算、取
 - **不缓存。** 每次读取都会重新算一遍，所以从同一个节点拉出两条连线就会求值两次。这对`+`无所谓，对`Random Float`就不是。
 - **接了线就不看卡片。** 说明栏标注「接受卡片内联字面量」的引脚会在节点卡上画出输入框，而这个输入框只在该引脚没有连线时才被读取。
 - **凡不是有限数字，一律按 NaN 处理。** 数值引脚原样接受有限数字，把`true`和`false`当作`1`和`0`，并解析数字字符串。其余一切——`null`、留空的卡片输入框、`Infinity`——都是 NaN，而拿到 NaN 的节点输出 NaN。少接一个操作数，它下游的每个结果都会变成 NaN。
-- **`integer`能流入`float`，反过来不行。** `Round`、`Floor`和`Ceil`输出`integer`，可以接到任何`float`输入；`float`输出则接不进`integer`输入。两者都能接入`string`输入，算出的数字就是这样送进[`Log`](/docs/studio/blueprint/nodes/debug)的。
+- **`integer`能流入`float`，反过来不行。** `Round`、`Floor`和`Ceil`输出`integer`，可以接到任何`float`输入；`float`输出则接不进`integer`输入。两者都能接入`string`输入，算出的数字就是这样送进[`Log`](/zh/docs/studio/blueprint/nodes/debug)的。
 
 ## 四则运算
 
@@ -55,7 +55,7 @@ Math 分类负责算出一个值，而不是存下一个值：四则运算、取
 | `Floor` | `blueprint.math.floor` | 不大于`value`的最大整数。 |
 | `Ceil` | `blueprint.math.ceil` | 不小于`value`的最小整数。 |
 
-`+1`和`−1`只负责算，不负责存。让计数器前进仍然要`Get Var`接`+1`再接`Set Var`——见[变量](/docs/studio/blueprint/variables)。
+`+1`和`−1`只负责算，不负责存。让计数器前进仍然要`Get Var`接`+1`再接`Set Var`——见[变量](/zh/docs/studio/blueprint/variables)。
 
 ## Min 与 Max
 

@@ -226,7 +226,7 @@ export default defineRuntimePlugin({
 
 `app` 携带 `app.plugin`、`app.manifest` 和 `app.game`。
 
-`app.game` 有四个始终存在的成员——`blueprintNodes`、`widgets`、`data`、`log`——以及一组受能力控制的命名空间，它们只在 `contributes.runtimeCapabilities` 声明过之后才存在。未声明的命名空间是 `undefined`，而不是一个会抛错的方法。完整模型见 [Runtime API](/docs/studio/plugin/runtime)。
+`app.game` 有四个始终存在的成员——`blueprintNodes`、`widgets`、`data`、`log`——以及一组受能力控制的命名空间，它们只在 `contributes.runtimeCapabilities` 声明过之后才存在。未声明的命名空间是 `undefined`，而不是一个会抛错的方法。完整模型见 [Runtime API](/zh/docs/studio/plugin/runtime)。
 
 ### game.blueprintNodes
 
@@ -293,18 +293,18 @@ app.game.log("info", "loaded");    // "info" | "warning" | "error"
 
 ### 受能力控制的命名空间
 
-只有当 `contributes.runtimeCapabilities` 声明了它*并且*当前环境能够支撑它时，下面这些才存在。完整参考：[Runtime API](/docs/studio/plugin/runtime)。
+只有当 `contributes.runtimeCapabilities` 声明了它*并且*当前环境能够支撑它时，下面这些才存在。完整参考：[Runtime API](/zh/docs/studio/plugin/runtime)。
 
 | 命名空间 | 能力 | 参考 |
 | --- | --- | --- |
-| `game.store` | `store` | [store](/docs/studio/plugin/runtime/store) |
-| `game.events` | `events` | [events](/docs/studio/plugin/runtime/events) |
-| `game.state` | `state.read`（`set` 需要 `state.write`） | [state](/docs/studio/plugin/runtime/state) |
-| `game.saves` | `saves.read`（`write` / `load` 需要 `saves.write`） | [saves](/docs/studio/plugin/runtime/saves) |
-| `game.ui.overlay` | `ui.overlay` | [ui.overlay](/docs/studio/plugin/runtime/overlay) |
-| `game.assets` | `assets` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
-| `game.locale` | `locale` | [assets & locale](/docs/studio/plugin/runtime/assets-locale) |
-| `game.sidecar` | 无——只需一个非空的 `contributes.sidecars` | [sidecar](/docs/studio/plugin/runtime/sidecar) |
+| `game.store` | `store` | [store](/zh/docs/studio/plugin/runtime/store) |
+| `game.events` | `events` | [events](/zh/docs/studio/plugin/runtime/events) |
+| `game.state` | `state.read`（`set` 需要 `state.write`） | [state](/zh/docs/studio/plugin/runtime/state) |
+| `game.saves` | `saves.read`（`write` / `load` 需要 `saves.write`） | [saves](/zh/docs/studio/plugin/runtime/saves) |
+| `game.ui.overlay` | `ui.overlay` | [ui.overlay](/zh/docs/studio/plugin/runtime/overlay) |
+| `game.assets` | `assets` | [assets & locale](/zh/docs/studio/plugin/runtime/assets-locale) |
+| `game.locale` | `locale` | [assets & locale](/zh/docs/studio/plugin/runtime/assets-locale) |
+| `game.sidecar` | 无——只需一个非空的 `contributes.sidecars` | [sidecar](/zh/docs/studio/plugin/runtime/sidecar) |
 
 ### runtime 接口上没有 i18n
 

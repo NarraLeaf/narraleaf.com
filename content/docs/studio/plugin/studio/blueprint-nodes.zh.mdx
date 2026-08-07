@@ -3,7 +3,7 @@ title: blueprintNodes
 description: 在编辑器侧注册蓝图节点定义与动态下拉选项。
 ---
 
-`app.services.blueprintNodes` 为编辑器注册蓝图节点定义——调板条目、引脚、检查器字段，以及在编辑器内预览用的 `execute`。要在发布的游戏中运行同一个节点，需从 runtime 入口再用 `app.game.blueprintNodes` 注册；把定义写在一个共享模块中一次，然后从两个入口各注册一遍。参见 [创建第一个插件](/docs/studio/plugin/create-first-plugin)。
+`app.services.blueprintNodes` 为编辑器注册蓝图节点定义——调板条目、引脚、检查器字段，以及在编辑器内预览用的 `execute`。要在发布的游戏中运行同一个节点，需从 runtime 入口再用 `app.game.blueprintNodes` 注册；把定义写在一个共享模块中一次，然后从两个入口各注册一遍。参见 [创建第一个插件](/zh/docs/studio/plugin/create-first-plugin)。
 
 每个节点 `type` 都必须在 `contributes.blueprintNodes` 中声明，并以你的插件 id 为前缀。
 
@@ -51,7 +51,7 @@ execute: async ctx => {
 从 **studio** 入口注册节点，意味着它同样会在编辑器画布预览中运行，而那里没有游戏——`ctx.game` 上每个受能力把关的命名空间都缺席。请用可选链防护（`ctx.game.store?.…`），让同一份 `execute` 在编辑器里降级、在发行的游戏里正常工作。
 </Callout>
 
-从 `ctx.game` 可触及的一切，都记录在 [运行时接口参考](/docs/studio/plugin/runtime) 中。
+从 `ctx.game` 可触及的一切，都记录在 [运行时接口参考](/zh/docs/studio/plugin/runtime) 中。
 
 ## 动态下拉选项
 

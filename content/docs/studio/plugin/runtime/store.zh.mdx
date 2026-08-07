@@ -54,7 +54,7 @@ const unlocked = await app.game.store?.get<string[]>("unlocked");
 | Web 导出 | IndexedDB。 |
 | Android / iOS | 外壳的持久化，与桌面相同。 |
 
-store 不属于任何存档槽位，也不是编辑器侧的 [`app.services.storage`](/docs/studio/plugin/studio/storage)——后者只在工作区打开时存在。如果你需要把在 Studio 里编写的数据送到游戏中，请用 [`contributes.runtimeData`](/docs/studio/plugin/manifest#runtimedata) 一起发布，并改用 `app.game.data.readJson` 读取——那是只读的，并随包一同分发。
+store 不属于任何存档槽位，也不是编辑器侧的 [`app.services.storage`](/zh/docs/studio/plugin/studio/storage)——后者只在工作区打开时存在。如果你需要把在 Studio 里编写的数据送到游戏中，请用 [`contributes.runtimeData`](/zh/docs/studio/plugin/manifest#runtimedata) 一起发布，并改用 `app.game.data.readJson` 读取——那是只读的，并随包一同分发。
 
 <Callout type="info">
 store 在**编辑器内预览中不可用**，那里节点跑在编辑器画布上，背后没有游戏。用 `app.game.store?.` 防护，让节点在那里什么都不做。

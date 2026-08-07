@@ -51,7 +51,7 @@ const stop = app.game.locale?.onChange(next => {
 这是只读的：插件可以跟随玩家的语言，但不能改变它。
 
 <Callout type="info">
-不要把它和 [`app.services.i18n`](/docs/studio/plugin/studio/i18n) 搞混，后者是**编辑器的** UI 语言，且只存在于 studio 入口上。它们是由不同的人设定的不同语言——用英文编辑的作者，完全可能在测试一个跑日文的游戏。
+不要把它和 [`app.services.i18n`](/zh/docs/studio/plugin/studio/i18n) 搞混，后者是**编辑器的** UI 语言，且只存在于 studio 入口上。它们是由不同的人设定的不同语言——用英文编辑的作者，完全可能在测试一个跑日文的游戏。
 </Callout>
 
 如果你的插件为面向游戏的文本自带翻译字符串，请以 `locale.current` 为键，并在 `onChange` 时重新渲染。运行时接口自己没有翻译器。

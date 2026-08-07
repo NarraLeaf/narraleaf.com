@@ -12,7 +12,7 @@ Flow 节点决定执行接下来去哪里。其它节点都在计算或改变什
 - **卡上字面量是按引脚给的，不是按类型给的。** 下面表格里注明可以填字面量的引脚，才能直接在卡片上输入而不必接线。没有任何一个`condition`引脚可以这样填：`If`、`If Else`和`While`的布尔条件永远要接线。
 - **循环使用单游标推进。** `For Loop`、`For Each`和`While`每次进入只走一步。把循环体末尾接回**同一个**节点的`in`引脚，节点才会从`loop`交出下一轮，并最终从`completed`离开。没有接回`in`的循环体只会执行一次。
 - **`Max iterations`留空时默认为 1000。** 它是刹车而不是目标：触发上限时会像正常跑完一样从`completed`离开。没有无上限模式。
-- **[Blueprint Value](/docs/studio/blueprint) 接受 Flow，但不含计时器。** `Delay`和`Skip Delay`在那里被排除——一个会挂起的取值器会让它负责的属性一直悬着。
+- **[Blueprint Value](/zh/docs/studio/blueprint) 接受 Flow，但不含计时器。** `Delay`和`Skip Delay`在那里被排除——一个会挂起的取值器会让它负责的属性一直悬着。
 
 ## If
 
@@ -173,7 +173,7 @@ Return Value（返回值）把一个值交还给发起求值的一方，并结�
 | `in` | in · exec | — | |
 | `value` | in · data | `any` | 属性要取的值。 |
 
-要从一个 fn 返回，用的是`Fn Return`，见 [Functions](/docs/studio/blueprint/nodes/functions)。
+要从一个 fn 返回，用的是`Fn Return`，见 [Functions](/zh/docs/studio/blueprint/nodes/functions)。
 
 ## Noop
 

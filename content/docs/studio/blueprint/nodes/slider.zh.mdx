@@ -3,7 +3,7 @@ title: Slider
 description: 读取和改写滑块控件的运行时数值与范围。
 ---
 
-Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行时数值与范围——比如一个要在 `Init` 时载入已存音量的音量控件，或者一个范围随难度模式变化的选择器。拖拽事件本身在 [Events](/docs/studio/blueprint/nodes/events)。
+Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行时数值与范围——比如一个要在 `Init` 时载入已存音量的音量控件，或者一个范围随难度模式变化的选择器。拖拽事件本身在 [Events](/zh/docs/studio/blueprint/nodes/events)。
 
 ## 约定
 
@@ -19,7 +19,7 @@ Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行
 - **`step` 为 `0` 时关闭 snap。** 此时值在范围内连续变化。负的 `step` 按 `0` 处理。
 - **范围在被使用之前会先被修正。** 只要 `max` 不大于 `min`，它就会被强制成 `min + 1`，因此滑块永远不会有一个零宽度的范围。不是有限数字的值会走回退——读到损坏的范围时回退到控件默认值（`min` 0、`max` 100、`step` 1），而 `Set Slider Range`（设置滑块范围）回退到该字段当前的运行时值。
 - **读取是纯节点，写入是 latent。** `Get Value`、`Get Normalized Value` 和 `Get Slider Range`（获取滑块范围）可用于 `event`、`function` 和 `macro` 图，也允许出现在 Blueprint Value 图中。两个写入节点是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入。
-- **这些都是 Self 节点。** 它们作用于拥有当前图的那个 Slider，并且没有目标引脚。要操作另一个 Slider，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.slider.*` 对应节点，它们带有 `slider` 输入，且只在当前图中已存在绑定到 `nl.slider` 的节点时才出现。
+- **这些都是 Self 节点。** 它们作用于拥有当前图的那个 Slider，并且没有目标引脚。要操作另一个 Slider，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.slider.*` 对应节点，它们带有 `slider` 输入，且只在当前图中已存在绑定到 `nl.slider` 的节点时才出现。
 
 <Callout type="warn">
 `Set Slider Value` 和 `Set Slider Range` 只改运行时状态。它们不会派发 `valueChanged`、`dragStart` 或 `dragEnd`，因此当蓝图去挪这个滑块时，靠这些事件做出反应的图不会被跑起来——请把后续动作接在同一条执行链上。它们也从不写回 UIDocument，所以控件下次挂载时，Slider 仍然从 authored 的值起步。
@@ -57,7 +57,7 @@ Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行
 
 `blueprint.slider.setVisible` · Latent
 
-`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
+`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

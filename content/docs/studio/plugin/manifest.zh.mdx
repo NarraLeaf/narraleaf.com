@@ -78,15 +78,15 @@ description: manifest.json 中的每一个字段——入口、完整的 contrib
 
 `store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
 
-完整模型、每个能力具体授予什么，以及各环境如何进一步收窄它：[Runtime API](/docs/studio/plugin/runtime)。
+完整模型、每个能力具体授予什么，以及各环境如何进一步收窄它：[Runtime API](/zh/docs/studio/plugin/runtime)。
 
 ### sidecars 与 buildDependencies
 
-两个重量级声明。[sidecar](/docs/studio/plugin/runtime/sidecar) 是随作者构建的游戏一起发布的原生子进程；[构建时依赖](/docs/studio/plugin/build-dependencies) 是 Studio 在构建时下载、校验并缓存的外部二进制文件。两者都以 `<platform>-<arch>` 为键，也都必须提供 `sha256`。
+两个重量级声明。[sidecar](/zh/docs/studio/plugin/runtime/sidecar) 是随作者构建的游戏一起发布的原生子进程；[构建时依赖](/zh/docs/studio/plugin/build-dependencies) 是 Studio 在构建时下载、校验并缓存的外部二进制文件。两者都以 `<platform>-<arch>` 为键，也都必须提供 `sha256`。
 
 ### locales
 
-一个 Studio 语言包——插件新增的语言，或它为内置语言补上的缺口。参见 [创建第一个插件](/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack)。只包含 `contributes.locales`、没有任何入口代码的清单也是一个有效的插件。
+一个 Studio 语言包——插件新增的语言，或它为内置语言补上的缺口。参见 [创建第一个插件](/zh/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack)。只包含 `contributes.locales`、没有任何入口代码的清单也是一个有效的插件。
 
 ## 权限是派生的 [#permissions-are-derived]
 

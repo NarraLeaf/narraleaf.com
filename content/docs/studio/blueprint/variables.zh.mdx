@@ -5,7 +5,7 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域�
 
 项目里的每个值都得有个落脚处，而这个选择本质上是在选生命周期：一个随所在界面一起消亡的计数器、一个必须跟着玩家存档走的标记、一个要比每一次通关都活得更久的设置项。作用域一共四种，选错是「我的值不见了」最常见的来源。
 
-逐引脚的签名在[变量节点](/docs/studio/blueprint/nodes/variables)。本页讲的是该选哪个作用域，以及值在那之后会经历什么。
+逐引脚的签名在[变量节点](/zh/docs/studio/blueprint/nodes/variables)。本页讲的是该选哪个作用域，以及值在那之后会经历什么。
 
 ## 四种作用域
 
@@ -25,7 +25,7 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域�
 | 宿主 | 每份 store 对应 | 什么会让它重新开始 |
 | --- | --- | --- |
 | `globalMain` | 该全局蓝图 | 应用运行期间不会 |
-| `surfaceMain` | 该 [Surface](/docs/studio/blueprint/surfaces) 每一次被压入导航栈 | 离开该 Surface 后再次打开 |
+| `surfaceMain` | 该 [Surface](/zh/docs/studio/blueprint/surfaces) 每一次被压入导航栈 | 离开该 Surface 后再次打开 |
 | `widgetMain` · `componentWidgetMain` | 控件实例——列表中重复出现的每一项都算自己的实例 | 控件卸载 |
 | `sharedAsset` | 该共享蓝图 | 应用运行期间不会 |
 | `storyAction` | 该图的一次调用 | 每一次调用 |
@@ -96,7 +96,7 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域�
 | `boolean` | `false` | |
 | `json` | `{}` | 接受`array`来源。 |
 | `array` | `[]` | 可接入`json`输入；`json`不能反向接回。 |
-| `Timer` | `null` | 用来存放 [`Delay`](/docs/studio/blueprint/nodes/flow) 交回的令牌。 |
+| `Timer` | `null` | 用来存放 [`Delay`](/zh/docs/studio/blueprint/nodes/flow) 交回的令牌。 |
 | `AnimationToken` | `null` | 用来存放动画交回的令牌。 |
 | `any` | `null` | `Default`字段被禁用——见下文。 |
 
@@ -132,7 +132,7 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域�
 
 ## Blueprint Value
 
-[Blueprint Value](/docs/studio/blueprint) 是绑定到单个控件属性上的`widgetValue`蓝图，它的创建浮窗被刻意限制为安全的取值类节点。对变量而言有三条后果：
+[Blueprint Value](/zh/docs/studio/blueprint) 是绑定到单个控件属性上的`widgetValue`蓝图，它的创建浮窗被刻意限制为安全的取值类节点。对变量而言有三条后果：
 
 - **它不能声明`Var`。** 该节点不在它的创建浮窗里，声明变量的扫描也会直接跳过`widgetValue`宿主。
 - **它不能读写持久变量。** `Get Persistent`和`Set Persistent`是 latent 的，而值绑定必须在被询问的那一拍里给出值——没有地方安放一个待定的 promise。

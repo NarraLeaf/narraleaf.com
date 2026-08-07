@@ -17,7 +17,7 @@ description: 在图运行时打印一行，并在画布上给下一个打开它�
 | `next` | out · exec | — | 写完这一行后触发。 |
 | `value` | in · data | `string` | 接受卡片内联字面量。 |
 
-这一行会落在**控制台**面板的 [Blueprint 频道](/docs/studio/getting-started/workspace-overview)，来源标记为`Blueprint Log`，级别为 info；超过 4096 个字符的部分会被裁掉，并附上`… [truncated]`标记。同一行还会带`[Blueprint]`前缀完整镜像到窗口的开发者控制台。
+这一行会落在**控制台**面板的 [Blueprint 频道](/zh/docs/studio/getting-started/workspace-overview)，来源标记为`Blueprint Log`，级别为 info；超过 4096 个字符的部分会被裁掉，并附上`… [truncated]`标记。同一行还会带`[Blueprint]`前缀完整镜像到窗口的开发者控制台。
 
 `value`不是这个节点唯一的输入。卡片上的添加输入控件会追加更多`string`引脚——`in_1`、`in_2`……，标签从`Input 2`开始——它们之间不加分隔符，直接拼成一行，所以`"score: "`和一个数字得到`score: 42`，中间不需要`Concat`节点。上表只列出节点初始就有的那个引脚。不是字符串的值会先按 JSON 编码；JSON 编不了的值退回它的普通字符串形式。
 

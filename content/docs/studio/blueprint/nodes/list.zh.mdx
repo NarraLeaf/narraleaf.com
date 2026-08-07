@@ -3,7 +3,7 @@ title: List
 description: 列表控件的运行时内容、选中项、滚动位置和条目上下文。
 ---
 
-List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、选中项和滚动位置。当行是在游戏运行时才决定的——存档槽、历史回顾、设置菜单——而不是在检视器里一次性写好时，就用它们。把数组和对象整理成最终形状的工作仍然留在 [Data](/docs/studio/blueprint/nodes/data)。
+List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、选中项和滚动位置。当行是在游戏运行时才决定的——存档槽、历史回顾、设置菜单——而不是在检视器里一次性写好时，就用它们。把数组和对象整理成最终形状的工作仍然留在 [Data](/zh/docs/studio/blueprint/nodes/data)。
 
 ## 约定
 
@@ -13,7 +13,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 - **卸载会清空实例。** List 实例完全卸载时，运行时条目、选中项和待处理的滚动指令都会被丢弃。系统不会替你持久化；把内容写进变量或状态，并在 List 回来时显式恢复。
 - **读取是纯节点，改写是 latent。** `Get` 系列节点可用于 `event`、`function` 和 `macro` 图。每个改写节点都是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入。
 - **内容与选中项的写入会排队触发 flush，滚动节点不会。** 滚动节点只是记录一个供渲染器消费的意图，因此不会重新跑那些由 flush 驱动的工作。
-- **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现。
+- **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现。
 - **条目上下文需要模板后代。** 四个 `Get List Item …` 节点只出现在 List item template 内部元素所拥有的蓝图中，读取的是该元素当前渲染所处的那个条目作用域。
 
 <Callout type="warn">
@@ -165,7 +165,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.setVisible` · Latent
 
-`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
+`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

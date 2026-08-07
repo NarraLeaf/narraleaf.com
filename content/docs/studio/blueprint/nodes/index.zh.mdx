@@ -20,7 +20,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | `Pure` | 无副作用。可用于 `function` 图。 |
 | `Latent` | 会挂起执行直到完成。在 `function` 图中永远不可用。 |
 
-`Pure` 本身**并不**意味着该节点能在 [Blueprint Value](/docs/studio/blueprint) 里使用。那是另一条更窄的规则：节点必须同时是纯节点、非 latent，且属于允许的分类——Data、List、Math、Text、Slider、Displayable、Element、Game——外加一小串特例（`Init` 与 `On Flush` 事件头、非 latent 的 Flow、本地变量读写、`Call Fn`、注释、`Return Value`，以及四个 Page 状态读取节点）。scope 限定为 `widgetMain` 的 Self 节点无论标记如何都被排除；在 Blueprint Value 里要触及某个控件，走 `Element` 字面量加 Element 分类的读取节点。
+`Pure` 本身**并不**意味着该节点能在 [Blueprint Value](/zh/docs/studio/blueprint) 里使用。那是另一条更窄的规则：节点必须同时是纯节点、非 latent，且属于允许的分类——Data、List、Math、Text、Slider、Displayable、Element、Game——外加一小串特例（`Init` 与 `On Flush` 事件头、非 latent 的 Flow、本地变量读写、`Call Fn`、注释、`Return Value`，以及四个 Page 状态读取节点）。scope 限定为 `widgetMain` 的 Self 节点无论标记如何都被排除；在 Blueprint Value 里要触及某个控件，走 `Element` 字面量加 Element 分类的读取节点。
 
 然后是引脚表：
 
@@ -49,23 +49,23 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 
 | 分类 | 节点数 | 涵盖 |
 | --- | --- | --- |
-| [Events](/docs/studio/blueprint/nodes/events) | 48 | 入口点：生命周期、输入、Surface 转场、Broadcast。 |
-| [Flow](/docs/studio/blueprint/nodes/flow) | 12 | 分支、循环、顺序执行、延迟。 |
-| [Functions](/docs/studio/blueprint/nodes/functions) | 3 | 函数入口、调用、返回。 |
-| [Variables](/docs/studio/blueprint/nodes/variables) | 9 | 声明与读写蓝图变量、持久变量。 |
-| [Data](/docs/studio/blueprint/nodes/data) | 84 | 字面量、类型转换、类型判断、JSON、字符串、数组。 |
-| [Math](/docs/studio/blueprint/nodes/math) | 31 | 算术、取整、布尔逻辑、比较。 |
-| [Game](/docs/studio/blueprint/nodes/game) | 53 | 剧情控制、对话、偏好、存档、回顾。 |
-| [App](/docs/studio/blueprint/nodes/app) | 10 | Surface 导航、窗口、应用生命周期。 |
-| [Localization](/docs/studio/blueprint/nodes/localization) | 6 | 游戏面向玩家的语言。 |
-| [Displayable](/docs/studio/blueprint/nodes/displayable) | 14 | 几何、外观变体、属性动画。 |
-| [Element](/docs/studio/blueprint/nodes/element) | 116 | 以上各类的 Element 版本：作用于接入的 `Element` 而非自身。 |
-| [Image](/docs/studio/blueprint/nodes/image) | 16 | 图片资源与填充。 |
-| [Text](/docs/studio/blueprint/nodes/text) | 28 | 文本内容与排版。 |
-| [Text Input](/docs/studio/blueprint/nodes/text-input) | 3 | 可编辑文本框。 |
-| [Button](/docs/studio/blueprint/nodes/button) | 9 | 按钮标签与指针。 |
-| [Container](/docs/studio/blueprint/nodes/container) | 8 | 容器布局与子元素。 |
-| [Frame](/docs/studio/blueprint/nodes/frame) | 8 | Frame 所展示的 Page 及其 params。 |
-| [List](/docs/studio/blueprint/nodes/list) | 23 | 运行时项、选中、滚动、项上下文。 |
-| [Slider](/docs/studio/blueprint/nodes/slider) | 9 | 值、范围与吸附。 |
-| [Debug](/docs/studio/blueprint/nodes/debug) | 2 | 日志与图内注释。 |
+| [Events](/zh/docs/studio/blueprint/nodes/events) | 48 | 入口点：生命周期、输入、Surface 转场、Broadcast。 |
+| [Flow](/zh/docs/studio/blueprint/nodes/flow) | 12 | 分支、循环、顺序执行、延迟。 |
+| [Functions](/zh/docs/studio/blueprint/nodes/functions) | 3 | 函数入口、调用、返回。 |
+| [Variables](/zh/docs/studio/blueprint/nodes/variables) | 9 | 声明与读写蓝图变量、持久变量。 |
+| [Data](/zh/docs/studio/blueprint/nodes/data) | 84 | 字面量、类型转换、类型判断、JSON、字符串、数组。 |
+| [Math](/zh/docs/studio/blueprint/nodes/math) | 31 | 算术、取整、布尔逻辑、比较。 |
+| [Game](/zh/docs/studio/blueprint/nodes/game) | 53 | 剧情控制、对话、偏好、存档、回顾。 |
+| [App](/zh/docs/studio/blueprint/nodes/app) | 10 | Surface 导航、窗口、应用生命周期。 |
+| [Localization](/zh/docs/studio/blueprint/nodes/localization) | 6 | 游戏面向玩家的语言。 |
+| [Displayable](/zh/docs/studio/blueprint/nodes/displayable) | 14 | 几何、外观变体、属性动画。 |
+| [Element](/zh/docs/studio/blueprint/nodes/element) | 116 | 以上各类的 Element 版本：作用于接入的 `Element` 而非自身。 |
+| [Image](/zh/docs/studio/blueprint/nodes/image) | 16 | 图片资源与填充。 |
+| [Text](/zh/docs/studio/blueprint/nodes/text) | 28 | 文本内容与排版。 |
+| [Text Input](/zh/docs/studio/blueprint/nodes/text-input) | 3 | 可编辑文本框。 |
+| [Button](/zh/docs/studio/blueprint/nodes/button) | 9 | 按钮标签与指针。 |
+| [Container](/zh/docs/studio/blueprint/nodes/container) | 8 | 容器布局与子元素。 |
+| [Frame](/zh/docs/studio/blueprint/nodes/frame) | 8 | Frame 所展示的 Page 及其 params。 |
+| [List](/zh/docs/studio/blueprint/nodes/list) | 23 | 运行时项、选中、滚动、项上下文。 |
+| [Slider](/zh/docs/studio/blueprint/nodes/slider) | 9 | 值、范围与吸附。 |
+| [Debug](/zh/docs/studio/blueprint/nodes/debug) | 2 | 日志与图内注释。 |

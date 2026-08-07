@@ -34,7 +34,7 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 - 启动时栈被重置为单个图层——宿主指定的入口 Surface，或文档中第一个 `appSurface`。
 - **打开即入栈。** `Go Page`（切换到 Page）把选中的 Page 压入栈，并带上你接到它 `props` 输入上的值。
 - **关闭即弹出顶层图层。** 把 `Go Page` 的 Page 选择器设为 `None` 就*是*关闭：空目标不会打开任何东西，而是关掉顶层图层。没有单独的返回节点。
-- **栈底是拆不掉的。** 只剩一个图层时关闭会被拒绝，所以入口 Surface 永远垫在最下面。签名见 [App 节点](/docs/studio/blueprint/nodes/app)。
+- **栈底是拆不掉的。** 只剩一个图层时关闭会被拒绝，所以入口 Surface 永远垫在最下面。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)。
 
 ### 呈现方式
 
@@ -43,7 +43,7 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 - 游戏尚未运行时，`Go Page` 打开的是 `appPage` 图层。透出来的底下是上一个 Page。
 - `Start Game`（开始游戏）和 `Load Save`（读取存档）会**隐藏**当前栈上的所有图层，并显出游戏舞台。栈仍然持有它们，只是它们不再渲染。
 - 栈被隐藏期间，`Go Page` 打开的是 `gameOverlay` 图层，画在舞台之上。这类图层底下是游戏，而不是你来时的那些 Page——暂停菜单、游戏内存档界面、剧情中途调出的设置，就是这么回事。
-- `Quit Game`（退出游戏）拆掉会话，并把它的返回 Page 重新以 `appPage` 打开——它和其余 [Game 节点](/docs/studio/blueprint/nodes/game)放在一起。`Quit Application`（退出应用）则结束运行时；在开发模式中它停止的是开发模式会话，而不是关掉 Studio，并且它刻意不触发窗口关闭事件——那个事件只属于玩家自己关窗口。
+- `Quit Game`（退出游戏）拆掉会话，并把它的返回 Page 重新以 `appPage` 打开——它和其余 [Game 节点](/zh/docs/studio/blueprint/nodes/game)放在一起。`Quit Application`（退出应用）则结束运行时；在开发模式中它停止的是开发模式会话，而不是关掉 Studio，并且它刻意不触发窗口关闭事件——那个事件只属于玩家自己关窗口。
 
 `Is Game Overlay` 读的就是这个标记。它锁定在图层实例上，所以一个正在退出的暂停菜单在整段退出动画里都保持 overlay 的答案，哪怕会话已经在被清理。每个插槽 Surface 都回答 `true`；嵌在 overlay 里的 Page 则继承持有它的那个图层的答案。
 
@@ -70,7 +70,7 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 
 状态在对应事件 Head 执行**之前**就已经翻转。在 `After Surface Enter` 内部，`Is Surface Entering` 已经读到 `false`；在 `Before Surface Exit` 内部，`Is Surface Exiting` 已经读到 `true`。用它们问*此刻正在发生什么*；用事件 Head 问*什么时候发生的*。在完全没有动画层的环境里，三者都读作 `false`。
 
-`Before Surface Exit` 和 `After Surface Enter` 也会送达已挂载控件的私有蓝图——只送给那一刻还活着的那些。`Surface Init` 和 `Surface Unmount` 不会；它们属于 Surface。控件自己的那一对是 `Init` 和 `Unmount`。全部事件 Head 列在 [Events 节点](/docs/studio/blueprint/nodes/events)。
+`Before Surface Exit` 和 `After Surface Enter` 也会送达已挂载控件的私有蓝图——只送给那一刻还活着的那些。`Surface Init` 和 `Surface Unmount` 不会；它们属于 Surface。控件自己的那一对是 `Init` 和 `Unmount`。全部事件 Head 列在 [Events 节点](/zh/docs/studio/blueprint/nodes/events)。
 
 <Callout type="warn">
 过渡期间，指针输入和键盘输入并不是被同等拦下的。点击会一直被挡到进入动画结束，并在 `Before Surface Exit` 时再次被丢弃；而按键从预绘制结束那一刻起，会一路穿过两段动画继续送达。想在过渡中忽略按键的图，必须自己用 `Is Surface Transitioning` 分支。
@@ -90,7 +90,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 - Frame 的 `params` 属性**就是**被嵌入 Page 的 props。该 Page 内部的 `Get Page Props`（读取 Page props）读的就是它。
 - 对导航栈上的图层来说，props 就是 `Go Page` 传进来的东西。同一个节点，同一次读取——正因如此，一个 Page 不需要知道自己身处何处也能在两种位置上工作。
 - 非对象的值会规范成 `{}`，取不存在的字段读作 `null`。
-- `Set Frame Page`（切换 Frame 的 Page）切换目标，并可以在同一次调用里写入 params；它的 props 输入不接线时，原有 params 保持不变。参见 [Frame 节点](/docs/studio/blueprint/nodes/frame)。
+- `Set Frame Page`（切换 Frame 的 Page）切换目标，并可以在同一次调用里写入 params；它的 props 输入不接线时，原有 params 保持不变。参见 [Frame 节点](/zh/docs/studio/blueprint/nodes/frame)。
 - 子级用 `Emit Page Event`（发送 Page 事件）回话，由 Frame 元素自身蓝图上的 `Page Event` 事件 Head 接收。顶层图层没有父 Frame，在那里发送谁也收不到。
 
 ## 舞台插槽
@@ -118,7 +118,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 它能触及什么：
 
 - **自己的元素。** `Element` 字面量存的是 `{ surfaceId, elementId, elementType }`，从构造上就限定在同一个 Surface 内。没有任何节点能伸进另一个 Surface 的树。
-- **自己的 surface state**，以图层的运行时 scope 作键，因此同一个 Surface 的两个图层永不冲突。作用域与生命周期见[变量](/docs/studio/blueprint/variables)。
+- **自己的 surface state**，以图层的运行时 scope 作键，因此同一个 Surface 的两个图层永不冲突。作用域与生命周期见[变量](/zh/docs/studio/blueprint/variables)。
 - **自己的 props**，通过 `Get Page Props`。
 - 一切本来就不按 Surface 划分的东西：持久变量、全局状态、存档、正在运行的游戏。
 

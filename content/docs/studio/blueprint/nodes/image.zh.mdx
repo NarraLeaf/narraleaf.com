@@ -7,12 +7,12 @@ description: 读取和改写 nl.image 控件的图片资源、填充模式、裁
 
 ## 约定
 
-- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的`nl.image`。作用于连入元素的版本是 [Element](/docs/studio/blueprint/nodes/element) 分类中的`blueprint.element.image.*`，各自带一个`element:nl.image`输入，且只有当前图中已存在兼容绑定时才会出现。
+- **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的`nl.image`。作用于连入元素的版本是 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中的`blueprint.element.image.*`，各自带一个`element:nl.image`输入，且只有当前图中已存在兼容绑定时才会出现。
 - **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`。
 - **`ImageAsset`是结构化值**，即`{ kind: "imageAsset", assetId }`，而不是一个裸的 id 字符串。可空形式`ImageAsset|null`用`null`表示*没有图片*。这些引脚上的普通`string`仍会被当作 asset id 读取，这样在该类型出现之前保存的旧图才能继续运行。
 - **写入改写控件的`imageFill`**（`mode`、`assetId`、`cropPlacement`）或`imageFlipX` / `imageFlipY`，随后排队 flush 该元素。如果写入的值和现有值完全一致，则什么也不做——不写 patch，也不 flush。
 - **无法使用的输入会回退到当前值。** 无法识别或为空的填充模式、非数值的裁剪百分比、未接线的布尔输入，都会让该属性保持原样，而不是被重置。
-- **几何、不透明度和变体不在这里。** 位置、尺寸、旋转和不透明度属于 [Displayable](/docs/studio/blueprint/nodes/displayable)；非 Default 的 Appearance Variant 也永远不会覆盖 Default 的填充模式和裁剪——因此切到半透明变体不会把图片卡在`crop`上。
+- **几何、不透明度和变体不在这里。** 位置、尺寸、旋转和不透明度属于 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)；非 Default 的 Appearance Variant 也永远不会覆盖 Default 的填充模式和裁剪——因此切到半透明变体不会把图片卡在`crop`上。
 
 ## Image Asset
 

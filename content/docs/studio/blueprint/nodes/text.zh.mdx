@@ -3,7 +3,7 @@ title: 文本
 description: nl.text 控件的 Self 节点——读写文本内容、排版、颜色与静态效果。
 ---
 
-Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、显示所用的字体与度量，以及叠加其上的静态效果。这些节点只出现在某个 `nl.text` 元素自身 `widgetMain` 蓝图的创建浮窗中，并且全部作用于该元素。要操作**别的**文本元素，请使用 [Element](/docs/studio/blueprint/nodes/element) 分类中同名的 `blueprint.element.text.*` 节点——属性完全相同，只是多一个用来指定目标的`element:nl.text`输入。
+Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、显示所用的字体与度量，以及叠加其上的静态效果。这些节点只出现在某个 `nl.text` 元素自身 `widgetMain` 蓝图的创建浮窗中，并且全部作用于该元素。要操作**别的**文本元素，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中同名的 `blueprint.element.text.*` 节点——属性完全相同，只是多一个用来指定目标的`element:nl.text`输入。
 
 ## 约定
 
@@ -37,7 +37,7 @@ Set Text（设置文本）替换整个字符串。
 | `text` | in · data | `string` | 什么都解析不到时写入空字符串。可在卡片上直接填值。 |
 
 <Callout type="warn">
-如果元素的 `props.text` 绑定了 [Blueprint Value](/docs/studio/blueprint)，则以绑定为准。计算出的值会在每次渲染时覆盖到 `props.text` 上，且不会写回，因此 `Set Text` 存下的字符串没有人看得见，而 `Get Text` 读到的是存下的那个字符串，不是屏幕上的那个。请改为修改值图所读取的数据。
+如果元素的 `props.text` 绑定了 [Blueprint Value](/zh/docs/studio/blueprint)，则以绑定为准。计算出的值会在每次渲染时覆盖到 `props.text` 上，且不会写回，因此 `Set Text` 存下的字符串没有人看得见，而 `Get Text` 读到的是存下的那个字符串，不是屏幕上的那个。请改为修改值图所读取的数据。
 </Callout>
 
 ## Append Text
@@ -149,7 +149,7 @@ Set Text Color（设置文本颜色）。元素内部把颜色存为 CSS 颜色�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `color` | in · data | `RGBAColor` | 卡片上不能直接填值——接一个 [Data](/docs/studio/blueprint/nodes/data) 分类的颜色常量，或别的节点的 `RGBAColor` 输出。兜底为当前颜色。 |
+| `color` | in · data | `RGBAColor` | 卡片上不能直接填值——接一个 [Data](/zh/docs/studio/blueprint/nodes/data) 分类的颜色常量，或别的节点的 `RGBAColor` 输出。兜底为当前颜色。 |
 
 ## Get Text Align
 
@@ -332,7 +332,7 @@ Get Visible（获取可见性）。
 
 `blueprint.text.setVisible` · Latent
 
-Set Visible（设置可见）写的是元素的 `visible` 属性。它和 [Displayable](/docs/studio/blueprint/nodes/displayable) 分类的 `Set Display` 不是同一个开关：`display` 是运行时渲染开关，用 CSS 隐藏元素及其子树但保持挂载；而 `visible` 是检视器里那个布局可见性属性。
+Set Visible（设置可见）写的是元素的 `visible` 属性。它和 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 分类的 `Set Display` 不是同一个开关：`display` 是运行时渲染开关，用 CSS 隐藏元素及其子树但保持挂载；而 `visible` 是检视器里那个布局可见性属性。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
