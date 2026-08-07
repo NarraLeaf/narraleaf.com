@@ -3,61 +3,33 @@ title: Third-Party Licenses
 description: The third-party software NarraLeaf Studio distributes alongside the application, and the licenses it is distributed under.
 ---
 
-NarraLeaf Studio distributes a small amount of third-party software inside its installer, next to the application itself. This page records what that software is and the terms it is distributed under.
+NarraLeaf Studio's installer includes a small amount of third-party software alongside the application. This page records what it is and the terms it is distributed under.
 
 ## FFmpeg
 
-Studio ships two executables from the FFmpeg project: `ffprobe`, which reads what is inside a media file, and `ffmpeg`, which converts one. Together they let Studio tell whether an imported file is in a format the engine can play, and produce one that is when it is not.
+Studio ships the `ffmpeg` and `ffprobe` executables, used to detect media formats and convert imported files into a format the engine can play. They are bundled as standalone programs and run as separate processes; no part of FFmpeg is linked into Studio.
 
-### Two different builds, two different licenses
+FFmpeg is distributed under the LGPL. The version differs by platform, and each build ships the matching license text beside the binaries under `resources/ffmpeg/`.
 
-Which build you have depends on your platform, and **the license is not the same for both**.
-
-| Platform | Where the build comes from | License |
+| Platform | Build | License |
 | --- | --- | --- |
 | Windows | Prebuilt, from a pinned [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) release | [LGPL v3 or later](https://www.gnu.org/licenses/lgpl-3.0.html) |
-| macOS | Compiled from pinned upstream source when Studio is packaged | [LGPL v2.1 or later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
+| macOS | Compiled from pinned upstream source | [LGPL v2.1 or later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
 
-The difference is one configure option. The prebuilt Windows binary is built with `--enable-version3`, which makes them LGPL v3 or later. The macOS build is not, which leaves it at LGPL v2.1 or later. Each ships the license text that matches it, installed beside the binaries under `resources/ffmpeg/`: the LGPLv3 text on Windows, `COPYING.LGPLv2.1` on macOS.
+Neither build includes any GPL or non-free component.
 
-<Callout>
-Studio itself is published for **Apple Silicon** Macs only, so its macOS build of these tools is an Apple Silicon build. That is a limit on where Studio runs, not on what it can produce — a game authored on Apple Silicon can still be packaged for players on Intel Macs. See [Installation](/docs/studio/installation).
-</Callout>
-
-### Components
+### Bundled libraries
 
 | Component | License | Used for |
 | --- | --- | --- |
-| FFmpeg (the `ffmpeg` and `ffprobe` executables) | LGPL — version per the table above | Detecting media formats, and converting media into a format the engine can play |
-| libvpx | [BSD-3-Clause](https://github.com/webmproject/libvpx/blob/main/LICENSE), with an [additional patent grant](https://github.com/webmproject/libvpx/blob/main/PATENTS) | VP9 video encoding |
-| libvorbis | [BSD-3-Clause](https://github.com/xiph/vorbis/blob/master/COPYING) | Vorbis audio encoding |
+| libvpx | [BSD-3-Clause](https://github.com/webmproject/libvpx/blob/main/LICENSE), with an [additional patent grant](https://github.com/webmproject/libvpx/blob/main/PATENTS) | VP9 video |
+| libvorbis | [BSD-3-Clause](https://github.com/xiph/vorbis/blob/master/COPYING) | Vorbis audio |
 | libogg | [BSD-3-Clause](https://github.com/xiph/ogg/blob/master/COPYING) | Ogg container |
-
-### It is bundled, not linked
-
-FFmpeg is distributed as standalone executables and run as separate processes. Studio invokes them and reads their output. No part of FFmpeg is linked into Studio, statically or dynamically, and no FFmpeg header or library is compiled into the application.
-
-### It is built without GPL components
-
-Neither build uses `--enable-gpl` or `--enable-nonfree`, and neither carries any GPL or non-free component — in particular no libx264, no libx265, and no libfdk-aac. That is why the terms are the LGPL rather than the GPL.
-
-This is verified rather than assumed. For the prebuilt binaries, Studio's packaging step reads the configure string that FFmpeg embeds in every binary and refuses anything carrying a forbidden flag. The macOS build applies the same check to what it has just compiled, and additionally confirms that the binary reports an LGPL version 2.1 license before the LGPLv2.1 text is shipped beside it.
 
 ### Corresponding source
 
-The complete corresponding source is available for both builds, and they come from different places.
+FFmpeg's source is available from the [FFmpeg project](https://www.ffmpeg.org/download.html), and its [legal page](https://www.ffmpeg.org/legal.html) covers the project's licensing in full.
 
-**macOS** is compiled from fixed upstream release tarballs, each pinned by version and verified against a recorded SHA-256 checksum before it is built:
+The macOS build is compiled from FFmpeg 8.1.2 and the libraries above. Its build script, with the pinned versions and the full configure line, is at `project/build/build-ffmpeg-macos.sh` in the [NarraLeaf Studio repository](https://github.com/NarraLeaf/NarraLeaf-Studio). The Windows build is version `n8.1.2-34-g9b6c8969e0`, from the [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) release.
 
-| Component | Version |
-| --- | --- |
-| FFmpeg | 8.1.2 |
-| libvpx | 1.15.0 |
-| libvorbis | 1.3.7 |
-| libogg | 1.3.5 |
-
-The FFmpeg source is [`ffmpeg-8.1.2.tar.xz`](https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz), from the [FFmpeg release archive](https://ffmpeg.org/releases/). The build script that fetches these, along with the pinned versions, their checksums, and the full configure line, is public in the [NarraLeaf Studio repository](https://github.com/NarraLeaf/NarraLeaf-Studio) at `project/build/build-ffmpeg-macos.sh`.
-
-**Windows** uses a prebuilt binary that NarraLeaf does not compile. It is version `n8.1.2-34-g9b6c8969e0`, from the [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) build, verified against a recorded SHA-256 checksum before it is packaged. That release is also the authoritative record of the exact version of each library compiled into it.
-
-To request the corresponding source for either build, open an issue on the [NarraLeaf Studio repository](https://github.com/NarraLeaf/NarraLeaf-Studio). You may also obtain FFmpeg's source directly from the [FFmpeg project](https://www.ffmpeg.org/download.html); its own [legal page](https://www.ffmpeg.org/legal.html) covers the project's licensing in full.
+To request the complete corresponding source for either build, open an issue on the [NarraLeaf Studio repository](https://github.com/NarraLeaf/NarraLeaf-Studio).

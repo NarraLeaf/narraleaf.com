@@ -1,63 +1,35 @@
 ---
-title: 第三方许可声明
-description: NarraLeaf Studio 随应用一同分发的第三方软件，以及它们各自的许可条款。
+title: 第三方许可
+description: NarraLeaf Studio 随应用一同分发的第三方软件，以及它们所适用的许可。
 ---
 
-NarraLeaf Studio 的安装包里，除了应用本身，还附带了少量第三方软件。这个页面记录它们是什么，以及以什么条款分发。
+NarraLeaf Studio 的安装包里除了应用本身，还包含少量第三方软件。本页记录它们是什么，以及适用什么许可。
 
 ## FFmpeg
 
-Studio 附带 FFmpeg 项目的两个可执行文件：`ffprobe` 负责读出一个媒体文件里装的是什么，`ffmpeg` 负责转换它。两者合起来，让 Studio 能判断导入的文件是不是引擎能播的格式，并在不是的时候产出一个能播的。
+Studio 附带 `ffmpeg` 与 `ffprobe` 两个可执行文件，用于识别媒体格式，并把导入的文件转换成引擎能播放的格式。它们以独立程序的形式随附、以独立进程运行；FFmpeg 没有任何部分被链接进 Studio。
 
-### 两套构建，两种许可
+FFmpeg 适用 LGPL。**版本因平台而异**，每种构建都会把与之相符的许可原文一同安装在 `resources/ffmpeg/` 下。
 
-你拿到的是哪一套，取决于平台，而**两者的许可并不相同**。
-
-| 平台 | 构建从哪来 | 许可 |
+| 平台 | 构建方式 | 许可 |
 | --- | --- | --- |
 | Windows | 预编译，来自 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) 的一次固定发布 | [LGPL v3 或更高版本](https://www.gnu.org/licenses/lgpl-3.0.html) |
-| macOS | 打包 Studio 时，从固定的上游源码编译 | [LGPL v2.1 或更高版本](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
+| macOS | 从固定的上游源码编译 | [LGPL v2.1 或更高版本](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
 
-差别只在一个 configure 选项。Windows 用的预编译二进制启用了 `--enable-version3`，这让它成为 LGPL v3 或更高版本；macOS 的构建没有启用，于是停在 LGPL v2.1 或更高版本。两者各自附带与之相符的许可文本，与二进制一同安装在 `resources/ffmpeg/` 下：Windows 是 LGPLv3 的文本，macOS 是 `COPYING.LGPLv2.1`。
+两种构建都不含任何 GPL 或 nonfree 组件。
 
-<Callout>
-Studio 自身在 macOS 上只发布 **Apple Silicon** 版，所以这里 macOS 的那套构建就是一个 Apple Silicon 构建。这限制的是 Studio 能在哪运行，不是它能产出什么——在 Apple Silicon 上做的游戏，照样可以打包给用 Intel Mac 的玩家。参见[安装](/zh/docs/studio/installation)。
-</Callout>
-
-### 组件
+### 随附的库
 
 | 组件 | 许可 | 用途 |
 | --- | --- | --- |
-| FFmpeg（`ffmpeg` 与 `ffprobe` 可执行文件） | LGPL —— 版本见上表 | 探测媒体格式，并转换成引擎能播放的格式 |
-| libvpx | [BSD-3-Clause](https://github.com/webmproject/libvpx/blob/main/LICENSE)，附[专利授权](https://github.com/webmproject/libvpx/blob/main/PATENTS) | VP9 视频编码 |
-| libvorbis | [BSD-3-Clause](https://github.com/xiph/vorbis/blob/master/COPYING) | Vorbis 音频编码 |
+| libvpx | [BSD-3-Clause](https://github.com/webmproject/libvpx/blob/main/LICENSE)，并附[专利授权](https://github.com/webmproject/libvpx/blob/main/PATENTS) | VP9 视频 |
+| libvorbis | [BSD-3-Clause](https://github.com/xiph/vorbis/blob/master/COPYING) | Vorbis 音频 |
 | libogg | [BSD-3-Clause](https://github.com/xiph/ogg/blob/master/COPYING) | Ogg 容器 |
-
-### 是随附调用，不是链接进来
-
-FFmpeg 以独立可执行文件的形式分发，并作为单独的进程运行——Studio 调用它们，读它们的输出。FFmpeg 没有任何部分被链接进 Studio，静态或动态都没有，也没有任何 FFmpeg 的头文件或库被编译进应用。
-
-### 是在不启用 GPL 组件的前提下构建的
-
-两套构建都**没有**使用 `--enable-gpl`，也都没有使用 `--enable-nonfree`，都不含任何 GPL 或 nonfree 组件——尤其是不含 libx264、libx265、libfdk-aac。这正是它们适用 LGPL 而非 GPL 的原因。
-
-这一点是校验出来的，不是假定的。对于预编译的二进制，Studio 的打包步骤会读取 FFmpeg 嵌在每个二进制里的 configure 字符串，凡是带着被禁标志的一律拒绝打包。macOS 的构建对刚编译出来的产物做同样的检查，并额外确认二进制自己报告的许可确实是 LGPL 2.1 版，然后才把 LGPLv2.1 的文本放到它旁边。
 
 ### 对应源码
 
-两套构建的完整对应源码都可获取，而它们来自不同的地方。
+FFmpeg 的源码可从 [FFmpeg 项目](https://www.ffmpeg.org/download.html)获取，其[法律说明页](https://www.ffmpeg.org/legal.html)完整说明了该项目的许可情况。
 
-**macOS** 从固定的上游发布 tarball 编译，每个都按版本固定，并在编译前对照记录在案的 SHA-256 校验和验证：
+macOS 的那份由 FFmpeg 8.1.2 与上表中的库编译而成，构建脚本连同固定的版本号与完整的 configure 参数，公开在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)的 `project/build/build-ffmpeg-macos.sh`。Windows 的那份是 `n8.1.2-34-g9b6c8969e0`，来自 [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) 这次发布。
 
-| 组件 | 版本 |
-| --- | --- |
-| FFmpeg | 8.1.2 |
-| libvpx | 1.15.0 |
-| libvorbis | 1.3.7 |
-| libogg | 1.3.5 |
-
-FFmpeg 的源码是 [`ffmpeg-8.1.2.tar.xz`](https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz)，来自 [FFmpeg 发布归档](https://ffmpeg.org/releases/)。负责取回这些源码的构建脚本，连同固定的版本号、它们的校验和以及完整的 configure 命令行，都公开在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)的 `project/build/build-ffmpeg-macos.sh`。
-
-**Windows** 用的是一个预编译二进制，不由 NarraLeaf 编译。版本是 `n8.1.2-34-g9b6c8969e0`，来自 [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) 这次构建，并在打包前对照记录在案的 SHA-256 校验和验证。那次发布同时也是"其中每个库究竟编译进了哪个版本"的权威记录。
-
-索取任一套构建的对应源码，请在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)提出 issue。你也可以直接从 [FFmpeg 项目](https://www.ffmpeg.org/download.html)获取其源码；该项目的[法律说明页](https://www.ffmpeg.org/legal.html)完整说明了它的许可情况。
+如需索取任一构建的完整对应源码，请在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)提出 issue。
