@@ -7,6 +7,18 @@ description: 下载适用于 Windows 或 macOS 的 NarraLeaf Studio。
 
 链接始终指向最新版本。历史版本见 [releases 页面](https://github.com/NarraLeaf/NarraLeaf-Studio/releases)。
 
+## 系统需求
+
+**Windows** —— Windows 10 或更高版本，x64。
+
+**macOS** —— macOS 11 或更高版本，且必须是 **Apple Silicon**。Studio 没有 Intel 版。
+
+<Callout type="warn">
+Studio 在 Intel Mac 上跑不起来。macOS 的下载是 Apple Silicon 二进制，而 Rosetta 只朝一个方向翻译——它让 Apple Silicon 跑 Intel 的代码，反过来不行。所以这不是"装上了但少几个功能"、可以绕过去的情况：应用根本打不开。
+
+受限的是 Studio 在哪运行，不是你能发给谁。**Intel Mac 仍然是构建目标**——在 Apple Silicon 上做的游戏，可以和其他目标一样打包给用 Intel Mac 的玩家。参见[运行与打包](/zh/docs/studio/getting-started/run-and-package)。
+</Callout>
+
 ## 安装
 
 **Windows** —— 运行 `.exe`。它按当前用户安装，不会索要管理员权限。

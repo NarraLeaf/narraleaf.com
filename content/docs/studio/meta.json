@@ -8,6 +8,7 @@
     "workspace",
     "blueprint",
     "model-runtimes",
-    "plugin"
+    "plugin",
+    "third-party-licenses"
   ]
 }

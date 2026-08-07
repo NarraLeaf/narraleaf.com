@@ -31,13 +31,12 @@ const TARGETS = [
     id: 'mac-arm64',
     platform: 'macOS',
     detail: 'Apple Silicon · macOS 11+',
+    // Studio is published for Apple Silicon only — there is deliberately no
+    // Intel row. An Intel dmg would have to be claimed by `.dmg && !arm64`,
+    // which is exactly the entry that was removed; do not reintroduce it
+    // without a release that actually produces the asset, or the table hangs
+    // a download link that can never resolve.
     match: (name: string) => name.endsWith('-arm64.dmg'),
-  },
-  {
-    id: 'mac-x64',
-    platform: 'macOS',
-    detail: 'Intel · macOS 11+',
-    match: (name: string) => name.endsWith('.dmg') && !name.includes('arm64'),
   },
 ] as const;
 
