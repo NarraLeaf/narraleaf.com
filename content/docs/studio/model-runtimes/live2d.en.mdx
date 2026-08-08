@@ -1,19 +1,19 @@
 ---
 title: Live2D
-description: Install the Live2D Cubism runtime into a Studio project from the SDK archive you download, and what a Live2D character supports once it is there.
+description: Install the Live2D Cubism runtime into a Studio project from the downloaded SDK archive, and what a Live2D character supports once it is installed.
 ---
 
-Live2D Cubism animates a 2D illustration by deforming it — the artwork stays flat, and the rig moves it. A Cubism model is a folder: a `.model3.json` manifest, a `.moc3` rig, texture pages, and separate files for its motions, expressions, physics and pose.
+Live2D Cubism animates a 2D illustration by deforming it: the artwork stays flat and the rig moves it. A Cubism model is a folder containing a `.model3.json` manifest, a `.moc3` rig, texture pages, and separate files for its motions, expressions, physics and pose.
 
-Studio installs the Cubism runtime by **compiling it on your machine** from the SDK you supply. That is not a convenience; it is the only route that exists. Read [Model Runtimes](/docs/studio/model-runtimes) first if you have not — it explains why Studio ships no renderer.
+Studio installs the Cubism runtime by compiling it locally from the SDK that is supplied to it. For why no renderer ships with Studio, see [Model Runtimes](/docs/studio/model-runtimes).
 
 ## Before you start
 
 <Callout type="warn">
-    **Live2D Cubism is licensed by Live2D Inc., not by NarraLeaf.** You accept the Cubism SDK licence when you download it from Live2D, and you are the party distributing it inside the game you build. Free use is bounded: above the annual-revenue threshold Live2D publishes, a commercial release needs a separate **Publication License** from them. Check the current terms on [Live2D's licensing page](https://www.live2d.com/en/sdk/license/) before you ship — NarraLeaf is not a party to that agreement and cannot grant you anything under it.
+    **Live2D Cubism is licensed by Live2D Inc., not by NarraLeaf.** Downloading the SDK from Live2D constitutes acceptance of the Cubism SDK licence, and the party distributing it inside the resulting game is whoever builds that game. Free use is bounded: above the annual-revenue threshold Live2D publishes, a commercial release requires a separate **Publication License** from them. Check the current terms on [Live2D's licensing page](https://www.live2d.com/en/sdk/license/) before shipping. NarraLeaf is not a party to that agreement and cannot grant anything under it.
 </Callout>
 
-You need the **Cubism SDK for Web** — not the Cubism Editor, and not the SDK for Native. It is a single `.zip`, around 20 MB, from [Live2D's download page](https://www.live2d.com/en/sdk/download/web/). Keep it as it downloaded; Studio reads the archive directly and **you should not extract it**.
+The required download is the **Cubism SDK for Web** — not the Cubism Editor, and not the SDK for Native. It is a single `.zip` of around 20 MB, from [Live2D's download page](https://www.live2d.com/en/sdk/download/web/). Leave the archive as downloaded; it does not need to be extracted, as Studio reads it directly.
 
 ## Install
 
@@ -22,33 +22,33 @@ You need the **Cubism SDK for Web** — not the Cubism Editor, and not the SDK f
 
 ### Open the installer
 
-Either from a character — create one with **New character → Live2D Cubism**, then **Install** on its *Drawing runtime* row — or from **Project → Runtimes → Live2D Cubism → Install**.
+From a character: create one with **New character → Live2D Cubism**, then select **Install** on its *Drawing runtime* row. Alternatively, use **Project → Runtimes → Live2D Cubism → Install**.
 
 </Step>
 <Step>
 
 ### Read the terms
 
-The dialog states what you are agreeing to and links to Live2D's download page. Studio does not fetch the SDK: the download page is where you accept Live2D's licence, so it has to be you who goes there. Tick the acknowledgement to continue.
+The dialog states what is being agreed to and links to Live2D's download page. Studio does not fetch the SDK, because the download page is where Live2D's licence is accepted. Tick the acknowledgement to continue.
 
 </Step>
 <Step>
 
 ### Choose the archive
 
-**Choose SDK archive** and pick the `.zip`. Studio checks it is really an SDK package — it looks for `cubism-info.yml`, the Core, the Framework sources and the shaders — and if you picked the wrong file it tells you what the archive actually contains instead.
+Select **Choose SDK archive** and pick the `.zip`. Studio validates that it is an SDK package, checking for `cubism-info.yml`, the Core, the Framework sources and the shaders. If the selected file is not an SDK package, Studio reports what the archive actually contains.
 
 </Step>
 <Step>
 
-### Studio builds the runtime
+### Build the runtime
 
-It unpacks the Core, the Framework and the shader sources, compiles them together with its own adapter code, and writes the result into your project. This takes a second or two. When it finishes the dialog reports the SDK version it built from.
+Studio unpacks the Core, the Framework and the shader sources, compiles them together with its own adapter code, and writes the result into the project. This takes a second or two. On completion, the dialog reports the SDK version it built from.
 
 </Step>
 </Steps>
 
-You end up with:
+The install produces:
 
 <Files>
     <Folder name="runtimes/puppet/live2d" defaultOpen>
@@ -58,53 +58,53 @@ You end up with:
     </Folder>
 </Files>
 
-`index.js` is generated and about a megabyte — the renderer is compiled into it. `licenses/` holds Live2D's own licence texts exactly as they shipped in your archive, and `README.md` records which SDK version produced the file. Commit all of it: it is part of your project, and every game you build carries it.
+`index.js` is generated and about a megabyte, with the renderer compiled into it. `licenses/` holds Live2D's own licence texts exactly as they shipped in the archive, and `README.md` records which SDK version produced the file. All of it is project content: it belongs in version control, and every build carries it.
 
 <Callout type="info">
-    **To rebuild** — a newer SDK, or a Studio update that improves the adapter — install again over the top. Nothing in your project refers to the contents of that file, only to the `live2d` name, so characters are unaffected.
+    **To rebuild** — for a newer SDK, or after a Studio update improves the adapter — install again over the top. Nothing in the project refers to the contents of that file, only to the `live2d` name, so characters are unaffected.
 </Callout>
 
 ## Add a model
 
-A Cubism model is a folder, so it imports as a folder. Studio finds the `.model3.json` inside it and treats that as the entry point; everything else — textures, motions, physics — is resolved relative to it, exactly as the manifest names it.
+A Cubism model is a folder, so it imports as a folder. Studio locates the `.model3.json` inside it and treats that as the entry point; everything else — textures, motions, physics — is resolved relative to it, exactly as the manifest names it.
 
 <Steps>
 <Step>
 
 ### Import the model folder
 
-On the character's **Model** row, choose the model if the project already has one, or import the folder directly if it does not. The folder must be the one containing the `.model3.json`.
+On the character's **Model** row, choose an existing model if the project has one, or import the folder directly. The folder must be the one containing the `.model3.json`.
 
 </Step>
 <Step>
 
 ### Let Studio read it
 
-With a runtime and a model both present, Studio mounts the model and asks it what it has. The preview draws it, and the fields below fill in.
+With a runtime and a model both present, Studio mounts the model and queries its contents. The preview draws it and the fields below fill in.
 
 </Step>
 </Steps>
 
 ## What a Live2D character supports
 
-Once the model is read, these come from the model rather than from you:
+Once the model is read, the following come from the model:
 
 | Field | Filled with |
 | --- | --- |
-| **Motion** | Every motion in the manifest, named `<group>_<index>` — `Idle_0`, `Idle_1`, `TapBody_0`. A bare group name (`Idle`) also works and means its first entry. Clearing the field lets the model rest at its neutral pose. |
+| **Motion** | Every motion in the manifest, named `<group>_<index>` — `Idle_0`, `Idle_1`, `TapBody_0`. A bare group name (`Idle`) also works and means its first entry. Clearing the field leaves the model at its neutral pose. |
 | **Expression** | Each expression's `Name` from the manifest. |
-| **Skin** | Empty. Cubism has no skin concept, and Studio reports that rather than inventing one — a skin set on a Live2D character is ignored with a warning. |
+| **Skin** | Empty. Cubism has no skin concept; a skin set on a Live2D character is ignored with a warning. |
 | **Parameters** | Every Cubism parameter the rig exposes, with its real minimum, maximum and default — `ParamAngleX`, `ParamEyeLOpen`, and so on. |
 
-Four extra parameters come from the adapter rather than the model, and are prefixed so they cannot collide with a rig's own:
+Four further parameters come from the adapter rather than the model, and are prefixed so they cannot collide with a rig's own:
 
 | Parameter | Range | Does |
 | --- | --- | --- |
 | `@scale` | 0.05 – 4 | Scales the model inside its box. |
-| `@x`, `@y` | −2 – 2 | Nudges it within the box. |
-| `@timeScale` | 0 – 4 | Speeds up or slows down its animation. `0` freezes it. |
+| `@x`, `@y` | −2 – 2 | Adjusts its position within the box. |
+| `@timeScale` | 0 – 4 | Adjusts animation speed. `0` freezes it. |
 
-A model with no motion applied is **not** frozen: Cubism's breathing and eye-blink run independently of the motion track, so an idle character still looks alive.
+A model with no motion applied is not frozen: Cubism's breathing and eye-blink run independently of the motion track.
 
 ### Runtime options
 
@@ -113,16 +113,16 @@ The **Options** map is handed to the runtime untouched. The Live2D adapter reads
 | Key | Does |
 | --- | --- |
 | `scale`, `offsetX`, `offsetY` | Starting values for `@scale` / `@x` / `@y`. |
-| `diagnostics` | `true` turns on a paint report: after the first frame the adapter counts the pixels it actually drew and logs them. Useful when a model does not appear — it distinguishes *drew nothing* from *drew a flat white silhouette*, which is what a rejected texture upload looks like. Off by default, because it costs a full canvas read on every character. |
+| `diagnostics` | `true` turns on a paint report: after the first frame the adapter counts the pixels it actually drew and logs them. It distinguishes *drew nothing* from *drew a flat white silhouette*, which is the signature of a rejected texture upload. Off by default, because it costs a full canvas read per character. |
 
 ## If a model does not appear
 
-The adapter keeps a trail of what it loaded and hands it to the console when a mount fails, so start there — the useful information is usually *which* of a manifest's dozen files went wrong, not the final error.
+The adapter records what it loaded and writes that trail to the console when a mount fails. The useful information is usually which of the manifest's files went wrong, rather than the final error.
 
-| Symptom | Usually |
+| Symptom | Usual cause |
 | --- | --- |
-| "Runtime not installed in this project" | The runtime is not installed here. Fresh clone, or a project that never had it. |
-| "This model could not be drawn", with a reason | The reason is the specific one — a missing entry file, an unreadable bundle, or a runtime that is gone. |
-| The character is a plain empty box in the game | The backend name on the character does not match any installed runtime. Check **Project → Runtimes**. |
+| "Runtime not installed in this project" | The runtime is not installed on this machine. A fresh clone, or a project that never had it. |
+| "This model could not be drawn", with a reason | The reported reason: a missing entry file, an unreadable bundle, or a runtime that is gone. |
+| The character is an empty box in the game | The backend name on the character matches no installed runtime. Check **Project → Runtimes**. |
 | The model draws as a flat white shape | A texture upload was rejected. Turn on `diagnostics` and check the console. |
-| Nothing at all, no error | Make sure you imported the folder that holds the `.model3.json`, not its parent. |
+| Nothing at all, and no error | The imported folder must be the one holding the `.model3.json`, not its parent. |

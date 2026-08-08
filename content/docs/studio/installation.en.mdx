@@ -1,46 +1,43 @@
 ---
 title: Installation
-description: Download NarraLeaf Studio for Windows or macOS.
+description: Download and install NarraLeaf Studio for Windows or macOS.
 ---
 
 <StudioDownloads />
 
-Links always point at the current release. Older versions are on the [releases page](https://github.com/NarraLeaf/NarraLeaf-Studio/releases).
+Download links point at the current release. Earlier versions are on the [releases page](https://github.com/NarraLeaf/NarraLeaf-Studio/releases).
 
 ## Requirements
 
-**Windows** — Windows 10 or later, on x64.
+| Platform | Minimum version | Architecture |
+| --- | --- | --- |
+| Windows | Windows 10 | x64 |
+| macOS | macOS 11 | Apple Silicon |
 
-**macOS** — macOS 11 or later, on **Apple Silicon**. There is no Intel build of Studio.
-
-<Callout type="warn">
-Studio does not run on an Intel Mac. The macOS download is an Apple Silicon binary, and Rosetta only translates in the other direction — it lets Apple Silicon run Intel code, not the reverse. So this is not a reduced-feature mode you can work around: the application will not open at all.
-
-That limits where Studio runs, not who you can ship to. **Intel Mac is still a build target** — a game authored on Apple Silicon can be packaged for players on Intel Macs, alongside every other target. See [Run and Package](/docs/studio/getting-started/run-and-package).
-</Callout>
+There is no Intel build of Studio, and it does not run on an Intel Mac. This limits where Studio runs, not what it produces: Intel Mac remains an available build target, and a project authored on Apple Silicon can be packaged for players on Intel Macs. See [Run and Package](/docs/studio/getting-started/run-and-package).
 
 ## Install
 
-**Windows** — run the `.exe`. It installs for the current user, so it never asks for administrator rights.
+**Windows** — run the `.exe` installer. Studio installs for the current user and does not require administrator rights.
 
 **macOS** — open the `.dmg` and drag NarraLeaf Studio into Applications.
 
 <Callout type="warn">
-Builds are not code-signed, so the first launch is blocked.
-
-On Windows, **More info → Run anyway**. On macOS, **System Settings → Privacy & Security → Open Anyway**, or:
+Desktop builds are not code-signed, so the first launch is blocked. On Windows, select **More info → Run anyway**. On macOS, select **Open Anyway** under **System Settings → Privacy & Security**, or remove the quarantine attribute:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
 ```
 </Callout>
 
-Studio does not update itself — to update, download the new installer and run it over the existing installation.
+## Updating
+
+Studio does not update itself. To update, download the current installer and run it over the existing installation.
 
 <Cards>
     <Card
-        title="Create your first project"
-        description="Make a blank project and see what Studio prepares on first open."
+        title="Start a project"
+        description="Create a project and complete the first run."
         href="/docs/studio/getting-started"
     />
 </Cards>

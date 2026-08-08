@@ -1,46 +1,43 @@
 ---
 title: 安装
-description: 下载适用于 Windows 或 macOS 的 NarraLeaf Studio。
+description: 下载并安装适用于 Windows 或 macOS 的 NarraLeaf Studio。
 ---
 
 <StudioDownloads lang="zh" />
 
-链接始终指向最新版本。历史版本见 [releases 页面](https://github.com/NarraLeaf/NarraLeaf-Studio/releases)。
+下载链接指向最新发行版本。历史版本见 [releases 页面](https://github.com/NarraLeaf/NarraLeaf-Studio/releases)。
 
 ## 系统需求
 
-**Windows** —— Windows 10 或更高版本，x64。
+| 平台 | 最低系统版本 | 架构 |
+| --- | --- | --- |
+| Windows | Windows 10 | x64 |
+| macOS | macOS 11 | Apple Silicon |
 
-**macOS** —— macOS 11 或更高版本，且必须是 **Apple Silicon**。Studio 没有 Intel 版。
-
-<Callout type="warn">
-Studio 在 Intel Mac 上跑不起来。macOS 的下载是 Apple Silicon 二进制，而 Rosetta 只朝一个方向翻译——它让 Apple Silicon 跑 Intel 的代码，反过来不行。所以这不是"装上了但少几个功能"、可以绕过去的情况：应用根本打不开。
-
-受限的是 Studio 在哪运行，不是你能发给谁。**Intel Mac 仍然是构建目标**——在 Apple Silicon 上做的游戏，可以和其他目标一样打包给用 Intel Mac 的玩家。参见[运行与打包](/zh/docs/studio/getting-started/run-and-package)。
-</Callout>
+Studio 不提供 Intel 版本，也无法在 Intel Mac 上运行。该限制仅涉及 Studio 自身的运行环境：Intel Mac 仍是可用的构建目标，在 Apple Silicon 上制作的项目可以照常打包给使用 Intel Mac 的玩家。参见[运行与打包](/zh/docs/studio/getting-started/run-and-package)。
 
 ## 安装
 
-**Windows** —— 运行 `.exe`。它按当前用户安装，不会索要管理员权限。
+**Windows** —— 运行 `.exe` 安装程序。Studio 安装到当前用户，不需要管理员权限。
 
-**macOS** —— 打开 `.dmg`，把 NarraLeaf Studio 拖进"应用程序"。
+**macOS** —— 打开 `.dmg`，将 NarraLeaf Studio 拖入「应用程序」。
 
 <Callout type="warn">
-构建没有代码签名，所以第一次启动会被拦下。
-
-Windows 上点**更多信息 → 仍要运行**。macOS 上走**系统设置 → 隐私与安全性 → 仍要打开**，或者：
+桌面产物尚未完成代码签名，首次启动会被系统拦截。Windows 上选择**更多信息 → 仍要运行**；macOS 上在**系统设置 → 隐私与安全性**中选择**仍要打开**，或移除隔离属性：
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
 ```
 </Callout>
 
-Studio 不会自我更新——更新的做法是下载新的安装包，直接覆盖现有安装。
+## 更新
+
+Studio 不会自动更新。更新时下载新版本安装程序，覆盖现有安装即可。
 
 <Cards>
     <Card
-        title="创建第一个工程"
-        description="建一个空白工程，看看 Studio 首次打开时准备了什么。"
+        title="从新项目开始"
+        description="创建项目并完成第一次运行。"
         href="/zh/docs/studio/getting-started"
     />
 </Cards>
