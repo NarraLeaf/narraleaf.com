@@ -37,10 +37,18 @@ type HeroCopy = SectionCopy & {
   imageAlt: string;
 };
 
+/** One themed run of Studio screenshots. `slideAlts` is positional against `studioSlideGroups`. */
+type EditorSlideGroupCopy = {
+  id: StudioSlideGroupId;
+  title: string;
+  description: string;
+  slideAlts: string[];
+};
+
 type EditorIntroCopy = SectionCopy & {
   cta: string;
   href: string;
-  slideAlts: string[];
+  groups: EditorSlideGroupCopy[];
   slideControls: {
     previous: string;
     next: string;
@@ -111,16 +119,45 @@ const homeCopy = {
         'NarraLeaf Studio brings asset management, interface editing, immersive narrative work, and team collaboration into one editor built for visual novel production.',
       cta: 'Explore Studio',
       href: '/studio',
-      slideAlts: [
-        'NarraLeaf Studio workspace overview',
-        'NarraLeaf Studio editor preview 2',
-        'NarraLeaf Studio editor preview 3',
-        'NarraLeaf Studio editor preview 4',
-        'NarraLeaf Studio editor preview 5',
-        'NarraLeaf Studio editor preview 6',
-        'NarraLeaf Studio editor preview 7',
-        'NarraLeaf Studio editor preview 8',
-        'NarraLeaf Studio editor preview 9',
+      groups: [
+        {
+          id: 'craft',
+          title: 'Write the story',
+          description:
+            'A prose editor that stays keyboard-first, a stage you can watch as you type, and characters that move.',
+          slideAlts: [
+            'Story editor with dialogue lines and character differentials',
+            'Story preview running the current scene beside the editor',
+            'Motion editor timing a character move across the stage',
+            'A Live2D character posed on the stage with its runtime installed',
+            'Project dashboard counting scenes, words, assets and blueprint nodes',
+          ],
+        },
+        {
+          id: 'customize',
+          title: 'Make it yours',
+          description:
+            'Every surface the player sees is editable — dialogue box, menus, logic and all — and none of it is locked behind a theme.',
+          slideAlts: [
+            'UI editor laying out a game interface from a layer tree',
+            'Interface templates ready to drop into a project',
+            'A dialogue box being restyled, with safe-area and aspect-ratio previews',
+            'Blueprint graph beside the game configuration panel',
+            'A plugin adding Steam achievements to the project',
+          ],
+        },
+        {
+          id: 'ship',
+          title: 'Translate it, version it, ship it',
+          description:
+            'Localization with a review pass, versions you can submit and share, live debugging, and a production build at the end.',
+          slideAlts: [
+            'Localization panel with translations awaiting review and approval',
+            'Version history beside the asset library and an audio waveform',
+            'Dev Mode running the game with the story runtime inspector open',
+            'Building the project for distribution',
+          ],
+        },
       ],
       slideControls: {
         previous: 'Previous Studio preview',
@@ -273,7 +310,7 @@ const homeCopy = {
       eyebrow: 'NarraLeaf Project',
       title: '像现代软件一样构建视觉小说',
       description:
-        '一套用于构建、发布和嵌入视觉小说的项目系统',
+        '一套视觉小说的项目系统，可发布为独立应用，也可嵌入现有网页',
       primaryCta: '探索项目',
       secondaryCta: '浏览文档',
       imageAlt: '打开视觉小说项目的 NarraLeaf Studio 工作区',
@@ -282,25 +319,51 @@ const homeCopy = {
       eyebrow: '项目路径',
       title: '眼前的工作，要从哪条路开始？',
       description:
-        '使用 Studio 自由创作，使用 NarraLeaf Desktop 快速扩展，或使用 NarraLeaf-React 完全自定义',
+        '不同的项目形态有不同的起点。专注创作从 Studio 开始，发布为桌面应用交给 Desktop，嵌入既有的 Web 产品则用 NarraLeaf-React。',
     },
     editorIntro: {
       eyebrow: 'Studio',
-      title: 'NarraLeaf Studio —— 创作者看得见的工作台',
+      title: 'NarraLeaf Studio 把写作与呈现放在同一个窗口',
       description:
-        '资产管理、界面编辑、沉浸叙事、团队协作：NarraLeaf Studio 把它们都装在了这个专为视觉小说而生的编辑器。',
+        '专为视觉小说设计的编辑器。从第一句对白到最终的发行版本，全程不必更换工具。',
       cta: '探索 Studio',
       href: '/studio',
-      slideAlts: [
-        'NarraLeaf Studio 工作区概览',
-        'NarraLeaf Studio 编辑器预览 2',
-        'NarraLeaf Studio 编辑器预览 3',
-        'NarraLeaf Studio 编辑器预览 4',
-        'NarraLeaf Studio 编辑器预览 5',
-        'NarraLeaf Studio 编辑器预览 6',
-        'NarraLeaf Studio 编辑器预览 7',
-        'NarraLeaf Studio 编辑器预览 8',
-        'NarraLeaf Studio 编辑器预览 9',
+      groups: [
+        {
+          id: 'craft',
+          title: '写故事',
+          description: '正文编辑器以键盘操作为主，写下的内容即时呈现在一旁的舞台预览中。',
+          slideAlts: [
+            '故事编辑器中的对白行与角色差分',
+            '故事预览与编辑器并排，实时播放当前场景',
+            '动作编辑器为角色的位移编排时间轴',
+            '装好运行时后，舞台上摆位的 Live2D 角色',
+            '项目仪表盘统计场景、字数、资产与蓝图节点',
+          ],
+        },
+        {
+          id: 'customize',
+          title: '外观由你定义',
+          description: '玩家看到的每一处界面都可以重新设计，包括对话框自身的交互行为。',
+          slideAlts: [
+            'UI 编辑器以图层树搭建游戏界面',
+            '可直接取用的界面模板',
+            '重新设计对话框，并预览安全区与画面比例',
+            '蓝图图表与游戏配置面板并排',
+            '插件为项目接入 Steam 成就',
+          ],
+        },
+        {
+          id: 'ship',
+          title: '交付之前',
+          description: '本地化审校与版本记录同样在 Studio 内完成，直到导出可发行的版本。',
+          slideAlts: [
+            '本地化面板中等待审校与通过的译文',
+            '版本历史与资产库、音频波形并排',
+            'Dev Mode 运行游戏，并打开故事运行时检查器',
+            '将项目构建为可分发的产物',
+          ],
+        },
       ],
       slideControls: {
         previous: '上一张 Studio 预览',
@@ -312,9 +375,9 @@ const homeCopy = {
     },
     desktopIntro: {
       eyebrow: 'Desktop',
-      title: 'NarraLeaf Desktop —— 让代码与预览无缝衔接',
+      title: 'NarraLeaf Desktop 让代码与运行中的游戏并排',
       description:
-        '窗口、存档、路由、菜单、打包：所有环节由 Desktop 一手把控，代码、预览与交付路径始终连在同一套 NarraLeaf 运行时里。',
+        '玩家最终启动的就是 Desktop 构建出的应用，它的窗口、存档与打包行为都写在项目自己的代码里。',
       cta: '探索 Desktop',
       href: '/narraleaf/library/main',
       codeImageAlt: '打开 NarraLeaf Desktop 项目入口文件的 VS Code 窗口',
@@ -330,9 +393,9 @@ const homeCopy = {
     },
     projectModelIntro: {
       eyebrow: '项目结构',
-      title: '告别传统编辑器，迎接现代项目结构',
+      title: '一部视觉小说不应散落为互不相干的文件',
       description:
-        '制作、桌面运行、网页嵌入：NarraLeaf 将它们分成项目里的三条并行的路，各有分工，而故事不必被拆为互不相干的文件。',
+        'NarraLeaf 将项目分为几条并行的路径，各自负责一段。故事本身始终只有一份，不会因为路径不同而重写。',
     },
     projectModelTabs: [
       {
@@ -342,7 +405,7 @@ const homeCopy = {
         logo: 'narraleaf',
         title: 'NarraLeaf Studio 制作交给它',
         description:
-          '素材、界面状态、叙事流程、协作上下文，一个工作区全都搞定。',
+          '制作阶段所需的一切，集中在同一个工作区。',
         points: [
           '在搭建场景和界面的地方，直接管理项目素材。',
           '界面编辑和沉浸叙事，在一起同步推进。',
@@ -356,11 +419,11 @@ const homeCopy = {
         logo: 'electron',
         title: 'NarraLeaf Desktop 发布交给它',
         description:
-          'Desktop 是玩家真正打开的游戏的地方：窗口生命周期、路由、存档、菜单、打包和运行时行为都在这里。',
+          'Desktop 是玩家真正启动的那个应用，窗口行为与打包流程都由它承担。',
         points: [
           '可游玩的应用，和控制它的代码，并排构建。',
           'Electron、renderer 和 NarraLeaf 运行时决策集中一处管理。',
-          '视觉小说本身就是产品？Desktop即可派上用场。',
+          '视觉小说本身就是产品时，选择 Desktop。',
         ],
       },
       {
@@ -374,15 +437,15 @@ const homeCopy = {
         points: [
           '播放器可以直接挂进已有的 React 界面。',
           '外层应用不受影响，依旧负责布局、数据、账号和产品 UI。',
-          '故事只是其中一个功能？React 即可派上用场',
+          '故事只是产品的一部分时，选择 NarraLeaf-React。',
         ],
       },
     ],
     solutions: [
       {
         title: 'NarraLeaf Studio',
-        description: '面向资产、界面、沉浸叙事与团队协作的制作编辑器。',
-        audience: '适合想在交付前，把视觉小说的制作推进集中在一处的团队。',
+        description: '完成一部视觉小说所需的制作编辑器。',
+        audience: '适合希望将制作流程集中在一处的团队。',
         href: '/studio',
         cta: '探索 Studio',
         tone: 'studio',
@@ -390,8 +453,8 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf Desktop',
-        description: '面向运行时、renderer、存档、打包与发布工作的桌面应用路线。',
-        audience: '适合打算将视觉小说发布为独立应用的项目。',
+        description: '将视觉小说发布为独立的桌面应用。',
+        audience: '适合以视觉小说本身作为产品的项目。',
         href: '/narraleaf/library/main',
         cta: '探索 Desktop',
         tone: 'electron',
@@ -399,8 +462,8 @@ const homeCopy = {
       },
       {
         title: 'NarraLeaf-React',
-        description: '面向自有界面嵌入视觉小说场景的 React 播放器。',
-        audience: '适合故事服务于更大 Web 体验的产品。',
+        description: '把故事嵌入既有的 React 界面。',
+        audience: '适合故事只占产品一部分的团队。',
         href: '/narraleaf-react',
         cta: '探索 React 播放器',
         tone: 'react',
@@ -409,9 +472,9 @@ const homeCopy = {
     ],
     embedDemo: {
       eyebrow: 'React 播放器',
-      title: 'NarraLeaf-React —— 就地呈现',
+      title: 'NarraLeaf-React 就运行在这个页面里',
       description:
-        '与 React 界面共同运行，背景、角色、对白，还有选项均由脚本掌控。',
+        '它与你的 React 界面一同运行，画面完全由剧本驱动。',
       code: [
         'introScene.background.char("/room.jpg", new FadeIn(600)),',
         '',
@@ -437,7 +500,7 @@ const homeCopy = {
     bottomCta: {
       title: '不妨先从项目概览开始',
       description:
-        '自项目概览了解 NarraLeaf 的整体结构；想继续深入？文档随时待命。',
+        '先从项目概览了解整体结构，需要细节时再进入文档。',
     },
     footer: {
       navigationLabel: '页脚导航',
@@ -449,17 +512,40 @@ const homeCopy = {
   },
 } satisfies Record<Locale, HomePageCopy>;
 
-const editorSlideImages = [
-  '/static/img/ui-editor-slides/feature-1.png',
-  '/static/img/ui-editor-slides/feature-2.png',
-  '/static/img/ui-editor-slides/feature-3.png',
-  '/static/img/ui-editor-slides/feature-4.png',
-  '/static/img/ui-editor-slides/feature-5.png',
-  '/static/img/ui-editor-slides/feature-6.png',
-  '/static/img/ui-editor-slides/feature-7.png',
-  '/static/img/ui-editor-slides/feature-8.png',
-  '/static/img/ui-editor-slides/feature-9.png',
-] as const;
+/**
+ * Studio screenshots, in three themed runs rather than one long carousel.
+ *
+ * The grouping is the point: fourteen shots in a row read as a slideshow nobody watches to the end,
+ * while three short runs each make one claim — you write in it, you shape how it looks, you ship
+ * and translate it with other people. Order within a group is deliberate; the first slide is the
+ * one that has to land, since a visitor may only ever see that one.
+ *
+ * Every file is 2956x1974 to match the aspect ratio the slideshow hard-codes.
+ */
+const studioSlideGroups = {
+  craft: [
+    '/static/img/studio-slides/story-editor.webp',
+    '/static/img/studio-slides/story-live-preview.webp',
+    '/static/img/studio-slides/story-motion-editor.webp',
+    '/static/img/studio-slides/live2d-puppet.webp',
+    '/static/img/studio-slides/dashboard.webp',
+  ],
+  customize: [
+    '/static/img/studio-slides/ui-editor.webp',
+    '/static/img/studio-slides/ui-templates.webp',
+    '/static/img/studio-slides/dialog-customization.webp',
+    '/static/img/studio-slides/blueprint-game-config.webp',
+    '/static/img/studio-slides/plugin-system.webp',
+  ],
+  ship: [
+    '/static/img/studio-slides/translation.webp',
+    '/static/img/studio-slides/version-control.webp',
+    '/static/img/studio-slides/dev-mode.webp',
+    '/static/img/studio-slides/build-for-production.webp',
+  ],
+} as const satisfies Record<string, readonly string[]>;
+
+type StudioSlideGroupId = keyof typeof studioSlideGroups;
 
 const desktopCodeImage = '/static/img/home/desktop-code.png';
 
@@ -638,14 +724,29 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </Link>
           </div>
 
-          <div className="mx-auto mt-8 w-full max-w-[1000px] overflow-visible sm:mt-10">
-            <UiEditorSlideshow
-              slides={editorSlideImages.map((src, index) => ({
-                src,
-                alt: copy.editorIntro.slideAlts[index],
-              }))}
-              labels={copy.editorIntro.slideControls}
-            />
+          <div className="mt-10 flex flex-col gap-14 sm:mt-12 sm:gap-20">
+            {copy.editorIntro.groups.map((group) => (
+              <div key={group.id} className="mx-auto w-full max-w-[1000px]">
+                <div className="max-w-2xl space-y-2">
+                  <h3 className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">
+                    {group.title}
+                  </h3>
+                  <p className="text-sm leading-6 text-fd-muted-foreground sm:text-base">
+                    {group.description}
+                  </p>
+                </div>
+
+                <div className="mt-5 w-full overflow-visible sm:mt-6">
+                  <UiEditorSlideshow
+                    slides={studioSlideGroups[group.id].map((src, index) => ({
+                      src,
+                      alt: group.slideAlts[index],
+                    }))}
+                    labels={copy.editorIntro.slideControls}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -2,8 +2,58 @@
 
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
+
+/**
+ * Which slideshow on the page is allowed to advance on its own.
+ *
+ * The home page stacks three of these, and left alone all three tick at once — the reader watches
+ * one while two others change behind their back, which is both distracting and wasted motion. So
+ * the instances share this registry: each reports how visible it is, and only the single most
+ * visible one runs its timer. Everything else sits still until the reader scrolls to it.
+ *
+ * Module-level rather than a context because the instances are rendered from a server component
+ * and have no common client parent to hold the state. That makes the scope "every slideshow on the
+ * page", which is exactly the intent — but it does mean two unrelated groups could not each keep
+ * their own winner. There is only one group today.
+ */
+type Visibility = {
+  /** How much of the slideshow's own box is on screen, 0–1. */
+  ratio: number;
+  /** Distance from its centre to the viewport centre, in px. Breaks ties on tall viewports. */
+  distance: number;
+};
+
+const visibility = new Map<symbol, Visibility>();
+const listeners = new Map<symbol, (active: boolean) => void>();
+
+/** Below this, a slideshow is on its way in or out rather than being read. */
+const minimumVisibleRatio = 0.4;
+
+function recomputeActiveSlideshow() {
+  let winner: symbol | null = null;
+  let best: Visibility | null = null;
+
+  for (const [id, current] of visibility) {
+    if (current.ratio < minimumVisibleRatio) continue;
+    if (
+      best === null ||
+      current.ratio > best.ratio ||
+      (current.ratio === best.ratio && current.distance < best.distance)
+    ) {
+      winner = id;
+      best = current;
+    }
+  }
+
+  for (const [id, notify] of listeners) {
+    notify(id === winner);
+  }
+}
+
+// Enough steps that scrolling past a slide re-evaluates smoothly, rather than snapping at 0/1.
+const visibilityThresholds = Array.from({ length: 21 }, (_, step) => step / 20);
 
 type UiEditorSlide = {
   src: string;
@@ -29,16 +79,51 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
   const { slides, labels } = props;
   const [activeIndex, setActiveIndex] = useState(0);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [isFrontmost, setIsFrontmost] = useState(false);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const idRef = useRef<symbol | null>(null);
+  idRef.current ??= Symbol('slideshow');
 
   useEffect(() => {
-    if (slides.length <= 1 || expandedIndex !== null) return;
+    const id = idRef.current;
+    const frame = frameRef.current;
+    if (id === null || frame === null) return;
+
+    listeners.set(id, setIsFrontmost);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const box = entry.boundingClientRect;
+          visibility.set(id, {
+            ratio: entry.intersectionRatio,
+            distance: Math.abs(box.top + box.height / 2 - window.innerHeight / 2),
+          });
+        }
+        recomputeActiveSlideshow();
+      },
+      { threshold: visibilityThresholds },
+    );
+    observer.observe(frame);
+
+    return () => {
+      observer.disconnect();
+      listeners.delete(id);
+      visibility.delete(id);
+      // Hand the timer to whichever slideshow is now the most visible.
+      recomputeActiveSlideshow();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (slides.length <= 1 || expandedIndex !== null || !isFrontmost) return;
 
     const timeout = window.setTimeout(() => {
       setActiveIndex((current) => (current + 1) % slides.length);
     }, slideInterval);
 
     return () => window.clearTimeout(timeout);
-  }, [activeIndex, expandedIndex, slides.length]);
+  }, [activeIndex, expandedIndex, isFrontmost, slides.length]);
 
   useEffect(() => {
     if (expandedIndex === null) return;
@@ -71,7 +156,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
 
   return (
     <>
-      <div className="group relative aspect-[2956/1974] overflow-visible">
+      <div ref={frameRef} className="group relative aspect-[2956/1974] overflow-visible">
         {slides.map((slide, index) => {
           const active = index === activeIndex;
 
