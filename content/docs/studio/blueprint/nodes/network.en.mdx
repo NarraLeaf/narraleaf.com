@@ -1,0 +1,115 @@
+---
+title: Network
+description: Making an HTTP request while the game runs, and reading what comes back.
+---
+
+Three nodes for reading something from outside the game at run time: an online notice board, patch notes, a leaderboard. `Fetch` makes the request and hands back a Response; `Read Response Text` and `Read Response JSON` turn that Response into a value.
+
+These are not for assets. Images, audio and video are project content, they ship inside the game, and fetching one at run time would make the game depend on a server to look right.
+
+## Conventions
+
+- **The project has to allow it.** *Allow HTTP*, under Security in the project's settings, is off in every new project, and while it is off these nodes cannot run. See [When the project does not allow HTTP](#when-the-project-does-not-allow-http) below.
+- **`Fetch` is latent; the two readers are not.** `Fetch` waits for the request, so it declares `event` and `macro` and cannot appear in a `function` graph or back a Blueprint Value. The readers work on a Response the host already holds, so they return immediately, but they are still exec nodes and still cannot back a Blueprint Value.
+- **Only `http` and `https`.** Any other scheme is refused before a request is made. This is what keeps `file:` out, and with it the possibility of using this node to read the player's disk.
+- **The request is made by the game's main process, not by the page.** That is why an ordinary third-party API works here without sending CORS headers. The Web export is the exception and is subject to CORS like any other page.
+- **No cookies are sent.** The game holds no session with anyone, and ambient credentials would be a surprise the author never asked for.
+- **A response is capped at 8 MiB** and refused, not truncated, past that. **A request times out after 10 seconds** unless the `Timeout (s)` pin says otherwise, up to a ceiling of 60.
+- **The editor canvas cannot run them.** There is no host on the author-time canvas, so `Fetch` reports a network error there rather than reaching anything.
+
+## When the project does not allow HTTP
+
+With Allow HTTP off, the shipped game is confined to its own protocol and every HTTP request is cancelled, so a network node in the graph is code that cannot run. Three things say so, at falling distance from the author:
+
+| Where | What happens |
+| --- | --- |
+| Blueprint editor | The `network/fetch-disallowed` project check reports the node as an error. |
+| Production build | The build is refused and names the blueprint. This refusal is not part of the project-checks sweep and is not affected by its settings. |
+| Run time | The request is refused before it is issued, and `Fetch` leaves by `networkError`. |
+
+The remedy is either one: turn Allow HTTP on, or remove the nodes.
+
+<Callout type="warn">
+The setting is not enforced in the **Web export**. It works through a content security policy and a request filter that only a desktop shell has, and a game served over HTTP(S) is already on the network by construction. Network nodes run in a Web build. The build refusal above still applies to Web targets, so a project with the setting off cannot produce one either way.
+</Callout>
+
+## Fetch
+
+`blueprint.network.fetch` · Latent
+
+Sends a request and waits for it to finish. Which execution pin it leaves by depends on what happened.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `url` | in · data | `string` | Labelled `URL`. Must be `http` or `https`. |
+| `headers` | in · data | `json` | Optional. Labelled `Headers`. |
+| `body` | in · data | `string` | Optional. Labelled `Request Body`. |
+| `timeoutSeconds` | in · data | `float` | Optional. Labelled `Timeout (s)`. |
+| `success` | out · exec | — | The server answered with a 2xx status. |
+| `httpError` | out · exec | — | The server answered, with something other than 2xx. |
+| `networkError` | out · exec | — | No answer arrived at all. |
+| `timeout` | out · exec | — | The request ran past its timeout. |
+| `response` | out · data | `ResponseBody` | Labelled `Response`. |
+| `status` | out · data | `integer` | Labelled `Status`. `0` when no response arrived. |
+| `error` | out · data | `string` | Labelled `Error`. Empty on success. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Method` | `GET`, `POST`, `PUT`, `PATCH`, `DELETE` or `HEAD`. Defaults to `GET`. |
+
+`Request Body` is sent only by `POST`, `PUT` and `PATCH`; the other methods ignore the pin.
+
+`networkError` is the catch-all for "no HTTP response happened": DNS failure, connection refused, a scheme that is not http(s), a response over the size cap, and a project whose Allow HTTP setting is off. They share a pin because an author's response to all of them is the same — there is no data, show the player something else — and the `Error` pin says which it was.
+
+**`Response` is produced on `httpError` too.** A REST API's 404 usually carries the JSON that says what was not found, and a graph that branches there needs to be able to read it.
+
+**Headers are a JSON object**, most easily built with `Make JSON Object`. Values that are numbers or booleans are sent as their text; nested objects and arrays are dropped, since there is no header they could correctly become.
+
+## The Response type
+
+`Fetch` does not put the response body on a data pin. It produces a `ResponseBody` — a handle that the two reader nodes accept.
+
+Splitting the read out buys two things. A response nobody reads is never parsed. And a `JSON.parse` failure gets an execution pin of its own: as an output value the only thing it could report is `null`, which is indistinguishable from a body that really was `null`.
+
+<Callout type="warn">
+**A Response is only readable during the run that fetched it.** It is released when that execution ends, and no other execution can reach it. Nothing carries a response across events, and storing the handle in a variable does not work — the handle will be dead the next time a graph reads it. To keep the data, read it first and store *that*.
+
+Reading a handle that is not available reports an execution error naming the node.
+</Callout>
+
+One execution may hold 32 responses at once. A graph that fetches in a loop past that limit gets a `networkError` rather than a silent eviction, because dropping an old body would break a handle the author is still holding.
+
+## Read Response Text
+
+`blueprint.network.readResponseText`
+
+Reads a Response as a string, decoded with the charset the server named, or UTF-8 when it named none.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `response` | in · data | `ResponseBody` | Labelled `Response`. |
+| `next` | out · exec | — | |
+| `text` | out · data | `string` | Labelled `Text`. |
+
+There is no failure pin. The body has already been decoded by the time it reaches this node, and bytes that could not be decoded became replacement characters rather than an error an author can act on.
+
+## Read Response JSON
+
+`blueprint.network.readResponseJson`
+
+Parses a Response as JSON.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `response` | in · data | `ResponseBody` | Labelled `Response`. |
+| `next` | out · exec | — | Parsed. |
+| `failed` | out · exec | — | The body is not JSON. |
+| `value` | out · data | `json` | Labelled `Value`. |
+| `error` | out · data | `string` | Labelled `Error`. Empty on success. |
+
+`failed` is a real run-time condition rather than a wiring mistake: the common cause is a server answering with an HTML error page where JSON was expected. Branch there and show the player something.

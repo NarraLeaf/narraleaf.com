@@ -1,0 +1,115 @@
+---
+title: 网络
+description: 在游戏运行时发起 HTTP 请求，并读取返回的内容。
+---
+
+三个节点，用来在运行时读取游戏之外的东西：在线公告、补丁说明、排行榜。`Fetch` 发起请求并交回一个 Response；`Read Response Text` 和 `Read Response JSON` 把这个 Response 读成值。
+
+这些节点不是用来取资源的。图片、音频和视频是项目内容，随游戏一起发出，运行时去取意味着游戏要靠一台服务器才能显示正常。
+
+## 约定
+
+- **项目必须允许。** 项目设置「安全」一节下的 *Allow HTTP*（允许 HTTP）在每个新项目里都是关闭的，关闭期间这些节点无法运行。见下面的[项目不允许 HTTP 时](#项目不允许-http-时)。
+- **`Fetch` 是 latent，两个读取节点不是。** `Fetch` 要等待请求，所以它声明 `event` 和 `macro`，不能出现在 `function` 图里，也不能支撑 Blueprint Value。读取节点处理的是宿主已经拿到的 Response，立即返回，但它们仍是 exec 节点，同样不能支撑 Blueprint Value。
+- **只接受 `http` 和 `https`。** 其他协议在发出请求前就被拒绝。这条挡住的是 `file:`，以及随之而来的「用这个节点读玩家硬盘」的可能。
+- **请求由游戏的主进程发出，不由页面发出。** 所以普通的第三方 API 在这里无需发送 CORS 头也能工作。Web 导出是例外，它和任何页面一样受 CORS 约束。
+- **不发送 cookie。** 游戏和任何人都没有会话，携带隐含凭证是作者没有要求过的意外。
+- **响应上限 8 MiB**，超出即拒绝，而不是截断。**请求 10 秒后超时**，除非 `Timeout (s)` 引脚另有指定，上限 60 秒。
+- **编辑器画布跑不了它们。** 作者时画布上没有宿主，`Fetch` 在那里报告网络错误，不会够到任何东西。
+
+## 项目不允许 HTTP 时
+
+Allow HTTP 关闭时，发出的游戏被限制在自身协议内，所有 HTTP 请求都会被取消，因此图里的网络节点就是跑不起来的代码。三处会报告这一点，与作者的距离由近及远：
+
+| 位置 | 会发生什么 |
+| --- | --- |
+| 蓝图编辑器 | `network/fetch-disallowed` 工程检查把该节点报为错误。 |
+| 生产构建 | 构建被拒绝并指出是哪个蓝图。该拒绝不属于工程检查扫描，也不受其设置影响。 |
+| 运行时 | 请求在发出前被拒绝，`Fetch` 走 `networkError` 出口。 |
+
+两种处理方式任选其一：打开 Allow HTTP，或者删掉这些节点。
+
+<Callout type="warn">
+该设置在 **Web 导出**中不生效。它依靠内容安全策略和请求过滤实现，而这两样只有桌面外壳才有；并且通过 HTTP(S) 提供的游戏本身就已在网络中。网络节点在 Web 构建里会运行。上面那条构建拒绝对 Web 目标同样适用，所以关闭该设置的项目无论如何也产不出这样的构建。
+</Callout>
+
+## Fetch
+
+`blueprint.network.fetch` · Latent
+
+Fetch（发起请求）发送请求并等待其完成。从哪个执行引脚离开取决于发生了什么。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `url` | in · data | `string` | 标注为 `URL`。必须是 `http` 或 `https`。 |
+| `headers` | in · data | `json` | 可选。标注为 `Headers`。 |
+| `body` | in · data | `string` | 可选。标注为 `Request Body`。 |
+| `timeoutSeconds` | in · data | `float` | 可选。标注为 `Timeout (s)`。 |
+| `success` | out · exec | — | 服务器以 2xx 状态码回应。 |
+| `httpError` | out · exec | — | 服务器有回应，但状态码不是 2xx。 |
+| `networkError` | out · exec | — | 完全没有收到回应。 |
+| `timeout` | out · exec | — | 请求超过了超时时间。 |
+| `response` | out · data | `ResponseBody` | 标注为 `Response`。 |
+| `status` | out · data | `integer` | 标注为 `Status`。没有响应时为 `0`。 |
+| `error` | out · data | `string` | 标注为 `Error`。成功时为空。 |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Method` | `GET`、`POST`、`PUT`、`PATCH`、`DELETE` 或 `HEAD`。默认为 `GET`。 |
+
+`Request Body` 只由 `POST`、`PUT` 和 `PATCH` 发送，其他方法忽略该引脚。
+
+`networkError` 是「没有产生 HTTP 响应」的统称：DNS 失败、连接被拒、协议不是 http(s)、响应超出体积上限，以及项目的 Allow HTTP 处于关闭状态。它们共用一个引脚，是因为作者对这些情况的处理都一样——没有数据，给玩家显示别的——而具体是哪一种由 `Error` 引脚给出。
+
+**`httpError` 同样会产出 `Response`。** REST 接口的 404 通常在响应体里说明找不到的是什么，分支到那里的图需要能读到它。
+
+**Headers 是一个 JSON 对象**，最方便的构造方式是 `Make JSON Object`。数字和布尔值会以其文本形式发送；嵌套对象和数组会被丢弃，因为它们无法正确地变成任何一个请求头。
+
+## Response 类型
+
+`Fetch` 不把响应体放在数据引脚上，它产出一个 `ResponseBody`——一个由两个读取节点接收的句柄。
+
+把读取拆出来有两个好处。没有被读取的响应根本不会被解析。以及 `JSON.parse` 失败可以有自己的执行引脚：作为输出值，它唯一能报告的是 `null`，而这与「响应本身就是 null」无法区分。
+
+<Callout type="warn">
+**Response 只能在取得它的那一次执行中读取。** 该次执行结束时它被释放，其他执行链无法访问。没有任何东西会把响应带到下一个事件；把句柄存进变量也没有用——下次有图读它时它已经失效。需要保留的数据，先读出来，存的是读出来的值。
+
+读取一个不可用的句柄会报告执行错误，并指出是哪个节点。
+</Callout>
+
+一次执行最多同时持有 32 个响应。在循环里超过这个数量的图会得到 `networkError`，而不是被静默淘汰一个——丢掉旧的响应会让作者手上还拿着的句柄失效。
+
+## Read Response Text
+
+`blueprint.network.readResponseText`
+
+Read Response Text（读取响应文本）把 Response 读为字符串，按服务器声明的字符集解码；服务器没有声明时按 UTF-8 解码。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `response` | in · data | `ResponseBody` | 标注为 `Response`。 |
+| `next` | out · exec | — | |
+| `text` | out · data | `string` | 标注为 `Text`。 |
+
+没有失败引脚。响应体到达这个节点时已经解码完成，无法解码的字节变成了替换字符，而不是一个作者能据以处理的错误。
+
+## Read Response JSON
+
+`blueprint.network.readResponseJson`
+
+Read Response JSON（读取响应 JSON）把 Response 解析为 JSON。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `response` | in · data | `ResponseBody` | 标注为 `Response`。 |
+| `next` | out · exec | — | 解析成功。 |
+| `failed` | out · exec | — | 响应体不是 JSON。 |
+| `value` | out · data | `json` | 标注为 `Value`。 |
+| `error` | out · data | `string` | 标注为 `Error`。成功时为空。 |
+
+`failed` 是真实的运行时状况，而不是连线错误：最常见的原因是服务器在应当返回 JSON 的地方返回了 HTML 错误页。在那里分支，给玩家显示点什么。

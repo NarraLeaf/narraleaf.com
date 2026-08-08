@@ -11,6 +11,7 @@
     "game",
     "app",
     "localization",
+    "network",
     "displayable",
     "element",
     "image",
