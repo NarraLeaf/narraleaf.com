@@ -9,7 +9,7 @@ These are not for assets. Images, audio and video are project content, they ship
 
 ## Conventions
 
-- **The project has to allow it.** *Allow HTTP*, under Security in the project's settings, is off in every new project, and while it is off these nodes cannot run. See [When the project does not allow HTTP](#when-the-project-does-not-allow-http) below.
+- **The project has to allow it.** [Allow HTTP](/docs/studio/security#allow-http) is off in every new project, and while it is off these nodes cannot run. See [When the project does not allow HTTP](#when-the-project-does-not-allow-http) below.
 - **`Fetch` is latent; the two readers are not.** `Fetch` waits for the request, so it declares `event` and `macro` and cannot appear in a `function` graph or back a Blueprint Value. The readers work on a Response the host already holds, so they return immediately, but they are still exec nodes and still cannot back a Blueprint Value.
 - **Only `http` and `https`.** Any other scheme is refused before a request is made. This is what keeps `file:` out, and with it the possibility of using this node to read the player's disk.
 - **The request is made by the game's main process, not by the page.** That is why an ordinary third-party API works here without sending CORS headers. The Web export is the exception and is subject to CORS like any other page.

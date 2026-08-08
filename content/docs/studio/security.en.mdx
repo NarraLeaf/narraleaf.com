@@ -1,0 +1,41 @@
+---
+title: Security
+description: The two project settings that decide what a built game may do and what ships inside it.
+---
+
+Two settings, both under **Security** in the project's settings, and both stored per project. They take effect in packaged and previewed builds; neither changes anything about Dev Mode.
+
+## Allow HTTP
+
+Whether the game may reach the network at all.
+
+**Off** — the default in every new project. The game is confined to its own internal protocol, and every HTTP, HTTPS and WebSocket request it makes is cancelled.
+
+**On** — the game may make HTTP and HTTPS requests. This is what the [Network nodes](/docs/studio/blueprint/nodes/network) need in order to run.
+
+The setting is checked in three places: the project checks report a network node as an error while it is off, a production build is refused, and the request itself is refused at run time.
+
+<Callout type="warn">
+Not enforced in the **Web export**. It works through mechanisms only a desktop build has, and a game served over HTTP(S) is on the network by construction. Network nodes run in a Web build. The build refusal still applies, so a project with this off cannot produce a Web build containing them either way.
+</Callout>
+
+## Encrypt assets
+
+Whether the content inside a built game is protected.
+
+**Off** — the game's files ship as ordinary files. Anyone who opens the installed folder can read the images, audio and video, and can read the story text and plugin code.
+
+**On** — the following are encrypted inside packaged and previewed builds:
+
+- images, audio and video
+- the compiled story
+- plugin code
+- the player's save files
+
+Encryption is provided by [NarraLeaf/Encryption](https://github.com/NarraLeaf), and the protection is comparable to KiriKiri's.
+
+<Callout type="info">
+Web builds always ship without it. A browser has to read the files directly, so there is nothing to hide them behind.
+</Callout>
+
+What it does and does not do: it stops the files from being opened with ordinary tools, which is what stops casual extraction. It is not a guarantee against a determined attacker, because the running game must be able to read its own content.

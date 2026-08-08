@@ -9,7 +9,7 @@ description: 在游戏运行时发起 HTTP 请求，并读取返回的内容。
 
 ## 约定
 
-- **项目必须允许。** 项目设置「安全」一节下的 *Allow HTTP*（允许 HTTP）在每个新项目里都是关闭的，关闭期间这些节点无法运行。见下面的[项目不允许 HTTP 时](#项目不允许-http-时)。
+- **项目必须允许。** [Allow HTTP](/zh/docs/studio/security#allow-http允许-http) 在每个新项目里都是关闭的，关闭期间这些节点无法运行。见下面的[项目不允许 HTTP 时](#项目不允许-http-时)。
 - **`Fetch` 是 latent，两个读取节点不是。** `Fetch` 要等待请求，所以它声明 `event` 和 `macro`，不能出现在 `function` 图里，也不能支撑 Blueprint Value。读取节点处理的是宿主已经拿到的 Response，立即返回，但它们仍是 exec 节点，同样不能支撑 Blueprint Value。
 - **只接受 `http` 和 `https`。** 其他协议在发出请求前就被拒绝。这条挡住的是 `file:`，以及随之而来的「用这个节点读玩家硬盘」的可能。
 - **请求由游戏的主进程发出，不由页面发出。** 所以普通的第三方 API 在这里无需发送 CORS 头也能工作。Web 导出是例外，它和任何页面一样受 CORS 约束。
