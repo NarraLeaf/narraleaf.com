@@ -11,12 +11,12 @@ description: 下载适用于 Windows 或 macOS 的 NarraLeaf Studio
 
 **Windows** —— Windows 10 或更高版本，x64。
 
-**macOS** —— macOS 11 或更高版本，且必须是 **Apple Silicon**。Studio 没有 Intel 版。
+**macOS** —— macOS 11 或更高版本，且必须是 **Apple Silicon**，Studio 不支持 Intel Mac。
 
 <Callout type="warn">
-Studio 在 Intel Mac 上跑不起来。macOS 的下载是 Apple Silicon 二进制，而 Rosetta 只朝一个方向翻译——它让 Apple Silicon 跑 Intel 的代码，反过来不行。所以这不是「装上了但少几个功能」、可以绕过去的情况：应用根本打不开。
+在 Intel Mac 上无法运行 Studio。macOS 版本提供的是 Apple Silicon 原生二进制，而 Rosetta 2 仅支持将 Intel 二进制转译至 Apple Silicon 架构，不具备反向转译能力。因此，这并非功能受限或可绕过的问题——应用完全无法启动。
 
-受限的是 Studio 在哪运行，不是你能发给谁。**Intel Mac 仍然是构建目标**——在 Apple Silicon 上做的游戏，可以和其他目标一样打包给用 Intel Mac 的玩家。参见[运行与打包](/zh/docs/studio/getting-started/run-and-package)。
+需要注意的是，此处受限的是 Studio 本身的运行环境，而非输出的目标平台。Intel Mac 仍可作为构建目标：在 Apple Silicon 设备上制作的游戏，可像对待其他平台一样，正常打包分发给使用 Intel Mac 的玩家。详见“运行与打包”文档。
 </Callout>
 
 ## 安装

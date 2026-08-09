@@ -11,12 +11,12 @@ Links always point at the current release. Older versions are on the [releases p
 
 **Windows** — Windows 10 or later, on x64.
 
-**macOS** — macOS 11 or later, on **Apple Silicon**. There is no Intel build of Studio.
+**macOS** — macOS 11 or later, on **Apple Silicon**. Studio does not support Intel Mac.
 
 <Callout type="warn">
-Studio does not run on an Intel Mac. The macOS download is an Apple Silicon binary, and Rosetta only translates in the other direction — it lets Apple Silicon run Intel code, not the reverse. So this is not a reduced-feature mode you can work around: the application will not open at all.
+On an Intel Mac, Studio cannot run. The macOS version ships as an Apple Silicon native binary, while Rosetta 2 only supports translating Intel binaries to Apple Silicon architecture and does not provide reverse translation. Therefore, this is not a case of missing features or a workaround that can be bypassed — the application cannot start at all.
 
-That limits where Studio runs, not who you can ship to. **Intel Mac is still a build target** — a game authored on Apple Silicon can be packaged for players on Intel Macs, alongside every other target. See [Run and Package](/docs/studio/getting-started/run-and-package).
+It is important to note that the limitation here is Studio's own runtime environment, not the output target platform. Intel Mac remains a valid build target: games authored on Apple Silicon devices can be packaged and distributed to Intel Mac players in the same way as for other platforms. See the “Run and Package” document.
 </Callout>
 
 ## Install
