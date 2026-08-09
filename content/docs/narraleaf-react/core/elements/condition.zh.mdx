@@ -1,22 +1,21 @@
 ﻿---
-title: "条件"
+title: "条件分支"
 ---
-`Condition` 允许你在故事中创建条件分支。
+`Condition` 用于在剧本中创建条件分支。
 
 ```typescript
 Condition
     .If((ctx) => {
-        return // 你的条件在这里
+        return // 你的条件
     }, [
         character1.say`条件为真`,
     ])
-
     .Else([
         character1.say`条件为假`,
     ])
 ```
 
-通常情况下，你可能想要确定标志，或检查变量的值。你可以使用 [Perdidtent](/zh/docs/narraleaf-react/core/elements/persistent) 来实现这一点。
+通常配合 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 进行标志位或变量的判断：
 
 ```typescript
 type PersistentData = {
@@ -31,28 +30,26 @@ const persis = new Persistent<PersistentData>("persis", {
     hobby: "coding",
 });
 
-// 检查玩家是否有足够的金币
+// 检查金币是否不足
 Condition
     .If(persis.evaluate("coin", (coin) => coin < 50), [
         character1.say("你没有足够的金币"),
     ])
 
-// 检查玩家是否有一个标志
+// 检查标志位
 Condition
-    .If(persis.isTrue("coin"), [
+    .If(persis.isTrue("flag"), [
         character1.say("你有这个标志"),
     ])
 
-// 检查玩家是否有一个爱好
+// 检查变量值
 Condition
     .If(persis.equals("hobby", "coding"), [
         character1.say("你喜欢编程"),
     ])
 ```
 
-> **注意:** 为了更好地理解脚本，如果你以错误的顺序调用这些方法，它将抛出错误。
-> 
-> 例如，你不能在 `If`之前调用`ElseIf`。
+> **注意：** 方法必须按正确顺序调用，否则会抛出错误。例如不能在 `If` 之前调用 `ElseIf`。
 
 ## 静态方法
 
@@ -61,14 +58,14 @@ Condition
 <Steps>
 <Step>
 
-- `condition: Lambda | LambdaHandler<boolean>` - 要检查的条件。如果条件为真，则执行操作。有关更多信息，请参见 [Lambda](/zh/docs/narraleaf-react/core/types/Lambda) 以及 [LambdaHandler](/zh/docs/narraleaf-react/core/types/LambdaHandler)
+- `condition: Lambda | LambdaHandler<boolean>` - 条件表达式，返回 `true` 时执行后续操作。参见 [Lambda](/zh/docs/narraleaf-react/core/types/Lambda) 和 [LambdaHandler](/zh/docs/narraleaf-react/core/types/LambdaHandler)
 - `action: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
 
 ```typescript
 Condition.If(({ storable }) => {
     return ($("name").get("coin") || 0) >= 10;
 }, [
-character1.say("你有足够的钱")
+    character1.say("你有足够的钱")
 ])
 ```
 </Step>

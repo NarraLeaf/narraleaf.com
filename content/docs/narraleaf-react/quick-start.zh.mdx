@@ -1,32 +1,25 @@
 ﻿---
 title: "快速开始"
 ---
-NarraLeaf-React 是易于理解和使用的。本指南将帮助您使用 NarraLeaf-React 创建您的第一个视觉小说。
+本指南带你从零创建一个 NarraLeaf-React 视觉小说项目。
 
-## 创建你的第一个视觉小说
-
-现在是时候使用 NarraLeaf-React 创建您的第一个视觉小说了。
+## 创建项目
 
 <Steps>
 <Step>
 
-### 创建一个新的 React 应用
+### 初始化项目
 
-首先，使用 Create React App 创建一个新的 React 应用。
-
-导航到您想要创建应用的目录，并运行以下命令：
+在终端中执行以下命令，使用官方模板创建新项目：
 
 ```bash
 npx nlr-skeleton@latest my-project
 ```
 
-这将使用 NarraLeaf-React 模板创建一个新的 React 应用。
 </Step>
 <Step>
 
-### 运行这个应用
-
-要预览应用程序，请使用以下命令运行应用程序：
+### 启动开发服务器
 
 <Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
         ```bash
@@ -44,60 +37,34 @@ npx nlr-skeleton@latest my-project
         ```
 </Tab></Tabs>
 
-访问 `http://localhost:3000` 查看您的第一个视觉小说。
+打开 `http://localhost:3000` 即可预览。
+
 </Step>
 </Steps>
 
-恭喜！您已经使用 NarraLeaf-React 创建了您的第一个视觉小说。
-
-您可以编辑 `src/story.ts` 文件来创建您自己的故事！
+项目创建完成后，编辑 `src/story.ts` 即可编写你的剧本。
 
 ## 下一步
 
-现在您已经了解了 NarraLeaf-React 的基本概念。
-
-### 基础教程
-
-您可以开始学习 NarraLeaf-React 的一些基本功能。
-
 <Cards>
     <Card
-        title="Basic"
-        description="了解有关 NarraLeaf-React 基础知识的更多信息"
+        title="基础"
+        description="学习 NarraLeaf-React 的核心功能"
         href="/zh/docs/narraleaf-react/basic"
     />
-</Cards>
-
-### 解决方案
-
-如果您正在寻找一些常见问题的解决方案，您可以开始学习一些解决方案。
-
-<Cards>
     <Card
-        title="Solutions"
-        description="了解有关 NarraLeaf-React 解决方案的更多信息"
+        title="解决方案"
+        description="常见问题的解决方案"
         href="/zh/docs/narraleaf-react/solutions"
     />
-</Cards>
-
-### API 参考
-
-如果您是高级开发人员或正在寻找 API 参考，您可以开始学习使用抽象类构建故事。
-
-<Cards>
     <Card
-        title="Core"
-        description="了解有关 NarraLeaf-React 核心概念的更多信息"
+        title="Core API"
+        description="使用抽象类构建剧本"
         href="/zh/docs/narraleaf-react/core"
     />
-</Cards>
-
-或者开始使用播放器组件显示故事。
-
-<Cards>
     <Card
-        title="Player"
-        description="了解有关播放器组件的更多信息"
+        title="Player 组件"
+        description="使用 Player 组件渲染剧本"
         href="/zh/docs/narraleaf-react/player"
     />
 </Cards>

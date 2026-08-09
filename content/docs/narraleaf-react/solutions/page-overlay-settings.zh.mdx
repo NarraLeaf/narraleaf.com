@@ -18,24 +18,24 @@ function AppLayout() {
   return (
     <GameProviders>
       <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
-        {/* Default page (game stage) - path: / */}
+        {/* 默认页面（游戏舞台）- 路径：/ */}
         <Page name={null}>
           <GameStage />
         </Page>
 
-        {/* Settings overlay - path: /settings, /settings/general, etc. */}
+        {/* 设置叠层 - 路径：/settings、/settings/general 等 */}
         <Layout name="settings">
           <Page name={null}>
             <SettingsHome />
-            {/* /settings - settings entry or default tab */}
+            {/* /settings - 设置入口或默认标签页 */}
           </Page>
           <Page name="general">
             <SettingsGeneral />
-            {/* /settings/general - general settings */}
+            {/* /settings/general - 通用设置 */}
           </Page>
           <Page name="audio">
             <SettingsAudio />
-            {/* /settings/audio - audio settings */}
+            {/* /settings/audio - 音频设置 */}
           </Page>
         </Layout>
       </Player>
@@ -60,15 +60,15 @@ function SettingsGeneral() {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={() => router.back()}
-      // Click overlay to close
+      // 点击遮罩关闭
     >
       <div
         className="bg-gray-900 rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
-        // Prevent closing when clicking panel
+        // 点击面板时阻止关闭
       >
         <h2 className="text-xl font-bold mb-4">通用设置</h2>
-        {/* Settings form content */}
+        {/* 设置表单内容 */}
         <button
           className="mt-4 px-4 py-2 bg-amber-500 rounded"
           onClick={() => router.back()}
@@ -92,7 +92,7 @@ function QuickMenu() {
   const router = useRouter();
 
   const openSettings = () => router.navigate("/settings");
-  // Navigate to settings overlay
+  // 导航到设置叠层
 
   return (
     <div className="fixed bottom-5 left-0 right-0 flex justify-center">

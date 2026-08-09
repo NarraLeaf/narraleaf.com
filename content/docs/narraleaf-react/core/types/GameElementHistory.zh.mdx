@@ -17,18 +17,17 @@ type GameElementHistory =
     };
 ```
 
-`GameElementHistory` 类型表示可以记录在历史中的不同类型的游戏元素。它可以是：
+`GameElementHistory` 表示可以记录在历史中的游戏元素类型：
 
-1. "say" 元素：
-   - `text`: 说出的文本
-   - `voice`: 语音源 URL 或 null 如果未使用语音
-   - `voiceId`: 该行语音归档所用的 `voiceId`，未使用语音映射时为 null。0.24.0 起提供
-   - `character`: 角色名称或 null 如果句子不是由角色说出
+1. `"say"` 元素：
+   - `text`：说出的文本
+   - `voice`：已解析的语音 URL，未使用语音时为 `null`
+   - `voiceId`：该行归档时所用的 `voiceId`，未使用语音映射时为 `null`。自 0.24.0 起提供
+   - `character`：角色名称，旁白时为 `null`
 
-
-2. "menu" 元素：
-   - `text`: 菜单提示文本，没有提示时为 null
-   - `selected`: 选中的选项或 null 如果菜单仍处于挂起状态
+2. `"menu"` 元素：
+   - `text`：菜单提示文本，没有提示时为 `null`
+   - `selected`：选中的选项，菜单仍挂起时为 `null`
 
 ## 重播回想录里的语音
 

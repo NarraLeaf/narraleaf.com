@@ -1,7 +1,7 @@
 ﻿---
 title: "Gallery"
 ---
-Gallery 是专门用于视觉小说游戏画廊（图集）的内置服务。它允许您添加、删除和检查项目。Gallery 数据可通过 **localStorage**（独立持久化）或随 **游戏存档**（通过 `serialize`/`deserialize`）自动保存。
+Gallery 是专门用于视觉小说游戏画廊（图鉴）的内置服务，可以添加、删除和检查项目。Gallery 数据可以独立持久化到 **localStorage**，也可以随 **游戏存档** 通过 `serialize`/`deserialize` 自动保存。
 
 Gallery 适合用于管理游戏中的图片收集系统，比如角色立绘、CG 图片、背景图片等。
 
@@ -25,13 +25,13 @@ scene.action([
 
 ### 注册服务
 
-要使用 Gallery，您需要在故事中注册它：
+要使用 Gallery，需要在故事中注册它：
 
 ```typescript
 story.registerService("gallery", gallery);
 ```
 
-注册后，您可以使用游戏上下文访问 Gallery：
+注册后，就可以通过游戏上下文访问 Gallery：
 
 ```typescript
 const liveGame = useLiveGame();
@@ -109,7 +109,7 @@ Gallery 实现了 `serialize()` 和 `deserialize()`。当使用 [LiveGame.serial
 
 ## 链式方法
 
-这些方法需要在 `scene.action` 中使用，它们会返回操作对象，可以被链式调用。
+这些方法返回动作，需要放进 `scene.action` 中使用，也可以链式调用。
 
 ### add
 
@@ -195,7 +195,7 @@ Condition.If(gallery.has("item"), [
 ```
 
 - `name: string` - 要检查的项目名称
-- 返回 `Lambda<boolean>` - 返回 true 如果项目存在，否则返回 false
+- 返回 `Lambda<boolean>` - 项目存在时返回 `true`，否则返回 `false`
 </Step>
 </Steps>
 
@@ -314,7 +314,7 @@ if (gallery.$has("item")) {
 ```
 
 - `name: string` - 要检查的项目名称
-- 返回 `boolean` - 如果项目存在返回 true，否则返回 false
+- 返回 `boolean` - 项目存在时返回 `true`，否则返回 `false`
 </Step>
 </Steps>
 

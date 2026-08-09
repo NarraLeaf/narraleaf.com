@@ -7,13 +7,13 @@ type ServiceHandlerCtx = ScriptCtx & {
 };
 ```
 
-For ScriptCtx, see [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx).
+关于 ScriptCtx，参见 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)。
 
-## Abortify
+## 可中断性
 
-Service action should be abortable for future use.
+服务动作应当可中止，以支持将来的使用。
 
-To make an action abortable, you can use the `onAbort` method.
+可以使用 `onAbort` 方法让动作可中止。
 
 ```typescript
 class MyCustomService extends Service {

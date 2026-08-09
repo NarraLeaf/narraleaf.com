@@ -27,10 +27,9 @@ scene.action([
 <Steps>
 <Step>
 
-`scene.local` 是一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 实例，仅限于场景内使用
-它用于存储仅在场景中可用的临时数据
+`scene.local` 是一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 实例，仅限于场景内使用，用于存储仅在该场景中可用的临时数据。
 
-本地数据不需要注册或初始化，但在使用前是“未定义”的
+本地数据不需要注册或初始化，但在使用前是「未定义」的
 
 > 当场景退出时，本地数据将被丢弃
 
@@ -54,7 +53,7 @@ scene.action([
 <Steps>
 <Step>
 
-此属性用于访问场景的背景 [Image](/zh/docs/narraleaf-react/core/elements/image) 实例
+场景的背景 [Image](/zh/docs/narraleaf-react/core/elements/image) 实例
 
 ```ts
 scene.background
@@ -68,7 +67,7 @@ scene.background
 <Steps>
 <Step>
 
-此属性用于访问场景的背景层  
+场景的背景层  
 该层包含场景的背景图像
 
 ```ts
@@ -82,7 +81,7 @@ scene.backgroundLayer.opacity(0.5, 1000, "linear")
 <Steps>
 <Step>
 
-此属性用于访问场景的可显示层  
+场景的可显示层  
 该层包含所有不属于任何特定层的可显示对象
 
 ```ts
@@ -110,13 +109,13 @@ scene.displayableLayer.opacity(0.5, 1000, "linear")
 
 向场景添加操作。不要多次调用此方法
 
-#### 重载 1 of 2
+#### 重载 1 / 2
 
 - `actions: ActionStatements` - 要执行的操作，参见 [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
 
-#### 重载 2 of 2
+#### 重载 2 / 2
 
-此重载允许你传递一个函数，该函数接收场景实例并返回要执行的操作
+此重载允许传递一个函数，该函数接收场景实例并返回要执行的操作
 
 在某些情况下，你可能希望为场景实例创建一个快捷方式
 
@@ -158,7 +157,7 @@ story.entry(
 
 `scene.background.char` 的别名
 
-设置场景的背景。如果提供了过渡效果，背景将以过渡效果更改
+设置场景的背景。如果提供了过渡效果，背景将通过该过渡效果切换
 
 ```typescript
 scene.action([
@@ -179,7 +178,7 @@ scene.action([
 <Steps>
 <Step>
 
-跳转到另一个场景。如果提供了过渡效果，场景将以过渡效果更改
+跳转到另一个场景。如果提供了过渡效果，场景将通过该过渡效果切换
 
 > 注意：跳转到另一个场景后，当前场景将被释放。剩余的操作将不会执行
 
@@ -196,7 +195,7 @@ scene.action([
 设置场景的背景音乐
 
 - `sound: Sound` - [Sound](/zh/docs/narraleaf-react/core/elements/sound) 实例
-- `fade?: number` - 如果设置，将对之前的音乐应用淡出效果，并对当前音乐应用淡入效果，持续时间为毫秒
+- `fade?: number` - 如果设置，将对之前的音乐应用淡出、对当前音乐应用淡入，时长以毫秒计
 </Step>
 </Steps>
 

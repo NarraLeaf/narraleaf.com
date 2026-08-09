@@ -1,6 +1,6 @@
 ---
 title: 事件
-description: 启动 event 图的事件 Head、它们各自携带的 payload，以及在蓝图之间传递消息的 Broadcast 节点。
+description: 启动 event 图的事件 Head、它们各自携带的 payload，以及在蓝图之间传递消息的 Broadcast 节点
 ---
 
 事件 Head 是一张`event`图的起点。它没有执行入口——运行时从 Head 进入这张图，执行链从`then`开始。本页其余内容都由这一点展开：Head 的数据输出就是这次事件的 payload，而你能用到哪些 Head，取决于蓝图挂在什么宿主上。

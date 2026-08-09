@@ -1,6 +1,6 @@
 ---
 title: 模型运行时
-description: Studio 中的 Live2D 与 Spine 角色——什么是绘制运行时、为什么由你提供而不是 Studio 自带、以及它在工程中的位置。
+description: Studio 中的 Live2D 与 Spine 角色——什么是绘制运行时、为什么由你提供而不是 Studio 自带、以及它在工程中的位置
 ---
 
 视觉小说里的大多数角色都是图片：一张成品差分对应一个姿态，或者一叠按标签切换的图层。这两种 Studio 自己就能画。
@@ -8,9 +8,9 @@ description: Studio 中的 Live2D 与 Spine 角色——什么是绘制运行时
 而 **Live2D** 或 **Spine** 角色不是图片。它是一个带骨骼绑定、自带动画系统的模型，负责绘制它的东西叫 *运行时*——由模型格式的厂商编写的渲染器。Studio 不包含它们中的任何一个，也绝不代你下载。运行时由你提供，每个工程一次；之后 Studio 就把这个角色当作普通角色对待：它站在脚本安排的位置、随摄像机运动、被剧本摆姿势、并在读档后正确复原。
 
 <Cards>
-    <Card title="Live2D" href="/zh/docs/studio/model-runtimes/live2d" description="从你下载的 Cubism SDK for Web 压缩包安装。Studio 在你的机器上构建适配器。" />
-    <Card title="Spine" href="/zh/docs/studio/model-runtimes/spine" description="自行构建适配器再交给 Studio。需要你自己的 Spine Editor 授权。" />
-    <Card title="编写自己的运行时" href="/zh/docs/studio/model-runtimes/custom" description="模块契约，适用于任何你已有的渲染器。" />
+    <Card title="Live2D" href="/zh/docs/studio/model-runtimes/live2d" description="从你下载的 Cubism SDK for Web 压缩包安装。Studio 在你的机器上构建适配器" />
+    <Card title="Spine" href="/zh/docs/studio/model-runtimes/spine" description="自行构建适配器再交给 Studio。需要你自己的 Spine Editor 授权" />
+    <Card title="编写自己的运行时" href="/zh/docs/studio/model-runtimes/custom" description="模块契约，适用于任何你已有的渲染器" />
 </Cards>
 
 ## 为什么由你提供

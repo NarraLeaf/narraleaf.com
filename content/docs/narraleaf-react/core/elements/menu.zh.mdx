@@ -1,7 +1,7 @@
 ﻿---
 title: "选项"
 ---
-`菜单` 允许您在视觉小说中创建菜单。它用于在故事的不同部分之间导航。
+`Menu` 在视觉小说中创建选项菜单，用于在故事的不同分支之间导航。
 
 ```ts
 Menu.prompt("我应该做什么？")
@@ -114,7 +114,7 @@ new Menu("我应该做什么？")
 
 ### hideIf
 
-魔法方法，当条件为真时隐藏最后一个选择。
+魔法方法，当条件为真时隐藏最后一个选择。此方法会覆盖该选择的 `config.hidden`。
 
 ```ts
 menu.choose(
@@ -122,8 +122,6 @@ menu.choose(
   [character.say("我往左走了")]
 ).hideIf(persis.isTrue("flag"));
 ```
-
-**注意**: 此方法将覆盖最后一个选择的 `config.hidden`
 
 <Steps>
 <Step>
@@ -134,9 +132,7 @@ menu.choose(
 
 ### disableIf
 
-魔法方法，当条件为真时禁用最后一个选择。
-
-**注意**: 此方法将覆盖最后一个选择的 `config.disabled`
+魔法方法，当条件为真时禁用最后一个选择。此方法会覆盖该选择的 `config.disabled`。
 
 ```ts
 menu.choose(
