@@ -22,10 +22,10 @@ import {
 function CustomNvlContainer({ dialogs = [] }: INvlContainerProps) {
   return (
     <NvlContainer className="bg-black/80 text-white p-16">
-      {/* NvlContainer: handles visibility, transitions, aspect-ratio scaling */}
+      {/* NvlContainer：处理可见性、过渡动画与宽高比缩放 */}
       {dialogs.map((d) => (
         <div key={d.entry.id} className="space-y-2 mb-4">
-          {/* d.entry: NvlDialogEntry with character, sentence, etc. */}
+          {/* d.entry：包含 character、sentence 等字段的 NvlDialogEntry */}
           {d.entry.character && (
             <Nametag entry={d.entry} className="text-amber-400 font-bold" />
           )}
@@ -60,7 +60,7 @@ function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps
     <DefaultNvlContainer
       dialogs={dialogs}
       renderDialogItem={({ entry, index, isActive, nametag, texts }) => (
-        // nametag, texts: pre-rendered by DefaultNvlContainer
+        // nametag、texts：由 DefaultNvlContainer 预先渲染
         <div className={`mb-4 ${isActive ? "opacity-100" : "opacity-60"}`}>
           {nametag}
           <div className="border-l-4 border-blue-500 pl-2">{texts}</div>

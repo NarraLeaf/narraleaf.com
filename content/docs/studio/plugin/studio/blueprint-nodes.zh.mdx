@@ -1,6 +1,6 @@
 ---
 title: blueprintNodes
-description: 在编辑器侧注册蓝图节点定义与动态下拉选项。
+description: 在编辑器侧注册蓝图节点定义与动态下拉选项
 ---
 
 `app.services.blueprintNodes` 为编辑器注册蓝图节点定义——调板条目、引脚、检查器字段，以及在编辑器内预览用的 `execute`。要在发布的游戏中运行同一个节点，需从 runtime 入口再用 `app.game.blueprintNodes` 注册；把定义写在一个共享模块中一次，然后从两个入口各注册一遍。参见 [创建第一个插件](/zh/docs/studio/plugin/create-first-plugin)。

@@ -1,12 +1,12 @@
 ﻿---
 title: "Persistent\\<T extends PersistentContent\\>"
 ---
-在过去，我们只能通过脚本修改 Storable 的状态，但 Persistent 提供了一组有用的方法，可以轻松控制流程
+过去只能通过脚本修改 Storable 的状态，Persistent 则提供了一组实用方法，让你可以轻松控制流程。
 
-Persistent 需要一个命名空间的 **名称** 和 **初始状态**。**具有相同名称的 Persistent 将共享相同的状态**
+Persistent 需要命名空间的**名称**和**初始状态**。**同名的 Persistent 共享同一份状态**
 
 <Callout type="warning">
-    命名空间不能是现有的内置命名空间（内置命名空间包括："game"）
+    命名空间不能是现有的内置命名空间（内置命名空间包括：「game」）
 </Callout>
 
 ```typescript
@@ -24,7 +24,7 @@ const persis = new Persistent<PersisData>("persis", {
 });
 ```
 
-> **注意:** 存储的内容必须是 **可序列化的**, NarraLeaf-React 支持的可序列化值包括：
+> **注意：** 存储的内容必须是**可序列化的**，NarraLeaf-React 支持的可序列化值包括：
 > - `string`
 > - `number`
 > - `boolean`
@@ -34,7 +34,7 @@ const persis = new Persistent<PersisData>("persis", {
 > - `null`
 > - `Date`: 标准的 JavaScript 日期对象
 
-如果脚本内容包含 Persistent，则必须使用 [Story](/zh/docs/narraleaf-react/core/elements/story) 进行注册
+如果剧本中使用了 Persistent，必须通过 [Story](/zh/docs/narraleaf-react/core/elements/story) 注册：
 
 ```typescript
 story.registerPersistent(persis);
@@ -49,9 +49,9 @@ game.getLiveGame().getStorable()
     .onChange("persistent:persis", "coin", ({previous, next}) => {...});
 ```
 
-请注意命名空间的**键**：名为 `"persis"` 的 `Persistent` 注册时的键是 `"persistent:persis"`。请在 `Storable` 而不是 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 上订阅，并把 `onChange` 与 `onRestore` 搭配使用，以免漏掉读入的存档——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+注意命名空间的**键**：名为 `"persis"` 的 `Persistent` 注册时的键是 `"persistent:persis"`。请在 `Storable` 而不是 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 上订阅，并把 `onChange` 与 `onRestore` 搭配使用，以免漏掉读入的存档——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
 
-## Public Methods
+## 公共方法
 
 ### constructor
 
@@ -65,14 +65,14 @@ game.getLiveGame().getStorable()
 
 ### equals\<K extends StringKeyOf\<T\>\>
 
-确定值是否相等，可用于条件判断
+判断值是否相等，可用于条件分支
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
 - `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 要比较的值、lambda 函数或 lambda 处理程序
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 
 ```typescript
 scene.action([
@@ -95,14 +95,14 @@ scene.action([
 
 ### notEquals\<K extends StringKeyOf\<T\>\>
 
-确定值是否不相等，可用于条件判断
+判断值是否不相等，可用于条件分支
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
 - `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 要比较的值、lambda 函数或 lambda 处理程序
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 
 ```typescript
 scene.action([
@@ -125,13 +125,13 @@ scene.action([
 
 ### isTrue\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
 
-确定值是否为真，可用于条件判断
+判断值是否为真，可用于条件分支
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 
 ```typescript
 scene.action([
@@ -146,25 +146,25 @@ scene.action([
 
 ### isFalse\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
 
-确定值是否为假，可用于条件判断
+判断值是否为假，可用于条件分支
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 </Step>
 </Steps>
 
 ### isNotNull\<K extends StringKeyOf\<T\>\>
 
-确定值是否不为null或undefined，可用于条件判断
+判断值是否不为 `null` 或 `undefined`，可用于条件分支
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 </Step>
 </Steps>
 
@@ -176,7 +176,7 @@ scene.action([
 <Step>
 
 - `key: K` - 状态的键
-- 返回: `Word<DynamicWord>`
+- 返回：`Word<DynamicWord>`
 
 ```typescript
 character.say(["你有 ", persis.toWord("gold"), " 个金币"]);
@@ -196,7 +196,7 @@ character.say`你有 ${persis.toWord("gold")} 个金币`;
 `toWord` 的别名
 
 - `key: K` - 状态的键
-- 返回: `Word<DynamicWord>`
+- 返回：`Word<DynamicWord>`
 
 ```typescript
 character.say`你有 ${persis.get("coin")} 个硬币`;
@@ -214,7 +214,7 @@ character.say`你有 ${persis.get("coin")} 个硬币`;
 - `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
 - `ifTrue: DynamicWordResult` - 条件为真时返回的词
 - `ifFalse: DynamicWordResult` - 条件为假时返回的词
-- 返回: `Word`
+- 返回：`Word`
 
 ```typescript
 character.say([
@@ -231,14 +231,14 @@ character.say([
 
 ### evaluate\<K extends StringKeyOf\<T\>\>
 
-评估 JavaScript 函数并确定结果是否为真
+执行 JavaScript 函数，判断结果是否为真
 
 <Steps>
 <Step>
 
 - `key: K` - 状态的键
 - `fn: (value: T[K]) => boolean` - 用于评估状态的 JavaScript 函数
-- 返回: `Lambda<boolean>`
+- 返回：`Lambda<boolean>`
 
 ```typescript
 scene.action([
@@ -255,7 +255,7 @@ scene.action([
 
 ### set\<K extends StringKeyOf\<T\>\>
 
-为给定键在持久存储中设置值创建操作
+为指定键创建设置值的动作
 
 <Steps>
 <Step>
@@ -264,7 +264,7 @@ scene.action([
 
 - `key: K` - 要设置值的键
 - `value: T[K]` - 要设置的值
-- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+- 返回：`Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -276,7 +276,7 @@ scene.action([
 
 - `key: K` - 要设置值的键
 - `handler: (value: T[K]) => T[K]` - 用于修改值的处理程序
-- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+- 返回：`Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([
@@ -288,13 +288,13 @@ scene.action([
 
 ### assign
 
-创建操作以将值分配给持久存储
+创建整体赋值的动作
 
 <Steps>
 <Step>
 
 - `value: Partial<T> | ((value: T) => Partial<T>)` - 要分配给状态的值
-- 返回: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+- 返回：`Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
 
 ```typescript
 scene.action([

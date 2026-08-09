@@ -5,7 +5,7 @@ title: "Components"
 type Components<T extends Record<string, any>> = (props: Readonly<T>) => React.JSX.Element;
 ```
 
-## Example
+## 示例
 
 ```typescript
 const component: Components<{ text: string }> = ({ text }) => <div>{text}</div>;

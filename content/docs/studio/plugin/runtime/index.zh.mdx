@@ -1,6 +1,6 @@
 ---
 title: 运行时接口
-description: 游戏侧的接口——runtime 入口能触及什么、能力如何为它把关，以及未声明的域为何根本就不在那里。
+description: 游戏侧的接口——runtime 入口能触及什么、能力如何为它把关，以及未声明的域为何根本就不在那里
 ---
 
 运行时 API 是 `narraleaf-studio/runtime` 接口：插件在**运行中的游戏**里能触及的一切——开发模式窗口、预览，以及导出的生产构建。插件的蓝图节点在这里执行，控件在这里渲染，它也在这里存储数据、监听故事、并在游戏之上绘制内容。
@@ -117,13 +117,13 @@ execute: async ctx => {
 ## 子页面
 
 <Cards>
-  <Card title="store" href="/zh/docs/studio/plugin/runtime/store" description="插件作用域的持久键值存储，开新游戏也不会丢。" />
-  <Card title="events" href="/zh/docs/studio/plugin/runtime/events" description="十三个游戏与故事事件，以及各环境下的可用性。" />
-  <Card title="state" href="/zh/docs/studio/plugin/runtime/state" description="读取、写入并观察 scene / saved / persistent 故事变量。" />
-  <Card title="saves" href="/zh/docs/studio/plugin/runtime/saves" description="列出并读取存档槽位；用更重的能力覆盖或载入某一个。" />
-  <Card title="ui.overlay" href="/zh/docs/studio/plugin/runtime/overlay" description="在游戏之上绘制元素——以及它唯一去不了的地方。" />
-  <Card title="assets 与 locale" href="/zh/docs/studio/plugin/runtime/assets-locale" description="解析打包资源的 URL，并跟随玩家的语言。" />
-  <Card title="sidecar" href="/zh/docs/studio/plugin/runtime/sidecar" description="在作者的游戏里随附一个原生子进程，并用 NDJSON 与它对话。" />
+  <Card title="store" href="/zh/docs/studio/plugin/runtime/store" description="插件作用域的持久键值存储，开新游戏也不会丢" />
+  <Card title="events" href="/zh/docs/studio/plugin/runtime/events" description="十三个游戏与故事事件，以及各环境下的可用性" />
+  <Card title="state" href="/zh/docs/studio/plugin/runtime/state" description="读取、写入并观察 scene / saved / persistent 故事变量" />
+  <Card title="saves" href="/zh/docs/studio/plugin/runtime/saves" description="列出并读取存档槽位；用更重的能力覆盖或载入某一个" />
+  <Card title="ui.overlay" href="/zh/docs/studio/plugin/runtime/overlay" description="在游戏之上绘制元素——以及它唯一去不了的地方" />
+  <Card title="assets 与 locale" href="/zh/docs/studio/plugin/runtime/assets-locale" description="解析打包资源的 URL，并跟随玩家的语言" />
+  <Card title="sidecar" href="/zh/docs/studio/plugin/runtime/sidecar" description="在作者的游戏里随附一个原生子进程，并用 NDJSON 与它对话" />
 </Cards>
 
 ## 运行时接口没有什么

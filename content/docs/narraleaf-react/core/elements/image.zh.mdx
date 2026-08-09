@@ -1,11 +1,9 @@
 ﻿---
 title: "图像"
 ---
-> 此类继承自 [Displayble](/zh/docs/narraleaf-react/core/elements/displayable)
+> 此类继承自 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)
 
-图像对于视觉小说非常重要。它用于显示角色的外观
-
-在 NarraLeaf-React 中，图像仅控制角色的外观。它不控制角色的对话。为此，你可以使用 [Character](/zh/docs/narraleaf-react/core/elements/character)
+`Image` 用于控制角色的外观显示。它只负责外观，不处理对话——对话由 [Character](/zh/docs/narraleaf-react/core/elements/character) 负责。
 
 ## 公共方法
 
@@ -15,16 +13,14 @@ title: "图像"
 <Step>
 
 <Callout type="warning">
-    一个图像只能是基于标签的、层叠的，或基于 src 的。你不能在同一图像中混合使用它们
+    一个 Image 只能使用标签模式、图层模式或 src 模式中的一种，不能混用。
 </Callout>
 
-- `config: Partial<IImageUserConfig>` - 图像配置，参见 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig)
+- `config: Partial<IImageUserConfig>` - 参见 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig)
 
-#### Tag-based Image
+#### 标签模式（Tag-based）
 
-例如，如果你有一个带有 `happy`、`sad`、`angry` 等标签的图像，你可以使用基于标签的图像
-
-以下是一个基于标签的图像的示例
+适用于带有表情、服装等标签的立绘组合：
 
 ```typescript
 const image = new Image({
@@ -38,12 +34,11 @@ const image = new Image({
         resolve: (emotion, top, bottom) => `https://你的/图片/路径/${emotion}_${top}_${bottom}.png`
     } as const,
 });
-// 默认图片将是 `https://你的/图片/路径/happy_shirt_trousers.png`
+// 默认图片为 `https://你的/图片/路径/happy_shirt_trousers.png`
 ```
 
 <Callout type="warning">
-
-**注意:** 你不能在同一组或不同组中有两个相同的标签
+    同一组或不同组中不能有重复标签：
 
 ```typescript
 const image = new Image({
@@ -51,19 +46,19 @@ const image = new Image({
         groups: [
         ["a", "b", "c"],
         ["1", "2", "3"],
-        ["a"], // 无效，标签 "a" 已在第一组中
+        ["a"], // 无效，标签 "a" 已存在
         ["x", "y", "y"], // 无效，标签 "y" 重复
         ],
-        defaults: ["a"], // 无效，默认定义必须包含完整的标签集
+        defaults: ["a"], // 无效，默认值必须包含完整标签集
     } as const,
     /* ... */
 });
 ```
 </Callout>
 
-#### Layered Image
+#### 图层模式（Layered）
 
-如果你的美术资源是按**部件**导出的，而不是按组合导出的，就可以使用层叠图像。一个有 5 种表情和 4 套服装的角色，这样只需要 5 + 4 个文件，而不是 5 × 4 张预合成图
+适用于按部件导出的美术资源。5 种表情 + 4 套服装只需 5 + 4 个文件，而非 5 × 4 张合成图：
 
 ```typescript
 const yuko = new Image({
@@ -82,61 +77,35 @@ const yuko = new Image({
 });
 ```
 
-层叠图像由与基于标签的图像相同的 [char](#char) 方法驱动。一个**组**由它的**标签集合**标识，而不是由提供它的层标识，因此**提供同一组标签的每一层都由同一个组驱动**：
+层叠图像由 `char()` 方法驱动。一个**组**由它的标签集合标识，提供同一组标签的每一层都由同一个组驱动：
 
 ```typescript
-yuko.char(["sad"]);                    // 眉毛、嘴巴、眼泪一起改变，服装保持不变
-yuko.char(["casual"]);                 // 服装和外套一起改变，表情保持不变
-yuko.char(["casual", "sad"]);          // 一次改变多个组，顺序任意
-yuko.char(["sad"], new Dissolve({ duration: 300 })); // 转场的用法与任何图像一致
+yuko.char(["sad"]);                    // 眉毛、嘴巴、眼泪一起改变
+yuko.char(["casual"]);                 // 服装和外套一起改变
+yuko.char(["casual", "sad"]);          // 一次改变多个组
+yuko.char(["sad"], new Dissolve({ duration: 300 })); // 带转场
 ```
-
-这正是分层立绘需要的形状：「angry」不是一张嘴，而是一张嘴**加上**一对眉毛**再加上**美术拆出来的任何其他部件，现在一个标签就能把它们全部移动
 
 `layers` 的每一项可以是：
 
 - **字符串** — 常驻层，始终绘制
-- **变体映射** — 以标签为键的互斥 src，其中 `null` 表示该标签下这一层不绘制。它的键集合就是它所属的组
-- **函数** — 即 [LayerResolver](/zh/docs/narraleaf-react/core/types/LayeredDefinition)，根据当前生效的标签派生该层的 src。它自身不声明任何标签，且它返回的 src 对预载器不可见 —— 请优先使用变体映射，包括用于跟随其他层的组的层
+- **变体映射** — 以标签为键的互斥 src，`null` 表示该标签下不绘制
+- **函数** — [LayerResolver](/zh/docs/narraleaf-react/core/types/LayeredDefinition)，根据当前标签派生 src（预加载器不可见，优先使用变体映射）
 - `null` — 不绘制
 
-数组顺序即叠放顺序，因此第一项在最底层。`defaults` 为每个**组**指定一个标签，顺序任意 —— 共享同一个组的层也共享这一个默认值
-
-标签会从定义中自动推导，因此无需显式传入类型参数，`char()` 就能在编译期拒绝拼写错误的标签
-
-由于一个层可以在它所跟随的组的某些标签下什么都不画，**某个变体专属的部件** —— 比如只有便服才有的外套 —— 就通过重复整个标签集合、并在该层不存在的标签上写 `null` 来表达。因此一套图层栈可以装下角色的整个衣柜：换装会保留当前表情，并像任何其他标签切换一样交叉淡入，也就没有理由再把一套衣服建模成另一张 image 了
+数组顺序即叠放顺序。`defaults` 为每个组指定一个默认标签。
 
 <Callout type="info">
-    同一图像的所有层应当共用一张画布，这也是图像编辑器导出图层时的默认行为。各层通过在图像上居中来对齐，因此不能单独定位某一层
-</Callout>
-
-<Callout type="info">
-    作用于整个图像的效果 —— 转场、`darken`，以及 `opacity`、`pos` 等变换 —— 都会作为一个整体施加到图层栈上，因此下层不会透过上层显示出来
+    同一图像的所有层应共用一张画布，通过居中对齐。作用于整个图像的效果（转场、darken、opacity 等）会整体施加到图层栈上。
 </Callout>
 
 <Callout type="warning">
-    跟随一个组的层必须重复该组的**完整**标签集合。只提供其中一部分，等于声明了**另一个**组，它的标签会和已经拥有这些标签的组冲突 —— 这是最容易犯的错误。此外，每个组都必须在 `defaults` 中恰好列出它的一个标签
-
-```typescript
-const image = new Image({
-    src: {
-        layers: [
-            {happy: "happy.png", sad: "sad.png"},
-            {sad: "tears.png"},        // 无效，声明了新的组 {sad}，与上面的组冲突
-            // {happy: null, sad: "tears.png"},   // 正确：重复整个集合，不绘制处写 null
-            {none: null, hat: "hat.png"},
-        ],
-        defaults: ["happy"], // 无效，帽子组没有默认值
-    },
-});
-```
+    跟随一个组的层必须重复该组的完整标签集合。只提供部分标签会声明一个新组，导致冲突。每个组都必须在 `defaults` 中列出一个标签。
 </Callout>
 
-图层栈可能显示的每一个 src 都会在图像创建时注册预载。各层之间不会相乘，因此这是每一层变体的总和，而非它们的笛卡尔积 —— 层叠图像不会出现「资源未被预测」的警告。跟随组的层就是普通的变体映射，因此它的 src 是可枚举的、会被这次注册覆盖，切换标签不需要任何额外请求。而**函数层**返回的 src 是不透明的：预载器看不到它，因此它会在首次使用时才被获取 —— 也就是标签切换的那一帧。如果没有其他层用到这个 src，需要用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 手动注册
+#### 源文件模式（Src-based）
 
-#### Src-based Image
-
-如果你没有标签，你可以使用基于 src 的图像
+无标签时直接指定图片路径：
 
 ```typescript
 const image = new Image({
@@ -144,10 +113,9 @@ const image = new Image({
 });
 ```
 
-#### Wearable Image
+#### 可穿戴模式（Wearable）
 
-你可以为图像添加一些可穿戴物品
-可穿戴图像将随主图像一起移动/缩放/动画
+为图像添加附属物品，随主图像一起变换：
 
 ```typescript
 const child = new Image({
@@ -158,7 +126,7 @@ const parent = new Image({
 }).wear(child);
 ```
 
-> **注意:** 图像只能有一个父图像
+> **注意：** 一个图像只能有一个父图像。
 </Step>
 </Steps>
 
@@ -167,7 +135,7 @@ const parent = new Image({
 <Steps>
 <Step>
 
-复制图像
+复制图像：
 
 - 返回 `Image`
 
@@ -182,9 +150,7 @@ const newImage = image.copy();
 <Steps>
 <Step>
 
-为图像使用图层
-
-- `layer: Layer` - [图层](/zh/docs/narraleaf-react/core/elements/layer)
+为图像指定 [Layer](/zh/docs/narraleaf-react/core/elements/layer)：
 
 ```typescript
 const layer = new Layer(/* ... */);
@@ -201,16 +167,16 @@ image.useLayer(layer);
 <Steps>
 <Step>
 
-设置角色的形象
+切换角色形象：
 
-- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>> | LayerTagsOf<Layers>[]` - 图像的源
-- `transition?: ImageTransition` - 对于 ImageTransition，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
+- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>> | LayerTagsOf<Layers>[]` - 图像源
+- `transition?: ImageTransition` - 转场效果，参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
 
 ```typescript
 image.char("你的/图片/路径", new Dissolve({ duration: 1000 }));
 ```
 
-或对于基于标签的图像
+标签模式示例：
 
 ```typescript
 // happy, shirt, trousers
@@ -226,14 +192,11 @@ const image = new Image({
     } as const,
 });
 
-//  happy , [jacket], [t-shirt]
 image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
-
-// [angry],  jacket ,  t-shirt
 image.char(["angry"], new Dissolve({ duration: 1000 }));
 ```
 
-对于[层叠图像](#layered-image)，一个标签会选中它所属**组**的一个变体，提供该组标签集合的每一层都会随之改变；标签没有点到的组保持不变。标签可以按任意顺序给出，转场会对整个图层栈做交叉淡化
+图层模式示例：
 
 ```typescript
 const yuko = new Image({
@@ -249,10 +212,7 @@ const yuko = new Image({
     },
 });
 
-//  uniform , [sad] —— 眉毛和嘴巴一起改变
 yuko.char(["sad"], new Dissolve({ duration: 300 }));
-
-// [casual],  sad  —— 服装和外套一起改变，表情保持不变
 yuko.char(["casual"]);
 ```
 </Step>
@@ -263,16 +223,15 @@ yuko.char(["casual"]);
 <Steps>
 <Step>
 
-设置图像的黑暗程度
+调整图像明暗：
 
-- `darkness: number` - 图像的黑暗程度，介于 0 和 1 之间。0 是全亮，1 是全黑
-- `duration?: number` - 过渡的持续时间。不传时，新的黑暗程度立即生效
-- `easing?: TransformDefinitions.EasingDefinition` - 见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)。不传时使用默认缓动
+- `darkness: number` - 暗度，0（全亮）到 1（全黑）
+- `duration?: number` - 过渡时长（ms），不传则立即生效
+- `easing?: TransformDefinitions.EasingDefinition` - 缓动函数
 
 ```typescript
 image.darken(0.5, 500, "easeIn");
-
-image.darken(0.5, 500); // 以默认缓动在 500ms 内播放动画
+image.darken(0.5, 500); // 默认缓动
 image.darken(0.5);      // 立即生效
 ```
 </Step>
@@ -285,12 +244,9 @@ image.darken(0.5);      // 立即生效
 <Steps>
 <Step>
 
-为图像添加可穿戴物品
+添加可穿戴物品：
 
-> 可穿戴物品是一项功能，允许你添加与主图像相关的图像。例如，你可以为角色添加一顶帽子
-> 并且该可穿戴图像将随主图像一起移动/缩放/动画
-
-- `children: Image | Image[]` - 可穿戴图像或图像数组
+- `children: Image | Image[]` - 可穿戴图像或数组
 - 返回 `this`
 
 ```typescript
@@ -306,7 +262,7 @@ image.addWearable(childImage);
 <Steps>
 <Step>
 
-`addWearable` 的别名
+`addWearable` 的别名。
 </Step>
 </Steps>
 
@@ -315,7 +271,7 @@ image.addWearable(childImage);
 <Steps>
 <Step>
 
-将此图像作为可穿戴物品绑定到父图像
+将此图像绑定为父图像的可穿戴物品：
 
 - `parent: Image` - 父图像
 - 返回 `this`
@@ -331,6 +287,6 @@ childImage.bindWearable(parentImage);
 <Steps>
 <Step>
 
-Alias of `bindWearable`
+`bindWearable` 的别名。
 </Step>
 </Steps>

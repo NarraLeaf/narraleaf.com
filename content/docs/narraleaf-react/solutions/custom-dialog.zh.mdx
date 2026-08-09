@@ -18,7 +18,7 @@ function GameDialog() {
   return (
     <Dialog
       className="bg-black/70 rounded-lg px-6 py-4"
-      // Dialog: container for the dialog box, supports className/style
+      // Dialog：对话框容器，支持 className/style
     >
       <Nametag className="text-lg font-bold" color="#fbbf24" />
       {/* Nametag: 角色名、内容与颜色由组件 props 控制 */}
@@ -38,14 +38,14 @@ import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
 
 function GameDialog() {
   const { done, text, isNarrator } = useDialog();
-  // done: whether typing is complete
-  // text: current displayed text
-  // isNarrator: true when speaker is null (narrator)
+  // done：打字是否已完成
+  // text：当前显示的文本
+  // isNarrator：说话人为 null（旁白）时为 true
 
   return (
     <Dialog className="bg-black/70 rounded-lg px-6 py-4">
       {!isNarrator && <Nametag className="text-lg font-bold" />}
-      {/* Hide nametag when narrator speaks */}
+      {/* 旁白说话时隐藏名牌 */}
       <Texts defaultColor="white" />
     </Dialog>
   );
@@ -84,7 +84,7 @@ function App() {
 import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
 import clsx from "clsx";
 
-// Sub-component: show triangle/underline when typing is done
+// 子组件：打字完成后显示三角形/下划线指示
 function SentenceContext() {
   const { done } = useDialog();
   return (
@@ -97,7 +97,7 @@ function SentenceContext() {
       <div className="flex flex-col items-center">
         <div className={clsx(
           "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white",
-          done ? "opacity-100" : "opacity-0"  // Show indicator when done
+          done ? "opacity-100" : "opacity-0"  // 打字完成时显示指示
         )} />
         <div className="w-[12px] h-[2px] bg-white mt-[2px]" />
       </div>

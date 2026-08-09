@@ -5,16 +5,16 @@ title: "LambdaHandler"
 type LambdaHandler<T = any> = (ctx: LambdaCtx) => T;
 ```
 
-`LambdaHandler` 是一个接受 `LambdaCtx` 上下文对象作为参数并返回指定类型 `T` 的值的函数。它是 NarraLeaf 中用于创建动态、上下文感知逻辑的核心概念，可以访问游戏状态、玩家数据和其他运行时信息。
+`LambdaHandler` 是接收 `LambdaCtx` 上下文对象并返回 `T` 类型值的函数。它是 NarraLeaf 中实现动态、上下文相关逻辑的核心概念，可以读取游戏状态、玩家数据和其他运行时信息。
 
 ## 概述
 
-LambdaHandlers 在 NarraLeaf 中广泛使用，用于提供基于当前游戏状态的动态行为。它们允许您编写能够：
+`LambdaHandler` 在 NarraLeaf 中广泛用于提供基于当前游戏状态的动态行为，可以：
 
 - 访问玩家数据和游戏状态
 - 基于当前上下文执行计算
-- 创建响应运行时条件的条件逻辑
-- 基于游戏进度生成动态内容
+- 编写响应运行时状态的条件逻辑
+- 根据游戏进度生成动态内容
 
 ## 基本用法
 
@@ -112,7 +112,7 @@ Condition.If(canEnterDungeon, [
 
 ## 类型安全
 
-LambdaHandlers 支持完整的 TypeScript 类型推断：
+`LambdaHandler` 支持完整的 TypeScript 类型推断：
 
 ```ts
 // 显式类型化的处理器
@@ -126,4 +126,4 @@ const getPlayerLevel: LambdaHandler<number> = (ctx) => {
 };
 ```
 
-有关上下文对象的更多信息，请参阅 [LambdaCtx](/zh/docs/narraleaf-react/core/types/LambdaCtx) 和 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)。
+上下文对象的更多说明见 [LambdaCtx](/zh/docs/narraleaf-react/core/types/LambdaCtx) 和 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)。

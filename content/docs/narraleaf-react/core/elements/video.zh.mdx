@@ -6,12 +6,10 @@ title: "视频"
 </Callout>
 
 <Callout type="warning">
-    测试版功能，可能会发生变化。
+    测试版功能，可能发生变化。
 </Callout>
 
-视频是一个元素，允许您播放视频。
-
-视频是占用整个舞台的播放器。
+`Video` 用于在舞台上播放视频，占用整个舞台。
 
 ```typescript
 const video = new Video({
@@ -67,7 +65,7 @@ video.show();
 <Steps>
 <Step>
 
-播放视频并等待其完成。
+播放视频并等待完成。
 
 ```typescript
 video.play();
@@ -80,7 +78,7 @@ video.play();
 <Steps>
 <Step>
 
-暂停视频，并保留当前的播放位置。
+暂停视频，保留当前播放位置。
 
 ```typescript
 video.pause();
@@ -93,7 +91,7 @@ video.pause();
 <Steps>
 <Step>
 
-从当前位置继续播放。与 `play` 不同，它不会等待视频播放结束。
+从当前位置继续播放。与 `play` 不同，不等待播放结束。
 
 ```typescript
 video.resume();
@@ -106,7 +104,7 @@ video.resume();
 <Steps>
 <Step>
 
-停止视频：暂停播放，并结束任何正在等待的 `play()`，让剧情继续推进。
+停止视频：暂停播放，结束任何等待中的 `play()`，让剧本继续推进。
 
 ```typescript
 video.stop();
@@ -119,9 +117,7 @@ video.stop();
 <Steps>
 <Step>
 
-- `time: number` - 要跳转到的时间（单位：秒）。
-
-跳转到指定的时间点。
+- `time: number` - 跳转目标时间（秒）
 
 ```typescript
 video.seek(3);

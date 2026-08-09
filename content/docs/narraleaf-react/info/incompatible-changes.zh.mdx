@@ -25,13 +25,13 @@ title: "不兼容的变更"
 ## 0.17.1
 
 - [fastForward](/zh/docs/narraleaf-react/core/game/live-game#fastforward) 的 `reason` 新增了 `"stalled"`。既有取值的运行时行为不变，但返回类型变宽了：对 `reason` 做穷举 `switch` 的代码需要补上这个分支才能通过编译。忽略返回值的宿主不受影响
-- 快进现在可能因为一个无法跳过的步骤而提前结束。每个挂起的行有 `options.stepTimeout` 毫秒（默认 `10000`）的时间去结算；超出该时限的步骤会以 `"stalled"` 结束本次快进，而不是继续越过它。此前快进会停在那里、返回的 Promise 两边都不结算，因此现在能正常工作的用法不会失效——但把"非 `"menu"` 即成功"的宿主应当把 `"stalled"` 区分出来。如果剧情会快进穿过较长的、无法跳过的媒体，请调高 `stepTimeout`
+- 快进现在可能因为一个无法跳过的步骤而提前结束。每个挂起的行有 `options.stepTimeout` 毫秒（默认 `10000`）的时间去结算；超出该时限的步骤会以 `"stalled"` 结束本次快进，而不是继续越过它。此前快进会停在那里、返回的 Promise 两边都不结算，因此现在能正常工作的用法不会失效——但把「非 `"menu"` 即成功」当依据的宿主，现在需要把 `"stalled"` 区分出来。如果剧情会快进穿过较长的、无法跳过的媒体，请调高 `stepTimeout`
 
 ## 0.17.0
 
 - `onPreloadComplete`、`oncePreloadComplete`、`whenPreloadComplete()` 与 `event:preloaded.complete` 现在都在**进入游戏之前**触发——此时菜单可能还在屏幕上——而不是在 `newGame()` 挂载出场景之后。入口场景在故事被加载时就已被注册为预加载场景，这正是本次发布的目的。这不会导致任何编译失败；只是回调运行的时刻变了
   - 如果你用它来为**加载步骤**把关，它现在只会把这件事做得更好，无需改动
-  - 如果你用它来表示**"游戏内容已经上屏"**，请改用 `onFirstSceneReady` / `whenFirstSceneReady()`。这两者没有变化，仍然要求存在一个真正挂载的场景
+  - 如果你用它来表示**「游戏内容已经上屏」**，请改用 `onFirstSceneReady` / `whenFirstSceneReady()`。这两者没有变化，仍然要求存在一个真正挂载的场景
   - 详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)
 
 ## 0.16.0

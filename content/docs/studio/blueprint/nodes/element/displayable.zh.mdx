@@ -1,13 +1,13 @@
 ---
 title: 可显示对象
-description: 对连入元素的几何、透明度、Variant 和属性动画操作，以及每个控件都带的 visible / enabled 四件套。
+description: 对连入元素的几何、透明度、Variant 和属性动画操作，以及每个控件都带的 visible / enabled 四件套
 ---
 
 两组适用于所有控件类型的节点：Displayable 的几何与外观节点，以及每个内建控件都重复一遍的 `visible` / `enabled` 四件套。所有 Element 节点共通的规则——创建浮窗何时提供它、目标缺失时如何失败——见 [Element](/zh/docs/studio/blueprint/nodes/element)。
 
 ## Displayable
 
-这些节点用的是通用 `element` 引脚，因此接受任意可显示元素的引用，而不限定某一种控件类型。坐标使用当前 Surface 的设计坐标系——和 Inspector 里显示的是同一套数。透明度只有一份有效值：Appearance Variant 的 `transformOpacity` 会解析到它，`nl.image` Variant 中相对 Default 改动过的 `fillOpacity` 也会解析到它，`Get Element Property`、`Set Element Property` 和 `Animate Element Property` 操作的都是这同一个数。
+这些节点用的是通用 `element` 引脚，因此接受任意可显示元素的引用，而不限定某一种控件类型。坐标使用当前 Surface 的设计坐标系——和检视器里显示的是同一组数字。透明度只有一份有效值：Appearance Variant 的 `transformOpacity` 会解析到它，`nl.image` Variant 中相对 Default 改动过的 `fillOpacity` 也会解析到它，`Get Element Property`、`Set Element Property` 和 `Animate Element Property` 操作的都是这同一个数。
 
 本节末尾的七个读取节点——position、size、bounds、rotation、opacity、visible 和 variant——已被 `Get Element Property` 取代，并在创建浮窗中隐藏。它们仍然注册，好让已经用到它们的蓝图继续能跑。这里列出它们是因为你会在旧图里遇到，而不是建议你新建。
 

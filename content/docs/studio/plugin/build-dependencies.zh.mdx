@@ -1,6 +1,6 @@
 ---
 title: 构建时依赖
-description: 声明那些 Studio 在构建时下载、校验并缓存的外部二进制文件——以及那条永远走得通的离线路径。
+description: 声明那些 Studio 在构建时下载、校验并缓存的外部二进制文件——以及那条永远走得通的离线路径
 ---
 
 `contributes.buildDependencies` 针对的是这样一类可再分发文件：它的许可证允许**游戏**随包分发它，却不允许公开的插件注册表镜像它。你声明这些字节来自哪里、摘要是什么；Studio 会在作者构建期间抓取它们、校验它们、按内容缓存它们，并把它们交给你的 [sidecar](/zh/docs/studio/plugin/runtime/sidecar)。

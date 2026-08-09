@@ -1,6 +1,6 @@
 ---
 title: 流程
-description: 执行线路的分流、循环与排队，以及那个会挂起整张图的等待节点。
+description: 执行线路的分流、循环与排队，以及那个会挂起整张图的等待节点
 ---
 
 Flow 节点决定执行接下来去哪里。其它节点都在计算或改变什么，只有这一类节点单纯地为执行线路指路。一张图需要提问、需要重复、需要等待或需要提前收尾时，你要找的就是它们。
@@ -20,7 +20,7 @@ Flow 节点决定执行接下来去哪里。其它节点都在计算或改变什
 
 If（如果）按布尔值分流。每次执行有且只有一个出口触发。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `true` | out · exec | — | |
@@ -33,7 +33,7 @@ If（如果）按布尔值分流。每次执行有且只有一个出口触发。
 
 If Else（如果否则）是一张卡片上的 if / else if / else 阶梯。条件按顺序判断，第一个为真的胜出；都不为真时走`else`。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `then` | out · exec | — | `condition`为真时走这里。 |
@@ -48,7 +48,7 @@ If Else（如果否则）是一张卡片上的 if / else if / else 阶梯。条�
 
 Switch String（字符串分支）拿一个字符串逐个比对各 Case 的匹配值，命中第一个匹配的出口；都不匹配时走`default`。从未设置过值的 Case 永远不会匹配——空着的卡片不是通配符，而是一个永远到不了的分支。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `case0` | out · exec | — | |
@@ -66,7 +66,7 @@ Switch String（字符串分支）拿一个字符串逐个比对各 Case 的匹�
 
 Sequence（顺序执行）把各个出口排队，依次执行：前一条分支跑完，下一条才开始。未连接的出口会被跳过。某条分支里执行到`Return`时，队列中剩下的分支全部作废。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `then0` | out · exec | — | 卡片上标为 Then 1。 |
@@ -80,7 +80,7 @@ Sequence（顺序执行）把各个出口排队，依次执行：前一条分支
 
 For Loop（For 循环）从`start`按`step`走向`end`，每个取值触发一次`loop`，并通过`index`输出当前值。方向由`step`的正负决定：只要索引还没越过`end`就继续。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `loop` | out · exec | — | 一轮循环。循环体末尾接回`in`。 |
@@ -97,7 +97,7 @@ For Loop（For 循环）从`start`按`step`走向`end`，每个取值触发一�
 
 For Each（遍历）走一遍 JSON 数组，每一项触发一次`loop`，同时给出`item`和`index`。`items`不是数组时不会报错，而是直接从`completed`离开。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `loop` | out · exec | — | 一个数组项。循环体末尾接回`in`。 |
@@ -113,7 +113,7 @@ For Each（遍历）走一遍 JSON 数组，每一项触发一次`loop`，同时
 
 While（While 循环）只要`condition`成立就持续触发`loop`。条件在每次进入时重新读取，所以它必须是循环体真的能改变的东西——一个变量、一次运行时读取——而不是进入循环前算好的定值。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `loop` | out · exec | — | 一轮循环。循环体末尾接回`in`。 |
@@ -129,7 +129,7 @@ Delay（延迟）等待一段时间，然后从`completed`继续。它是唯一�
 
 `token`在等待开始**之前**就已输出，所以这条链挂起期间，另一条链可以读到它并用`Skip Delay`提前结束等待。时长为`0`或更小时根本不会挂起。等待期间整次图执行被取消时，等待以取消收场，`completed`不会触发。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `completed` | out · exec | — | 等待结束后触发，被跳过时立即触发。 |
@@ -146,7 +146,7 @@ Delay（延迟）等待一段时间，然后从`completed`继续。它是唯一�
 
 Skip Delay（跳过延迟）提前完成一次挂起中的`Delay`。目标从它自己的`completed`离开；`Skip Delay`自己不等待，直接从`next`继续。传入的不是`Delay`的 token，或者那个`Delay`当前并没有在等待时，它静默 no-op——执行照样从`next`继续。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | 跳过请求提交后立即继续。 |
@@ -158,7 +158,7 @@ Skip Delay（跳过延迟）提前完成一次挂起中的`Delay`。目标从它
 
 Return（返回）结束当前执行链。它没有执行出口，同时也会作废`Sequence`还排在队列里的分支。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 
@@ -168,7 +168,7 @@ Return（返回）结束当前执行链。它没有执行出口，同时也会�
 
 Return Value（返回值）把一个值交还给发起求值的一方，并结束当前链。它是 Blueprint Value 图的尾节点——决定被绑定属性取什么值的那个节点。它只属于`event`图，且只出现在需要产出值的宿主上；放错地方时 graph validation 会指出来。取值图跑完却没有走到它时，上一次解析出的值继续生效。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `value` | in · data | `any` | 属性要取的值。 |
@@ -181,7 +181,7 @@ Return Value（返回值）把一个值交还给发起求值的一方，并结�
 
 Noop（空操作）什么都不改，直接把执行传下去。适合做多条分支汇合到同一条后续线路的汇聚点，也适合在链路改到一半时占位。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |

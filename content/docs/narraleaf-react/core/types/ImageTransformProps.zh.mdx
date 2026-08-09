@@ -14,25 +14,25 @@ type ImageTransformProps = {
 
 ## opacity
 
-The opacity of the image. The value should be between 0 and 1.
+图片的不透明度，取值范围为 0 到 1。
 
 ## scale
 
-The scale of the image. The value should be greater than 0.
+图片的缩放比例，取值应大于 0。
 
 ## rotation
 
-The rotation of the image in degrees.
+图片的旋转角度，以度为单位。
 
 ## display
 
-Do not use this property
+请勿使用此属性
 
 ## position
 
-The position of the image. See [IPosition](/zh/docs/narraleaf-react/core/types/IPosition)
+图片的位置，参见 [IPosition](/zh/docs/narraleaf-react/core/types/IPosition)
 
-> **Note:** You can use raw position object as a shortcut, so you don't need to create a new IPosition instance.  
+> **注意：** 可以直接使用原始位置对象作为快捷写法，不必新建 IPosition 实例。  
 > ```ts
 > image.transform(new Transform<TransformDefinitions.ImageTransformProps>([
 >     {

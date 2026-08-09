@@ -3,17 +3,13 @@ title: "Player"
 ---
 Player 是 NarraLeaf-React 框架的一部分，包含用于播放故事的 React 组件。
 
-如果您使用抽象类创建故事，请查看 [Core](/zh/docs/narraleaf-react/core) 文档。
-
-如果您正在寻找 `Player` 组件，您可以在 [此处](/zh/docs/narraleaf-react/player/player) 找到它。
+如果用抽象类创建了故事，请阅读 [Core](/zh/docs/narraleaf-react/core) 文档；如果你要找的是 `Player` 组件本身，它在[此处](/zh/docs/narraleaf-react/player/player)。
 
 ## 快速入门
 
-如果您还没有故事，您可以使用 `Story` 类创建故事并将其导出。
+如果还没有故事，可以用 `Story` 类创建一个并导出。创建故事的方法见 [Core](/zh/docs/narraleaf-react/core) 文档。
 
-请阅读 [Core](/zh/docs/narraleaf-react/core) 文档以了解如何创建故事。
-
-这是如何使用 `Player` 组件的基本示例：
+下面是用 `Player` 组件播放故事的基本示例：
 
 ```tsx
 "use client";
@@ -36,18 +32,17 @@ export default function Page() {
 }
 ```
 
-让我们解释一下上面的代码：
+逐段解释上面的代码：
 
-### 1. 从 NarraLeaf-React 库导入必要的组件。
+### 1. 从 NarraLeaf-React 库导入必要的组件
 
 ```tsx
 import { GameProviders, Player } from "narraleaf-react";
 ```
 
-这些组件是创建游戏所必需的。
-`GameProviders` 是一个上下文提供程序，它为组件提供游戏实例。 `Player` 是播放故事的组件。
+这两个组件是创建游戏所必需的。`GameProviders` 是上下文提供器，为子组件提供游戏实例；`Player` 负责播放故事。
 
-### 2. 渲染 `GameProviders` 和 `Player` 组件。
+### 2. 渲染 `GameProviders` 和 `Player` 组件
 
 ```tsx
 <GameProviders>
@@ -61,15 +56,7 @@ import { GameProviders, Player } from "narraleaf-react";
 </GameProviders>
 ```
 
-您必须使用 `GameProviders` 组件包装 `Player` 组件。
-
-`Player` 组件采用 `story` 属性，即您想要播放的故事。
-
-`onReady` 属性是一个回调函数，当游戏准备开始时调用。
-
-您可以通过调用 `liveGame` 对象的 `newGame` 方法来启动游戏。
-
-`width` 和 `height` 是 `Player` 组件的宽度和高度。播放器将会缩放以适应给定的宽度和高度。
+必须用 `GameProviders` 包住 `Player` 组件。`story` 属性传入要播放的故事；`onReady` 是游戏准备就绪时的回调，可以通过 `liveGame` 对象的 `newGame` 方法启动游戏；`width` 和 `height` 指定组件尺寸，播放器会缩放以适应该区域。
 
 ## 组件和 Hooks
 
