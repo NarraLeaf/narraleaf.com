@@ -1,3 +1,42 @@
 ---
-title: Story Editor
+title: Story
+description: Organize stories, chapters, and scenes, and write the lines inside a scene.
 ---
+
+The **Story** panel holds the script. A project can contain several stories; one of them is the default, and each story has an entry scene.
+
+## Structure
+
+| Level | Holds |
+| --- | --- |
+| Story | Chapters. One story per project is the default. |
+| Chapter | Scenes, in order. |
+| Scene | The lines that play. One scene is the story's entry. |
+
+Deleting a scene removes its lines with it, and jumps that target it stop resolving. Deleting a chapter deletes the scenes inside it.
+
+## The scene editor
+
+A scene opens as a tab and is edited as a list of rows. A row is either a line of dialogue or a direction — showing an image, playing audio, moving the camera, setting a variable, branching.
+
+- Type `@` or `/` in a row to insert a direction without leaving the keyboard.
+- **Reading density** and the row filter control how much of a scene is on screen; the filter can show dialogue only.
+- **Find in scene** searches within the open scene, with case, whole word, and regular expression options, and replaces matches.
+- Rows that reference a missing asset, or a name a character's model does not have, are marked in place.
+
+## Branching and variables
+
+Choices, conditions, and jumps are written as directions in the scene. Story flow shows the resulting branches between scenes as a graph.
+
+Variables are declared and read from the story, and their scope decides how long a value survives. See [Variables](/docs/studio/blueprint/variables).
+
+## Scripts
+
+A scene or a whole story can be written out as a plain text file and read back.
+
+| Mode | For |
+| --- | --- |
+| **Round-trip** | Editing outside Studio. The file carries the scene's data and can be imported again. |
+| **Review** | Reading and diffing. Prose only, and cannot be imported. |
+
+**Import Script…** reads a round-trip file back into the project. Pasting several lines of plain text into a scene offers to split them into rows.

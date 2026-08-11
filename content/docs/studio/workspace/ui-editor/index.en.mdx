@@ -1,3 +1,34 @@
 ---
-title: UI Editor
+title: UI
+description: Create pages and Game UI, lay them out on the canvas, and reuse parts as components.
 ---
+
+The **UI** panel holds every interface in the project. **Interface Type** switches the list between the two kinds.
+
+| Kind | Is | Size |
+| --- | --- | --- |
+| **Page** | A complete screen, such as title, settings, save, history, or gallery | Chosen when the page is created |
+| **Game UI** | Interface that belongs to active gameplay, such as dialog, choices, HUD, shortcuts, and notifications | The project resolution |
+
+A Game UI is created into a slot, and each slot holds one interface. When every slot is taken, open the existing Game UI from the list instead of creating another.
+
+Pages and Game UI can be renamed, duplicated, and deleted. Deleting one removes the elements in it.
+
+## The canvas
+
+An interface opens as a tab: the UI Outline on the left, the canvas in the center, Properties on the right, and the insert bar below.
+
+- Choose a widget from the insert bar, then click or drag on the canvas to place it.
+- Drag a widget to move it, and use its handles to resize it. Smart Snap aligns widgets with canvas edges, center lines, and nearby widgets.
+- The align tools act on the selection's bounding box.
+- The frame control draws the safe area of a target device over the canvas, and the play button opens the interface in Dev Mode.
+
+The canvas never crops: the runtime always fits the whole stage inside the window, so what falls outside the safe area stays visible on some devices.
+
+## Components
+
+A selection can be saved to the **Component Library** and placed again elsewhere. Use a component when a group of widgets is ready to be reused rather than copied.
+
+## Behavior
+
+Widget behavior is written in Blueprints rather than in the canvas. Each interface has its own Blueprint, and the project has a global one. See [Blueprint](/docs/studio/blueprint).

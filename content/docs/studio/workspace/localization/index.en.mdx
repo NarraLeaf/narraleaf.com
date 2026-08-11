@@ -1,3 +1,33 @@
 ---
 title: Localization
+description: Declare the game's languages, translate its text, and exchange files with translators.
 ---
+
+The **Localization** panel holds the languages of the game itself, not the language Studio is displayed in.
+
+One language is the **source**: the language the story is written in. Every other language is translated against it.
+
+## Languages
+
+Add a language by its code (`en`, `ja`, `zh-CN`) and a display name shown to players. Any language in the list can be made the source.
+
+Removing a language takes it out of the game. Its translations stay on disk and return if the language is added again.
+
+Each language has a **fallback language**. An entry with no translation falls back to that language, and then to the source, so a partly translated language still renders. Studio rejects a fallback that leads back to the language itself.
+
+## Translating
+
+The translation table lists the project's source text beside its translations, and reports progress per language: how many entries are translated, and how many were translated before the source text changed and are waiting for review.
+
+## Exchange
+
+Translations can be exported for an outside translator and imported again.
+
+| Format | Used by |
+| --- | --- |
+| CSV | Excel, Google Sheets |
+| XLIFF 1.2 | Trados, memoQ, OmegaT |
+| gettext PO | Poedit, Weblate, Crowdin |
+| JSON | Scripts and custom pipelines |
+
+An import reports what it applied: the entries it changed, the ones already identical, the ones whose key the project does not have, and the empty ones it skipped.
