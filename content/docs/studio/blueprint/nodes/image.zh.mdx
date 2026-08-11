@@ -1,6 +1,6 @@
 ---
 title: 图片
-description: 读取和改写 nl.image 控件的图片资源、填充模式、裁剪矩形和翻转状态。
+description: 读取和改写 nl.image 控件的图片资源、填充模式、裁剪矩形和翻转状态
 ---
 
 这些节点操作界面图片控件`nl.image`——标题画面上的插图、存档槽的缩略图、装饰边框。它们与舞台图片、角色立绘以及剧情演出中的任何资源无关；那些是剧情资源，不是界面控件。
@@ -20,7 +20,7 @@ description: 读取和改写 nl.image 控件的图片资源、填充模式、裁
 
 Image Asset（图片资源）是图片资产字面量卡片。卡片显示当前缩略图、资产名或 missing 状态；点击卡片打开图片资产选择器。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `value` | out · data | `ImageAsset` | |
 
@@ -32,7 +32,7 @@ Image Asset（图片资源）是图片资产字面量卡片。卡片显示当前
 
 Get Image Asset（获取图片资源）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `asset` | out · data | `ImageAsset\|null` | 控件没有图片时为`null`。 |
 
@@ -42,7 +42,7 @@ Get Image Asset（获取图片资源）。
 
 Set Image Asset（设置图片资源）把控件指向另一张图片并触发 flush。填充模式和裁剪矩形保持不变。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -56,7 +56,7 @@ Set Image Asset（设置图片资源）把控件指向另一张图片并触发 f
 
 Clear Image Asset（清除图片资源）移除控件的图片——等同于把`Set Image Asset`的`asset`设为`null`，只是不带引脚。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -67,13 +67,13 @@ Clear Image Asset（清除图片资源）移除控件的图片——等同于把
 
 Get Image Fit Mode（获取图片适配模式）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `fitMode` | out · data | `string` | `cover`、`contain`、`stretch`、`crop`、`tile`之一。控件尚无填充时为`cover`。 |
 
-**Modes**
+**模式**
 
-| Mode | How the picture fills the box |
+| 模式 | 图片如何填充控件框 |
 | --- | --- |
 | `cover` | 缩放到铺满控件框，超出部分被裁掉。 |
 | `contain` | 缩放到完整放进控件框，留出留白。 |
@@ -87,7 +87,7 @@ Get Image Fit Mode（获取图片适配模式）。
 
 Set Image Fit Mode（设置图片适配模式）改变图片如何填充控件框，同时保留当前资源和裁剪矩形。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -99,7 +99,7 @@ Set Image Fit Mode（设置图片适配模式）改变图片如何填充控件�
 
 Get Image Crop Rect（获取图片裁剪矩形）读取裁剪矩形。这四个数是**相对控件自身框**的百分比，而不是相对源图：`leftPct` / `topPct`把图片左上角放到框内的位置，`widthPct` / `heightPct`是图片被绘制出的尺寸。因此`0, 0, 100, 100`——没有裁剪过时拿到的值——表示*正好铺满控件框*，大于 100 或小于 0 的值则用来表达比控件框更大的图片。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `leftPct` | out · data | `float` | |
 | `topPct` | out · data | `float` | |
@@ -112,7 +112,7 @@ Get Image Crop Rect（获取图片裁剪矩形）读取裁剪矩形。这四个�
 
 Set Image Crop Rect（设置图片裁剪矩形）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -131,7 +131,7 @@ Set Image Crop Rect（设置图片裁剪矩形）。
 
 Get Image Flip X（获取图片水平翻转）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `flipX` | out · data | `boolean` | |
 
@@ -141,7 +141,7 @@ Get Image Flip X（获取图片水平翻转）。
 
 Set Image Flip X（设置图片水平翻转）以中心为轴水平镜像图片。只有图片内容层会翻转——控件框、描边和子元素不受影响。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -153,7 +153,7 @@ Set Image Flip X（设置图片水平翻转）以中心为轴水平镜像图片�
 
 Get Image Flip Y（获取图片垂直翻转）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `flipY` | out · data | `boolean` | |
 
@@ -163,7 +163,7 @@ Get Image Flip Y（获取图片垂直翻转）。
 
 Set Image Flip Y（设置图片垂直翻转）以中心为轴垂直镜像图片。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -175,7 +175,7 @@ Set Image Flip Y（设置图片垂直翻转）以中心为轴垂直镜像图片�
 
 Get Visible（获取可见性）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `visible` | out · data | `boolean` | |
 
@@ -187,7 +187,7 @@ Get Visible（获取可见性）。
 
 Set Visible（设置可见）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -199,7 +199,7 @@ Set Visible（设置可见）。
 
 Get Enabled（获取启用状态）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `enabled` | out · data | `boolean` | |
 
@@ -209,7 +209,7 @@ Get Enabled（获取启用状态）。
 
 Set Enabled（设置启用）开关控件上的交互。它映射到底层的禁用交互机制，作者侧不暴露`interactionDisabled`属性。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |

@@ -1,12 +1,12 @@
 ---
 title: "对话框"
 ---
-`Dialog` 组件用于渲染对话框，包括角色名牌、对话文本以及可选的**对话框头像**（小型立绘头像）。
+`Dialog` 组件用于渲染 ADV 对话框，包含角色名牌、对话文本和可选的小头像。
 
-可通过 `game.configure({ dialog })` 传入自定义组件。你可以组合 `Avatar`、`Nametag`、 `Texts`，或使用 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)、[`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 处理布局逻辑。
+可通过 `game.configure({ dialog })` 传入自定义组件。你可以组合 `Avatar`、`Nametag`、`Texts`，或使用 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)、[`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 处理布局逻辑。
 
 <Callout type="info">
-    默认头像槽位可直接使用 `Avatar`。如果对话布局需要根据是否存在头像而变化，请使用 `useAvatar()`。
+    默认头像槽位直接使用 `Avatar`。若布局需根据头像是否存在而变化，请使用 `useAvatar()`。
 </Callout>
 
 ## 快速示例
@@ -17,7 +17,7 @@ title: "对话框"
 import { Dialog, Texts, Nametag, useGame } from "narraleaf-react";
 ```
 
-2. 组合默认 ADV 布局（可选 `Avatar`）
+2. 组合默认 ADV 布局
 
 ```tsx
 import { Avatar, Dialog, Nametag, Texts } from "narraleaf-react";
@@ -37,9 +37,7 @@ function GameDialog() {
 }
 ```
 
-内置的 `DefaultDialog` 采用相同结构：横向排列 `Avatar`，右侧一列放置 `Nametag` 与 `Texts`。
-
-3. 在游戏中注册
+3. 注册到游戏
 
 ```tsx
 function App() {
@@ -59,12 +57,12 @@ function App() {
 
 ### Dialog
 
-渲染对话框容器。子节点通常为 `Avatar`、`Nametag`、`Texts`（布局可自定义）。
+对话框容器。子节点通常为 `Avatar`、`Nametag`、`Texts`。
 
-- `children?: React.ReactNode` — 对话框内容。
-- `...props: HTMLMotionProps<"div">` — 传给内部的 `motion.div` 包裹元素。除了普通 div props 外，也支持 `initial`、`animate`、`exit`、`transition`、`layout` 以及 Motion 事件处理器。
+- `children?: React.ReactNode` — 对话框内容
+- `...props: HTMLMotionProps<"div">` — 传给内部 `motion.div` 的属性，支持 `initial`、`animate`、`exit`、`transition`、`layout` 及 Motion 事件处理器
 
-外层 dialog wrapper 会继续负责宽高比缩放以及点击/按键处理。视觉 transform 应直接写在 `Dialog` 上，播放器会把它们应用到内部 motion 元素。
+外层 wrapper 负责宽高比缩放和点击/按键处理。视觉 transform 应写在 `Dialog` 上，播放器会应用到内部 motion 元素。
 
 已导出的 props 类型：`NametagProps`、`TextAppearanceProps`、`TextsProps`、`RawTextsProps`、`EntryTextsProps`。
 
@@ -72,45 +70,40 @@ function App() {
 
 渲染说话人名字。需放在 `Dialog` 内。
 
-`Nametag` 现在由组件 props 驱动：通过 props 控制内容与展示。未传自定义内容时，会回退到当前说话人名称；未传 `color` 时，会在可用时回退到当前角色颜色。
+通过 props 控制内容与展示。未传自定义内容时回退到当前说话人名称；未传 `color` 时回退到角色颜色。
 
-- `character?: Character | null` — 显式指定角色来源。
-- `entry?: NvlDialogEntry` — NVL 条目来源。
-- `name?: React.ReactNode` — 覆盖显示名称。
-- `color?: Color` — 名牌文字颜色。
-- `children?: React.ReactNode` — 完全自定义名牌内容。
+- `character?: Character | null` — 指定角色来源
+- `entry?: NvlDialogEntry` — NVL 条目来源
+- `name?: React.ReactNode` — 覆盖显示名称
+- `color?: Color` — 名牌文字颜色
+- `children?: React.ReactNode` — 完全自定义名牌内容
 - `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
 
 ### Texts
 
 渲染逐字显示的对话正文。需放在 `Dialog` 内。
 
-文本默认外观来自组件 props 或继承的 CSS。`Sentence` 与 `Word` 的局部样式仍会覆盖对应行或词。
+文本外观来自组件 props 或继承的 CSS。`Sentence` 与 `Word` 的局部样式会覆盖默认值。
 
 - `children?: never`
-- `defaultColor?: Color` — 当句子/词没有设置颜色时使用的回退文本颜色。
+- `defaultColor?: Color` — 回退文本颜色
 - `fontSize?: React.CSSProperties["fontSize"]`
 - `fontWeight?: React.CSSProperties["fontWeight"]`
-- `fontWeightBold?: React.CSSProperties["fontWeight"]` — 句子/词为粗体时使用的字重。
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` — 粗体字重
 - `fontFamily?: React.CSSProperties["fontFamily"]`
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
 
-根据当前台词解析并渲染对话框头像；若当前行没有头像则**不渲染任何节点**（不占位）。
+根据当前台词解析并渲染对话框头像。若当前行无头像则不渲染。
 
-- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — 会与默认样式合并（见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)）。
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — 与默认样式合并（参见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)）
 
-默认图片样式：
+默认样式：`width/height: 96`、`objectFit: "cover"`、`borderRadius: 6`、`flex: "0 0 auto"`。
 
-- `width` / `height`：`96`
-- `objectFit`：`"cover"`
-- `borderRadius`：`6`
-- `flex`：`"0 0 auto"`
+## Dialog Motion Props
 
-## Dialog motion props
-
-自定义对话框组件可以直接向 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 传入 Motion props。内置的 `DefaultDialog` 默认不会添加进入或退出动画。
+自定义对话框可直接向 `Dialog` 传入 Motion props。内置 `DefaultDialog` 默认无进入/退出动画。
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -133,38 +126,38 @@ function GameDialog() {
 
 presence 时序由播放器处理：
 
-- 对话到对话的直接替换会保留同一个可视 dialog slot。上一句不会播放 `exit`，下一句也不会只因为文本或 nametag 变化就重新播放进入动画。
-- 对话后接非对话内容时，当前对话会从 active text list 中移除，因此可以继续播放 `exit`，同时剧情向后推进。
-- 如果旧退出动画还没结束，后面又出现新对话，新对话会获得新的 presence key。旧退出和新进入可以重叠播放。
-- 通过 dialog slot 渲染的菜单 prompt 会在选项出现前使用同一套 presence 行为。
-- 正在退出的对话框处于 inactive 状态：点击、skip、auto-forward 都会被忽略，保留节点也不能重复调用 `onFinished`。
+- 对话到对话的直接替换保留同一 dialog slot，不会播放 exit/进入动画
+- 对话后接非对话内容时，当前对话移除，可播放 exit
+- 旧退出动画未结束时出现新对话，两者可重叠播放
+- 菜单 prompt 使用相同的 presence 行为
+- 退出中的对话框处于 inactive 状态，点击、skip、auto-forward 均被忽略
 
-`GameConfig.animationPropagate` 会传给 dialog 的 `AnimatePresence` 边界。除非你的自定义对话框内部还嵌套了需要传播退出动画的 `AnimatePresence`，否则保持 `false` 即可。
+`GameConfig.animationPropagate` 传给 dialog 的 `AnimatePresence`。除非自定义对话框内部嵌套了需要传播退出动画的 `AnimatePresence`，否则保持 `false`。
 
 ## 对话框头像
 
-对话框头像用于在 ADV 文本框旁显示小头像，适用于：说话人在台上、画外音、以及大多数台词**不需要**逐句配置头像的场景。
+用于在 ADV 文本框旁显示小头像，适用于说话人在台上、画外音等不需要逐句配置头像的场景。
 
 ### 设计模型
 
-- **`Character` 承载头像意图** — 默认/画外音头像，以及立绘绑定。
-- **舞台上的 `Image` 可细化头像** — 仅当该立绘为当前绑定的**可见**肖像时生效。
-- **`Sentence` 只覆盖例外** — 隐藏头像或单行特殊资源/解析器。
+- **`Character` 承载头像意图** — 默认/画外音头像及立绘绑定
+- **舞台上的 `Image` 可细化头像** — 仅当该立绘为当前绑定的可见肖像时生效
+- **`Sentence` 只覆盖例外** — 隐藏头像或单行特殊资源
 
 解析顺序：
 
-1. 旁白或无名角色 → 无头像。
-2. `sentence.config.avatar === false` → 无头像。
-3. 句子级头像覆盖（字符串、解析器等）。
-4. 该角色当前**最近可见**的绑定立绘的头像。
-5. 角色级默认头像。
-6. 否则无头像。
+1. 旁白或无名角色 → 无头像
+2. `sentence.config.avatar === false` → 无头像
+3. 句子级头像覆盖
+4. 该角色当前最近可见的绑定立绘头像
+5. 角色级默认头像
+6. 否则无头像
 
-引擎**不会**自动从全身立绘裁切头像。未配置头像则不显示。
+引擎**不会**自动从全身立绘裁切头像。
 
 ### 角色级头像
 
-当同一张头像应同时用于台上台词与画外音时使用。
+当同一张头像同时用于台上台词与画外音时使用：
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -187,7 +180,7 @@ alice.say("本句使用 Alice 的默认头像。");
 
 ### 绑定舞台立绘
 
-当可见立绘应决定对话框头像时，将舞台 `Image` 绑定到角色。
+当可见立绘决定对话框头像时，将舞台 `Image` 绑定到角色：
 
 ```ts
 import { Character, Image } from "narraleaf-react";
@@ -209,7 +202,7 @@ const alice = new Character("Alice", {
 });
 ```
 
-当 `aliceBody` 在当前场景可见时使用立绘头像，否则回退到角色级头像。
+当 `aliceBody` 可见时使用立绘头像，否则回退到角色级头像。
 
 ```ts
 const alice = new Character("Alice")
@@ -221,11 +214,11 @@ const alice = new Character("Alice")
 
 ### 基于标签表情的头像
 
-立绘头像可以是**解析函数**，入参包含当前立绘、`currentSrc`、`tags`、`character`、`sentence`、`gameState`。返回值可以是：
+立绘头像可以是解析函数，入参包含当前立绘、`currentSrc`、`tags`、`character`、`sentence`、`gameState`。返回值：
 
-- 图片 URL 或 `StaticImageData`；
-- `null` — 在本层强制不出现头像；
-- `undefined` — 交由下一层回退逻辑处理。
+- 图片 URL 或 `StaticImageData`
+- `null` — 强制不显示头像
+- `undefined` — 交由下一层回退
 
 ```ts
 const aliceBody = new Image({
@@ -280,29 +273,29 @@ alice.say("本行使用解析器。", {
 
 ### 多个可见立绘
 
-若同一角色多个绑定立绘同时可见，引擎按场景中展示顺序选取**最近显示且仍可见**的一个。`opacity` 等效为 0 的显示对象会被忽略。
+若同一角色多个绑定立绘同时可见，引擎按展示顺序选取最近且可见的一个。`opacity` 为 0 的显示对象会被忽略。
 
 ## 自定义对话框与 `useAvatar`
 
-简单布局直接使用 [`<Avatar />`](/zh/docs/narraleaf-react/player/hooks/useAvatar)。若网格/弹性布局依赖「是否有头像」，请使用 [`useAvatar()`](/zh/docs/narraleaf-react/player/hooks/useAvatar)（`visible`、`src`、`character`、`portrait` 等）。
+简单布局直接使用 `<Avatar />`。若需根据头像是否存在调整布局，请使用 [`useAvatar()`](/zh/docs/narraleaf-react/player/hooks/useAvatar)（返回 `visible`、`src`、`character`、`portrait` 等）。
 
 详见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)。
 
-## TypeScript 参考（公开导出）
+## TypeScript 参考
 
-类型与类由 `narraleaf-react` 导出（并见 [Character](/zh/docs/narraleaf-react/core/elements/character)、[SentenceConfig](/zh/docs/narraleaf-react/core/types/SentenceConfig)、[CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)）：
+类型与类由 `narraleaf-react` 导出（详见 [Character](/zh/docs/narraleaf-react/core/elements/character)、[SentenceConfig](/zh/docs/narraleaf-react/core/types/SentenceConfig)、[CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)）：
 
 - `DialogAvatarSource`、`DialogAvatarResolverContext`、`DialogAvatarResolver`、`DialogAvatar`
 - `CharacterPortraitConfig`、`DialogAvatarResolution`
 - `Character` 方法：`setAvatar`、`addPortrait`、`setPortraits`
-- `Sentence` / `say` 的 `avatar`：`SentenceUserConfig` 参见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
+- `Sentence` / `say` 的 `avatar`：参见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 - React：`Avatar`、`useAvatar`，类型 `DialogAvatarContext`
 
-默认 UI 的头像解析在播放器内部完成；通常只需配置角色与句子，再渲染 `<Avatar />` 或调用 `useAvatar()`。
+默认 UI 的头像解析在播放器内部完成，通常只需配置角色与句子，再渲染 `<Avatar />` 或调用 `useAvatar()`。
 
 ## 自定义对话框外观
 
-### 示例：容器样式
+### 容器样式
 
 ```tsx
 function GameDialog() {
@@ -320,7 +313,7 @@ function GameDialog() {
 }
 ```
 
-### 示例：名牌装饰
+### 名牌装饰
 
 ```tsx
 function GameDialog() {

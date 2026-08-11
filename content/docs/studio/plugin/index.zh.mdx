@@ -1,6 +1,6 @@
 ---
 title: 插件
-description: 通过可安装的插件扩展 NarraLeaf Studio 及其构建的游戏。
+description: 通过可安装的插件扩展 NarraLeaf Studio 及其构建的游戏
 ---
 
 插件是一个包含 `manifest.json` 和一到两个预打包入口文件的文件夹。它可以向 Studio 添加编辑器面板、操作、快捷键、蓝图节点、控件和语言包，并附带在你构建的游戏中运行的游戏侧代码。
@@ -15,14 +15,14 @@ description: 通过可安装的插件扩展 NarraLeaf Studio 及其构建的游�
 蓝图节点需要**两个**目标才能在发布的游戏中工作：`studio` 入口注册它的编辑器元数据，`runtime` 入口注册游戏运行到它时执行的代码。你只需在一个共享模块中编写一次定义，然后从每个入口分别注册——参见 [创建第一个插件](/zh/docs/studio/plugin/create-first-plugin)。
 
 <Cards>
-  <Card title="创建第一个插件" href="/zh/docs/studio/plugin/create-first-plugin" description="从空文件夹到已安装的插件：清单、入口、蓝图节点、面板、本地化和打包。" />
-  <Card title="清单" href="/zh/docs/studio/plugin/manifest" description="每一个字段、完整的 contributes 接口，以及为什么大多数权限是派生出来的、而不是手写的。" />
-  <Card title="API 参考" href="/zh/docs/studio/plugin/api-reference" description="studio 与 runtime 两个接口上的每个方法，附带示例和需要留意的细节。" />
-  <Card title="Studio 接口" href="/zh/docs/studio/plugin/studio" description="插件在编辑器中能触碰到的一切：服务、ui 组件套件，以及提权能力。" />
-  <Card title="Runtime API" href="/zh/docs/studio/plugin/runtime" description="受能力控制的游戏接口：每项声明过的能力在 app.game 上换来什么。" />
-  <Card title="构建时依赖" href="/zh/docs/studio/plugin/build-dependencies" description="Studio 在构建时下载、校验并缓存的外部二进制文件。" />
-  <Card title="安装插件" href="/zh/docs/studio/plugin/install-plugin" description="从商店或文件夹安装、批准权限，并保持插件更新。" />
-  <Card title="项目依赖" href="/zh/docs/studio/plugin/project-dependencies" description="项目记录了它用到哪些插件，以及构建出的游戏里会带上哪些。" />
+  <Card title="创建第一个插件" href="/zh/docs/studio/plugin/create-first-plugin" description="从空文件夹到已安装的插件：清单、入口、蓝图节点、面板、本地化和打包" />
+  <Card title="清单" href="/zh/docs/studio/plugin/manifest" description="每一个字段、完整的 contributes 接口，以及为什么大多数权限是派生出来的、而不是手写的" />
+  <Card title="API 参考" href="/zh/docs/studio/plugin/api-reference" description="studio 与 runtime 两个接口上的每个方法，附带示例和需要留意的细节" />
+  <Card title="Studio 接口" href="/zh/docs/studio/plugin/studio" description="插件在编辑器中能触碰到的一切：服务、ui 组件套件，以及提权能力" />
+  <Card title="Runtime API" href="/zh/docs/studio/plugin/runtime" description="受能力控制的游戏接口：每项声明过的能力在 app.game 上换来什么" />
+  <Card title="构建时依赖" href="/zh/docs/studio/plugin/build-dependencies" description="Studio 在构建时下载、校验并缓存的外部二进制文件" />
+  <Card title="安装插件" href="/zh/docs/studio/plugin/install-plugin" description="从商店或文件夹安装、批准权限，并保持插件更新" />
+  <Card title="项目依赖" href="/zh/docs/studio/plugin/project-dependencies" description="项目记录了它用到哪些插件，以及构建出的游戏里会带上哪些" />
 </Cards>
 
 ## 能力是声明出来的，不是被发现的

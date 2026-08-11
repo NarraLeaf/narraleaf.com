@@ -18,14 +18,14 @@ function CustomMenu({ items }: { items: number[] }) {
   return (
     <GameMenu
       className="absolute flex flex-col items-center justify-center min-w-full w-full h-full bg-black/50"
-      // GameMenu: container, handles aspect-ratio scaling
+      // GameMenu：容器，负责宽高比缩放
     >
       {items.map((index) => (
         <Item
           key={index}
           className="bg-white/90 px-6 py-3 rounded-lg mt-3 w-64 text-center hover:bg-white transition-colors"
           defaultColor="black"
-          // Item: renders one choice, receives index from items array
+          // Item：渲染一个选项，索引来自 items 数组
         />
       ))}
     </GameMenu>
@@ -48,7 +48,7 @@ function CustomMenu({ items }: { items: number[] }) {
           className="bg-white p-2 mt-2 w-1/2"
           defaultColor="black"
           bindKey={String(index + 1)}
-          // bindKey: "1", "2", "3" etc. - press key to select this item
+          // bindKey："1"、"2"、"3" 等——按下对应按键即可选中该项
         />
       ))}
     </GameMenu>
@@ -67,10 +67,10 @@ function CustomMenu({ items }: { items: number[] }) {
   return (
     <GameMenu
       className="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"
-      // pointer-events-none: overlay doesn't block clicks outside menu area
+      // pointer-events-none：菜单区域外的点击不被阻挡
     >
       <div className="relative w-full max-w-5xl pointer-events-auto px-4 md:px-8">
-        {/* pointer-events-auto: only the menu box is interactive */}
+        {/* pointer-events-auto：只有菜单区域可交互 */}
         <div className="px-10 py-8 space-y-4">
           {items.map((index) => (
             <Item
@@ -83,7 +83,7 @@ function CustomMenu({ items }: { items: number[] }) {
               fontWeight={700}
               style={{
                 backgroundColor: "rgba(64,168,197,0.9)",
-                clipPath: "polygon(0 0,100% 0,97% 100%,3% 100%)",  // Parallelogram shape
+                clipPath: "polygon(0 0,100% 0,97% 100%,3% 100%)",  // 平行四边形
                 filter: "drop-shadow(4px 4px 0 rgba(0,0,0,0.6))",
               }}
             />
@@ -120,12 +120,12 @@ function HorizontalMenu({ items }: { items: number[] }) {
 选项在 [Menu](/zh/docs/narraleaf-react/core/elements/menu) 元素中通过 `choose` 定义，支持 `hideIf`、`disableIf` 等条件控制：
 
 ```ts
-// In your story script
+// 在剧情脚本中：
 Menu.prompt("你要怎么做？")
   .choose("往左走", [character.say("我往左走了")])
   .choose("往右走", [character.say("我往右走了")])
   .choose("原地不动", [character.say("我选择等待")])
-    .hideIf(persis.isTrue("alreadyMoved"));  // Hide when condition is true
+    .hideIf(persis.isTrue("alreadyMoved"));  // 条件满足时隐藏
 ```
 
 ## 6. 注册到游戏

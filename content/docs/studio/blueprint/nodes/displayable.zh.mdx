@@ -1,6 +1,6 @@
 ---
 title: 可显示对象
-description: 每个可视控件共有的几何与外观接口——属性、Appearance Variant 和属性动画。
+description: 每个可视控件共有的几何与外观接口——属性、Appearance Variant 和属性动画
 ---
 
 每个可视控件都是一个 Displayable：它有位置、尺寸、旋转、不透明度，定义了 Appearance Variant 的控件还有变体。这些节点在控件自己的蓝图里读写这套共有接口，因此同一个节点对 Text、Image 或 Container 一样有效。
@@ -25,19 +25,19 @@ description: 每个可视控件共有的几何与外观接口——属性、Appe
 
 Get Property（获取属性）读取拥有该蓝图的控件的某个属性。属性键在卡片上选择，因此这一个节点取代了本页末尾那些固定读取节点。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `value` | out · data | `any` | 形状取决于所选的属性键。 |
 
-**On-card fields**
+**卡上字段**
 
-| Field | What |
+| 字段 | 说明 |
 | --- | --- |
 | `property` | 要读取的属性键。 |
 
-**Property keys**
+**属性键**
 
-| Key | Reads |
+| 键 | 读取 |
 | --- | --- |
 | `position` | `{ x, y }`——控件左上角。 |
 | `size` | `{ width, height }`。 |
@@ -55,15 +55,15 @@ Get Property（获取属性）读取拥有该蓝图的控件的某个属性。�
 
 Set Property（设置属性）写入所属控件的某个属性。可写的属性键是`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity`和`visible`——`position`、`size`和`bounds`是只读的聚合值，也没有`variant`键，因为变体有自己的节点。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `value` | in · data | `any` | 接线后卡片上的 Value 控件会禁用，以连线值为准。 |
 
-**On-card fields**
+**卡上字段**
 
-| Field | What |
+| 字段 | 说明 |
 | --- | --- |
 | `property` | 要写入的属性键。 |
 | `value` | 属性值，在`value`引脚未接线时使用。`visible`是 Visible / Hidden 下拉，`opacity`按百分比输入，其它属性使用数字输入。 |
@@ -76,7 +76,7 @@ Set Property（设置属性）写入所属控件的某个属性。可写的属�
 
 Get Display（获取显示状态）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `display` | out · data | `boolean` | 默认为`true`，直到有节点改写它。 |
 
@@ -86,7 +86,7 @@ Get Display（获取显示状态）。
 
 Set Display（设置显示状态）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -100,14 +100,14 @@ Set Display（设置显示状态）。
 
 Set Variant（设置变体）为所属控件应用运行时 Appearance Variant 覆盖。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-**On-card fields**
+**卡上字段**
 
-| Field | What |
+| 字段 | 说明 |
 | --- | --- |
 | `Variant` | 目标变体，从该控件已有的变体中按名称选择。 |
 | `Wait For Animation` | `No`立即继续。`Yes`会等目标变体上最长的那条字段 transition 结束后才进入`Next`；没有 transition 时无需等待。 |
@@ -122,7 +122,7 @@ Set Variant（设置变体）为所属控件应用运行时 Appearance Variant �
 
 Get Variant（获取变体）在创建浮窗中隐藏，保留是为了让当前变体卡片之前保存的旧图继续运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `variantId` | out · data | `string` | 有运行时覆盖时返回覆盖值，否则返回 authored 默认变体，再否则返回第一个变体。控件没有变体时为`""`。 |
 
@@ -132,15 +132,15 @@ Get Variant（获取变体）在创建浮窗中隐藏，保留是为了让当前
 
 Animate Property（动画属性）对单个属性做补间。它是基础节点而不是动画库：没有 Fade、Shake 或 Pulse 节点，那些要以宏的形式基于本节点搭建。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | 动画自然结束或被停止后触发。 |
 | `animation` | out · data | `AnimationToken` | 传给`Stop Animation`可提前结束动画。 |
 
-**On-card fields**
+**卡上字段**
 
-| Field | What |
+| 字段 | 说明 |
 | --- | --- |
 | `property` | `opacity`、`offsetX`、`offsetY`、`x`、`y`、`scale`或`rotation`。 |
 | `from` | 可选起始值。留空表示从控件当前运行时状态开始。 |
@@ -164,7 +164,7 @@ Animate Property（动画属性）对单个属性做补间。它是基础节点�
 
 Stop Animation（停止动画）。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
@@ -178,7 +178,7 @@ Stop Animation（停止动画）。
 
 Get Position（获取位置）已由`Get Property`的`position`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `position` | out · data | `Vector2D` | `{ x, y }`，控件左上角。 |
 
@@ -188,7 +188,7 @@ Get Position（获取位置）已由`Get Property`的`position`键取代；在�
 
 Get Size（获取尺寸）已由`Get Property`的`size`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `size` | out · data | `Vector2D` | 引脚类型是`Vector2D`，但值的键是`width`和`height`。 |
 
@@ -198,7 +198,7 @@ Get Size（获取尺寸）已由`Get Property`的`size`键取代；在创建浮�
 
 Get Bounds（获取边界）已由`Get Property`的`bounds`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `bounds` | out · data | `json` | `{ x, y, width, height }`。 |
 
@@ -208,7 +208,7 @@ Get Bounds（获取边界）已由`Get Property`的`bounds`键取代；在创建
 
 Get Rotation（获取旋转）已由`Get Property`的`rotation`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `rotation` | out · data | `float` | 角度。 |
 
@@ -218,7 +218,7 @@ Get Rotation（获取旋转）已由`Get Property`的`rotation`键取代；在�
 
 Get Opacity（获取不透明度）已由`Get Property`的`opacity`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `opacity` | out · data | `float` | `0`–`1`，不是百分比。 |
 
@@ -228,6 +228,6 @@ Get Opacity（获取不透明度）已由`Get Property`的`opacity`键取代；�
 
 Get Visible（获取可见性）已由`Get Property`的`visible`键取代；在创建浮窗中隐藏，但已有该节点的图仍能运行。
 
-| Pin | Direction | Type | Notes |
+| 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `visible` | out · data | `boolean` | |

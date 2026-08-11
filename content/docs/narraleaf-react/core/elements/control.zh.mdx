@@ -1,13 +1,13 @@
 ﻿---
-title: "控制"
+title: "流程控制"
 ---
-`控制`是一个类，它具有一些用于流程控制的实用方法。
+`Control` 提供流程控制的实用方法。
 
 ```typescript
 Control.do([
     character1.say("hello"),
 
-    // 播放声音并同时摇动图像
+    // 并行执行
     Control.allAsync([
         sound.play(),
         shake(image1),
@@ -22,10 +22,10 @@ Control.do([
 
 ### do
 
-按顺序执行操作，等待每个操作完成
+顺序执行操作，等待每个操作完成：
 
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -34,10 +34,10 @@ Control.do([
 <Steps>
 <Step>
 
-按顺序执行操作，不等待操作完成
+顺序执行操作，不等待完成：
 
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -46,10 +46,10 @@ Control.do([
 <Steps>
 <Step>
 
-同时执行所有操作，等待任意一个操作完成
+并行执行所有操作，等待任意一个完成：
 
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -58,10 +58,10 @@ Control.do([
 <Steps>
 <Step>
 
-同时执行所有操作，等待所有操作完成
+并行执行所有操作，等待全部完成：
 
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -70,10 +70,10 @@ Control.do([
 <Steps>
 <Step>
 
-同时执行所有操作，不等待所有操作完成
+并行执行所有操作，不等待完成：
 
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -82,11 +82,11 @@ Control.do([
 <Steps>
 <Step>
 
-多次执行操作
+重复执行操作：
 
 - `times: number` - 次数
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -95,7 +95,7 @@ Control.do([
 <Steps>
 <Step>
 
-当条件为真时执行操作
+条件为真时持续执行：
 
 ```typescript
 const loopState = new Persistent("loop-state", {
@@ -114,9 +114,9 @@ scene.action([
 ]);
 ```
 
-- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 要检查的条件
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - 条件表达式
 - `actions: ActionStatements` - [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -125,8 +125,7 @@ scene.action([
 <Steps>
 <Step>
 
-打破当前循环（repeat/while）
-只能在循环体内使用
+跳出当前循环（repeat/while），仅在循环体内有效：
 
 ```typescript
 scene.action([
@@ -140,7 +139,7 @@ scene.action([
 ]);
 ```
 
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -149,10 +148,10 @@ scene.action([
 <Steps>
 <Step>
 
-休眠一段时间
+等待指定时长：
 
-- `duration: number | Awaitable<any> | Promise<any>` - 休眠时长
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- `duration: number | Awaitable<any> | Promise<any>` - 等待时长
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -161,9 +160,9 @@ scene.action([
 <Steps>
 <Step>
 
-暂停执行，直到用户在舞台任意位置点击（不包括对话框、按钮、菜单等 GUI 元素）。类似于在 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 中插入无时长的暂停。
+暂停执行，等待用户点击舞台（不含对话框、菜单等 GUI 元素）。类似于在 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 中插入无时长的暂停。
 
-适用于在 ADV 模式中创建「点击继续」的停顿，或在 NVL 块内等待玩家准备好后再继续。
+适用于 ADV 模式中创建"点击继续"的停顿：
 
 ```typescript
 scene.action([
@@ -173,7 +172,7 @@ scene.action([
 ]);
 ```
 
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -182,9 +181,9 @@ scene.action([
 <Steps>
 <Step>
 
-在当前场景内标记一个命名的跳转点，供 [`jump`](#jump) 跳转。label 在运行时不可见——它只是直接跳过到下一个动作。
+在当前场景内标记一个跳转点，供 [`jump`](#jump) 使用。label 运行时不可见，仅作为跳转目标。
 
-label 的名称仅在其所在场景内有效，因此不同场景可以复用相同的名称。在同一场景内重复声明同一名称会导致构建失败。
+label 名称仅在当前场景内有效，不同场景可复用同名。同一场景内重复声明会导致构建失败。
 
 ```typescript
 scene.action([
@@ -193,8 +192,8 @@ scene.action([
 ]);
 ```
 
-- `name: string` - label 名称，在其所在场景内唯一
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- `name: string` - label 名称，当前场景内唯一
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>
 
@@ -203,11 +202,11 @@ scene.action([
 <Steps>
 <Step>
 
-跳转到**同一场景**内的某个 [`label`](#label)，并从那里继续播放。
+跳转到**同一场景**内的某个 [`label`](#label) 并继续播放。
 
-与 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 不同，它停留在当前场景内——不会卸载或重新初始化任何场景，只移动播放头。目标必须是同一场景内声明的 label，否则故事将构建失败。
+与 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 不同，`Control.jump` 不会卸载或重新初始化场景，只移动播放头。目标必须是同一场景内已声明的 label。
 
-`Control.jump` 会重定向主故事流程，因此应将它放在分支的最后一个动作（例如菜单选项）。若要循环一个场景，请通过菜单或条件来驱动循环，而不是从 `repeat` / `while` 循环体中跳出。
+`Control.jump` 会重定向主剧本流程，应放在分支末尾（如菜单选项）。若要循环场景，请通过菜单或条件驱动，而非从循环体中跳出。
 
 ```typescript
 scene.action([
@@ -218,7 +217,7 @@ scene.action([
 ]);
 ```
 
-- `name: string` - 目标 label 的名称，需在同一场景内声明
-- 返回 `Proxied<Control, Chained<LogicAction.Actions>>` - 链式控制实例
+- `name: string` - 目标 label 名称
+- 返回 `Proxied<Control, Chained<LogicAction.Actions>>`
 </Step>
 </Steps>

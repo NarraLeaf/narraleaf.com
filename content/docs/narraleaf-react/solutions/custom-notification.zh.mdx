@@ -53,13 +53,13 @@ function App() {
 ```tsx
 const liveGame = game.getLiveGame();
 
-// Show notification, auto-dismiss after 3000ms (default)
+// 显示通知，默认 3000ms 后自动消失
 liveGame.notify("已保存");
 
-// Custom duration in ms
+// 自定义时长（毫秒）
 liveGame.notify("已解锁新成就", 5000);
 
-// duration: null - do not auto-dismiss (stays until manually removed)
+// duration: null —— 不自动消失（需手动移除）
 const notice = liveGame.notify("重要提示", null);
 
 // 稍后移除常驻通知。
@@ -102,9 +102,9 @@ function AnimatedNotification({ notifications }: INotificationsProps) {
 
 ```ts
 type Notification = {
-  id: string;    // Unique id for React key
+  id: string;    // 用于 React key 的唯一 id
   message: string;
-  // duration is used internally for auto-dismiss
+  // duration 用于内部自动消失逻辑
 };
 ```
 

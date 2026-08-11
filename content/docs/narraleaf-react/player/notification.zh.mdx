@@ -1,11 +1,9 @@
 ---
 title: "通知"
 ---
-通知组件用于渲染通知框，并提供接口以自定义通知框。
+`Notifications` 组件用于渲染通知框，提供自定义接口。
 
-## 通知
-
-通知的定义如下：
+## 数据结构
 
 ```typescript
 type Notification = {
@@ -23,7 +21,7 @@ import { useState } from "react";
 import { INotificationsProps, useGame } from "narraleaf-react";
 ```
 
-2. 插入组件
+2. 实现通知组件
 
 ```tsx
 function GameNotification({ notifications }: { notifications: Notification[] }) {
@@ -46,7 +44,7 @@ function GameNotification({ notifications }: { notifications: Notification[] }) 
 }
 ```
 
-3. 配置游戏
+3. 注册到游戏
 
 ```tsx
 function App() {
@@ -66,7 +64,7 @@ function App() {
 
 ### Notifications
 
-Notifications 组件用于渲染通知框。
+通知框容器。
 
-- `children: React.ReactNode` - 通知框的子元素。
-- `...props: React.HTMLAttributes<HTMLDivElement>` - 通知框的其他属性。
+- `children: React.ReactNode` - 子元素
+- `...props: React.HTMLAttributes<HTMLDivElement>` - 其他属性

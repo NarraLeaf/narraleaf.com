@@ -1,6 +1,6 @@
 ---
 title: Frame
-description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params。
+description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params
 ---
 
 `nl.frame` 的 Self 节点。Frame 是某个 Page 上的一块矩形，它在自己内部渲染另一个 Page，因此这些节点就是运行中的图在不离开玩家当前 Page 的前提下换掉画面内容的手段——标签页、设置面板、路由都靠它。每个节点作用于自己蓝图所属的那个 Frame，不带 `Element` 输入，也只出现在该 Frame 自己的蓝图里。要操作另一个 Frame，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点。

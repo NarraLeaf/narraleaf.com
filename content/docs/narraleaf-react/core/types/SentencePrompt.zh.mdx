@@ -9,16 +9,16 @@ export type SingleWord = StaticWord | DynamicWord;
 export type SentencePrompt = SingleWord[] | SingleWord;
 ```
 
-## Examples
+## 示例
 
-1. Simple string sentence
+1. 简单字符串句子
 
 ```typescript
 // "Hello, world!"
 const sentence: SentencePrompt = "Hello, world!";
 ```
 
-2. Mixed string sentence
+2. 混合字符串句子
 
 ```typescript
 // "Hello, world!" with "world" in red color
@@ -29,7 +29,7 @@ const sentence: SentencePrompt = [
 ];
 ```
 
-3. Pausing sentence
+3. 带停顿的句子
 
 ```typescript
 // "Hello, ", pause for 1 second, "world" and wait until player click, "!"
@@ -42,7 +42,7 @@ const sentence: SentencePrompt = [
 ];
 ```
 
-4. Dynamic sentence
+4. 动态句子
 
 ```typescript
 // "Hello, you have 100 coins!"
@@ -55,7 +55,7 @@ const sentence: SentencePrompt = [
 ];
 ```
 
-5. Dynamic evaluated sentence
+5. 动态求值的句子
 
 ```typescript
 // "Hello, you have 100 coins!" with "100" in red color
