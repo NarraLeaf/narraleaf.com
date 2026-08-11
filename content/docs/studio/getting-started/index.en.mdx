@@ -1,77 +1,81 @@
 ---
 title: Getting Started
-description: Create a blank project and learn what Studio prepares on first open.
+description: Create a project from the launcher and open it in the workspace.
 ---
 
-This guide creates a blank project from the launcher. Studio then opens the project workspace and prepares a `Main Page` in the UI editor.
+This guide creates an empty project from the launcher. Studio then opens the workspace with `Main Page` ready in the UI editor.
 
 ## Create a project
 
 <Steps>
 <Step>
 
-### Open the project wizard
+### Open the wizard
 
-On the launcher's **Projects** page, choose **New Project**.
+On the launcher's **Projects** page, choose **Add Project**.
 
-The wizard has four steps: Template, Details, Settings, and Review. Start with the **Blank** template.
+The wizard has four steps: **Source**, **Project**, **Stage**, and **Review**.
+</Step>
+<Step>
+
+### Choose a source
+
+Choose **New project**, then the **Empty** template.
+
+The same step also imports an exported `.nlspkg` file and clones a project from a version-control server.
 </Step>
 <Step>
 
 ### Enter project details
 
-At minimum, provide:
+Provide:
 
-- **Project Name**, used by Studio and as the default product name.
-- **App ID**, using only lowercase letters, numbers, and hyphens. Avoid changing it after project creation.
-- **Stage Size**, the reference size for Game UI and the runtime view.
+- **Project Name**, also the default product name.
+- **App ID**, lowercase letters, digits, and hyphens only. It cannot be changed after the project is created.
+- **Location**, an empty directory or a path that does not exist yet. Studio does not create a project in a non-empty directory.
 
-Author, license, and description can be completed later.
+Turn on **Version Control** to record the project's history inside the project folder. Author, license, and description can be completed later.
 </Step>
 <Step>
 
-### Choose a project location
+### Set the stage
 
-Choose an empty directory or enter a path that does not exist yet. Studio will not create a project in a non-empty directory.
-
-Enable version control here if the project will use Git. Version control records project file changes; it does not replace a separate backup of source assets.
+Choose a **Stage Size**, the reference size for Game UI and the runtime view, and a **Script Language**, the language the story is written in. Further languages are added later in the Localization panel.
 </Step>
 <Step>
 
 ### Review and create
 
-On the **Review** step, check the project name, App ID, stage size, and location. Then choose **Create Project**.
-
-Studio opens the workspace when creation completes.
+Check the entries on **Review**, then choose **Create Project**. Studio opens the workspace when the project is ready.
 </Step>
 </Steps>
 
 ## First open
 
-A blank project is not completely empty. The UI editor creates and opens `Main Page`, the project's default main page. Edit it as the title screen or create additional pages.
+The UI editor opens `Main Page`, the project's default main page. Use it as the title screen, or create further pages beside it.
 
-The main tools are on the left activity bar:
+The left activity bar holds the main tools:
 
-- **Project** for metadata, icons, dependencies, and project settings.
-- **Story** for stories, chapters, and scenes.
-- **UI** for pages, Game UI, and the component library.
-- **Characters** for character forms and variants.
-- **Assets** for project assets and groups.
-- **Localization** for languages, translation, and review.
+- **Project** — metadata, icons, dependencies, and project settings.
+- **Story** — stories, chapters, and scenes.
+- **UI** — pages, Game UI, and the component library.
+- **Characters** — character forms and variants.
+- **Assets** — project assets and groups.
+- **Localization** — languages, translation, and review.
 
 ## Open an existing project
 
-Choose **Open Project** or **Open Folder** in the launcher, then select a project directory containing a `.nlproj` file. For a `.nlspkg` project package, choose **Import Project** and unpack it into an empty directory.
+Choose **Open Project** or **Open Folder** on the launcher, then select a directory containing a `.nlproj` file. To open an exported `.nlspkg` package, choose **Add Project** and import it from the **Source** step.
 
 <Cards>
     <Card
-        title="Meet the workspace"
-        description="Learn the main areas used while editing."
-        href="/en/docs/studio/getting-started/workspace-overview"
+        title="Workspace overview"
+        description="The areas used while editing."
+        href="/docs/studio/getting-started/workspace-overview"
     />
     <Card
         title="Create your first page"
         description="Place the first interface elements on Main Page."
-        href="/en/docs/studio/getting-started/create-first-page"
+        href="/docs/studio/getting-started/create-first-page"
     />
 </Cards>

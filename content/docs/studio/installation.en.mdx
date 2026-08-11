@@ -14,16 +14,16 @@ Download links point at the current release. Earlier versions are on the [releas
 | Windows | Windows 10 | x64 |
 | macOS | macOS 11 | Apple Silicon |
 
-Studio does not run on an Intel Mac. Games built with Studio still do — see [Run and Package](/docs/studio/getting-started/run-and-package).
+Studio does not run on an Intel Mac. Intel Mac remains available as a build target — see [Run and Package](/docs/studio/getting-started/run-and-package).
 
 ## Install
 
-**Windows** — run the `.exe` installer. It installs for the current user and requires no administrator rights. The wizard also offers a choice of install directory, and an installation for all users, which requires elevation.
+**Windows** — run the `.exe` installer. It installs for the current user by default, without an administrator prompt. The wizard can also change the install directory, or install for all users, which requires administrator approval.
 
 **macOS** — open the `.dmg` and drag NarraLeaf Studio into Applications.
 
 <Callout type="warn">
-Studio is not code-signed, so the first launch is blocked. On Windows, select **More info → Run anyway**. On macOS, select **Open Anyway** under **System Settings → Privacy & Security**, or remove the quarantine attribute:
+Studio is not code-signed, and the first launch has to be allowed manually. On Windows, select **More info → Run anyway**. On macOS, select **Open Anyway** under **System Settings → Privacy & Security**, or remove the quarantine attribute:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
@@ -32,11 +32,11 @@ xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
 
 ## Updating
 
-Shortly after launch, Studio asks GitHub once whether a newer release exists and reports the result under **Settings → General → Updates**. Downloads never start on their own; turn the check off with **Check for updates at launch**.
+Studio checks for a newer release shortly after launch and reports the result under **Settings → General → Updates**. Downloads do not start on their own. To stop the check, turn off **Check for updates at launch**.
 
-**Windows** — the panel downloads the update and applies it when Studio restarts.
+**Windows** — download the update in that panel. Studio installs it on the next restart.
 
-**macOS** — Studio reports the new version but cannot install it, because installing an update requires a code-signed build. Download the current `.dmg` and replace the app in Applications.
+**macOS** — Studio reports the new version only. Download the current `.dmg` and replace the app in Applications.
 
 <Cards>
     <Card
