@@ -18,12 +18,12 @@ Studio 不提供 Intel 版本，也无法在 Intel Mac 上运行。该限制仅�
 
 ## 安装
 
-**Windows** —— 运行 `.exe` 安装程序。Studio 安装到当前用户，不需要管理员权限。
+**Windows** —— 运行 `.exe` 安装程序。Studio 安装到当前用户，不需要管理员权限；向导中也可以指定安装目录，或选择为所有用户安装，后者需要提权。
 
 **macOS** —— 打开 `.dmg`，将 NarraLeaf Studio 拖入「应用程序」。
 
 <Callout type="warn">
-桌面产物尚未完成代码签名，首次启动会被系统拦截。Windows 上选择**更多信息 → 仍要运行**；macOS 上在**系统设置 → 隐私与安全性**中选择**仍要打开**，或移除隔离属性：
+Studio 未经过代码签名，首次启动会被系统拦截。Windows 上选择**更多信息 → 仍要运行**；macOS 上在**系统设置 → 隐私与安全性**中选择**仍要打开**，或移除隔离属性：
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
@@ -32,7 +32,11 @@ xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
 
 ## 更新
 
-Studio 不会自动更新。更新时下载新版本安装程序，覆盖现有安装即可。
+Studio 在启动后不久会向 GitHub 查询一次是否有新版本，结果显示在**设置 → 常规 → 更新**中。下载不会自行开始；关闭该查询请使用**启动时检查更新**。
+
+**Windows** —— 在该面板中下载更新，重启 Studio 时完成安装。
+
+**macOS** —— Studio 只会提示新版本，无法自行安装，因为安装更新需要经过代码签名的版本。请下载新的 `.dmg`，替换「应用程序」中的应用。
 
 <Cards>
     <Card
