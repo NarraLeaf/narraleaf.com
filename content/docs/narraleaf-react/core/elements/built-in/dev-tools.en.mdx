@@ -254,6 +254,28 @@ DevTools.setElementId(ghost, "preview:ghost");
 </Step>
 </Steps>
 
+### setElementStaticId
+
+<Steps>
+<Step>
+
+Give an element a name that story construction keeps.
+
+Without one, an element's id is generated at construction and changes when the story around it changes. A save restores element state by id, so name every element whose state has to survive edits to the script.
+
+[setElementId](#setelementid) assigns an id directly, and construction replaces it for every element the scene's action tree reaches. Pass `null` here to drop a name and use the generated id.
+
+- `element: LogicAction.GameElement` - The element
+- `id: string | null` - The name to keep, or `null` to use the generated id
+
+```typescript
+const classroom = new Image({src: "bg/classroom.png"});
+
+DevTools.setElementStaticId(classroom, "bg:classroom");
+```
+</Step>
+</Steps>
+
 ## Dialog
 
 ### getCurrentDialog

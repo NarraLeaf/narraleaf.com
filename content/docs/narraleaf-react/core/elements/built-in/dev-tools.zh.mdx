@@ -254,6 +254,28 @@ DevTools.setElementId(ghost, "preview:ghost");
 </Step>
 </Steps>
 
+### setElementStaticId
+
+<Steps>
+<Step>
+
+给元素一个在故事构建后仍然保留的名字。
+
+没有这个名字时，元素的 id 在构建时生成，并随故事的改动而改变。存档按 id 还原元素状态，因此凡是状态需要在剧本改动后继续可用的元素，都要命名。
+
+[setElementId](#setelementid) 直接赋一个 id，场景动作树能到达的元素在构建时会被覆盖。这里传 `null` 可以去掉名字，改用生成的 id。
+
+- `element: LogicAction.GameElement` - 元素
+- `id: string | null` - 要保留的名字，传 `null` 则使用生成的 id
+
+```typescript
+const classroom = new Image({src: "bg/classroom.png"});
+
+DevTools.setElementStaticId(classroom, "bg:classroom");
+```
+</Step>
+</Steps>
+
 ## 对话
 
 ### getCurrentDialog
