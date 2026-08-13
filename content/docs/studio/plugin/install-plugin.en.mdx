@@ -5,9 +5,19 @@ description: Install a plugin from the store or from a folder, approve its permi
 
 Plugins are managed in the Launcher under **Plugins**, which has two lists: **Installed** and **Store**. You can install from the store, or from any folder on disk.
 
+<Figure
+    src="/static/img/docs/studio/en/plugins.webp"
+    alt="The launcher's Plugins page on the Installed list, with the built-in plugins marked"
+/>
+
 ## From the store
 
 The store lists plugins from a registry index. By default that is the official [NarraLeaf/Plugins](https://github.com/NarraLeaf/Plugins) index — a curated repository whose plugins are reviewed for behavior and permissions, not just for whether they build. Point it elsewhere with **Registry URL** in Settings; leaving it empty uses the official one.
+
+<Figure
+    src="/static/img/docs/studio/en/plugin-store.webp"
+    alt="The Store list, with one plugin offering Install and the already-installed ones marked"
+/>
 
 Choosing **Install** downloads the release, installs it, and takes you straight to the permission prompt. If a plugin declares a Studio version range that excludes your build, the button is withheld and the row says which version it needs, rather than letting the install fail later.
 
@@ -44,6 +54,10 @@ In **Plugins**, choose **Install from folder** and pick that folder. Studio vali
 ### Approve permissions
 
 Studio shows a prompt listing exactly what the plugin asks for. Review it and approve or decline. A plugin that asks for nothing installs without a prompt.
+
+<Figure
+    brief="The permission prompt for a plugin that asks for several capabilities, showing a filesystem path, a runtime capability, and a bundled native program in one list."
+/>
 
 </Step>
 </Steps>
