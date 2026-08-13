@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { type Locale, localizedPath } from '@/lib/i18n';
-import { navBrandName, siteIconPath } from '@/lib/shared';
+import { navBrandName, siteLogoPath } from '@/lib/shared';
 import { type TopLevelNavKey, topLevelNavItems } from '@/lib/top-level-nav';
 
 export function DocsTopLevelNav({
@@ -34,7 +34,7 @@ export function DocsTopLevelNav({
             className="hidden shrink-0 items-center gap-2 self-center font-semibold md:inline-flex"
           >
             <Image
-              src={siteIconPath}
+              src={siteLogoPath}
               alt=""
               width={28}
               height={28}
