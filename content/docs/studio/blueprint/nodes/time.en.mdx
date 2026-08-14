@@ -1,0 +1,298 @@
+---
+title: Time
+description: Reading the clock, working with dates, and turning a moment into text a player reads.
+---
+
+Fifteen pure nodes for the current time and the calendar around it. `Now` reads the clock. `Make Time` and `Get Time Parts` cross between a moment and its year-month-day fields. `Add Time` and `Time Difference` do arithmetic that respects month lengths. Four formatters turn a moment into text.
+
+The most common use is a save screen: a slot shows when it was written, which is [`Get Save Time`](/docs/studio/blueprint/nodes/game#get-save-time) into one of the formatters here.
+
+## Conventions
+
+- **Every node on this page is `Pure`.** None of them has an exec pin. Each is legal in `event`, `function` and `macro` graphs, and inside a [Blueprint Value](/docs/studio/blueprint) — which is what a save slot's label is.
+- **A moment is a number: milliseconds since 1 January 1970 UTC, on a `float` pin.** This is the unit `Get Save Time` and `Get Latest Auto Save` produce, so a save's stamp wires straight into any node here.
+- **There is no Time comparison node.** Later means larger, so `<`, `>`, `Min` and `Max` in [Math](/docs/studio/blueprint/nodes/math) order two moments already.
+- **The calendar is the player's local one.** `Make Time`, `Get Time Parts`, `Add Time`, `Time Difference`, `Start Of Day`, `Is Same Day` and `Format Time` all read local time. `To ISO String` is the exception and outputs UTC.
+- **Nothing is cached.** A node runs again on every read, so `Now` gives a different answer to each edge that reads it.
+- **A pin that is not a usable number reads as `0`**, which is 1 January 1970. `Format Time` prints that date rather than reporting anything, so a formatter showing 1970 means its input never arrived.
+
+## Now
+
+`blueprint.time.now` · Pure
+
+The current time.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | out · data | `float` | |
+
+## Make Time
+
+`blueprint.time.make` · Pure
+
+Builds a moment from local calendar fields.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `year` | in · data | `integer` | Accepts an on-card literal. `50` means the year 50, not 1950. |
+| `month` | in · data | `integer` | 1–12. Accepts an on-card literal. |
+| `day` | in · data | `integer` | 1–31. Accepts an on-card literal. |
+| `hour` | in · data | `integer` | 0–23. Accepts an on-card literal. |
+| `minute` | in · data | `integer` | 0–59. Accepts an on-card literal. |
+| `second` | in · data | `integer` | 0–59. Accepts an on-card literal. |
+| `millisecond` | in · data | `integer` | 0–999. Accepts an on-card literal. |
+| `timestamp` | out · data | `float` | |
+
+A field outside its range carries into the next one. `month` 13 is January of the following year, and `day` 0 is the last day of the previous month — which is how you express "the last day of this month" without a node for it.
+
+## Get Time Parts
+
+`blueprint.time.parts` · Pure
+
+Splits a moment into local calendar fields.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `year` | out · data | `integer` | |
+| `month` | out · data | `integer` | 1–12. |
+| `day` | out · data | `integer` | 1–31. |
+| `hour` | out · data | `integer` | 0–23. |
+| `minute` | out · data | `integer` | 0–59. |
+| `second` | out · data | `integer` | 0–59. |
+| `millisecond` | out · data | `integer` | 0–999. |
+| `weekday` | out · data | `integer` | 0 is Sunday, 6 is Saturday. |
+| `dayOfYear` | out · data | `integer` | 1 on 1 January. |
+
+## Format Time
+
+`blueprint.time.format` · Pure
+
+Renders a moment as text using a pattern.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `pattern` | in · data | `string` | Accepts an on-card literal. `YYYY-MM-DD HH:mm` when left empty. |
+| `result` | out · data | `string` | |
+
+| Token | Produces | Example |
+| --- | --- | --- |
+| `YYYY` | Four-digit year | `2026` |
+| `YY` | Two-digit year | `26` |
+| `MM` / `M` | Month, padded or not | `08` / `8` |
+| `DD` / `D` | Day, padded or not | `04` / `4` |
+| `HH` / `H` | Hour, 24-hour, padded or not | `15` / `15` |
+| `hh` / `h` | Hour, 12-hour, padded or not | `03` / `3` |
+| `mm` / `m` | Minute, padded or not | `30` / `30` |
+| `ss` / `s` | Second, padded or not | `05` / `5` |
+| `SSS` | Millisecond | `007` |
+| `A` / `a` | Half of the day | `PM` / `pm` |
+
+Anything that is not a token is copied through. Text between single quotes is copied through without being scanned for tokens, which is how you print a letter that is also a token: `'Day' D` gives `Day 14`. Two single quotes in a row print one quote.
+
+## Format Time Localized
+
+`blueprint.time.formatLocalized` · Pure
+
+Renders a moment in the conventions of a language.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `locale` | in · data | `string` | Accepts an on-card literal. A BCP 47 tag such as `en-US` or `zh-CN`. Empty means the player's system language. |
+| `result` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Date Style` | `None`, `Short`, `Medium`, `Long` or `Full`. Defaults to `Medium`. |
+| `Time Style` | The same five. Defaults to `None`. |
+
+With both styles set to `None` the result is empty. A tag the system does not recognise falls back to the player's language.
+
+<Callout type="info">
+This node does not read the game's current language on its own. Wire [`Get Current Language`](/docs/studio/blueprint/nodes/localization#get-current-language) into `locale` to make the date follow the language the player picked in the game.
+</Callout>
+
+## Format Relative Time
+
+`blueprint.time.formatRelative` · Pure
+
+Describes the gap between two moments in words: `5 minutes ago`, `in 2 days`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `from` | in · data | `float` | Accepts an on-card literal. The reference point, usually `Now`. |
+| `to` | in · data | `float` | Accepts an on-card literal. The moment being described. |
+| `locale` | in · data | `string` | Accepts an on-card literal. As in `Format Time Localized`. |
+| `result` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Wording` | `Auto` lets the language use words like `yesterday`. `Always Numeric` always counts. Defaults to `Auto`. |
+
+The unit follows the size of the gap: seconds below a minute, then minutes, hours, days, months, years.
+
+## Format Duration
+
+`blueprint.time.formatDuration` · Pure
+
+Renders a length of time as a clock reading.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `milliseconds` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Layout` | `Auto` shows hours only when there are any (`1:05`, `2:03:04`). `Hours Minutes Seconds` always shows them (`00:01:05`). `Minutes Seconds` never does (`01:05`). Defaults to `Auto`. |
+
+Hours accumulate instead of rolling into days: thirty hours of play time reads `30:00:00`.
+
+The output is digits and separators. For a wording like `1 h 20 min`, take the numbers from `Get Duration Parts` and assemble them with [`Format Text`](/docs/studio/blueprint/nodes/localization#format-text), which is translatable.
+
+## Get Duration Parts
+
+`blueprint.time.durationParts` · Pure
+
+Splits a length of time into units.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `milliseconds` | in · data | `float` | Accepts an on-card literal. |
+| `days` | out · data | `integer` | |
+| `hours` | out · data | `integer` | 0–23. |
+| `minutes` | out · data | `integer` | 0–59. |
+| `seconds` | out · data | `integer` | 0–59. |
+| `remainingMilliseconds` | out · data | `integer` | 0–999. |
+| `totalHours` | out · data | `integer` | The whole span in hours. |
+| `totalMinutes` | out · data | `integer` | The whole span in minutes. |
+| `totalSeconds` | out · data | `integer` | The whole span in seconds. |
+| `negative` | out · data | `boolean` | |
+
+Every number is a magnitude; the sign is on `negative` alone.
+
+## Add Time
+
+`blueprint.time.add` · Pure
+
+Moves a moment forward or back.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `amount` | in · data | `float` | Accepts an on-card literal. Negative moves back. |
+| `result` | out · data | `float` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Unit` | `Milliseconds`, `Seconds`, `Minutes`, `Hours`, `Days`, `Weeks`, `Months` or `Years`. Defaults to `Seconds`. |
+
+`Months` and `Years` go through the calendar and stop at the end of the target month: 31 January plus one month is 28 February, or 29 in a leap year.
+
+## Time Difference
+
+`blueprint.time.difference` · Pure
+
+`to` minus `from`, measured in one unit.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `from` | in · data | `float` | Accepts an on-card literal. |
+| `to` | in · data | `float` | Accepts an on-card literal. |
+| `difference` | out · data | `float` | Negative when `to` is earlier than `from`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Unit` | As in `Add Time`. Defaults to `Seconds`. |
+
+Fixed-length units keep the fraction: ninety minutes asked for in hours gives `1.5`. Pass it through `Floor` for a whole number. `Months` and `Years` count whole calendar steps, so a gap one day short of a month is `0`.
+
+## Parse Time
+
+`blueprint.time.parse` · Pure
+
+Reads a written date back into a moment.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | Accepts an on-card literal. |
+| `timestamp` | out · data | `float` | `0` when the text could not be read. |
+| `ok` | out · data | `boolean` | |
+
+ISO 8601 is the format to write. A date on its own — `2026-08-14` — is read as local midnight.
+
+<Callout type="warn">
+Check `ok`. A failed parse produces `0`, which is the same number a moment in 1970 has.
+</Callout>
+
+## To ISO String
+
+`blueprint.time.toIsoString` · Pure
+
+Writes a moment as an ISO 8601 string in **UTC**: `2026-08-14T07:30:00.000Z`. Use it to put a time into a save's metadata or a persistent variable.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `string` | |
+
+`Parse Time` reads this back as the same moment.
+
+## Is Same Day
+
+`blueprint.time.isSameDay` · Pure
+
+Whether two moments fall on the same local calendar day.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | Accepts an on-card literal. |
+| `b` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `boolean` | |
+
+The test is the calendar day, not the gap: 23:59 and 00:30 the next morning are half an hour apart and different days.
+
+## Start Of Day
+
+`blueprint.time.startOfDay` · Pure
+
+Local midnight of the day a moment falls in.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. |
+| `result` | out · data | `float` | |
+
+## Get Time Zone
+
+`blueprint.time.zoneOffset` · Pure
+
+The time zone the game is running in.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | Accepts an on-card literal. The moment to ask about — daylight saving gives one zone different offsets through the year. |
+| `offsetMinutes` | out · data | `float` | Minutes ahead of UTC. `480` for UTC+8. |
+| `name` | out · data | `string` | An IANA name such as `Asia/Shanghai`. Empty when the system does not report one. |
+
+## Dating a save slot
+
+A slot's label is a Blueprint Value, and [`Get Save Time`](/docs/studio/blueprint/nodes/game#get-save-time) supplies the moment:
+
+- **An absolute date** — `Get Save Time` → `savedAt` → `Format Time`, or `Format Time Localized` to follow the player's language.
+- **A relative one** — `Now` into `from`, `savedAt` into `to`, then `Format Relative Time`.
+- **Grouping by day** — compare `Start Of Day` of the save against `Start Of Day` of `Now`, or use `Is Same Day`.
+
+An empty slot is told apart by `Get Save Time`'s `exists` pin. Its `savedAt` is `0` when there is no save, and `0` is also a real moment.

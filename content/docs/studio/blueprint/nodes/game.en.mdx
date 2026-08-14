@@ -12,7 +12,7 @@ Every node here needs the running game. The editor canvas has none — a Game no
 ## Conventions
 
 - **Pure or latent, nothing in between.** The twenty getters are `Pure` and may appear in `event`, `function` and `macro` graphs, and back a Blueprint Value. The other thirty-three are `Latent`, so `event` and `macro` only — a latent node has nowhere to hand a pending result inside a `function`.
-- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
+- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
 - **State getters degrade; preference getters do not.** `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode` and `Is Text Read` answer with a neutral value — `false`, `null`, `0`, an empty array — when nothing is playing, which is what lets one shared Page branch on them. The twelve preference getters read the live `GamePreference` and fail when there is no game.
 - **Initialise preferences from `On Game Ready`, not `App Boot`.** `App Boot` can run before the `LiveGame` exists, and a preference write with no live game fails. See [Events](/docs/studio/blueprint/nodes/events).
 - **Save ids are validated.** An id is trimmed, may not be empty, and may not contain path separators or control characters. The file on disk is named from a hash of it; the id you chose is kept inside the record's metadata.
@@ -557,7 +557,7 @@ The ids of the project's player saves. Order is not guaranteed. Files that are c
 
 `blueprint.game.save.getMetadata` · Latent
 
-Reads back exactly what `Save Game` put on its `metadata` pin. System fields — the id, the record type, `createdAt`, `updatedAt`, the preview — are not part of it.
+Reads back exactly what `Save Game` put on its `metadata` pin. System fields — the id, the record type, `createdAt`, `updatedAt`, the preview — are not part of it. `Get Save Time` reads the two timestamps.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -565,6 +565,27 @@ Reads back exactly what `Save Game` put on its `metadata` pin. System fields —
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
 | `metadata` | out · data | `json` | `null` when the save is missing or carries no user metadata. |
+
+### Get Save Time
+
+`blueprint.game.save.getTime` · Latent
+
+When a slot was written. The save store stamps every record it writes, and this reads those stamps back — a save screen does not have to put a time into its own `metadata` and keep it in step.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | Accepts an on-card literal. |
+| `savedAt` | out · data | `float` | When the slot was last written. `0` when the save is missing. |
+| `createdAt` | out · data | `float` | When the slot was first written. `0` when the save is missing. |
+| `exists` | out · data | `boolean` | |
+
+Both times are milliseconds since 1 January 1970 UTC — the same unit `List Auto Saves` reports and every [Time](/docs/studio/blueprint/nodes/time) node accepts.
+
+<Callout type="warn">
+Read `exists` to tell an empty slot apart. A missing save gives `savedAt` `0`, and `0` is also a real moment in 1970.
+</Callout>
 
 ### Get Save Preview
 

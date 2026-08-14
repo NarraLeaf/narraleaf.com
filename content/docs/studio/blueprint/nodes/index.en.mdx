@@ -3,7 +3,7 @@ title: Nodes
 description: The built-in node catalog, one page per palette category, with every node's signature.
 ---
 
-The built-in catalog is 492 nodes across 20 categories. A category is the grouping you navigate in the palette, so these pages are organised the way the editor is.
+The built-in catalog is 508 nodes across 21 categories. A category is the grouping you navigate in the palette, so these pages are organised the way the editor is.
 
 ## How to read a node
 
@@ -20,7 +20,7 @@ The first line under the heading is the node's **type id** — the value stored 
 | `Pure` | No side effects. Usable in `function` graphs. |
 | `Latent` | Suspends the graph until it resolves. Never available in a `function` graph. |
 
-`Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories — Data, List, Math, Text, Slider, Displayable, Element, Game — plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow, local variable access, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
+`Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories — Data, List, Math, Time, Text, Slider, Displayable, Element, Game — plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow, local variable access, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
 
 Then the pin table:
 
@@ -55,7 +55,8 @@ When several compatible sources exist, the palette lists the node once. Adding i
 | [Variables](/docs/studio/blueprint/nodes/variables) | 9 | Declaring and reading blueprint and persistent variables. |
 | [Data](/docs/studio/blueprint/nodes/data) | 84 | Literals, conversion, predicates, JSON, strings, arrays. |
 | [Math](/docs/studio/blueprint/nodes/math) | 31 | Arithmetic, rounding, boolean logic, comparison. |
-| [Game](/docs/studio/blueprint/nodes/game) | 53 | Story control, dialog, preferences, saves, backlog. |
+| [Time](/docs/studio/blueprint/nodes/time) | 15 | The clock, the calendar, and dates as text. |
+| [Game](/docs/studio/blueprint/nodes/game) | 54 | Story control, dialog, preferences, saves, backlog. |
 | [App](/docs/studio/blueprint/nodes/app) | 10 | Surface navigation, window, application lifetime. |
 | [Localization](/docs/studio/blueprint/nodes/localization) | 6 | The game's player-facing locale. |
 | [Network](/docs/studio/blueprint/nodes/network) | 3 | HTTP requests and reading the response. |
