@@ -15,6 +15,7 @@ export const siteIconPath = '/narraleaf.ico';
 export const siteLogoPath = '/static/img/narraleaf-logo.webp';
 export const projectRoute = '/project';
 export const docsRoute = '/docs';
+export const downloadRoute = '/download';
 export const projectImageRoute = '/og/project';
 export const docsImageRoute = '/og/docs';
 export const projectContentRoute = '/llms.mdx/project';
