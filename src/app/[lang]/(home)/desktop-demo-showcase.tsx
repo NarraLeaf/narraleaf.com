@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 
 type DesktopDemoImage = {
-  src: string;
+  src: StaticImageData;
   alt: string;
 };
 
@@ -56,7 +56,7 @@ function GameDemoSlideshow(props: {
 
         return (
           <div
-            key={slide.src}
+            key={slide.src.src}
             aria-hidden={!active}
             className={cn(
               'absolute inset-0 transition-all duration-500 ease-out',
@@ -97,7 +97,7 @@ function GameDemoSlideshow(props: {
       <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
         {slides.map((slide, index) => (
           <button
-            key={slide.src}
+            key={slide.src.src}
             type="button"
             aria-label={`${labels.goToSlide} ${index + 1}`}
             aria-current={index === activeIndex}

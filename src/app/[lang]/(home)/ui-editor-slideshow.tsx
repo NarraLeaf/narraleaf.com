@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
@@ -56,7 +56,7 @@ function recomputeActiveSlideshow() {
 const visibilityThresholds = Array.from({ length: 21 }, (_, step) => step / 20);
 
 type UiEditorSlide = {
-  src: string;
+  src: StaticImageData;
   alt: string;
 };
 
@@ -162,7 +162,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
 
           return (
             <div
-              key={slide.src}
+              key={slide.src.src}
               aria-hidden={!active}
               className={cn(
                 'absolute inset-0 transition-all duration-500 ease-out',
@@ -211,7 +211,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
         <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
           {slides.map((slide, index) => (
             <button
-              key={slide.src}
+              key={slide.src.src}
               type="button"
               aria-label={`${labels.goToSlide} ${index + 1}`}
               aria-current={index === activeIndex}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import { cn } from '@/lib/cn';
 
 /**
@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn';
  * frame already occupies exactly the space the image will — so the fade is the
  * only thing that changes, which is what keeps it from reading as a jolt.
  */
-export function DownloadPosterCard({ src, sizes }: { src: string; sizes: string }) {
+export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes: string }) {
   const [loaded, setLoaded] = useState(false);
 
   /*
@@ -33,8 +33,6 @@ export function DownloadPosterCard({ src, sizes }: { src: string; sizes: string 
         ref={settleIfAlreadyLoaded}
         src={src}
         alt=""
-        width={2956}
-        height={1974}
         sizes={sizes}
         onLoad={() => setLoaded(true)}
         // The screenshots are 3:2; the card is 16:9 and takes the crop off the

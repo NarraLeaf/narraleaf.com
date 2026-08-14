@@ -23,6 +23,9 @@ import {
   Transform,
   useDialog,
 } from 'narraleaf-react';
+import demoNarraImage from '@/assets/demo/demo-narra.webp';
+import demoOutsideImage from '@/assets/demo/demo-outside.webp';
+import demoRoomImage from '@/assets/demo/demo-room.webp';
 import { type Locale } from '@/lib/i18n';
 
 function createDemoStory(locale: Locale) {
@@ -32,16 +35,16 @@ function createDemoStory(locale: Locale) {
     background: '#08151b',
   });
   const featureScene = new Scene('feature_scene', {
-    background: '/static/img/demo-outside.webp',
+    background: demoOutsideImage.src,
   });
   const loopScene = new Scene('loop_scene', {
-    background: '/static/img/demo-outside.webp',
+    background: demoOutsideImage.src,
   });
 
   const narrator = new Character(isZh ? '旁白' : 'Narrator');
   const narra = new Character('Narra');
   const narraImage = new NarraImage<any>({
-    src: '/static/img/demo-narra.webp',
+    src: demoNarraImage.src,
     position: {
       xalign: 0.64,
       yalign: 0.48,
@@ -50,7 +53,7 @@ function createDemoStory(locale: Locale) {
   });
 
   introScene.action([
-    introScene.background.char('/static/img/demo-room.webp', new FadeIn(600)),
+    introScene.background.char(demoRoomImage.src, new FadeIn(600)),
     narraImage.show({ duration: 600 }),
     narraImage.transform(
       Transform.create()

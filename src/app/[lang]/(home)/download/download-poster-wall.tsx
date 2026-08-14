@@ -1,3 +1,5 @@
+import type { StaticImageData } from 'next/image';
+import { studioSlides } from '@/assets/studio-slides';
 import { cn } from '@/lib/cn';
 import { DownloadPosterCard } from './download-poster-card';
 
@@ -24,11 +26,11 @@ const COLUMNS = [
     duration: '64s',
     direction: 'up',
     images: [
-      '/static/img/studio-slides/story-editor.webp',
-      '/static/img/studio-slides/ui-editor.webp',
-      '/static/img/studio-slides/dashboard.webp',
-      '/static/img/studio-slides/translation.webp',
-      '/static/img/studio-slides/build-for-production.webp',
+      studioSlides.storyEditor,
+      studioSlides.uiEditor,
+      studioSlides.dashboard,
+      studioSlides.translation,
+      studioSlides.buildForProduction,
     ],
   },
   {
@@ -36,11 +38,11 @@ const COLUMNS = [
     duration: '82s',
     direction: 'down',
     images: [
-      '/static/img/studio-slides/story-live-preview.webp',
-      '/static/img/studio-slides/ui-templates.webp',
-      '/static/img/studio-slides/blueprint-game-config.webp',
-      '/static/img/studio-slides/dev-mode.webp',
-      '/static/img/studio-slides/version-control.webp',
+      studioSlides.storyLivePreview,
+      studioSlides.uiTemplates,
+      studioSlides.blueprintGameConfig,
+      studioSlides.devMode,
+      studioSlides.versionControl,
     ],
   },
   {
@@ -48,14 +50,14 @@ const COLUMNS = [
     duration: '72s',
     direction: 'up',
     images: [
-      '/static/img/studio-slides/story-motion-editor.webp',
-      '/static/img/studio-slides/live2d-puppet.webp',
-      '/static/img/studio-slides/dialog-customization.webp',
-      '/static/img/studio-slides/plugin-system.webp',
+      studioSlides.storyMotionEditor,
+      studioSlides.live2dPuppet,
+      studioSlides.dialogCustomization,
+      studioSlides.pluginSystem,
       // The set has fourteen shots and three even columns want fifteen. The
       // shortest column is the one that runs out of cards first, so it borrows
       // one rather than being left short.
-      '/static/img/studio-slides/story-editor.webp',
+      studioSlides.storyEditor,
     ],
   },
 ] as const;
@@ -78,7 +80,7 @@ function PosterColumn({
   duration,
   direction,
 }: {
-  images: readonly string[];
+  images: readonly StaticImageData[];
   duration: string;
   direction: 'up' | 'down';
 }) {
@@ -107,7 +109,7 @@ function PosterColumn({
     >
       {cards.map((src, index) => (
         <DownloadPosterCard
-          key={`${src}-${index}`}
+          key={`${src.src}-${index}`}
           src={src}
           // Three cards to a wall that covers a little under half the page.
           sizes="(min-width: 1024px) 22rem, 45vw"

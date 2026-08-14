@@ -6,16 +6,20 @@ const withMDX = createMDX();
  * How long a browser may keep an image under `/static/img` before asking again.
  *
  * Next serves `public/` with `max-age=0, must-revalidate`, which is why nothing
- * on the site appeared instantly on a second visit: every screenshot cost a
- * round trip to be told it had not changed. The home page's fourteen Studio
- * shots are `unoptimized`, so they are these files directly; the download page's
- * wall goes through the optimizer, which derives its own header from this one.
+ * on the site appeared instantly on a second visit: every picture cost a round
+ * trip to be told it had not changed.
  *
- * Thirty days, and deliberately not `immutable`. These paths carry no content
- * hash, so the only way to publish a new screenshot under an old name is to wait
- * the window out — `immutable` would extend that to a reload the visitor has to
- * think to perform. Renaming the file still busts it immediately, which is the
- * intended way to replace one.
+ * What is left under this path is the docs screenshots and the brand mark. The
+ * demo captures used to be here too and are now imported from `src/assets`, so
+ * the build emits them to `/_next/static/media` under a content hash and Next
+ * gives them a year and `immutable` on its own — see `src/assets/studio-slides`.
+ *
+ * Thirty days here, and deliberately not `immutable`, because these paths still
+ * carry no hash: publishing a new docs screenshot under an old name means
+ * waiting the window out, and `immutable` would extend that to a reload the
+ * visitor has to think to perform. Renaming the file busts it at once, and
+ * `vercel cache invalidate --srcimg <path>` clears the optimizer's copy — though
+ * neither reaches a browser that already has one.
  */
 const IMAGE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
@@ -25,7 +29,8 @@ const config = {
   images: {
     // The floor for what the optimizer puts on `/_next/image` responses. Without
     // it the optimizer inherits the upstream `max-age=0` and re-validates every
-    // derivative too, however long the source is good for.
+    // derivative too, however long the source is good for. Safe to keep long for
+    // the hashed sources, whose URL changes whenever the picture does.
     minimumCacheTTL: IMAGE_MAX_AGE_SECONDS,
   },
   async headers() {

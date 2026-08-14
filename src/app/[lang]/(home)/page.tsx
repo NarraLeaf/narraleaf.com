@@ -1,6 +1,11 @@
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
+import { studioSlides } from '@/assets/studio-slides';
+import desktopCodeImage from '@/assets/home/desktop-code.webp';
+import desktopGameDialogImage from '@/assets/home/desktop-game-dialog.webp';
+import desktopGameMenuImage from '@/assets/home/desktop-game-menu.webp';
+import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
 import { appName, docsRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { notFound } from 'next/navigation';
@@ -524,35 +529,30 @@ const homeCopy = {
  */
 const studioSlideGroups = {
   craft: [
-    '/static/img/studio-slides/story-editor.webp',
-    '/static/img/studio-slides/story-live-preview.webp',
-    '/static/img/studio-slides/story-motion-editor.webp',
-    '/static/img/studio-slides/live2d-puppet.webp',
-    '/static/img/studio-slides/dashboard.webp',
+    studioSlides.storyEditor,
+    studioSlides.storyLivePreview,
+    studioSlides.storyMotionEditor,
+    studioSlides.live2dPuppet,
+    studioSlides.dashboard,
   ],
   customize: [
-    '/static/img/studio-slides/ui-editor.webp',
-    '/static/img/studio-slides/ui-templates.webp',
-    '/static/img/studio-slides/dialog-customization.webp',
-    '/static/img/studio-slides/blueprint-game-config.webp',
-    '/static/img/studio-slides/plugin-system.webp',
+    studioSlides.uiEditor,
+    studioSlides.uiTemplates,
+    studioSlides.dialogCustomization,
+    studioSlides.blueprintGameConfig,
+    studioSlides.pluginSystem,
   ],
   ship: [
-    '/static/img/studio-slides/translation.webp',
-    '/static/img/studio-slides/version-control.webp',
-    '/static/img/studio-slides/dev-mode.webp',
-    '/static/img/studio-slides/build-for-production.webp',
+    studioSlides.translation,
+    studioSlides.versionControl,
+    studioSlides.devMode,
+    studioSlides.buildForProduction,
   ],
-} as const satisfies Record<string, readonly string[]>;
+} as const satisfies Record<string, readonly StaticImageData[]>;
 
 type StudioSlideGroupId = keyof typeof studioSlideGroups;
 
-const desktopCodeImage = '/static/img/home/desktop-code.webp';
-
-const desktopDemoSlideImages = [
-  '/static/img/home/desktop-game-dialog.webp',
-  '/static/img/home/desktop-game-menu.webp',
-] as const;
+const desktopDemoSlideImages = [desktopGameDialogImage, desktopGameMenuImage] as const;
 
 function SectionIntro(props: { title: string; description: string }) {
   const { title, description } = props;
@@ -640,7 +640,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                 <div className="h-full origin-center rotate-[-1.5deg] transition-transform duration-[350ms] ease-out will-change-transform group-hover:rotate-0">
                   <div className="relative h-full overflow-hidden">
                     <Image
-                      src="/static/img/home/studio-workspace.webp"
+                      src={studioWorkspaceImage}
                       alt={copy.hero.imageAlt}
                       fill
                       priority
