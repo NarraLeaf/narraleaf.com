@@ -570,7 +570,7 @@ Reads back exactly what `Save Game` put on its `metadata` pin. System fields —
 
 `blueprint.game.save.getTime` · Latent
 
-When a slot was written. The save store stamps every record it writes, and this reads those stamps back — a save screen does not have to put a time into its own `metadata` and keep it in step.
+When a slot was written. The save store stamps every record it writes, and this node reads those stamps back. A save screen does not need to put a time into its own `metadata` and keep the two in step.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -581,10 +581,10 @@ When a slot was written. The save store stamps every record it writes, and this 
 | `createdAt` | out · data | `float` | When the slot was first written. `0` when the save is missing. |
 | `exists` | out · data | `boolean` | |
 
-Both times are milliseconds since 1 January 1970 UTC — the same unit `List Auto Saves` reports and every [Time](/docs/studio/blueprint/nodes/time) node accepts.
+Both times are milliseconds since 1 January 1970 UTC, the unit `List Auto Saves` reports and every [Time](/docs/studio/blueprint/nodes/time) node accepts.
 
 <Callout type="warn">
-Read `exists` to tell an empty slot apart. A missing save gives `savedAt` `0`, and `0` is also a real moment in 1970.
+Read `exists` to identify an empty slot. A missing save gives `savedAt` `0`, and `0` is also a valid moment in 1970.
 </Callout>
 
 ### Get Save Preview

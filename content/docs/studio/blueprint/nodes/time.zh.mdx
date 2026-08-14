@@ -1,20 +1,20 @@
 ---
 title: 时间
-description: 读取当前时间、处理日期，以及把一个时刻变成玩家读得懂的文本
+description: 读取当前时间、处理日期，以及把一个时刻格式化为文本
 ---
 
-十五个纯节点，用于当前时间和它周围的日历。`Now` 读钟。`Make Time` 与 `Get Time Parts` 在时刻和年月日字段之间往返。`Add Time` 与 `Time Difference` 做尊重月份长度的运算。四个格式化节点把时刻变成文本。
+十五个纯节点，用于读取当前时间与处理日期。`Now` 读取当前时刻。`Make Time` 与 `Get Time Parts` 在时刻与日历字段之间转换。`Add Time` 与 `Time Difference` 按每个月的实际长度做运算。四个格式化节点把时刻转成文本。
 
-最常见的用途是存档界面：槽位显示它是什么时候写的，也就是 [`Get Save Time`](/zh/docs/studio/blueprint/nodes/game#get-save-time) 接上本页任一格式化节点。
+常见用途是存档界面。要让槽位显示它的写入时间，把 [`Get Save Time`](/zh/docs/studio/blueprint/nodes/game#get-save-time) 接到本页任一格式化节点。
 
 ## 约定
 
-- **本页每个节点都是 `Pure`。** 它们都没有执行引脚，可用于 `event`、`function`、`macro` 图，也可用于 [Blueprint Value](/zh/docs/studio/blueprint)——存档槽位的标签正是 Blueprint Value。
-- **一个时刻就是一个数：1970 年 1 月 1 日 UTC 以来的毫秒数，走 `float` 引脚。** `Get Save Time` 与 `Get Latest Auto Save` 产出的就是这个单位，所以存档时间可以直接接进本页任何节点。
-- **本页没有时间比较节点。** 时刻越晚数值越大，[Math](/zh/docs/studio/blueprint/nodes/math) 里的 `<`、`>`、`Min`、`Max` 已经能排序两个时刻。
+- **本页每个节点都是 `Pure`。** 它们都没有执行引脚，可用于 `event`、`function`、`macro` 图，也可用于 [Blueprint Value](/zh/docs/studio/blueprint)。存档槽位的标签属于 Blueprint Value。
+- **一个时刻是一个数：1970 年 1 月 1 日 UTC 以来的毫秒数，走 `float` 引脚。** `Get Save Time` 与 `Get Latest Auto Save` 产出的即为这个单位，因此存档时间可以直接接进本页任何节点。
+- **本页没有时间比较节点。** 时刻越晚数值越大，因此 [Math](/zh/docs/studio/blueprint/nodes/math) 里的 `<`、`>`、`Min`、`Max` 已可用于比较与排序两个时刻。
 - **日历取玩家本地时区。** `Make Time`、`Get Time Parts`、`Add Time`、`Time Difference`、`Start Of Day`、`Is Same Day` 与 `Format Time` 都读本地时间。`To ISO String` 是例外，输出 UTC。
-- **不做缓存。** 每次读取都会重新求值，因此 `Now` 对每条读它的连线给出不同的答案。
-- **不是可用数值的引脚按 `0` 处理**，即 1970 年 1 月 1 日。`Format Time` 会照常打印这个日期而不作任何提示，所以格式化结果显示 1970 年，意味着它的输入没有接上。
+- **不做缓存。** 每次读取都会重新求值，因此 `Now` 对每条读取它的连线给出不同的结果。
+- **不是可用数值的引脚按 `0` 处理**，即 1970 年 1 月 1 日。`Format Time` 会直接打印这个日期，不作任何提示；格式化结果显示 1970 年，说明它读到的输入没有接上。
 
 ## Now
 
@@ -43,7 +43,7 @@ Make Time（构建时间）用本地日历字段构建一个时刻。
 | `millisecond` | in · data | `integer` | 0–999。支持卡片字面量。 |
 | `timestamp` | out · data | `float` | |
 
-超出范围的字段会进位到上一级。`month` 填 13 得到下一年的一月，`day` 填 0 得到上一个月的最后一天——「本月最后一天」就是这样表达的，不需要专门的节点。
+超出范围的字段会进位到上一级。`month` 填 13 得到下一年的一月；`day` 填 0 得到上一个月的最后一天，用它即可取到某个月的月末，不需要专门的节点。
 
 ## Get Time Parts
 
@@ -89,7 +89,7 @@ Format Time（格式化时间）按模板把一个时刻渲染成文本。
 | `SSS` | 毫秒 | `007` |
 | `A` / `a` | 上下午 | `PM` / `pm` |
 
-不是标记的内容原样输出。单引号之间的文本原样输出且不参与标记匹配，这是打出与标记同形字母的办法：`'Day' D` 得到 `Day 14`。连续两个单引号输出一个单引号。
+不是标记的内容原样输出。单引号之间的文本原样输出且不参与标记匹配，因此与标记同形的字母仍可打出：`'Day' D` 得到 `Day 14`。连续两个单引号输出一个单引号。
 
 ## Format Time Localized
 
@@ -110,17 +110,17 @@ Format Time Localized（按语言格式化时间）按某种语言的书写习�
 | `日期样式` | `无`、`短`、`中`、`长`、`完整`。默认为 `中`。 |
 | `时间样式` | 同样五项。默认为 `无`。 |
 
-两个样式都设为 `无` 时结果为空字符串。系统不认识的标记回退到玩家的语言。
+两个样式都设为 `无` 时结果为空字符串。系统无法识别的标记回退到玩家的语言。
 
 <Callout type="info">
-该节点不会自行读取游戏当前语言。把 [`Get Current Language`](/zh/docs/studio/blueprint/nodes/localization#get-current-language) 接到 `locale`，日期就会跟随玩家在游戏里选择的语言。
+该节点不会读取游戏当前语言。把 [`Get Current Language`](/zh/docs/studio/blueprint/nodes/localization#get-current-language) 接到 `locale`，日期即跟随玩家在游戏中选择的语言。
 </Callout>
 
 ## Format Relative Time
 
 `blueprint.time.formatRelative` · Pure
 
-Format Relative Time（格式化相对时间）用词句描述两个时刻的间隔：`5 分钟前`、`2 天后`。
+Format Relative Time（格式化相对时间）用文字描述两个时刻的间隔：`5 分钟前`、`2 天后`。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -154,9 +154,9 @@ Format Duration（格式化时长）把一段时长渲染成时钟读数。
 | --- | --- |
 | `排布` | `自动` 只在有小时时显示小时（`1:05`、`2:03:04`）。`时分秒` 总是显示（`00:01:05`）。`分秒` 从不显示（`01:05`）。默认为 `自动`。 |
 
-小时会累加而不是进位成天：三十小时的游戏时长显示为 `30:00:00`。
+小时会持续累加，不进位成天：三十小时的游戏时长显示为 `30:00:00`。
 
-输出只有数字和分隔符。要得到 `1 小时 20 分` 这样的写法，从 `Get Duration Parts` 取数字，再用可翻译的 [`Format Text`](/zh/docs/studio/blueprint/nodes/localization#format-text) 拼装。
+输出只有数字与分隔符。`1 小时 20 分` 这类写法需要翻译，请从 `Get Duration Parts` 取出数字，再用 [`Format Text`](/zh/docs/studio/blueprint/nodes/localization#format-text) 拼装。
 
 ## Get Duration Parts
 
@@ -177,7 +177,7 @@ Get Duration Parts（获取时长分量）把一段时长拆成各级单位。
 | `totalSeconds` | out · data | `integer` | 整段时长换算成秒。 |
 | `negative` | out · data | `boolean` | |
 
-各项数字都是绝对值，符号只在 `negative` 上。
+各项数字均为绝对值，符号由 `negative` 给出。
 
 ## Add Time
 
@@ -197,13 +197,13 @@ Add Time（时间偏移）把一个时刻前移或后移。
 | --- | --- |
 | `单位` | `毫秒`、`秒`、`分钟`、`小时`、`天`、`周`、`月`、`年`。默认为 `秒`。 |
 
-`月` 与 `年` 走日历，并停在目标月份的最后一天：1 月 31 日加一个月是 2 月 28 日，闰年是 29 日。
+`月` 与 `年` 按日历计算，并停在目标月份的最后一天：1 月 31 日加一个月是 2 月 28 日，闰年是 29 日。
 
 ## Time Difference
 
 `blueprint.time.difference` · Pure
 
-Time Difference（时间差）计算 `to` 减 `from`，按一个单位表示。
+Time Difference（时间差）计算 `to` 减 `from`，以选定的单位表示。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -217,7 +217,7 @@ Time Difference（时间差）计算 `to` 减 `from`，按一个单位表示。
 | --- | --- |
 | `单位` | 同 `Add Time`。默认为 `秒`。 |
 
-固定长度的单位保留小数：九十分钟按小时问得到 `1.5`，要整数就再接一个 `Floor`。`月` 与 `年` 只数走完的整个日历单位，因此差一天不满一个月时结果是 `0`。
+固定长度的单位保留小数：九十分钟以小时表示为 `1.5`，需要整数时再接一个 `Floor`。`月` 与 `年` 只计入走完的整个日历单位，因此相差一天不满一个月时结果为 `0`。
 
 ## Parse Time
 
@@ -231,24 +231,24 @@ Parse Time（解析时间）把写好的日期文本读回一个时刻。
 | `timestamp` | out · data | `float` | 文本读不出来时为 `0`。 |
 | `ok` | out · data | `boolean` | |
 
-要写的格式是 ISO 8601。只有日期的写法——`2026-08-14`——按本地零点读取。
+要写的格式是 ISO 8601。只有日期、没有时间的写法（如 `2026-08-14`）按本地零点读取。
 
 <Callout type="warn">
-要看 `ok`。解析失败产生 `0`，而 1970 年的时刻也是这个数。
+请读取 `ok`。解析失败时输出 `0`，而 `0` 同时也是 1970 年的一个有效时刻。
 </Callout>
 
 ## To ISO String
 
 `blueprint.time.toIsoString` · Pure
 
-To ISO String（转为 ISO 字符串）把一个时刻写成 **UTC** 的 ISO 8601 字符串：`2026-08-14T07:30:00.000Z`。用它把时间放进存档 metadata 或持久变量。
+To ISO String（转为 ISO 字符串）把一个时刻写成 **UTC** 的 ISO 8601 字符串：`2026-08-14T07:30:00.000Z`。用于把时间写入存档 metadata 或持久变量。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `timestamp` | in · data | `float` | 支持卡片字面量。 |
 | `result` | out · data | `string` | |
 
-`Parse Time` 能把它读回同一个时刻。
+`Parse Time` 可将它读回同一个时刻。
 
 ## Is Same Day
 
@@ -262,7 +262,7 @@ Is Same Day（是否同一天）判断两个时刻是否落在本地日历的同
 | `b` | in · data | `float` | 支持卡片字面量。 |
 | `result` | out · data | `boolean` | |
 
-判据是日历日而不是间隔：23:59 与次日 00:30 相差半小时，属于不同的两天。
+比较的是日历日：23:59 与次日 00:30 相差半小时，分属两天。
 
 ## Start Of Day
 
@@ -287,7 +287,7 @@ Get Time Zone（获取时区）读取游戏运行所在的时区。
 | `offsetMinutes` | out · data | `float` | 早于 UTC 的分钟数。UTC+8 为 `480`。 |
 | `name` | out · data | `string` | IANA 名称，如 `Asia/Shanghai`。系统不提供时为空字符串。 |
 
-## 给存档槽位标注时间
+## 显示存档的写入时间
 
 槽位的标签是一个 Blueprint Value，时刻由 [`Get Save Time`](/zh/docs/studio/blueprint/nodes/game#get-save-time) 提供：
 
@@ -295,4 +295,4 @@ Get Time Zone（获取时区）读取游戏运行所在的时区。
 - **相对时间**——`Now` 接 `from`，`savedAt` 接 `to`，再接 `Format Relative Time`。
 - **按天分组**——把存档的 `Start Of Day` 与 `Now` 的 `Start Of Day` 比较，或用 `Is Same Day`。
 
-空槽位靠 `Get Save Time` 的 `exists` 引脚区分。没有存档时它的 `savedAt` 是 `0`，而 `0` 同时也是一个真实的时刻。
+空槽位读 `Get Save Time` 的 `exists` 引脚判断。没有存档时 `savedAt` 为 `0`，而 `0` 同时也是一个有效时刻。
