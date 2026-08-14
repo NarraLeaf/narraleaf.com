@@ -29,6 +29,37 @@ html > body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0px !important;
 }
 
+/*
+ * The download page's poster wall.
+ *
+ * The column holds N copies of the same cards, so travelling 1/N of its height
+ * lands on the start of the next copy — the loop has no seam and needs no
+ * JavaScript to reset. Each card carries its own bottom margin rather than the
+ * column using `gap`, or that point would fall a gap short.
+ *
+ * `--poster-wall-copies` has to match the number of copies the column actually
+ * renders, so the component sets it from the same constant it repeats with.
+ */
+@keyframes poster-wall-scroll {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(calc(-100% / var(--poster-wall-copies, 2)));
+  }
+}
+
+.poster-wall-column {
+  animation: poster-wall-scroll var(--poster-wall-duration, 60s) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster-wall-column {
+    animation: none;
+  }
+}
+
 @keyframes demo-line-cue {
   0%,
   100% {

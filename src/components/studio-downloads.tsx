@@ -1,100 +1,42 @@
 import type { Locale } from '@/lib/i18n';
-
-const REPO = 'NarraLeaf/NarraLeaf-Studio';
-const LATEST_API = `https://api.github.com/repos/${REPO}/releases/latest`;
-const RELEASES_PAGE = `https://github.com/${REPO}/releases`;
-
-interface ReleaseAsset {
-  name: string;
-  browser_download_url: string;
-  size: number;
-}
-
-interface Release {
-  tag_name: string;
-  assets: ReleaseAsset[];
-}
-
-/**
- * Asset names carry the version (`NarraLeaf.Studio.Setup.0.4.0.exe`), so GitHub's
- * fixed `/releases/latest/download/<name>` URLs cannot be used — the name changes
- * every release. Resolve the real asset from the API instead.
- */
-const TARGETS = [
-  {
-    id: 'windows',
-    platform: 'Windows',
-    detail: 'x64 · Windows 10+',
-    match: (name: string) => name.endsWith('.exe'),
-  },
-  {
-    id: 'mac-arm64',
-    platform: 'macOS',
-    detail: 'Apple Silicon · macOS 11+',
-    // Studio is published for Apple Silicon only — there is deliberately no
-    // Intel row. An Intel dmg would have to be claimed by `.dmg && !arm64`,
-    // which is exactly the entry that was removed; do not reintroduce it
-    // without a release that actually produces the asset, or the table hangs
-    // a download link that can never resolve.
-    match: (name: string) => name.endsWith('-arm64.dmg'),
-  },
-] as const;
+import { STUDIO_RELEASES_PAGE, getStudioRelease, withDownloadSource } from '@/lib/studio-release';
 
 const TEXT = {
   en: {
-    platform: 'Platform',
-    file: 'File',
     download: 'Download',
+    mirror: 'Mirror',
     unavailable: 'All releases',
     allReleases: 'All releases',
   },
   zh: {
-    platform: '平台',
-    file: '文件',
     download: '下载',
+    mirror: '镜像源下载',
     unavailable: '全部版本',
     allReleases: '全部版本',
   },
 } satisfies Record<Locale, Record<string, string>>;
 
-async function fetchLatestRelease(): Promise<Release | null> {
-  try {
-    const response = await fetch(LATEST_API, {
-      headers: { Accept: 'application/vnd.github+json' },
-      // Unauthenticated GitHub API allows 60 requests/hour per IP, so this must
-      // not be fetched per request.
-      next: { revalidate: 3600 },
-    });
-
-    if (!response.ok) return null;
-    return (await response.json()) as Release;
-  } catch {
-    // A failed lookup degrades to the releases page rather than breaking the page.
-    return null;
-  }
-}
-
-function formatSize(bytes: number): string {
-  return `${Math.round(bytes / 1024 / 1024)} MB`;
-}
-
+/**
+ * The install table in the Studio docs.
+ *
+ * Shares `studio-release` with the download page, so a new platform or a
+ * renamed asset lands in both. Both sources are spelled out per row rather than
+ * one being picked by page language: a link whose destination depends on which
+ * translation you are reading is a link nobody can describe, and the mirror is
+ * the whole reason a reader in mainland China is on this page.
+ */
 export async function StudioDownloads({ lang = 'en' }: { lang?: Locale }) {
-  const release = await fetchLatestRelease();
+  const release = await getStudioRelease();
   const text = TEXT[lang];
-
-  const rows = TARGETS.map((target) => ({
-    ...target,
-    asset: release?.assets.find((asset) => target.match(asset.name)) ?? null,
-  }));
 
   return (
     <div className="not-prose my-6 overflow-hidden rounded-lg border border-fd-border">
       <div className="flex items-center justify-between gap-4 border-b border-fd-border bg-fd-muted/50 px-4 py-2.5 text-sm">
         <span className="font-medium text-fd-foreground">
-          NarraLeaf Studio {release?.tag_name ?? ''}
+          NarraLeaf Studio {release.version ?? ''}
         </span>
         <a
-          href={RELEASES_PAGE}
+          href={STUDIO_RELEASES_PAGE}
           className="text-fd-muted-foreground underline underline-offset-4 hover:text-fd-foreground"
           target="_blank"
           rel="noreferrer"
@@ -105,33 +47,34 @@ export async function StudioDownloads({ lang = 'en' }: { lang?: Locale }) {
 
       <table className="w-full text-sm">
         <tbody>
-          {rows.map((row) => (
-            <tr
-              key={row.id}
-              className="border-b border-fd-border last:border-b-0"
-            >
+          {release.downloads.map((row) => (
+            <tr key={row.id} className="border-b border-fd-border last:border-b-0">
               <td className="px-4 py-3 align-middle">
-                <div className="font-medium text-fd-foreground">
-                  {row.platform}
-                </div>
-                <div className="text-xs text-fd-muted-foreground">
-                  {row.detail}
-                </div>
+                <div className="font-medium text-fd-foreground">{row.platform}</div>
+                <div className="text-xs text-fd-muted-foreground">{row.detail}</div>
               </td>
               <td className="px-4 py-3 text-right align-middle">
-                {row.asset ? (
-                  <a
-                    href={row.asset.browser_download_url}
-                    className="font-medium text-fd-primary underline underline-offset-4"
-                  >
-                    {text.download}
-                    <span className="ml-2 font-normal text-xs text-fd-muted-foreground">
-                      {formatSize(row.asset.size)}
-                    </span>
-                  </a>
+                {row.url ? (
+                  // The same file twice, from two hosts. The size hangs off the
+                  // pair rather than each link, since it is the same download.
+                  <div className="flex flex-wrap items-baseline justify-end gap-x-4 gap-y-1">
+                    <a
+                      href={row.url}
+                      className="font-medium text-fd-primary underline underline-offset-4"
+                    >
+                      {text.download}
+                    </a>
+                    <a
+                      href={withDownloadSource(row.url, 'mirror')}
+                      className="font-medium text-fd-primary underline underline-offset-4"
+                    >
+                      {text.mirror}
+                    </a>
+                    <span className="text-xs font-normal text-fd-muted-foreground">{row.size}</span>
+                  </div>
                 ) : (
                   <a
-                    href={RELEASES_PAGE}
+                    href={STUDIO_RELEASES_PAGE}
                     className="font-medium text-fd-primary underline underline-offset-4"
                     target="_blank"
                     rel="noreferrer"
