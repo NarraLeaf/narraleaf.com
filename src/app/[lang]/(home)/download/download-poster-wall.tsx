@@ -1,5 +1,5 @@
-import Image from 'next/image';
 import { cn } from '@/lib/cn';
+import { DownloadPosterCard } from './download-poster-card';
 
 /**
  * A tilted wall of Studio screenshots, drifting from the bottom left to the top
@@ -106,18 +106,11 @@ function PosterColumn({
       }
     >
       {cards.map((src, index) => (
-        <Image
+        <DownloadPosterCard
           key={`${src}-${index}`}
           src={src}
-          alt=""
-          width={2956}
-          height={1974}
           // Three cards to a wall that covers a little under half the page.
           sizes="(min-width: 1024px) 22rem, 45vw"
-          // The screenshots are 3:2; the card is 16:9 and takes the crop off the
-          // bottom, where a Studio window has the least going on. No corners, no
-          // border — at this angle any frame reads as a box drawn on the page.
-          className="mb-4 aspect-video w-full object-cover object-top"
         />
       ))}
     </div>
