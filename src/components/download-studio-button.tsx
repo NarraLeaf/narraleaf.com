@@ -5,8 +5,8 @@ import { downloadRoute } from '@/lib/shared';
 import { type Locale, localizedPath } from '@/lib/i18n';
 
 const LABEL = {
-  en: 'Install Studio',
-  zh: '安装 Studio',
+  en: 'Download Studio',
+  zh: '下载 Studio',
 } satisfies Record<Locale, string>;
 
 /**

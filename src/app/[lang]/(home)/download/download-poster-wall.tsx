@@ -10,15 +10,19 @@ import { cn } from '@/lib/cn';
  * hidden from assistive tech instead of narrating twelve alt texts nobody asked
  * for. The page's actual content is the column beside it.
  *
- * Both columns travel the same way, so the whole surface reads as one drift up
- * and to the right; only the speeds differ, which is what keeps the two from
- * locking into a pattern the eye can follow. Shots come from the same set as the
- * home page's Studio run — 2956x1974 each, cropped to 16:9 by the card.
+ * Neighbouring columns travel opposite ways. Running them all one way made the
+ * wall one sliding sheet, and the eye reads a sheet as a single moving object it
+ * can follow; counter-travel gives every column a neighbour going the other way,
+ * so there is no shared direction to lock onto and the surface reads as depth
+ * instead. Speeds still differ so the columns do not beat against each other.
+ * Shots come from the same set as the home page's Studio run — 2956x1974 each,
+ * cropped to 16:9 by the card.
  */
 const COLUMNS = [
   {
     id: 'left',
     duration: '64s',
+    direction: 'up',
     images: [
       '/static/img/studio-slides/story-editor.webp',
       '/static/img/studio-slides/ui-editor.webp',
@@ -30,6 +34,7 @@ const COLUMNS = [
   {
     id: 'middle',
     duration: '82s',
+    direction: 'down',
     images: [
       '/static/img/studio-slides/story-live-preview.webp',
       '/static/img/studio-slides/ui-templates.webp',
@@ -41,6 +46,7 @@ const COLUMNS = [
   {
     id: 'right',
     duration: '72s',
+    direction: 'up',
     images: [
       '/static/img/studio-slides/story-motion-editor.webp',
       '/static/img/studio-slides/live2d-puppet.webp',
@@ -67,18 +73,35 @@ const COLUMNS = [
  */
 const COPIES = 3;
 
-function PosterColumn({ images, duration }: { images: readonly string[]; duration: string }) {
+function PosterColumn({
+  images,
+  duration,
+  direction,
+}: {
+  images: readonly string[];
+  duration: string;
+  direction: 'up' | 'down';
+}) {
   // Keys are index-based because the copies are the same files by design.
   const cards = Array.from({ length: COPIES }, () => images).flat();
 
   return (
     <div
-      className="poster-wall-column flex w-[42%] shrink-0 flex-col will-change-transform"
+      className="poster-wall-column flex h-fit w-[42%] shrink-0 flex-col will-change-transform"
       style={
         {
           '--poster-wall-duration': duration,
-          // The keyframe divides by this to land exactly one copy along.
+          // The keyframe divides by this to land exactly one copy along, which
+          // it can only do while `100%` means the stack of cards. `h-fit` is
+          // what makes it mean that: a flex item stretches to the row's height
+          // by default, so the column measured the frame it overflows — 883px
+          // against 2571px of cards — and every loop ended in a visible jump
+          // roughly a card and a half long.
           '--poster-wall-copies': COPIES,
+          // One keyframe, played backwards for the columns that fall. The loop
+          // stays seamless either way: both ends of the travel are one copy
+          // apart, and a copy of identical cards renders the same at both.
+          '--poster-wall-direction': direction === 'down' ? 'reverse' : 'normal',
         } as React.CSSProperties
       }
     >
@@ -103,32 +126,48 @@ function PosterColumn({ images, duration }: { images: readonly string[]; duratio
 
 export function DownloadPosterWall({ className }: { className?: string }) {
   return (
+    /*
+      Two nested masks rather than one: the horizontal feather rides on the
+      outer box and the vertical one on the box inside it, which composes them
+      without `mask-composite` — and, more to the point, keeps the vertical
+      feather off the rotated layer, where a mask would arrive at 12 degrees.
+    */
     <div
       aria-hidden
-      className={cn('pointer-events-none relative overflow-hidden select-none', className)}
+      className={cn(
+        'poster-wall-feather-x pointer-events-none relative overflow-hidden select-none',
+        className,
+      )}
     >
-      {/*
-        Rotated clockwise, so the columns climb from the bottom left to the top
-        right, and oversized so the corners the tilt opens up stay outside the
-        clip. The three columns together are wider than the frame on purpose —
-        cards running off both sides read as a surface continuing past the page,
-        which columns fitted neatly inside do not.
-      */}
-      <div className="absolute inset-0 flex origin-center scale-[1.4] gap-4 rotate-[12deg]">
-        {COLUMNS.map((column) => (
-          <PosterColumn key={column.id} images={column.images} duration={column.duration} />
-        ))}
-      </div>
+      <div className="poster-wall-feather-y absolute inset-0">
+        {/*
+          Rotated clockwise, so the columns climb from the bottom left to the top
+          right, and oversized so the corners the tilt opens up stay outside the
+          clip. The three columns together are wider than the frame on purpose —
+          cards running off both sides read as a surface continuing past the page,
+          which columns fitted neatly inside do not.
+        */}
+        <div className="absolute inset-0 flex origin-center scale-[1.4] gap-4 rotate-[12deg]">
+          {COLUMNS.map((column) => (
+            <PosterColumn
+              key={column.id}
+              images={column.images}
+              duration={column.duration}
+              direction={column.direction}
+            />
+          ))}
+        </div>
 
-      {/*
-        Every edge that meets the page dissolves into it. Without this the wall
-        stops at three straight lines and reads as a picture placed on the page
-        rather than a surface running underneath it — the right edge needs
-        nothing, since it runs off the viewport.
-      */}
-      <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-fd-background to-transparent" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-fd-background to-transparent" />
-      <div className="absolute inset-y-0 left-0 w-28 bg-gradient-to-r from-fd-background to-transparent" />
+        {/*
+          The wall goes soft on the same edges it goes transparent on, so it
+          recedes instead of stopping. Two passes, the near one wide and light
+          and the far one narrow and heavy: the second blurs what the first
+          already blurred, so the focus falls away gradually rather than
+          switching on halfway out.
+        */}
+        <div className="poster-wall-veil poster-wall-veil-near absolute inset-0" />
+        <div className="poster-wall-veil poster-wall-veil-far absolute inset-0" />
+      </div>
     </div>
   );
 }
