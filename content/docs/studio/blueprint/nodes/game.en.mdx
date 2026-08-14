@@ -500,6 +500,24 @@ Saves are project-local and keyed by an id you choose. Writing the same id twice
 `List Saves` returns player slots only. Autosaves live in a reserved id namespace — `@autosave.<n>` — and are listed by `List Auto Saves` instead; the two sets never overlap. That is deliberate: a save/load grid built on `List Saves` never has to filter Studio's own bookkeeping rows out, and an autosave screen never has to hide the player's slots. An autosave id is still an ordinary save id everywhere else, so it feeds `Load Save`, `Get Save Preview`, `Get Save Metadata` and `Delete Save` unchanged.
 </Callout>
 
+### Save fields
+
+A save carries two kinds of data. The engine writes one of them on every save: the line the save resumes from, who spoke it, and the timestamps. The other is yours, and **Save fields** is where you declare it.
+
+Open it from the button at the bottom of a `Save Game` or `Get Save Metadata` card. Each field has a name, a type and a default value.
+
+Declared fields become named pins: an input on `Save Game`, an output on `Get Save Metadata`. The list belongs to the project rather than to the node it was opened from, so every save node in the project shows the same fields and a field is declared once for all of them.
+
+Renaming a field relabels its pins and keeps every connection. Changing its type resets its default.
+
+| Behaviour | Result |
+| --- | --- |
+| A field is read from a save written before it was declared | The field's default value |
+| A field is deleted | Values already written under it stay in the save files that hold them |
+| A field is declared and left empty on a `Save Game` that runs | Project lint reports `blueprint/save-field-empty` as an error |
+
+The `metadata` pin stays on both nodes. On `Save Game` the declared fields are written over whatever it carries, so a key you declare wins over the same key inside it. On `Get Save Metadata` it still returns the whole stored object.
+
 ### Save Game
 
 `blueprint.game.save.write` · Latent
@@ -513,6 +531,7 @@ Serializes the live game into the project's local save store. With `Capture` set
 | `id` | in · data | `string` | Accepts an on-card literal. |
 | `metadata` | in · data | `json` | Optional. Anything [JSON](/docs/studio/blueprint/nodes/data) — object, array, string, number, boolean or `null`. Written as `null` when unwired. |
 | `screenshot` | in · data | `boolean` | Optional. Labelled **Capture** on the card. Accepts an on-card literal. |
+| one per declared field | in · data | the field's type | Named after the field. Accepts an on-card literal for the types that take one. |
 
 Fails when no game session is active.
 
@@ -557,7 +576,7 @@ The ids of the project's player saves. Order is not guaranteed. Files that are c
 
 `blueprint.game.save.getMetadata` · Latent
 
-Reads back exactly what `Save Game` put on its `metadata` pin. System fields — the id, the record type, `createdAt`, `updatedAt`, the preview — are not part of it. `Get Save Time` reads the two timestamps.
+Reads a save's author data. Each declared field comes out on its own pin; the `metadata` pin returns the whole stored object, including any key no field declares. System fields are not part of either: the id, the record type, `createdAt`, `updatedAt` and the preview are read with `Get Save Time` and `Get Save Preview`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -565,6 +584,7 @@ Reads back exactly what `Save Game` put on its `metadata` pin. System fields —
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
 | `metadata` | out · data | `json` | `null` when the save is missing or carries no user metadata. |
+| one per declared field | out · data | the field's type | Named after the field. The field's default value when the save does not carry it. |
 
 ### Get Save Time
 
@@ -585,6 +605,25 @@ Both times are milliseconds since 1 January 1970 UTC, the unit `List Auto Saves`
 
 <Callout type="warn">
 Read `exists` to identify an empty slot. A missing save gives `savedAt` `0`, and `0` is also a valid moment in 1970.
+</Callout>
+
+### Get Save Line
+
+`blueprint.game.save.getLine` · Latent
+
+The line a save resumes from, and who spoke it. The engine records both every time it serializes, and this node reads them back. A save screen does not need to read the backlog at save time and write the last entry into its own fields.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | Accepts an on-card literal. |
+| `line` | out · data | `string` | Empty when the save is missing, or when it was taken before any line played. |
+| `speaker` | out · data | `string` | Empty for narration, and for a save with no line yet. |
+| `exists` | out · data | `boolean` | |
+
+<Callout type="warn">
+This is not the newest backlog entry. The backlog holds the last line shown; these two fields hold the line the save resumes from. Saving from an overlay, or from a point where non-dialogue actions followed the last line, moves the two apart.
 </Callout>
 
 ### Get Save Preview

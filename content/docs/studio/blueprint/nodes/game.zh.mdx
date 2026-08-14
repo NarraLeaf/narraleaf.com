@@ -500,6 +500,24 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 `List Saves`只返回玩家存档。自动存档住在保留 id 命名空间里——`@autosave.<n>`——由`List Auto Saves`列出；两个集合永不重叠。这是刻意的：基于`List Saves`做的存读档网格从不需要过滤掉 Studio 自己的簿记条目，自动存档界面也从不需要藏起玩家的存档位。在别的地方，自动存档 id 就是一个普通存档 id，可以原样喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`。
 </Callout>
 
+### Save fields
+
+一份存档携带两类数据。一类由引擎在每次存档时写入：存档将从哪一句继续、那句话由谁说出、以及时间戳。另一类由你决定，**存档字段**就是声明它的地方。
+
+从 `Save Game` 或 `Get Save Metadata` 卡片底部的按钮打开。每个字段有名称、类型和默认值。
+
+声明过的字段会成为具名引脚：在 `Save Game` 上是输入，在 `Get Save Metadata` 上是输出。这份列表属于工程，不属于打开它的那个节点，因此工程内所有存档节点显示的字段完全一致，一个字段只需声明一次。
+
+重命名字段只更换引脚标签，已有的连线全部保留。改变类型会重置它的默认值。
+
+| 行为 | 结果 |
+| --- | --- |
+| 从声明该字段之前写下的存档中读取它 | 该字段的默认值 |
+| 删除字段 | 已写入的值仍留在持有它们的存档文件中 |
+| 会执行到的 `Save Game` 上，声明过的字段留空 | 工程 lint 以 error 报告 `blueprint/save-field-empty` |
+
+两个节点上的 `metadata` 引脚都保留。在 `Save Game` 上，声明字段会覆盖写在它之上，因此同名的键以声明字段为准；在 `Get Save Metadata` 上，它仍然返回完整的存储对象。
+
 ### Save Game
 
 `blueprint.game.save.write` · Latent
@@ -513,6 +531,7 @@ Save Game（保存游戏）把活动游戏序列化进项目的本地存档库�
 | `id` | in · data | `string` | 支持卡片字面量。 |
 | `metadata` | in · data | `json` | 可选。任意 [JSON](/zh/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`。 |
 | `screenshot` | in · data | `boolean` | 可选。卡片上标为 **Capture**。支持卡片字面量。 |
+| 每个声明字段一个 | in · data | 该字段的类型 | 以字段名标注。类型支持时可用卡片字面量。 |
 
 没有活动游戏会话时会失败。
 
@@ -557,7 +576,7 @@ List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证�
 
 `blueprint.game.save.getMetadata` · Latent
 
-Get Save Metadata（获取存档元数据）读回`Save Game`当初写在`metadata`引脚上的东西。系统字段——id、记录类型、`createdAt`、`updatedAt`、预览图——不属于它。两个时间戳由`Get Save Time`读取。
+Get Save Metadata（获取存档元数据）读取一份存档的作者数据。每个声明字段各占一个引脚；`metadata` 引脚返回完整的存储对象，包含没有任何字段声明过的键。系统字段不属于两者：id、记录类型、`createdAt`、`updatedAt` 与预览图分别由`Get Save Time`和`Get Save Preview`读取。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -565,6 +584,7 @@ Get Save Metadata（获取存档元数据）读回`Save Game`当初写在`metada
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量。 |
 | `metadata` | out · data | `json` | 存档不存在或没有用户 metadata 时为 `null`。 |
+| 每个声明字段一个 | out · data | 该字段的类型 | 以字段名标注。存档中没有该字段时给出它的默认值。 |
 
 ### Get Save Time
 
@@ -585,6 +605,25 @@ Get Save Time（获取存档时间）读取一个槽位的写入时间。存档�
 
 <Callout type="warn">
 空槽位读 `exists` 判断。存档不存在时 `savedAt` 为 `0`，而 `0` 同时也是 1970 年的一个有效时刻。
+</Callout>
+
+### Get Save Line
+
+`blueprint.game.save.getLine` · Latent
+
+Get Save Line（获取存档语句）读取一份存档将从哪一句继续，以及那句话由谁说出。引擎每次序列化都会记下这两项，该节点把它们读回来。存档界面不必在存档时去读 backlog，再把最后一条写进自己的字段。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | 支持卡片字面量。 |
+| `line` | out · data | `string` | 存档不存在，或存档写于任何对话播放之前时为空串。 |
+| `speaker` | out · data | `string` | 旁白，以及尚无对话的存档为空串。 |
+| `exists` | out · data | `boolean` | |
+
+<Callout type="warn">
+它不是 backlog 的最后一条。backlog 记的是最后显示过的那一句，这两个字段记的是存档将从哪一句继续。从叠层界面存档，或在最后一句之后还执行了非对话动作时，两者并不相同。
 </Callout>
 
 ### Get Save Preview
