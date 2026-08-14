@@ -21,7 +21,11 @@ function DemoIframe(props: { src: string; title: string }) {
       width={1280}
       height={720}
       className="absolute inset-0 block h-full w-full bg-[#08151b]"
-      loading="eager"
+      // The frame boots a whole second document — the narraleaf-react runtime
+      // plus the demo's scene art — for a section that sits well below the fold.
+      // Eager loading made every first paint pay for a player most visitors
+      // scroll past.
+      loading="lazy"
       scrolling="no"
       style={{ border: 0, display: 'block', height: '100%', width: '100%' }}
     />

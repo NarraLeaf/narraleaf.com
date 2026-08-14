@@ -32,16 +32,16 @@ function createDemoStory(locale: Locale) {
     background: '#08151b',
   });
   const featureScene = new Scene('feature_scene', {
-    background: '/static/img/demo-outside.jpg',
+    background: '/static/img/demo-outside.webp',
   });
   const loopScene = new Scene('loop_scene', {
-    background: '/static/img/demo-outside.jpg',
+    background: '/static/img/demo-outside.webp',
   });
 
   const narrator = new Character(isZh ? '旁白' : 'Narrator');
   const narra = new Character('Narra');
   const narraImage = new NarraImage<any>({
-    src: '/static/img/demo-narra.png',
+    src: '/static/img/demo-narra.webp',
     position: {
       xalign: 0.64,
       yalign: 0.48,
@@ -50,7 +50,7 @@ function createDemoStory(locale: Locale) {
   });
 
   introScene.action([
-    introScene.background.char('/static/img/demo-room.jpg', new FadeIn(600)),
+    introScene.background.char('/static/img/demo-room.webp', new FadeIn(600)),
     narraImage.show({ duration: 600 }),
     narraImage.transform(
       Transform.create()

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
-import { appName, docsRoute, gitConfig, projectRoute, siteIconPath } from '@/lib/shared';
+import { appName, docsRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { notFound } from 'next/navigation';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
@@ -547,11 +547,11 @@ const studioSlideGroups = {
 
 type StudioSlideGroupId = keyof typeof studioSlideGroups;
 
-const desktopCodeImage = '/static/img/home/desktop-code.png';
+const desktopCodeImage = '/static/img/home/desktop-code.webp';
 
 const desktopDemoSlideImages = [
-  '/static/img/home/desktop-game-dialog.png',
-  '/static/img/home/desktop-game-menu.png',
+  '/static/img/home/desktop-game-dialog.webp',
+  '/static/img/home/desktop-game-menu.webp',
 ] as const;
 
 function SectionIntro(props: { title: string; description: string }) {
@@ -640,7 +640,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                 <div className="h-full origin-center rotate-[-1.5deg] transition-transform duration-[350ms] ease-out will-change-transform group-hover:rotate-0">
                   <div className="relative h-full overflow-hidden">
                     <Image
-                      src="/static/img/home/studio-workspace.png"
+                      src="/static/img/home/studio-workspace.webp"
                       alt={copy.hero.imageAlt}
                       fill
                       priority
@@ -831,7 +831,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
           <div className="max-w-md space-y-4">
             <Link href={localizedPath('/', locale)} className="inline-flex items-center gap-3 font-semibold">
               <Image
-                src={siteIconPath}
+                src={siteLogoPath}
                 alt=""
                 width={32}
                 height={32}

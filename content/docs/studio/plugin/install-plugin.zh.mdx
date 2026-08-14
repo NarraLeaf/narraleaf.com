@@ -5,9 +5,19 @@ description: 从商店或文件夹安装插件、批准其权限，并启用、�
 
 插件在启动器的 **Plugins** 里管理，那里有两个列表：**Installed** 和 **Store**。你可以从商店安装，也可以从磁盘上的任意文件夹安装。
 
+<Figure
+    src="/static/img/docs/studio/zh/plugins.webp"
+    alt="启动器的插件页停在已安装列表上，内置插件已标出"
+/>
+
 ## 从商店安装
 
 商店列出的是某个注册表索引里的插件。默认是官方的 [NarraLeaf/Plugins](https://github.com/NarraLeaf/Plugins) 索引——一个经过策展的仓库，收录前会审查插件的行为和权限，而不只是看它能不能构建。想指向别处，改设置里的 **Registry URL**；留空即使用官方索引。
+
+<Figure
+    src="/static/img/docs/studio/zh/plugin-store.webp"
+    alt="商店列表：一个插件可以安装，已装好的插件标为已安装"
+/>
 
 点 **Install** 会下载发布包、完成安装，并直接进入权限提示。如果插件声明的 Studio 版本范围不包含你这个构建，按钮会被隐去、行上写明它需要哪个版本，而不是让安装到后面才失败。
 
@@ -44,6 +54,10 @@ hello-1.0.0/
 ### 批准权限
 
 Studio 会弹出提示，逐项列出插件请求的内容。审查后批准或拒绝。什么都不请求的插件会直接安装，不弹出提示。
+
+<Figure
+    brief="一个申请了多项能力的插件的权限提示：同一列表中同时出现文件系统路径、运行期能力和随游戏打包的原生程序"
+/>
 
 </Step>
 </Steps>

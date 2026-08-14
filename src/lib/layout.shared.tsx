@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { gitConfig, navBrandName, siteIconPath } from './shared';
+import { gitConfig, navBrandName, siteLogoPath } from './shared';
 import { type Locale, i18n, localizedPath } from './i18n';
 import { topLevelNavItems } from './top-level-nav';
 
@@ -19,7 +19,7 @@ export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutPr
       title: (
         <span className="inline-flex items-center gap-2 font-semibold">
           <Image
-            src={siteIconPath}
+            src={siteLogoPath}
             alt=""
             width={28}
             height={28}

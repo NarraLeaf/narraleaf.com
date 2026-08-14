@@ -11,6 +11,11 @@ One language is the **source**: the language the story is written in. Every othe
 
 Add a language by its code (`en`, `ja`, `zh-CN`) and a display name shown to players. Any language in the list can be made the source.
 
+<Figure
+    src="/static/img/docs/studio/en/localization.webp"
+    alt="The Localization panel's Languages section, with the source language marked"
+/>
+
 Removing a language takes it out of the game. Its translations stay on disk and return if the language is added again.
 
 Each language has a **fallback language**. An entry with no translation falls back to that language, and then to the source, so a partly translated language still renders. Studio rejects a fallback that leads back to the language itself.
@@ -18,6 +23,10 @@ Each language has a **fallback language**. An entry with no translation falls ba
 ## Translating
 
 The translation table lists the project's source text beside its translations, and reports progress per language: how many entries are translated, and how many were translated before the source text changed and are waiting for review.
+
+<Figure
+    brief="The translation table on a project with two languages beyond the source: source text and translation side by side, one entry marked as waiting for review, and the per-language progress above it."
+/>
 
 ## Exchange
 
