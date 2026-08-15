@@ -65,7 +65,13 @@ export function baseOptions(locale: Locale = i18n.defaultLanguage): BaseLayoutPr
             width={28}
             height={28}
             className="size-7 shrink-0 rounded-sm"
-            priority
+            // This is a 3KB mark that must not compete with the LCP image for the
+            // head's first preload slot. `priority` put it there outright; plain
+            // `eager` still did, because React's SSR hoists a preload for every
+            // <img> that is neither `loading="lazy"` nor `fetchPriority="low"`.
+            // Low priority opts out of that hoisting and still loads immediately.
+            loading="eager"
+            fetchPriority="low"
             unoptimized
           />
           <span>{navBrandName}</span>

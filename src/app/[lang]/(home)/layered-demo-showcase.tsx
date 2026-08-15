@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode, useEffect, useState } from 'react';
-import { motion } from 'motion/react';
 
 type LayeredDemoShowcaseProps = {
   code: ReactNode;
@@ -12,10 +11,17 @@ type LayeredDemoShowcaseProps = {
 
 type ActivePanel = 'code' | 'demo';
 
-const panelTransition = {
-  duration: 0.24,
-  ease: [0.22, 1, 0.36, 1],
-} as const;
+/**
+ * The panel cross-fade is two interpolated values on hover, which CSS does on its own.
+ *
+ * This used to be a pair of `motion.div`s. `motion` is a peer dependency of narraleaf-react
+ * and resolves to v11 here, while fumadocs-ui carries its own v12 — so importing it in this
+ * one component put a second complete copy of framer-motion into the home page's first load,
+ * for `initial={false}` plus an opacity and a box-shadow. The timing below is the same curve
+ * and duration the motion `transition` used, so the animation is unchanged.
+ */
+const panelTransition =
+  'opacity 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1)';
 
 function panelOpacity(active: boolean, isLayeredLayout: boolean) {
   return !isLayeredLayout || active ? 1 : 0.72;
@@ -63,45 +69,43 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
   return (
     <div className="mt-8">
       <div className="relative grid gap-6 lg:block lg:h-[432px]">
-        <motion.div
+        <div
           role="group"
           tabIndex={0}
           aria-label={codeLabel}
           onFocus={() => setActivePanel('code')}
           onMouseEnter={() => setActivePanel('code')}
-          initial={false}
-          animate={{
+          style={{
             opacity: panelOpacity(codeIsActive, isLayeredLayout),
             boxShadow: panelShadow(codeIsActive, isLayeredLayout),
+            transition: panelTransition,
           }}
-          transition={panelTransition}
           className={[
             'relative w-full rounded-2xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-0 lg:left-0 lg:w-[62%]',
             codeIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
           {code}
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           role="group"
           tabIndex={0}
           aria-label={demoLabel}
           onFocus={() => setActivePanel('demo')}
           onMouseEnter={() => setActivePanel('demo')}
-          initial={false}
-          animate={{
+          style={{
             opacity: panelOpacity(demoIsActive, isLayeredLayout),
             boxShadow: panelShadow(demoIsActive, isLayeredLayout),
+            transition: panelTransition,
           }}
-          transition={panelTransition}
           className={[
             'relative w-full rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
             demoIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
           {demo}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

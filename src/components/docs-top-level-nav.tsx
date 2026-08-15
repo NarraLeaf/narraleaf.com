@@ -39,7 +39,8 @@ export function DocsTopLevelNav({
               width={28}
               height={28}
               className="size-7 shrink-0 rounded-sm"
-              priority
+              loading="eager"
+              fetchPriority="low"
               unoptimized
             />
             <span>{navBrandName}</span>

@@ -9,6 +9,12 @@ import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
 import { appName, docsRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { notFound } from 'next/navigation';
+// These stay statically imported on purpose. They are all below the fold, but the
+// page is a Server Component: `next/dynamic` cannot take `ssr: false` here, so the
+// components still server-render and React still fetches their chunks to hydrate
+// the initial tree. Measured, the dynamic form shipped 1,457 bytes MORE for the
+// same 14 chunks. Deferring them for real would mean not server-rendering the
+// screenshots, which would cost the page its content in the HTML.
 import { UiEditorSlideshow } from './ui-editor-slideshow';
 import { ProjectModelTabs, type ProjectModelTabCopy } from './project-model-tabs';
 import { DesktopDemoShowcase } from './desktop-demo-showcase';
@@ -644,7 +650,17 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                       alt={copy.hero.imageAlt}
                       fill
                       priority
-                      sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 118vw"
+                      // `priority` alone emits the preload but leaves priority to the
+                      // browser's heuristics; this states it on both the <img> and the
+                      // preload link, which is what the LCP element wants.
+                      fetchPriority="high"
+                      quality={60}
+                      // Below `lg` the frame is the viewport less the 24px inset above — ~94vw,
+                      // widening to 96vw only on hover. The old 118vw over-declared it by a
+                      // quarter, which at a phone's DPR pushed the candidate the browser picked
+                      // from the 1080w up to the 1920w. This is the LCP element, so that was the
+                      // single most expensive byte on the page.
+                      sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 96vw"
                       className="object-cover object-left-top"
                     />
                   </div>

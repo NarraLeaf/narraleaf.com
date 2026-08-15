@@ -32,6 +32,14 @@ const config = {
     // derivative too, however long the source is good for. Safe to keep long for
     // the hashed sources, whose URL changes whenever the picture does.
     minimumCacheTTL: IMAGE_MAX_AGE_SECONDS,
+    // Next 16 only honours a `quality` the config lists here; anything else falls
+    // back to 75 without warning. The screenshots ask for 60.
+    qualities: [60, 75],
+    // The widest source on the site is the 2400px hero, so a 3840 candidate can
+    // never be satisfied — it just invites retina desktops to request a size the
+    // optimizer answers with the original. Capping at 2048 also keeps the number
+    // of distinct transforms down.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
   },
   async headers() {
     return [
