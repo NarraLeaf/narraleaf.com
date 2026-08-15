@@ -81,7 +81,13 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
             transition: panelTransition,
           }}
           className={[
-            'relative w-full rounded-2xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-0 lg:left-0 lg:w-[62%]',
+            // `min-w-0`: stacked below `lg` these are grid items, whose automatic
+            // minimum size is their content's min-content width. The code panel's
+            // <code> is `min-w-max`, so without this the track stretches to the
+            // longest script line (~480px) and takes the whole page's width with it
+            // — the phone gets a horizontally scrolling document instead of a
+            // horizontally scrolling code block.
+            'relative w-full min-w-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-0 lg:left-0 lg:w-[62%]',
             codeIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
@@ -100,7 +106,7 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
             transition: panelTransition,
           }}
           className={[
-            'relative w-full rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
+            'relative w-full min-w-0 rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
             demoIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
