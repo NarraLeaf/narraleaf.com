@@ -12,6 +12,15 @@ import { cn } from '@/lib/cn';
  * by card as the network delivers them. Nothing moves when an image lands — the
  * frame already occupies exactly the space the image will — so the fade is the
  * only thing that changes, which is what keeps it from reading as a jolt.
+ *
+ * That placeholder is a layer of its own rather than a fill on the card,
+ * because the screenshots are not rectangles: each one is a Studio window with
+ * a soft drop shadow around it, and about a fifth of every file is transparent
+ * or part-transparent. A fill on the card sits behind that shadow for as long
+ * as the card exists, which turns the whole margin into a flat grey block and
+ * squares the window off — the alpha reads as lost. As a layer it can go to
+ * zero the moment the image lands, and the wall gets windows floating over the
+ * page instead of tiles butted against each other.
  */
 export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes: string }) {
   const [loaded, setLoaded] = useState(false);
@@ -28,7 +37,14 @@ export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes
   }, []);
 
   return (
-    <div className="mb-4 aspect-video w-full overflow-hidden bg-fd-muted">
+    <div className="relative mb-4 aspect-video w-full overflow-hidden">
+      <div
+        aria-hidden
+        className={cn(
+          'absolute inset-0 bg-fd-muted transition-opacity duration-700 ease-out',
+          loaded ? 'opacity-0' : 'opacity-100',
+        )}
+      />
       <Image
         ref={settleIfAlreadyLoaded}
         src={src}
@@ -39,7 +55,7 @@ export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes
         // bottom, where a Studio window has the least going on. No corners, no
         // border — at this angle any frame reads as a box drawn on the page.
         className={cn(
-          'size-full object-cover object-top transition-opacity duration-700 ease-out',
+          'relative size-full object-cover object-top transition-opacity duration-700 ease-out',
           loaded ? 'opacity-100' : 'opacity-0',
         )}
       />
