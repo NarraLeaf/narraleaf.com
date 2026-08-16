@@ -18,10 +18,10 @@ Values are tagged with their type on the way into a save so that types JSON cann
 {type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"}
 ```
 
-This is part of the save format rather than an implementation detail — it is what [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `store` actually contains, grouped per namespace by [SerializedNamespaceData](/docs/narraleaf-react/core/types/SerializedNamespaceData).
+This is part of the save format: it is what [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `store` contains, grouped per namespace by [SerializedNamespaceData](/docs/narraleaf-react/core/types/SerializedNamespaceData).
 
 <Callout type="warning">
-    Read and write stored values through [Namespace](/docs/narraleaf-react/core/game/storable/namespace), which wraps and unwraps them for you. The wrapper is an object, so a stored `false` is truthy until it is unwrapped — reading a save by hand is how that bites.
+    Read and write stored values through [Namespace](/docs/narraleaf-react/core/game/storable/namespace), which wraps and unwraps them for you. The wrapper is an object, so a stored `false` is truthy until it is unwrapped.
 </Callout>
 
-`data` holds a `StorableType` — one value of the kinds a namespace accepts, see [Persistent](/docs/narraleaf-react/core/elements/persistent).
+`data` holds a `StorableType`: one value of the kinds a namespace accepts, see [Persistent](/docs/narraleaf-react/core/elements/persistent).

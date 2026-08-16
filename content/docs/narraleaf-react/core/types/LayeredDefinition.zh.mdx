@@ -40,7 +40,7 @@ export type LayerVariants = Record<string, string | null>;
  * 根据当前生效的标签派生该层的 src。自身不声明任何标签
  *
  * 解析函数是不透明的，它可能返回的 src 对预载器不可见，会在首次使用时才被获取。
- * 请优先使用 LayerVariants —— 包括用于跟随其他层的组的层，它已经不再需要解析函数 ——
+ * 请优先使用 LayerVariants，包括用于跟随其他层的组的层（它已经不再需要解析函数），
  * 只把解析函数留给确实无法枚举的来源
  */
 export type LayerResolver = (tags: ReadonlySet<string>) => string | null;

@@ -1,7 +1,7 @@
 ---
 title: "DevTools"
 ---
-`DevTools` 是一个面向**编辑器宿主**的静态工具类 —— 实时预览、检查器、舞台编辑器、缩略图渲染器等。它暴露了这类宿主所需、而常规剧本 API 有意不提供的少数引擎内部能力：动作标识、直接注册可显示元素、当前对话行，以及层叠图像的逐层 src。
+`DevTools` 是一个面向**编辑器宿主**的静态工具类：实时预览、检查器、舞台编辑器、缩略图渲染器等。它暴露了这类宿主所需、而常规剧本 API 有意不提供的少数引擎内部能力：动作标识、直接注册可显示元素、当前对话行，以及层叠图像的逐层 src。
 
 编写游戏本身完全不需要它。
 
@@ -10,12 +10,12 @@ import {DevTools} from "narraleaf-react/built-in";
 ```
 
 <Callout type="info">
-    所有成员都是静态的 —— 没有需要构造的实例。`DevTools` 同时也从包根入口（`narraleaf-react`）重新导出，但请优先使用 `narraleaf-react/built-in` 这个入口。
+    所有成员都是静态的，没有需要构造的实例。`DevTools` 同时也从包根入口（`narraleaf-react`）重新导出，但请优先使用 `narraleaf-react/built-in` 这个入口。
 </Callout>
 
 ## 动作标识
 
-故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址 —— 例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝。
+故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址，例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝。
 
 ### getActionId
 
@@ -108,7 +108,7 @@ const actions = DevTools.chainToActions(
 <Steps>
 <Step>
 
-把一组动作 —— 或一条链 —— 包装成单个 [Control](/zh/docs/narraleaf-react/core/elements/control) 动作，从而把整个序列当作一条语句处理
+把一组动作，或一条链，包装成单个 [Control](/zh/docs/narraleaf-react/core/elements/control) 动作，从而把整个序列当作一条语句处理
 
 - `action: LogicAction.Actions[] | Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - 要包装的动作或链
 - 返回 `ControlAction`
@@ -144,7 +144,7 @@ const scene = DevTools.getCurrentScene(gameState);
 
 [层叠图像](/zh/docs/narraleaf-react/core/elements/image#layered-image)每一层的 src，**自下而上**。值为 `null` 的项表示该层在给定标签下不绘制任何东西。非层叠图像返回空数组
 
-层叠图像没有单一的 src 可读 —— 它是一个图层栈 —— 因此需要自行渲染舞台元素缩略图的宿主，必须按顺序自己合成这些 src
+层叠图像是一个图层栈而不是单一的 src，因此需要自行渲染舞台元素缩略图的宿主，必须按顺序自己合成这些 src
 
 - `image: Image` - 参见 [Image](/zh/docs/narraleaf-react/core/elements/image)
 - `tags?: string[]` - 用于解析的标签。省略时使用图像当前的标签
@@ -171,7 +171,7 @@ for (const src of preview) {
 <Steps>
 <Step>
 
-读取一个可显示元素当前的变换状态属性 —— 位置、不透明度、缩放、旋转、比例、特效。返回的是浅拷贝，修改它不会影响舞台
+读取一个可显示元素当前的变换状态属性：位置、不透明度、缩放、旋转、比例、特效。返回的是浅拷贝，修改它不会影响舞台
 
 适用于捕获实时姿态，例如用元素当前的舞台状态预填一个动作编辑器
 
@@ -247,7 +247,7 @@ DevTools.registerDisplayable(gameState, ghost, scene, layer);
 
 为元素指定一个明确的 id
 
-能从场景动作树到达的元素会在故事构造时得到生成的 id（`e-0`、`e-1`……）。而通过 [registerDisplayable](#registerdisplayable) 直接注册的元素不在这棵树里，否则会一直沿用默认 id，作为 React key 与其他元素冲突 —— 所以要给它一个唯一 id，并使用一个独特的前缀，确保永远不会撞上生成的 id
+能从场景动作树到达的元素会在故事构造时得到生成的 id（`e-0`、`e-1`……）。而通过 [registerDisplayable](#registerdisplayable) 直接注册的元素不在这棵树里，否则会一直沿用默认 id，作为 React key 与其他元素冲突。要给它一个唯一 id，并使用一个独特的前缀，确保永远不会撞上生成的 id
 
 - `element: LogicAction.GameElement` - 元素
 - `id: string` - 要指定的 id
@@ -307,7 +307,7 @@ if (dialog?.ended) {
 <Steps>
 <Step>
 
-订阅当前对话行的变化 —— 创建、打字完成、推进与结算 —— 同时覆盖 ADV 与 NVL 模式
+订阅当前对话行的变化（创建、打字完成、推进与结算），同时覆盖 ADV 与 NVL 模式
 
 监听器不携带任何载荷；请调用 [getCurrentDialog](#getcurrentdialog) 读取新状态
 
@@ -354,7 +354,7 @@ type DevToolsCurrentDialog = {
 <Steps>
 <Step>
 
-一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 在存储中注册所用的名字 —— 也就是 [Storable.getNamespace](/zh/docs/narraleaf-react/core/game/storable) 接受的那个字符串
+一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 在存储中注册所用的名字，也就是 [Storable.getNamespace](/zh/docs/narraleaf-react/core/game/storable) 接受的那个字符串
 
 - `persistent: Persistent<any>` - 参见 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)
 - 返回 `string`
@@ -370,7 +370,7 @@ const name = DevTools.getNamespaceName(playerPersistent);
 <Steps>
 <Step>
 
-`DynamicPersistent` 类本身；除此之外它不从包中导出。它是 `Persistent` 的内部变体，命名空间带前缀且在运行时创建 —— 场景的局部变量就是其中一例
+`DynamicPersistent` 类本身；除此之外它不从包中导出。它是 `Persistent` 的内部变体，命名空间带前缀且在运行时创建。场景的局部变量就是其中一例
 
 ```typescript
 const Dynamic = DevTools.DynamicPersistent;

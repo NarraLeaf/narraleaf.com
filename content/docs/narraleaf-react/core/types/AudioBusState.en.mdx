@@ -22,16 +22,14 @@ type AudioBusState = {
 
 A bus and both of its numbers, as returned by `game.audioBuses.list()`.
 
-The two are kept apart on purpose. One gain node was being asked to be two things at once — the
-author's mix position and the player's slider — and whichever was written last silently erased the
-other. Splitting them makes the layering total and unambiguous: **declared × player = what is on the
-node**, and neither can overwrite the other.
+The two values are separate: **declared × player = what is on the node**, and neither
+overwrites the other.
 
 ## volume
 
-The player's control. **This is the half to persist** — it is the only one a player owns, and
-restoring it lets an author re-mix a shipped game without a returning player's saved settings pinning
-the old mix forever. `game.audioBuses.getVolumes()` returns exactly these values keyed by id.
+The player's control, and **the half to persist**. Restoring it lets an author re-mix a shipped
+game without a returning player's saved settings pinning the old mix.
+`game.audioBuses.getVolumes()` returns these values keyed by id.
 
 ## declaredVolume
 
@@ -41,7 +39,7 @@ not from storage; persisting it would be persisting the game's own content.
 
 ## effectiveVolume
 
-The product of the two — what is actually on the gain node.
+The product of the two, which is what is on the gain node.
 
 - See [Audio Buses](/docs/narraleaf-react/core/game/audio-buses) for the full model.
 

@@ -6,7 +6,7 @@ title: "Vfx"
     Available since `0.16.0`.
 </Callout>
 
-Vfx plays a **looping video as a full-screen stage overlay** for particle and ambience effects — falling petals, light dust, rain, snow, fog, light flares — without canvas or WebGL.
+Vfx plays a **looping video as a full-screen stage overlay** for particle and ambience effects (falling petals, light dust, rain, snow, fog, light flares) without canvas or WebGL.
 
 The overlay renders above the scenes and any playing [Video](/docs/narraleaf-react/core/elements/video), inside the stage camera boundary: [Camera](/docs/narraleaf-react/core/elements/camera) pan/zoom/shake moves the weather with the shot while the dialog UI stays fixed.
 
@@ -54,8 +54,8 @@ ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-bla
 
 ## Behavior
 
-- `show`/`hide` fades **complete instantly** when the player skips, and a source that fails to load logs an error and resolves immediately — a broken asset never blocks the story.
-- Visible overlays are captured by save/load and re-appear — playing, or frozen if paused — without a fade. Saves created before `0.16.0` load fine.
+- `show`/`hide` fades **complete instantly** when the player skips, and a source that fails to load logs an error and resolves immediately, so a broken asset never blocks the story.
+- Visible overlays are captured by save/load and re-appear without a fade, playing or frozen if paused. Saves created before `0.16.0` load fine.
 - Undo restores the overlay's previous visibility.
 
 ## Public Methods

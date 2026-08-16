@@ -6,7 +6,7 @@ title: "Watching stored values"
     Available since `0.19.0`.
 </Callout>
 
-[Storable](/docs/narraleaf-react/core/game/storable) reports every write, so a host that has to react to a stored value — light an achievement when `gold` reaches 100, mirror a flag into an editor panel, keep a HUD in sync — can listen instead of polling.
+[Storable](/docs/narraleaf-react/core/game/storable) reports every write, so a host that reacts to a stored value can listen instead of polling: unlock an achievement when `gold` reaches 100, mirror a flag into an editor panel, or keep a HUD in sync.
 
 ```typescript
 const storable = game.getLiveGame().getStorable();
@@ -29,25 +29,23 @@ const token = storable.onChange("persistent:player", "gold", ({next}) => {
 token.cancel();
 ```
 
-The payload is [StorableChange](/docs/narraleaf-react/core/types/StorableChange). Its `namespace` is the **key** the namespace is registered under — the same string `getNamespace` takes and the one a save file carries, not the human-readable name. A namespace declared as `new Persistent("player", ...)` is registered as `"persistent:player"`; a scene's local store is registered as `"local:"` plus the scene's name.
+The payload is [StorableChange](/docs/narraleaf-react/core/types/StorableChange). Its `namespace` is the **key** the namespace is registered under, the same string `getNamespace` takes and the one a save file carries, not the human-readable name. A namespace declared as `new Persistent("player", ...)` is registered as `"persistent:player"`; a scene's local store is registered as `"local:"` plus the scene's name.
 
-The listener runs **after** the new value is readable, so it can read the rest of the namespace and see a consistent state. [assign](/docs/narraleaf-react/core/game/storable/namespace#assign) reports one change per key; [reset](/docs/narraleaf-react/core/game/storable/namespace#reset) reports the return to each default, and reports a key written after construction as changing to `undefined`, because that is what `reset` does to it.
+The listener runs **after** the new value is readable, so it can read the rest of the namespace and see a consistent state. [assign](/docs/narraleaf-react/core/game/storable/namespace#assign) reports one change per key. [reset](/docs/narraleaf-react/core/game/storable/namespace#reset) reports the return to each default, and reports a key written after construction as changing to `undefined`.
 
 ## Subscribe on the Storable, not on a Namespace
 
-The events live on `Storable` rather than on [Namespace](/docs/narraleaf-react/core/game/storable/namespace), and that is not an arbitrary choice.
-
-`newGame()` and loading a save both **rebuild every namespace from scratch** — the store is cleared and each registered [Persistent](/docs/narraleaf-react/core/elements/persistent) constructs a fresh `Namespace` object. The `Storable` itself is created once, with the [LiveGame](/docs/narraleaf-react/core/game/live-game), and is never replaced. A subscription registered on the store therefore survives both; anything bound to a namespace object would go quiet after the first load, without an error to explain it.
+`newGame()` and loading a save both **rebuild every namespace from scratch**: the store is cleared and each registered [Persistent](/docs/narraleaf-react/core/elements/persistent) constructs a fresh `Namespace` object. The `Storable` is created once, with the [LiveGame](/docs/narraleaf-react/core/game/live-game), and is never replaced. A subscription registered on the store survives both; a subscription bound to a namespace object goes quiet after the first load, with no error to explain it.
 
 <Callout type="warning">
-    For the same reason, do not cache the object returned by `getNamespace` across a `newGame()` or a load. Call `getNamespace` again — a held reference points at a namespace that is no longer registered, so reads see stale values and writes report nothing.
+    For the same reason, do not cache the object returned by `getNamespace` across a `newGame()` or a load. Call `getNamespace` again. A held reference points at a namespace that is no longer registered, so reads see stale values and writes report nothing.
 </Callout>
 
-## A write that does not move the value reports nothing
+## Writes that do not change the value
 
-Writing a value equal to the one already there is not a change and wakes nothing up. A line that re-asserts a flag it has already set, or a script that runs `assign` with the values already in place, costs no callbacks.
+Writing a value equal to the one already there reports nothing.
 
-Equality is **structural, not by reference**. A stored value is by definition serializable — a primitive, a `Date`, or a plain object/array of those — so comparing it costs no more than writing it to a save, while the ordinary authoring idioms rebuild the container even when nothing inside it moved:
+Equality is **structural, not by reference**. A stored value is serializable by definition (a primitive, a `Date`, or a plain object or array of those), and the ordinary authoring idioms rebuild the container even when nothing inside it moved:
 
 ```typescript
 namespace.assign({gold: 10});                        // reports once
@@ -57,13 +55,11 @@ namespace.set("bag", v => ({...v, gold: v.gold}));   // new object, same content
 ```
 
 - `Date` values compare by timestamp, not by identity.
-- A value outside the serializable domain (a class instance, a function — `set` warns but still stores it) is only equal to itself, so it always reports a change.
+- A value outside the serializable domain (a class instance, or a function, which `set` warns about but still stores) is only equal to itself, so it always reports a change.
 
-## Loading a save reports itself once, not key by key
+## Loading a save
 
-A save carries every key of every namespace it knew about. Reporting a load as changes would turn one `deserialize()` into hundreds of callbacks describing a history the player never lived through — the values did not evolve, they were replaced wholesale.
-
-A bulk application therefore fires **`onRestore`** exactly once, naming the namespaces involved, and no `onChange` at all:
+A bulk application fires **`onRestore`** once, naming the namespaces involved, and no `onChange` at all:
 
 ```typescript
 storable.onRestore(({namespaces}) => {
@@ -71,10 +67,10 @@ storable.onRestore(({namespaces}) => {
 });
 ```
 
-This covers [deserialize](/docs/narraleaf-react/core/game/live-game#deserialize) — one event for the whole save — and rewinding a single namespace to a snapshot, which is how a scene's locals are undone: one event naming that namespace. Ordinary play, where values do evolve one write at a time, still reports per-key changes.
+This covers [deserialize](/docs/narraleaf-react/core/game/live-game#deserialize), which fires one event for the whole save, and rewinding a single namespace to a snapshot, which is how a scene's locals are undone and fires one event naming that namespace. Ordinary play still reports per-key changes.
 
 <Callout type="warning">
-    **A host needs both signals.** `onChange` is deliberately silent during a load, so a listener watching one key will not fire when a loaded save *arrives* already at the interesting value. Re-check the value on `onRestore` as well; using only one of the two will miss cases.
+    **A host needs both signals.** `onChange` is silent during a load, so a listener watching one key does not fire when a loaded save arrives already at the interesting value. Re-check the value on `onRestore` as well.
 </Callout>
 
 ```typescript
@@ -95,11 +91,11 @@ storable.onRestore(({namespaces}) => {
 
 ## Raw events
 
-[onChange](/docs/narraleaf-react/core/game/storable#onchange) and [onRestore](/docs/narraleaf-react/core/game/storable#onrestore) are filters over one dispatcher, exposed as `storable.events` for the rare host that wants to attach to it directly:
+[onChange](/docs/narraleaf-react/core/game/storable#onchange) and [onRestore](/docs/narraleaf-react/core/game/storable#onrestore) are filters over one dispatcher, exposed as `storable.events` for a host that attaches to it directly:
 
 | Event | Payload |
 | --- | --- |
 | `event:storable.change` | [StorableChange](/docs/narraleaf-react/core/types/StorableChange) |
 | `event:storable.restore` | [StorableRestore](/docs/narraleaf-react/core/types/StorableRestore) |
 
-Prefer `onChange`, which does the namespace and key filtering for you.
+Prefer `onChange`, which filters by namespace and key.

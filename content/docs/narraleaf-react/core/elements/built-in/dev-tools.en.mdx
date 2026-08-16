@@ -1,7 +1,7 @@
 ---
 title: "DevTools"
 ---
-`DevTools` is a static utility class for **editor hosts** — a live preview, an inspector, a stage editor, a thumbnail renderer. It exposes the few engine internals such a host needs and that the ordinary story API deliberately does not: action identity, direct registration of a displayable, the current dialog line, and a layered image's per-layer sources.
+`DevTools` is a static utility class for **editor hosts**: a live preview, an inspector, a stage editor, a thumbnail renderer. It exposes the engine internals such a host needs and the ordinary story API does not: action identity, direct registration of a displayable, the current dialog line, and a layered image's per-layer sources.
 
 You never need it to write a game.
 
@@ -10,12 +10,12 @@ import {DevTools} from "narraleaf-react/built-in";
 ```
 
 <Callout type="info">
-    Every member is static — there is nothing to construct. `DevTools` is also re-exported from the package root (`narraleaf-react`), but the `narraleaf-react/built-in` entry is the one to prefer.
+    Every member is static; there is nothing to construct. `DevTools` is also re-exported from the package root (`narraleaf-react`), but the `narraleaf-react/built-in` entry is the one to prefer.
 </Callout>
 
 ## Action Identity
 
-Every action in a story receives an id when the story is constructed: a generated one (`a-0`, `a-1`, ...) unless a **static id** was assigned to it, in which case that id is used instead. A static id is what makes an action addressable across rebuilds of the story — for example as the target of [fastForward](/docs/narraleaf-react/core/game/live-game). Duplicate static ids are rejected at story construction.
+Every action in a story receives an id when the story is constructed: a generated one (`a-0`, `a-1`, ...) unless a **static id** was assigned to it, in which case that id is used instead. A static id is what makes an action addressable across rebuilds of the story, for example as the target of [fastForward](/docs/narraleaf-react/core/game/live-game). Duplicate static ids are rejected at story construction.
 
 ### getActionId
 
@@ -108,7 +108,7 @@ const actions = DevTools.chainToActions(
 <Steps>
 <Step>
 
-Wrap actions — or a chain — into a single [Control](/docs/narraleaf-react/core/elements/control) action, so a whole sequence can be handled as one statement.
+Wrap actions, or a chain, into a single [Control](/docs/narraleaf-react/core/elements/control) action, so a whole sequence can be handled as one statement.
 
 - `action: LogicAction.Actions[] | Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - The actions or chain to wrap
 - Returns `ControlAction`
@@ -144,7 +144,7 @@ const scene = DevTools.getCurrentScene(gameState);
 
 The src of each of a [layered image](/docs/narraleaf-react/core/elements/image#layered-image)'s layers, **bottom to top**. A `null` entry is a layer that draws nothing for the given tags. A non-layered image yields an empty array.
 
-A layered image has no single src to read — it is a stack — so a host rendering its own thumbnail of an on-stage element has to composite these itself, in order.
+A layered image is a stack rather than a single src, so a host rendering its own thumbnail of an on-stage element has to composite these itself, in order.
 
 - `image: Image` - See [Image](/docs/narraleaf-react/core/elements/image)
 - `tags?: string[]` - The tags to resolve against. Defaults to the image's current tags.
@@ -171,7 +171,7 @@ for (const src of preview) {
 <Steps>
 <Step>
 
-Read a displayable's current transform-state props — position, opacity, zoom, rotation, scale, effects. Returns a shallow copy, so mutating it changes nothing on stage.
+Read a displayable's current transform-state props: position, opacity, zoom, rotation, scale, effects. Returns a shallow copy, so mutating it changes nothing on stage.
 
 Intended for capturing a live pose, for example to prefill a motion editor with an element's current stage state.
 
@@ -228,7 +228,7 @@ DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
 
 Register a displayable into a scene's render tree **without** emitting a `displayable:init` action. The element renders immediately at its constructor-config transform state; visibility is governed by `opacity > 0`.
 
-Intended for hosts that pre-pose a stage: construct elements with their computed state as constructor config — config state survives `element.reset()` and `newGame()` — then register them from a [Script](/docs/narraleaf-react/core/elements/script) action or after mount.
+Intended for hosts that pre-pose a stage: construct elements with their computed state as constructor config (config state survives `element.reset()` and `newGame()`), then register them from a [Script](/docs/narraleaf-react/core/elements/script) action or after mount.
 
 The call is idempotent: an element the scene root's auto-init actions already registered is left alone.
 
@@ -253,7 +253,7 @@ DevTools.registerDisplayable(gameState, ghost, scene, layer);
 
 Assign an explicit element id.
 
-Elements reachable from a scene's action tree receive generated ids (`e-0`, `e-1`, ...) at story construction. An element registered directly via [registerDisplayable](#registerdisplayable) is outside that tree and would otherwise keep the default id, colliding with others as a React key — so give it a unique id, with a distinct prefix so it never collides with a generated one.
+Elements reachable from a scene's action tree receive generated ids (`e-0`, `e-1`, ...) at story construction. An element registered directly via [registerDisplayable](#registerdisplayable) is outside that tree and would otherwise keep the default id, colliding with others as a React key. Give it a unique id, with a distinct prefix so it never collides with a generated one.
 
 - `element: LogicAction.GameElement` - The element
 - `id: string` - The id to assign
@@ -313,7 +313,7 @@ if (dialog?.ended) {
 <Steps>
 <Step>
 
-Subscribe to changes of the currently presented dialog line — creation, typing completion, advance and settle — across both ADV and NVL modes.
+Subscribe to changes of the currently presented dialog line (creation, typing completion, advance and settle) across both ADV and NVL modes.
 
 The listener carries no payload; call [getCurrentDialog](#getcurrentdialog) to read the new state.
 
@@ -360,7 +360,7 @@ type DevToolsCurrentDialog = {
 <Steps>
 <Step>
 
-The name a [Persistent](/docs/narraleaf-react/core/elements/persistent) is registered under in the store — the same string [Storable.getNamespace](/docs/narraleaf-react/core/game/storable) takes.
+The name a [Persistent](/docs/narraleaf-react/core/elements/persistent) is registered under in the store, the same string [Storable.getNamespace](/docs/narraleaf-react/core/game/storable) takes.
 
 - `persistent: Persistent<any>` - See [Persistent](/docs/narraleaf-react/core/elements/persistent)
 - Returns `string`
@@ -376,7 +376,7 @@ const name = DevTools.getNamespaceName(playerPersistent);
 <Steps>
 <Step>
 
-The `DynamicPersistent` class, which is otherwise not exported from the package. It is the internal `Persistent` variant whose namespace is prefixed and created at runtime — a scene's locals are one.
+The `DynamicPersistent` class, which is otherwise not exported from the package. It is the internal `Persistent` variant whose namespace is prefixed and created at runtime. A scene's locals are one.
 
 ```typescript
 const Dynamic = DevTools.DynamicPersistent;

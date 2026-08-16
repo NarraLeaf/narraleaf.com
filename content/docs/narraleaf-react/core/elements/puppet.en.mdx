@@ -7,27 +7,21 @@ title: "Puppet"
     Available since `0.20.0`.
 </Callout>
 
-Puppet is a box on the stage whose **interior is drawn by a backend you register**. The engine owns the outside of that box — where it sits, which layer it belongs to, its transform, its opacity, and its entry in the saved game — and hands the inside to your code.
+Puppet is a box on the stage whose interior is drawn by a backend you register. The engine owns the outside of the box: its position, layer, transform, opacity, and its entry in the saved game. Your backend draws the inside.
 
 ```ts
 import {Puppet} from "narraleaf-react";
 ```
 
-The engine ships no renderer and understands none. `src`, `options`, command names and payloads are opaque values it stores, forwards and serialises untouched. That is what makes a puppet useful: a host can plug in a 2D model renderer, a particle system, or anything else it already owns, and the character it draws still stands where the script puts it, moves with the [Camera](/docs/narraleaf-react/core/elements/camera), poses from the story, and comes back correctly from a saved game — without a line of that renderer's code living in the engine.
+The engine ships no renderer. `src`, `options`, command names and payloads are opaque values that it stores, forwards and serialises untouched, so a host can plug in a 2D model renderer, a particle system, or any other renderer it already owns. The character that renderer draws still stands where the script puts it, moves with the [Camera](/docs/narraleaf-react/core/elements/camera), poses from the story, and is restored from a saved game.
 
-## What a puppet is not
-
-A puppet is **not a renderer**. Nothing inside its box is drawn by NarraLeaf-React. If you register no backend, the element still exists — it takes its place on stage, it transforms, it saves and restores — and it simply draws nothing. That is a normal state, not a crash; see [Graceful degradation](#graceful-degradation).
-
-It is also not the same thing as putting a `<canvas>` over the stage by hand. A canvas dropped on top knows nothing about where the character stands, which layer it is on, what the camera is doing, or what a saved game should contain. A puppet is the half the engine can supply, so that only the drawing is left to you.
+With no backend registered, the element still takes its place on stage, transforms, saves and restores, and draws nothing. That is a normal state, not a crash. See [Missing or failing backends](#missing-or-failing-backends).
 
 ## Registering a backend
 
-A backend is registered on the [Game](/docs/narraleaf-react/core/game/game) instance rather than passed through config: it is a live object with methods, not serialisable data, and the config is deep-merged and may be frozen.
+Register a backend on the [Game](/docs/narraleaf-react/core/game/game) instance, not through config: it is a live object with methods, and config is deep-merged and may be frozen. Register **before the game mounts**. A plugin can call this from its own `register(game)`.
 
-Register **before the game mounts**. A plugin may call this from its own `register(game)`.
-
-Here is a complete, if deliberately silly, backend. Its "model" is a small JSON manifest naming a colour and a texture — enough to show the two things a real backend has to deal with: a bundle it can only resolve after parsing, and a first pose that arrives while it is still loading.
+The backend below is complete. Its model is a JSON manifest naming a colour and a texture, which covers the two things a real backend has to handle: a bundle it can only resolve after parsing, and a first pose that arrives while it is still loading.
 
 ```ts title="swatch.ts"
 import {Game, type PuppetBackend} from "narraleaf-react";
@@ -43,8 +37,8 @@ const swatch: PuppetBackend = {
         box.style.outline = ctx.options.outline ? "2px solid white" : "none";
         container.appendChild(box);
 
-        // A model is a bundle, and the manifest is what names the rest of it — so the
-        // siblings cannot be resolved until this has landed.
+        // The manifest names the rest of the bundle, so the siblings cannot be
+        // resolved until it has landed.
         const loaded = fetch(ctx.resolveSrc(ctx.src))
             .then((response) => response.json() as Promise<{colour: string; texture: string}>)
             .then((manifest) => {
@@ -55,14 +49,14 @@ const swatch: PuppetBackend = {
         return {
             ready: () => loaded,
 
-            // A complete state, never a diff — and the first one arrives before `ready()` is
-            // called at all, so wait for the load rather than drawing into nothing.
+            // A complete state, never a diff. The first one arrives before `ready()`
+            // is called, so wait for the load rather than drawing into nothing.
             apply: (state) => loaded.then(() => {
                 box.textContent = [state.motion, state.expression].filter(Boolean).join(" / ");
                 box.style.opacity = String(state.params.alpha ?? 1);
             }),
 
-            // One-shot things the state deliberately does not model.
+            // One-shot things the state does not model.
             command(name, payload) {
                 if (name === "flash") {
                     box.animate([{filter: "brightness(3)"}, {filter: "none"}], {duration: 200});
@@ -86,7 +80,7 @@ export const game = new Game();
 game.registerPuppetBackend(swatch);
 ```
 
-and hand that game to the provider:
+Hand that game to the provider:
 
 ```tsx
 <GameProviders game={game}>
@@ -96,32 +90,30 @@ and hand that game to the provider:
 
 Registering under a name that is already taken replaces the previous backend.
 
-## The order the engine calls a backend in
+## Backend lifecycle
 
-The first step of this surprises everybody, so it is worth reading before writing a backend:
+The engine calls a backend in this order:
 
 1. `mount()` returns the instance.
-2. `apply()` is called at once with the complete initial state — **before `ready()` is called at all**, never mind resolved. The first pose therefore arrives while the model is still loading.
-3. `ready()` is called once whatever `apply()` returned has settled, and the element reaches `"ready"` when it resolves.
+2. `apply()` is called at once with the complete initial state, **before `ready()` is called at all**. The first pose arrives while the model is still loading.
+3. `ready()` is called once whatever `apply()` returned has settled. The element reaches `"ready"` when it resolves.
 4. `apply()`, `command()` and `resize()` follow for as long as the element is on stage. Any of them can arrive before `ready()` has resolved.
 5. `dispose()` ends it, at any point, loading included. The engine calls nothing on that instance afterwards, and the container is emptied.
 
-Step 2 is deliberate and is not going to change. A backend wants the pose it is meant to load *into* at load time; gating it on `ready` would buy a tidier contract at the price of every model visibly snapping from its setup pose to the author's pose a frame after it appears.
-
-There are two ways to take it, and both are fine:
+Step 2 is fixed behaviour. Handle it in one of two ways:
 
 - **Hold the state** and re-apply it once the model is up.
-- **Return a promise from `apply()`** that waits for the load — which also holds `ready()` back until the pose has landed, so the element is not called ready before it looks right. That is what the example above does.
+- **Return a promise from `apply()`** that waits for the load. That also holds `ready()` back until the pose has landed, so the element does not reach `"ready"` before it looks right. The example above does this.
 
 <Callout type="warning">
-    Every member of `PuppetInstance` that is not marked optional is **required** — implement all of them. The engine nevertheless checks `ready` and `resize` for existence before calling them, because the object crosses a boundary no compiler watches: a plain JavaScript host, or a `PuppetBackend` cast into place, can hand over something that does not satisfy the contract. Those checks are damage control for a broken backend, not permission to leave the two out.
+    Implement every member of `PuppetInstance` that is not marked optional. The engine checks `ready` and `resize` for existence before calling them, because a plain JavaScript host or a `PuppetBackend` cast into place can hand over an object that does not satisfy the contract. Those checks do not make the two optional.
 </Callout>
 
-## A model is a bundle
+## Resolving files in a model bundle
 
-No real 2D character model is one file. It is a manifest plus an atlas plus texture pages, or a model file plus motions plus physics plus textures — and **which siblings exist is only knowable after parsing the first one**, because the manifest is what names them. A backend cannot be handed a list up front, and making the author enumerate one would move model parsing to the party least able to do it.
+A 2D character model is a manifest plus an atlas plus texture pages, or a model file plus motions plus physics plus textures. Which siblings exist is knowable only after parsing the first file, so the backend resolves them itself.
 
-So it gets the arithmetic instead. `ctx.resolveSibling(path)` resolves a path against the directory `src` sits in:
+`ctx.resolveSibling(path)` resolves a path against the directory `src` sits in:
 
 ```ts
 // src: "models/alice/alice.model.json"
@@ -131,21 +123,26 @@ ctx.resolveSibling("../shared/eyes.png");     // -> "models/shared/eyes.png"
 ctx.resolveSibling("https://cdn/x.png");      // -> unchanged; absolute wins
 ```
 
-`.` and `..` are folded away, clamping at the root rather than climbing out of it. An already-absolute path — a scheme, a leading `/`, a protocol-relative `//host/…`, a data URI — comes back as it stands, because that is what a manifest naming a remote texture means. An empty path resolves to `src` itself. `\` is read as `/`, so a host handing over a native Windows path still gets a usable answer, and the answer always comes back with `/`.
+Rules:
 
-This is the **only** structure the engine will ever read out of `src`, and it does so only when asked. It still does not know what `src` means: not the format, not the contents, not which files it pulls in. A backend whose `src` is an opaque key rather than a location has no directory to resolve against, gets the path back untouched, and should be reading its own `options` instead — which the engine forwards just as verbatim, and where a host can put a map, a base URL, or anything else it likes.
+- `.` and `..` are folded away, clamping at the root instead of climbing out of it.
+- An already-absolute path (a scheme, a leading `/`, a protocol-relative `//host/…`, a data URI) comes back as it stands.
+- An empty path resolves to `src` itself.
+- `\` is read as `/`, and the result always uses `/`.
+
+The directory is the only structure the engine reads out of `src`, and only when `resolveSibling` asks for it. The engine does not know the format of `src`, its contents, or which files it pulls in. A backend whose `src` is an opaque key rather than a location has no directory to resolve against, gets the path back untouched, and reads its own `options` instead, which the engine also forwards verbatim.
 
 ## Preloading
 
 `ctx.resolveSrc` resolves a source by the same rules images use: a data URI comes back unchanged, and anything else is looked up in the preload cache before being handed back untouched. `resolveSibling` ends with the same pass, so a texture warmed with [scene.preloadImage](/docs/narraleaf-react/core/elements/scene#preloadimage) is served from the cache there too.
 
 <Callout type="warning">
-    **A puppet's own `src` is not registered for preloading.** It is a model manifest, not an image, and the engine has no idea what textures it will pull in. A backend that wants its textures warm has to have the author warm them by hand with `scene.preloadImage`; everything not in the cache is a plain URL the backend fetches itself.
+    **A puppet's own `src` is not registered for preloading.** It is a model manifest, not an image, and the engine does not know which textures it pulls in. To warm a backend's textures, call `scene.preloadImage` for them. Everything not in the cache is a plain URL the backend fetches itself.
 </Callout>
 
 ## Creating a puppet
 
-`backend` and `src` are required; everything else has a default.
+`backend` and `src` are required. Everything else has a default.
 
 ```typescript
 const alice = new Puppet({
@@ -157,21 +154,21 @@ const alice = new Puppet({
 });
 ```
 
-A puppet is placed on the stage the same way an [Image](/docs/narraleaf-react/core/elements/image) is: referencing it from a scene's actions is enough for the scene to initialise it.
+Place a puppet on the stage the same way as an [Image](/docs/narraleaf-react/core/elements/image): referencing it from a scene's actions is enough for the scene to initialise it.
 
-`size` is the logical size of the box in pixels, and `null` — the default — means **the stage size**. The backend scales its own content inside the box; the element's transform (position, zoom, scale, rotation) applies on top of it, exactly as it would to an image.
+`size` is the logical size of the box in pixels. The default, `null`, means the stage size. The backend scales its own content inside the box, and the element's transform (position, zoom, scale, rotation) applies on top of it, as it does to an image.
 
 <Callout type="warning">
-    **A puppet cannot change its `src`.** The backend's instance lives for exactly as long as the element is on stage, and swapping the model underneath it would mean tearing that instance down while the engine's box, transform and saved state stay put. Use a second element instead.
+    **A puppet cannot change its `src`.** The backend instance lives for exactly as long as the element is on stage. Use a second element instead.
 </Callout>
 
 <Callout type="info">
     A puppet has no transitions of its own in this release. `show()` and `hide()` fade the box with opacity.
 </Callout>
 
-## Posing it from the story
+## Posing a puppet from the story
 
-Six chainable actions, divided along exactly the line `PuppetState` draws:
+Six chainable actions, split along the line `PuppetState` draws:
 
 ```typescript
 scene.action([
@@ -183,49 +180,49 @@ scene.action([
     alice.setSlot("prop", "umbrella"),
 
     alice.command("playMotion", {id: "wave"}),                 // the story moves straight on
-    alice.command("playMotion", {id: "bow"}, {await: true}),   // ...and here it waits for it
+    alice.command("playMotion", {id: "bow"}, {await: true}),   // this one waits for it
 
     alice.setExpression(null),
     alice.hide({duration: 400}),
 ]);
 ```
 
-The five `set*` actions each write one field of the persistent state and then hand the backend the **whole** state. That is not overhead, it is the point: what an author leaves behind is always a complete state, so a load restores it in one `apply` and an undo reverses it in one more. Nothing is ever replayed. `params` and `slots` merge key by key, so nudging one parameter does not silently clear the rest.
+The five `set*` actions each write one field of the persistent state and then hand the backend the **whole** state. A load restores it in one `apply` and an undo reverses it in one more, and nothing is replayed. `params` and `slots` merge key by key, so setting one parameter leaves the rest in place.
 
-`command` sends a one-shot the engine neither models nor interprets. It leaves nothing behind, which is what makes it the right home for a motion that plays once, a hit test, or lip sync — and equally why a load does not restore it and an undo does not take it back.
+`command` sends a one-shot that the engine neither models nor interprets. It leaves nothing behind, so a load does not restore it and an undo does not take it back. Use it for a motion that plays once, a hit test, or lip sync.
 
 <Callout type="info">
-    **Nothing waits unless it is asked to.** `{await: true}` is opt-in on `command`, and the `set*` methods have no equivalent at all. The engine cannot tell a motion worth a beat from a parameter nudge, and an author who writes `setExpression("smile")` before a line meant the line, not a pause of whatever length the renderer decides to take. A waiting command is skippable like any other timed action.
+    **Nothing waits unless it is asked to.** `{await: true}` is opt-in on `command`, and the `set*` methods have no equivalent. A waiting command is skippable like any other timed action.
 </Callout>
 
-A backend that throws, rejects, or was never registered is logged rather than fatal: the state change still stands and is applied in full the next time the element mounts, and a command aimed at a puppet that is not on stage warns and is dropped.
+A backend that throws, rejects, or was never registered is logged rather than fatal: the state change still stands and is applied in full the next time the element mounts. A command aimed at a puppet that is not on stage warns and is dropped.
 
-## State, and why one-shot actions live in `command`
+## Puppet state
 
-A puppet's persistent state is `{motion, expression, skin, params, slots}`, and it is the whole of what a saved game carries about one.
+A puppet's persistent state is `{motion, expression, skin, params, slots}`, and it is everything a saved game carries about one.
 
-`apply` receives a **complete** state, never a delta. That single decision is what makes loading a saved game trivial: the engine rebuilds the state from the save and applies it once, instead of replaying every pose change that ever happened to the model.
+`apply` receives a **complete** state, never a delta. Loading a saved game rebuilds the state from the save and applies it once, instead of replaying every pose change the model went through.
 
-So nothing one-shot belongs in the state — those go through `command()`, which is also the escape hatch for everything the state deliberately does not model. `motion`, `expression` and `skin` are the three ideas every 2D character renderer has; anything genuinely proprietary belongs in `params` (free numbers), `slots` (free strings), or a command. None of these names belong to any particular renderer.
+One-shot effects therefore go through `command()`, which is also where anything the state does not model belongs. `motion`, `expression` and `skin` are the three names every 2D character renderer has. Anything proprietary goes in `params` (free numbers), `slots` (free strings), or a command. None of these names belong to a particular renderer.
 
 ### What `null` means
 
-Every field is a *request*, and `null` is the **absence** of one — never "leave whatever is there". A state is applied whole, so a field that has been cleared has to visibly clear; otherwise loading a saved game would not reproduce what it recorded, and neither would an undo.
+Every field is a request, and `null` is the absence of one, never "leave whatever is there". A state is applied whole, so a cleared field visibly clears, and a load or an undo reproduces what it recorded.
 
 | Field | `null` means |
 |---|---|
-| `motion` | Nothing is playing. The model rests at whatever it looks like with no motion applied — its setup / rest / bind pose, or the backend's own default where the format has no such thing. |
-| `expression` | No expression is applied; the face is whatever the motion and the skin make it. Clear the track rather than substituting a model's own named "neutral" — if the author wants that one they can name it, and then `null` and `"neutral"` still differ. |
+| `motion` | Nothing is playing. The model rests at whatever it looks like with no motion applied: its setup / rest / bind pose, or the backend's own default where the format has no such thing. |
+| `expression` | No expression is applied; the face is whatever the motion and the skin make it. Clear the track rather than substituting a model's own named "neutral", so that `null` and `"neutral"` stay distinct. |
 | `skin` | The model's default skin, the one it shows before anybody picks one. |
-| `slots[id]` | That slot is cleared, which is exactly the same state as a key that is not there at all. The key survives only because `setSlot(id, null)` merges over what is already in the map. |
-| `params[id]` | Does not arise — there is no `null` in `params`. A parameter the map does not mention keeps the model's own default, so clearing one means dropping the key. |
+| `slots[id]` | That slot is cleared, which is the same state as a key that is not there at all. The key survives because `setSlot(id, null)` merges over the existing map. |
+| `params[id]` | Does not arise: there is no `null` in `params`. A parameter the map does not mention keeps the model's own default, so clearing one means dropping the key. |
 
 <Callout type="warning">
-    A name the model does not have is a `ctx.warn`, not a throw. Throwing out of `apply()` puts the whole element into `"error"` over what is usually one typo.
+    A name the model does not have produces a `ctx.warn`, not a throw. Throwing out of `apply()` puts the whole element into `"error"`.
 </Callout>
 
 <Callout type="info">
-    Keys written by a newer engine survive a load here untouched, rather than crashing it.
+    Keys written by a newer engine survive a load untouched.
 </Callout>
 
 ## Public Methods
@@ -244,14 +241,14 @@ Fields:
 - `options: Record<string, unknown>` - Backend-specific options, passed through verbatim. Defaults to `{}`.
 - `size: PuppetSize | null` - The logical size of the box in pixels. Defaults to `null`, meaning the stage size.
 - `layer?: Layer` - See [Layer](/docs/narraleaf-react/core/elements/layer).
-- `className?: string` - Class names for the box. They land on the element carrying the box's `position: relative` and its width and height — the **parent** of the container handed to `mount`, not the container itself, since the backend owns the inside of the box and the engine empties it on dispose. Note also that the wrapper above it is where the transform is written, so a class that sets `transform` here is overwritten frame by frame.
+- `className?: string` - Class names for the box. They land on the element carrying the box's `position: relative` and its width and height, which is the **parent** of the container handed to `mount`, not the container itself. The wrapper above it is where the transform is written, so a class that sets `transform` here is overwritten frame by frame.
 - `motion: string | null` - Initial motion. Part of the saved state, so it survives a save/load round trip.
 - `expression: string | null` - Initial expression.
 - `skin: string | null` - Initial skin.
 - `params: Record<string, number>` - Initial numeric parameters.
 - `slots: Record<string, string | null>` - Initial string slots.
 
-Plus every transform property a displayable takes — `position`, `scale`, `rotation`, `opacity`, and so on.
+Plus every transform property a displayable takes: `position`, `scale`, `rotation`, `opacity`, and so on.
 
 ```typescript
 const alice = new Puppet({
@@ -274,7 +271,7 @@ What the backend drawing this puppet is currently doing.
 
 - Returns `PuppetStatus` - See [PuppetStatus](#puppetstatus)
 
-Two of the five are worth acting on. `"missing-backend"` means nothing answers to `config.backend`, and `"error"` means the backend threw or the model failed to load. In both cases the element is still on stage, still transforming and still saving — it is simply not being drawn. The engine cannot decide what that should mean for a game, so it reports rather than intervenes.
+Two values are worth acting on. `"missing-backend"` means nothing answers to `config.backend`, and `"error"` means the backend threw or the model failed to load. In both cases the element is still on stage, still transforming and still saving, and is not being drawn.
 
 The status describes the live instance and is **not part of the saved game**: a load re-mounts, and the status starts over from `"unmounted"`.
 
@@ -296,7 +293,7 @@ Listen for this puppet's status changing, receiving the new status.
 - `listener: (status: PuppetStatus) => void` - Called with the new status
 - Returns `LiveGameEventToken` - dispose it to stop listening
 
-A backend fails **asynchronously** — the element mounts, then the model does or does not load — so `getStatus` alone cannot answer "did my renderer come up". Subscribe to be told.
+A backend fails asynchronously: the element mounts, then the model does or does not load. Subscribe to find out whether the renderer came up.
 
 ```typescript
 const token = alice.onStatusChange((status) => {
@@ -329,7 +326,7 @@ puppet.useLayer(foreground);
 <Steps>
 <Step>
 
-Request a named motion — usually the loop the model settles into.
+Request a named motion, usually the loop the model settles into.
 
 - `motion: string | null` - The motion to request, or `null` to clear it
 
@@ -381,7 +378,7 @@ Set one numeric parameter, leaving every other parameter as it stands.
 - `id: string` - The parameter id
 - `value: number` - Its new value
 
-What an id means is the backend's business — a rig parameter, a bone override, a blend weight. The engine only remembers it, saves it, and hands the whole map back on a load.
+What an id means is the backend's business: a rig parameter, a bone override, a blend weight. The engine remembers it, saves it, and hands the whole map back on a load.
 
 ```typescript
 alice.setParam("ParamAngleX", 12);
@@ -399,7 +396,7 @@ Set one free string slot, leaving every other slot as it stands.
 - `id: string` - The slot id
 - `value: string | null` - Its new value; `null` clears that slot
 
-Slots are for the named things `motion` / `expression` / `skin` do not cover — an attachment point, a swapped-in prop, whatever a particular renderer calls its own.
+Slots carry the named things `motion` / `expression` / `skin` do not cover: an attachment point, a swapped-in prop, or whatever a particular renderer calls its own.
 
 ```typescript
 alice.setSlot("prop", "umbrella");
@@ -418,13 +415,13 @@ Send the backend a command the engine neither models nor interprets.
 - `payload?: unknown` - Forwarded verbatim
 - `options?: PuppetCommandOptions` - See [PuppetCommandOptions](#puppetcommandoptions)
 
-This is the escape hatch for everything `PuppetState` deliberately leaves out — a motion that plays once and ends, a hit test, lip sync. None of it is saved, so a command is not restored by a load and not taken back by an undo; anything that has to survive either belongs in the state, through the `set*` methods above.
+Use it for what `PuppetState` leaves out: a motion that plays once and ends, a hit test, lip sync. None of it is saved, so a command is not restored by a load and not taken back by an undo. Anything that has to survive either belongs in the state, through the `set*` methods above.
 
 **The story does not wait unless it is asked to.**
 
 ```typescript
 alice.command("playMotion", {id: "wave"});                  // the story moves straight on
-alice.command("playMotion", {id: "bow"}, {await: true});    // ...and here it waits for it
+alice.command("playMotion", {id: "bow"}, {await: true});    // this one waits for it
 ```
 </Step>
 </Steps>
@@ -433,7 +430,7 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // ...and here it wa
 
 Everything a displayable offers works on a puppet unchanged, and applies to the box as a whole:
 
-[`pos`](/docs/narraleaf-react/core/elements/displayable#pos), [`scale`](/docs/narraleaf-react/core/elements/displayable#scale), [`scaleX`](/docs/narraleaf-react/core/elements/displayable#scalex), [`scaleY`](/docs/narraleaf-react/core/elements/displayable#scaley), [`scaleXY`](/docs/narraleaf-react/core/elements/displayable#scalexy), [`zoom`](/docs/narraleaf-react/core/elements/displayable#zoom), [`rotate`](/docs/narraleaf-react/core/elements/displayable#rotate), [`opacity`](/docs/narraleaf-react/core/elements/displayable#opacity), [`transform`](/docs/narraleaf-react/core/elements/displayable#transform), [`show`](/docs/narraleaf-react/core/elements/displayable#show), [`hide`](/docs/narraleaf-react/core/elements/displayable#hide), and the [visual effects](/docs/narraleaf-react/core/elements/displayable#visual-effects) — `mask`, `clip`, `wipe`, `filter`, `backdrop`, `blend` and their counterparts.
+[`pos`](/docs/narraleaf-react/core/elements/displayable#pos), [`scale`](/docs/narraleaf-react/core/elements/displayable#scale), [`scaleX`](/docs/narraleaf-react/core/elements/displayable#scalex), [`scaleY`](/docs/narraleaf-react/core/elements/displayable#scaley), [`scaleXY`](/docs/narraleaf-react/core/elements/displayable#scalexy), [`zoom`](/docs/narraleaf-react/core/elements/displayable#zoom), [`rotate`](/docs/narraleaf-react/core/elements/displayable#rotate), [`opacity`](/docs/narraleaf-react/core/elements/displayable#opacity), [`transform`](/docs/narraleaf-react/core/elements/displayable#transform), [`show`](/docs/narraleaf-react/core/elements/displayable#show), [`hide`](/docs/narraleaf-react/core/elements/displayable#hide), and the [visual effects](/docs/narraleaf-react/core/elements/displayable#visual-effects): `mask`, `clip`, `wipe`, `filter`, `backdrop`, `blend` and their counterparts.
 
 ## The backend contract
 
@@ -445,7 +442,7 @@ These types import nothing from the rest of the library, so a renderer can be wr
 <Step>
 
 - `name: string` - The key a puppet's `backend` config refers to.
-- `mount(container: HTMLDivElement, ctx: PuppetMountContext): PuppetInstance` - Create an instance bound to a host element. The engine owns the box; the backend owns what is inside it. The container is emptied when the instance is disposed.
+- `mount(container: HTMLDivElement, ctx: PuppetMountContext): PuppetInstance` - Create an instance bound to a host element. The engine owns the box, the backend owns what is inside it. The container is emptied when the instance is disposed.
 </Step>
 </Steps>
 
@@ -454,13 +451,13 @@ These types import nothing from the rest of the library, so a renderer can be wr
 <Steps>
 <Step>
 
-Everything the engine tells a backend when it mounts one.
+What the engine tells a backend when it mounts one.
 
-- `src: string` - The resource descriptor the puppet declared, verbatim. Whatever it means is the backend's business; the only structure the engine will ever read out of it is the directory it sits in, and only through `resolveSibling`.
+- `src: string` - The resource descriptor the puppet declared, verbatim. The only structure the engine reads out of it is the directory it sits in, and only through `resolveSibling`.
 - `options: Readonly<Record<string, unknown>>` - The author's options for this backend, verbatim.
 - `size: PuppetSize` - The logical size of the box, in pixels. Later changes arrive via `resize`.
 - `resolveSrc(src: string): string` - Resolve a source to a URL by the same rules images use. See [Preloading](#preloading).
-- `resolveSibling(relativePath: string): string` - Resolve a path relative to this puppet's own `src` — a sibling in the same bundle. See [A model is a bundle](#a-model-is-a-bundle).
+- `resolveSibling(relativePath: string): string` - Resolve a path relative to this puppet's own `src`, a sibling in the same bundle. See [Resolving files in a model bundle](#resolving-files-in-a-model-bundle).
 - `warn(message: string, detail?: unknown): void` - Report a non-fatal problem. The engine logs it and keeps the stage alive; it never throws.
 </Step>
 </Steps>
@@ -470,16 +467,16 @@ Everything the engine tells a backend when it mounts one.
 <Steps>
 <Step>
 
-One mounted model. The engine holds this handle and nothing else. For when each of these is called, see [the lifecycle](#the-order-the-engine-calls-a-backend-in).
+One mounted model. The engine holds this handle and nothing else. For when each member is called, see [Backend lifecycle](#backend-lifecycle).
 
 - `ready(): Promise<void>` - Resolves once the model is loaded and its first frame has been drawn.
-- `apply(state: Readonly<PuppetState>): void | Promise<void>` - Apply a **complete** state. Called once on mount — before `ready()` — then on every change.
-- `command(name: string, payload: unknown): void | Promise<void>` - Run a named command. The engine never interprets `name` or `payload`. Returning a promise lets a caller that opted in wait for it, which is what `{await: true}` does; nothing waits by default.
+- `apply(state: Readonly<PuppetState>): void | Promise<void>` - Apply a **complete** state. Called once on mount, before `ready()`, then on every change.
+- `command(name: string, payload: unknown): void | Promise<void>` - Run a named command. The engine never interprets `name` or `payload`. Returning a promise lets a caller that passed `{await: true}` wait for it; nothing waits by default.
 - `resize(size: PuppetSize): void` - The box changed size.
 - `describe?(): Promise<PuppetDescription>` - Optional. Describe the model to an editor host.
 - `dispose(): void` - Tear the instance down. The container is emptied afterwards.
 
-**Nothing gates `describe` on status.** A host forwards it the moment it is asked, which is any time between `mount` and `dispose` — before `ready()` has resolved, and more than once. That is the design, not an oversight: an editor opens an inspector when the author clicks, not when a model happens to have finished loading, and a backend knows better than the engine what it can answer and when. So a backend that can only describe a loaded model awaits its own load in there. Rejecting is safe too — the host logs it and falls back to letting the author type names.
+`describe` is not gated on status. It can be called any time between `mount` and `dispose`, before `ready()` has resolved, and more than once. A backend that can only describe a loaded model awaits its own load inside `describe`. Rejecting is also safe: the host logs it and falls back to letting the author type names.
 </Step>
 </Steps>
 
@@ -507,7 +504,7 @@ How the story treats a one-shot `command`.
 
 - `await?: boolean` - Wait for the backend to finish the command before the story moves on. Defaults to `false`.
 
-Off by default because the engine cannot tell a motion worth a beat from a parameter nudge, and a backend that never resolves would otherwise park the story forever. Opting in makes the wait the author's decision, and only where they meant it. A waiting command is skippable like any other timed action.
+A waiting command is skippable like any other timed action.
 </Step>
 </Steps>
 
@@ -516,7 +513,7 @@ Off by default because the engine cannot tell a motion worth a beat from a param
 <Steps>
 <Step>
 
-A model describing itself to an editor host, so the host can fill its inspector's dropdowns from the live instance instead of parsing a model format it has no business parsing. Backends that cannot answer simply do not implement `describe`, and the host falls back to letting the author type names.
+A model describing itself to an editor host, so the host can fill its inspector's dropdowns from the live instance. Backends that cannot answer do not implement `describe`, and the host falls back to letting the author type names.
 
 - `motions: string[]`
 - `expressions: string[]`
@@ -538,20 +535,20 @@ Logical pixels.
 </Step>
 </Steps>
 
-## Graceful degradation
+## Missing or failing backends
 
-Anyone shipping a game with puppets will eventually forget to register a backend, or hand the project to someone who has not. That is treated as a normal state rather than a failure: the element keeps its place on the stage, its transform and its saved state, and draws nothing. The engine warns **once per backend name**, not once per element, so a stage full of puppets does not become a wall of identical warnings.
+A puppet with no registered backend keeps its place on the stage, its transform and its saved state, and draws nothing. The engine warns **once per backend name**, not once per element.
 
-The same holds for a backend that misbehaves. A `mount` that throws, a model that never loads, an `apply` that rejects — each of them is logged and leaves the stage alive.
+A backend that misbehaves is treated the same way. A `mount` that throws, a model that never loads, an `apply` that rejects: each is logged, and the stage stays alive.
 
-Quiet is not the same as silent, though, so a game can ask: [`getStatus()`](#getstatus) reads the live instance, and [`onStatusChange()`](#onstatuschange) reports it changing. What to do about `"missing-backend"` and `"error"` is the game's decision, not the engine's: a project that ships one renderer probably wants to say so on screen, and a project where the renderer is optional certainly does not.
+To react to either case, read [`getStatus()`](#getstatus) for the live instance and subscribe with [`onStatusChange()`](#onstatuschange).
 
 ### PuppetStatus
 
 | Value | Meaning |
 |---|---|
 | `unmounted` | The element is not on the stage, or its component has not mounted yet. |
-| `missing-backend` | The element is on the stage, but nothing answers to its `backend` name. The box still takes part in transforms, layers and saves; it simply draws nothing. |
+| `missing-backend` | The element is on the stage, but nothing answers to its `backend` name. The box still takes part in transforms, layers and saves, and draws nothing. |
 | `loading` | The backend was mounted and its `ready()` has not resolved. |
 | `ready` | The first frame has been drawn. |
 | `error` | Mounting, applying state, or loading threw. The stage stays alive regardless. |

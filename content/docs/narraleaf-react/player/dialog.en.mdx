@@ -1,27 +1,21 @@
 ---
 title: "Dialog"
 ---
-The `Dialog` component renders the dialog box, including the character nametag, dialog text, and the optional **dialog avatar** (small portrait).
+`Dialog` renders the dialog box: the character nametag, the dialog text, and an optional avatar.
 
-To customize the dialog, provide your own component via `game.configure({ dialog })`. You can compose `Avatar`, `Nametag`, and `Texts`, or use [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar) / [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog) for layout logic.
+To replace the built-in dialog box, pass your own component to `game.configure({ dialog })`. Compose `Avatar`, `Nametag`, and `Texts` inside it, or read the active line with [`useDialog`](/docs/narraleaf-react/player/hooks/useDialog).
 
-<Callout type="info">
-    Use `Avatar` for the default portrait slot. Use `useAvatar()` when the dialog layout should change depending on whether an avatar is available.
-</Callout>
-
-## Quick example
+## Example
 
 1. Import the components
 
 ```tsx
-import { Dialog, Texts, Nametag, useGame } from "narraleaf-react";
+import { Avatar, Dialog, Nametag, Texts, useGame } from "narraleaf-react";
 ```
 
-2. Compose the default ADV layout (optional `Avatar`)
+2. Compose the ADV layout
 
 ```tsx
-import { Avatar, Dialog, Nametag, Texts } from "narraleaf-react";
-
 function GameDialog() {
     return (
         <Dialog className="bg-white">
@@ -37,7 +31,7 @@ function GameDialog() {
 }
 ```
 
-The built-in [`DefaultDialog`](https://github.com/NarraLeaf/narraleaf-react) uses the same structure: flex row with `Avatar`, then a column with `Nametag` and `Texts`.
+`Avatar` is optional. The built-in dialog box uses this layout.
 
 3. Configure the game
 
@@ -59,47 +53,41 @@ function App() {
 
 ### Dialog
 
-Renders the dialog container. Children are typically `Avatar`, `Nametag`, and `Texts` (any layout you prefer).
+Renders the dialog container. Its children are usually `Avatar`, `Nametag`, and `Texts`, in any layout.
 
-- `children?: React.ReactNode` — Dialog content.
-- `...props: HTMLMotionProps<"div">` — Passed to the inner `motion.div` wrapper. This includes normal div props plus Motion props such as `initial`, `animate`, `exit`, `transition`, `layout`, and Motion event handlers.
+- `children?: React.ReactNode` - Dialog content.
+- `...props: HTMLMotionProps<"div">` - Passed to the inner `motion.div`. Accepts div props and Motion props such as `initial`, `animate`, `exit`, `transition`, `layout`, and Motion event handlers.
 
-The outer dialog wrapper is kept separate for aspect-ratio scaling and click/key handling. Put visual transforms on `Dialog` itself; the player will apply them to the inner motion element.
-
-Exported prop types: `NametagProps`, `TextAppearanceProps`, `TextsProps`, `RawTextsProps`, and `EntryTextsProps`.
+Apply visual transforms to `Dialog` itself; the player forwards them to the inner motion element.
 
 ### Nametag
 
-Renders the speaker name. Must be used inside `Dialog`.
+Renders the speaker name. Use it inside `Dialog`. Without `children` or `name` it shows the current speaker, and without `color` it uses the current character color.
 
-`Nametag` is now component-driven: pass props to control its content and presentation. If no custom content is provided, it falls back to the current speaker name. If no `color` prop is provided, it falls back to the current character color when available.
-
-- `character?: Character | null` — Explicit character source.
-- `entry?: NvlDialogEntry` — NVL entry source.
-- `name?: React.ReactNode` — Override the displayed name.
-- `color?: Color` — Text color for the nametag.
-- `children?: React.ReactNode` — Fully custom nametag content.
+- `character?: Character | null` - Character to read the name from.
+- `entry?: NvlDialogEntry` - NVL entry to read the name from.
+- `name?: React.ReactNode` - Name to display.
+- `color?: Color` - Text color.
+- `children?: React.ReactNode` - Custom nametag content.
 - `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
 
 ### Texts
 
-Renders the typed dialogue text. Must be used inside `Dialog`.
-
-Text defaults are component props or inherited CSS. `Sentence` and `Word` style overrides still win for the individual line or word.
+Renders the typed dialogue text. Use it inside `Dialog`. These props set the defaults, unset properties are inherited from CSS, and styles set on a `Sentence` or `Word` override both.
 
 - `children?: never`
-- `defaultColor?: Color` — Fallback text color when sentence/word color is not set.
+- `defaultColor?: Color` - Text color when the sentence or word sets none.
 - `fontSize?: React.CSSProperties["fontSize"]`
 - `fontWeight?: React.CSSProperties["fontWeight"]`
-- `fontWeightBold?: React.CSSProperties["fontWeight"]` — Weight used when a sentence/word is bold.
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` - Weight for bold sentences and words.
 - `fontFamily?: React.CSSProperties["fontFamily"]`
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
 
-Renders the resolved dialog avatar image for the current line, or **nothing** when no avatar is resolved (no layout gap).
+Renders the avatar resolved for the current line, and renders nothing when the line has no avatar.
 
-- `...props: React.ImgHTMLAttributes<HTMLImageElement>` — Merged with defaults (see [useAvatar](/docs/narraleaf-react/player/hooks/useAvatar)).
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` - Merged with the default image style.
 
 Default image style:
 
@@ -108,9 +96,9 @@ Default image style:
 - `borderRadius`: `6`
 - `flex`: `"0 0 auto"`
 
-## Dialog motion props
+## Animation
 
-Custom dialog components can pass Motion props directly to [`Dialog`](/docs/narraleaf-react/player/dialog). The built-in `DefaultDialog` does not add enter or exit animation by default.
+Pass Motion props to `Dialog`. The built-in dialog box has no enter or exit animation.
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -131,40 +119,35 @@ function GameDialog() {
 }
 ```
 
-Presence timing is handled by the player:
+The player runs the animations at these points:
 
-- Direct dialogue-to-dialogue replacement keeps the same visual dialog slot alive. The previous line does not run `exit`, and the next line does not restart the enter animation just because text or nametag changed.
-- Dialogue-to-non-dialogue content removes the active dialog from the current text list, so `exit` can continue while the story advances.
-- If a new dialogue appears while an older exit animation is still running, the new dialogue receives a new presence key. The old exit and new enter can overlap.
-- Menu prompts rendered through the dialog slot use the same presence behavior before menu choices appear.
-- Exiting dialogs are inactive: click, skip, and auto-forward handlers are ignored, and retained nodes cannot call `onFinished` twice.
+- One dialogue replaced by another: the box stays in place. `exit` does not run, and the enter animation does not restart when the text or the name changes.
+- Dialogue followed by other content: `exit` runs while the story advances.
+- A new dialogue while an earlier `exit` is still running: both animations play at the same time.
+- Menu prompts shown in the dialog box: the same behavior, before the choices appear.
 
-`GameConfig.animationPropagate` is passed to the dialog `AnimatePresence` boundary. Leave it `false` unless you need nested `AnimatePresence` exits inside your custom dialog to propagate.
+A dialog box that is exiting ignores clicks, skip, and auto-forward.
 
-## Dialog avatars
+`GameConfig.animationPropagate` applies to the dialog `AnimatePresence` boundary. Set it to `true` only when your dialog box nests another `AnimatePresence` whose exit animations must run.
 
-Dialog avatars show a small portrait in the ADV box. They fit visual novels where the speaker may be on-screen, off-screen (voice-over), or where most lines should **not** need per-line avatar configuration.
+## Avatars
 
-### Mental model
+`Avatar` shows a small portrait for the speaking character. Set the image on the character, on a stage portrait bound to the character, or on a single line.
 
-- **`Character` holds avatar intent** — default and off-screen avatar, plus the portrait bindings.
-- **A stage `Image` refines the avatar** when it is the current visible bound portrait.
-- **`Sentence` overrides only exceptions** — hide avatar or use a one-off asset/resolver.
+For each line, the avatar is resolved in this order:
 
-Resolution order:
+1. Narrator or unnamed character: no avatar.
+2. `avatar: false` in the sentence config: no avatar.
+3. The sentence-level avatar.
+4. The avatar of the most recently shown visible portrait bound to the character.
+5. The character-level avatar.
+6. No avatar.
 
-1. Narrator or unnamed character → no avatar.
-2. `sentence.config.avatar === false` → no avatar.
-3. Sentence-level avatar override (string, resolver, etc.).
-4. Avatar from the **most recent visible** bound portrait for that character.
-5. Character-level avatar.
-6. Otherwise no avatar.
+Full-body sprites are not cropped into avatars. A character with no configured avatar shows none.
 
-The engine **does not** auto-crop full-body sprites. If no avatar is configured, nothing is shown.
+### Character avatar
 
-### Character-level avatar
-
-Use when the same headshot should appear for normal lines and off-screen lines.
+Use one image for both on-stage and off-screen lines.
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -176,18 +159,18 @@ const alice = new Character("Alice", {
 alice.say("I can speak off-screen and still show an avatar.");
 ```
 
-Method style:
+The same with method calls:
 
 ```ts
 const alice = new Character("Alice")
     .setAvatar("/assets/alice/avatar-default.png");
 
-alice.say("This line uses Alice's default avatar.");
+alice.say("This line uses the default avatar.");
 ```
 
-### Binding stage portraits
+### Stage portraits
 
-When a visible sprite should drive the avatar, bind a stage `Image` to the character.
+Bind a stage `Image` to the character to let the visible sprite select the avatar.
 
 ```ts
 import { Character, Image } from "narraleaf-react";
@@ -209,7 +192,7 @@ const alice = new Character("Alice", {
 });
 ```
 
-When `aliceBody` is visible in the current scene, that portrait’s avatar is used; otherwise the character-level avatar is used.
+The portrait avatar is used while `aliceBody` is visible in the current scene, otherwise the character avatar is used.
 
 ```ts
 const alice = new Character("Alice")
@@ -219,13 +202,13 @@ const alice = new Character("Alice")
     });
 ```
 
-### Expression-based avatars (tagged images)
+### Avatars per expression
 
-Portrait avatars can be **resolvers** that receive the current portrait, `currentSrc`, `tags`, `character`, `sentence`, and `gameState`. The resolver may return:
+A portrait avatar can be a function. It receives the current portrait, `currentSrc`, `tags`, `character`, `sentence`, and `gameState`, and returns:
 
 - an image URL or `StaticImageData`;
-- `null` to force no avatar at this layer;
-- `undefined` to fall through to the next layer.
+- `null` to show no avatar;
+- `undefined` to continue with the next step of the resolution order.
 
 ```ts
 const aliceBody = new Image({
@@ -276,33 +259,19 @@ alice.say("Resolver for one line.", {
 });
 ```
 
-`avatar: false` skips avatar immediately; other overrides win over portrait and character defaults.
+`avatar: false` hides the avatar for that line. Any other value takes priority over the portrait and character avatars.
 
 ### Multiple visible portraits
 
-If several bound portraits are visible, the engine picks the **most recently** shown visible one along the scene’s display order (back to front). A displayable with `opacity` effectively zero is ignored.
+When several bound portraits are visible, the engine uses the one shown most recently along the scene's display order (back to front). A displayable with an effective `opacity` of zero is ignored.
 
-## Custom dialogs and `useAvatar`
+### Layouts that depend on the avatar
 
-Use [`<Avatar />`](/docs/narraleaf-react/player/hooks/useAvatar) for simple layouts. Use [`useAvatar()`](/docs/narraleaf-react/player/hooks/useAvatar) when grid/flex should depend on whether an avatar exists (`visible`, `src`, `character`, `portrait`).
+`useAvatar()` returns `visible`, `src`, `character`, and `portrait`, so a grid or flex layout can change when a line has no avatar. See [useAvatar](/docs/narraleaf-react/player/hooks/useAvatar) for the return shape and examples.
 
-See [useAvatar](/docs/narraleaf-react/player/hooks/useAvatar) for props, return shape, and examples.
+## Styling
 
-## TypeScript reference (public exports)
-
-Types and classes are exported from `narraleaf-react` (see [Character](/docs/narraleaf-react/core/elements/character), [SentenceConfig](/docs/narraleaf-react/core/types/SentenceConfig), [CharacterConfig](/docs/narraleaf-react/core/types/CharacterConfig)):
-
-- `DialogAvatarSource`, `DialogAvatarResolverContext`, `DialogAvatarResolver`, `DialogAvatar`
-- `CharacterPortraitConfig`, `DialogAvatarResolution`
-- `Character` methods: `setAvatar`, `addPortrait`, `setPortraits`
-- `Sentence` / `say` config: `avatar` on [SentenceUserConfig](/docs/narraleaf-react/core/types/SentenceUserConfig)
-- React: `Avatar`, `useAvatar`, type `DialogAvatarContext`
-
-Avatar resolution for the default UI runs inside the player; you normally configure characters and sentences, then render `<Avatar />` or call `useAvatar()`.
-
-## Customize the dialog box
-
-### Example: container styles
+Style the container through `Dialog`:
 
 ```tsx
 function GameDialog() {
@@ -320,7 +289,7 @@ function GameDialog() {
 }
 ```
 
-### Example: nametag decoration
+Style the nametag through `Nametag`:
 
 ```tsx
 function GameDialog() {
@@ -338,3 +307,14 @@ function GameDialog() {
     );
 }
 ```
+
+## Exported types
+
+`narraleaf-react` exports:
+
+- Component props: `NametagProps`, `TextAppearanceProps`, `TextsProps`, `RawTextsProps`, `EntryTextsProps`
+- Avatar sources: `DialogAvatarSource`, `DialogAvatarResolverContext`, `DialogAvatarResolver`, `DialogAvatar`
+- Portraits: `CharacterPortraitConfig`, `DialogAvatarResolution`
+- React: `Avatar`, `useAvatar`, and the type `DialogAvatarContext`
+
+`Character` provides `setAvatar`, `addPortrait`, and `setPortraits`. See [Character](/docs/narraleaf-react/core/elements/character), [CharacterConfig](/docs/narraleaf-react/core/types/CharacterConfig), and the `avatar` field of [SentenceUserConfig](/docs/narraleaf-react/core/types/SentenceUserConfig) and [SentenceConfig](/docs/narraleaf-react/core/types/SentenceConfig).

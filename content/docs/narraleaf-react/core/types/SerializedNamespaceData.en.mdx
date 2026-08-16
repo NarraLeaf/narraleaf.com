@@ -9,7 +9,7 @@ export type SerializedNamespaceData = {
 }
 ```
 
-This is what [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `store` holds for each namespace — one entry per namespace registered with `story.registerPersistent`, plus one per scene local.
+This is what [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `store` holds for each namespace: one entry per namespace registered with `story.registerPersistent`, plus one per scene local.
 
 ```typescript
 // savedGame.game.store
@@ -30,4 +30,4 @@ A namespace key is prefixed by its kind: `persistent:` for a namespace registere
 
 ## Compatibility
 
-`SavedGame`'s `store` was declared as [StorableData](/docs/narraleaf-react/core/types/StorableData) before 0.13.0 while already carrying this tagged form. Only the declaration changed — the save format itself did not. See [Incompatible Changes](/docs/narraleaf-react/info/incompatible-changes).
+`SavedGame`'s `store` was declared as [StorableData](/docs/narraleaf-react/core/types/StorableData) before 0.13.0 while already carrying this tagged form. Only the declaration changed; the save format did not. See [Incompatible Changes](/docs/narraleaf-react/info/incompatible-changes).

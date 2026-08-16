@@ -3,7 +3,7 @@ title: "遮罩图案"
 ---
 > 遮罩图案由 [Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) 和 [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 两个转场引擎使用。
 
-`Mask` 是转场动画的词汇表。它的静态工厂方法构建 `MaskPattern` 值——参数化的覆盖几何形状，由遮罩类引擎从 `0`（完全未覆盖）动画到 `1`（完全覆盖）。
+`Mask` 是转场动画的词汇表。它的静态工厂方法构建 `MaskPattern` 值：参数化的覆盖几何形状，由遮罩类引擎从 `0`（完全未覆盖）动画到 `1`（完全覆盖）。
 
 图案是普通值：永远不会用 `new` 实例化。用工厂方法构建后传入引擎的 `pattern` 选项：
 
@@ -14,7 +14,7 @@ image.char("image1.jpg", new Reveal({ duration: 1000, pattern: Mask.wipe({ direc
 image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds() }));
 ```
 
-每种图案都有自然方向和反转（互补）方向——同一几何形状从另一侧覆盖：擦除从对侧推进，圈显从四周向中心收拢而不是从中心展开，时钟指针向另一方向扫掠。引擎通过 `ThroughColor` 的 `inverted` 选项及其 `"continue"` 揭开方式使用反转方向；也可以用 [`Mask.invert`](#maskinvert) 永久翻转。
+每种图案都有自然方向和反转（互补）方向，即同一几何形状从另一侧覆盖：擦除从对侧推进，圈显从四周向中心收拢而不是从中心展开，时钟指针向另一方向扫掠。引擎通过 `ThroughColor` 的 `inverted` 选项及其 `"continue"` 揭开方式使用反转方向；也可以用 [`Mask.invert`](#maskinvert) 永久翻转。
 
 ## 工厂方法
 
@@ -25,7 +25,7 @@ image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds
 柔边方向性擦除：一条柔化边缘扫过画面。
 
 - `options?: WipePatternOptions`
-  - `direction?: "left" | "right" | "top" | "bottom" | number` - 覆盖边缘推进的方向——关键字，或任意 CSS 渐变角度（度，`0` = 向上，`90` = 向右）。默认为 `"left"`。
+  - `direction?: "left" | "right" | "top" | "bottom" | number` - 覆盖边缘推进的方向：关键字，或任意 CSS 渐变角度（度，`0` = 向上，`90` = 向右）。默认为 `"left"`。
   - `feather?: number` - 柔化边缘带的宽度，以百分比表示。设为 `0` 即为硬边。默认为 `12`。
 
 ```tsx
@@ -43,7 +43,7 @@ Mask.wipe({ direction: 45, feather: 20 }); // 对角线方向，边缘更柔
 
 ### Mask.iris
 
-从中心向外扩展的柔边圈显。反转时改为从四周向中心收拢——经典的"圈入到黑"即 `new ThroughColor({ pattern: Mask.iris(), inverted: true })`。
+从中心向外扩展的柔边圈显。反转时改为从四周向中心收拢。经典的「圈入到黑」即 `new ThroughColor({ pattern: Mask.iris(), inverted: true })`。
 
 - `options?: IrisPatternOptions`
   - `center?: string` - 圆形的中心，使用 CSS 位置表示。默认为 `"50% 50%"`。
@@ -122,7 +122,7 @@ type MaskPattern = {
 
 每个图案都应当满足三条约定：
 
-- `mask(0)` 完全透明，`mask(1)` 完全不透明（包括柔化带在内）——柔化带在行程两端都被完全扫出画面。
+- `mask(0)` 完全透明，`mask(1)` 完全不透明（包括柔化带在内）：柔化带在行程两端都被完全扫出画面。
 - 不透明区域的比例随 `t` 单调增长。
 - `mask(t, true)` 是同一几何形状在相同覆盖率下的互补方向。正是这一点让 `ThroughColor` 能够在保持之后让图案继续推进，而不是原路退回。
 
@@ -141,7 +141,7 @@ image.char("image1.jpg", new Reveal({ duration: 800, pattern: diagonal }));
 
 ### Mask.toStyle
 
-供自定义过渡的作者使用：返回图案在覆盖率 `t` 处的完整 CSS 遮罩样式块——图案的图像及其平铺设置，并同步到 `-webkit-` 前缀。
+供自定义过渡的作者使用：返回图案在覆盖率 `t` 处的完整 CSS 遮罩样式块：图案的图像及其平铺设置，并同步到 `-webkit-` 前缀。
 
 - `pattern: MaskPattern` - 要渲染的图案。
 - `t: number` - 覆盖比例（`0`–`1`）。

@@ -4,13 +4,13 @@ title: "对话框头像教程"
 ADV 文本旁的小头像由 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) 渲染。配置分两步：
 
 1. 在 [`Character`](/zh/docs/narraleaf-react/core/elements/character) 上配置**用哪张图**（也可用舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 做表情立绘）。
-2. 在自己的 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 里**摆上 `<Avatar />`**，播放器才会画出来。
+2. 在自己的 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 里**摆上 `<Avatar />`**。
 
 完整规则（解析顺序、解析器函数、类型）见 [Dialog](/zh/docs/narraleaf-react/player/dialog) 与 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)。
 
 ## 1. 配置角色级头像
 
-最简单：给一个固定图片。角色说话时都会尝试显示——包括**没有立绘在场上**的画外音。
+一张固定图片，角色说话时都会显示，包括**没有立绘在场上**的画外音。
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -22,13 +22,13 @@ const alice = new Character("Alice", {
 alice.say("玩家会在文字旁边看到我的小头像。");
 ```
 
-也可以用链式写法：
+链式写法：
 
 ```ts
 const bob = new Character("Bob").setAvatar("/characters/bob/avatar.png");
 ```
 
-需要**有名字**的角色才会解析头像；**旁白**（`new Character(null)`）不显示头像。
+头像需要**有名字**的角色。**旁白**（`new Character(null)`）不显示头像。
 
 ## 2. 在对话框里放上 `Avatar`
 
@@ -65,11 +65,11 @@ export function GameDialog() {
 }
 ```
 
-不写 `style` 时默认约 96×96；可用 `className`/`style` 覆盖。
+不写 `style` 时默认 96×96，可用 `className` 或 `style` 覆盖。
 
 ### 可选：用 `useAvatar` 自适应布局
 
-没有头像时需要让文字栏占满整行，可读取 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar) 的 `visible`：
+要让文字栏在没有头像时占满整行，读取 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar) 的 `visible`：
 
 ```tsx
 import {
@@ -121,9 +121,9 @@ export function GameView() {
 }
 ```
 
-## 4. 常用扩展（仍然很好懂）
+## 4. 单行与立绘规则
 
-### 某一幕不要头像
+### 某一行不要头像
 
 ```ts
 alice.say("这一句不显示头像。", { avatar: false });
@@ -160,4 +160,4 @@ scene.action([
 | 使用自己的对话框 | [`game.configure({ dialog: 你的组件 })`](/zh/docs/narraleaf-react/core/game/game) |
 | 单行特例 | `{ avatar: false }`、`{ avatar: "/其它.png" }` 或解析器（详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)） |
 
-掌握以上内容就足够做出清晰可玩的头像效果；多层立绘、标签解析器等进阶内容见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+多个可见立绘与标签解析器见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。

@@ -8,7 +8,7 @@ type SoundBusId = SoundType | (string & {});
 音频播放所在的总线，由 [ISoundUserConfig](/zh/docs/narraleaf-react/core/types/ISoundUserConfig) 的 `type` 给出。
 
 [SoundType](/zh/docs/narraleaf-react/core/types/SoundType) 的三个值是引擎始终预置的总线，含义和以往完全一致。
-其他任何字符串都是宿主在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的总线——
+其他任何字符串都是宿主在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的总线：
 `"voice"` 之下的 `"alice"`、`"bgm"` 之下的 `"ambience"`，想嵌套多深都可以。
 
 `(string & {})` 这一半的作用，是在放宽类型的同时保留补全：编辑器仍然会先提示 `"bgm" | "sound" | "voice"`，

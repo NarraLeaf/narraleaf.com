@@ -1,16 +1,16 @@
 ---
 title: "Dialog Avatar Tutorial"
 ---
-This walkthrough explains how to show a **small portrait** next to ADV dialog text—the component is [`Avatar`](/docs/narraleaf-react/player/dialog). You only need two ideas:
+Show a **small portrait** next to ADV dialog text with [`Avatar`](/docs/narraleaf-react/player/dialog). Two steps:
 
-1. **Tell the [`Character`](/docs/narraleaf-react/core/elements/character) which image to use** (or bind a stage [`Image`](/docs/narraleaf-react/core/elements/image) for expression-based portraits).
-2. **Render `<Avatar />` inside your custom [`Dialog`](/docs/narraleaf-react/player/dialog)** so the player can draw it.
+1. **Tell the [`Character`](/docs/narraleaf-react/core/elements/character) which image to use**, or bind a stage [`Image`](/docs/narraleaf-react/core/elements/image) for expression-based portraits.
+2. **Render `<Avatar />` inside your custom [`Dialog`](/docs/narraleaf-react/player/dialog)**.
 
-For full behavior (resolution order, resolvers, types), see the [Dialog](/docs/narraleaf-react/player/dialog) reference and [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar).
+Resolution order, resolvers and types are on the [Dialog](/docs/narraleaf-react/player/dialog) reference and [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar).
 
 ## 1. Set a character-level avatar
 
-The simplest setup: one image for that character whenever they speak—including **off-screen** lines with no sprite on stage.
+One image for that character whenever they speak, including **off-screen** lines with no sprite on stage.
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -22,19 +22,19 @@ const alice = new Character("Alice", {
 alice.say("Players will see my portrait next to the text.");
 ```
 
-You can use the chain style instead:
+Chain style:
 
 ```ts
 const bob = new Character("Bob").setAvatar("/characters/bob/avatar.png");
 ```
 
-Names like `Alice`/`Bob` are required for an avatar to show; **narrator** (`new Character(null)`) lines never show avatars.
+An avatar requires a named character. **Narrator** lines (`new Character(null)`) never show one.
 
 ## 2. Add `Avatar` to your dialog UI
 
-[`Avatar`](/docs/narraleaf-react/player/dialog) resolves the correct image for the **current sentence** and renders an `<img>`, or **renders nothing** if there is no avatar—so layout does not reserve an empty hole.
+[`Avatar`](/docs/narraleaf-react/player/dialog) resolves the image for the **current sentence** and renders an `<img>`. With no avatar it **renders nothing**, so the layout reserves no empty hole.
 
-Put it next to [`Nametag`](/docs/narraleaf-react/player/dialog) and [`Texts`](/docs/narraleaf-react/player/dialog) (same pattern as the built-in default dialog):
+Put it next to [`Nametag`](/docs/narraleaf-react/player/dialog) and [`Texts`](/docs/narraleaf-react/player/dialog), the same layout the built-in dialog uses:
 
 ```tsx
 import {
@@ -65,11 +65,11 @@ export function GameDialog() {
 }
 ```
 
-Default size without `style` is 96×96; override with `className`/`style` as needed.
+The default size without `style` is 96×96. Override it with `className` or `style`.
 
 ### Optional: responsive layout with `useAvatar`
 
-If you want the **text column to grow when there is no avatar**, read visibility from [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar):
+To let the **text column grow when there is no avatar**, read visibility from [`useAvatar`](/docs/narraleaf-react/player/hooks/useAvatar):
 
 ```tsx
 import {
@@ -121,7 +121,7 @@ export function GameView() {
 }
 ```
 
-## 4. Per-line and Per-sprite Rules
+## 4. Per-line and per-sprite rules
 
 ### One line without a portrait
 
@@ -131,7 +131,7 @@ alice.say("This line hides the avatar.", { avatar: false });
 
 ### Optional: portrait follows the sprite on stage
 
-When a stage `Image` is visible, you can tie a **different** dialog avatar to that sprite (see [`addPortrait`](/docs/narraleaf-react/core/elements/character) on the Character page):
+Tie a **different** dialog avatar to a stage `Image`, used while that sprite is visible. See [`addPortrait`](/docs/narraleaf-react/core/elements/character) on the Character page.
 
 ```ts
 const body = new Image({
@@ -151,13 +151,13 @@ scene.action([
 ]);
 ```
 
-## Recap
+## Summary
 
 | Goal | What to do |
 |------|-------------|
 | Show a headshot for a named character | `Character` option `avatar` or `.setAvatar(...)` |
 | Draw it on screen | Place `<Avatar />` inside `<Dialog>...</Dialog>` |
 | Custom dialog | [`game.configure({ dialog: YourDialog })`](/docs/narraleaf-react/core/game/game) |
-| Per-line exceptions | `{ avatar: false }`, `{ avatar: "/other.png" }`, or resolver (see [Dialog](/docs/narraleaf-react/player/dialog)) |
+| Per-line exceptions | `{ avatar: false }`, `{ avatar: "/other.png" }`, or a resolver (see [Dialog](/docs/narraleaf-react/player/dialog)) |
 
-That is enough for a clear, playable setup; advanced rules (multiple visible portraits, tag resolvers) live on the main [Dialog](/docs/narraleaf-react/player/dialog) page.
+Multiple visible portraits and tag resolvers are on the [Dialog](/docs/narraleaf-react/player/dialog) page.

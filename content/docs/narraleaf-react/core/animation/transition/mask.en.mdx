@@ -3,7 +3,7 @@ title: "Mask"
 ---
 > Mask patterns are used by the [Reveal](/docs/narraleaf-react/core/animation/transition/reveal) and [Through Color](/docs/narraleaf-react/core/animation/transition/through-color) transition engines.
 
-`Mask` is the transition-animation vocabulary. Its static factories build `MaskPattern` values — parametric coverage geometries that a mask-driven engine animates from `0` (nothing covered) to `1` (fully covered).
+`Mask` is the transition-animation vocabulary. Its static factories build `MaskPattern` values: parametric coverage geometries that a mask-driven engine animates from `0` (nothing covered) to `1` (fully covered).
 
 Patterns are plain values: you never instantiate them with `new`. Build one with a factory and pass it to an engine's `pattern` option:
 
@@ -14,7 +14,7 @@ image.char("image1.jpg", new Reveal({ duration: 1000, pattern: Mask.wipe({ direc
 image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds() }));
 ```
 
-Every pattern has a natural orientation and an inverted (complementary) one — the same geometry covering from the other side: a wipe grows from the opposite edge, an iris closes from the rim instead of growing from the centre, a clock hand sweeps the other way. Engines use the inverted orientation through `ThroughColor`'s `inverted` option and its `"continue"` uncover mode, and you can flip it permanently with [`Mask.invert`](#maskinvert).
+Every pattern has a natural orientation and an inverted (complementary) one, the same geometry covering from the other side: a wipe grows from the opposite edge, an iris closes from the rim instead of growing from the centre, a clock hand sweeps the other way. Engines use the inverted orientation through `ThroughColor`'s `inverted` option and its `"continue"` uncover mode, and you can flip it permanently with [`Mask.invert`](#maskinvert).
 
 ## Factories
 
@@ -25,7 +25,7 @@ Each factory takes a single optional options object and returns a `MaskPattern`.
 A feathered directional wipe: one soft edge travels across the frame.
 
 - `options?: WipePatternOptions`
-  - `direction?: "left" | "right" | "top" | "bottom" | number` - The direction the covering edge travels toward — a keyword, or any CSS gradient angle in degrees (`0` = up, `90` = right). Defaults to `"left"`.
+  - `direction?: "left" | "right" | "top" | "bottom" | number` - The direction the covering edge travels toward: a keyword, or any CSS gradient angle in degrees (`0` = up, `90` = right). Defaults to `"left"`.
   - `feather?: number` - The width of the soft edge band, in percent. Use `0` for a hard edge. Defaults to `12`.
 
 ```tsx
@@ -43,7 +43,7 @@ Barn doors: two feathered edges closing from opposite edges toward the centre. I
 
 ### Mask.iris
 
-A feathered iris growing from the centre out. Inverted, it covers from the rim inward — the classic "iris to black" is `new ThroughColor({ pattern: Mask.iris(), inverted: true })`.
+A feathered iris growing from the centre out. Inverted, it covers from the rim inward. The classic "iris to black" is `new ThroughColor({ pattern: Mask.iris(), inverted: true })`.
 
 - `options?: IrisPatternOptions`
   - `center?: string` - The centre of the iris, as a CSS position. Defaults to `"50% 50%"`.
@@ -122,7 +122,7 @@ type MaskPattern = {
 
 Every pattern should uphold three invariants:
 
-- `mask(0)` is fully transparent and `mask(1)` fully opaque, feather included — the soft band is swept completely off both ends of the run.
+- `mask(0)` is fully transparent and `mask(1)` fully opaque, feather included: the soft band is swept completely off both ends of the run.
 - The opaque fraction grows monotonically with `t`.
 - `mask(t, true)` is the complementary orientation of the same geometry at the same coverage. This is what lets `ThroughColor` continue a pattern through the hold instead of backing it out.
 
@@ -141,7 +141,7 @@ image.char("image1.jpg", new Reveal({ duration: 800, pattern: diagonal }));
 
 ### Mask.toStyle
 
-For authors of custom transitions: returns the full CSS mask style block for a pattern at coverage `t` — the pattern's image plus its tiling, mirrored to the `-webkit-` prefixes.
+For authors of custom transitions: returns the full CSS mask style block for a pattern at coverage `t`: the pattern's image plus its tiling, mirrored to the `-webkit-` prefixes.
 
 - `pattern: MaskPattern` - The pattern to render.
 - `t: number` - The coverage fraction (`0`–`1`).
