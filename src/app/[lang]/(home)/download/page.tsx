@@ -5,8 +5,8 @@ import { ArrowRight, BookOpen, ExternalLink, ShieldAlert } from 'lucide-react';
 import { docsRoute } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import {
+  DEFAULT_DOWNLOAD_SOURCE,
   STUDIO_RELEASES_PAGE,
-  defaultDownloadSource,
   getStudioRelease,
 } from '@/lib/studio-release';
 import { DownloadPanel, type DownloadPanelCopy } from './download-panel';
@@ -165,7 +165,7 @@ export default async function DownloadPage(props: PageProps<'/[lang]/download'>)
           <DownloadPanel
             release={release}
             copy={copy.panel}
-            defaultSource={defaultDownloadSource(locale)}
+            defaultSource={DEFAULT_DOWNLOAD_SOURCE}
           />
 
           <section className="space-y-3">

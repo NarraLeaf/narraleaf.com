@@ -6,8 +6,6 @@
  * asset) is a change in one file rather than two that can drift apart.
  */
 
-import type { Locale } from './i18n';
-
 export const STUDIO_REPO = 'NarraLeaf/NarraLeaf-Studio';
 export const STUDIO_RELEASES_PAGE = `https://github.com/${STUDIO_REPO}/releases`;
 
@@ -25,10 +23,16 @@ export type DownloadSourceId = 'github' | 'mirror';
 const MIRROR_ORIGIN = 'https://gh-mirror.mewbaka.cn';
 const GITHUB_ORIGIN = 'https://github.com';
 
-/** The source offered first, by language. */
-export function defaultDownloadSource(locale: Locale): DownloadSourceId {
-  return locale === 'zh' ? 'mirror' : 'github';
-}
+/**
+ * The source offered first, in every language.
+ *
+ * GitHub is where the release actually lives, and a page that quietly hands a
+ * visitor a third-party host instead cannot be read as offering the official
+ * build — not by the visitor, and not by anyone the visitor forwards the link
+ * to. The mirror is one click away for whoever needs it, and the docs table
+ * spells out both by name.
+ */
+export const DEFAULT_DOWNLOAD_SOURCE: DownloadSourceId = 'github';
 
 /**
  * Point a download URL at the chosen source.
