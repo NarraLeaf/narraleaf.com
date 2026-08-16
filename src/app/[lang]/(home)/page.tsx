@@ -1,12 +1,12 @@
 import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, BookOpen, ExternalLink } from 'lucide-react';
+import { ArrowRight, BookOpen, Download, ExternalLink } from 'lucide-react';
 import { studioSlides } from '@/assets/studio-slides';
 import desktopCodeImage from '@/assets/home/desktop-code.webp';
 import desktopGameDialogImage from '@/assets/home/desktop-game-dialog.webp';
 import desktopGameMenuImage from '@/assets/home/desktop-game-menu.webp';
 import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
-import { appName, docsRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
+import { appName, docsRoute, downloadRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { notFound } from 'next/navigation';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
@@ -96,7 +96,10 @@ type HomePageCopy = {
   projectModelTabs: ProjectModelTabCopy[];
   solutions: SolutionCard[];
   embedDemo: EmbedDemoCopy;
-  bottomCta: Omit<SectionCopy, 'eyebrow'>;
+  bottomCta: Omit<SectionCopy, 'eyebrow'> & {
+    primaryCta: string;
+    secondaryCta: string;
+  };
   footer: FooterCopy;
 };
 
@@ -107,7 +110,7 @@ const homeCopy = {
       title: 'Visual novels, built like modern software.',
       description:
         'One project system for building, shipping, and embedding visual novels.',
-      primaryCta: 'Explore the Project',
+      primaryCta: 'Download Studio',
       secondaryCta: 'Browse the Docs',
       imageAlt: 'NarraLeaf Studio workspace with a visual novel project open',
     },
@@ -301,6 +304,8 @@ const homeCopy = {
       title: 'A good place to start.',
       description:
         'The project overview gives you the shape of NarraLeaf. When you want the details, the docs are ready beside it.',
+      primaryCta: 'Explore the Project',
+      secondaryCta: 'Browse the Docs',
     },
     footer: {
       navigationLabel: 'Footer navigation',
@@ -316,7 +321,7 @@ const homeCopy = {
       title: '像现代软件一样构建视觉小说',
       description:
         '一套视觉小说的项目系统，可发布为独立应用，也可嵌入现有网页',
-      primaryCta: '探索项目',
+      primaryCta: '下载 Studio',
       secondaryCta: '浏览文档',
       imageAlt: '打开视觉小说项目的 NarraLeaf Studio 工作区',
     },
@@ -506,6 +511,8 @@ const homeCopy = {
       title: '建议从项目概览开始',
       description:
         '项目概览展示整体结构，需要细节时再进入文档',
+      primaryCta: '探索项目',
+      secondaryCta: '浏览文档',
     },
     footer: {
       navigationLabel: '页脚导航',
@@ -566,21 +573,23 @@ function SectionIntro(props: { title: string; description: string }) {
 }
 
 function CtaLinks(props: {
-  projectUrl: string;
+  primaryUrl: string;
   docsUrl: string;
   primaryLabel: string;
   secondaryLabel: string;
+  primaryIcon?: 'arrow' | 'download';
 }) {
-  const { projectUrl, docsUrl, primaryLabel, secondaryLabel } = props;
+  const { primaryUrl, docsUrl, primaryLabel, secondaryLabel, primaryIcon = 'arrow' } = props;
+  const PrimaryIcon = primaryIcon === 'download' ? Download : ArrowRight;
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
       <Link
-        href={projectUrl}
+        href={primaryUrl}
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-fd-primary px-5 py-3 text-sm font-medium text-white transition-transform duration-200 hover:-translate-y-0.5"
       >
         {primaryLabel}
-        <ArrowRight className="size-4" />
+        <PrimaryIcon className="size-4" />
       </Link>
       <Link
         href={docsUrl}
@@ -606,6 +615,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
   const copy = homeCopy[locale];
   const projectUrl = localizedPath(projectRoute, locale);
   const docsUrl = (path = '') => localizedPath(`${docsRoute}${path}`, locale);
+  const downloadUrl = localizedPath(downloadRoute, locale);
   const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
 
   return (
@@ -627,10 +637,11 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </div>
 
             <CtaLinks
-              projectUrl={projectUrl}
+              primaryUrl={downloadUrl}
               docsUrl={docsUrl()}
               primaryLabel={copy.hero.primaryCta}
               secondaryLabel={copy.hero.secondaryCta}
+              primaryIcon="download"
             />
           </div>
 
@@ -817,10 +828,10 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </div>
 
             <CtaLinks
-              projectUrl={projectUrl}
+              primaryUrl={projectUrl}
               docsUrl={docsUrl()}
-              primaryLabel={copy.hero.primaryCta}
-              secondaryLabel={copy.hero.secondaryCta}
+              primaryLabel={copy.bottomCta.primaryCta}
+              secondaryLabel={copy.bottomCta.secondaryCta}
             />
           </div>
         </section>
