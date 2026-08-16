@@ -18,7 +18,8 @@ import { DownloadPosterCard } from './download-poster-card';
  * so there is no shared direction to lock onto and the surface reads as depth
  * instead. Speeds still differ so the columns do not beat against each other.
  * Shots come from the same set as the home page's Studio run — 2956x1974 each,
- * cropped to 16:9 by the card.
+ * shown whole, since each one is a window on transparency rather than a
+ * rectangle a card can crop.
  */
 const COLUMNS = [
   {

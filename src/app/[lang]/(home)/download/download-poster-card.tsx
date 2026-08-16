@@ -37,7 +37,7 @@ export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes
   }, []);
 
   return (
-    <div className="relative mb-4 aspect-video w-full overflow-hidden">
+    <div className="relative mb-4 aspect-[2956/1974] w-full">
       <div
         aria-hidden
         className={cn(
@@ -51,11 +51,15 @@ export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes
         alt=""
         sizes={sizes}
         onLoad={() => setLoaded(true)}
-        // The screenshots are 3:2; the card is 16:9 and takes the crop off the
-        // bottom, where a Studio window has the least going on. No corners, no
-        // border — at this angle any frame reads as a box drawn on the page.
+        // The card carries the screenshots' own 2956x1974, so nothing is
+        // cropped. Cropping the overflow off the bottom is what a rectangular
+        // screenshot wants, but these are windows: the crop landed on the
+        // window's lower edge and the shadow under it, and every poster came
+        // out sliced flat along the bottom. No corners and no border either —
+        // at this angle any frame reads as a box drawn on the page, and the
+        // shadow the file already carries is the only edge the wall needs.
         className={cn(
-          'relative size-full object-cover object-top transition-opacity duration-700 ease-out',
+          'relative size-full object-contain transition-opacity duration-700 ease-out',
           loaded ? 'opacity-100' : 'opacity-0',
         )}
       />
