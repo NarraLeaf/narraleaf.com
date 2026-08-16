@@ -12,6 +12,8 @@
     "usePathname",
     "useParams",
     "useQueryParams",
-    "useVoiceState"
+    "useVoiceState",
+    "useDialogOverlay",
+    "useSuspendAdvance"
   ]
 }

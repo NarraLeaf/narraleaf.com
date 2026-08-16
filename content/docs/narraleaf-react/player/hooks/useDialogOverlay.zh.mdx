@@ -1,0 +1,89 @@
+---
+title: "useDialogOverlay"
+---
+用来绘制属于某一行、但放不进这一行里的东西：行内词的释义浮层、名字上的提示框。自 `0.27.0` 起可用。
+
+```typescript
+function useDialogOverlay(): DialogOverlay;
+```
+
+叠层覆盖对话框并画在它上方，且仍处于同一个缩放后的舞台内。就地画在词所在位置的浮层会被文本框裁掉；portal 到 `document.body` 的浮层会脱离舞台缩放，画出来的尺寸与它所解释的那一行对不上。叠层两个问题都没有。
+
+## 用法
+
+```tsx
+import { useDialogOverlay } from "narraleaf-react";
+
+function Definition({anchor, children}: {anchor: Element | null; children: React.ReactNode}) {
+    const overlay = useDialogOverlay();
+    const rect = overlay.measure(anchor);
+
+    if (!rect) return null;
+
+    return (
+        <overlay.Portal>
+            <div style={{
+                position: "absolute",
+                left: rect.left,
+                top: rect.bottom + 8,
+                width: 320,
+                pointerEvents: "auto",
+            }}>
+                {children}
+            </div>
+        </overlay.Portal>
+    );
+}
+```
+
+## DialogOverlay
+
+```typescript
+type DialogOverlay = {
+    Portal: React.FC<{ children?: React.ReactNode }>;
+    measure: (element: Element | null) => DialogOverlayRect | null;
+    container: HTMLElement | null;
+};
+```
+
+### Portal
+
+把子元素渲染进叠层，位于对话框之上，且仍在缩放后的舞台内。子元素按绝对定位摆放，原点是叠层的左上角。
+
+### measure
+
+- `element: Element | null` - 要定位的元素，通常是浮层所属的那个词
+- 返回 [DialogOverlayRect](#dialogoverlayrect)；元素为 `null` 或当前没有叠层时返回 `null`
+
+### container
+
+叠层元素；在对话框之外为 `null`。
+
+## DialogOverlayRect
+
+```typescript
+type DialogOverlayRect = {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+};
+```
+
+## 坐标系
+
+`measure` 给出的位置使用叠层自己的坐标系：对话框在被舞台缩放到窗口之前的原始尺寸。结果可以直接写进 `left` 和 `top`，浮层的尺寸也用同一套单位书写。浮层不需要读取舞台缩放比例。
+
+## 指针事件
+
+叠层在其子元素没有绘制的地方一律放行点击。浮层自身要设置 `pointer-events: auto`。
+
+## 按住当前行
+
+会接管玩家下一次按键的浮层，应当在打开期间用 [useSuspendAdvance](/zh/docs/narraleaf-react/player/hooks/useSuspendAdvance) 按住当前行。
+
+## 可用范围
+
+叠层属于 ADV 对话框。NVL 模式下没有宿主：`container` 为 `null`，`measure` 返回 `null`，`Portal` 不渲染任何内容。需要在 NVL 模式下工作的浮层要就地渲染。

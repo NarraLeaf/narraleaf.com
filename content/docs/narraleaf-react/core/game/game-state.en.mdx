@@ -47,3 +47,35 @@ Since `0.17.0` the `Player` registers the story's entry scene automatically — 
 - `return: this`
 </Step>
 </Steps>
+
+### suspendAdvance
+
+<Steps>
+<Step>
+
+Hold the line where it is. While at least one suspension is out, a click on the stage and the advance and skip keys do nothing. Available since `0.27.0`.
+
+```typescript
+const release = gameState.suspendAdvance();
+// ...
+release();
+```
+
+Suspensions nest: the line resumes once every one of them has been released. The returned function is safe to call more than once.
+
+Inside a React component, use [useSuspendAdvance](/docs/narraleaf-react/player/hooks/useSuspendAdvance), which takes and releases the suspension with the component.
+
+- `return: () => void` - releases this suspension
+</Step>
+</Steps>
+
+### isAdvanceSuspended
+
+<Steps>
+<Step>
+
+Whether anything is currently holding the line. Available since `0.27.0`.
+
+- `return: boolean`
+</Step>
+</Steps>

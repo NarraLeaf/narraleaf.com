@@ -54,6 +54,7 @@
     "ConditionConfig",
     "CustomEasingFunction",
     "WordConfig",
+    "WordRenderProps",
     "EasingDefinition",
     "BezierDefinition",
     "NotificationToken",

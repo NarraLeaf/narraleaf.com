@@ -1,0 +1,125 @@
+---
+title: "Custom Word Tutorial"
+---
+Render a word inside a line with a component of your own, and open a popup from it: a glossary term that shows its definition where the player tapped it, a name that leads into an in-game encyclopedia. Available since `0.27.0`.
+
+Four pieces do the work:
+
+1. [`Word.custom`](/docs/narraleaf-react/core/elements/character/word#custom) attaches the component to the word.
+2. [`WordRenderProps`](/docs/narraleaf-react/core/types/WordRenderProps) tells the component what to draw and when.
+3. [`useDialogOverlay`](/docs/narraleaf-react/player/hooks/useDialogOverlay) gives the popup somewhere to be drawn that the text box does not clip.
+4. [`useSuspendAdvance`](/docs/narraleaf-react/player/hooks/useSuspendAdvance) stops the line advancing while the popup is open.
+
+## 1. Write the word component
+
+The component is handed the laid-out text as `children`. Render it as it comes: ruby, vertical writing mode and tate-chu-yoko are already inside it.
+
+```tsx
+import { WordRenderProps } from "narraleaf-react";
+
+type GlossaryData = { entry: string };
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <span
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+        </span>
+    );
+}
+```
+
+`revealed` gates the click. While the word is still being typed the engine advances the line instead, which is what a click mid-word asks for.
+
+## 2. Put the word in a line
+
+```tsx
+import { Word } from "narraleaf-react";
+
+character.say([
+    "The ",
+    Word.custom("aether density", GlossaryTerm, {data: {entry: "aether"}}),
+    " is abnormally high today.",
+]);
+```
+
+The word stays a text word: it is typed out character by character, and it reaches the backlog, the read-text record and the voice pipeline as `aether density`. It is never serialized, so a save carries no trace of the component.
+
+Styling still works. `Word.custom("aether density", GlossaryTerm, {color: "#c33", bold: true})` colors and bolds the word, and the component renders inside that.
+
+## 3. Draw the popup in the dialog overlay
+
+A popup positioned inside the word is clipped by the text box, and one portalled to `document.body` loses the stage's scale. The dialog overlay is neither: it covers the dialog box, inside the same scale, and paints above it.
+
+Measure the word, then position the popup in the coordinates `measure` reports.
+
+```tsx
+import { useDialogOverlay, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+    const anchorRef = useRef<HTMLSpanElement>(null);
+    const overlay = useDialogOverlay();
+    const rect = open ? overlay.measure(anchorRef.current) : null;
+
+    return (
+        <span
+            ref={anchorRef}
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+            {rect && (
+                <overlay.Portal>
+                    <div style={{
+                        position: "absolute",
+                        left: rect.left,
+                        top: rect.bottom + 8,
+                        width: 320,
+                        pointerEvents: "auto",
+                    }}>
+                        {glossary[data.entry]}
+                    </div>
+                </overlay.Portal>
+            )}
+        </span>
+    );
+}
+```
+
+`rect` is in the dialog box's own coordinates, before the stage scales it to the window, so `width: 320` is 320 authored units and matches the text beside it at any window size. The overlay is transparent to clicks, so the popup sets `pointer-events: auto` for itself.
+
+## 4. Hold the line while the popup is open
+
+Without this, the key that dismisses the popup advances the line behind it.
+
+```tsx
+useSuspendAdvance(open);
+```
+
+The hold is released when `open` becomes `false` and when the component unmounts, so a popup that disappears cannot leave the game stuck.
+
+## Words that come from data
+
+A word compiled from a story file or contributed by a plugin cannot carry a function. Register the component under an id and let the word name it.
+
+```tsx
+import { registerWordRenderer } from "narraleaf-react";
+
+registerWordRenderer("glossary", GlossaryTerm);
+```
+
+```tsx
+new Word("aether density", {render: "glossary", data: {entry: "aether"}});
+```
+
+Register before the line plays. An id nothing answers to renders as plain text and warns once, so a missing plugin costs the decoration and nothing else.
+
+## Notes
+
+- Keep line breaks out of a custom word. A word carrying one is drawn as one wrapper per line, and only the last of them reports `revealed`.
+- The overlay belongs to the ADV dialog box. In NVL mode `overlay.measure` returns `null` and `overlay.Portal` renders nothing; a popup that has to work there renders inline.

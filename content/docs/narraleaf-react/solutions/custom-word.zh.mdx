@@ -1,0 +1,125 @@
+---
+title: "自定义词教程"
+---
+用你自己的组件渲染行内的某个词，并从它打开浮层：显示释义的术语、通向游戏内百科的人名。自 `0.27.0` 起可用。
+
+需要四个部件：
+
+1. [`Word.custom`](/zh/docs/narraleaf-react/core/elements/character/word#custom) 把组件挂到词上。
+2. [`WordRenderProps`](/zh/docs/narraleaf-react/core/types/WordRenderProps) 告诉组件该画什么、什么时候画。
+3. [`useDialogOverlay`](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 给浮层一个不会被文本框裁掉的落点。
+4. [`useSuspendAdvance`](/zh/docs/narraleaf-react/player/hooks/useSuspendAdvance) 在浮层打开期间阻止行推进。
+
+## 1. 编写词组件
+
+组件拿到的 `children` 是已经排好版的文本，照原样渲染即可：注音（ruby）、竖排书写模式和縦中横都已在其中。
+
+```tsx
+import { WordRenderProps } from "narraleaf-react";
+
+type GlossaryData = { entry: string };
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <span
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+        </span>
+    );
+}
+```
+
+`revealed` 为点击把关。词还在打字时引擎会改为推进当前行，这正是打字途中点击所要求的结果。
+
+## 2. 把这个词放进一行
+
+```tsx
+import { Word } from "narraleaf-react";
+
+character.say([
+    "今天的",
+    Word.custom("以太浓度", GlossaryTerm, {data: {entry: "aether"}}),
+    "高得反常。",
+]);
+```
+
+这个词仍是文本词：它逐字打出，进入回想、已读记录和配音管线时都是「以太浓度」。它从不参与序列化，因此存档里不留组件的任何痕迹。
+
+样式照常可用。`Word.custom("以太浓度", GlossaryTerm, {color: "#c33", bold: true})` 会给这个词着色并加粗，组件渲染在这层样式之内。
+
+## 3. 把浮层画进对话框叠层
+
+画在词内部的浮层会被文本框裁掉，portal 到 `document.body` 的浮层则丢掉舞台缩放。对话框叠层两者都不是：它覆盖对话框、处于同一缩放内、并画在对话框之上。
+
+先测量这个词，再用 `measure` 给出的坐标摆放浮层。
+
+```tsx
+import { useDialogOverlay, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+    const anchorRef = useRef<HTMLSpanElement>(null);
+    const overlay = useDialogOverlay();
+    const rect = open ? overlay.measure(anchorRef.current) : null;
+
+    return (
+        <span
+            ref={anchorRef}
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+            {rect && (
+                <overlay.Portal>
+                    <div style={{
+                        position: "absolute",
+                        left: rect.left,
+                        top: rect.bottom + 8,
+                        width: 320,
+                        pointerEvents: "auto",
+                    }}>
+                        {glossary[data.entry]}
+                    </div>
+                </overlay.Portal>
+            )}
+        </span>
+    );
+}
+```
+
+`rect` 使用对话框自身的坐标系，即被舞台缩放到窗口之前的尺寸，因此 `width: 320` 就是 320 个原始单位，在任何窗口尺寸下都与旁边的文字相称。叠层对点击透明，所以浮层要自己设置 `pointer-events: auto`。
+
+## 4. 打开期间按住当前行
+
+不这样做，用来关闭浮层的那一次按键会让它背后的行推进。
+
+```tsx
+useSuspendAdvance(open);
+```
+
+`open` 变为 `false` 时以及组件卸载时挂起都会释放，因此浮层消失后不会把游戏卡住。
+
+## 来自数据的词
+
+从故事文件编译而来、或由插件提供的词无法携带函数。把组件注册到一个 id 上，让词按名字取用。
+
+```tsx
+import { registerWordRenderer } from "narraleaf-react";
+
+registerWordRenderer("glossary", GlossaryTerm);
+```
+
+```tsx
+new Word("以太浓度", {render: "glossary", data: {entry: "aether"}});
+```
+
+要在这一行播放之前完成注册。没有注册过的 id 会渲染为纯文本并警告一次，因此插件缺失只损失这处装饰，别的照旧。
+
+## 注意
+
+- 不要在自定义词里放换行。含换行的词会按行拆成多个包裹元素，其中只有最后一个报告 `revealed`。
+- 叠层属于 ADV 对话框。NVL 模式下 `overlay.measure` 返回 `null`、`overlay.Portal` 不渲染任何内容；需要在那里工作的浮层要就地渲染。

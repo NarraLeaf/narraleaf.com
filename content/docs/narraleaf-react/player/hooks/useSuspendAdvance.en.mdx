@@ -1,0 +1,48 @@
+---
+title: "useSuspendAdvance"
+---
+Hold the current line while something of yours is open. While a hold is out, a click on the stage, the advance key and the skip key stop reaching the dialog. Available since `0.27.0`.
+
+```typescript
+function useSuspendAdvance(active: boolean): void;
+```
+
+A popup drawn over a line has to stop the line advancing underneath it, or the same key press that dismisses the popup skips to the next line.
+
+## Usage
+
+```tsx
+import { useSuspendAdvance, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    const [open, setOpen] = useState(false);
+
+    useSuspendAdvance(open);
+
+    return (
+        <span onClick={() => revealed && setOpen(value => !value)}>
+            {children}
+            {open && <Definition entry={data.entry} />}
+        </span>
+    );
+}
+```
+
+- `active: boolean` - Whether to hold the line right now.
+- Returns `void`.
+
+## Behavior
+
+- The hold is taken when `active` becomes `true`, and released when it becomes `false` or the component unmounts. A popup that disappears cannot leave the game stuck.
+- Holds nest. Several may be out at once, and the line resumes when the last one is released.
+- Only advancing is held. The typewriter, running transitions and audio are unaffected.
+
+## Outside React
+
+[`GameState.suspendAdvance`](/docs/narraleaf-react/core/game/game-state#suspendadvance) does the same thing and returns the release as a function.
+
+```typescript
+const release = gameState.suspendAdvance();
+// ...
+release();
+```

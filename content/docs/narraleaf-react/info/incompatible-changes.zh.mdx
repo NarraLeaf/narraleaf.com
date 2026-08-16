@@ -3,6 +3,12 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
 
+## 0.27.0
+
+- 传给 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 的过渡跨整个舞台播放，而不再作用于离场场景的背景图。立绘、文字以及其他所有层现在都参与跳转，不会在跳转结束时凭空消失。过渡本身的写法没有任何变化，但它的几何依据变成了舞台：`Push` 位移的距离是舞台宽度，`Mask` 铺在舞台矩形上，刻意小于舞台的背景会被一起扫过，而不再是被扫的那一张图。参见 [JumpConfig](/zh/docs/narraleaf-react/core/types/JumpConfig)
+- [`JumpConfig.transition`](/zh/docs/narraleaf-react/core/types/JumpConfig#transition) 的类型从 `ImageTransition` 放宽为 `Transition`。所有内置过渡两者都满足，因此已有调用不受影响
+- `allowSkipBackgroundTransition` 由 `allowSkipSceneTransition` 取代，默认值为 `true`。旧的开关从来没有被读取过：背景过渡和其他图像一样受 `allowSkipImageTransition` 管辖。新开关管的是跳转所播放的舞台过渡。**请在 `game.configure` 调用里改名**，参见 [GameConfig](/zh/docs/narraleaf-react/core/types/GameConfig)
+
 ## 0.26.0
 
 - `Camera.reset` 现在叫 [`Camera.resetCamera`](/zh/docs/narraleaf-react/core/elements/camera#resetcamera)。每个元素都自带一个内部的 `reset()`——新游戏开始或读档时引擎运行的生命周期钩子——而 Camera 却把这个名字给了可链式调用的创作辅助方法，于是 `newGame()` 从不恢复镜头姿态，平移或缩放过的故事会把那个取景带进下一次游玩。**请把剧本里所有 `camera.reset(...)` 改名。** 现在在 Camera 上调用 `reset()` 触及的是生命周期钩子：它立即恢复到配置的姿态，不做任何动画，返回的是 Camera 本身而不是可链式调用的动作

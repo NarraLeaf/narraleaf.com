@@ -1,0 +1,65 @@
+---
+title: "WordRenderProps"
+---
+```typescript
+type WordRenderProps<T = unknown> = {
+    children: React.ReactNode;
+    text: string;
+    fullText: string;
+    revealed: boolean;
+    done: boolean;
+    style: Readonly<React.CSSProperties>;
+    config: Readonly<Partial<WordConfig>>;
+    data: T;
+};
+```
+
+传给 [`Word.custom`](/zh/docs/narraleaf-react/core/elements/character/word#custom) 的组件所接收的 props。自 `0.27.0` 起可用。
+
+```tsx
+import { Word, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    return (
+        <span onClick={() => revealed && openGlossary(data.entry)}>
+            {children}
+        </span>
+    );
+}
+```
+
+## children
+
+引擎已经排好版的词文本。注音（ruby）、竖排书写模式和縦中横都已经应用在其中，且只包含目前已显示出来的字符。
+
+请渲染 `children`。用 `text` 代替它会得到同样的字符，但没有注音、没有竖排书写模式、也没有縦中横。
+
+## text
+
+目前已显示出来的字符，为纯字符串。打字机走完这个词后，它等于 `fullText`。
+
+## fullText
+
+整个词，无论是否已显示完。
+
+## revealed
+
+这个词的每个字符是否都已显示。
+
+含换行的词会按行拆成多个包裹元素，其中只有最后一个会报告 `revealed`。
+
+## done
+
+整行是否已显示完毕，而不只是这个词。
+
+## style
+
+这个词解析后的样式：引擎默认值、对话框的文字 props、句子、词，依次覆盖。它已经应用在组件所在的元素上，此处传入是为了让组件据此测量，或把它带进 portal。
+
+## config
+
+词自身的 [WordConfig](/zh/docs/narraleaf-react/core/types/WordConfig)。
+
+## data
+
+创建这个词时作为 `data` 传入的负载。它按引用传递：组件拿到的就是传进来的那个值，不是副本。

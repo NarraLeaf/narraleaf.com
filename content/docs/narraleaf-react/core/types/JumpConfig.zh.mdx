@@ -3,20 +3,27 @@ title: "JumpConfig"
 ---
 ```ts
 type JumpConfig = {
-    transition: ImageTransition;
+    transition: Transition;
 };
 ```
 
 ## transition
 
-跳转到另一个场景时使用的过渡效果。
+[`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 切换场景时播放的过渡。
 
-图像过渡的列表参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)
+自 `0.27.0` 起，它跨整个舞台播放，而不再只作用于背景。跳转期间两个场景同时在屏幕上：离场场景演出过渡的离场那一半，入场场景演出入场那一半，因此立绘、文字以及其他所有层都参与其中。
 
-## unloadScene
+```typescript
+scene.jumpTo(nextScene, new Reveal({duration: 800, pattern: Mask.iris()}));
+```
 
-> 默认：`true`
+过渡的列表参见 [Transition](/zh/docs/narraleaf-react/core/animation/transition)。
 
-跳转到另一个场景时卸载当前场景。
+过渡覆盖整个舞台带来两个结果：
 
-大多数情况下不建议使用此属性。
+- 它的几何依据是舞台，而不是背景图。`Push` 位移的距离是舞台宽度，`Mask` 铺在舞台矩形上。刻意小于舞台的背景会与其他内容一起被扫过，而不再是被扫的那一张图。
+- 对话框不参与其中。它渲染在舞台之外，场景结束时它已经消失。
+
+该字段的类型是 `Transition` 而不是 `ImageTransition`。所有内置过渡两者都满足，因此 `0.27.0` 之前写下的调用不受影响。
+
+跳过键是否跳过这段过渡由 [`allowSkipSceneTransition`](/zh/docs/narraleaf-react/core/types/GameConfig) 决定。

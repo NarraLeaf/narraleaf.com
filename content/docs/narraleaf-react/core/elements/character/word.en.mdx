@@ -69,6 +69,20 @@ const word = new Word((ctx) =>
 </Step>
 </Steps>
 
+### custom
+
+<Steps>
+<Step>
+
+Render a word with a component of your own. See [Custom rendering](#custom-rendering). Available since `0.27.0`.
+
+- `text: string | Word` - The text or Word instance to render
+- `render: WordRenderer` - A component, or the id of a component registered with [registerWordRenderer](#registerwordrenderer)
+- `config?: Partial<WordConfig> & { data?: T }` - [WordConfig](/docs/narraleaf-react/core/types/WordConfig) without `render`, plus the `data` payload handed to the component
+- Returns a new `Word` instance drawn by that component.
+</Step>
+</Steps>
+
 ## Public Method
 
 ### constructor
@@ -89,5 +103,99 @@ const word = new Word((ctx) =>
 If the word is a string, it will return the string. Otherwise, it will return an empty string.
 
 - Returns `string`
+</Step>
+</Steps>
+
+## Custom rendering
+
+A custom word is an ordinary text word wearing a component. It is typed out character by character like any other word, it reaches the backlog, the read-text record and the voice pipeline as its plain text, and it is never serialized: the component is re-attached when the line is evaluated again, so a save carries no trace of it.
+
+```tsx
+import { Word, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    return (
+        <span className="underline decoration-dotted"
+              onClick={() => revealed && openGlossary(data.entry)}>
+            {children}
+        </span>
+    );
+}
+
+character.say([
+    "The ",
+    Word.custom("aether density", GlossaryTerm, {data: {entry: "aether"}}),
+    " is abnormally high today.",
+]);
+```
+
+The component receives [WordRenderProps](/docs/narraleaf-react/core/types/WordRenderProps). For a complete popup built on top of it, see [Custom Word](/docs/narraleaf-react/solutions/custom-word).
+
+### Laid-out text
+
+`children` is the word's text as the engine has already laid it out, with ruby, vertical writing mode and tate-chu-yoko applied. Render `children`; rendering `text` in its place produces the same characters without any of the three.
+
+### Style order
+
+The component renders inside the element the engine styles, so the resolved style is already in effect: engine defaults, then the dialog's text props, then the sentence, then the word. The component is innermost, so anything it sets is applied last.
+
+`Word.custom` composes with the other factories in either direction. `Word.bold(Word.custom(text, Term))` and `Word.custom(Word.color(text, "#f00"), Term)` both keep the styling and the component.
+
+### Clicks
+
+While the word is still being typed, a click on it advances the line the way a click anywhere else does. Once the word is fully revealed it takes its own clicks, and the line does not advance behind it.
+
+### Line breaks
+
+A custom word containing a line break is drawn as one wrapper per line, since the break sits between them and belongs to neither, and only the last of them reports `revealed`. Keep line breaks in the words around a custom word rather than inside it.
+
+### NVL mode
+
+A custom word renders and behaves the same in NVL mode, but [useDialogOverlay](/docs/narraleaf-react/player/hooks/useDialogOverlay) has no host there and reports no container. A popup that has to work in NVL mode renders inline.
+
+## Renderer registry
+
+A word built in code carries its component directly. A word that arrives as data, compiled from a story file or contributed by a plugin, carries an id instead, and the id is resolved when the word is drawn. All three functions are available since `0.27.0`.
+
+```tsx
+import { registerWordRenderer, Word } from "narraleaf-react";
+
+registerWordRenderer("glossary", GlossaryTerm);
+
+new Word("aether density", {render: "glossary", data: {entry: "aether"}});
+```
+
+An id nothing is registered under renders as plain text and is reported once per id on the console. It does not throw, so a line whose plugin is missing still reads.
+
+### registerWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - The id words refer to
+- `component: React.ComponentType<WordRenderProps<T>>` - The component to draw those words with
+- Returns a function that unregisters it.
+
+Registering the same id again replaces the component. Lines already on screen pick the new one up on their next render.
+</Step>
+</Steps>
+
+### unregisterWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - The id to drop
+- Returns `void`.
+</Step>
+</Steps>
+
+### getWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - The id to look up
+- Returns the registered component, or `null`.
 </Step>
 </Steps>

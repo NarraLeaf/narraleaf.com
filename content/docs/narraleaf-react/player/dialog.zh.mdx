@@ -308,6 +308,12 @@ function GameDialog() {
 }
 ```
 
+## 叠层
+
+ADV 对话框自带一个叠层，它覆盖对话框并画在其上，且处于同一个缩放后的舞台内。凡是属于某一行、又放不进文本框的东西都放在那里：行内词的释义浮层、名字上的提示框。用 [`useDialogOverlay`](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 取得它。
+
+叠层是内置 `Dialog` 组件的一部分，因此由 `Dialog` 组合而成的自定义对话框同样具备它。NVL 模式没有叠层。
+
 ## 导出的类型
 
 `narraleaf-react` 导出：

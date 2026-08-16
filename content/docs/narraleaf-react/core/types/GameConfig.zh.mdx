@@ -176,10 +176,10 @@ type GameConfig = {
      */
     allowSkipBackgroundTransform: boolean;
     /**
-     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过背景过渡
-     * @default false
+     * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过 Scene.jumpTo 在场景之间播放的过渡
+     * @default true
      */
-    allowSkipBackgroundTransition: boolean;
+    allowSkipSceneTransition: boolean;
     /**
      * 如果为true，当按下 [GameConfig.player.skipKey] 时，游戏将跳过文本变换
      * @default true

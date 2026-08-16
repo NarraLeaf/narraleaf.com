@@ -308,6 +308,12 @@ function GameDialog() {
 }
 ```
 
+## Overlay
+
+The ADV dialog box carries an overlay that covers it and paints above it, inside the same scaled stage. Anything that belongs to a line but does not fit inside the text box goes there: the definition popup of an inline word, a tooltip on a name. Reach it with [`useDialogOverlay`](/docs/narraleaf-react/player/hooks/useDialogOverlay).
+
+The overlay is part of the built-in `Dialog` component, so a custom dialog composed from `Dialog` has it. NVL mode has no overlay.
+
 ## Exported types
 
 `narraleaf-react` exports:

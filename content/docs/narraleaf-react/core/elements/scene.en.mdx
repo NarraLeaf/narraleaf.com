@@ -180,12 +180,12 @@ scene.action([
 <Steps>
 <Step>
 
-Jump to another scene. If the transition is provided, the scene will be changed with the transition effect.
+Jump to another scene. If a transition is provided, it is played across the whole stage while the two scenes swap: sprites, text and every other layer take part, not only the background. See [JumpConfig](/docs/narraleaf-react/core/types/JumpConfig).
 
 > Note: The current scene will be disposed after jumping to another scene. The rest of the actions will not be executed.
 
 - `scene: Scene | string` - The Scene instance or the name of the scene to jump to
-- `config: Partial<JumpConfig>` - [Jump Config](/docs/narraleaf-react/core/types/JumpConfig)
+- `config: Partial<JumpConfig> | Transition` - [Jump Config](/docs/narraleaf-react/core/types/JumpConfig), or the transition on its own
 </Step>
 </Steps>
 

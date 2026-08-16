@@ -47,3 +47,35 @@ gameState.preloadScene(scene);   // 也可以传 Story，将使用它的入口�
 - `return: this`
 </Step>
 </Steps>
+
+### suspendAdvance
+
+<Steps>
+<Step>
+
+把当前行按住不动。只要还有一个挂起未释放，舞台点击、推进键和跳过键都不起作用。自 `0.27.0` 起可用。
+
+```typescript
+const release = gameState.suspendAdvance();
+// ...
+release();
+```
+
+挂起可嵌套：全部释放之后行才恢复。返回的函数可以安全地重复调用。
+
+在 React 组件里请用 [useSuspendAdvance](/zh/docs/narraleaf-react/player/hooks/useSuspendAdvance)，它随组件取得和释放挂起。
+
+- `return: () => void` - 释放这次挂起
+</Step>
+</Steps>
+
+### isAdvanceSuspended
+
+<Steps>
+<Step>
+
+当前是否有东西正按住这一行。自 `0.27.0` 起可用。
+
+- `return: boolean`
+</Step>
+</Steps>

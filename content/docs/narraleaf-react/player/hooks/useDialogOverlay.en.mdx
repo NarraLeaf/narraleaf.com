@@ -1,0 +1,89 @@
+---
+title: "useDialogOverlay"
+---
+Somewhere to draw what belongs to a line but does not fit inside it: the definition popup of an inline word, a tooltip on a name. Available since `0.27.0`.
+
+```typescript
+function useDialogOverlay(): DialogOverlay;
+```
+
+The overlay covers the dialog box and paints above it, inside the same scaled stage. A popup rendered inline where its word sits is clipped by the text box; one portalled to `document.body` leaves the stage's scale behind and is drawn at a size that no longer matches the line it explains. The overlay has neither problem.
+
+## Usage
+
+```tsx
+import { useDialogOverlay } from "narraleaf-react";
+
+function Definition({anchor, children}: {anchor: Element | null; children: React.ReactNode}) {
+    const overlay = useDialogOverlay();
+    const rect = overlay.measure(anchor);
+
+    if (!rect) return null;
+
+    return (
+        <overlay.Portal>
+            <div style={{
+                position: "absolute",
+                left: rect.left,
+                top: rect.bottom + 8,
+                width: 320,
+                pointerEvents: "auto",
+            }}>
+                {children}
+            </div>
+        </overlay.Portal>
+    );
+}
+```
+
+## DialogOverlay
+
+```typescript
+type DialogOverlay = {
+    Portal: React.FC<{ children?: React.ReactNode }>;
+    measure: (element: Element | null) => DialogOverlayRect | null;
+    container: HTMLElement | null;
+};
+```
+
+### Portal
+
+Renders its children into the overlay, above the dialog and still inside the scaled stage. Children are positioned absolutely against the overlay's top left corner.
+
+### measure
+
+- `element: Element | null` - The element to locate, usually the word the popup belongs to.
+- Returns a [DialogOverlayRect](#dialogoverlayrect), or `null` when the element is `null` or there is no overlay.
+
+### container
+
+The overlay element, or `null` outside a dialog.
+
+## DialogOverlayRect
+
+```typescript
+type DialogOverlayRect = {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+};
+```
+
+## Coordinates
+
+`measure` reports a position in the overlay's own coordinates: the dialog box at its authored size, before the stage scales it to the window. Feed the result straight to `left` and `top`, and give the popup a size in the same units. The popup never reads the stage scale.
+
+## Pointer events
+
+The overlay lets clicks through everywhere its children do not paint. Give the popup itself `pointer-events: auto`.
+
+## Holding the line
+
+A popup that takes the player's next key press should hold the line while it is open, with [useSuspendAdvance](/docs/narraleaf-react/player/hooks/useSuspendAdvance).
+
+## Availability
+
+The overlay belongs to the ADV dialog box. In NVL mode there is no host: `container` is `null`, `measure` returns `null`, and `Portal` renders nothing. A popup that has to work in NVL mode renders inline.

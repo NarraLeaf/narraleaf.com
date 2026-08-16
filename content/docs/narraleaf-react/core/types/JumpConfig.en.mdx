@@ -3,20 +3,27 @@ title: "JumpConfig"
 ---
 ```ts
 type JumpConfig = {
-    transition: ImageTransition;
+    transition: Transition;
 };
 ```
 
 ## transition
 
-The transition effect when jumping to another scene.
+The transition played while [`Scene.jumpTo`](/docs/narraleaf-react/core/elements/scene#jumpto) swaps the scenes.
 
-For a list of image transitions, see [Transition](/docs/narraleaf-react/core/animation/transition)
+Since `0.27.0` it is played across the whole stage rather than across the background alone. Both scenes are on screen for the length of the jump: the outgoing scene drives the transition's outgoing half and the incoming scene its incoming half, so sprites, text and every other layer take part.
 
-## unloadScene
+```typescript
+scene.jumpTo(nextScene, new Reveal({duration: 800, pattern: Mask.iris()}));
+```
 
-> Default: `true`
+For the list of transitions, see [Transition](/docs/narraleaf-react/core/animation/transition).
 
-Unload the current scene when jumping to another scene.
+Two things follow from a transition covering the stage:
 
-This property is not recommended to be used in most cases.
+- Its geometry is the stage, not the background image. A `Push` travels the width of the stage, and a `Mask` is laid over the stage rectangle. A background deliberately smaller than the stage is swept along with everything else rather than being the thing swept.
+- The dialog box takes no part in it. It is rendered outside the stage and is gone once the scene ends.
+
+The field is typed `Transition` rather than `ImageTransition`. Every built-in transition satisfies both, so calls written before `0.27.0` are unaffected.
+
+Whether the skip key skips this transition is governed by [`allowSkipSceneTransition`](/docs/narraleaf-react/core/types/GameConfig).

@@ -7,6 +7,8 @@ type WordConfig = {
     ruby: string;
     color: Color;
     cps?: number;
+    render?: WordRenderer;
+    data?: unknown;
 } & Font;
 ```
 
@@ -45,4 +47,35 @@ The `cps` property is used to set the speed of the word. Using this property, yo
 new Word({
     cps: 10, // 10 characters per second
 });
+```
+
+## render
+
+> Available since `0.27.0`
+
+The component that draws this word's revealed characters.
+
+```typescript
+type WordRenderer<T = any> = string | React.ComponentType<WordRenderProps<T>>;
+```
+
+Pass a component in code. Pass an id when the word comes from data and cannot carry a function; the id is resolved against the [renderer registry](/docs/narraleaf-react/core/elements/character/word#renderer-registry) when the word is drawn, and an id nothing answers to renders as plain text.
+
+```tsx
+new Word("aether density", {render: GlossaryTerm});
+new Word("aether density", {render: "glossary"});
+```
+
+[`Word.custom`](/docs/narraleaf-react/core/elements/character/word#custom) sets this field. See [Custom rendering](/docs/narraleaf-react/core/elements/character/word#custom-rendering).
+
+`render` propagates to the plain strings a dynamic word returns, the same way `className` does. It is not inherited by a nested `Word`, which keeps whatever renderer it declares for itself.
+
+## data
+
+> Available since `0.27.0`
+
+The payload handed to `render` as `data`. It is never merged or cloned: the component receives the very value given here.
+
+```tsx
+new Word("aether density", {render: "glossary", data: {entry: "aether"}});
 ```

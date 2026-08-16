@@ -11,6 +11,7 @@
     "page-overlay-settings",
     "save-system-localstorage",
     "custom-notification",
-    "gallery-service-localstorage"
+    "gallery-service-localstorage",
+    "custom-word"
   ]
 }

@@ -3,6 +3,12 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.27.0
+
+- A transition given to [`Scene.jumpTo`](/docs/narraleaf-react/core/elements/scene#jumpto) is played across the whole stage rather than across the outgoing scene's background image. Sprites, text and every other layer now take part in the jump instead of vanishing at the end of it. Nothing about how a transition is written changes, but its geometry is now the stage: a `Push` travels the width of the stage, a `Mask` is laid over the stage rectangle, and a background deliberately smaller than the stage is swept along rather than being the thing swept. See [JumpConfig](/docs/narraleaf-react/core/types/JumpConfig)
+- [`JumpConfig.transition`](/docs/narraleaf-react/core/types/JumpConfig#transition) is widened from `ImageTransition` to `Transition`. Every built-in transition satisfies both, so existing calls are unaffected
+- `allowSkipBackgroundTransition` is replaced by `allowSkipSceneTransition`, which defaults to `true`. The old flag was never read: a background transition is skipped under `allowSkipImageTransition` like any other image. The new one governs the stage transition a jump plays. **Rename it in any `game.configure` call**, see [GameConfig](/docs/narraleaf-react/core/types/GameConfig)
+
 ## 0.26.0
 
 - `Camera.reset` is now [`Camera.resetCamera`](/docs/narraleaf-react/core/elements/camera#resetcamera). Every element carries an internal `reset()` — the lifecycle hook the engine runs when a new game starts or a save loads — and the camera was spending that name on the chainable authoring helper, so `newGame()` never restored the camera's pose and a story that panned or zoomed kept that framing into the next playthrough. **Rename any `camera.reset(...)` in your script.** Calling `reset()` on a camera now reaches the lifecycle hook: it restores the configured pose at once, animates nothing, and returns the camera rather than a chainable action

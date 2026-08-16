@@ -1,0 +1,65 @@
+---
+title: "WordRenderProps"
+---
+```typescript
+type WordRenderProps<T = unknown> = {
+    children: React.ReactNode;
+    text: string;
+    fullText: string;
+    revealed: boolean;
+    done: boolean;
+    style: Readonly<React.CSSProperties>;
+    config: Readonly<Partial<WordConfig>>;
+    data: T;
+};
+```
+
+What a component passed to [`Word.custom`](/docs/narraleaf-react/core/elements/character/word#custom) receives. Available since `0.27.0`.
+
+```tsx
+import { Word, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    return (
+        <span onClick={() => revealed && openGlossary(data.entry)}>
+            {children}
+        </span>
+    );
+}
+```
+
+## children
+
+The word's text as the engine has already laid it out. Ruby, vertical writing mode and tate-chu-yoko are applied inside it, and only the characters revealed so far are present.
+
+Render `children`. Rendering `text` in its place produces the same characters without ruby, without vertical writing mode and without tate-chu-yoko.
+
+## text
+
+The characters revealed so far, as a plain string. Equal to `fullText` once the typewriter has passed the word.
+
+## fullText
+
+The whole word, revealed or not.
+
+## revealed
+
+Whether every character of this word has been revealed.
+
+A word carrying a line break is drawn as one wrapper per line, and only the last of them reports `revealed`.
+
+## done
+
+Whether the whole line has finished revealing, not just this word.
+
+## style
+
+The resolved style for this word: engine defaults, then the dialog's text props, then the sentence, then the word. It is already applied to the element the component renders inside, and is passed in for a component that measures against it or carries it into a portal.
+
+## config
+
+The word's own [WordConfig](/docs/narraleaf-react/core/types/WordConfig).
+
+## data
+
+The payload given as `data` when the word was created. It is carried by reference: the component receives the very value that was passed, never a copy.
