@@ -51,6 +51,19 @@ export function DownloadPosterCard({ src, sizes }: { src: StaticImageData; sizes
         alt=""
         sizes={sizes}
         onLoad={() => setLoaded(true)}
+        // Eager, against the default, because the browser's lazy heuristic is
+        // built for scrolling: it starts a fetch once an image is close to the
+        // viewport, on the assumption that a scroll got it there and the same
+        // scroll will keep it out a moment longer. Nothing scrolls here — the
+        // columns drift in on an animation, so a card is already on screen by
+        // the time the fetch is allowed to start, and it spends the download
+        // sitting there as a grey rectangle. Loading up front costs the
+        // fourteen files the wall is built from, not the forty-five cards:
+        // every copy of a column points at the same URLs.
+        loading="eager"
+        // Low, though: the wall is decorative and the page is a download page.
+        // It can wait behind everything a visitor actually came for.
+        fetchPriority="low"
         // The card carries the screenshots' own 2956x1974, so nothing is
         // cropped. Cropping the overflow off the bottom is what a rectangular
         // screenshot wants, but these are windows: the crop landed on the
