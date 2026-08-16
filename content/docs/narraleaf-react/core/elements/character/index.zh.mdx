@@ -135,6 +135,12 @@ character
 ```
 
 - `name: string` - 角色的名称
+
+<Callout type="info">
+    **自 `0.26.0` 起，名字的改动会随存档保存。** 在此之前 `Character` 从不序列化自身状态，因此没有任何存档记录过改名：在一位显示为「???」的说话人揭晓之后存档的玩家，读回来仍然是「???」——对话框里如此，回溯里也如此。现在开始新游戏或读档都会交还剧本所写的名字，而不是上一次游玩留下的那个。
+
+    更早版本写出的存档不含角色条目，仍可照常读取，读回后保留剧本所写的名字。由于角色现在也会占用存档条目，而自动生成的元素 id 描述的是元素在动作树中的位置而非身份，需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名。
+</Callout>
 </Step>
 </Steps>
 

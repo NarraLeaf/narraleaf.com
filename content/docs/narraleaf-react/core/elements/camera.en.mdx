@@ -20,7 +20,7 @@ scene.action([
     story.camera.rotate(3, 400),              // tilt
     story.camera.darken(0.6, 500),            // dim the stage
     aria.say`It's getting dark...`,
-    story.camera.reset(600),                  // return to the neutral pose
+    story.camera.resetCamera(600),            // return to the neutral pose
 ]);
 ```
 
@@ -81,7 +81,7 @@ story.camera.darken(0.6, 500, "easeInOut");
 </Step>
 </Steps>
 
-### reset
+### resetCamera
 
 <Steps>
 <Step>
@@ -89,8 +89,19 @@ story.camera.darken(0.6, 500, "easeInOut");
 Return the camera to its neutral pose: centred, zoom `1`, no rotation, fully opaque, and no filter (which also clears `darken`).
 
 ```ts
-story.camera.reset(600, "easeInOut");
+story.camera.resetCamera(600, "easeInOut");
 ```
+
+<Callout type="warning">
+    **Renamed in `0.26.0`: this was `camera.reset`.** Every element carries an internal `reset()` —
+    the lifecycle hook the engine runs over the cast when a new game starts or a save loads — and
+    the camera was spending that name on this authoring helper, so `newGame()` never restored the
+    camera's pose and a story that panned or zoomed kept that framing into the next playthrough.
+
+    Rename any `camera.reset(...)` in your script. Calling `reset()` on a camera now reaches the
+    lifecycle hook instead: it restores the configured pose at once, animates nothing, and returns
+    the camera rather than a chainable action.
+</Callout>
 </Step>
 </Steps>
 

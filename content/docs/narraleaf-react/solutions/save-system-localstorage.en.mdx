@@ -169,4 +169,6 @@ Mount `QuickSaveKeys` inside `GameProviders`. Add `liveGame.notify()` in the two
 
 ## What a save includes
 
-`SavedGame` contains Persistent namespaces, scene-local state, element state, the action stack, async stacks, player stage state, and registered Service data. Preferences are separate; export them with `game.preference.exportPreferences()`.
+`SavedGame` contains Persistent namespaces, scene-local state, element state, the action stack, async stacks, player stage state, the backlog, and registered Service data. Preferences are separate; export them with `game.preference.exportPreferences()`.
+
+Since save format v3 (`0.26.0`), the element state written out is only what differs from what the script wrote, and loading resets every element before applying the save — so a save is sized by what is on stage rather than by the size of the project. A save written by 0.26.0 cannot be read correctly by an older engine; see [SavedGame](/docs/narraleaf-react/core/types/SavedGame).

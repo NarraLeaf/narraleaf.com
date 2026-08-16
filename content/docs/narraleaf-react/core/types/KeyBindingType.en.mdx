@@ -20,6 +20,16 @@ enum KeyBindingType {
 When the player presses one of the bound keys, the game will advance to the **next sentence**.
 
 - **Default binding**: `[" "]` (space key)
+
+<Callout type="info">
+    **Since `0.26.0`, a click on the stage does the same thing as one press of this key**: it
+    completes the line being typed, and advances a line that has finished. Before that, only this
+    key advanced an ADV dialog — a click was recognised and emitted, and nothing moved, so a game
+    whose players click to read did not advance at all. NVL dialogs have always listened to both.
+
+    Holding the key still forces on through the scene; a click never does, because a player who
+    clicks has asked for one line rather than for the rest of the scene.
+</Callout>
 </Step>
 </Steps>
 

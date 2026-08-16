@@ -3,15 +3,22 @@ title: "Quick Menu"
 ---
 ## Scope
 
-The Quick Menu is a context panel that lets the player access common actions (undo, history, auto, save/load, settings, exit) with one click or key.
+The Quick Menu is a context panel that lets the player access common actions (stepping back and forward, history, auto, save/load, settings, exit) with one click or key.
 
-The component below covers undo, history, auto-forward, save, load, settings, and exit. Route names and exit behavior remain application code.
+The component below covers stepping back and forward, history, auto-forward, save, load, settings, and exit. Route names and exit behavior remain application code.
+
+<Callout type="info">
+    `undo()` and `redo()` return `false` when there is nowhere to go, so the buttons above are safe
+    to press at either end of the timeline. Use
+    [`canUndo()`](/docs/narraleaf-react/core/game/live-game#canundo) /
+    [`canRedo()`](/docs/narraleaf-react/core/game/live-game#canredo) to disable them instead.
+</Callout>
 
 ## 1. Create the component
 
 ```tsx
 import { useGame, usePreference, useRouter } from "narraleaf-react";
-import { ArrowLeft, History, Play, Save, FileText, Settings, Home } from "lucide-react";
+import { ArrowLeft, ArrowRight, History, Play, Save, FileText, Settings, Home } from "lucide-react";
 
 export default function QuickMenu() {
   const game = useGame();
@@ -21,6 +28,7 @@ export default function QuickMenu() {
 
   // helpers ------------------------------------------------
   const undo = () => liveGame.undo();
+  const redo = () => liveGame.redo();
   const toHistory = () => router.navigate("/history");
   const toggleAuto = () => setAutoForward(!autoForward);
   const save = () => router.navigate("/save");
@@ -39,7 +47,8 @@ export default function QuickMenu() {
   return (
     <div className="fixed bottom-5 left-0 right-0 flex justify-center pointer-events-none">
       <div className="flex gap-2 bg-black/40 rounded-full px-4 py-1 pointer-events-auto">
-        <Item icon={ArrowLeft} label="Undo" onClick={undo} />
+        <Item icon={ArrowLeft} label="Back" onClick={undo} />
+        <Item icon={ArrowRight} label="Forward" onClick={redo} />
         <Item icon={History} label="History" onClick={toHistory} />
         <Item icon={Play} label={autoForward ? "Auto: On" : "Auto: Off"} onClick={toggleAuto} />
         <Item icon={Save} label="Save" onClick={save} />

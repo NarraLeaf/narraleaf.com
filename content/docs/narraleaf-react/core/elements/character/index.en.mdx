@@ -135,6 +135,20 @@ character
 ```
 
 - `name: string` - The name of the character
+
+<Callout type="info">
+    **A name change is carried by saves since `0.26.0`.** Before that, `Character` never serialised
+    its state, so no save recorded a name change: a player who saved after the reveal of a speaker
+    shown as "???" came back to "???", in the dialog box and in the backlog alike. Starting a new
+    game or loading a save now hands back the authored name rather than whatever the last
+    playthrough left behind.
+
+    Saves written by earlier versions carry no character entry and still load, leaving the authored
+    name in place. Because characters now occupy save entries, and a generated element id describes
+    a position in the action tree rather than an identity, an application that restores saves should
+    name its cast through
+    [`DevTools.setElementStaticId`](/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid).
+</Callout>
 </Step>
 </Steps>
 

@@ -3,15 +3,19 @@ title: "快捷菜单（Quick Menu）"
 ---
 ## 范围
 
-快捷菜单是游戏中的一个上下文操作面板，允许玩家快速执行常用动作，例如撤销、历史、自动播放、保存 / 读取、设置以及退出。
+快捷菜单是游戏中的一个上下文操作面板，允许玩家快速执行常用动作，例如回退与前进、历史、自动播放、保存 / 读取、设置以及退出。
 
-下面的组件包含撤销、历史、自动播放、保存、读取、设置和退出。路由名称和退出逻辑由应用决定。
+下面的组件包含回退与前进、历史、自动播放、保存、读取、设置和退出。路由名称和退出逻辑由应用决定。
+
+<Callout type="info">
+    `undo()` 与 `redo()` 在无处可去时返回 `false`，因此上面的按钮在时间线的任一端按下都是安全的。若想改为把它们置灰，请使用 [`canUndo()`](/zh/docs/narraleaf-react/core/game/live-game#canundo) / [`canRedo()`](/zh/docs/narraleaf-react/core/game/live-game#canredo)。
+</Callout>
 
 ## 1. 创建组件
 
 ```tsx
 import { useGame, usePreference, useRouter } from "narraleaf-react";
-import { ArrowLeft, History, Play, Save, FileText, Settings, Home } from "lucide-react";
+import { ArrowLeft, ArrowRight, History, Play, Save, FileText, Settings, Home } from "lucide-react";
 
 export default function QuickMenu() {
   const game = useGame();
@@ -21,6 +25,7 @@ export default function QuickMenu() {
 
   // 基本操作 --------------------------------------------
   const undo = () => liveGame.undo();
+  const redo = () => liveGame.redo();
   const toHistory = () => router.navigate("/history");
   const toggleAuto = () => setAutoForward(!autoForward);
   const save = () => router.navigate("/save");
@@ -40,6 +45,7 @@ export default function QuickMenu() {
     <div className="fixed bottom-5 left-0 right-0 flex justify-center pointer-events-none">
       <div className="flex gap-2 bg-black/40 rounded-full px-4 py-1 pointer-events-auto">
         <Item icon={ArrowLeft} label="上一步" onClick={undo} />
+        <Item icon={ArrowRight} label="下一步" onClick={redo} />
         <Item icon={History} label="历史" onClick={toHistory} />
         <Item icon={Play} label={autoForward ? "自动：开" : "自动：关"} onClick={toggleAuto} />
         <Item icon={Save} label="保存" onClick={save} />

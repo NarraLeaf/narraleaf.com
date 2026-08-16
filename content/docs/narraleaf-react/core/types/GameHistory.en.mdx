@@ -11,7 +11,9 @@ export type GameHistory = GameHistoryAction & {
 The `GameHistory` type represents a complete game history entry, combining both the action information and the specific game element that was affected. It extends [GameHistoryAction](/docs/narraleaf-react/core/types/GameHistoryAction) and adds:
 
 - `element`: The specific game element (either a "say" or "menu" element) that was part of this history entry, see [GameElementHistory](/docs/narraleaf-react/core/types/GameElementHistory)
-- `snapshot`: A self-contained snapshot of the game state at this line, used by [restoreToHistory](/docs/narraleaf-react/core/game/live-game#restoretohistory) to jump back here. Populated automatically as the backlog grows and persisted with the save; you do not construct it yourself.
+- `snapshot`: A self-contained snapshot of the game state at this line, which is what [undo](/docs/narraleaf-react/core/game/live-game#undo), [redo](/docs/narraleaf-react/core/game/live-game#redo) and [restoreToHistory](/docs/narraleaf-react/core/game/live-game#restoretohistory) restore when they move to this line. Populated automatically as the backlog grows and persisted with the save; you do not construct it yourself.
+
+The `token` it inherits from [GameHistoryAction](/docs/narraleaf-react/core/types/GameHistoryAction) is how a line is named: it is what `restoreToHistory` takes, and since `0.26.0` it keeps naming the same line across saves and rewinds, so a backlog UI can hold one.
 
 For more information, see:
 - [GameHistoryAction](/docs/narraleaf-react/core/types/GameHistoryAction)

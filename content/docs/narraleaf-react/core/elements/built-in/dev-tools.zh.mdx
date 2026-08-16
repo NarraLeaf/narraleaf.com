@@ -208,6 +208,10 @@ DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
 <Callout type="warning">
     如果变换状态被一个正在进行的变换锁定，此方法会抛出异常。请只在舞台空闲时注入。
 </Callout>
+
+<Callout type="info">
+    **存档会知道这次写入。** 自存档格式 v3（`0.26.0`）起，元素只有在有人声明其状态已改变时才会被写入存档，而引擎会在动作于该元素上运行时自动声明。本方法是在这条路径之外写入状态的，因此它会替你在该可显示元素上调用 `markDirty()`。若宿主以其他方式写入元素状态，则需自行调用，否则这次写入会被跳过，读档时回到剧本所写的状态。在 `app.debug: true` 时，引擎会定期遍历全部元素并对发现的未标记状态发出警告。参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)。
+</Callout>
 </Step>
 </Steps>
 

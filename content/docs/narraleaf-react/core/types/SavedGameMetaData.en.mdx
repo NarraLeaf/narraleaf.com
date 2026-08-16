@@ -43,4 +43,10 @@ The hash of the story is used to check whether the stories are compatible
 
 ## version
 
-The save format version. `2` for saves that carry the persisted backlog (see [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `history`); absent on legacy saves written before it existed, which load unchanged with an empty backlog.
+The save format version, currently `3`.
+
+- absent — a legacy (v1) save, written before the backlog was persisted. Loads unchanged, with an empty backlog
+- `2` — carries the persisted backlog, see [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `history`
+- `3` — since `0.26.0`: `elementStates` lists only the elements whose state differs from what the script wrote, and loading resets every element before applying the save
+
+`0.26.0` reads all three. An older engine cannot read a v3 save correctly, because it skips the reset — see [SavedGame](/docs/narraleaf-react/core/types/SavedGame)'s `elementStates`.

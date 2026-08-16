@@ -25,7 +25,11 @@ interface SavedGame {
 }
 ```
 
-> **注意：** 存档格式通过 [`meta.version`](/zh/docs/narraleaf-react/core/types/SavedGameMetaData) 进行版本管理（当前为 `2`）。在回溯被持久化之前写入的存档不含 `history`，读档后从空回溯开始。
+> **注意：** 存档格式通过 [`meta.version`](/zh/docs/narraleaf-react/core/types/SavedGameMetaData) 进行版本管理（当前为 `3`）。在回溯被持久化之前写入的存档不含 `history`，读档后从空回溯开始。
+
+<Callout type="warning">
+    **存档格式 v3（`0.26.0`）：更旧的引擎无法正确读取 v3 存档。** 它会照常应用 `elementStates` 里的条目，却跳过该格式所依赖的重置，于是存档没有列出的元素会保留运行中的那一局塞给它们的状态。反方向没有问题 —— v1 与 v2 存档在 `0.26.0` 中照常读取。
+</Callout>
 
 ## name
 
@@ -51,7 +55,19 @@ interface SavedGame {
 
 ### elementStates
 
-故事中每个元素的状态，每一项都携带元素的 id 及其数据。
+状态与剧本所写不同的那些元素，每一项都携带元素的 id 及其数据。
+
+漏掉某个元素并不意味着信息丢失：读档会在应用存档之前重置**每一个**元素，因此存档没有列出的元素是靠重置被还原的，而不是保留运行中的那一局塞给它的状态。任一时刻真正有差异的元素都很少，因为离开一个场景本来就会把该场景摆上舞台的一切还原到剧本所写的状态 —— 实际上就是当前场景用到的元素，加上少数按设计跨场景存活的元素，例如故事镜头和仍在播放的声音。
+
+在 `0.26.0` 之前，这里列出的是故事能抵达的每一个场景的每一个元素，于是项目的全体角色阵容会被写进每一份存档，还会被写进每一行的历史快照，其代价随项目规模增长，而不是随舞台上的内容增长。
+
+<Callout type="info">
+    **在引擎的动作派发之外写入的元素状态不会被看见。** 只有当某个动作在元素上运行时，该元素才会被纳入存档考量；直接写入元素状态的宿主 —— 比如通过 [DevTools](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools) —— 应当调用 `element.markDirty()`。在 `app.debug: true` 时，引擎会定期遍历全部元素并发出警告，点名那些状态已经偏离却没有任何标记的元素，同时把它们标记上，好让下一次存档带上它们。
+</Callout>
+
+<Callout type="warning">
+    自动生成的元素 id 描述的是元素在动作树中的位置而非身份，因此需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名。自 `0.26.0` 起这一点更加要紧，因为角色现在也会占用存档条目。
+</Callout>
 
 ### stage
 

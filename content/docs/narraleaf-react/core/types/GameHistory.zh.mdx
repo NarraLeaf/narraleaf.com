@@ -11,7 +11,9 @@ export type GameHistory = GameHistoryAction & {
 `GameHistory` 类型表示一个完整的游戏历史条目，结合了动作信息和受影响的特定游戏元素。它扩展了 [GameHistoryAction](/zh/docs/narraleaf-react/core/types/GameHistoryAction) 并添加了：
 
 - `element`: 作为此历史条目一部分的特定游戏元素（"say" 或 "menu" 元素），参见 [GameElementHistory](/zh/docs/narraleaf-react/core/types/GameElementHistory)
-- `snapshot`: 该行处游戏状态的自包含快照，供 [restoreToHistory](/zh/docs/narraleaf-react/core/game/live-game#restoretohistory) 跳回此处使用。它随回溯增长自动填充并随存档持久化，无需自行构造。
+- `snapshot`: 该行处游戏状态的自包含快照。[undo](/zh/docs/narraleaf-react/core/game/live-game#undo)、[redo](/zh/docs/narraleaf-react/core/game/live-game#redo) 与 [restoreToHistory](/zh/docs/narraleaf-react/core/game/live-game#restoretohistory) 移动到这一行时恢复的正是它。它随回溯增长自动填充并随存档持久化，无需自行构造。
+
+它从 [GameHistoryAction](/zh/docs/narraleaf-react/core/types/GameHistoryAction) 继承的 `token` 就是「一行」的名字：`restoreToHistory` 接受的正是它，并且自 `0.26.0` 起，它会跨存档与回退持续指向同一行，因此回溯界面可以先持有它。
 
 更多信息，请参阅：
 - [GameHistoryAction](/zh/docs/narraleaf-react/core/types/GameHistoryAction)

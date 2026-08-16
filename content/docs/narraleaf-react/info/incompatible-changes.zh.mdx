@@ -3,6 +3,17 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)。
 
+## 0.26.0
+
+- `Camera.reset` 现在叫 [`Camera.resetCamera`](/zh/docs/narraleaf-react/core/elements/camera#resetcamera)。每个元素都自带一个内部的 `reset()`——新游戏开始或读档时引擎运行的生命周期钩子——而 Camera 却把这个名字给了可链式调用的创作辅助方法，于是 `newGame()` 从不恢复镜头姿态，平移或缩放过的故事会把那个取景带进下一次游玩。**请把剧本里所有 `camera.reset(...)` 改名。** 现在在 Camera 上调用 `reset()` 触及的是生命周期钩子：它立即恢复到配置的姿态，不做任何动画，返回的是 Camera 本身而不是可链式调用的动作
+- [`LiveGame.undo`](/zh/docs/narraleaf-react/core/game/live-game#undo) 不再接受动作 id，并且在无处可退时返回 `false` 而不再抛出异常。一行由它的令牌通过 [restoreToHistory](/zh/docs/narraleaf-react/core/game/live-game#restoretohistory) 指定。不带参数的 `undo()` 照常可用，而且现在读档之后同样有效——这是它此前从未做到过的
+- [`LiveGame.getHistory`](/zh/docs/narraleaf-react/core/game/live-game#gethistory) 不再包含播放头之前方的行。正常游玩期间没有任何变化；回退之后，当前行之外的那些行改由新的 [getFuture](/zh/docs/narraleaf-react/core/game/live-game#getfuture) 返回。因此用 `getHistory` 搭起来的回溯界面不会再列出尚未发生的内容
+- [`LiveGame.restoreToHistory`](/zh/docs/narraleaf-react/core/game/live-game#restoretohistory) 两个方向都够得着，并且不再丢弃目标行之后的那些行。此前依赖它裁剪回溯的代码，现在会发现那些行仍然可以抵达——移动的是播放头，而不是切断时间线
+- **存档格式 v3。** `elementStates` 只列出状态与剧本所写不同的元素，读档会在应用存档之前重置每一个元素。v1 与 v2 存档在 0.26.0 中照常读取，但**更旧的引擎无法正确读取 v3 存档**：它会跳过那次重置，于是存档没有列出的元素会保留运行中的那一局塞给它们的状态。在引擎的动作派发之外写入元素状态的宿主应当调用 `element.markDirty()`，否则存档不会带上它——在 `app.debug: true` 时，引擎会对发现的未标记状态发出警告。参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)
+- [Character](/zh/docs/narraleaf-react/core/elements/character) 的名字现在会随存档保存。`setName` 的改动此前会在读档时被静默丢失；在角色揭晓之后存档，读回来仍然是「???」。更早版本写出的存档不含角色条目，仍可照常读取，读回后保留剧本所写的名字。由于角色现在也会占用存档条目，需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名
+- [Layer](/zh/docs/narraleaf-react/core/elements/layer) 不再把自己的姿态带出声明它的那个场景。离开场景现在会重置该场景摆上舞台的图层——配置的 z-index 与姿态——而不只是重置站在图层上的可显示元素；`newGame()` 同样如此。此前依赖图层在后续场景中保持移开或淡出状态的剧情，现在需要重新设置。故事镜头是例外
+- 点击舞台会推进 ADV 对话，此前只有[跳过键](/zh/docs/narraleaf-react/core/types/KeyBindingType#skipaction)才会。点击会把正在打字的一行补完，并推进已经打完的一行；它从不「强制」，因此不会像按住跳过键那样一路跑完整个场景。此前自行基于 `event:state.player.stageClick` 实现点击推进的应用，现在一次点击会推进两行
+
 ## 0.23.0
 
 - [Sound](/zh/docs/narraleaf-react/core/elements/sound) 的 `type` 现在是 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)（`SoundType | (string & {})`），不再是 `SoundType`。`SoundType` 没有改动，依然导出，三个取值的含义也完全一致，因此只用这三个值的代码无需改动——但如果代码对音频的 `type` 做穷举 `switch`、依赖它只有三个成员，现在需要补上 default 分支

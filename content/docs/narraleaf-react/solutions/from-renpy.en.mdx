@@ -92,7 +92,7 @@ Start with [Basic](/docs/narraleaf-react/basic), then use [Page Overlay](/docs/n
 
 ## Differences to plan for
 
-- There is no rollback UI by default, though `liveGame.undo()` provides the underlying action.
+- There is no rollback UI by default, though [`liveGame.undo()`](/docs/narraleaf-react/core/game/live-game#undo) and [`redo()`](/docs/narraleaf-react/core/game/live-game#redo) provide the underlying actions, with `canUndo()` / `canRedo()` to gate the buttons. Like Ren'Py's rollback, stepping back does not throw away what is ahead: reading forward again retraces the same lines, and the future is dropped only when the story goes somewhere else.
 - Save data is serializable, but you build the storage and slot UI.
 - Assets are URLs or bundler imports. Web preload and browser audio rules apply.
 - Transforms and transitions are TypeScript objects, not ATL blocks.

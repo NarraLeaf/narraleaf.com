@@ -25,7 +25,14 @@ interface SavedGame {
 }
 ```
 
-> **Note:** The save format is versioned through [`meta.version`](/docs/narraleaf-react/core/types/SavedGameMetaData) (currently `2`). Saves written before the backlog was persisted omit `history` and load with an empty backlog.
+> **Note:** The save format is versioned through [`meta.version`](/docs/narraleaf-react/core/types/SavedGameMetaData) (currently `3`). Saves written before the backlog was persisted omit `history` and load with an empty backlog.
+
+<Callout type="warning">
+    **Save format v3 (`0.26.0`): an older engine cannot read a v3 save correctly.** It applies the
+    `elementStates` entries and skips the reset the format now relies on, so elements the save
+    leaves out keep whatever the running session put in them. The other direction is fine — v1 and
+    v2 saves load unchanged in `0.26.0`.
+</Callout>
 
 ## name
 
@@ -51,7 +58,27 @@ This covers both the namespaces registered with `story.registerPersistent` and t
 
 ### elementStates
 
-The state of every element in the story, each entry carrying the element's id alongside its data.
+The elements whose state differs from what the script wrote, each entry carrying the element's id alongside its data.
+
+Leaving an element out is not a loss of information: loading resets **every** element before applying the save, so an element the save does not name is restored by being reset rather than left holding whatever the running session put in it. What differs at any moment is small, because leaving a scene already returns everything that scene put on stage to its authored state — in practice this is the current scene's elements plus the few that outlive a scene by design, such as the story camera and sounds still playing.
+
+Before `0.26.0` this listed every element of every scene the story can reach, so a project's whole cast was written into every save and into every per-line history snapshot besides, at a cost that grew with the size of the project rather than with what was on stage.
+
+<Callout type="info">
+    **An element written from outside the engine's action dispatch is not seen.** An element is
+    considered for the save when an action runs against it; a host that writes element state
+    directly — through [DevTools](/docs/narraleaf-react/core/elements/built-in/dev-tools), say —
+    should call `element.markDirty()`. With `app.debug: true`, the engine periodically walks every
+    element and warns, naming any whose state has drifted with nothing marking it, and marks them
+    so the next save carries them.
+</Callout>
+
+<Callout type="warning">
+    A generated element id describes a position in the action tree rather than an identity, so an
+    application that restores saves should name its cast through
+    [`DevTools.setElementStaticId`](/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid).
+    This matters more since `0.26.0`, because characters now occupy save entries too.
+</Callout>
 
 ### stage
 

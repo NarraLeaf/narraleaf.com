@@ -208,6 +208,16 @@ DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
 <Callout type="warning">
     Throws if the transform state is locked by an in-flight transform. Only inject while the stage is idle.
 </Callout>
+
+<Callout type="info">
+    **The save is told about this write.** Since save format v3 (`0.26.0`) an element reaches a save
+    only when something says its state has changed, which the engine does whenever an action runs
+    against it. This writes state outside that path, so it calls `markDirty()` on the displayable for
+    you. A host writing element state by other means has to call it itself, or the write is skipped
+    and loading brings back what the script wrote. With `app.debug: true` the engine periodically
+    walks every element and warns about state it finds unmarked. See
+    [SavedGame](/docs/narraleaf-react/core/types/SavedGame).
+</Callout>
 </Step>
 </Steps>
 

@@ -43,4 +43,10 @@ interface SavedGameMetaData {
 
 ## version
 
-存档格式版本。携带持久化回溯历史的存档为 `2`（参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `history`）；在该字段出现之前写入的旧存档没有此字段，读档后从空回溯开始且保持兼容。
+存档格式版本，当前为 `3`。
+
+- 无此字段 —— 在回溯被持久化之前写入的旧存档（v1）。照常读取，回溯为空
+- `2` —— 携带持久化的回溯历史，参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `history`
+- `3` —— 自 `0.26.0` 起：`elementStates` 只列出状态与剧本所写不同的元素，读档会在应用存档之前重置每一个元素
+
+`0.26.0` 三种都能读取。更旧的引擎无法正确读取 v3 存档，因为它会跳过那次重置 —— 参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `elementStates`。

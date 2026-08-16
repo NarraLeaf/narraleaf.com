@@ -27,6 +27,15 @@ const image = new Image({ /* ... */}).useLayer(layer); // link the image to the 
 layer.opacity(0.5, 1000, "linear"); // change the opacity of the layer, all elements linked to the layer will be affected
 ```
 
+<Callout type="info">
+    **Since `0.26.0`, a layer does not carry its pose out of the scene that declared it.** Leaving a
+    scene now returns the layers that scene put on stage to their configured z-index and pose, not
+    only the displayables standing on them, and `newGame()` does the same. Before that, a layer slid
+    aside or faded out stayed that way for every scene that followed. The story
+    [Camera](/docs/narraleaf-react/core/elements/camera) is deliberately exempt: a story owns exactly
+    one and it frames the stage across scene changes.
+</Callout>
+
 ## Chainable Methods
 
 ### setZIndex

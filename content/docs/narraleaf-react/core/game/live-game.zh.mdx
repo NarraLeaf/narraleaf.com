@@ -267,18 +267,20 @@ useEffect(() => {
 
 获取游戏历史。这个方法用于创建回溯。
 
-自存档格式 v2 起，回溯历史会被持久化，因此 `deserialize` 之后本方法会立即返回完整历史 —— 读档后的游戏不再从空回溯开始。
+回溯历史是玩家已读过的每一行，直到并包含游戏当前所在的那一行。自存档格式 v2 起它会被持久化，因此 `deserialize` 之后本方法会立即返回完整历史 —— 读档后的游戏不再从空回溯开始。
+
+在 [undo](#undo) 回退之后，播放头之外的那些行**不在**这里。它们是玩家可以再次踏入的未来，由 [getFuture](#getfuture) 返回 —— 把它们列进回溯，等于展示尚未发生的事。
 
 ```typescript
-import { useGame, GameHistory } from "narraleaf-react";
+import { useLiveGame, GameHistory } from "narraleaf-react";
 ```
 
 ```typescript
-const game = useGame();
-const history = game.getHistory();
+const liveGame = useLiveGame();
+const history = liveGame.getHistory();
 
-function handleUndo(history: GameHistory) {
-    game.undo(history.token);
+function handleRestore(entry: GameHistory) {
+    liveGame.restoreToHistory(entry.token);
 }
 
 return (
@@ -288,7 +290,7 @@ return (
         {history.map((item) => (
             <div
                 key={item.token}
-                onClick={() => handleUndo(item)}
+                onClick={() => handleRestore(item)}
             >
                 {/* show the action text */}
                 {/* text is available when the action is "say" or "menu" */}
@@ -299,7 +301,79 @@ return (
 );
 ```
 
+条目的 `token` 会跨存档与回退持续指向同一行，因此回溯界面可以先持有它、之后再用。
+
 - 返回 `GameHistory[]` - 游戏历史，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
+
+<Callout type="info">
+    在 `0.26.0` 之前，每次重建回溯都会为所有条目重新生成令牌，因此读档或恢复某一行会静默地让调用方持有的所有令牌失效 —— 回溯界面的按钮在重新读取列表之前都会失灵，向同一行恢复两次时第二次必定失败。现在令牌会被写入存档，并在读回时保留。更早写出的存档不携带令牌，其条目仍照旧获得新令牌。
+</Callout>
+</Step>
+</Steps>
+
+### getFuture
+
+<Steps>
+<Step>
+
+播放头之前方的那些行：已经读过、被 [undo](#undo) 回退过、并且可以用 [redo](#redo) 再次抵达。
+
+正常游玩期间为空，刚读档之后也为空 —— 在回退之后写出的存档只携带到那一行为止的回溯，之外的一概不带，因此读取它时开局便无处可向前。这正是「在过去存档」的含义。
+
+```typescript
+const liveGame = useLiveGame();
+
+// 玩家回退越过的那些行，最早的在前。
+const future = liveGame.getFuture();
+```
+
+- 返回 `GameHistory[]` - 前方的那些行，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
+
+<Callout type="info">
+    自 `0.26.0` 起可用。
+</Callout>
+</Step>
+</Steps>
+
+### canUndo
+
+<Steps>
+<Step>
+
+当前这一行之前是否还有可以回退到的行。
+
+```typescript
+<button disabled={!liveGame.canUndo()} onClick={() => liveGame.undo()}>
+    上一步
+</button>
+```
+
+- 返回 `boolean`
+
+<Callout type="info">
+    自 `0.26.0` 起可用。
+</Callout>
+</Step>
+</Steps>
+
+### canRedo
+
+<Steps>
+<Step>
+
+前方是否有被回退越过、正在等待的行。
+
+```typescript
+<button disabled={!liveGame.canRedo()} onClick={() => liveGame.redo()}>
+    下一步
+</button>
+```
+
+- 返回 `boolean`
+
+<Callout type="info">
+    自 `0.26.0` 起可用。
+</Callout>
 </Step>
 </Steps>
 
@@ -308,15 +382,44 @@ return (
 <Steps>
 <Step>
 
-撤销游戏动作。
+回退一行。
 
 ```typescript
-game.undo(history.token);
+liveGame.undo();
 ```
 
-- `token?: string` - 历史项的令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。如果未提供，则撤销最后一个动作。
+- 返回 `boolean` - 若游戏发生了移动则为 `true`；若这已经是第一行，或那一行没有快照，则为 `false`。
 
-> **注意：** `undo` 依赖仅在游戏运行期间存在的内存撤销历史。读档之后它已无内容可回退 —— 此时请使用 [restoreToHistory](#restoretohistory) 回到已读档游戏中的某一行。
+向后与向前是同一套机制：每一行在被抵达时都会记录一份自包含的游戏快照，向任一方向移动都是恢复目标行的那份快照。
+
+**读档之后依然可以回退。** 在 `0.26.0` 之前，`undo` 只会遍历一个保存在内存里的闭包栈。闭包无法写进文件，因此读档之后玩家面对的回溯是退不回去的 —— 按钮在那里，但什么也不会发生。只要活的闭包栈还够得着目标行，它仍然是首选路径，正因为它回退时不会惊动任何东西：音乐照常播放，进行中的过渡不受打扰，舞台也不会被重建。栈够不着的地方由快照接手，于是那道边界不复存在。
+
+**再往前读会保留前方的内容。** 被回退离开的那一行不会被丢弃。回退三行后再往前读，走的是同样的三行而不是覆盖它们，因此此前读过的其余部分仍然在前方。只有当故事走向别处时 —— 选择的另一侧 —— 未来才会被丢弃，因为那段未来已不再由当前所在之处推出。
+
+<Callout type="info">
+    **`0.26.0` 的签名变更。** `undo()` 不再接受动作 id；一行由它的令牌通过 [restoreToHistory](#restoretohistory) 指定。无处可去时它返回 `false`，而不再抛出异常。
+</Callout>
+</Step>
+</Steps>
+
+### redo
+
+<Steps>
+<Step>
+
+向前一行，踏入此前被回退越过的那一行。
+
+```typescript
+liveGame.redo();
+```
+
+- 返回 `boolean` - 若游戏发生了移动则为 `true`；若前方没有内容、或它没有快照，则为 `false`。
+
+它只能抵达玩家已经读过的行：重放的是记录下来的未来，而不是把故事继续跑下去。要越过未来的末端继续，让游戏照常前进即可。
+
+<Callout type="info">
+    自 `0.26.0` 起可用。
+</Callout>
 </Step>
 </Steps>
 
@@ -325,19 +428,23 @@ game.undo(history.token);
 <Steps>
 <Step>
 
-将游戏恢复到回溯历史中的某个过去行。
+把游戏移动到某一条记录下来的行，由它的令牌指定。
 
-与 [undo](#undo) 不同，本方法在**读档之后**依然有效：每个回溯条目都携带一份自包含的快照，恢复时会重新应用该快照并把回溯裁剪回该行，而不依赖内存中的撤销历史。
+与 [undo](#undo) 和 [redo](#redo) 是同一套机制，并且两个方向都够得着：来自 [getHistory](#gethistory) 的令牌向后走，来自 [getFuture](#getfuture) 的令牌向前走。和它们一样，本方法在**读档之后**依然有效，并且不丢弃任何东西 —— 目标行之后的那些行仍然可以抵达。
 
 ```typescript
-const history = game.getHistory();
+const history = liveGame.getHistory();
 
-// 跳回过去的某一行 —— 包括从已读档游戏中恢复出来的行。
-game.getLiveGame().restoreToHistory(history[0].token);
+// 跳到某一行 —— 包括从已读档游戏中恢复出来的行。
+liveGame.restoreToHistory(history[0].token);
 ```
 
-- `token: string` - 要恢复到的历史项令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。
+- `token: string` - 要移动到的历史项令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。
 - 返回 `boolean` - 若成功恢复该行则为 `true`；若令牌未知或该条目没有恢复快照则为 `false`。
+
+<Callout type="info">
+    在 `0.26.0` 之前，本方法只能向后走，并且会把回溯裁剪到它移动到的那一行，之后的一切都会丢失。现在它移动的是播放头，而不是切断时间线。
+</Callout>
 </Step>
 </Steps>
 

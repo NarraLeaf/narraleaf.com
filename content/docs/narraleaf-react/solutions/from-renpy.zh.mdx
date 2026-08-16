@@ -92,7 +92,7 @@ NarraLeaf 没有 Screen Language。设置、存档槽位、历史、画廊和菜
 
 ## 迁移前需要考虑的差异
 
-- 默认不提供回滚 UI，但底层可以调用 `liveGame.undo()`。
+- 默认不提供回滚 UI，但底层可以调用 [`liveGame.undo()`](/zh/docs/narraleaf-react/core/game/live-game#undo) 与 [`redo()`](/zh/docs/narraleaf-react/core/game/live-game#redo)，并用 `canUndo()` / `canRedo()` 控制按钮的可用状态。和 Ren'Py 的 rollback 一样，回退不会丢弃前方的内容：再往前读走的是同样的行，只有当故事走向别处时未来才会被丢弃。
 - NarraLeaf 提供可序列化的存档数据，存储方式和槽位 UI 由项目实现。
 - 素材使用 URL 或构建工具导入，受网页预加载和浏览器音频规则影响。
 - Transform 和 Transition 是 TypeScript 对象，不使用 ATL。

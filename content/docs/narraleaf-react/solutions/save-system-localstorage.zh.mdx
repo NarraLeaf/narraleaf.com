@@ -169,4 +169,6 @@ export function QuickSaveKeys() {
 
 ## 存档包含什么
 
-`SavedGame` 包含 Persistent 命名空间、场景局部状态、元素状态、动作栈、异步动作栈、播放器舞台状态和已注册 Service 的数据。偏好设置不在其中，需要通过 `game.preference.exportPreferences()` 单独导出。
+`SavedGame` 包含 Persistent 命名空间、场景局部状态、元素状态、动作栈、异步动作栈、播放器舞台状态、回溯历史和已注册 Service 的数据。偏好设置不在其中，需要通过 `game.preference.exportPreferences()` 单独导出。
+
+自存档格式 v3（`0.26.0`）起，写出的元素状态只包含与剧本所写不同的部分，读档会在应用存档之前重置每一个元素 —— 因此存档的大小取决于舞台上有什么，而不是项目有多大。0.26.0 写出的存档无法被更旧的引擎正确读取，参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)。
