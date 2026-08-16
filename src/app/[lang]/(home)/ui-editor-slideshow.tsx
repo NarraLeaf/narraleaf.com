@@ -182,7 +182,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
                   src={slide.src}
                   alt={slide.alt}
                   fill
-                  unoptimized
+                  quality={60}
                   sizes="(min-width: 1024px) 1000px, calc(100vw - 48px)"
                   className="pointer-events-none object-contain object-center"
                 />
@@ -242,11 +242,12 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
             style={{ width: 'min(96vw, calc(88vh * 2956 / 1974))' }}
           >
             <div className="relative aspect-[2956/1974] overflow-visible">
+              {/* The zoom is opened deliberately to look closely, so it keeps the default
+                  quality rather than the 60 the inline slides use. */}
               <Image
                 src={expandedSlide.src}
                 alt={expandedSlide.alt}
                 fill
-                unoptimized
                 sizes="96vw"
                 className="object-contain object-center"
               />

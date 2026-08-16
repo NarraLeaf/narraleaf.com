@@ -69,9 +69,9 @@ function GameDemoSlideshow(props: {
               src={slide.src}
               alt={slide.alt}
               fill
+              quality={60}
               sizes="(min-width: 1024px) 560px, calc(100vw - 48px)"
               className="object-contain object-center"
-              unoptimized
             />
           </div>
         );
@@ -124,9 +124,9 @@ export function DesktopDemoShowcase(props: DesktopDemoShowcaseProps) {
             src={codeImage.src}
             alt={codeImage.alt}
             fill
+            quality={60}
             sizes="calc(100vw - 48px)"
             className="object-contain object-center"
-            unoptimized
           />
         </div>
 
@@ -140,9 +140,9 @@ export function DesktopDemoShowcase(props: DesktopDemoShowcaseProps) {
               src={codeImage.src}
               alt={codeImage.alt}
               fill
+              quality={60}
               sizes="840px"
               className="object-contain object-center"
-              unoptimized
             />
           </div>
         </div>
