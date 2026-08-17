@@ -76,7 +76,11 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
           }}
           transition={panelTransition}
           className={[
-            'relative w-full rounded-2xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-0 lg:left-0 lg:w-[62%]',
+            // `min-w-0` keeps the code panel from widening the stacked layout: a grid item's
+            // automatic minimum size is its content's min-content width, and the script preview
+            // scrolls a `min-w-max` block, so without this the track grows to the longest line
+            // and the whole page scrolls sideways on a phone.
+            'relative w-full min-w-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-0 lg:left-0 lg:w-[62%]',
             codeIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
@@ -96,7 +100,7 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
           }}
           transition={panelTransition}
           className={[
-            'relative w-full rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
+            'relative w-full min-w-0 rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
             demoIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
