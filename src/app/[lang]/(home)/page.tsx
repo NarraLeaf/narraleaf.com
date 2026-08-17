@@ -651,9 +651,13 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                 <div className="h-full origin-center rotate-[-1.5deg] transition-transform duration-[350ms] ease-out will-change-transform group-hover:rotate-0">
                   <div className="relative h-full overflow-hidden">
                     {/*
-                      The LCP element. `priority` is what puts it in a preload
-                      link with `fetchpriority=high` instead of leaving it for
-                      the scanner to find after the stylesheet resolves.
+                      The LCP element. `preload` is what puts it in a preload
+                      link instead of leaving it for the scanner to find after
+                      the stylesheet resolves, and `fetchPriority` is what
+                      lifts that link out of the browser's default low priority
+                      for images. They are two separate props: as of Next 16
+                      `preload` (and the `priority` alias it replaced) no
+                      longer implies the priority hint on its own.
 
                       The last `sizes` branch says `100vw` where the box is
                       really 118vw: the extra 18% is the `-mx-6` bleed plus the
@@ -668,7 +672,8 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                       src={studioWorkspaceImage}
                       alt={copy.hero.imageAlt}
                       fill
-                      priority
+                      preload
+                      fetchPriority="high"
                       quality={60}
                       sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 100vw"
                       className="object-cover object-left-top"
