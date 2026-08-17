@@ -32,6 +32,13 @@ const config = {
     // derivative too, however long the source is good for. Safe to keep long for
     // the hashed sources, whose URL changes whenever the picture does.
     minimumCacheTTL: IMAGE_MAX_AGE_SECONDS,
+    // Next 16 only answers `/_next/image` for qualities named here, and defaults
+    // to `[75]` alone — a `quality={60}` that is not on the list is not merely
+    // ignored, the request 400s and the picture never arrives. 60 is here for
+    // the screenshots, whose flat UI panels lose nothing visible at it while
+    // shedding roughly a third of their bytes; 75 stays for everything that has
+    // not been looked at individually.
+    qualities: [60, 75],
   },
   async headers() {
     return [

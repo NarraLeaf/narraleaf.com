@@ -24,6 +24,9 @@ type DesktopDemoShowcaseProps = {
 
 const slideInterval = 4500;
 
+/** Matches the Studio slideshow: flat editor UI, nothing visible lost below 75. */
+const screenshotQuality = 60;
+
 function GameDemoSlideshow(props: {
   slides: DesktopDemoImage[];
   labels: DesktopDemoShowcaseLabels;
@@ -69,9 +72,9 @@ function GameDemoSlideshow(props: {
               src={slide.src}
               alt={slide.alt}
               fill
+              quality={screenshotQuality}
               sizes="(min-width: 1024px) 560px, calc(100vw - 48px)"
               className="object-contain object-center"
-              unoptimized
             />
           </div>
         );
@@ -124,9 +127,9 @@ export function DesktopDemoShowcase(props: DesktopDemoShowcaseProps) {
             src={codeImage.src}
             alt={codeImage.alt}
             fill
+            quality={screenshotQuality}
             sizes="calc(100vw - 48px)"
             className="object-contain object-center"
-            unoptimized
           />
         </div>
 
@@ -140,9 +143,9 @@ export function DesktopDemoShowcase(props: DesktopDemoShowcaseProps) {
               src={codeImage.src}
               alt={codeImage.alt}
               fill
+              quality={screenshotQuality}
               sizes="840px"
               className="object-contain object-center"
-              unoptimized
             />
           </div>
         </div>

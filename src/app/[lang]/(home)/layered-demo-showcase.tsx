@@ -1,7 +1,6 @@
 'use client';
 
-import { type ReactNode, useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 
 type LayeredDemoShowcaseProps = {
   code: ReactNode;
@@ -12,10 +11,22 @@ type LayeredDemoShowcaseProps = {
 
 type ActivePanel = 'code' | 'demo';
 
-const panelTransition = {
-  duration: 0.24,
-  ease: [0.22, 1, 0.36, 1],
-} as const;
+/**
+ * The hover cross-fade, as a CSS transition rather than an animation library.
+ *
+ * Only two properties move here — `opacity` and `box-shadow` — between values
+ * this component already computes on every render, and neither needs spring
+ * physics, gesture handling, or layout animation. `motion` was the single
+ * largest dependency in the home page's bundle at 132 KB, loaded on first paint
+ * for exactly these two panels; the browser interpolates both properties
+ * natively for nothing. Timing and easing below are the same numbers the
+ * `motion` transition used, so the movement is unchanged.
+ *
+ * Transitions do not fire for the values an element first renders with, which
+ * reproduces the `initial={false}` this component relied on to avoid animating
+ * the panels in on mount.
+ */
+const panelTransition = 'opacity 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1)';
 
 function panelOpacity(active: boolean, isLayeredLayout: boolean) {
   return !isLayeredLayout || active ? 1 : 0.72;
@@ -25,6 +36,14 @@ function panelShadow(active: boolean, isLayeredLayout: boolean) {
   if (!isLayeredLayout) return '0 0 0 rgba(0,0,0,0)';
 
   return active ? '0 30px 86px rgba(0,0,0,0.44)' : '0 16px 42px rgba(0,0,0,0.22)';
+}
+
+function panelStyle(active: boolean, isLayeredLayout: boolean): CSSProperties {
+  return {
+    opacity: panelOpacity(active, isLayeredLayout),
+    boxShadow: panelShadow(active, isLayeredLayout),
+    transition: panelTransition,
+  };
 }
 
 export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
@@ -63,18 +82,13 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
   return (
     <div className="mt-8">
       <div className="relative grid gap-6 lg:block lg:h-[432px]">
-        <motion.div
+        <div
           role="group"
           tabIndex={0}
           aria-label={codeLabel}
           onFocus={() => setActivePanel('code')}
           onMouseEnter={() => setActivePanel('code')}
-          initial={false}
-          animate={{
-            opacity: panelOpacity(codeIsActive, isLayeredLayout),
-            boxShadow: panelShadow(codeIsActive, isLayeredLayout),
-          }}
-          transition={panelTransition}
+          style={panelStyle(codeIsActive, isLayeredLayout)}
           className={[
             // `min-w-0` keeps the code panel from widening the stacked layout: a grid item's
             // automatic minimum size is its content's min-content width, and the script preview
@@ -85,27 +99,22 @@ export function LayeredDemoShowcase(props: LayeredDemoShowcaseProps) {
           ].join(' ')}
         >
           {code}
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           role="group"
           tabIndex={0}
           aria-label={demoLabel}
           onFocus={() => setActivePanel('demo')}
           onMouseEnter={() => setActivePanel('demo')}
-          initial={false}
-          animate={{
-            opacity: panelOpacity(demoIsActive, isLayeredLayout),
-            boxShadow: panelShadow(demoIsActive, isLayeredLayout),
-          }}
-          transition={panelTransition}
+          style={panelStyle(demoIsActive, isLayeredLayout)}
           className={[
             'relative w-full min-w-0 rounded-xl focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:outline-none lg:absolute lg:top-10 lg:right-0 lg:w-[61%]',
             demoIsForeground ? 'lg:z-30' : 'lg:z-10',
           ].join(' ')}
         >
           {demo}
-        </motion.div>
+        </div>
       </div>
     </div>
   );
