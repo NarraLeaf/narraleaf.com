@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { appDescription, appName, siteIconPath } from '@/lib/shared';
+import { appDescription, appName, siteIconPath, siteUrl } from '@/lib/shared';
 import './global.css';
 
 const inter = Inter({
@@ -8,6 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: appName,
     template: `%s | ${appName}`,
