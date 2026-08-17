@@ -2,7 +2,7 @@
 title: "添加动作"
 ---
 
-场景按从上到下的顺序执行动作。一个场景只调用一次 `scene.action()`，把完整动作列表传进去。
+场景按从上到下的顺序执行动作。一个场景只调用一次 `scene.action()`，把完整动作列表传进去
 
 ```ts
 import { Character, Scene } from "narraleaf-react";
@@ -21,7 +21,7 @@ kitchen.action([
 ]);
 ```
 
-大多数故事元素的方法都会返回动作，例如 `character.say()`、`image.show()`、`sound.play()` 和 `scene.jumpTo()`。动作列表也可以直接写字符串，字符串会作为旁白显示。
+大多数故事元素的方法都会返回动作，例如 `character.say()`、`image.show()`、`sound.play()` 和 `scene.jumpTo()`。动作列表也可以直接写字符串，字符串会作为旁白显示
 
 ```ts
 kitchen.action([
@@ -43,7 +43,7 @@ const room = new Scene("房间").action((scene) => [
 ```
 
 <Callout type="warning">
-    不要对同一个场景多次调用 `action()`。`jumpTo()` 后面的动作不会执行。
+    不要对同一个场景多次调用 `action()`。`jumpTo()` 后面的动作不会执行
 </Callout>
 
-完整的可用类型见 [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)。
+完整的可用类型见 [ActionStatements](/zh/docs/narraleaf-react/core/types/ActionStatements)

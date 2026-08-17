@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import { appDescription, appName, siteIconPath } from '@/lib/shared';
 import './global.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -14,15 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
-/**
- * The document shell lives in `app/[lang]/layout.tsx`, not here.
- *
- * This layout is locale-agnostic, so an <html> tag written at this level could
- * only ever hardcode one `lang` — which is how every Chinese page came to
- * announce itself as English. Everything outside `[lang]` is a route handler
- * (api, og, llms*) that returns data rather than a document, so nothing else
- * needs a shell.
- */
 export default function RootLayout({ children }: LayoutProps<'/'>) {
-  return children;
+  return (
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <body className="flex flex-col min-h-screen">{children}</body>
+    </html>
+  );
 }

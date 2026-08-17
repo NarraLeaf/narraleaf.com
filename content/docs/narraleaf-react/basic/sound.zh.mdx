@@ -2,7 +2,7 @@
 title: "声音"
 ---
 
-使用 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 播放音效、背景音乐和语音。静态构造方法会为声音设置正确类型。
+使用 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 播放音效、背景音乐和语音。静态构造方法会为声音设置正确类型
 
 ```ts
 import { Sound } from "narraleaf-react";
@@ -21,7 +21,7 @@ const theme = Sound.bgm({
 
 ## 音效
 
-`play()` 返回一个动作。默认情况下，剧情会等到音频播放结束。
+`play()` 返回一个动作。默认情况下，剧情会等到音频播放结束
 
 ```ts
 scene.action([
@@ -30,7 +30,7 @@ scene.action([
 ]);
 ```
 
-如果剧情需要在声音播放时继续执行，可把声音放到异步控制栈。
+如果剧情需要在声音播放时继续执行，可把声音放到异步控制栈
 
 ```ts
 import { Control } from "narraleaf-react";
@@ -42,12 +42,12 @@ scene.action([
 ```
 
 <Callout type="warning">
-    旧版的 `sync` 配置已经移除。非阻塞音频请使用 `Control.doAsync()` 或 `Control.allAsync()`。
+    旧版的 `sync` 配置已经移除。非阻塞音频请使用 `Control.doAsync()` 或 `Control.allAsync()`
 </Callout>
 
 ## 背景音乐
 
-可以在场景配置中指定 BGM，也可以在剧情中更换。淡入淡出时间的单位是毫秒。
+可以在场景配置中指定 BGM，也可以在剧情中更换。淡入淡出时间的单位是毫秒
 
 ```ts
 const room = new Scene("房间", {
@@ -60,7 +60,7 @@ room.action([
 ]);
 ```
 
-传入 `null` 可以停止当前 BGM。
+传入 `null` 可以停止当前 BGM
 
 ```ts
 room.setBackgroundMusic(null, 500);
@@ -69,7 +69,7 @@ room.setBackgroundMusic(null, 500);
 ## 前奏与循环区间
 
 `seek` 是音频的入点，`endTime` 是出点。配合 `loop`，这一对就构成了循环区间，而 `loopStart` 指定每一遍回到哪里——
-带前奏的背景音乐正是这样先完整播一遍开头，然后只重复主体。
+带前奏的背景音乐正是这样先完整播一遍开头，然后只重复主体
 
 ```ts
 const theme = Sound.bgm({
@@ -82,7 +82,7 @@ const theme = Sound.bgm({
 ```
 
 循环是采样级精确的——接缝处没有空隙，长时间播放也不会漂移。参见
-[ISoundUserConfig](/zh/docs/narraleaf-react/core/types/ISoundUserConfig)。
+[ISoundUserConfig](/zh/docs/narraleaf-react/core/types/ISoundUserConfig)
 
 要移动正在播放的音频的播放头，把 `seek()` 当作动作使用：
 
@@ -95,12 +95,12 @@ room.action([
 ## 音量与总线
 
 每段音频都在某条音频总线上播放，由它的 `type` 决定。游戏无需声明就拥有 `bgm`、`sound` 和 `voice`，
-也可以再声明更多——比如为每个角色一条总线——从而提供固定三条总线表达不出的玩家控制。
-参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+也可以再声明更多——比如为每个角色一条总线——从而提供固定三条总线表达不出的玩家控制
+参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
 
 ## 播放控制
 
-Sound 动作可以调整播放状态和参数。
+Sound 动作可以调整播放状态和参数
 
 ```ts
 scene.action([
@@ -114,7 +114,7 @@ scene.action([
 ]);
 ```
 
-在 React UI 中需要立即播放声音时，使用 `liveGame.playSound()`，不用创建剧情动作。
+在 React UI 中需要立即播放声音时，使用 `liveGame.playSound()`，不用创建剧情动作
 
 ```tsx
 const liveGame = useLiveGame();

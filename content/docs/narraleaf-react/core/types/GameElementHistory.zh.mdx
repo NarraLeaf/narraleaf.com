@@ -32,7 +32,7 @@ type GameElementHistory =
 ## 重播回想录里的语音
 
 `voice` 是已经解析好的音频 URL，也就是玩家刚才听到的那一份；`voiceId` 才是该行归档时用的 id，
-而宿主是**按 id** 去找自己的语音表的——所以回想录上的「重播」按钮要用 `voiceId` 而不是 `voice`。
+而宿主是**按 id** 去找自己的语音表的——所以回想录上的「重播」按钮要用 `voiceId` 而不是 `voice`
 
 ```ts
 for (const entry of liveGame.getHistory()) {
@@ -43,4 +43,4 @@ for (const entry of liveGame.getHistory()) {
 ```
 
 若该行的语音是通过行内 `voice` 选项而非场景语音映射给出的，`voiceId` 为 null；
-0.24.0 之前记录的条目则根本没有这个字段——旧存档照常读取，不受影响。
+0.24.0 之前记录的条目则根本没有这个字段——旧存档照常读取，不受影响

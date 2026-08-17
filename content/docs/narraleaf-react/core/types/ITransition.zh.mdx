@@ -5,7 +5,7 @@ title: "ITransition"
     已废弃的接口
 </Callout>
 
-过渡效果用于在更换场景的图像或背景时，为 Image 或 Scene 播放动画。
+过渡效果用于在更换场景的图像或背景时，为 Image 或 Scene 播放动画
 
 ```ts
 interface ITransition<T extends ElementProp = Record<string, any>> {
@@ -21,11 +21,11 @@ interface ITransition<T extends ElementProp = Record<string, any>> {
 
 ### start
 
-启动过渡效果。
+启动过渡效果
 
-- `onComplete?: () => void` - 过渡完成时调用的回调函数。
+- `onComplete?: () => void` - 过渡完成时调用的回调函数
 
-> 如果你继承了 `Base` 类，可以调用 `Base.prototype.requestAnimation` 来请求动画。
+> 如果你继承了 `Base` 类，可以调用 `Base.prototype.requestAnimation` 来请求动画
 > 
 > ```ts
 > super.requestAnimation({
@@ -42,7 +42,7 @@ interface ITransition<T extends ElementProp = Record<string, any>> {
 
 ### toElementProps
 
-返回 ElementProps 数组，每个元素表示一个图像元素的属性。  
+返回 ElementProps 数组，每个元素表示一个图像元素的属性
 
 [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts) 示例：
 
@@ -60,25 +60,25 @@ public toElementProps(): (DissolveProps & ElementProp)[] {
 }
 ```
 
-溶解图像时，实际会同时渲染两张图像：第一张的不透明度为 `this.state.opacity`，第二张为 `1 - this.state.opacity`，于是第一张逐渐消失，第二张逐渐出现。
+溶解图像时，实际会同时渲染两张图像：第一张的不透明度为 `this.state.opacity`，第二张为 `1 - this.state.opacity`，于是第一张逐渐消失，第二张逐渐出现
 
 ### copy
 
-返回过渡效果的一个新实例。
+返回过渡效果的一个新实例
 
 ## 公共属性
 
 ### events
 
-无需重写此属性。
+无需重写此属性
 
 ### controller
 
-无需重写此属性。
+无需重写此属性
 
 ## 自定义过渡
 
-你可以实现 [ITransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/type.ts) 接口并继承一个过渡基类（如 [ImageTransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/imageTransition.ts)），创建自己的过渡效果。
+你可以实现 [ITransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/type.ts) 接口并继承一个过渡基类（如 [ImageTransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/imageTransition.ts)），创建自己的过渡效果
 
 [Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts) 示例：
 

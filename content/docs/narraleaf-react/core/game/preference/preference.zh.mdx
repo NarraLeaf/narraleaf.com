@@ -1,9 +1,9 @@
 ﻿---
 title: "Preference\\<T extends Record\\<string, string | boolean | number | null | undefined\\>\\>"
 ---
-Preference 允许你控制一些游戏行为，例如自动前进模式。
+Preference 允许你控制一些游戏行为，例如自动前进模式
 
-有关偏好设置键的列表，请参阅 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)。
+有关偏好设置键的列表，请参阅 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)
 
 ## 公共方法
 
@@ -18,7 +18,7 @@ Preference 允许你控制一些游戏行为，例如自动前进模式。
 
 ### setPreference\<K extends Extract\<keyof T, string\>\>
 
-设置一个偏好。
+设置一个偏好
 
 <Steps>
 <Step>
@@ -35,7 +35,7 @@ game.preference.setPreference("autoForward", true);
 
 ### getPreference\<K extends Extract\<keyof T, string\>\>
 
-获取一个偏好。
+获取一个偏好
 
 <Steps>
 <Step>
@@ -51,7 +51,7 @@ const autoForward = game.preference.getPreference("autoForward");
 
 ### getPreferences
 
-获取所有偏好。
+获取所有偏好
 
 <Steps>
 <Step>
@@ -62,7 +62,7 @@ const autoForward = game.preference.getPreference("autoForward");
 
 ### onPreferenceChange\<U extends Extract\<keyof T, string\>\>
 
-监听偏好更改。
+监听偏好更改
 
 <Steps>
 <Step>
@@ -122,7 +122,7 @@ const preferences = game.preference.exportPreferences();
 
 ### togglePreference\<K extends BooleanValueKeyOf\<T\>\>
 
-切换布尔偏好。
+切换布尔偏好
 
 <Steps>
 <Step>

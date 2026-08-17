@@ -2,7 +2,7 @@
 title: "存储数据"
 ---
 
-需要跨场景保留并写入存档的数据使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)。`story.createPersistent()` 会一次完成创建和注册。
+需要跨场景保留并写入存档的数据使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent)。`story.createPersistent()` 会一次完成创建和注册
 
 ```ts
 import { Story } from "narraleaf-react";
@@ -17,7 +17,7 @@ const player = story.createPersistent("player", {
 });
 ```
 
-如果手动创建 `Persistent`，必须在故事运行前注册。
+如果手动创建 `Persistent`，必须在故事运行前注册
 
 ```ts
 import { Persistent } from "narraleaf-react";
@@ -28,7 +28,7 @@ story.registerPersistent(player);
 
 ## 修改和显示数据
 
-`set()` 和 `assign()` 会创建剧情动作。`get()` 返回动态 Word，在台词显示时读取最新值。
+`set()` 和 `assign()` 会创建剧情动作。`get()` 返回动态 Word，在台词显示时读取最新值
 
 ```ts
 scene.action([
@@ -39,7 +39,7 @@ scene.action([
 ]);
 ```
 
-条件中可以使用 `equals`、`isTrue`、`isFalse` 和 `evaluate`。
+条件中可以使用 `equals`、`isTrue`、`isFalse` 和 `evaluate`
 
 ```ts
 Condition.If(player.evaluate("coins", (coins) => coins >= 50), [
@@ -47,11 +47,11 @@ Condition.If(player.evaluate("coins", (coins) => coins >= 50), [
 ]);
 ```
 
-可存储字符串、数字、布尔值、普通对象、数组、`null`、`undefined` 和 `Date`。不要存储类实例、函数、DOM 节点或循环引用对象。
+可存储字符串、数字、布尔值、普通对象、数组、`null`、`undefined` 和 `Date`。不要存储类实例、函数、DOM 节点或循环引用对象
 
 ## 保存当前游戏
 
-`serialize()` 返回完整的 `SavedGame` 对象。应保存整个对象，而不是只保存 Persistent 命名空间。
+`serialize()` 返回完整的 `SavedGame` 对象。应保存整个对象，而不是只保存 Persistent 命名空间
 
 ```tsx
 import { useLiveGame } from "narraleaf-react";
@@ -70,7 +70,7 @@ function SaveButton() {
 
 ## 读取存档
 
-解析保存的对象并传给 `deserialize()`。读取后，当前运行状态会被替换。
+解析保存的对象并传给 `deserialize()`。读取后，当前运行状态会被替换
 
 ```tsx
 import type { SavedGame } from "narraleaf-react";
@@ -84,4 +84,4 @@ function load() {
 }
 ```
 
-生产环境中应把 localStorage 和网络数据视为不可信输入：校验结构，并捕获解析或版本兼容错误。完整例子见 [localStorage 存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
+生产环境中应把 localStorage 和网络数据视为不可信输入：校验结构，并捕获解析或版本兼容错误。完整例子见 [localStorage 存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)

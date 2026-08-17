@@ -3,7 +3,7 @@ title: store
 description: 插件作用域的持久键值存储，存放在玩家存档旁边，而不是存档里面
 ---
 
-`app.game.store` 是你的插件在玩家游戏中自己的持久区域。它位于存档**旁边**而不是存档**里面**，所以开新游戏也不会丢——解锁内容记录、成就镜像，以及“他们看过这个了吗”之类的标记，正需要这一点。
+`app.game.store` 是你的插件在玩家游戏中自己的持久区域。它位于存档**旁边**而不是存档**里面**，所以开新游戏也不会丢——解锁内容记录、成就镜像，以及“他们看过这个了吗”之类的标记，正需要这一点
 
 先声明它：
 
@@ -24,7 +24,7 @@ description: 插件作用域的持久键值存储，存放在玩家存档旁边�
 | `remove` | `(key: string) => Promise<void>` |
 | `keys` | `() => Promise<string[]>` |
 
-一切都是异步的，没有存过任何东西时 `get` 解析为 `null`。
+一切都是异步的，没有存过任何东西时 `get` 解析为 `null`
 
 ```ts
 export default defineRuntimePlugin({
@@ -37,32 +37,32 @@ export default defineRuntimePlugin({
 
 ## 键名由宿主加命名空间
 
-直接写裸键名。宿主会在键抵达底层存储之前替每个键加上你的插件 id 前缀，所以两个都用 `"unlocked"` 的插件永远不会撞车，你也永远不必重复写自己的 id。
+直接写裸键名。宿主会在键抵达底层存储之前替每个键加上你的插件 id 前缀，所以两个都用 `"unlocked"` 的插件永远不会撞车，你也永远不必重复写自己的 id
 
 ```ts
 await app.game.store?.set("unlocked", [...seen, "cg_01"]);
 const unlocked = await app.game.store?.get<string[]>("unlocked");
 ```
 
-`keys()` 返回的是*不带*前缀的键，所以你拿回来的就是你传进去的。
+`keys()` 返回的是*不带*前缀的键，所以你拿回来的就是你传进去的
 
 ## 存在哪里
 
 | 目标 | 底层 |
 | --- | --- |
-| 桌面游戏 | 玩家用户数据中该游戏的持久化文件。 |
-| Web 导出 | IndexedDB。 |
-| Android / iOS | 外壳的持久化，与桌面相同。 |
+| 桌面游戏 | 玩家用户数据中该游戏的持久化文件|
+| Web 导出 | IndexedDB|
+| Android / iOS | 外壳的持久化，与桌面相同|
 
-store 不属于任何存档槽位，也不是编辑器侧的 [`app.services.storage`](/zh/docs/studio/plugin/studio/storage)——后者只在工作区打开时存在。如果你需要把在 Studio 里编写的数据送到游戏中，请用 [`contributes.runtimeData`](/zh/docs/studio/plugin/manifest#runtimedata) 一起发布，并改用 `app.game.data.readJson` 读取——那是只读的，并随包一同分发。
+store 不属于任何存档槽位，也不是编辑器侧的 [`app.services.storage`](/zh/docs/studio/plugin/studio/storage)——后者只在工作区打开时存在。如果你需要把在 Studio 里编写的数据送到游戏中，请用 [`contributes.runtimeData`](/zh/docs/studio/plugin/manifest#runtimedata) 一起发布，并改用 `app.game.data.readJson` 读取——那是只读的，并随包一同分发
 
 <Callout type="info">
-store 在**编辑器内预览中不可用**，那里节点跑在编辑器画布上，背后没有游戏。用 `app.game.store?.` 防护，让节点在那里什么都不做。
+store 在**编辑器内预览中不可用**，那里节点跑在编辑器画布上，背后没有游戏。用 `app.game.store?.` 防护，让节点在那里什么都不做
 </Callout>
 
 ## 异步，这会影响你的节点
 
-每个方法都返回 promise。等待 store 的蓝图节点必须声明 `isLatent: true`，而 latent 节点不能用在内联故事表达式里——请把它放进事件图或宏图。
+每个方法都返回 promise。等待 store 的蓝图节点必须声明 `isLatent: true`，而 latent 节点不能用在内联故事表达式里——请把它放进事件图或宏图
 
 ```ts
 {

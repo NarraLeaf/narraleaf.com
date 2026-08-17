@@ -3,19 +3,19 @@ title: 事件
 description: 启动 event 图的事件 Head、它们各自携带的 payload，以及在蓝图之间传递消息的 Broadcast 节点
 ---
 
-事件 Head 是一张`event`图的起点。它没有执行入口——运行时从 Head 进入这张图，执行链从`then`开始。本页其余内容都由这一点展开：Head 的数据输出就是这次事件的 payload，而你能用到哪些 Head，取决于蓝图挂在什么宿主上。
+事件 Head 是一张`event`图的起点。它没有执行入口——运行时从 Head 进入这张图，执行链从`then`开始。本页其余内容都由这一点展开：Head 的数据输出就是这次事件的 payload，而你能用到哪些 Head，取决于蓝图挂在什么宿主上
 
 ## 约定
 
-- **Head 没有执行入口。** 没有任何东西可以连进去。一张图里可以放多个 Head，各自的事件到达时各跑各的执行链。
-- **数据输出就是 payload。** 除`then`以外的每个输出引脚，都按引脚 id 读取本次运行时事件 payload 的一个字段。派发没有设置的字段读到`null`——不是`0`，也不是`""`。
-- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系。
-- **图类型。** 本页节点都只允许`event`图，只有`Send Broadcast`和`Get Listener Count`同时允许`macro`图。Blueprint Value 图只接受两个 Head：`Init`和`On Flush`。
-- **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head。
+- **Head 没有执行入口。** 没有任何东西可以连进去。一张图里可以放多个 Head，各自的事件到达时各跑各的执行链
+- **数据输出就是 payload。** 除`then`以外的每个输出引脚，都按引脚 id 读取本次运行时事件 payload 的一个字段。派发没有设置的字段读到`null`——不是`0`，也不是`""`
+- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
+- **图类型。** 本页节点都只允许`event`图，只有`Send Broadcast`和`Get Listener Count`同时允许`macro`图。Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
+- **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head
 
 ## 哪些 Head 可用
 
-创建浮窗按蓝图 owner 过滤 Head。没有为你的 owner 列出的 Head，不是被某个开关藏起来了——在那里它根本不存在。
+创建浮窗按蓝图 owner 过滤 Head。没有为你的 owner 列出的 Head，不是被某个开关藏起来了——在那里它根本不存在
 
 | 宿主 | 提供的 Head |
 | --- | --- |
@@ -25,7 +25,7 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 | Blueprint Value（`widgetValue`） | `Init`与`On Flush` |
 | Story Action 蓝图 | `On Call` |
 
-对控件来说，owner 只是规则的一半：每种内建控件都声明了一组事件能力，只有该控件自己列出的 Head 才会出现。这就是为什么`nl.list`没有`Mouse Enter`，而`nl.container`没有`Item Click`。
+对控件来说，owner 只是规则的一半：每种内建控件都声明了一组事件能力，只有该控件自己列出的 Head 才会出现。这就是为什么`nl.list`没有`Mouse Enter`，而`nl.container`没有`Item Click`
 
 | 控件类型 | Head |
 | --- | --- |
@@ -36,30 +36,30 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 | `nl.textInput` | `Value Changed`、`Submit`、`Focus`、`Blur` |
 | `nl.frame` | `Page Event` |
 
-控件蓝图内部还有两层收窄。`List Item Refresh`只有当元素确实位于 List 的 item 模板之内时才提供。另外，创建时绑定了某个事件的事件图层只提供该事件的 Head；创建时 Event 字段保持`-`的图层没有绑定，提供该控件类型允许的全部 Head。
+控件蓝图内部还有两层收窄。`List Item Refresh`只有当元素确实位于 List 的 item 模板之内时才提供。另外，创建时绑定了某个事件的事件图层只提供该事件的 Head；创建时 Event 字段保持`-`的图层没有绑定，提供该控件类型允许的全部 Head
 
 ## 事件冒泡
 
 元素事件只在运行时命中的那个元素上触发，然后就停在那里——它不会向上传给祖先，父元素也不会默默接管子元素的事件。[Element 分类](/zh/docs/studio/blueprint/nodes/element)里的两个节点负责改变这一点：
 
-- `Continue Event Bubble`沿用当前事件名和原始 payload，把当前事件继续派发给结构父元素，然后从`next`继续执行。只能用于控件蓝图；当前没有进行中的事件可转发时执行失败。
-- `Stop Event Bubble`把事件标记为已处理。后续的父级派发会被跳过，应用层的键盘派发同样会被跳过。
+- `Continue Event Bubble`沿用当前事件名和原始 payload，把当前事件继续派发给结构父元素，然后从`next`继续执行。只能用于控件蓝图；当前没有进行中的事件可转发时执行失败
+- `Stop Event Bubble`把事件标记为已处理。后续的父级派发会被跳过，应用层的键盘派发同样会被跳过
 
-后一种用法最常用到。键盘事件先经 DOM 冒泡到达获得焦点的控件，随后由窗口级监听派发给全局蓝图、再派发给当前 active Surface 蓝图。控件按键处理里的一个`Stop Event Bubble`会把后面这两段全部切断——叠层 Page 正是用这种方式吃掉 Space，而不让它推进底下的游戏。在`On Window Close Requested`中，同一个节点用来取消窗口关闭。
+后一种用法最常用到。键盘事件先经 DOM 冒泡到达获得焦点的控件，随后由窗口级监听派发给全局蓝图、再派发给当前 active Surface 蓝图。控件按键处理里的一个`Stop Event Bubble`会把后面这两段全部切断——叠层 Page 正是用这种方式吃掉 Space，而不让它推进底下的游戏。在`On Window Close Requested`中，同一个节点用来取消窗口关闭
 
 <Callout type="warn">
-焦点位于文本输入元素时，窗口级键盘派发被整体跳过：全局与 Surface 的`On Key Down`/`Any Key Down`都不会执行，所以输入名字时按 Space 不会推进对话、按 Escape 不会打开菜单。获得焦点的控件自己的键盘 Head 仍然照常触发——它们走的是 DOM 冒泡，不是窗口监听。
+焦点位于文本输入元素时，窗口级键盘派发被整体跳过：全局与 Surface 的`On Key Down`/`Any Key Down`都不会执行，所以输入名字时按 Space 不会推进对话、按 Escape 不会打开菜单。获得焦点的控件自己的键盘 Head 仍然照常触发——它们走的是 DOM 冒泡，不是窗口监听
 </Callout>
 
 ## 应用生命周期
 
-全局蓝图的入口，外加两个同样能到达 Surface 和控件的窗口事件。
+全局蓝图的入口，外加两个同样能到达 Surface 和控件的窗口事件
 
 ### App Boot
 
 `blueprint.event.head.appBoot`
 
-App Boot（应用启动）在 UI 运行时完成启动、并拥有可执行的全局蓝图时触发一次。
+App Boot（应用启动）在 UI 运行时完成启动、并拥有可执行的全局蓝图时触发一次
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -69,36 +69,36 @@ App Boot（应用启动）在 UI 运行时完成启动、并拥有可执行的�
 
 `blueprint.event.head.gameReady`
 
-On Game Ready（游戏就绪时）在每个被接受的 NarraLeaf session 触发一次：此时`LiveGame`对象已创建并存入 Studio runtime，但`liveGame.newGame()`还没有启动第一段剧情。
+On Game Ready（游戏就绪时）在每个被接受的 NarraLeaf session 触发一次：此时`LiveGame`对象已创建并存入 Studio runtime，但`liveGame.newGame()`还没有启动第一段剧情
 
-运行时把 NarraLeaf 环境初始化当作一个加载项，放在 **Surface 系统启动之前**：它以 Story 库默认 Story 的入口场景的 compiled story 挂载 Player，因此`LiveGame`已经存在、该场景资源开始预热，而玩家仍停留在主菜单。真正「进入游戏」只发生在`Start Game`或读档时，并且复用同一个已初始化的`LiveGame`：当`Start Game`的目标就是已预热的默认场景时为秒开，**不会**再次触发该 Head；只有`Start Game`指向不同场景时才会重新挂载环境并第二次触发。项目未配置默认 Story 时改为挂载一个空环境，该 Head 在启动时依然触发。
+运行时把 NarraLeaf 环境初始化当作一个加载项，放在 **Surface 系统启动之前**：它以 Story 库默认 Story 的入口场景的 compiled story 挂载 Player，因此`LiveGame`已经存在、该场景资源开始预热，而玩家仍停留在主菜单。真正「进入游戏」只发生在`Start Game`或读档时，并且复用同一个已初始化的`LiveGame`：当`Start Game`的目标就是已预热的默认场景时为秒开，**不会**再次触发该 Head；只有`Start Game`指向不同场景时才会重新挂载环境并第二次触发。项目未配置默认 Story 时改为挂载一个空环境，该 Head 在启动时依然触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 
 <Callout type="info">
-把 NarraLeaf Preference 的初始化放在这里——`Set Auto Forward`、`Set Game Speed`、`Set Voice Volume`、`Set Sentence Speed`——这样它们在玩家进入游戏之前就已就绪。不要放在`App Boot`里：名字虽然像最早的钩子，它并不最先执行（`On Game Ready`先于它触发），而且它不保证此刻存在活动的 live game。
+把 NarraLeaf Preference 的初始化放在这里——`Set Auto Forward`、`Set Game Speed`、`Set Voice Volume`、`Set Sentence Speed`——这样它们在玩家进入游戏之前就已就绪。不要放在`App Boot`里：名字虽然像最早的钩子，它并不最先执行（`On Game Ready`先于它触发），而且它不保证此刻存在活动的 live game
 </Callout>
 
 ### On Fullscreen Changed
 
 `blueprint.event.head.fullscreenChanged`
 
-On Fullscreen Changed（全屏状态变更时）在应用窗口进入或退出全屏时触发，包括在游戏之外切换全屏的情况。它是环境型窗口事件，因此派发是扇出的：先全局蓝图，再当前 active Surface 蓝图，最后该 Surface 上所有声明了该 Head 的控件蓝图。所以设置面板里的控件不必拥有整个 Page 也能跟随窗口状态。
+On Fullscreen Changed（全屏状态变更时）在应用窗口进入或退出全屏时触发，包括在游戏之外切换全屏的情况。它是环境型窗口事件，因此派发是扇出的：先全局蓝图，再当前 active Surface 蓝图，最后该 Surface 上所有声明了该 Head 的控件蓝图。所以设置面板里的控件不必拥有整个 Page 也能跟随窗口状态
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `isFullscreen` | out · data | `boolean` | 变化后的状态。 |
+| `isFullscreen` | out · data | `boolean` | 变化后的状态|
 
 ### On Window Close Requested
 
 `blueprint.event.head.windowCloseRequested`
 
-On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。主进程会把这次关闭挂起，等全局蓝图、再等 Surface 蓝图跑完；两者中任意一个执行了`Stop Event Bubble`就取消关闭，没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口。
+On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。主进程会把这次关闭挂起，等全局蓝图、再等 Surface 蓝图跑完；两者中任意一个执行了`Stop Event Bubble`就取消关闭，没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口
 
-只在全局蓝图和 Surface 蓝图中提供。取消动作依附于本次派发共享的 event control，而控件派发路径不传递它——这和键盘 Head 止步于 Surface 是同一个原因。
+只在全局蓝图和 Surface 蓝图中提供。取消动作依附于本次派发共享的 event control，而控件派发路径不传递它——这和键盘 Head 止步于 Surface 是同一个原因
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -106,13 +106,13 @@ On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口�
 
 ## Surface 生命周期与进退场
 
-`Surface Init`和`Surface Unmount`属于 Surface 蓝图。两个进退场 Head 也可用于元素私有蓝图，但只有该元素在那一刻已挂载且仍存活时才会收到。
+`Surface Init`和`Surface Unmount`属于 Surface 蓝图。两个进退场 Head 也可用于元素私有蓝图，但只有该元素在那一刻已挂载且仍存活时才会收到
 
 ### Surface Init
 
 `blueprint.event.head.surfaceInit`
 
-Surface Init（画面初始化）在 Page 或 Game UI Surface 首次进入当前运行时 scope 时触发。顶层 Surface 用自身 id 作为 scope；由 Page 组件嵌入的子 Page 拥有独立的`runtimeScopeId`，因此同一个 Page 被两个 Page 组件引用时彼此隔离。
+Surface Init（画面初始化）在 Page 或游戏界面 Surface 首次进入当前运行时 scope 时触发。顶层 Surface 用自身 id 作为 scope；由 Page 组件嵌入的子 Page 拥有独立的`runtimeScopeId`，因此同一个 Page 被两个 Page 组件引用时彼此隔离
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -122,7 +122,7 @@ Surface Init（画面初始化）在 Page 或 Game UI Surface 首次进入当前
 
 `blueprint.event.head.surfaceUnmount`
 
-Surface Unmount（画面卸载）在 Page 或 Game UI Surface 离开当前运行时 scope、被替换，或其宿主 Page 组件实例卸载时触发。
+Surface Unmount（画面卸载）在 Page 或游戏界面 Surface 离开当前运行时 scope、被替换，或其宿主 Page 组件实例卸载时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -132,7 +132,7 @@ Surface Unmount（画面卸载）在 Page 或 Game UI Surface 离开当前运行
 
 `blueprint.event.head.beforeSurfaceExit`
 
-Before Surface Exit（画面退出前）在当前 Page——或嵌入的子 Page——即将开始退出动画时触发。
+Before Surface Exit（画面退出前）在当前 Page——或嵌入的子 Page——即将开始退出动画时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -142,7 +142,7 @@ Before Surface Exit（画面退出前）在当前 Page——或嵌入的子 Page
 
 `blueprint.event.head.afterSurfaceEnter`
 
-After Surface Enter（画面进入后）在当前 Page 完成进入动画后触发。没有动画或处于 reduced motion 时，它在预绘制完成、Surface 进入稳定显示状态后触发。
+After Surface Enter（画面进入后）在当前 Page 完成进入动画后触发。没有动画或处于 reduced motion 时，它在预绘制完成、Surface 进入稳定显示状态后触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -154,7 +154,7 @@ After Surface Enter（画面进入后）在当前 Page 完成进入动画后触�
 
 `blueprint.event.head.init`
 
-Init（初始化）在支持私有蓝图的元素完成首次渲染并挂载后触发一次。它不是渲染前的 hook。Dev Mode bundle revision 导致 Surface 或元素 remount 时会再次触发。在 Blueprint Value 中它是初始求值入口；后续求值来自隐藏的 Element 属性依赖，或来自显式的`On Flush`。
+Init（初始化）在支持私有蓝图的元素完成首次渲染并挂载后触发一次。它不是渲染前的 hook。Dev Mode bundle revision 导致 Surface 或元素 remount 时会再次触发。在 Blueprint Value 中它是初始求值入口；后续求值来自隐藏的 Element 属性依赖，或来自显式的`On Flush`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -164,7 +164,7 @@ Init（初始化）在支持私有蓝图的元素完成首次渲染并挂载后�
 
 `blueprint.event.head.unmount`
 
-Unmount（卸载）在元素从运行时元素树中移除时触发：Surface 关闭或被替换、Frame 切换子 Page、List item 实例被移除，或可见性导致元素完全不渲染。运行时`display: none`只是隐藏并保持挂载，不会触发它。
+Unmount（卸载）在元素从运行时元素树中移除时触发：Surface 关闭或被替换、Frame 切换子 Page、List item 实例被移除，或可见性导致元素完全不渲染。运行时`display: none`只是隐藏并保持挂载，不会触发它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -174,24 +174,24 @@ Unmount（卸载）在元素从运行时元素树中移除时触发：Surface �
 
 `blueprint.event.head.flush`
 
-On Flush（刷新时）在当前蓝图所属元素被蓝图 Host API 显式改写属性、并因此触发重绘时执行。渲染器自动计算的 CSS 状态样式（hover、focus 变体）不会触发它。在 Blueprint Value 中它兼作显式求值入口：默认 Dialog Nametag 就是靠这个入口在 Dialog 不重新挂载的情况下随对话推进刷新。
+On Flush（刷新时）在当前蓝图所属元素被蓝图 Host API 显式改写属性、并因此触发重绘时执行。渲染器自动计算的 CSS 状态样式（hover、focus 变体）不会触发它。在 Blueprint Value 中它兼作显式求值入口：默认 Dialog Nametag 就是靠这个入口在 Dialog 不重新挂载的情况下随对话推进刷新
 
-Flush 是属性提交后的批处理通知。运行时按帧合并同一元素的 flush；flush 处理器内部再次改写该元素时，新的 flush 进入**下一帧**的批次——不存在同步重入。
+Flush 是属性提交后的批处理通知。运行时按帧合并同一元素的 flush；flush 处理器内部再次改写该元素时，新的 flush 进入**下一帧**的批次——不存在同步重入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `element` | out · data | `element` | 被刷新的元素引用。 |
+| `element` | out · data | `element` | 被刷新的元素引用|
 
 ## 鼠标
 
-这些 Head 可用于 displayable 控件。`Mouse Click`和`Right Click`额外可用于 Surface 蓝图，此时表示「当前 Surface 内任意位置」。Surface 进退场期间，鼠标与点击类事件会等到 Surface interaction ready 后才派发。
+这些 Head 可用于 displayable 控件。`Mouse Click`和`Right Click`额外可用于 Surface 蓝图，此时表示「当前 Surface 内任意位置」。Surface 进退场期间，鼠标与点击类事件会等到 Surface interaction ready 后才派发
 
 ### Mouse Click
 
 `blueprint.event.head.mouseClick`
 
-Mouse Click（鼠标点击）在元素上完成一次点击时触发。用于 Surface 蓝图时表示当前 Surface 内任意点击，并输出 Surface 设计坐标。
+Mouse Click（鼠标点击）在元素上完成一次点击时触发。用于 Surface 蓝图时表示当前 Surface 内任意点击，并输出 Surface 设计坐标
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -203,7 +203,7 @@ Mouse Click（鼠标点击）在元素上完成一次点击时触发。用于 Su
 
 `blueprint.event.head.mouseDoubleClick`
 
-Mouse Double Click（鼠标双击）在元素上完成一次双击时触发。
+Mouse Double Click（鼠标双击）在元素上完成一次双击时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -215,33 +215,33 @@ Mouse Double Click（鼠标双击）在元素上完成一次双击时触发。
 
 `blueprint.event.head.mouseDown`
 
-Mouse Down（鼠标按下）在元素上按下鼠标按键时触发。
+Mouse Down（鼠标按下）在元素上按下鼠标按键时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `x` | out · data | `float` | |
 | `y` | out · data | `float` | |
-| `button` | out · data | `integer` | 鼠标按键编号。 |
+| `button` | out · data | `integer` | 鼠标按键编号|
 
 ### Mouse Up
 
 `blueprint.event.head.mouseUp`
 
-Mouse Up（鼠标抬起）在元素上松开鼠标按键时触发。
+Mouse Up（鼠标抬起）在元素上松开鼠标按键时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `x` | out · data | `float` | |
 | `y` | out · data | `float` | |
-| `button` | out · data | `integer` | 鼠标按键编号。 |
+| `button` | out · data | `integer` | 鼠标按键编号|
 
 ### Mouse Enter
 
 `blueprint.event.head.mouseEnter`
 
-Mouse Enter（鼠标进入）在指针进入元素区域时触发。
+Mouse Enter（鼠标进入）在指针进入元素区域时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -253,7 +253,7 @@ Mouse Enter（鼠标进入）在指针进入元素区域时触发。
 
 `blueprint.event.head.mouseLeave`
 
-Mouse Leave（鼠标离开）在指针离开元素区域时触发。
+Mouse Leave（鼠标离开）在指针离开元素区域时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -265,7 +265,7 @@ Mouse Leave（鼠标离开）在指针离开元素区域时触发。
 
 `blueprint.event.head.mouseMove`
 
-Mouse Move（鼠标移动）在指针于元素上移动时触发。
+Mouse Move（鼠标移动）在指针于元素上移动时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -277,21 +277,21 @@ Mouse Move（鼠标移动）在指针于元素上移动时触发。
 
 `blueprint.event.head.mouseWheel`
 
-Mouse Wheel（鼠标滚轮）在滚轮于元素上滚动时触发。
+Mouse Wheel（鼠标滚轮）在滚轮于元素上滚动时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `x` | out · data | `float` | |
 | `y` | out · data | `float` | |
-| `deltaX` | out · data | `float` | 横向滚动量。 |
-| `deltaY` | out · data | `float` | 纵向滚动量。 |
+| `deltaX` | out · data | `float` | 横向滚动量|
+| `deltaY` | out · data | `float` | 纵向滚动量|
 
 ### Right Click
 
 `blueprint.event.head.rightClick`
 
-Right Click（右键点击）在元素触发上下文菜单事件时触发。用于 Surface 蓝图时表示当前 Surface 内任意右键点击，输出 Surface 设计坐标。事件成功派发时，默认上下文菜单会被阻止。
+Right Click（右键点击）在元素触发上下文菜单事件时触发。用于 Surface 蓝图时表示当前 Surface 内任意右键点击，输出 Surface 设计坐标。事件成功派发时，默认上下文菜单会被阻止
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -305,7 +305,7 @@ Right Click（右键点击）在元素触发上下文菜单事件时触发。用
 
 `blueprint.event.head.focus`
 
-Focus（聚焦）在元素获得键盘、鼠标或手柄焦点时触发。
+Focus（聚焦）在元素获得键盘、鼠标或手柄焦点时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -315,7 +315,7 @@ Focus（聚焦）在元素获得键盘、鼠标或手柄焦点时触发。
 
 `blueprint.event.head.blur`
 
-Blur（失焦）在元素失去焦点时触发。
+Blur（失焦）在元素失去焦点时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -323,17 +323,17 @@ Blur（失焦）在元素失去焦点时触发。
 
 ## 键盘
 
-键盘事件由运行时窗口级监听派发，不依赖元素焦点。全局蓝图、当前 active Surface 蓝图，以及所有已挂载且拥有该 Head 的控件，都会收到同一次窗口事件，并各自执行自己的链。控件的键盘监听随控件挂载注册，卸载时自动移除。
+键盘事件由运行时窗口级监听派发，不依赖元素焦点。全局蓝图、当前 active Surface 蓝图，以及所有已挂载且拥有该 Head 的控件，都会收到同一次窗口事件，并各自执行自己的链。控件的键盘监听随控件挂载注册，卸载时自动移除
 
-Surface 完成 prepaint 之后，Page 进退场期间键盘事件仍会派发。需要在过渡期间屏蔽时，在图里用 Page 分类的`Is Surface Entering`、`Is Surface Exiting`或`Is Surface Transitioning`分支。
+Surface 完成 prepaint 之后，Page 进退场期间键盘事件仍会派发。需要在过渡期间屏蔽时，在图里用 Page 分类的`Is Surface Entering`、`Is Surface Exiting`或`Is Surface Transitioning`分支
 
-只想匹配一个绑定时用带过滤的一对，想拿到按键本身时用`Any Key`一对：`On Key Down`/`On Key Up`匹配卡片上配置的绑定且不携带 payload，而`Any Key Down`/`Any Key Up`对每个按键都触发，并给出`key`和各修饰键状态。
+只想匹配一个绑定时用带过滤的一对，想拿到按键本身时用`Any Key`一对：`On Key Down`/`On Key Up`匹配卡片上配置的绑定且不携带 payload，而`Any Key Down`/`Any Key Up`对每个按键都触发，并给出`key`和各修饰键状态
 
 ### On Key Down
 
 `blueprint.event.head.keyDown`
 
-On Key Down（按键按下时）在运行时窗口收到匹配的键盘按下事件时触发。不要求任何元素处于焦点状态。
+On Key Down（按键按下时）在运行时窗口收到匹配的键盘按下事件时触发。不要求任何元素处于焦点状态
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -343,13 +343,13 @@ On Key Down（按键按下时）在运行时窗口收到匹配的键盘按下事
 
 | 字段 | 说明 |
 | --- | --- |
-| `Key` | 键盘绑定。卡片显示当前绑定；点击后在按钮上方打开捕获浮窗，按下任意按键即可绑定，支持`Ctrl`/`Alt`/`Shift`/`Meta`组合键。单键绑定按`KeyboardEvent.key`大小写不敏感匹配；绑定中包含修饰键时，修饰键状态也必须匹配。空值永远不触发——任意键请用`Any Key Down`。 |
+| `Key` | 键盘绑定。卡片显示当前绑定；点击后在按钮上方打开捕获浮窗，按下任意按键即可绑定，支持`Ctrl`/`Alt`/`Shift`/`Meta`组合键。单键绑定按`KeyboardEvent.key`大小写不敏感匹配；绑定中包含修饰键时，修饰键状态也必须匹配。空值永远不触发——任意键请用`Any Key Down`|
 
 ### On Key Up
 
 `blueprint.event.head.keyUp`
 
-On Key Up（按键抬起时）在运行时窗口收到匹配的键盘抬起事件时触发。
+On Key Up（按键抬起时）在运行时窗口收到匹配的键盘抬起事件时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -359,216 +359,216 @@ On Key Up（按键抬起时）在运行时窗口收到匹配的键盘抬起事�
 
 | 字段 | 说明 |
 | --- | --- |
-| `Key` | 与`On Key Down`相同的绑定控件。空值永远不触发——任意键请用`Any Key Up`。 |
+| `Key` | 与`On Key Down`相同的绑定控件。空值永远不触发——任意键请用`Any Key Up`|
 
 ### Any Key Down
 
 `blueprint.event.head.anyKeyDown`
 
-Any Key Down（任意按键按下）在运行时窗口收到任意键盘按下事件时触发。
+Any Key Down（任意按键按下）在运行时窗口收到任意键盘按下事件时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `key` | out · data | `string` | 按键语义值，对应`KeyboardEvent.key`。 |
+| `key` | out · data | `string` | 按键语义值，对应`KeyboardEvent.key`|
 | `altKey` | out · data | `boolean` | |
 | `ctrlKey` | out · data | `boolean` | |
 | `shiftKey` | out · data | `boolean` | |
-| `metaKey` | out · data | `boolean` | Meta / Command / Windows。 |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows|
 
 ### Any Key Up
 
 `blueprint.event.head.anyKeyUp`
 
-Any Key Up（任意按键抬起）在运行时窗口收到任意键盘抬起事件时触发。
+Any Key Up（任意按键抬起）在运行时窗口收到任意键盘抬起事件时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `key` | out · data | `string` | 按键语义值，对应`KeyboardEvent.key`。 |
+| `key` | out · data | `string` | 按键语义值，对应`KeyboardEvent.key`|
 | `altKey` | out · data | `boolean` | |
 | `ctrlKey` | out · data | `boolean` | |
 | `shiftKey` | out · data | `boolean` | |
-| `metaKey` | out · data | `boolean` | Meta / Command / Windows。 |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows|
 
 ## 绑定元素的 Head
 
-这两个 Head 先绑定同一 Surface 内的目标控件——和`Element`节点一样——然后监听**那个**控件而不是自己。它们同时也是元素绑定来源：Element 派生节点只有在当前图里已经存在兼容的`Element`、`Element Flush`或`Element Click`时才出现在创建浮窗中，而它们的`element`输出可以直接连到这类节点的目标输入。
+这两个 Head 先绑定同一 Surface 内的目标控件——和`Element`节点一样——然后监听**那个**控件而不是自己。它们同时也是元素绑定来源：Element 派生节点只有在当前图里已经存在兼容的`Element`、`Element Flush`或`Element Click`时才出现在创建浮窗中，而它们的`element`输出可以直接连到这类节点的目标输入
 
 ### Element Flush
 
 `blueprint.event.head.elementFlush`
 
-Element Flush（元素刷新）监听绑定目标的 flush。目标控件被 Host API 显式改写属性并重绘后，当前蓝图中的该 Head 执行。
+Element Flush（元素刷新）监听绑定目标的 flush。目标控件被 Host API 显式改写属性并重绘后，当前蓝图中的该 Head 执行
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `element` | out · data | `element` | 被刷新的绑定元素引用。 |
+| `element` | out · data | `element` | 被刷新的绑定元素引用|
 
 ### Element Click
 
 `blueprint.event.head.elementClick`
 
-Element Click（元素点击）监听绑定目标自己的`mouseClick`。目标控件收到真实点击后该 Head 执行；它不依赖点击穿透，也不依赖父子冒泡。默认 Dialog 模板用它把推进逻辑集中在一处：Dialog Content 蓝图自己用`Mouse Click`，同时用`Element Click`绑定全屏透明的 Dialog Interaction Layer、可见的 Dialog Panel 和默认内容子控件，全部连到同一个 Game `Next`。
+Element Click（元素点击）监听绑定目标自己的`mouseClick`。目标控件收到真实点击后该 Head 执行；它不依赖点击穿透，也不依赖父子冒泡。默认 Dialog 模板用它把推进逻辑集中在一处：Dialog Content 蓝图自己用`Mouse Click`，同时用`Element Click`绑定全屏透明的 Dialog Interaction Layer、可见的 Dialog Panel 和默认内容子控件，全部连到同一个 Game `Next`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `element` | out · data | `element` | 被点击的绑定元素引用。 |
-| `x` | out · data | `float` | 使用目标元素的本地设计坐标。 |
-| `y` | out · data | `float` | 使用目标元素的本地设计坐标。 |
-| `button` | out · data | `integer` | 鼠标按键编号。 |
+| `element` | out · data | `element` | 被点击的绑定元素引用|
+| `x` | out · data | `float` | 使用目标元素的本地设计坐标|
+| `y` | out · data | `float` | 使用目标元素的本地设计坐标|
+| `button` | out · data | `integer` | 鼠标按键编号|
 
 ## List
 
-这些 Head 属于 list-like 控件——`nl.list`以及 Game UI 包装控件`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`。读写运行时内容见 [List 节点](/zh/docs/studio/blueprint/nodes/list)。`List Item Refresh`是个例外：它派发到 item 模板**内部**元素的私有蓝图，而不是 List 本身。
+这些 Head 属于 list-like 控件——`nl.list`以及游戏界面包装控件`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`。读写运行时内容见 [List 节点](/zh/docs/studio/blueprint/nodes/list)。`List Item Refresh`是个例外：它派发到 item 模板**内部**元素的私有蓝图，而不是 List 本身
 
 ### Item Render
 
 `blueprint.event.head.itemRender`
 
-Item Render（项渲染）在 List 根据绑定数据、预览数据或预览数量渲染单个条目实例时触发。payload 来自该条目的 scope。
+Item Render（项渲染）在 List 根据绑定数据、预览数据或预览数量渲染单个条目实例时触发。payload 来自该条目的 scope
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `index` | out · data | `integer` | |
-| `count` | out · data | `integer` | 本次渲染的条目总数。 |
-| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`。 |
-| `item` | out · data | `json` | 条目数据。 |
+| `count` | out · data | `integer` | 本次渲染的条目总数|
+| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
+| `item` | out · data | `json` | 条目数据|
 
 ### Item Click
 
 `blueprint.event.head.itemClick`
 
-Item Click（项点击）在条目容器收到点击时触发。点击条目模板内的子元素也会归属到对应条目。
+Item Click（项点击）在条目容器收到点击时触发。点击条目模板内的子元素也会归属到对应条目
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `index` | out · data | `integer` | |
-| `count` | out · data | `integer` | 本次渲染的条目总数。 |
-| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`。 |
-| `item` | out · data | `json` | 条目数据。 |
+| `count` | out · data | `integer` | 本次渲染的条目总数|
+| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
+| `item` | out · data | `json` | 条目数据|
 
 ### Item Hover
 
 `blueprint.event.head.itemHover`
 
-Item Hover（项悬停）在指针进入条目容器时触发。
+Item Hover（项悬停）在指针进入条目容器时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `index` | out · data | `integer` | |
-| `count` | out · data | `integer` | 本次渲染的条目总数。 |
-| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`。 |
-| `item` | out · data | `json` | 条目数据。 |
+| `count` | out · data | `integer` | 本次渲染的条目总数|
+| `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
+| `item` | out · data | `json` | 条目数据|
 
 ### Selection Changed
 
 `blueprint.event.head.selectionChanged`
 
-Selection Changed（选择变更）在条目点击导致运行时选中索引变化时触发。List 以`selectedIndex`属性作为初始选中值；同一运行时实例内重复点击当前选中条目不会再次触发。
+Selection Changed（选择变更）在条目点击导致运行时选中索引变化时触发。List 以`selectedIndex`属性作为初始选中值；同一运行时实例内重复点击当前选中条目不会再次触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `index` | out · data | `integer` | 新选中的条目。 |
-| `previousIndex` | out · data | `integer` | 之前没有选中项时为`-1`。 |
-| `count` | out · data | `integer` | 本次渲染的条目总数。 |
-| `key` | out · data | `string` | 新选中条目的 key。 |
-| `item` | out · data | `json` | 新选中条目的数据。 |
+| `index` | out · data | `integer` | 新选中的条目|
+| `previousIndex` | out · data | `integer` | 之前没有选中项时为`-1`|
+| `count` | out · data | `integer` | 本次渲染的条目总数|
+| `key` | out · data | `string` | 新选中条目的 key|
+| `item` | out · data | `json` | 新选中条目的数据|
 
 ### Scroll
 
 `blueprint.event.head.scroll`
 
-Scroll（滚动）在 List 的滚动容器发生滚动时触发。
+Scroll（滚动）在 List 的滚动容器发生滚动时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `offset` | out · data | `float` | 当前滚动位置。 |
-| `maxOffset` | out · data | `float` | 最大滚动位置。 |
-| `progress` | out · data | `float` | 通常为`0`到`1`。 |
+| `offset` | out · data | `float` | 当前滚动位置|
+| `maxOffset` | out · data | `float` | 最大滚动位置|
+| `progress` | out · data | `float` | 通常为`0`到`1`|
 
 ### Scroll End
 
 `blueprint.event.head.scrollEnd`
 
-Scroll End（滚动结束）在滚动容器从非末端滚动到末端时触发。已经停留在末端时，后续相同滚动事件不会重复触发；离开末端后再次到达末端会重新触发。
+Scroll End（滚动结束）在滚动容器从非末端滚动到末端时触发。已经停留在末端时，后续相同滚动事件不会重复触发；离开末端后再次到达末端会重新触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `offset` | out · data | `float` | 当前滚动位置。 |
-| `maxOffset` | out · data | `float` | 最大滚动位置。 |
-| `progress` | out · data | `float` | 通常为`0`到`1`。 |
+| `offset` | out · data | `float` | 当前滚动位置|
+| `maxOffset` | out · data | `float` | 最大滚动位置|
+| `progress` | out · data | `float` | 通常为`0`到`1`|
 
 ### List Item Refresh
 
 `blueprint.event.head.listItemRefresh`
 
-List Item Refresh（列表项刷新）在`nl.list`渲染或刷新某个条目时，派发到该条目 item 模板后代元素的私有蓝图。模板子元素靠它读取当前条目的数据。每个重复条目实例使用独立的 instance key 和 item scope，因此 element id 相同的两个条目不会共享 locals。
+List Item Refresh（列表项刷新）在`nl.list`渲染或刷新某个条目时，派发到该条目 item 模板后代元素的私有蓝图。模板子元素靠它读取当前条目的数据。每个重复条目实例使用独立的 instance key 和 item scope，因此 element id 相同的两个条目不会共享 locals
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `props` | out · data | `json` | `item`是 object 时为`item`本身，否则为`{ value: item }`。 |
-| `item` | out · data | `json` | 条目数据。 |
+| `props` | out · data | `json` | `item`是 object 时为`item`本身，否则为`{ value: item }`|
+| `item` | out · data | `json` | 条目数据|
 | `index` | out · data | `integer` | |
-| `count` | out · data | `integer` | 本次渲染的条目总数。 |
+| `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | |
 
 ## Slider
 
-这些 Head 属于`nl.slider`。这里的所有值都是映射后的值，和`props.value`以及 [Slider 节点](/zh/docs/studio/blueprint/nodes/slider)一致——0–1 normalized 值只能通过专用读节点取得。
+这些 Head 属于`nl.slider`。这里的所有值都是映射后的值，和`props.value`以及 [Slider 节点](/zh/docs/studio/blueprint/nodes/slider)一致——0–1 normalized 值只能通过专用读节点取得
 
 ### Drag Start
 
 `blueprint.event.head.sliderDragStart`
 
-Drag Start（拖拽开始）在滑块拖拽开始时触发。
+Drag Start（拖拽开始）在滑块拖拽开始时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `float` | 映射值。 |
+| `value` | out · data | `float` | 映射值|
 
 ### Value Changed
 
 `blueprint.event.head.sliderValueChanged`
 
-Value Changed（值变更）在运行时值发生变化时触发。派发按动画帧合并，并且在一条链还在执行时，后续变化会塌缩成一次待发派发——所以拖动不会每像素触发一次，`previousValue`覆盖被合并掉的全部变化。用`Set Slider Value`写入值不会派发该 Head。
+Value Changed（值变更）在运行时值发生变化时触发。派发按动画帧合并，并且在一条链还在执行时，后续变化会塌缩成一次待发派发——所以拖动不会每像素触发一次，`previousValue`覆盖被合并掉的全部变化。用`Set Slider Value`写入值不会派发该 Head
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `float` | 映射值。 |
-| `previousValue` | out · data | `float` | 映射值。 |
+| `value` | out · data | `float` | 映射值|
+| `previousValue` | out · data | `float` | 映射值|
 
 ### Drag End
 
 `blueprint.event.head.sliderDragEnd`
 
-Drag End（拖拽结束）在滑块拖拽结束时触发。
+Drag End（拖拽结束）在滑块拖拽结束时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `float` | 映射值。 |
+| `value` | out · data | `float` | 映射值|
 
 ## 文本输入
 
-这些 Head 属于`nl.textInput`。读写字段内容见 [Text input 节点](/zh/docs/studio/blueprint/nodes/text-input)。
+这些 Head 属于`nl.textInput`。读写字段内容见 [Text input 节点](/zh/docs/studio/blueprint/nodes/text-input)
 
 ### Value Changed
 
 `blueprint.event.head.textInputValueChanged`
 
-Value Changed 在输入框的值发生变化时触发。
+Value Changed 在输入框的值发生变化时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -580,12 +580,12 @@ Value Changed 在输入框的值发生变化时触发。
 
 `blueprint.event.head.textInputSubmit`
 
-Submit（提交）在输入框内按下`Enter`时触发。它刻意不阻止事件传播，因此同一个输入框上绑定了`Enter`的控件`On Key Down`会与`Submit`一起继续触发。
+Submit（提交）在输入框内按下`Enter`时触发。它刻意不阻止事件传播，因此同一个输入框上绑定了`Enter`的控件`On Key Down`会与`Submit`一起继续触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `string` | 提交时的值。 |
+| `value` | out · data | `string` | 提交时的值|
 
 ## Page
 
@@ -593,108 +593,108 @@ Submit（提交）在输入框内按下`Enter`时触发。它刻意不阻止事�
 
 `blueprint.event.head.pageEvent`
 
-Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit Page Event`时，于父级`nl.frame`的私有蓝图中触发。只有`nl.frame`提供该 Head；发送侧位于 [App 节点](/zh/docs/studio/blueprint/nodes/app)。
+Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit Page Event`时，于父级`nl.frame`的私有蓝图中触发。只有`nl.frame`提供该 Head；发送侧位于 [App 节点](/zh/docs/studio/blueprint/nodes/app)
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `event` | out · data | `string` | 子 Page 发出的事件名。 |
-| `data` | out · data | `json` | 子 Page 发出的事件数据。 |
+| `event` | out · data | `string` | 子 Page 发出的事件名|
+| `data` | out · data | `json` | 子 Page 发出的事件数据|
 
 ## Game Preference
 
-两个 Head 都订阅当前活动`LiveGame`的 preference 派发器，因此只在全局蓝图和当前 active Surface 蓝图中提供。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/zh/docs/studio/blueprint/nodes/game)。
+两个 Head 都订阅当前活动`LiveGame`的 preference 派发器，因此只在全局蓝图和当前 active Surface 蓝图中提供。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/zh/docs/studio/blueprint/nodes/game)
 
 ### On Preference Changed
 
 `blueprint.event.head.preferenceChanged`
 
-On Preference Changed（偏好变更时）在所选偏好键变化时触发。
+On Preference Changed（偏好变更时）在所选偏好键变化时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `json` | 变化后的新值。引脚类型是通用`json`；实际运行时类型由所选键决定——`autoForward`/`skip`/`showDialog`为`boolean`，`voiceEndMode`为`string`，其余为`number`。接入`Set Slider Value`这类强类型输入前，先用`To Float`或`To Boolean`转换。 |
-| `previousValue` | out · data | `json` | 运行时缓存的旧值，类型同`value`。本次会话对该键没有更早快照时为`null`。 |
+| `value` | out · data | `json` | 变化后的新值。引脚类型是通用`json`；实际运行时类型由所选键决定——`autoForward`/`skip`/`showDialog`为`boolean`，`voiceEndMode`为`string`，其余为`number`。接入`Set Slider Value`这类强类型输入前，先用`To Float`或`To Boolean`转换|
+| `previousValue` | out · data | `json` | 运行时缓存的旧值，类型同`value`。本次会话对该键没有更早快照时为`null`|
 
 **卡片字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `Preference` | 要监听的偏好键：`autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval`。空值不订阅任何键——任意键请用`On Any Preference Changed`。 |
+| `Preference` | 要监听的偏好键：`autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval`。空值不订阅任何键——任意键请用`On Any Preference Changed`|
 
 ### On Any Preference Changed
 
 `blueprint.event.head.anyPreferenceChanged`
 
-On Any Preference Changed（任意偏好变更时）在任意偏好键变化时触发。用于集中处理设置变更——统一持久化当前设置，或一次性刷新整个设置面板。
+On Any Preference Changed（任意偏好变更时）在任意偏好键变化时触发。用于集中处理设置变更——统一持久化当前设置，或一次性刷新整个设置面板
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `key` | out · data | `string` | 发生变化的规范键名，例如`bgmVolume`。 |
-| `value` | out · data | `json` | 变化后的新值；实际类型由`key`决定。 |
-| `previousValue` | out · data | `json` | 类型同`value`；没有更早快照时为`null`。 |
+| `key` | out · data | `string` | 发生变化的规范键名，例如`bgmVolume`|
+| `value` | out · data | `json` | 变化后的新值；实际类型由`key`决定|
+| `previousValue` | out · data | `json` | 类型同`value`；没有更早快照时为`null`|
 
 ## Broadcast
 
-Broadcast 在当前 active Surface 的各蓝图之间传递具名消息：该 Surface 自己的蓝图，加上它上面的所有控件蓝图。它不会到达全局蓝图，也不跨 Surface；发送者自己如果也在监听，同样会收到自己发出的广播。目标来自文档而不是已挂载的 React 树。四个节点都只在 Surface 蓝图和控件蓝图中提供。
+Broadcast 在当前 active Surface 的各蓝图之间传递具名消息：该 Surface 自己的蓝图，加上它上面的所有控件蓝图。它不会到达全局蓝图，也不跨 Surface；发送者自己如果也在监听，同样会收到自己发出的广播。目标来自文档而不是已挂载的 React 树。四个节点都只在 Surface 蓝图和控件蓝图中提供
 
 ### On Broadcast
 
 `blueprint.event.head.onBroadcast`
 
-On Broadcast（广播时）在收到指定名称的广播时触发。
+On Broadcast（广播时）在收到指定名称的广播时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `data` | out · data | `json` | 广播数据。 |
-| `sender` | out · data | `string` | 发送方元素 ID；没有发送者时为空字符串。 |
+| `data` | out · data | `json` | 广播数据|
+| `sender` | out · data | `string` | 发送方元素 ID；没有发送者时为空字符串|
 
 **卡片字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `Event` | 要监听的广播事件名。去除首尾空白后精确匹配。 |
+| `Event` | 要监听的广播事件名。去除首尾空白后精确匹配|
 
 ### On Any Broadcast
 
 `blueprint.event.head.onAnyBroadcast`
 
-On Any Broadcast（任意广播时）在本蓝图收到任意名称的广播时触发。
+On Any Broadcast（任意广播时）在本蓝图收到任意名称的广播时触发
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `event` | out · data | `string` | 广播事件名。 |
-| `data` | out · data | `json` | 广播数据。 |
-| `sender` | out · data | `string` | 发送方元素 ID；没有发送者时为空字符串。 |
+| `event` | out · data | `string` | 广播事件名|
+| `data` | out · data | `json` | 广播数据|
+| `sender` | out · data | `string` | 发送方元素 ID；没有发送者时为空字符串|
 
 ### Send Broadcast
 
 `blueprint.broadcast.send` · Latent
 
-Send Broadcast（发送广播）向运行中的 UI 发送一个广播事件，等所有监听链跑完后从`next`继续。事件名为空或只有空白是执行错误，不是静默 no-op。发送者 id 由正在执行的蓝图所属元素填入。
+Send Broadcast（发送广播）向运行中的 UI 发送一个广播事件，等所有监听链跑完后从`next`继续。事件名为空或只有空白是执行错误，不是静默 no-op。发送者 id 由正在执行的蓝图所属元素填入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `event` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `event` | in · data | `string` | 可在卡片上直接填字面量|
 | `data` | in · data | `json` | |
 
 ### Get Listener Count
 
 `blueprint.broadcast.getListenerCount` · Pure
 
-Get Listener Count（获取监听器数量）读取当前 Surface 上某个广播事件名已注册的监听器数量。
+Get Listener Count（获取监听器数量）读取当前 Surface 上某个广播事件名已注册的监听器数量
 
-统计的是 **Head** 而不是蓝图：一张图里有两个匹配 Head 就计两次，一个`On Any Broadcast`对每个事件名都计数。Head 从文档中统计，因此当前未挂载的元素同样计入。
+统计的是 **Head** 而不是蓝图：一张图里有两个匹配 Head 就计两次，一个`On Any Broadcast`对每个事件名都计数。Head 从文档中统计，因此当前未挂载的元素同样计入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `event` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `event` | in · data | `string` | 可在卡片上直接填字面量|
 | `count` | out · data | `integer` | |
 
 ## Story Action
@@ -703,7 +703,7 @@ Get Listener Count（获取监听器数量）读取当前 Surface 上某个广�
 
 `blueprint.event.head.onCall`
 
-On Call（被调用时）是 Story Action Blueprint——与某个剧情动作一一绑定的蓝图——的唯一入口，在其他任何地方都不提供。Story Action 图会被编译成 NarraLeaf 的`Script`动作并经剧情编译器执行，永远不走 UI 事件派发路径，因此本页其余 Head 在该 owner 中都不出现。
+On Call（被调用时）是 Story Action Blueprint——与某个剧情动作一一绑定的蓝图——的唯一入口，在其他任何地方都不提供。Story Action 图会被编译成 NarraLeaf 的`Script`动作并经剧情编译器执行，永远不走 UI 事件派发路径，因此本页其余 Head 在该 owner 中都不出现
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

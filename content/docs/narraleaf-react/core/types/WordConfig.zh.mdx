@@ -12,16 +12,16 @@ type WordConfig = {
 } & Font;
 ```
 
-关于 Color，参见 [Color](/zh/docs/narraleaf-react/core/types/color)。  
-关于 Font，参见 [Font](/zh/docs/narraleaf-react/core/types/Font)。
+关于 Color，参见 [Color](/zh/docs/narraleaf-react/core/types/color)
+关于 Font，参见 [Font](/zh/docs/narraleaf-react/core/types/Font)
 
 ## ruby
 
-`ruby` 属性用于显示注音（ruby）文本，可以为汉字标注读音。
+`ruby` 属性用于显示注音（ruby）文本，可以为汉字标注读音
 
 ## className
 
-`className` 属性用于设置词的类名。
+`className` 属性用于设置词的类名
 
 ```typescript
 new Word({
@@ -31,7 +31,7 @@ new Word({
 
 ## color
 
-`color` 属性用于设置词的颜色。
+`color` 属性用于设置词的颜色
 
 ```typescript
 new Word({
@@ -41,7 +41,7 @@ new Word({
 
 ## cps
 
-`cps` 属性用于设置词的显示速度，可以让不同的词以不同的速度显示。
+`cps` 属性用于设置词的显示速度，可以让不同的词以不同的速度显示
 
 ```typescript
 new Word({
@@ -53,28 +53,28 @@ new Word({
 
 > 自 `0.27.0` 起可用
 
-用来绘制这个词已显示字符的组件。
+用来绘制这个词已显示字符的组件
 
 ```typescript
 type WordRenderer<T = any> = string | React.ComponentType<WordRenderProps<T>>;
 ```
 
-在代码里直接传组件。词来自数据、无法携带函数时传 id：绘制这个词时会在[渲染器注册表](/zh/docs/narraleaf-react/core/elements/character/word#渲染器注册表)中解析该 id，没有注册过的 id 渲染为纯文本。
+在代码里直接传组件。词来自数据、无法携带函数时传 id：绘制这个词时会在[渲染器注册表](/zh/docs/narraleaf-react/core/elements/character/word#渲染器注册表)中解析该 id，没有注册过的 id 渲染为纯文本
 
 ```tsx
 new Word("以太浓度", {render: GlossaryTerm});
 new Word("以太浓度", {render: "glossary"});
 ```
 
-[`Word.custom`](/zh/docs/narraleaf-react/core/elements/character/word#custom) 设置的就是这个字段，参见[自定义渲染](/zh/docs/narraleaf-react/core/elements/character/word#自定义渲染)。
+[`Word.custom`](/zh/docs/narraleaf-react/core/elements/character/word#custom) 设置的就是这个字段，参见[自定义渲染](/zh/docs/narraleaf-react/core/elements/character/word#自定义渲染)
 
-`render` 会像 `className` 一样传递给动态词返回的纯字符串。嵌套的 `Word` 不会继承它，嵌套词保留自己声明的渲染器。
+`render` 会像 `className` 一样传递给动态词返回的纯字符串。嵌套的 `Word` 不会继承它，嵌套词保留自己声明的渲染器
 
 ## data
 
 > 自 `0.27.0` 起可用
 
-交给 `render` 作为 `data` 的负载。它既不合并也不克隆：组件拿到的就是这里给出的那个值。
+交给 `render` 作为 `data` 的负载。它既不合并也不克隆：组件拿到的就是这里给出的那个值
 
 ```tsx
 new Word("以太浓度", {render: "glossary", data: {entry: "aether"}});

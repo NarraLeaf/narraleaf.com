@@ -1,7 +1,7 @@
 ---
 title: "NVL 容器"
 ---
-`NvlContainer` 组件渲染 NVL（小说模式）的对话框叠加层，以可滚动列表形式展示多条对话。可直接使用 `DefaultNvlContainer`，或组合 `NvlContainer`、`Nametag`、`Texts` 构建自定义组件。
+`NvlContainer` 组件渲染 NVL（小说模式）的对话框叠加层，以可滚动列表形式展示多条对话。可直接使用 `DefaultNvlContainer`，或组合 `NvlContainer`、`Nametag`、`Texts` 构建自定义组件
 
 ## 示例
 
@@ -71,7 +71,7 @@ function App() {
 
 ### NvlContainer
 
-NVL 模式的外层容器，处理可见性、过渡动画和宽高比缩放。
+NVL 模式的外层容器，处理可见性、过渡动画和宽高比缩放
 
 - `children?: React.ReactNode` - 子元素（对话列表）
 - `className?: string` - 类名
@@ -79,7 +79,7 @@ NVL 模式的外层容器，处理可见性、过渡动画和宽高比缩放。
 
 ### DefaultNvlContainer
 
-默认 slot 组件，接收播放器传入的 `dialogs` 和 `renderDialogItem`，用 `Nametag` 和 `Texts` 渲染每条对话。
+默认 slot 组件，接收播放器传入的 `dialogs` 和 `renderDialogItem`，用 `Nametag` 和 `Texts` 渲染每条对话
 
 - `dialogs?: NvlDialogProxy[]` - 对话条目列表
 - `renderDialogItem?: NvlDialogItemRenderer` - 可选，仅需定制每条对话布局时使用

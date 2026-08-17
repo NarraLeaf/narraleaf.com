@@ -1,7 +1,7 @@
 ---
 title: "StorableChange"
 ---
-一个存储值发生变化。由 [Storable.onChange](/zh/docs/narraleaf-react/core/game/storable#onchange) 在新值已经可以通过 `getNamespace(namespace).get(key)` 读到之后报告。
+一个存储值发生变化。由 [Storable.onChange](/zh/docs/narraleaf-react/core/game/storable#onchange) 在新值已经可以通过 `getNamespace(namespace).get(key)` 读到之后报告
 
 ```typescript
 type StorableChange<T extends StorableType = any> = {
@@ -12,9 +12,9 @@ type StorableChange<T extends StorableType = any> = {
 };
 ```
 
-- `namespace` - 该命名空间在 [Storable](/zh/docs/narraleaf-react/core/game/storable) 中注册时使用的键，也就是 `getNamespace` 接受的那个字符串、存档中携带的那个字符串。以 `new Persistent("player", ...)` 声明的命名空间，其键为 `"persistent:player"`。
-- `key` - 该命名空间内的键。
-- `previous` - 原先的值。若该键从未被写入过，则为 `undefined`。
-- `next` - 现在的值。若该键被丢弃则为 `undefined`，[reset](/zh/docs/narraleaf-react/core/game/storable/namespace#reset) 对构造之后新写入的键就是这样处理的。
+- `namespace` - 该命名空间在 [Storable](/zh/docs/narraleaf-react/core/game/storable) 中注册时使用的键，也就是 `getNamespace` 接受的那个字符串、存档中携带的那个字符串。以 `new Persistent("player", ...)` 声明的命名空间，其键为 `"persistent:player"`
+- `key` - 该命名空间内的键
+- `previous` - 原先的值。若该键从未被写入过，则为 `undefined`
+- `next` - 现在的值。若该键被丢弃则为 `undefined`，[reset](/zh/docs/narraleaf-react/core/game/storable/namespace#reset) 对构造之后新写入的键就是这样处理的
 
-只有值确实发生变化时才会报告写入；读档则报告 [StorableRestore](/zh/docs/narraleaf-react/core/types/StorableRestore)，而不是逐键报告变化。参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+只有值确实发生变化时才会报告写入；读档则报告 [StorableRestore](/zh/docs/narraleaf-react/core/types/StorableRestore)，而不是逐键报告变化。参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)

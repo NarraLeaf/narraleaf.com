@@ -3,22 +3,22 @@ title: 文本
 description: nl.text 控件的 Self 节点——读写文本内容、排版、颜色与静态效果
 ---
 
-Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、显示所用的字体与度量，以及叠加其上的静态效果。这些节点只出现在某个 `nl.text` 元素自身 `widgetMain` 蓝图的创建浮窗中，并且全部作用于该元素。要操作**别的**文本元素，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中同名的 `blueprint.element.text.*` 节点——属性完全相同，只是多一个用来指定目标的`element:nl.text`输入。
+Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、显示所用的字体与度量，以及叠加其上的静态效果。这些节点只出现在某个 `nl.text` 元素自身 `widgetMain` 蓝图的创建浮窗中，并且全部作用于该元素。要操作**别的**文本元素，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中同名的 `blueprint.element.text.*` 节点——属性完全相同，只是多一个用来指定目标的`element:nl.text`输入
 
 ## 约定
 
-- **没有目标引脚。** Self 节点没有 `Element` 输入，它从蓝图的执行宿主解析目标。没有东西要接，也就不会接错元素。
-- **读取是 `Pure`，写入是 `Latent`。** 每个 getter 都无副作用，在 `event`、`function` 和 `macro` 图中都合法。每个 setter 都会在宿主应用补丁期间挂起执行，因此不能出现在 `function` 图中——函数要同步把结果返回给调用方，没有地方安放一次待定的写入。
-- **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain`，所以即便 getter 是纯节点，它们也不会出现在那份创建浮窗里。要在 Blueprint Value 中读取文本属性，请配合 `Element` 字面量使用 Element 形态的 getter。
-- **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，setter 会以`Host API unavailable (use Dev Mode)`失败，而 getter 什么都取不到。
-- **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环。
-- **未接线的输入不等于「保持原样」。** 没有连线、卡片上也没有填值，或者填的值不在允许集合内时，多数 setter 会写入一个固定的兜底值而不是保留当前值：`Set Text` 写入空字符串，`Set Font` 清除字体，`Set Font Size` 写入 `16`，`Set Line Height` 写入 `1.4`，各个枚举 setter 写入其列表中的第一个值。什么都不会被拒绝，也不会抛错。只有 `Set Text Color`、`Set Effects` 以及 `Set All Properties` 的每一个引脚会回退到元素已有的值。
+- **没有目标引脚。** Self 节点没有 `Element` 输入，它从蓝图的执行宿主解析目标。没有东西要接，也就不会接错元素
+- **读取是 `Pure`，写入是 `Latent`。** 每个 getter 都无副作用，在 `event`、`function` 和 `macro` 图中都合法。每个 setter 都会在宿主应用补丁期间挂起执行，因此不能出现在 `function` 图中——函数要同步把结果返回给调用方，没有地方安放一次待定的写入
+- **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain`，所以即便 getter 是纯节点，它们也不会出现在那份创建浮窗里。要在 Blueprint Value 中读取文本属性，请配合 `Element` 字面量使用 Element 形态的 getter
+- **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，setter 会以`Host API unavailable (use Dev Mode)`失败，而 getter 什么都取不到
+- **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环
+- **未接线的输入不等于「保持原样」。** 没有连线、卡片上也没有填值，或者填的值不在允许集合内时，多数 setter 会写入一个固定的兜底值而不是保留当前值：`Set Text` 写入空字符串，`Set Font` 清除字体，`Set Font Size` 写入 `16`，`Set Line Height` 写入 `1.4`，各个枚举 setter 写入其列表中的第一个值。什么都不会被拒绝，也不会抛错。只有 `Set Text Color`、`Set Effects` 以及 `Set All Properties` 的每一个引脚会回退到元素已有的值
 
 ## Get Text
 
 `blueprint.text.getText` · Pure
 
-Get Text（获取文本）读取元素当前持有的字符串。
+Get Text（获取文本）读取元素当前持有的字符串
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -28,35 +28,35 @@ Get Text（获取文本）读取元素当前持有的字符串。
 
 `blueprint.text.setText` · Latent
 
-Set Text（设置文本）替换整个字符串。
+Set Text（设置文本）替换整个字符串
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `text` | in · data | `string` | 什么都解析不到时写入空字符串。可在卡片上直接填值。 |
+| `text` | in · data | `string` | 什么都解析不到时写入空字符串。可在卡片上直接填值|
 
 <Callout type="warn">
-如果元素的 `props.text` 绑定了 [Blueprint Value](/zh/docs/studio/blueprint)，则以绑定为准。计算出的值会在每次渲染时覆盖到 `props.text` 上，且不会写回，因此 `Set Text` 存下的字符串没有人看得见，而 `Get Text` 读到的是存下的那个字符串，不是屏幕上的那个。请改为修改值图所读取的数据。
+如果元素的 `props.text` 绑定了 [Blueprint Value](/zh/docs/studio/blueprint)，则以绑定为准。计算出的值会在每次渲染时覆盖到 `props.text` 上，且不会写回，因此 `Set Text` 存下的字符串没有人看得见，而 `Get Text` 读到的是存下的那个字符串，不是屏幕上的那个。请改为修改值图所读取的数据
 </Callout>
 
 ## Append Text
 
 `blueprint.text.appendText` · Latent
 
-Append Text（追加文本）读取当前字符串，把 `text` 接在末尾后写回。追加空字符串会得到同一个字符串，因此是一次空操作。
+Append Text（追加文本）读取当前字符串，把 `text` 接在末尾后写回。追加空字符串会得到同一个字符串，因此是一次空操作
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `text` | in · data | `string` | 原样追加，不插入任何分隔符。可在卡片上直接填值。 |
+| `text` | in · data | `string` | 原样追加，不插入任何分隔符。可在卡片上直接填值|
 
 ## Clear Text
 
 `blueprint.text.clearText` · Latent
 
-Clear Text（清空文本）写入空字符串。它与什么都不接的 `Set Text` 等价，只是在卡片上把意图写明了。
+Clear Text（清空文本）写入空字符串。它与什么都不接的 `Set Text` 等价，只是在卡片上把意图写明了
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -67,73 +67,73 @@ Clear Text（清空文本）写入空字符串。它与什么都不接的 `Set T
 
 `blueprint.text.getFont` · Pure
 
-Get Font（获取字体）读取元素所用项目字体资源的 id。
+Get Font（获取字体）读取元素所用项目字体资源的 id
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `fontAssetId` | out · data | `string` | 未设置字体资源、元素沿用画布默认字体时返回空字符串。 |
+| `fontAssetId` | out · data | `string` | 未设置字体资源、元素沿用画布默认字体时返回空字符串|
 
 ## Set Font
 
 `blueprint.text.setFont` · Latent
 
-Set Font（设置字体）把元素指向某个项目字体资源。
+Set Font（设置字体）把元素指向某个项目字体资源
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `fontAssetId` | in · data | `string` | 空白值或解析不到的值会清除字体，让元素回到画布默认字体。可在卡片上直接填值。 |
+| `fontAssetId` | in · data | `string` | 空白值或解析不到的值会清除字体，让元素回到画布默认字体。可在卡片上直接填值|
 
 ## Get Font Size
 
 `blueprint.text.getFontSize` · Pure
 
-Get Font Size（获取字号）。
+Get Font Size（获取字号）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `fontSize` | out · data | `float` | Surface 设计像素。 |
+| `fontSize` | out · data | `float` | Surface 设计像素|
 
 ## Set Font Size
 
 `blueprint.text.setFontSize` · Latent
 
-Set Font Size（设置字号）。
+Set Font Size（设置字号）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `fontSize` | in · data | `float` | 下限钳到 `1`；检视器的 8–256 范围不适用于蓝图写入。兜底值为 `16`。可在卡片上直接填值。 |
+| `fontSize` | in · data | `float` | 下限钳到 `1`；检视器的 8–256 范围不适用于蓝图写入。兜底值为 `16`。可在卡片上直接填值|
 
 ## Get Font Weight
 
 `blueprint.text.getFontWeight` · Pure
 
-Get Font Weight（获取字重）。
+Get Font Weight（获取字重）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `fontWeight` | out · data | `string` | `normal`、`600`、`bold` 之一。 |
+| `fontWeight` | out · data | `string` | `normal`、`600`、`bold` 之一|
 
 ## Set Font Weight
 
 `blueprint.text.setFontWeight` · Latent
 
-Set Font Weight（设置字重）。字重是一个三值枚举，而不是数值形式的 CSS font-weight。`700` 在这里不是 `bold` 的同义词——它不在集合内，因此会回退为 `normal`。
+Set Font Weight（设置字重）。字重是一个三值枚举，而不是数值形式的 CSS font-weight。`700` 在这里不是 `bold` 的同义词——它不在集合内，因此会回退为 `normal`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `fontWeight` | in · data | `string` | `normal`、`600` 或 `bold`——`"600"`是字符串，不是数字。其他值一律回退为 `normal`。可在卡片上直接填值。 |
+| `fontWeight` | in · data | `string` | `normal`、`600` 或 `bold`——`"600"`是字符串，不是数字。其他值一律回退为 `normal`。可在卡片上直接填值|
 
 ## Get Text Color
 
 `blueprint.text.getTextColor` · Pure
 
-Get Text Color（获取文本颜色）。
+Get Text Color（获取文本颜色）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -143,101 +143,101 @@ Get Text Color（获取文本颜色）。
 
 `blueprint.text.setTextColor` · Latent
 
-Set Text Color（设置文本颜色）。元素内部把颜色存为 CSS 颜色字符串，这两个引脚负责双向转换，因此引脚类型是 `RGBAColor` 而不是 `string`。
+Set Text Color（设置文本颜色）。元素内部把颜色存为 CSS 颜色字符串，这两个引脚负责双向转换，因此引脚类型是 `RGBAColor` 而不是 `string`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `color` | in · data | `RGBAColor` | 卡片上不能直接填值——接一个 [Data](/zh/docs/studio/blueprint/nodes/data) 分类的颜色常量，或别的节点的 `RGBAColor` 输出。兜底为当前颜色。 |
+| `color` | in · data | `RGBAColor` | 卡片上不能直接填值——接一个 [Data](/zh/docs/studio/blueprint/nodes/data) 分类的颜色常量，或别的节点的 `RGBAColor` 输出。兜底为当前颜色|
 
 ## Get Text Align
 
 `blueprint.text.getTextAlign` · Pure
 
-Get Text Align（获取文本对齐）。
+Get Text Align（获取文本对齐）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `textAlign` | out · data | `string` | `left`、`center`、`right` 之一。 |
+| `textAlign` | out · data | `string` | `left`、`center`、`right` 之一|
 
 ## Set Text Align
 
 `blueprint.text.setTextAlign` · Latent
 
-Set Text Align（设置文本对齐）让文本行在元素框内水平对齐。它不会移动或改变框本身的尺寸。
+Set Text Align（设置文本对齐）让文本行在元素框内水平对齐。它不会移动或改变框本身的尺寸
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `textAlign` | in · data | `string` | `left`、`center` 或 `right`。其他值一律回退为 `left`。可在卡片上直接填值。 |
+| `textAlign` | in · data | `string` | `left`、`center` 或 `right`。其他值一律回退为 `left`。可在卡片上直接填值|
 
 ## Get Text Vertical Align
 
 `blueprint.text.getTextVerticalAlign` · Pure
 
-Get Text Vertical Align（获取文本垂直对齐）。
+Get Text Vertical Align（获取文本垂直对齐）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `textVerticalAlign` | out · data | `string` | `start`、`center`、`end` 之一。 |
+| `textVerticalAlign` | out · data | `string` | `start`、`center`、`end` 之一|
 
 ## Set Text Vertical Align
 
 `blueprint.text.setTextVerticalAlign` · Latent
 
-Set Text Vertical Align（设置文本垂直对齐）决定文本行在元素框内的分布。它移动的是框内的文本，不会改变框本身的尺寸。
+Set Text Vertical Align（设置文本垂直对齐）决定文本行在元素框内的分布。它移动的是框内的文本，不会改变框本身的尺寸
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `textVerticalAlign` | in · data | `string` | `start`、`center` 或 `end`。其他值一律回退为 `start`。可在卡片上直接填值。 |
+| `textVerticalAlign` | in · data | `string` | `start`、`center` 或 `end`。其他值一律回退为 `start`。可在卡片上直接填值|
 
 ## Get Line Height
 
 `blueprint.text.getLineHeight` · Pure
 
-Get Line Height（获取行高）。
+Get Line Height（获取行高）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `lineHeight` | out · data | `float` | 相对字号的无单位倍数，不是像素距离。 |
+| `lineHeight` | out · data | `float` | 相对字号的无单位倍数，不是像素距离|
 
 ## Set Line Height
 
 `blueprint.text.setLineHeight` · Latent
 
-Set Line Height（设置行高）。
+Set Line Height（设置行高）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `lineHeight` | in · data | `float` | 倍数，下限钳到 `0.1`。兜底值为 `1.4`。可在卡片上直接填值。 |
+| `lineHeight` | in · data | `float` | 倍数，下限钳到 `0.1`。兜底值为 `1.4`。可在卡片上直接填值|
 
 ## Get Wrap Mode
 
 `blueprint.text.getWrapMode` · Pure
 
-Get Wrap Mode（获取换行模式）。
+Get Wrap Mode（获取换行模式）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `textWrapMode` | out · data | `string` | `word`、`character`、`nowrap` 之一。 |
+| `textWrapMode` | out · data | `string` | `word`、`character`、`nowrap` 之一|
 
 ## Set Wrap Mode
 
 `blueprint.text.setWrapMode` · Latent
 
-Set Wrap Mode（设置换行模式）。
+Set Wrap Mode（设置换行模式）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `textWrapMode` | in · data | `string` | `word` 在词之间断行，`character` 在词内部断行，`nowrap` 从不断行。其他值一律回退为 `word`。可在卡片上直接填值。 |
+| `textWrapMode` | in · data | `string` | `word` 在词之间断行，`character` 在词内部断行，`nowrap` 从不断行。其他值一律回退为 `word`。可在卡片上直接填值|
 
 ## Get Effects
 
@@ -258,7 +258,7 @@ Get Effects（获取特效）把元素的静态效果块作为单个 JSON 对象
 }
 ```
 
-文本元素只认 `effectBlur`、`effectTextShadow`、`effectBlend` 和 `effectFilter`——它的阴影用 CSS `text-shadow` 绘制，而 box-shadow 那几个字段属于装饰类控件。因此在文本元素上，`effectShadow`、`effectInnerShadow` 和 `effectGlow` 读回来永远是 `null`。
+文本元素只认 `effectBlur`、`effectTextShadow`、`effectBlend` 和 `effectFilter`——它的阴影用 CSS `text-shadow` 绘制，而 box-shadow 那几个字段属于装饰类控件。因此在文本元素上，`effectShadow`、`effectInnerShadow` 和 `effectGlow` 读回来永远是 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -268,26 +268,26 @@ Get Effects（获取特效）把元素的静态效果块作为单个 JSON 对象
 
 `blueprint.text.setEffects` · Latent
 
-Set Effects（设置特效）替换整个效果块——这不是合并，所以只想改一个字段时，请先用 `Get Effects` 读出来再改那个对象。
+Set Effects（设置特效）替换整个效果块——这不是合并，所以只想改一个字段时，请先用 `Get Effects` 读出来再改那个对象
 
-写入 box-shadow 字段并不会被悄悄丢掉：下次读取时，若尚未设置文字阴影，`effectShadow`（没有则是 `effectGlow`）会被提升为 `effectTextShadow`，而 box-shadow 字段本身返回 `null`。阴影确实会出现，只是不在你写入的那个键上。
+写入 box-shadow 字段并不会被悄悄丢掉：下次读取时，若尚未设置文字阴影，`effectShadow`（没有则是 `effectGlow`）会被提升为 `effectTextShadow`，而 box-shadow 字段本身返回 `null`。阴影确实会出现，只是不在你写入的那个键上
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `effects` | in · data | `json` | 缺失或格式不对的字段由上面的默认值补齐，而不是取当前效果。整体解析不到时才回退为当前效果。 |
+| `effects` | in · data | `json` | 缺失或格式不对的字段由上面的默认值补齐，而不是取当前效果。整体解析不到时才回退为当前效果|
 
 ## Get All Properties
 
 `blueprint.text.getAllProperties` · Pure
 
-Get All Properties（获取全部属性）在一张卡片上给出全部文本属性。每个输出携带的内容与各自专用 getter 完全一致。
+Get All Properties（获取全部属性）在一张卡片上给出全部文本属性。每个输出携带的内容与各自专用 getter 完全一致
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `text` | out · data | `string` | |
-| `fontAssetId` | out · data | `string` | 未设置字体资源时返回空字符串。 |
+| `fontAssetId` | out · data | `string` | 未设置字体资源时返回空字符串|
 | `fontSize` | out · data | `float` | |
 | `fontWeight` | out · data | `string` | |
 | `color` | out · data | `RGBAColor` | |
@@ -301,28 +301,28 @@ Get All Properties（获取全部属性）在一张卡片上给出全部文本�
 
 `blueprint.text.setAllProperties` · Latent
 
-Set All Properties（设置全部属性）在一次补丁里写入全部文本属性，元素只重绘一次而不是十次。它会先读取当前属性，并把它们作为**每一个**引脚的兜底值——这使它成为唯一一个「引脚不接就保留当前值」的 setter，与各个单属性 setter 恰好相反。
+Set All Properties（设置全部属性）在一次补丁里写入全部文本属性，元素只重绘一次而不是十次。它会先读取当前属性，并把它们作为**每一个**引脚的兜底值——这使它成为唯一一个「引脚不接就保留当前值」的 setter，与各个单属性 setter 恰好相反
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `text` | in · data | `string` | 可在卡片上直接填值。 |
-| `fontAssetId` | in · data | `string` | 显式传入 `null` 仍会清除字体。可在卡片上直接填值。 |
-| `fontSize` | in · data | `float` | 下限钳到 `1`。可在卡片上直接填值。 |
-| `fontWeight` | in · data | `string` | `normal`、`600` 或 `bold`。可在卡片上直接填值。 |
-| `color` | in · data | `RGBAColor` | 卡片上不能直接填值。 |
-| `textAlign` | in · data | `string` | `left`、`center` 或 `right`。可在卡片上直接填值。 |
-| `textVerticalAlign` | in · data | `string` | `start`、`center` 或 `end`。可在卡片上直接填值。 |
-| `lineHeight` | in · data | `float` | 倍数，下限钳到 `0.1`。可在卡片上直接填值。 |
-| `textWrapMode` | in · data | `string` | `word`、`character` 或 `nowrap`。可在卡片上直接填值。 |
-| `effects` | in · data | `json` | 卡片上不能直接填值。 |
+| `text` | in · data | `string` | 可在卡片上直接填值|
+| `fontAssetId` | in · data | `string` | 显式传入 `null` 仍会清除字体。可在卡片上直接填值|
+| `fontSize` | in · data | `float` | 下限钳到 `1`。可在卡片上直接填值|
+| `fontWeight` | in · data | `string` | `normal`、`600` 或 `bold`。可在卡片上直接填值|
+| `color` | in · data | `RGBAColor` | 卡片上不能直接填值|
+| `textAlign` | in · data | `string` | `left`、`center` 或 `right`。可在卡片上直接填值|
+| `textVerticalAlign` | in · data | `string` | `start`、`center` 或 `end`。可在卡片上直接填值|
+| `lineHeight` | in · data | `float` | 倍数，下限钳到 `0.1`。可在卡片上直接填值|
+| `textWrapMode` | in · data | `string` | `word`、`character` 或 `nowrap`。可在卡片上直接填值|
+| `effects` | in · data | `json` | 卡片上不能直接填值|
 
 ## Get Visible
 
 `blueprint.text.getVisible` · Pure
 
-Get Visible（获取可见性）。
+Get Visible（获取可见性）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -332,19 +332,19 @@ Get Visible（获取可见性）。
 
 `blueprint.text.setVisible` · Latent
 
-Set Visible（设置可见）写的是元素的 `visible` 属性。它和 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 分类的 `Set Display` 不是同一个开关：`display` 是运行时渲染开关，用 CSS 隐藏元素及其子树但保持挂载；而 `visible` 是检视器里那个布局可见性属性。
+Set Visible（设置可见）写的是元素的 `visible` 属性。它和 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 分类的 `Set Display` 不是同一个开关：`display` 是运行时渲染开关，用 CSS 隐藏元素及其子树但保持挂载；而 `visible` 是检视器里那个布局可见性属性
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `visible` | in · data | `boolean` | 卡片上不能直接填值——接一个布尔值。兜底为当前值。 |
+| `visible` | in · data | `boolean` | 卡片上不能直接填值——接一个布尔值。兜底为当前值|
 
 ## Get Enabled
 
 `blueprint.text.getEnabled` · Pure
 
-Get Enabled（获取启用）。
+Get Enabled（获取启用）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -354,10 +354,10 @@ Get Enabled（获取启用）。
 
 `blueprint.text.setEnabled` · Latent
 
-Set Enabled（设置启用）传入 `false` 时会映射到底层的禁用交互机制；原始的 `interactionDisabled` 属性不对作者暴露，因此这一对节点就是全部接口。
+Set Enabled（设置启用）传入 `false` 时会映射到底层的禁用交互机制；原始的 `interactionDisabled` 属性不对作者暴露，因此这一对节点就是全部接口
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `enabled` | in · data | `boolean` | 卡片上不能直接填值——接一个布尔值。兜底为当前值。 |
+| `enabled` | in · data | `boolean` | 卡片上不能直接填值——接一个布尔值。兜底为当前值|

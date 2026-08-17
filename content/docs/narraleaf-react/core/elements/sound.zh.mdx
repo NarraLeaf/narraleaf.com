@@ -33,7 +33,7 @@ const voice = new Sound({
 ```
 
 这里的 `type` 是**默认值**，不是强制覆盖。传入一个 id，就能把这句语音放到 `voice` 之下的某条总线上——
-这正是让每位角色拥有各自音量的做法。
+这正是让每位角色拥有各自音量的做法
 
 ```ts
 const line = Sound.voice({src: 'alice-01.mp3', type: 'alice'});
@@ -49,7 +49,7 @@ const line = Sound.voice({src: 'alice-01.mp3', type: 'alice'});
 <Steps>
 <Step>
 
-创建一个背景音乐。`type` 默认为 `bgm`，也可以指定它之下的任意总线。
+创建一个背景音乐。`type` 默认为 `bgm`，也可以指定它之下的任意总线
 
 - `arg0: Partial<ISoundUserConfig> | string` - 声音的配置或声音源，参见 [ISoundUserConfig](/zh/docs/narraleaf-react/core/types/ISoundUserConfig)
 - 返回 `Sound`
@@ -61,7 +61,7 @@ const line = Sound.voice({src: 'alice-01.mp3', type: 'alice'});
 <Steps>
 <Step>
 
-创建一个声音。`type` 默认为 `sound`，也可以指定它之下的任意总线。
+创建一个声音。`type` 默认为 `sound`，也可以指定它之下的任意总线
 
 - `arg0: Partial<ISoundUserConfig> | string` - 声音的配置或声音源，参见 [ISoundUserConfig](/zh/docs/narraleaf-react/core/types/ISoundUserConfig)
 - 返回 `Sound`
@@ -104,12 +104,12 @@ scene.action([
 ```
 
 任何总线上的音频都可以这样播放，包括 `bgm` 上的。`type` 只决定哪一个音量控制管辖这段音频，除此之外别无影响，
-所以把环境音放在 `bgm` 上——让玩家的音乐滑条来控制它——再从普通的一行里播放，是完全正当的做法。
+所以把环境音放在 `bgm` 上——让玩家的音乐滑条来控制它——再从普通的一行里播放，是完全正当的做法
 
 <Callout type="info">
     **这和 `scene.setBackgroundMusic()` 不是一回事。** 这样播放的音频不在场景的背景音乐槽位里，
     因此离开场景不会停止它，也不会为它安排交叉淡入淡出。以这种方式播放 `bgm` 类型的音频会打印一条
-    `console.warn` 说明这一点；它只是提醒，不是错误。在 `0.22.0` 之前，它会抛出异常并在构建链时使整个故事失败。
+    `console.warn` 说明这一点；它只是提醒，不是错误。在 `0.22.0` 之前，它会抛出异常并在构建链时使整个故事失败
 </Callout>
 
 - `duration?: number` - 淡入淡出持续时间（以毫秒为单位）
@@ -132,7 +132,7 @@ scene.action([
 <Steps>
 <Step>
 
-设置声音的音量。给出持续时间后，音量变化是淡入淡出而不是瞬间跳变。
+设置声音的音量。给出持续时间后，音量变化是淡入淡出而不是瞬间跳变
 
 ```ts
 const sound = new Sound({
@@ -156,7 +156,7 @@ scene.action([
 <Steps>
 <Step>
 
-静默或恢复声音，但不会停止播放。
+静默或恢复声音，但不会停止播放
 
 ```ts
 scene.action([
@@ -176,7 +176,7 @@ scene.action([
 <Steps>
 <Step>
 
-`mute(false)` 的别名，用于恢复原始音量。
+`mute(false)` 的别名，用于恢复原始音量
 
 - 返回 `Proxied<Sound, Chained<LogicAction.Actions>>` - 可链式声音实例
 </Step>
@@ -221,7 +221,7 @@ scene.action([
 <Step>
 
 跳到音频中的某个位置（以秒计），并从那里继续播放。这是读取播放头的反向操作——音乐播放器界面，
-或者「跳过前奏」这样的一行，都需要它。
+或者「跳过前奏」这样的一行，都需要它
 
 ```ts
 scene.action([
@@ -231,7 +231,7 @@ scene.action([
 
 对没有在播放的声音是空操作：没有什么可以移动。循环区间（参见
 [`endTime`](/zh/docs/narraleaf-react/core/types/ISoundUserConfig)）在跳转后依然保留，
-因此在循环的音轨内跳转不会悄悄把它变成一次性播放。
+因此在循环的音轨内跳转不会悄悄把它变成一次性播放
 
 - `time: number` - 位置（以秒计），从文件开头算起，而不是从入点算起
 - 返回 `Proxied<Sound, Chained<LogicAction.Actions>>` - 可链式声音实例

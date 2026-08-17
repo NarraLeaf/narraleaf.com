@@ -3,22 +3,22 @@ title: Container
 description: 读写蓝图所属容器的内容裁剪与交互状态
 ---
 
-`nl.container` 的 Self 节点。每个节点作用于自己蓝图所属的那个容器，不带 `Element` 输入，也只出现在该容器自己的蓝图里。要操作另一个容器，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点。
+`nl.container` 的 Self 节点。每个节点作用于自己蓝图所属的那个容器，不带 `Element` 输入，也只出现在该容器自己的蓝图里。要操作另一个容器，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点
 
 ## 约定
 
-- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果。
-- **没有改变任何东西的写入什么都不做。** 宿主会把传入值和当前值比对，相同时直接返回，因此不会排队重绘，也不会触发 `On Flush`。
-- **布尔输入会回落到当前值。** `clipContent`、`enabled` 和 `visible` 不能在卡片上填字面量；如果没有接线，或连线求值为 `null`，属性保持原样。接入的非布尔值只有在它是字符串 `"true"` 或 `"1"` 时才算 true。
-- **布局只在作者时设置。** 布局模式、堆叠方向、间距和内边距都没有节点——裁剪是运行中的图唯一能改的盒子属性。位置和尺寸来自 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)，透明度和外观变体也在那里。
-- **本页有两个节点不在创建浮窗里。** `Get Variant` 和 `Set Variant` 已被 Displayable 的变体节点取代并隐藏。这里记录它们，是因为在那次切换之前创作的蓝图仍然留着它们、也仍然能跑，而不是因为你还能新建一个。
-- **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在容器自己的主蓝图。要在 Blueprint Value 里读这个容器，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。`nl.container` 自己没有任何可以由 Blueprint Value 驱动的属性。
+- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果
+- **没有改变任何东西的写入什么都不做。** 宿主会把传入值和当前值比对，相同时直接返回，因此不会排队重绘，也不会触发 `On Flush`
+- **布尔输入会回落到当前值。** `clipContent`、`enabled` 和 `visible` 不能在卡片上填字面量；如果没有接线，或连线求值为 `null`，属性保持原样。接入的非布尔值只有在它是字符串 `"true"` 或 `"1"` 时才算 true
+- **布局只在作者时设置。** 布局模式、堆叠方向、间距和内边距都没有节点——裁剪是运行中的图唯一能改的盒子属性。位置和尺寸来自 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)，透明度和外观变体也在那里
+- **本页有两个节点不在创建浮窗里。** `Get Variant` 和 `Set Variant` 已被 Displayable 的变体节点取代并隐藏。这里记录它们，是因为在那次切换之前创作的蓝图仍然留着它们、也仍然能跑，而不是因为你还能新建一个
+- **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在容器自己的主蓝图。要在 Blueprint Value 里读这个容器，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。`nl.container` 自己没有任何可以由 Blueprint Value 驱动的属性
 
 ## Set Clip Content
 
 `blueprint.container.setClipContent` · Latent
 
-Set Clip Content（设置内容裁剪）把容器的子元素裁剪到自己的盒子内，默认开启。裁剪作用于子元素层而不是容器自身的外框，因此容器上的阴影或滤镜仍然画在边界之外。
+Set Clip Content（设置内容裁剪）把容器的子元素裁剪到自己的盒子内，默认开启。裁剪作用于子元素层而不是容器自身的外框，因此容器上的阴影或滤镜仍然画在边界之外
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -26,13 +26,13 @@ Set Clip Content（设置内容裁剪）把容器的子元素裁剪到自己的�
 | `next` | out · exec | — | |
 | `clipContent` | in · data | `boolean` | |
 
-它和滚动布局相互独立。滚动模式下的容器本身就会裁剪一个轴、滚动另一个轴；`clipContent` 决定的仍然是整个栈是否被切到容器盒子内。
+它和滚动布局相互独立。滚动模式下的容器本身就会裁剪一个轴、滚动另一个轴；`clipContent` 决定的仍然是整个栈是否被切到容器盒子内
 
 ## Get Clip Content
 
 `blueprint.container.getClipContent` · Pure
 
-Get Clip Content（读取内容裁剪）。
+Get Clip Content（读取内容裁剪）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -42,7 +42,7 @@ Get Clip Content（读取内容裁剪）。
 
 `blueprint.container.setEnabled` · Latent
 
-Set Enabled（设置可交互）传入 `false` 会禁用容器的交互。它仍然渲染、仍然占布局。
+Set Enabled（设置可交互）传入 `false` 会禁用容器的交互。它仍然渲染、仍然占布局
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -54,7 +54,7 @@ Set Enabled（设置可交互）传入 `false` 会禁用容器的交互。它仍
 
 `blueprint.container.getEnabled` · Pure
 
-Get Enabled（读取可交互）。
+Get Enabled（读取可交互）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -64,7 +64,7 @@ Get Enabled（读取可交互）。
 
 `blueprint.container.setVisible` · Latent
 
-Set Visible（设置可见性）。
+Set Visible（设置可见性）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -73,14 +73,14 @@ Set Visible（设置可见性）。
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible` 传 false 会把容器**连同里面的一切**从运行时元素树上摘掉——这不是 CSS 隐藏。每个子控件都会卸载，它们的蓝图随之停止，容器回来时它们的 `Init` 会重新执行。隐藏后的容器无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想让整棵子树隐藏但保持挂载，请使用 Displayable `Set Display`。
+`visible` 传 false 会把容器**连同里面的一切**从运行时元素树上摘掉——这不是 CSS 隐藏。每个子控件都会卸载，它们的蓝图随之停止，容器回来时它们的 `Init` 会重新执行。隐藏后的容器无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想让整棵子树隐藏但保持挂载，请使用 Displayable `Set Display`
 </Callout>
 
 ## Get Visible
 
 `blueprint.container.getVisible` · Pure
 
-Get Visible（读取可见性）。
+Get Visible（读取可见性）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -90,21 +90,21 @@ Get Visible（读取可见性）。
 
 `blueprint.container.setVariant` · Latent
 
-Set Variant（设置变体）在创建浮窗中隐藏——你无法添加这个节点。它已被 Displayable `Set Variant` 取代，后者在卡片上按名称选择变体，并覆盖所有带变体的控件。它仍然可以执行，因此切换之前创作的蓝图继续有效。
+Set Variant（设置变体）在创建浮窗中隐藏——你无法添加这个节点。它已被 Displayable `Set Variant` 取代，后者在卡片上按名称选择变体，并覆盖所有带变体的控件。它仍然可以执行，因此切换之前创作的蓝图继续有效
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-变体 id 来自旧文档存在该节点 `variantId` 输入上的值；当前定义并不声明这个引脚，所以新放置的卡片上没有任何可设的东西。传入容器并不拥有的 id 会抛出图执行错误；传入空 id 则重置为默认变体。
+变体 id 来自旧文档存在该节点 `variantId` 输入上的值；当前定义并不声明这个引脚，所以新放置的卡片上没有任何可设的东西。传入容器并不拥有的 id 会抛出图执行错误；传入空 id 则重置为默认变体
 
 ## Get Variant
 
 `blueprint.container.getVariant` · Pure
 
-Get Variant（读取变体）出于同样的原因在创建浮窗中隐藏，而且没有可用的替代品：Displayable `Get Variant` 同样是隐藏的，它输出的变体 UUID 只是内部持久化值，新蓝图里没有任何入口消费它。
+Get Variant（读取变体）出于同样的原因在创建浮窗中隐藏，而且没有可用的替代品：Displayable `Get Variant` 同样是隐藏的，它输出的变体 UUID 只是内部持久化值，新蓝图里没有任何入口消费它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | 容器处于默认变体时为空。 |
+| `variantId` | out · data | `string` | 容器处于默认变体时为空|

@@ -2,11 +2,11 @@
 title: "SavedGame"
 ---
 <Callout type="warning">
-    此页面正在建设中。
+    此页面正在建设中
 </Callout>
 
 <Callout type="warning">
-    测试功能，可能会有变动。
+    测试功能，可能会有变动
 </Callout>
 
 ```typescript
@@ -25,10 +25,10 @@ interface SavedGame {
 }
 ```
 
-> **注意：** 存档格式通过 [`meta.version`](/zh/docs/narraleaf-react/core/types/SavedGameMetaData) 进行版本管理（当前为 `3`）。在回溯被持久化之前写入的存档不含 `history`，读档后从空回溯开始。
+> **注意：** 存档格式通过 [`meta.version`](/zh/docs/narraleaf-react/core/types/SavedGameMetaData) 进行版本管理（当前为 `3`）。在回溯被持久化之前写入的存档不含 `history`，读档后从空回溯开始
 
 <Callout type="warning">
-    **存档格式 v3（`0.26.0`）：更旧的引擎无法正确读取 v3 存档。** 它会照常应用 `elementStates` 里的条目，却跳过该格式所依赖的重置，于是存档没有列出的元素会保留运行中的那一局塞给它们的状态。反方向没有问题 —— v1 与 v2 存档在 `0.26.0` 中照常读取。
+    **存档格式 v3（`0.26.0`）：更旧的引擎无法正确读取 v3 存档。** 它会照常应用 `elementStates` 里的条目，却跳过该格式所依赖的重置，于是存档没有列出的元素会保留运行中的那一局塞给它们的状态。反方向没有问题 —— v1 与 v2 存档在 `0.26.0` 中照常读取
 </Callout>
 
 ## name
@@ -45,46 +45,46 @@ interface SavedGame {
 
 ### store
 
-所有命名空间的内容，以命名空间名称为键。其中的值以带标签的形式存储，参见 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)。
+所有命名空间的内容，以命名空间名称为键。其中的值以带标签的形式存储，参见 [SerializedNamespaceData](/zh/docs/narraleaf-react/core/types/SerializedNamespaceData)
 
-这既包含通过 `story.registerPersistent` 注册的命名空间，也包含 `scene.local` 背后的场景局部存储。
+这既包含通过 `story.registerPersistent` 注册的命名空间，也包含 `scene.local` 背后的场景局部存储
 
 <Callout type="warning">
-    请通过 `Storable` / `Namespace` 读取，而不要直接手动读取。存储的值并非值本身，而是一个 `{type, data}` 包装 —— 正是它让 `Date` 能够在 JSON 中存活。
+    请通过 `Storable` / `Namespace` 读取，而不要直接手动读取。存储的值并非值本身，而是一个 `{type, data}` 包装 —— 正是它让 `Date` 能够在 JSON 中存活
 </Callout>
 
 ### elementStates
 
-状态与剧本所写不同的那些元素，每一项都携带元素的 id 及其数据。
+状态与剧本所写不同的那些元素，每一项都携带元素的 id 及其数据
 
-漏掉某个元素并不意味着信息丢失：读档会在应用存档之前重置**每一个**元素，因此存档没有列出的元素是靠重置被还原的，而不是保留运行中的那一局塞给它的状态。任一时刻真正有差异的元素都很少，因为离开一个场景本来就会把该场景摆上舞台的一切还原到剧本所写的状态 —— 实际上就是当前场景用到的元素，加上少数按设计跨场景存活的元素，例如故事镜头和仍在播放的声音。
+漏掉某个元素并不意味着信息丢失：读档会在应用存档之前重置**每一个**元素，因此存档没有列出的元素是靠重置被还原的，而不是保留运行中的那一局塞给它的状态。任一时刻真正有差异的元素都很少，因为离开一个场景本来就会把该场景摆上舞台的一切还原到剧本所写的状态 —— 实际上就是当前场景用到的元素，加上少数按设计跨场景存活的元素，例如故事镜头和仍在播放的声音
 
-在 `0.26.0` 之前，这里列出的是故事能抵达的每一个场景的每一个元素，于是项目的全体角色阵容会被写进每一份存档，还会被写进每一行的历史快照，其代价随项目规模增长，而不是随舞台上的内容增长。
+在 `0.26.0` 之前，这里列出的是故事能抵达的每一个场景的每一个元素，于是项目的全体角色阵容会被写进每一份存档，还会被写进每一行的历史快照，其代价随项目规模增长，而不是随舞台上的内容增长
 
 <Callout type="info">
-    **在引擎的动作派发之外写入的元素状态不会被看见。** 只有当某个动作在元素上运行时，该元素才会被纳入存档考量；直接写入元素状态的宿主 —— 比如通过 [DevTools](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools) —— 应当调用 `element.markDirty()`。在 `app.debug: true` 时，引擎会定期遍历全部元素并发出警告，点名那些状态已经偏离却没有任何标记的元素，同时把它们标记上，好让下一次存档带上它们。
+    **在引擎的动作派发之外写入的元素状态不会被看见。** 只有当某个动作在元素上运行时，该元素才会被纳入存档考量；直接写入元素状态的宿主 —— 比如通过 [DevTools](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools) —— 应当调用 `element.markDirty()`。在 `app.debug: true` 时，引擎会定期遍历全部元素并发出警告，点名那些状态已经偏离却没有任何标记的元素，同时把它们标记上，好让下一次存档带上它们
 </Callout>
 
 <Callout type="warning">
-    自动生成的元素 id 描述的是元素在动作树中的位置而非身份，因此需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名。自 `0.26.0` 起这一点更加要紧，因为角色现在也会占用存档条目。
+    自动生成的元素 id 描述的是元素在动作树中的位置而非身份，因此需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名。自 `0.26.0` 起这一点更加要紧，因为角色现在也会占用存档条目
 </Callout>
 
 ### stage
 
-播放器的状态，包括当前在舞台上的场景与可显示元素。
+播放器的状态，包括当前在舞台上的场景与可显示元素
 
 ### services
 
-通过 `story.registerService` 注册的每个服务的序列化状态。
+通过 `story.registerService` 注册的每个服务的序列化状态
 
 ### stackModel
 
-主执行栈，读档时游戏从这里继续。
+主执行栈，读档时游戏从这里继续
 
 ### asyncStackModels
 
-与主执行栈并行运行的执行栈 —— 即由 `Control.doAsync` 和 `Control.allAsync` 启动的操作。
+与主执行栈并行运行的执行栈 —— 即由 `Control.doAsync` 和 `Control.allAsync` 启动的操作
 
 ### history
 
-被持久化的回溯历史（存档格式 v2 及以上）。每个条目将渲染后的 say/menu 内容与一个稳定的动作 id 以及该行处游戏的自包含快照配对；正是它让 `liveGame.getHistory()` 在读档后能返回完整回溯，并让 `liveGame.restoreToHistory(token)` 跳回其中任意一行。可选：旧存档没有 `history`，而当故事在存档后发生变化时，其动作已不存在的条目会被丢弃。
+被持久化的回溯历史（存档格式 v2 及以上）。每个条目将渲染后的 say/menu 内容与一个稳定的动作 id 以及该行处游戏的自包含快照配对；正是它让 `liveGame.getHistory()` 在读档后能返回完整回溯，并让 `liveGame.restoreToHistory(token)` 跳回其中任意一行。可选：旧存档没有 `history`，而当故事在存档后发生变化时，其动作已不存在的条目会被丢弃

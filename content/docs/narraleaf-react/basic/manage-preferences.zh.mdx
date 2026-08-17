@@ -2,7 +2,7 @@
 title: "管理偏好"
 ---
 
-偏好设置控制自动播放、跳过行为、文字速度和音量。在 `GameProviders` 内渲染的 UI 中使用 `usePreference()`。
+偏好设置控制自动播放、跳过行为、文字速度和音量。在 `GameProviders` 内渲染的 UI 中使用 `usePreference()`
 
 ```tsx
 import { usePreference } from "narraleaf-react";
@@ -18,7 +18,7 @@ export function AutoForwardButton() {
 }
 ```
 
-setter 直接接收新值，不支持 React 的函数式更新写法。
+setter 直接接收新值，不支持 React 的函数式更新写法
 
 ## 文字速度和音量
 
@@ -55,11 +55,11 @@ function PreferencesPanel() {
 }
 ```
 
-可用字段包括 `autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay` 和 `skipInterval`。类型与默认值见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)。
+可用字段包括 `autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay` 和 `skipInterval`。类型与默认值见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)
 
 ## 持久化偏好设置
 
-偏好设置不属于 `SavedGame`，需要单独导出和保存。
+偏好设置不属于 `SavedGame`，需要单独导出和保存
 
 ```tsx
 import { useEffect } from "react";

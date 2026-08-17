@@ -3,17 +3,17 @@ title: "音频总线"
 ---
 **音频总线**是一个增益节点，路由到它的每个音频都会经过它，并且总线可以嵌套。位于 `voice` 下 `cast`
 下 `alice` 的一段音频依次被 `alice`、`cast`、`voice` 衰减，最后再经过主音量，因此玩家可以只调低某
-一个角色，而不影响其他角色。
+一个角色，而不影响其他角色
 
 <Callout type="info">
     自 `0.23.0` 起可用。无论是否声明，每个游戏都有 `bgm`、`sound`、`voice` 三条总线，因此不声明任何
-    总线的游戏行为与以前一致。
+    总线的游戏行为与以前一致
 </Callout>
 
 ## 声明总线树
 
 总线树在 [GameConfig](/zh/docs/narraleaf-react/core/types/GameConfig) 上声明一次，引擎在音频子系统
-启动时把它落实到音频图上。
+启动时把它落实到音频图上
 
 ```ts
 import { Game } from "narraleaf-react";
@@ -28,24 +28,24 @@ const game = new Game({
 });
 ```
 
-- `id` 在整棵树中必须唯一。总线只按 id 寻址，因此即使父节点不同，两条总线也不能共用一个 id。
-- 省略 `parentId`（或设为 `null`）会把总线直接挂在主输出下。
-- 声明顺序无关紧要。总线可以指向在它之后声明的父节点。
+- `id` 在整棵树中必须唯一。总线只按 id 寻址，因此即使父节点不同，两条总线也不能共用一个 id
+- 省略 `parentId`（或设为 `null`）会把总线直接挂在主输出下
+- 声明顺序无关紧要。总线可以指向在它之后声明的父节点
 - 在这里写 `bgm`、`sound` 或 `voice` 会**移动它或改变它的音量**。这三个 id 无法被移除：它们出现在
-  总线出现之前写下的内容里，也出现在此前写下的每一个存档里。
+  总线出现之前写下的内容里，也出现在此前写下的每一个存档里
 
-未知的父节点、重复的 id、任意长度的环，或者嵌套超过八层的链，都会在启动时抛出 `AudioBusError`。
+未知的父节点、重复的 id、任意长度的环，或者嵌套超过八层的链，都会在启动时抛出 `AudioBusError`
 
 <Callout type="warn">
     **树的形状只读取一次。** 播放器挂载之后调用 `configure()` 不会重塑音频图，因为给活动总线换父节点
-    会中断它整个子树里的所有声音。音量则任何时候都是实时生效的。
+    会中断它整个子树里的所有声音。音量则任何时候都是实时生效的
 </Callout>
 
 ## 把音频放到总线上
 
 [Sound](/zh/docs/narraleaf-react/core/elements/sound) 的 `type` 就是它播放所在的总线。它接受任何已
 声明的 id，不限于三条内置总线，类型是
-[SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)。
+[SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)
 
 ```ts
 Sound.voice({src: "alice-01.mp3", type: "alice"});
@@ -53,26 +53,26 @@ Sound.bgm({src: "rain.ogg", type: "ambience"});
 ```
 
 `Sound.voice()`、`Sound.bgm()`、`Sound.sound()` 只为 `type` 提供**默认值**而不是覆盖它，因此上面写
-的 `type` 才是生效的那个。
+的 `type` 才是生效的那个
 
 语音可以位于 `voice` 下的任意位置，场景的背景音乐可以位于 `bgm` 下的任意位置。这些判断是后代判断，
-因此 `voice` 下 `cast` 下的 `alice` 属于语音。
+因此 `voice` 下 `cast` 下的 `alice` 属于语音
 
 <Callout type="info">
     构建故事时，引擎尚未知晓的总线 id 会被接受，因为故事模块通常在宿主构造 `Game` 之前就已求值。拼错
-    的总线在播放时才会被发现：管理器为该 id 告警一次，并把这段音频路由到 `sound` 总线，而不是静音。
+    的总线在播放时才会被发现：管理器为该 id 告警一次，并把这段音频路由到 `sound` 总线，而不是静音
 </Callout>
 
 ## 声明音量与玩家音量
 
-**每条总线都带两个音量。**
+**每条总线都带两个音量**
 
 | | 来自哪里 | 含义 | 要持久化吗？ |
 | --- | --- | --- | --- |
 | `AudioBusDeclaration.volume` | `GameConfig.audioBuses` | **作者的混音**：这条总线在成品游戏中相对于其他总线所处的位置 | 不。它是游戏内容，会随游戏一起回来 |
 | `mixer.setVolume` / `getVolume` | 玩家，在运行时 | **玩家的控制**。初始为 `1`，意思是「别动作者的混音」 | **要。** 这是唯一属于玩家的那一半 |
 
-到达增益节点的是两者的**乘积**，也就是 `getEffectiveVolume()`。每条总线只有一个增益节点。
+到达增益节点的是两者的**乘积**，也就是 `getEffectiveVolume()`。每条总线只有一个增益节点
 
 对于声明了 `{id: "sound", volume: 0.6}` 的游戏：
 
@@ -85,12 +85,12 @@ game.audioBuses.setVolume("sound", 1);       // 玩家把滑块拉到最大
 game.audioBuses.getEffectiveVolume("sound"); // 0.6 - 仍是作者的混音，而不是满增益
 ```
 
-什么都没改过的玩家听到的是作者做好的混音。滑块拉到最大表示「我不再额外衰减」，而不是「忽略混音」。
+什么都没改过的玩家听到的是作者做好的混音。滑块拉到最大表示「我不再额外衰减」，而不是「忽略混音」
 
 ### 持久化玩家音量
 
 持久化 **`getVolumes()`，也就是玩家的那一半**。这样作者重新混音已发布的作品后，新的混音仍能到达已经
-保存过设置的玩家。
+保存过设置的玩家
 
 ```ts
 // 保存玩家的那一半
@@ -102,7 +102,7 @@ game.audioBuses.setVolumes(JSON.parse(localStorage.getItem("mixer") ?? "{}"));
 
 混音器位于 [Game](/zh/docs/narraleaf-react/core/game/game) 上而不是音频管理器上，因为总线音量是玩家
 设置而非游戏状态。在音频上下文解锁之前、播放器挂载之前恢复都是安全的。树中尚不存在的 id 会被记录下来，
-并在对应通道出现的那一刻应用。
+并在对应通道出现的那一刻应用
 
 ## 按角色分别控制语音音量
 
@@ -150,18 +150,18 @@ function CastVolume({busId}: {busId: string}) {
 ```
 
 改变总线音量会作用于**正在播放**的声音。没有任何东西被停止或重新播放，变化会在几毫秒内渐变完成，因此
-拖动滑块不会产生爆音。
+拖动滑块不会产生爆音
 
 ## game.audioBuses
 
-混音器，类型为 `AudioBusMixer`。
+混音器，类型为 `AudioBusMixer`
 
 ### setVolume
 
 <Steps>
 <Step>
 
-设置某条总线的玩家音量。滑块写入的就是它。
+设置某条总线的玩家音量。滑块写入的就是它
 
 ```ts
 game.audioBuses.setVolume("alice", 0.5);
@@ -178,7 +178,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-某条总线的玩家音量：上一次设置的值，未设置过则为 `1`。**不是**声明音量，也**不是**增益节点上的值。
+某条总线的玩家音量：上一次设置的值，未设置过则为 `1`。**不是**声明音量，也**不是**增益节点上的值
 
 - `id: string` - 总线 id
 - 返回 `number`
@@ -190,7 +190,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-某条总线在作者混音中的位置，来自声明。运行时永不写入。
+某条总线在作者混音中的位置，来自声明。运行时永不写入
 
 - `id: string` - 总线 id
 - 返回 `number`
@@ -202,7 +202,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-总线增益节点上的值：`getDeclaredVolume(id) * getVolume(id)`。
+总线增益节点上的值：`getDeclaredVolume(id) * getVolume(id)`
 
 - `id: string` - 总线 id
 - 返回 `number`
@@ -215,7 +215,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Step>
 
 一次设置多条总线的玩家音量，宿主恢复已保存的混音器状态时调用它。树中不存在的 id 也会被记录，因此在树
-解析之前恢复是安全的。
+解析之前恢复是安全的
 
 - `volumes: Record<string, number>`
 - 返回 `AudioBusMixer`
@@ -227,7 +227,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-按总线 id 索引的玩家音量：宿主要持久化的那一半，也是 `setVolumes` 接受的形状。
+按总线 id 索引的玩家音量：宿主要持久化的那一半，也是 `setVolumes` 接受的形状
 
 - 返回 `Record<string, number>`
 </Step>
@@ -238,7 +238,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-每条总线及其两个音量，父节点排在子节点之前。
+每条总线及其两个音量，父节点排在子节点之前
 
 - 返回 `AudioBusState[]` - 参见 [AudioBusState](/zh/docs/narraleaf-react/core/types/AudioBusState)
 </Step>
@@ -249,7 +249,7 @@ game.audioBuses.setVolume("alice", 0.5);
 <Steps>
 <Step>
 
-已解析的总线树，首次调用时解析并缓存。声明无法解析时抛出 `AudioBusError`。
+已解析的总线树，首次调用时解析并缓存。声明无法解析时抛出 `AudioBusError`
 
 ```ts
 const tree = game.audioBuses.getTree();
@@ -269,7 +269,7 @@ tree.isUnder("alice", "voice"); // true - 顶端包含自身
 <Steps>
 <Step>
 
-监听任意总线上的玩家音量变化。
+监听任意总线上的玩家音量变化
 
 ```ts
 const token = game.audioBuses.onVolumeChange((id, volume, effectiveVolume) => {
@@ -287,9 +287,9 @@ token.cancel();
 ## 与音量偏好设置的关系
 
 音量[偏好设置](/zh/docs/narraleaf-react/core/game/preference/preference)照常工作。`bgmVolume`、
-`soundVolume`、`voiceVolume` 是三条内置总线的别名，写入的是**玩家的**那一半；`globalVolume` 是主输出。
+`soundVolume`、`voiceVolume` 是三条内置总线的别名，写入的是**玩家的**那一半；`globalVolume` 是主输出
 
 即使游戏声明了 `{id: "sound", volume: 0.6}`，`getPreference("soundVolume")` 在启动时读到的仍是
-`1`，含义是「我不再额外衰减」。
+`1`，含义是「我不再额外衰减」
 
-三条内置总线通过偏好设置驱动，宿主自行声明的总线用 `game.audioBuses`。
+三条内置总线通过偏好设置驱动，宿主自行声明的总线用 `game.audioBuses`

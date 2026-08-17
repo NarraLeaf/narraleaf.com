@@ -3,14 +3,14 @@ title: "对话框头像教程"
 ---
 ADV 文本旁的小头像由 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) 渲染。配置分两步：
 
-1. 在 [`Character`](/zh/docs/narraleaf-react/core/elements/character) 上配置**用哪张图**（也可用舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 做表情立绘）。
-2. 在自己的 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 里**摆上 `<Avatar />`**。
+1. 在 [`Character`](/zh/docs/narraleaf-react/core/elements/character) 上配置**用哪张图**（也可用舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 做表情立绘）
+2. 在自己的 [`Dialog`](/zh/docs/narraleaf-react/player/dialog) 里**摆上 `<Avatar />`**
 
-完整规则（解析顺序、解析器函数、类型）见 [Dialog](/zh/docs/narraleaf-react/player/dialog) 与 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)。
+完整规则（解析顺序、解析器函数、类型）见 [Dialog](/zh/docs/narraleaf-react/player/dialog) 与 [`useAvatar`](/zh/docs/narraleaf-react/player/hooks/useAvatar)
 
 ## 1. 配置角色级头像
 
-一张固定图片，角色说话时都会显示，包括**没有立绘在场上**的画外音。
+一张固定图片，角色说话时都会显示，包括**没有立绘在场上**的旁白
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -28,11 +28,11 @@ alice.say("玩家会在文字旁边看到我的小头像。");
 const bob = new Character("Bob").setAvatar("/characters/bob/avatar.png");
 ```
 
-头像需要**有名字**的角色。**旁白**（`new Character(null)`）不显示头像。
+头像需要**有名字**的角色。**旁白**（`new Character(null)`）不显示头像
 
 ## 2. 在对话框里放上 `Avatar`
 
-[`Avatar`](/zh/docs/narraleaf-react/player/dialog) 会根据**当前这一句**解析出头像；没有可显示的图片时**不渲染**，不会留出空白占位。
+[`Avatar`](/zh/docs/narraleaf-react/player/dialog) 会根据**当前这一句**解析出头像；没有可显示的图片时**不渲染**，不会留出空白占位
 
 通常和 [`Nametag`](/zh/docs/narraleaf-react/player/dialog)、[`Texts`](/zh/docs/narraleaf-react/player/dialog) 并排，布局和内置默认对话框一致：
 
@@ -65,7 +65,7 @@ export function GameDialog() {
 }
 ```
 
-不写 `style` 时默认 96×96，可用 `className` 或 `style` 覆盖。
+不写 `style` 时默认 96×96，可用 `className` 或 `style` 覆盖
 
 ### 可选：用 `useAvatar` 自适应布局
 
@@ -102,7 +102,7 @@ export function GameDialog() {
 }
 ```
 
-## 3. 注册自定义 Dialog
+## 3. 注册自定义对话框
 
 创建 [`Game`](/zh/docs/narraleaf-react/core/game/game) 时指定组件，再把同一个实例传给 `GameProviders`：
 
@@ -160,4 +160,4 @@ scene.action([
 | 使用自己的对话框 | [`game.configure({ dialog: 你的组件 })`](/zh/docs/narraleaf-react/core/game/game) |
 | 单行特例 | `{ avatar: false }`、`{ avatar: "/其它.png" }` 或解析器（详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)） |
 
-多个可见立绘与标签解析器见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+多个可见立绘与标签解析器见 [Dialog](/zh/docs/narraleaf-react/player/dialog)

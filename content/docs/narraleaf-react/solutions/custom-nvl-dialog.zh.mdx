@@ -1,15 +1,15 @@
 ---
-title: "自定义 NVL Dialog"
+title: "自定义 NVL 对话框"
 ---
 ## 选择自定义范围
 
-NVL（Novel）模式以可滚动列表形式展示多条对话，适用于小说式叙事。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `nvlDialog` 配置项，可替换默认的 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 组件，实现完全自定义的 NVL 对话样式。
+NVL（Novel）模式以可滚动列表形式展示多条对话，适用于小说式叙事。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `nvlDialog` 配置项，可替换默认的 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 组件，实现完全自定义的 NVL 对话样式
 
-有两种做法：使用 `NvlContainer` 替换整个容器，或保留 `DefaultNvlContainer`，只修改 `renderDialogItem`。
+有两种做法：使用 `NvlContainer` 替换整个容器，或保留 `DefaultNvlContainer`，只修改 `renderDialogItem`
 
 ## 1. 完全自定义 NVL 容器
 
-使用 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 作为外层，接收 `dialogs` 数组，自行渲染每条对话。`INvlContainerProps` 包含 `dialogs` 和可选的 `renderDialogItem`。
+使用 [NvlContainer](/zh/docs/narraleaf-react/player/nvl-container) 作为外层，接收 `dialogs` 数组，自行渲染每条对话。`INvlContainerProps` 包含 `dialogs` 和可选的 `renderDialogItem`
 
 ```tsx
 import {
@@ -99,7 +99,7 @@ function App() {
 }
 ```
 
-如果只修改单条对话布局，把配置改为 `CustomNvlWithRenderer`。
+如果只修改单条对话布局，把配置改为 `CustomNvlWithRenderer`
 
 ## 参考
 

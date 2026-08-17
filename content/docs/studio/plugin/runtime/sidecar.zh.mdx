@@ -3,17 +3,17 @@ title: sidecar
 description: 在作者构建的游戏中随附一个原生子进程，并用换行分隔的 JSON 与它对话
 ---
 
-sidecar 是你的插件随**作者构建的游戏**一同分发的原生程序。它之所以存在，是因为插件的 runtime 入口是渲染进程代码——没有原生模块，没有动态库，没有裸套接字——而有些集成（平台 SDK、硬件桥接）根本没法住在那里。sidecar 作为游戏主进程的子进程运行，并通过 stdio 与你的插件对话。
+sidecar 是你的插件随**作者构建的游戏**一同分发的原生程序。它之所以存在，是因为插件的 runtime 入口是渲染进程代码——没有原生模块，没有动态库，没有裸套接字——而有些集成（平台 SDK、硬件桥接）根本没法住在那里。sidecar 作为游戏主进程的子进程运行，并通过 stdio 与你的插件对话
 
-这是插件能声明的最重的东西：它是会抵达玩家机器的代码。它被刻意设计得很显式——分平台的二进制、强制的摘要，以及一条作者能按名字看到的安装权限。
+这是插件能声明的最重的东西：它是会抵达玩家机器的代码。它被刻意设计得很显式——分平台的二进制、强制的摘要，以及一条作者能按名字看到的安装权限
 
 <Callout type="warn">
-Web 和移动端构建**永远没有** sidecar。浏览器里没有进程可以启动，而移动端外壳是 WebView。需要 sidecar 的插件必须在没有它的情况下降级到仍然有用，而不是直接失败。参见 [总是要降级](#degrade-always)。
+Web 和移动端构建**永远没有** sidecar。浏览器里没有进程可以启动，而移动端外壳是 WebView。需要 sidecar 的插件必须在没有它的情况下降级到仍然有用，而不是直接失败。参见 [总是要降级](#degrade-always)
 </Callout>
 
 ## 声明它
 
-sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就是**那次申请，而 `app.game.sidecar` 当且仅当这个列表非空时存在。
+sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就是**那次申请，而 `app.game.sidecar` 当且仅当这个列表非空时存在
 
 ```json
 {
@@ -48,16 +48,16 @@ sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就�
 
 | 字段 | 默认值 | 说明 |
 | --- | --- | --- |
-| `id` | — | 和其他所有贡献标识符一样，必须以你的插件 id 为前缀。 |
-| `kind` | `"executable"` | `"executable"` 直接启动该二进制。`"node"` 用游戏自身的 Electron 以 Node 方式运行一个 `.js` 文件。 |
-| `transport` | `"stdio-jsonl"` | v1 中唯一被接受的取值。 |
-| `autostart` | `"onGameStart"` | `"onGameStart"` 随窗口一起启动；`"onRequest"` 等到第一次调用。 |
-| `startupTimeoutMs` | `5000` | 握手最多可以花多久，超过则该 sidecar 算作不可用。 |
-| `shutdownTimeoutMs` | `3000` | 从关闭消息到 `SIGTERM` 之间的宽限期。 |
-| `restart` | `{ maxRetries: 3, backoffMs: 1000 }` | 崩溃重启策略。 |
-| `targets` | — | 至少一个平台键。 |
+| `id` | — | 和其他所有贡献标识符一样，必须以你的插件 id 为前缀|
+| `kind` | `"executable"` | `"executable"` 直接启动该二进制。`"node"` 用游戏自身的 Electron 以 Node 方式运行一个 `.js` 文件|
+| `transport` | `"stdio-jsonl"` | v1 中唯一被接受的取值|
+| `autostart` | `"onGameStart"` | `"onGameStart"` 随窗口一起启动；`"onRequest"` 等到第一次调用|
+| `startupTimeoutMs` | `5000` | 握手最多可以花多久，超过则该 sidecar 算作不可用|
+| `shutdownTimeoutMs` | `3000` | 从关闭消息到 `SIGTERM` 之间的宽限期|
+| `restart` | `{ maxRetries: 3, backoffMs: 1000 }` | 崩溃重启策略|
+| `targets` | — | 至少一个平台键|
 
-在没有 `entries.runtime` 的情况下声明 sidecar 是清单错误——那等于让作者去批准一个没有任何东西能用上的功能。
+在没有 `entries.runtime` 的情况下声明 sidecar 是清单错误——那等于让作者去批准一个没有任何东西能用上的功能
 
 ### 平台键
 
@@ -65,16 +65,16 @@ sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就�
 
 `windows-x64` · `windows-arm64` · `macos-x64` · `macos-arm64` · `macos-universal` · `linux-x64` · `linux-arm64`
 
-（`universal` 只对 macOS 有效。）你没有为某个平台声明任何内容，那里就没有 sidecar——这是一种受支持的形态，不是遗漏。构建会以警告的形式报出来，让作者在发布之前就知道该目标上这个功能没了。
+（`universal` 只对 macOS 有效。）你没有为某个平台声明任何内容，那里就没有 sidecar——这是一种受支持的形态，不是遗漏。构建会以警告的形式报出来，让作者在发布之前就知道该目标上这个功能没了
 
 ### `include` 与 `sha256`
 
-`include` 列出为该平台分发的一切。条目要么是相对于包的路径，要么是 `dep:<buildDependencyId>/<path>`，用来取出某个已声明的[构建时依赖](/zh/docs/studio/plugin/build-dependencies)产出的产物——你自己可能无权镜像的可再分发文件就是这样进包的。`entry` 也必须出现在 `include` 里。
+`include` 列出为该平台分发的一切。条目要么是相对于包的路径，要么是 `dep:<buildDependencyId>/<path>`，用来取出某个已声明的[构建时依赖](/zh/docs/studio/plugin/build-dependencies)产出的产物——你自己可能无权镜像的可再分发文件就是这样进包的。`entry` 也必须出现在 `include` 里
 
-`sha256` 对 `include` 中每个相对于包的条目都是**强制**的，用小写十六进制。它在安装时校验一次、打包时再校验一次，所以被篡改的包会安装失败，而不是悄悄发布一个不同的二进制。`dep:` 条目则由构建时依赖自身的摘要覆盖。
+`sha256` 对 `include` 中每个相对于包的条目都是**强制**的，用小写十六进制。它在安装时校验一次、打包时再校验一次，所以被篡改的包会安装失败，而不是悄悄发布一个不同的二进制。`dep:` 条目则由构建时依赖自身的摘要覆盖
 
 <Callout type="info">
-`dep:` 文件会落在 include 路径上，并去掉 `dep:<id>/` 前缀。在 Windows 上，DLL 是在可执行文件旁边查找的，所以请把它映射到你的 `entry` 所在的同一个目录。
+`dep:` 文件会落在 include 路径上，并去掉 `dep:<id>/` 前缀。在 Windows 上，DLL 是在可执行文件旁边查找的，所以请把它映射到你的 `entry` 所在的同一个目录
 </Callout>
 
 ## 从 runtime 入口使用它
@@ -84,7 +84,7 @@ sidecar 没有能力字符串：在 `contributes.sidecars` 中声明一个**就�
 | `available` | `(sidecarId: string) => boolean` |
 | `start` | `(sidecarId: string) => Promise<RuntimePluginSidecarHandle>` |
 
-`start` 是幂等的——重复调用返回同一个正在运行的句柄。
+`start` 是幂等的——重复调用返回同一个正在运行的句柄
 
 ```ts
 export default defineRuntimePlugin({
@@ -108,21 +108,21 @@ export default defineRuntimePlugin({
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `request` | `<T>(method: string, params?: unknown) => Promise<T>` | 等待回复。若 sidecar 中途死亡则拒绝。sidecar 未运行时会先启动它。 |
-| `notify` | `(method: string, params?: unknown) => void` | 发了就不管。同样会启动 sidecar；若启动失败，这条 notify 被丢弃。 |
-| `onEvent` | `(listener: (method: string, params: unknown) => void) => RuntimePluginCleanup` | 来自 sidecar 的主动消息。 |
-| `onExit` | `(listener: (info: { code: number \| null; signal: string \| null }) => void) => RuntimePluginCleanup` | 进程已结束。 |
-| `stop` | `() => Promise<void>` | 把它关掉。不算作崩溃；不会安排重启。 |
+| `request` | `<T>(method: string, params?: unknown) => Promise<T>` | 等待回复。若 sidecar 中途死亡则拒绝。sidecar 未运行时会先启动它|
+| `notify` | `(method: string, params?: unknown) => void` | 发了就不管。同样会启动 sidecar；若启动失败，这条 notify 被丢弃|
+| `onEvent` | `(listener: (method: string, params: unknown) => void) => RuntimePluginCleanup` | 来自 sidecar 的主动消息|
+| `onExit` | `(listener: (info: { code: number \| null; signal: string \| null }) => void) => RuntimePluginCleanup` | 进程已结束|
+| `stop` | `() => Promise<void>` | 把它关掉。不算作崩溃；不会安排重启|
 
-关联 id 是宿主自己的事——你调用 `request("method", params)` 并拿到结果。
+关联 id 是宿主自己的事——你调用 `request("method", params)` 并拿到结果
 
 ## 线路协议
 
-另一端由你来写。传输是 **stdio 上换行分隔的 JSON**：stdout 上每行一个 JSON 对象，UTF-8，以 `\n` 结尾（结尾的 `\r` 会被容忍，所以 CRLF 也行）。**stdout 是协议；stderr 是普通日志通道**，永远不会被解析——把诊断信息写到那里。在生产构建中只保留看起来像警告或错误的 stderr 行；在预览中则全部记录。
+另一端由你来写。传输是 **stdio 上换行分隔的 JSON**：stdout 上每行一个 JSON 对象，UTF-8，以 `\n` 结尾（结尾的 `\r` 会被容忍，所以 CRLF 也行）。**stdout 是协议；stderr 是普通日志通道**，永远不会被解析——把诊断信息写到那里。在生产构建中只保留看起来像警告或错误的 stderr 行；在预览中则全部记录
 
-单行最多 **1 MiB**。超长的行会被丢弃并给出警告，而不是拆掉连接。stdout 上的非 JSON 行、非对象帧和未知帧类型同样会被记录并跳过。
+单行最多 **1 MiB**。超长的行会被丢弃并给出警告，而不是拆掉连接。stdout 上的非 JSON 行、非对象帧和未知帧类型同样会被记录并跳过
 
-每个帧都带一个 `t` 判别字段。
+每个帧都带一个 `t` 判别字段
 
 ### 宿主 → sidecar（在你的 stdin 上）
 
@@ -133,9 +133,9 @@ export default defineRuntimePlugin({
 {"t":"bye"}
 ```
 
-- `hello` 在**进程启动后立即**同步写出。请从你的第一条指令起就读取 stdin——不要过后才挂上读取器，然后指望它还在。`mode` 是 `"preview"` 或 `"production"`。
-- **带** `id` 的 `req` 想要回复。**不带** `id` 的 `req` 是通知，不需要回复。没有内容要发时，`params` 会被整个省略。
-- `bye` 是关闭请求，其后跟着 stdin EOF。
+- `hello` 在**进程启动后立即**同步写出。请从你的第一条指令起就读取 stdin——不要过后才挂上读取器，然后指望它还在。`mode` 是 `"preview"` 或 `"production"`
+- **带** `id` 的 `req` 想要回复。**不带** `id` 的 `req` 是通知，不需要回复。没有内容要发时，`params` 会被整个省略
+- `bye` 是关闭请求，其后跟着 stdin EOF
 
 ### sidecar → 宿主（在你的 stdout 上）
 
@@ -146,31 +146,31 @@ export default defineRuntimePlugin({
 {"t":"evt","method":"overlay.shown","params":{"achievement":"FIRST_END"}}
 ```
 
-- `ready` 完成握手，且必须在 `startupTimeoutMs` 内抵达。如果你发送 `protocol`，它必须是 `1`。`caps` 只用于诊断记录；宿主不会据此做任何把关。
-- `res` 按 `id` 回答一个 `req`。带 `error` 对象的响应会让插件的 promise 拒绝；否则由 `result` 解析它。插件看到的是一个 `Error`，其消息会点明 sidecar、方法名和你的 `message`，存在 `code` 时附在后面。
-- `evt` 是无需应答的推送。sidecar 无法*向*宿主发起请求——只有 `res` 和 `evt` 会被识别。
+- `ready` 完成握手，且必须在 `startupTimeoutMs` 内抵达。如果你发送 `protocol`，它必须是 `1`。`caps` 只用于诊断记录；宿主不会据此做任何把关
+- `res` 按 `id` 回答一个 `req`。带 `error` 对象的响应会让插件的 promise 拒绝；否则由 `result` 解析它。插件看到的是一个 `Error`，其消息会点明 sidecar、方法名和你的 `message`，存在 `code` 时附在后面
+- `evt` 是无需应答的推送。sidecar 无法*向*宿主发起请求——只有 `res` 和 `evt` 会被识别
 
 ### 生命周期
 
 | 时刻 | 宿主的动作 |
 | --- | --- |
-| 启动 | 立刻写出 `hello`，并开始握手计时。 |
-| `startupTimeoutMs` 内没有 `ready` | 立即 `SIGKILL`，挂起的 `start()` 拒绝，并记一次重启失败。 |
-| 协议不匹配 | 与握手失败相同。 |
-| 崩溃或意外退出 | 挂起的请求全部拒绝；`onExit` 触发；安排一次重启。 |
-| 重启 | 退避从 `backoffMs` 开始翻倍，上限 30 秒。持续就绪满一分钟的一次运行会重置计数。 |
-| 超过 `maxRetries` | 在该进程剩余的生命周期内永久不可用。`available()` 变为 false，之后的 `start()` 调用全部拒绝。 |
-| 关闭 | `{"t":"bye"}`，然后 stdin EOF；`shutdownTimeoutMs` 之后 `SIGTERM`；再过两秒 `SIGKILL`。 |
+| 启动 | 立刻写出 `hello`，并开始握手计时|
+| `startupTimeoutMs` 内没有 `ready` | 立即 `SIGKILL`，挂起的 `start()` 拒绝，并记一次重启失败|
+| 协议不匹配 | 与握手失败相同|
+| 崩溃或意外退出 | 挂起的请求全部拒绝；`onExit` 触发；安排一次重启|
+| 重启 | 退避从 `backoffMs` 开始翻倍，上限 30 秒。持续就绪满一分钟的一次运行会重置计数|
+| 超过 `maxRetries` | 在该进程剩余的生命周期内永久不可用。`available()` 变为 false，之后的 `start()` 调用全部拒绝|
+| 关闭 | `{"t":"bye"}`，然后 stdin EOF；`shutdownTimeoutMs` 之后 `SIGTERM`；再过两秒 `SIGKILL`|
 
 <Callout type="warn">
-**把 stdin EOF 当作“立刻终止”。** 应用被强行退出时，宿主没有时间做一次优雅的 `bye`，会直接杀掉进程。stdin 关闭后仍继续运行的 sidecar，会在玩家机器上变成孤儿进程。
+**把 stdin EOF 当作“立刻终止”。** 应用被强行退出时，宿主没有时间做一次优雅的 `bye`，会直接杀掉进程。stdin 关闭后仍继续运行的 sidecar，会在玩家机器上变成孤儿进程
 </Callout>
 
 ### 进程环境
 
-- **cwd** 是游戏用户数据中一个按 sidecar 划分的可写目录（`sidecars/<pluginId>/<sidecarId>/`），已经替你创建好。它*不是*安装目录——在真实安装中那里是只读的。需要写入的运行时文件请放到 cwd 里。
-- **环境变量**就是游戏主进程自己的那套，未作改动，只有 `ELECTRON_RUN_AS_NODE` 例外：`kind: "node"` 时设置它，`kind: "executable"` 时移除它。此外不注入任何东西——所有上下文都随 `hello` 抵达。
-- **共享库**从可执行文件旁边（Windows）或经由 rpath（POSIX）加载，而不是从 cwd 加载。请把它们放在 `entry` 旁边一起分发。
+- **cwd** 是游戏用户数据中一个按 sidecar 划分的可写目录（`sidecars/<pluginId>/<sidecarId>/`），已经替你创建好。它*不是*安装目录——在真实安装中那里是只读的。需要写入的运行时文件请放到 cwd 里
+- **环境变量**就是游戏主进程自己的那套，未作改动，只有 `ELECTRON_RUN_AS_NODE` 例外：`kind: "node"` 时设置它，`kind: "executable"` 时移除它。此外不注入任何东西——所有上下文都随 `hello` 抵达
+- **共享库**从可执行文件旁边（Windows）或经由 rpath（POSIX）加载，而不是从 cwd 加载。请把它们放在 `entry` 旁边一起分发
 
 ## 总是要降级
 
@@ -185,19 +185,19 @@ export default defineRuntimePlugin({
 | 预览 | 有，使用宿主机器的平台键 |
 | 开发模式 | **没有**——开发模式窗口不托管任何子进程 |
 
-请把插件写成：它提供的功能在没有 sidecar 时也有一个本地答案，而原生这条路只是增强。当 `available()` 为 false 就抛错的插件，在作者能构建的绝大多数目标上都是坏的。
+请把插件写成：它提供的功能在没有 sidecar 时也有一个本地答案，而原生这条路只是增强。当 `available()` 为 false 就抛错的插件，在作者能构建的绝大多数目标上都是坏的
 
 <Callout type="info">
-sidecar 无法在**开发模式**里验证——那个窗口是 Studio 窗口，不是游戏外壳，它不托管任何子进程。请用**预览**来测试：预览会按宿主机器自身的平台键打包 sidecar，并运行与发行游戏相同的那套外壳。
+sidecar 无法在**开发模式**里验证——那个窗口是 Studio 窗口，不是游戏外壳，它不托管任何子进程。请用**预览**来测试：预览会按宿主机器自身的平台键打包 sidecar，并运行与发行游戏相同的那套外壳
 </Callout>
 
 ## 已知边界
 
-这些是当下真实存在的限制——不是假设。
+这些是当下真实存在的限制——不是假设
 
-- **插件 zip 不携带可执行位。** 无论是注册表的打包还是 Studio 的解压都不记录文件模式，所以在 macOS 和 Linux 上 sidecar 落地时是不可执行的，永远启动不起来。宿主会在启动前立刻修复这一点：在 POSIX 上它检查属主的执行位，并只在已经授予读权限的地方加上执行权限，绝不放宽可见性。如果 `chmod` 失败，该 sidecar 会被标记为不可用，而不是悄悄地不工作。你不需要做任何事，但也不必对磁盘上的文件模式感到意外。
-- **同时构建多个桌面目标会一个 sidecar 都不带。** 打包流水线目前用同一个暂存应用目录服务于每个桌面目标，而 sidecar 是按 `<platform>-<arch>` 划分的。当选中不止一个桌面目标时，构建会给出警告，并且**一个都不打包**——把 Windows 可执行文件塞进 `.app` 里只会更糟。sidecar 重要时，请一次只构建一个桌面目标。
-- **macOS 签名。** 嵌套的可执行文件必须与宿主应用一起签名，否则 Gatekeeper 对它的拒绝比对未签名应用还狠。在签名环节落地之前，带 sidecar 的 macOS 构建只适合你自己用。
-- **sidecar 不会被打进归档。** 可执行文件和动态库无法从 asar 内部运行，所以它们会以解包形式分发在 asar 旁边。在密封（加密）构建下它们同样保持解包——sidecar 就是可执行文件，假装它受到保护只会误导人。
-- **插件之间在渲染进程里并不隔离。** 每个 runtime 插件都是同一个渲染进程中的同源 ESM，而通向 sidecar 宿主的通道无法从密码学上证明是哪个插件在调用。声明边界依然成立——宿主只会启动某份清单声明过的 sidecar——但不要把 sidecar 当成它与某一个插件之间的私有通道。
-- **sidecar 拷贝失败会让整个预览编译失败**，而不是降级成“这次运行没有 sidecar”。缺失的 `dep:` 产物或摘要不匹配会让预览无法启动。在生产构建中这是正确行为；在预览中它比应有的程度更严厉。
+- **插件 zip 不携带可执行位。** 无论是注册表的打包还是 Studio 的解压都不记录文件模式，所以在 macOS 和 Linux 上 sidecar 落地时是不可执行的，永远启动不起来。宿主会在启动前立刻修复这一点：在 POSIX 上它检查属主的执行位，并只在已经授予读权限的地方加上执行权限，绝不放宽可见性。如果 `chmod` 失败，该 sidecar 会被标记为不可用，而不是悄悄地不工作。你不需要做任何事，但也不必对磁盘上的文件模式感到意外
+- **同时构建多个桌面目标会一个 sidecar 都不带。** 打包流水线目前用同一个暂存应用目录服务于每个桌面目标，而 sidecar 是按 `<platform>-<arch>` 划分的。当选中不止一个桌面目标时，构建会给出警告，并且**一个都不打包**——把 Windows 可执行文件塞进 `.app` 里只会更糟。sidecar 重要时，请一次只构建一个桌面目标
+- **macOS 签名。** 嵌套的可执行文件必须与宿主应用一起签名，否则 Gatekeeper 对它的拒绝比对未签名应用还狠。在签名环节落地之前，带 sidecar 的 macOS 构建只适合你自己用
+- **sidecar 不会被打进归档。** 可执行文件和动态库无法从 asar 内部运行，所以它们会以解包形式分发在 asar 旁边。在密封（加密）构建下它们同样保持解包——sidecar 就是可执行文件，假装它受到保护只会误导人
+- **插件之间在渲染进程里并不隔离。** 每个 runtime 插件都是同一个渲染进程中的同源 ESM，而通向 sidecar 宿主的通道无法从密码学上证明是哪个插件在调用。声明边界依然成立——宿主只会启动某份清单声明过的 sidecar——但不要把 sidecar 当成它与某一个插件之间的私有通道
+- **sidecar 拷贝失败会让整个预览编译失败**，而不是降级成“这次运行没有 sidecar”。缺失的 `dep:` 产物或摘要不匹配会让预览无法启动。在生产构建中这是正确行为；在预览中它比应有的程度更严厉

@@ -1,7 +1,7 @@
 ﻿---
 title: "Persistent\\<T extends PersistentContent\\>"
 ---
-过去只能通过脚本修改 Storable 的状态，Persistent 则提供了一组实用方法，让你可以轻松控制流程。
+过去只能通过脚本修改 Storable 的状态，Persistent 则提供了一组实用方法，让你可以轻松控制流程
 
 Persistent 需要命名空间的**名称**和**初始状态**。**同名的 Persistent 共享同一份状态**
 
@@ -49,7 +49,7 @@ game.getLiveGame().getStorable()
     .onChange("persistent:persis", "coin", ({previous, next}) => {...});
 ```
 
-注意命名空间的**键**：名为 `"persis"` 的 `Persistent` 注册时的键是 `"persistent:persis"`。请在 `Storable` 而不是 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 上订阅，并把 `onChange` 与 `onRestore` 搭配使用，以免漏掉读入的存档——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+注意命名空间的**键**：名为 `"persis"` 的 `Persistent` 注册时的键是 `"persistent:persis"`。请在 `Storable` 而不是 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 上订阅，并把 `onChange` 与 `onRestore` 搭配使用，以免漏掉读入的存档——参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)
 
 ## 公共方法
 

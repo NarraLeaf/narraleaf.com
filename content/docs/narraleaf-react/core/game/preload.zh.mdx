@@ -3,39 +3,39 @@ title: "预加载"
 ---
 
 <Callout type="info">
-    本页描述的行为自 `0.17.0` 起可用。
+    本页描述的行为自 `0.17.0` 起可用
 </Callout>
 
-播放器会在场景绘制之前抓取并解码它的资源。自 `0.17.0` 起，这项工作在故事被加载的那一刻就开始，而不是等到进入游戏，并且分两个层级运行，因此首帧只等待它需要的资源。
+播放器会在场景绘制之前抓取并解码它的资源。自 `0.17.0` 起，这项工作在故事被加载的那一刻就开始，而不是等到进入游戏，并且分两个层级运行，因此首帧只等待它需要的资源
 
 <Callout type="warning">
-    **`onPreloadComplete` 的时机变了。** 它现在在**进入游戏之前**触发，此时菜单可能还在屏幕上。表示「游戏内容已经上屏」的信号是 `onFirstSceneReady`，参见[该等哪个信号](#该等哪个信号)。
+    **`onPreloadComplete` 的时机变了。** 它现在在**进入游戏之前**触发，此时菜单可能还在屏幕上。表示「游戏内容已经上屏」的信号是 `onFirstSceneReady`，参见[该等哪个信号](#该等哪个信号)
 </Callout>
 
 ## 预加载何时开始
 
-`Player` 在故事被加载的那一刻就把 `story.entryScene` 注册为预加载场景，使抓取发生在玩家当前正在看的界面背后。这个过程不挂载任何东西，也不执行任何动作。
+`Player` 在故事被加载的那一刻就把 `story.entryScene` 注册为预加载场景，使抓取发生在玩家当前正在看的界面背后。这个过程不挂载任何东西，也不执行任何动作
 
-自动注册仅在既没有预加载场景、也没有已挂载场景时才生效，因此已经自行调用 [preloadScene](/zh/docs/narraleaf-react/core/game/game-state#preloadscene) 的宿主保留自己的选择。
+自动注册仅在既没有预加载场景、也没有已挂载场景时才生效，因此已经自行调用 [preloadScene](/zh/docs/narraleaf-react/core/game/game-state#preloadscene) 的宿主保留自己的选择
 
 ## 关键层与前瞻层
 
-场景的资源清单是传递性的：它携带从该场景可达的每一个场景的完整资源集。预加载分两个层级运行，使首帧不必等待其中的全部。
+场景的资源清单是传递性的：它携带从该场景可达的每一个场景的完整资源集。预加载分两个层级运行，使首帧不必等待其中的全部
 
 | 层级 | 内容 | 运行方式 |
 | --- | --- | --- |
 | **关键层（critical）** | 即将绘制的场景直接注册的资源：它自己的背景与图片，加上它所跳转到的场景的直接背景 | 不做节流，并且是唯一为 `event:preloaded.complete`（也就是首帧绘制）把关的层级 |
 | **前瞻层（look-ahead）** | 从这里可达的每个场景的完整资源集，减去已经在关键层里的部分 | 在关键层之后运行，由 `preloadDelay` 节流。没有任何东西等待它 |
 
-`preloadDelay` 不计入首帧的开销，它只节流推测性的工作。缓存淘汰在两个层级的并集上执行一次，并对已被取代的那一趟跳过，因此预加载中途切换场景不会丢掉当前场景刚缓存好的图片。
+`preloadDelay` 不计入首帧的开销，它只节流推测性的工作。缓存淘汰在两个层级的并集上执行一次，并对已被取代的那一趟跳过，因此预加载中途切换场景不会丢掉当前场景刚缓存好的图片
 
-以 `preloadAllImages: false` 运行的游戏保持按动作预测的行为，本节内容对它们不适用。
+以 `preloadAllImages: false` 运行的游戏保持按动作预测的行为，本节内容对它们不适用
 
 ## 解码后的位图
 
-关键层持有解码后的元素，直到该源离开缓存为止，因此首个可见帧不会再解码一次。
+关键层持有解码后的元素，直到该源离开缓存为止，因此首个可见帧不会再解码一次
 
-前瞻层不持有它们。一张全分辨率位图要占 宽 × 高 × 4 字节。
+前瞻层不持有它们。一张全分辨率位图要占宽 × 高 × 4 字节
 
 ## 声音预加载
 
@@ -51,21 +51,21 @@ title: "预加载"
 />
 ```
 
-- `preload(sound: Sound): Promise<void>` - 在音源进入音频缓存后 resolve。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此这个 Promise 永远不会 reject。
+- `preload(sound: Sound): Promise<void>` - 在音源进入音频缓存后 resolve。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此这个 Promise 永远不会 reject
 
 <Callout type="warning">
-    **永远不要用这个 Promise 为任何东西把关。** 在浏览器的自动播放策略被一次用户手势满足之前，音频上下文一直是锁住的，因此在一个还没人碰过的页面上，音频预热可能一直挂着不结算。引擎自己的调用是发出去就不管的。
+    **永远不要用这个 Promise 为任何东西把关。** 在浏览器的自动播放策略被一次用户手势满足之前，音频上下文一直是锁住的，因此在一个还没人碰过的页面上，音频预热可能一直挂着不结算。引擎自己的调用是发出去就不管的
 </Callout>
 
-自动预热的只有当前场景的声音，前瞻场景的音频留给那个场景自己的那一趟。
+自动预热的只有当前场景的声音，前瞻场景的音频留给那个场景自己的那一趟
 
 ## 该等哪个信号
 
 | 信号 | 触发时机 |
 | --- | --- |
-| [onReady](/zh/docs/narraleaf-react/player/player#onready) | `Player` 实例已初始化。`newGame()` 应该写在这里。它既不保证预加载完成，也不保证已经渲染。 |
-| `onPreloadComplete` | 首次预加载（关键层）已经完成。自 `0.17.0` 起，这发生在**进入游戏之前**：菜单可能还在屏幕上，且没有任何场景被挂载。 |
-| `onFirstSceneReady` | 预加载已完成、第一个场景组件已挂载，**并且**浏览器已经有一帧的时间把它渲染出来。这才是「内容已经上屏」的信号。 |
+| [onReady](/zh/docs/narraleaf-react/player/player#onready) | `Player` 实例已初始化。`newGame()` 应该写在这里。它既不保证预加载完成，也不保证已经渲染|
+| `onPreloadComplete` | 首次预加载（关键层）已经完成。自 `0.17.0` 起，这发生在**进入游戏之前**：菜单可能还在屏幕上，且没有任何场景被挂载|
+| `onFirstSceneReady` | 预加载已完成、第一个场景组件已挂载，**并且**浏览器已经有一帧的时间把它渲染出来。这才是「内容已经上屏」的信号|
 
 后两者既是 `Player` 的 prop，也是 `Game` 的方法，且每个游戏生命周期内最多触发一次：
 
@@ -87,20 +87,20 @@ game.isPreloadComplete();
 game.isFirstSceneReady();
 ```
 
-完整的监听器集合（两个时点各自的 `on*`、`once*`、`when*` 与 `is*`）见 [Game](/zh/docs/narraleaf-react/core/game/game#onpreloadcomplete)。
+完整的监听器集合（两个时点各自的 `on*`、`once*`、`when*` 与 `is*`）见 [Game](/zh/docs/narraleaf-react/core/game/game#onpreloadcomplete)
 
 ### 从 0.16 及更早版本升级
 
 <Callout type="warning">
-    **这是一次行为破坏，而不是新增 API。** `onPreloadComplete`、`oncePreloadComplete`、`whenPreloadComplete()` 与 `event:preloaded.complete` 现在都在进入游戏之前触发，而不是在 `newGame()` 挂载出场景之后。名字与签名都没变，所以什么都不会编译失败，而在那里关掉加载界面的宿主现在会露出一个还没挂载的舞台。
+    **这是一次行为破坏，而不是新增 API。** `onPreloadComplete`、`oncePreloadComplete`、`whenPreloadComplete()` 与 `event:preloaded.complete` 现在都在进入游戏之前触发，而不是在 `newGame()` 挂载出场景之后。名字与签名都没变，所以什么都不会编译失败，而在那里关掉加载界面的宿主现在会露出一个还没挂载的舞台
 
-    - 用它**为加载步骤把关**（进度条，或者一个在资源还在下载时不应可按的「开始」按钮）：无需改动。
-    - 用它表示**「游戏内容已经上屏」**：请改用 `onFirstSceneReady` / `whenFirstSceneReady()`。这两者没有变化，仍然要求存在一个已挂载的场景。
+    - 用它**为加载步骤把关**（进度条，或者一个在资源还在下载时不应可按的「开始」按钮）：无需改动
+    - 用它表示**「游戏内容已经上屏」**：请改用 `onFirstSceneReady` / `whenFirstSceneReady()`。这两者没有变化，仍然要求存在一个已挂载的场景
 
-    `preloadComplete` 监听器收到的 `ctx.scene` 现在可能是*预加载中*的场景而不是已挂载的场景。
+    `preloadComplete` 监听器收到的 `ctx.scene` 现在可能是*预加载中*的场景而不是已挂载的场景
 </Callout>
 
-`onPreloadedReady` 已废弃，请改用 `onPreloadComplete`。
+`onPreloadedReady` 已废弃，请改用 `onPreloadComplete`
 
 ## 自行指定预加载的场景
 
@@ -110,15 +110,15 @@ game.isFirstSceneReady();
 gameState.preloadScene(scene);   // 也可以传 Story，将使用它的入口场景
 ```
 
-在 Player 注册入口场景之前这样做，自动注册就不会发生。
+在 Player 注册入口场景之前这样做，自动注册就不会发生
 
 ## 配置
 
 以下配置项位于 [GameConfig](/zh/docs/narraleaf-react/core/types/GameConfig)：
 
-- `preloadAllImages`（默认 `true`）- 是否运行两层的场景预加载。设为 `false` 时，播放器改为预测接下来 `maxPreloadActions` 个动作并预加载它们的资源。
-- `preloadConcurrency`（默认 `5`）- 同时抓取的图片数量，两个层级都适用。
-- `preloadDelay`（默认 `100`）- 前瞻层批次之间的节流间隔。关键层不做节流。
-- `waitForPreload`（默认 `true`）- 在关键层完成之前保持播放器不揭幕。
-- `forceClearCache`（默认 `false`）- 场景切换时清空图片缓存。
-- `maxPreloadActions`（默认 `10`）- `preloadAllImages: false` 路径向前预测的动作数量。
+- `preloadAllImages`（默认 `true`）- 是否运行两层的场景预加载。设为 `false` 时，播放器改为预测接下来 `maxPreloadActions` 个动作并预加载它们的资源
+- `preloadConcurrency`（默认 `5`）- 同时抓取的图片数量，两个层级都适用
+- `preloadDelay`（默认 `100`）- 前瞻层批次之间的节流间隔。关键层不做节流
+- `waitForPreload`（默认 `true`）- 在关键层完成之前保持播放器不揭幕
+- `forceClearCache`（默认 `false`）- 场景切换时清空图片缓存
+- `maxPreloadActions`（默认 `10`）- `preloadAllImages: false` 路径向前预测的动作数量

@@ -1,9 +1,9 @@
 ---
 title: "变换"
 ---
-`Transform` 描述可显示元素在屏幕上的变化：位置、缩放、旋转、透明度，以及应用的视觉效果。
+`Transform` 描述可显示元素在屏幕上的变化：位置、缩放、旋转、透明度，以及应用的视觉效果
 
-当动画有多个步骤，或同一段动画需要复用时，可以使用 `Transform`。
+当动画有多个步骤，或同一段动画需要复用时，可以使用 `Transform`
 
 ```typescript
 import { Transform } from "narraleaf-react";
@@ -52,7 +52,7 @@ scene.action([
 
 ### 添加属性
 
-需要同时变化的属性，都写在同一个 `commit()` 前。
+需要同时变化的属性，都写在同一个 `commit()` 前
 
 ```typescript
 Transform.create()
@@ -65,7 +65,7 @@ Transform.create()
 
 ### 提交一次
 
-一次 `commit()` 会把前面的属性调用合成一个动画步骤。下面的例子里，位置、缩放和透明度会同时变化。
+一次 `commit()` 会把前面的属性调用合成一个动画步骤。下面的例子里，位置、缩放和透明度会同时变化
 
 ```typescript
 Transform.create()
@@ -79,7 +79,7 @@ Transform.create()
 
 ### 继续下一步
 
-`commit()` 之后的属性调用属于下一段动画。
+`commit()` 之后的属性调用属于下一段动画
 
 ```typescript
 Transform.create()
@@ -93,4 +93,4 @@ Transform.create()
 </Step>
 </Steps>
 
-完整属性类型见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions)。
+完整属性类型见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions)

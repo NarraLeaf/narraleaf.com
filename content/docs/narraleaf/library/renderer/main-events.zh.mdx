@@ -3,9 +3,9 @@ title: "Main Events"
 description: 从 NarraLeaf 渲染器调用主进程 handlers
 ---
 
-NarraLeaf 提供用户级 renderer-to-main event API。在应用代码中，先在 `AppWindow` 上注册 handler，再从渲染器使用 `requestMain` 或 `invokeMainEvent` 调用。
+NarraLeaf 提供用户级 renderer-to-main event API。在应用代码中，先在 `AppWindow` 上注册 handler，再从渲染器使用 `requestMain` 或 `invokeMainEvent` 调用
 
-应用自己的功能不需要导入 `IPCEventType`、实现 `IPCHandler`，也不需要知道 NarraLeaf 内置 channel 名称。
+应用自己的功能不需要导入 `IPCEventType`、实现 `IPCHandler`，也不需要知道 NarraLeaf 内置 channel 名称
 
 ## 注册 Handler
 
@@ -29,7 +29,7 @@ app.onReady(async () => {
 
 ## requestMain
 
-当你愿意在调用点提供泛型 request/response 类型时，可以使用 `requestMain` 做简单调用。
+当你愿意在调用点提供泛型 request/response 类型时，可以使用 `requestMain` 做简单调用
 
 ```ts
 import { requestMain } from "narraleaf/renderer";
@@ -40,11 +40,11 @@ const result = await requestMain<{ id: string }, { ok: boolean }>(
 );
 ```
 
-当主进程报告失败时，`requestMain` 会抛出错误。
+当主进程报告失败时，`requestMain` 会抛出错误
 
 ## 类型化 Events
 
-通过 TypeScript declaration merging 扩展 `MainProcessEventMap`，然后调用 `invokeMainEvent`。
+通过 TypeScript declaration merging 扩展 `MainProcessEventMap`，然后调用 `invokeMainEvent`
 
 ```ts title="renderer/narraleaf-events.d.ts"
 import type { MainProcessEventEntry } from "narraleaf/renderer";
@@ -67,14 +67,14 @@ const result = await invokeMainEvent("example:ping", {
 });
 ```
 
-在扩展 `MainProcessEventMap` 之前，不存在可用的类型化 event key。
+在扩展 `MainProcessEventMap` 之前，不存在可用的类型化 event key
 
 ## 何时使用
 
-当功能必须留在主进程中时使用 main events，例如原生对话框、文件系统访问、外部进程调用和应用自定义存储。
+当功能必须留在主进程中时使用 main events，例如原生对话框、文件系统访问、外部进程调用和应用自定义存储
 
-游戏存档和应用播放状态请优先使用内置渲染器 API，例如 `useSaveAction`、`useSavedGames` 和 `useApp`。
+游戏存档和应用播放状态请优先使用内置渲染器 API，例如 `useSaveAction`、`useSavedGames` 和 `useApp`
 
 ## 更底层的 IPC
 
-NarraLeaf 内部通过 preload bridge 实现这些调用。那些内置 IPC 契约属于框架管线；除非你正在扩展 NarraLeaf 本身，否则请使用上面的用户事件 API。
+NarraLeaf 内部通过 preload bridge 实现这些调用。那些内置 IPC 契约属于框架管线；除非你正在扩展 NarraLeaf 本身，否则请使用上面的用户事件 API

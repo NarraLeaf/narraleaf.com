@@ -1,9 +1,9 @@
 ---
 title: "FixedAspectRatioContainer"
 ---
-`FixedAspectRatioContainer` 在任意父容器内保持固定比例的舞台，内部自动测量可用空间、居中并触发尺寸更新。
+`FixedAspectRatioContainer` 在任意父容器内保持固定比例的舞台，内部自动测量可用空间、居中并触发尺寸更新
 
-> **注意：** 在播放器中使用时，仍需包裹在 `GameProviders` 中以共享配置。
+> **注意：** 在播放器中使用时，仍需包裹在 `GameProviders` 中以共享配置
 
 ## 示例
 
@@ -44,4 +44,4 @@ export default function MyViewport() {
 - `className?: string` — 透传给最外层容器
 - `[data-*?: string]` — 其余 HTML 属性透传到最外层容器
 
-组件内部使用 `ResizeObserver` 监听父容器尺寸变化，自动居中、缩放并保持 `position: relative` / `margin: auto` 的布局。
+组件内部使用 `ResizeObserver` 监听父容器尺寸变化，自动居中、缩放并保持 `position: relative` / `margin: auto` 的布局

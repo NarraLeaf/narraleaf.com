@@ -3,46 +3,46 @@ title: Button
 description: 读写蓝图所属按钮的标签、指针与交互状态
 ---
 
-`nl.button` 的 Self 节点。每个节点作用于自己蓝图所属的那个按钮，不带 `Element` 输入，也只出现在该按钮自己的蓝图里。要操作另一个按钮，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点。
+`nl.button` 的 Self 节点。每个节点作用于自己蓝图所属的那个按钮，不带 `Element` 输入，也只出现在该按钮自己的蓝图里。要操作另一个按钮，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类中对应的节点
 
 ## 约定
 
-- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果。
-- **没有改变任何东西的写入什么都不做。** 宿主会把传入值和当前值比对，相同时直接返回，因此不会排队重绘，也不会触发 `On Flush`。
-- **布尔输入会回落到当前值。** `enabled` 和 `visible` 不能在卡片上填字面量；如果没有接线，或连线求值为 `null`，属性保持原样。接入的非布尔值只有在它是字符串 `"true"` 或 `"1"` 时才算 true。
-- **外观属于 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)。** 几何、透明度和外观变体在那里设置，对所有控件通用，不在这里。
-- **本页有两个节点不在创建浮窗里。** `Get Variant` 和 `Set Variant` 已被 Displayable 的变体节点取代并隐藏。这里记录它们，是因为在那次切换之前创作的蓝图仍然留着它们、也仍然能跑，而不是因为你还能新建一个。
-- **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在按钮自己的主蓝图。要在 Blueprint Value 里读这个按钮，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。`props.label` 本身就是一个可以由 Blueprint Value 驱动的属性。
+- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果
+- **没有改变任何东西的写入什么都不做。** 宿主会把传入值和当前值比对，相同时直接返回，因此不会排队重绘，也不会触发 `On Flush`
+- **布尔输入会回落到当前值。** `enabled` 和 `visible` 不能在卡片上填字面量；如果没有接线，或连线求值为 `null`，属性保持原样。接入的非布尔值只有在它是字符串 `"true"` 或 `"1"` 时才算 true
+- **外观属于 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)。** 几何、透明度和外观变体在那里设置，对所有控件通用，不在这里
+- **本页有两个节点不在创建浮窗里。** `Get Variant` 和 `Set Variant` 已被 Displayable 的变体节点取代并隐藏。这里记录它们，是因为在那次切换之前创作的蓝图仍然留着它们、也仍然能跑，而不是因为你还能新建一个
+- **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在按钮自己的主蓝图。要在 Blueprint Value 里读这个按钮，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。`props.label` 本身就是一个可以由 Blueprint Value 驱动的属性
 
 ## Set Label
 
 `blueprint.button.setLabel` · Latent
 
-Set Label（设置标签）写入按钮文本。没有接线且卡片字段留空时它会写入空字符串——也就是清空标签，而不是保持不变。
+Set Label（设置标签）写入按钮文本。没有接线且卡片字段留空时它会写入空字符串——也就是清空标签，而不是保持不变
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `label` | in · data | `string` | 可在节点卡上直接填字面量。 |
+| `label` | in · data | `string` | 可在节点卡上直接填字面量|
 
 ## Get Label
 
 `blueprint.button.getLabel` · Pure
 
-Get Label（读取标签）读取存储的 `props.label`。
+Get Label（读取标签）读取存储的 `props.label`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
 
-当 `props.label` 由 Blueprint Value 驱动时，该值只在渲染时覆盖存储值。`Set Label` 仍然写入存储值，`Get Label` 也仍然读回它，于是这一对节点操作的是玩家根本看不到的那个值。
+当 `props.label` 由 Blueprint Value 驱动时，该值只在渲染时覆盖存储值。`Set Label` 仍然写入存储值，`Get Label` 也仍然读回它，于是这一对节点操作的是玩家根本看不到的那个值
 
 ## Set Pointer
 
 `blueprint.button.setPointer` · Latent
 
-Set Pointer（设置指针）设置按钮的默认鼠标指针形态——和 Appearance 检视器 Mouse 区写入的是同一个字段。没有对应的 `Get Pointer`。
+Set Pointer（设置指针）设置按钮的默认鼠标指针形态——和 Appearance 检视器 Mouse 区写入的是同一个字段。没有对应的 `Get Pointer`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -53,15 +53,15 @@ Set Pointer（设置指针）设置按钮的默认鼠标指针形态——和 Ap
 
 | 字段 | 含义 |
 | --- | --- |
-| `cursor` | `auto`、`default`、`pointer`、`text`、`move`、`grab`、`grabbing`、`crosshair`、`help`、`wait`、`progress`、`not-allowed` 之一。 |
+| `cursor` | `auto`、`default`、`pointer`、`text`、`move`、`grab`、`grabbing`、`crosshair`、`help`、`wait`、`progress`、`not-allowed` 之一|
 
-`auto` 不是一种存下来的形态，而是在运行时解析：按钮能派发点击时解析为 `pointer`，不能时解析为 `default`。`enabled` 为 false 的按钮无论这里设了什么都显示 `not-allowed`，所以对禁用按钮改指针在重新启用之前都看不出来。
+`auto` 不是一种存下来的形态，而是在运行时解析：按钮能派发点击时解析为 `pointer`，不能时解析为 `default`。`enabled` 为 false 的按钮无论这里设了什么都显示 `not-allowed`，所以对禁用按钮改指针在重新启用之前都看不出来
 
 ## Set Enabled
 
 `blueprint.button.setEnabled` · Latent
 
-Set Enabled（设置可交互）传入 `false` 会禁用交互。按钮仍然渲染、仍然占布局；它不再接收点击，并切换到 `not-allowed` 指针。
+Set Enabled（设置可交互）传入 `false` 会禁用交互。按钮仍然渲染、仍然占布局；它不再接收点击，并切换到 `not-allowed` 指针
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -73,7 +73,7 @@ Set Enabled（设置可交互）传入 `false` 会禁用交互。按钮仍然渲
 
 `blueprint.button.getEnabled` · Pure
 
-Get Enabled（读取可交互）。
+Get Enabled（读取可交互）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -83,7 +83,7 @@ Get Enabled（读取可交互）。
 
 `blueprint.button.setVisible` · Latent
 
-Set Visible（设置可见性）。
+Set Visible（设置可见性）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -92,14 +92,14 @@ Set Visible（设置可见性）。
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible` 传 false 会把按钮及其子树从运行时元素树上摘掉——这不是 CSS 隐藏。控件会卸载，本蓝图随之停止，回来时 `Init` 会重新执行，因此隐藏后的按钮无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想要隐藏但保持挂载，请使用 Displayable `Set Display`。
+`visible` 传 false 会把按钮及其子树从运行时元素树上摘掉——这不是 CSS 隐藏。控件会卸载，本蓝图随之停止，回来时 `Init` 会重新执行，因此隐藏后的按钮无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想要隐藏但保持挂载，请使用 Displayable `Set Display`
 </Callout>
 
 ## Get Visible
 
 `blueprint.button.getVisible` · Pure
 
-Get Visible（读取可见性）。
+Get Visible（读取可见性）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -109,21 +109,21 @@ Get Visible（读取可见性）。
 
 `blueprint.button.setVariant` · Latent
 
-Set Variant（设置变体）在创建浮窗中隐藏——你无法添加这个节点。它已被 Displayable `Set Variant` 取代，后者在卡片上按名称选择变体，并覆盖所有带变体的控件。它仍然可以执行，因此切换之前创作的蓝图继续有效。
+Set Variant（设置变体）在创建浮窗中隐藏——你无法添加这个节点。它已被 Displayable `Set Variant` 取代，后者在卡片上按名称选择变体，并覆盖所有带变体的控件。它仍然可以执行，因此切换之前创作的蓝图继续有效
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-变体 id 来自旧文档存在该节点 `variantId` 输入上的值；当前定义并不声明这个引脚，所以新放置的卡片上没有任何可设的东西。传入按钮并不拥有的 id 会抛出图执行错误；传入空 id 则重置为默认变体。
+变体 id 来自旧文档存在该节点 `variantId` 输入上的值；当前定义并不声明这个引脚，所以新放置的卡片上没有任何可设的东西。传入按钮并不拥有的 id 会抛出图执行错误；传入空 id 则重置为默认变体
 
 ## Get Variant
 
 `blueprint.button.getVariant` · Pure
 
-Get Variant（读取变体）出于同样的原因在创建浮窗中隐藏，而且没有可用的替代品：Displayable `Get Variant` 同样是隐藏的，它输出的变体 UUID 只是内部持久化值，新蓝图里没有任何入口消费它。
+Get Variant（读取变体）出于同样的原因在创建浮窗中隐藏，而且没有可用的替代品：Displayable `Get Variant` 同样是隐藏的，它输出的变体 UUID 只是内部持久化值，新蓝图里没有任何入口消费它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | 按钮处于默认变体时为空。 |
+| `variantId` | out · data | `string` | 按钮处于默认变体时为空|

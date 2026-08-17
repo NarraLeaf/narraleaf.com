@@ -17,7 +17,7 @@ NarraLeaf 使用 TypeScript 对象，不使用独立的脚本语言。常用概�
 | Screen Language | Player 内的 React 组件 |
 | `with dissolve` | `new Dissolve({ duration })` |
 
-名称相近，但职责不同。NarraLeaf 的 `Character` 只负责对话身份和头像规则，舞台立绘由 `Image` 控制。`Scene` 更接近 Ren'Py 的 label，不是 Ren'Py 的 `scene` 语句。
+名称相近，但职责不同。NarraLeaf 的 `Character` 只负责对话身份和头像规则，舞台立绘由 `Image` 控制。`Scene` 更接近 Ren'Py 的 label，不是 Ren'Py 的 `scene` 语句
 
 ## 一个小型迁移示例
 
@@ -86,14 +86,14 @@ story.entry(start);
 
 ## UI 与 Screen
 
-NarraLeaf 没有 Screen Language。设置、存档槽位、历史、画廊和菜单都由 React 组件实现。路由页面放在 `Player` 内；对话框、选项、NVL 和通知组件通过 `Game` 配置替换。
+NarraLeaf 没有 Screen Language。设置、存档槽位、历史、画廊和菜单都由 React 组件实现。路由页面放在 `Player` 内；对话框、选项、NVL 和通知组件通过 `Game` 配置替换
 
-建议先读[基础](/zh/docs/narraleaf-react/basic)，再参考[页面叠层](/zh/docs/narraleaf-react/solutions/page-overlay-settings)、[自定义对话框](/zh/docs/narraleaf-react/solutions/custom-dialog)和[存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
+建议先读[基础](/zh/docs/narraleaf-react/basic)，再参考[页面叠层](/zh/docs/narraleaf-react/solutions/page-overlay-settings)、[自定义对话框](/zh/docs/narraleaf-react/solutions/custom-dialog)和[存档系统](/zh/docs/narraleaf-react/solutions/save-system-localstorage)
 
 ## 迁移前需要考虑的差异
 
-- 默认不提供回滚 UI，但底层可以调用 [`liveGame.undo()`](/zh/docs/narraleaf-react/core/game/live-game#undo) 与 [`redo()`](/zh/docs/narraleaf-react/core/game/live-game#redo)，并用 `canUndo()` / `canRedo()` 控制按钮的可用状态。和 Ren'Py 的 rollback 一样，回退不会丢弃前方的内容：再往前读走的是同样的行，只有当故事走向别处时未来才会被丢弃。
-- NarraLeaf 提供可序列化的存档数据，存储方式和槽位 UI 由项目实现。
-- 素材使用 URL 或构建工具导入，受网页预加载和浏览器音频规则影响。
-- Transform 和 Transition 是 TypeScript 对象，不使用 ATL。
-- 界面布局和无障碍由 React 组件负责。
+- 默认不提供回滚 UI，但底层可以调用 [`liveGame.undo()`](/zh/docs/narraleaf-react/core/game/live-game#undo) 与 [`redo()`](/zh/docs/narraleaf-react/core/game/live-game#redo)，并用 `canUndo()` / `canRedo()` 控制按钮的可用状态。和 Ren'Py 的 rollback 一样，回退不会丢弃前方的内容：再往前读走的是同样的行，只有当故事走向别处时未来才会被丢弃
+- NarraLeaf 提供可序列化的存档数据，存储方式和槽位 UI 由项目实现
+- 素材使用 URL 或构建工具导入，受网页预加载和浏览器音频规则影响
+- Transform 和 Transition 是 TypeScript 对象，不使用 ATL
+- 界面布局和无障碍由 React 组件负责

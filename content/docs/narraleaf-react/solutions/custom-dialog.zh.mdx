@@ -1,15 +1,15 @@
 ---
-title: "自定义 Dialog"
+title: "自定义对话框"
 ---
 ## 作用
 
-对话框（Dialog）用于渲染 Say 模式下的角色对话，包括角色名牌和文本内容。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 替换默认的 [Dialog](/zh/docs/narraleaf-react/player/dialog) 组件，即可实现完全自定义的对话框样式。
+对话框（Dialog）用于渲染 Say 模式下的角色对话，包括角色名牌和文本内容。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 替换默认的 [Dialog](/zh/docs/narraleaf-react/player/dialog) 组件，即可实现完全自定义的对话框样式
 
-下面使用 [Nametag](/zh/docs/narraleaf-react/player/dialog) 和 [Texts](/zh/docs/narraleaf-react/player/dialog) 分别渲染角色名和台词。
+下面使用 [Nametag](/zh/docs/narraleaf-react/player/dialog) 和 [Texts](/zh/docs/narraleaf-react/player/dialog) 分别渲染角色名和台词
 
-## 1. 创建自定义 Dialog 组件
+## 1. 创建自定义对话框组件
 
-使用 [Dialog](/zh/docs/narraleaf-react/player/dialog)、[Nametag](/zh/docs/narraleaf-react/player/dialog)、[Texts](/zh/docs/narraleaf-react/player/dialog) 三个子组件构建布局。`Dialog` 为容器，`Nametag` 渲染角色名，`Texts` 渲染对话文本。
+使用 [Dialog](/zh/docs/narraleaf-react/player/dialog)、[Nametag](/zh/docs/narraleaf-react/player/dialog)、[Texts](/zh/docs/narraleaf-react/player/dialog) 三个子组件构建布局。`Dialog` 为容器，`Nametag` 渲染角色名，`Texts` 渲染对话文本
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -54,7 +54,7 @@ function GameDialog() {
 
 ## 3. 在 App 中注册
 
-创建 [Game](/zh/docs/narraleaf-react/core/game/game) 时指定 Dialog，再把同一个实例传给 `GameProviders`。把 Game 放在 React 组件外，也可以避免每次渲染都重新创建实例。
+创建 [Game](/zh/docs/narraleaf-react/core/game/game) 时指定 Dialog，再把同一个实例传给 `GameProviders`。把 Game 放在 React 组件外，也可以避免每次渲染都重新创建实例
 
 ```tsx
 import { Game, GameProviders, Player } from "narraleaf-react";
@@ -74,7 +74,7 @@ function App() {
 }
 ```
 
-确实需要在运行时替换组件时，再调用 `game.configure({ dialog: GameDialog })`。
+确实需要在运行时替换组件时，再调用 `game.configure({ dialog: GameDialog })`
 
 ## 4. 带打字完成提示的对话框
 
@@ -138,7 +138,7 @@ export function GameDialog() {
 }
 ```
 
-文本与名牌默认外观应写在组件自身 props 上。`GameConfig` 不再负责对话文字字体、文字颜色或名牌默认颜色。
+文本与名牌默认外观应写在组件自身 props 上。`GameConfig` 不再负责对话文字字体、文字颜色或名牌默认颜色
 
 ## 5. 简单样式示例
 
@@ -187,17 +187,17 @@ function GameDialog() {
 }
 ```
 
-这些 Motion props 会应用到对话框内部的 `motion.div`。外层包裹仍负责播放器缩放以及点击/按键行为，因此 `x`、`y`、`scale`、`rotate` 等 transform 不会和 `useAspectScale` 冲突。
+这些 Motion props 会应用到对话框内部的 `motion.div`。外层包裹仍负责播放器缩放以及点击/按键行为，因此 `x`、`y`、`scale`、`rotate` 等 transform 不会和 `useAspectScale` 冲突
 
 对话框的 presence 时序由播放器管理：
 
-- 连续两句对话会复用同一个 dialog presence slot，所以上一句不会在下一句出现前播放 `exit`。
-- 如果对话后面接非对话内容或空档，旧对话框可以播放 `exit`，同时故事流程继续推进。
-- 如果旧对话框的退出动画尚未完成，后面又出现新对话，新对话会获得独立 presence key，因此旧退出和新进入可以重叠播放。
-- 通过 dialog slot 渲染的菜单 prompt 也使用相同 motion 行为，然后再显示选项。
-- 正在退出的对话框会忽略点击、skip 和 auto-forward，因此不会再次推进剧情。
+- 连续两句对话会复用同一个 dialog presence slot，所以上一句不会在下一句出现前播放 `exit`
+- 如果对话后面接非对话内容或空档，旧对话框可以播放 `exit`，同时故事流程继续推进
+- 如果旧对话框的退出动画尚未完成，后面又出现新对话，新对话会获得独立 presence key，因此旧退出和新进入可以重叠播放
+- 通过 dialog slot 渲染的菜单 prompt 也使用相同 motion 行为，然后再显示选项
+- 正在退出的对话框会忽略点击、skip 和 auto-forward，因此不会再次推进剧情
 
 ## 注意事项
 
-- **名牌内容与颜色**：由 `Nametag` 的 `name`、`children`、`color`、`className`、`style` 等 props 控制。
-- **文本默认外观**：由 `Texts` 的 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold` 等 props 控制。[Word](/zh/docs/narraleaf-react/core/elements/character/word) / [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 的局部样式仍会覆盖具体词或具体句。
+- **名牌内容与颜色**：由 `Nametag` 的 `name`、`children`、`color`、`className`、`style` 等 props 控制
+- **文本默认外观**：由 `Texts` 的 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold` 等 props 控制。[Word](/zh/docs/narraleaf-react/core/elements/character/word) / [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 的局部样式仍会覆盖具体词或具体句

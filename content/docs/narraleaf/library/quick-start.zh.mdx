@@ -3,7 +3,7 @@ title: "快速开始"
 description: 使用 NarraLeaf 创建你的第一个桌面视觉小说
 ---
 
-NarraLeaf 将主进程应用宿主、生成的渲染入口和 NarraLeaf-React 故事组合在一起。本指南会创建 CLI 所需的最小项目结构。
+NarraLeaf 将主进程应用宿主、生成的渲染入口和 NarraLeaf-React 故事组合在一起。本指南会创建 CLI 所需的最小项目结构
 
 ## 创建项目
 
@@ -19,7 +19,7 @@ narraleaf init my-visual-novel
 cd my-visual-novel
 ```
 
-`init` 会调用最新的 NarraLeaf skeleton 包，并为你创建项目文件。
+`init` 会调用最新的 NarraLeaf skeleton 包，并为你创建项目文件
 </Step>
 <Step>
 
@@ -31,7 +31,7 @@ cd my-visual-novel
 narraleaf dev
 ```
 
-`dev` 命令会监听主进程和渲染进程，启动 Electron，并在页面文件变化时请求渲染器刷新。
+`dev` 命令会监听主进程和渲染进程，启动 Electron，并在页面文件变化时请求渲染器刷新
 </Step>
 </Steps>
 
@@ -59,7 +59,7 @@ narraleaf dev
 
 ## 主进程
 
-通过 `AppConfig` 创建 Electron 应用宿主，并在 NarraLeaf ready 后启动主窗口。
+通过 `AppConfig` 创建 Electron 应用宿主，并在 NarraLeaf ready 后启动主窗口
 
 ```ts title="main/index.ts"
 import { AppConfig } from "narraleaf";
@@ -75,7 +75,7 @@ app.onReady(() => {
 
 ## 渲染应用
 
-渲染应用需要导出 `metadata.story` 和一个壳组件。壳组件通过 `children` 接收生成的页面。
+渲染应用需要导出 `metadata.story` 和一个壳组件。壳组件通过 `children` 接收生成的页面
 
 ```tsx title="renderer/App.tsx"
 import type { ReactNode } from "react";
@@ -104,7 +104,7 @@ export default function App({ children }: { children: ReactNode }) {
 
 ## 首页
 
-使用 `narraleaf/renderer` 中的 hooks 访问应用壳。
+使用 `narraleaf/renderer` 中的 hooks 访问应用壳
 
 ```tsx title="renderer/pages/index.tsx"
 import { useApp, useGamePlayback } from "narraleaf/renderer";

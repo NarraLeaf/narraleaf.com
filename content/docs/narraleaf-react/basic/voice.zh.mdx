@@ -2,7 +2,7 @@
 title: "配音"
 ---
 
-在台词的 `voice` 配置中传入 URL 或 `Sound.voice()` 实例。
+在台词的 `voice` 配置中传入 URL 或 `Sound.voice()` 实例
 
 ```ts
 alice.say("早上好。", {
@@ -23,7 +23,7 @@ alice.say("早上好。", { voice: greeting });
 
 ## 语音 ID
 
-台词较多时，可以在场景上定义语音表或解析函数，再用 ID 引用音频。这样不需要在每句台词中重复文件路径。
+台词较多时，可以在场景上定义语音表或解析函数，再用 ID 引用音频。这样不需要在每句台词中重复文件路径
 
 ```ts
 const room = new Scene("房间", {
@@ -39,7 +39,7 @@ room.action([
 ]);
 ```
 
-语音 ID 与文件名有固定规则时，可以使用解析函数。
+语音 ID 与文件名有固定规则时，可以使用解析函数
 
 ```ts
 const room = new Scene("房间", {
@@ -65,7 +65,7 @@ alice.say("早上好。", {
 });
 ```
 
-之后 `game.audioBuses.setVolume("alice", 0.5)` 会作用于正在播放的音频。
-参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+之后 `game.audioBuses.setVolume("alice", 0.5)` 会作用于正在播放的音频
+参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
 
-玩家侧的语音行为由 `voiceVolume`、`voiceFadeDuration` 和 `voiceEndMode` 控制。见[管理偏好](/zh/docs/narraleaf-react/basic/manage-preferences)。
+玩家侧的语音行为由 `voiceVolume`、`voiceFadeDuration` 和 `voiceEndMode` 控制。见[管理偏好](/zh/docs/narraleaf-react/basic/manage-preferences)

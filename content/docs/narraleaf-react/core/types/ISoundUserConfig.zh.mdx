@@ -74,8 +74,8 @@ interface ISoundUserConfig {
 Sound.bgm({src: "theme.mp3", seek: 4.2, endTime: 92.5});
 ```
 
-没有 `loop` 时，音频在 `endTime` 处停止；有 `loop` 时它会重复，而每一遍回到哪里由 `loopStart` 决定。
-不写 `loopStart`，每一遍都回到 `seek`，这就是没有单独前奏的音频的行为。
+没有 `loop` 时，音频在 `endTime` 处停止；有 `loop` 时它会重复，而每一遍回到哪里由 `loopStart` 决定
+不写 `loopStart`，每一遍都回到 `seek`，这就是没有单独前奏的音频的行为
 
 把两者分开，才能表达最常见的「前奏 + 循环」式背景音乐——从头完整播一遍，然后只循环主体：
 
@@ -83,15 +83,15 @@ Sound.bgm({src: "theme.mp3", seek: 4.2, endTime: 92.5});
 Sound.bgm({src: "theme.mp3", loop: true, seek: 0, loopStart: 12, endTime: 90});
 ```
 
-循环用的是 Web Audio 节点自身的循环区间，因此是采样级精确的：接缝处没有空隙，连续播放数小时也不会漂移。
+循环用的是 Web Audio 节点自身的循环区间，因此是采样级精确的：接缝处没有空隙，连续播放数小时也不会漂移
 
 <Callout type="info">
     结束不晚于开始的区间描述不出任何可播放的内容，会被忽略而不是播放。落在 `[seek, endTime)` 之外的
-    `loopStart` 会退回到 `seek`。
+    `loopStart` 会退回到 `seek`
 
-    `streaming` 的音频没有循环区间，只有整段重复，因此循环区间对它不生效。
+    `streaming` 的音频没有循环区间，只有整段重复，因此循环区间对它不生效
 
-    读档时播放位置恢复到存档中记录的位置，但循环仍然回到循环入点，而不是玩家存档时所处的位置。
+    读档时播放位置恢复到存档中记录的位置，但循环仍然回到循环入点，而不是玩家存档时所处的位置
 </Callout>
 
 ## type
@@ -103,8 +103,8 @@ Sound.bgm({src: "theme.mp3", loop: true, seek: 0, loopStart: 12, endTime: 90});
 Sound.voice({src: "alice-01.mp3", type: "alice"});
 ```
 
-总线只决定哪一个音量控制管辖这段音频，除此之外别无影响——任何总线上的音频都可以照常播放、停止、淡入淡出和跳转。
+总线只决定哪一个音量控制管辖这段音频，除此之外别无影响——任何总线上的音频都可以照常播放、停止、淡入淡出和跳转
 
-- 有关 `SoundBusId`，请参见 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)。
-- 有关 `SoundType`，请参见 [SoundType](/zh/docs/narraleaf-react/core/types/SoundType)。
-- 有关总线树，请参见 [音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+- 有关 `SoundBusId`，请参见 [SoundBusId](/zh/docs/narraleaf-react/core/types/SoundBusId)
+- 有关 `SoundType`，请参见 [SoundType](/zh/docs/narraleaf-react/core/types/SoundType)
+- 有关总线树，请参见 [音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)

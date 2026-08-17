@@ -13,7 +13,7 @@ description: 读取、写入并观察当前游玩进程的故事变量
 }
 ```
 
-`state.read` 授予 `get` 和 `onChange`。`state.write` 额外授予 `set`——并且**隐含** `state.read`，所以你只声明 `write` 时，Studio 会替你补上读的那一半。
+`state.read` 授予 `get` 和 `onChange`。`state.write` 额外授予 `set`——并且**隐含** `state.read`，所以你只声明 `write` 时，Studio 会替你补上读的那一半
 
 ## 方法
 
@@ -23,15 +23,15 @@ description: 读取、写入并观察当前游玩进程的故事变量
 | `onChange` | `(listener: (change) => void) => RuntimePluginCleanup` | `state.read` |
 | `set` | `(scope, key: string, value: unknown) => void` | `state.write` |
 
-`get` 和 `set` 是**同步**的——变量表就在内存里。没有 `state.write` 时 `set` 会从对象上彻底消失，所以如果你的插件在两种声明下都能运行，请写成 `app.game.state.set?.(...)`。
+`get` 和 `set` 是**同步**的——变量表就在内存里。没有 `state.write` 时 `set` 会从对象上彻底消失，所以如果你的插件在两种声明下都能运行，请写成 `app.game.state.set?.(...)`
 
 ## 作用域
 
 | 作用域 | 生命周期 |
 | --- | --- |
-| `"scene"` | 当前场景。场景结束即消失。 |
-| `"saved"` | 本次游玩进程。会写入存档槽位，并从中恢复。 |
-| `"persistent"` | 玩家本人，跨越每一次游玩进程。开新游戏也不会丢。 |
+| `"scene"` | 当前场景。场景结束即消失|
+| `"saved"` | 本次游玩进程。会写入存档槽位，并从中恢复|
+| `"persistent"` | 玩家本人，跨越每一次游玩进程。开新游戏也不会丢|
 
 ```ts
 const count = app.game.state?.get<number>("saved", "timesAsked") ?? 0;
@@ -55,12 +55,12 @@ const stop = app.game.state?.onChange(change => {
 });
 ```
 
-`onChange` 对来自故事、来自其他插件，以及来自你自己 `set` 的写入都会触发。它返回一个清理函数。
+`onChange` 对来自故事、来自其他插件，以及来自你自己 `set` 的写入都会触发。它返回一个清理函数
 
 <Callout type="info">
-持久变量是被精确观察的——变化与写入在同一帧抵达。场景变量和存档变量则是在故事可能写过它们的那些时点（一次动作变更、一句台词结束、场景挂载或卸载、存档被恢复，以及你自己的 `set`）与快照比对得出的，而且只在确实有人监听时才比对。实际用起来你能看到每一次变化；不能依赖的是场景或存档变化在一帧之内被报告的*确切时刻*。
+持久变量是被精确观察的——变化与写入在同一帧抵达。场景变量和存档变量则是在故事可能写过它们的那些时点（一次动作变更、一句台词结束、场景挂载或卸载、存档被恢复，以及你自己的 `set`）与快照比对得出的，而且只在确实有人监听时才比对。实际用起来你能看到每一次变化；不能依赖的是场景或存档变化在一帧之内被报告的*确切时刻*
 </Callout>
 
 ## 这不是插件 store
 
-`state` 是**作者的**数据：他们在 Studio 中声明并接进故事里的变量。[`app.game.store`](/zh/docs/studio/plugin/runtime/store) 是**你插件的**数据，在自己的命名空间里，对故事不可见。用 `state` 参与作者的剧本；用 `store` 记住属于你自己的东西。
+`state` 是**作者的**数据：他们在 Studio 中声明并接进故事里的变量。[`app.game.store`](/zh/docs/studio/plugin/runtime/store) 是**你插件的**数据，在自己的命名空间里，对故事不可见。用 `state` 参与作者的剧本；用 `store` 记住属于你自己的东西

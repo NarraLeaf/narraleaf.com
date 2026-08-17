@@ -1,7 +1,7 @@
 ---
 title: "页面路由（LayoutRouter）"
 ---
-`LayoutRouter` 与 `Layout`、`Page` 组件配合，用于构建树状 UI 结构。它适合菜单、设置页、画廊和多层游戏界面。
+`LayoutRouter` 与 `Layout`、`Page` 组件配合，用于构建树状 UI 结构。它适合菜单、设置页、画廊和多层游戏界面
 
 本文仅作概览，完整 API 查看：
 
@@ -13,8 +13,8 @@ title: "页面路由（LayoutRouter）"
 
 `Layout` 和 `Page` 的 `name` 支持两种特殊写法：
 
-1. **参数段（slug）** – `:param` 匹配单个路径段，并可在代码中读取其值。
-2. **通配符** – `*` 匹配单个路径段（可重复）。
+1. **参数段（slug）** – `:param` 匹配单个路径段，并可在代码中读取其值
+2. **通配符** – `*` 匹配单个路径段（可重复）
 
 ```tsx
 // /user/:id/profile
@@ -83,9 +83,9 @@ function MenuButton() {
 
 ## 为什么要更换？
 
-1. **嵌套布局** – 通过组合布局构建复杂 UI（侧边栏、弹窗、标签页）。
-2. **类 URL 路径** – 支持熟悉的路径模式（`/user/:id/profile`）。
-3. **更好的动画控制** – 进出动画可在布局树中级联。
+1. **嵌套布局** – 通过组合布局构建复杂 UI（侧边栏、弹窗、标签页）
+2. **类 URL 路径** – 支持熟悉的路径模式（`/user/:id/profile`）
+3. **更好的动画控制** – 进出动画可在布局树中级联
 
 ## 升级指南
 
@@ -97,9 +97,9 @@ function MenuButton() {
 
 ## 下一步
 
-1. 阅读 [`LayoutRouter` 公共方法](/zh/docs/narraleaf-react/player/page-router/router#%E5%85%AC%E5%85%B1%E6%96%B9%E6%B3%95)。
-2. 学习 [`Layout`](/zh/docs/narraleaf-react/player/page-router/layout) 及路径模式。
-3. 更新项目：将 `Page id` 替换为 `Page name`，用 `Layout` 包裹相关页面，并改用 `router.navigate`。
+1. 阅读 [`LayoutRouter` 公共方法](/zh/docs/narraleaf-react/player/page-router/router#%E5%85%AC%E5%85%B1%E6%96%B9%E6%B3%95)
+2. 学习 [`Layout`](/zh/docs/narraleaf-react/player/page-router/layout) 及路径模式
+3. 更新项目：将 `Page id` 替换为 `Page name`，用 `Layout` 包裹相关页面，并改用 `router.navigate`
 
 ```tsx
 import { Page, Player, useRouter } from "narraleaf-react";
@@ -153,7 +153,7 @@ import { Page } from "narraleaf-react";
 
 ## 组件动画
 
-`LayoutRouter` 会自动挂载 / 卸载 `Page`、`Layout` 组件，因此为页面添加进出动画非常简单 —— 只需将组件最外层元素替换为 **Framer Motion** 的 `motion.*` 元素。
+`LayoutRouter` 会自动挂载 / 卸载 `Page`、`Layout` 组件，因此为页面添加进出动画非常简单 —— 只需将组件最外层元素替换为 **Framer Motion** 的 `motion.*` 元素
 
 ```tsx
 import { motion } from "framer-motion";
@@ -172,4 +172,4 @@ export function PageContent() {
 }
 ```
 
-将 `PageContent` 放入 `<Page>` 里，当路由切换时动画会自动播放。
+将 `PageContent` 放入 `<Page>` 里，当路由切换时动画会自动播放

@@ -3,12 +3,12 @@ title: "快捷菜单（Quick Menu）"
 ---
 ## 范围
 
-快捷菜单是游戏中的一个上下文操作面板，允许玩家快速执行常用动作，例如回退与前进、历史、自动播放、保存 / 读取、设置以及退出。
+快捷菜单是游戏中的一个上下文操作面板，允许玩家快速执行常用动作，例如回退与前进、历史、自动播放、保存 / 读取、设置以及退出
 
-下面的组件包含回退与前进、历史、自动播放、保存、读取、设置和退出。路由名称和退出逻辑由应用决定。
+下面的组件包含回退与前进、历史、自动播放、保存、读取、设置和退出。路由名称和退出逻辑由应用决定
 
 <Callout type="info">
-    `undo()` 与 `redo()` 在无处可去时返回 `false`，因此上面的按钮在时间线的任一端按下都是安全的。若想改为把它们置灰，请使用 [`canUndo()`](/zh/docs/narraleaf-react/core/game/live-game#canundo) / [`canRedo()`](/zh/docs/narraleaf-react/core/game/live-game#canredo)。
+    `undo()` 与 `redo()` 在无处可去时返回 `false`，因此上面的按钮在时间线的任一端按下都是安全的。若想改为把它们置灰，请使用 [`canUndo()`](/zh/docs/narraleaf-react/core/game/live-game#canundo) / [`canRedo()`](/zh/docs/narraleaf-react/core/game/live-game#canredo)
 </Callout>
 
 ## 1. 创建组件
@@ -60,7 +60,7 @@ export default function QuickMenu() {
 
 ## 2. 在 LayoutRouter 中使用
 
-把 `QuickMenu` 放在根布局的默认 `Page`（路径 `/`）中。`Player` 已经自动创建根布局。
+把 `QuickMenu` 放在根布局的默认 `Page`（路径 `/`）中。`Player` 已经自动创建根布局
 
 ```tsx
 import { GameProviders, Page, Player } from "narraleaf-react";
@@ -84,7 +84,7 @@ function MyApp() {
 
 ## 3. 过渡动画
 
-上面的组件是静态的。把顶级元素换成 Motion 的 `motion.*` 组件即可添加进入和退出动画。页面路由会让组件保持挂载，直到退出动画完成。
+上面的组件是静态的。把顶级元素换成 Motion 的 `motion.*` 组件即可添加进入和退出动画。页面路由会让组件保持挂载，直到退出动画完成
 
 ```tsx
 import { motion } from "motion/react";
@@ -114,7 +114,7 @@ export default function QuickMenu() {
 
 指南：
 
-- **根级 motion 元素** – 只需将最外层节点设置为 `motion.*`；内部内容可保持普通 JSX。
-- 通过自定义 `initial / animate / exit` 实现淡入、滑动、缩放等效果。
-- 如需更复杂的效果，可把每个按钮包裹在 `motion.button` 中或使用 Motion variants 进行分段动画。
-- NarraLeaf 页面路由已经为 `Page` 内容管理 presence。只有在 `Page` 外自行条件渲染时，才需要额外使用 `<AnimatePresence>`。
+- **根级 motion 元素** – 只需将最外层节点设置为 `motion.*`；内部内容可保持普通 JSX
+- 通过自定义 `initial / animate / exit` 实现淡入、滑动、缩放等效果
+- 如需更复杂的效果，可把每个按钮包裹在 `motion.button` 中或使用 Motion variants 进行分段动画
+- NarraLeaf 页面路由已经为 `Page` 内容管理 presence。只有在 `Page` 外自行条件渲染时，才需要额外使用 `<AnimatePresence>`

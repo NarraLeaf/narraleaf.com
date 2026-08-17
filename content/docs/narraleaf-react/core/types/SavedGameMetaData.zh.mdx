@@ -37,16 +37,16 @@ interface SavedGameMetaData {
 
 故事的哈希值，用于检查存档与故事是否兼容 
 
-> **注意：** 故事哈希值不基于故事内容，而是基于故事的逻辑。
+> **注意：** 故事哈希值不基于故事内容，而是基于故事的逻辑
 >
-> 例如，改变动画的顺序会反映在故事哈希值上，但改变对话内容不会。
+> 例如，改变动画的顺序会反映在故事哈希值上，但改变对话内容不会
 
 ## version
 
-存档格式版本，当前为 `3`。
+存档格式版本，当前为 `3`
 
 - 无此字段 —— 在回溯被持久化之前写入的旧存档（v1）。照常读取，回溯为空
 - `2` —— 携带持久化的回溯历史，参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `history`
 - `3` —— 自 `0.26.0` 起：`elementStates` 只列出状态与剧本所写不同的元素，读档会在应用存档之前重置每一个元素
 
-`0.26.0` 三种都能读取。更旧的引擎无法正确读取 v3 存档，因为它会跳过那次重置 —— 参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `elementStates`。
+`0.26.0` 三种都能读取。更旧的引擎无法正确读取 v3 存档，因为它会跳过那次重置 —— 参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame) 的 `elementStates`

@@ -3,172 +3,172 @@ title: 变量
 description: 声明变量、读取变量、写入变量，以及访问 Persistent 存储与剧情存储的节点
 ---
 
-一张图要碰变量，只能经由这些节点。有哪些作用域、各自活多久、什么能被存档带走，都在[变量](/zh/docs/studio/blueprint/variables)一页；这一页讲的是签名。
+一张图要碰变量，只能经由这些节点。有哪些作用域、各自活多久、什么能被存档带走，都在[变量](/zh/docs/studio/blueprint/variables)一页；这一页讲的是签名
 
 ## 约定
 
-- **`Get Var`和`Set Var`的`value`引脚类型由所选变量投影而来。** 引脚声明成`any`，但在卡片上它会取你在`Variable`里选中的那个变量的类型，编辑器的引脚标签、连线预览和 graph validation 都用这份投影结果。
-- **之后改类型不会动你的连线。** 改掉某个`Var`的 Data type 后，已不再匹配的连线原地保留；graph validation 报告类型不匹配，而不是由编辑器悄悄删掉这条连线。重接哪一根由你决定。
-- **纯不纯决定节点在哪里可用。** `Var`和`Get Var`是纯节点，也是 Variables 分类里唯二能出现在`function`图中的节点。其余都是`event`和`macro`图的执行节点，Persistent 那一对还额外是 latent（会挂起执行）节点，因此也进不了 [Blueprint Value](/zh/docs/studio/blueprint)。
-- **Blueprint Value 不能声明变量。** `widgetValue`宿主根本没有`Var`节点，但它仍然可以用`Get Var`和`Set Var`读写自己够得到的变量。
-- **Scene 与 Saved 这几个节点属于 Story Action 蓝图**，在没有运行中剧情的地方执行会直接失败。
+- **`Get Var`和`Set Var`的`value`引脚类型由所选变量投影而来。** 引脚声明成`any`，但在卡片上它会取你在`Variable`里选中的那个变量的类型，编辑器的引脚标签、连线预览和 graph validation 都用这份投影结果
+- **之后改类型不会动你的连线。** 改掉某个`Var`的 Data type 后，已不再匹配的连线原地保留；graph validation 报告类型不匹配，而不是由编辑器悄悄删掉这条连线。重接哪一根由你决定
+- **纯不纯决定节点在哪里可用。** `Var`和`Get Var`是纯节点，也是 Variables 分类里唯二能出现在`function`图中的节点。其余都是`event`和`macro`图的执行节点，Persistent 那一对还额外是 latent（会挂起执行）节点，因此也进不了 [Blueprint Value](/zh/docs/studio/blueprint)
+- **Blueprint Value 不能声明变量。** `widgetValue`宿主根本没有`Var`节点，但它仍然可以用`Get Var`和`Set Var`读写自己够得到的变量
+- **Scene 与 Saved 这几个节点属于 Story Action 蓝图**，在没有运行中剧情的地方执行会直接失败
 
 ## Var
 
 `blueprint.local.declareVar` · Pure
 
-Var（变量）是一次声明，不是执行链上的一步——也是这一页唯一没有引脚的节点。把它放在画布任意位置即可：运行时会在开始执行前收齐当前蓝图里的每一个`Var`，各个`Variable`下拉里列出的就是这些声明。
+Var（变量）是一次声明，不是执行链上的一步——也是这一页唯一没有引脚的节点。把它放在画布任意位置即可：运行时会在开始执行前收齐当前蓝图里的每一个`Var`，各个`Variable`下拉里列出的就是这些声明
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `name` | 变量名，也就是各个`Variable`下拉里显示的名字。 |
-| `valueType` | Data type：`String`、`Integer`、`Float`、`Boolean`、`JSON`、`Array`、`Timer`、`AnimationToken`、`Any`。 |
-| `defaultValue` | 初始值。它会被深拷贝进变量 store，所以运行时改变量永远不会改到你写下的默认值。 |
+| `name` | 变量名，也就是各个`Variable`下拉里显示的名字|
+| `valueType` | Data type：`String`、`Integer`、`Float`、`Boolean`、`JSON`、`Array`、`Timer`、`AnimationToken`、`Any`|
+| `defaultValue` | 初始值。它会被深拷贝进变量 store，所以运行时改变量永远不会改到你写下的默认值|
 
 <Callout type="info">
-选择`Any`会把 Default 锁成一个禁用的`null`。`Any`变量总是以`null`起步——没有类型可以据以给出一个像样的默认值。读它之前，先用`Set Var`赋一个值。
+选择`Any`会把 Default 锁成一个禁用的`null`。`Any`变量总是以`null`起步——没有类型可以据以给出一个像样的默认值。读它之前，先用`Set Var`赋一个值
 </Callout>
 
 ## Get Var
 
 `blueprint.local.get` · Pure
 
-Get Var（获取变量）读取当前蓝图够得到的变量。它是纯节点，所以完全没有执行引脚：它不是链上的一步，而是一个被读取时才求值的值。
+Get Var（获取变量）读取当前蓝图够得到的变量。它是纯节点，所以完全没有执行引脚：它不是链上的一步，而是一个被读取时才求值的值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | out · data | `any` | 按所选变量的类型投影。 |
+| `value` | out · data | `any` | 按所选变量的类型投影|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `variableId` | 要读取的变量。下拉列出当前蓝图够得到的全部变量；同名项会带上作用域提示。 |
+| `variableId` | 要读取的变量。下拉列出当前蓝图够得到的全部变量；同名项会带上作用域提示|
 
 ## Set Var
 
 `blueprint.local.set`
 
-Set Var（设置变量）写入当前蓝图够得到的变量，然后从`next`继续。
+Set Var（设置变量）写入当前蓝图够得到的变量，然后从`next`继续
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 按所选变量的类型投影。 |
+| `value` | in · data | `any` | 按所选变量的类型投影|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `variableId` | 要写入的变量。 |
+| `variableId` | 要写入的变量|
 
 ## Get Persistent
 
 `blueprint.persistent.get` · Latent
 
-Get Persistent（获取持久化变量）从宿主管理的存储中读取项目级 Persistent 变量。它是 latent 节点，因为那份存储是异步的；也正因如此它是执行节点而不是纯读取——它站在链上，读到结果后把值发到`value`上。该变量还没有存过值时，你拿到的是它在定义中写下的默认值，而不是空值。
+Get Persistent（获取持久化变量）从宿主管理的存储中读取项目级 Persistent 变量。它是 latent 节点，因为那份存储是异步的；也正因如此它是执行节点而不是纯读取——它站在链上，读到结果后把值发到`value`上。该变量还没有存过值时，你拿到的是它在定义中写下的默认值，而不是空值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 已保存的值，或该变量的默认值。 |
+| `value` | out · data | `any` | 已保存的值，或该变量的默认值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `persistentVariableId` | 要读取的 Persistent 变量。 |
+| `persistentVariableId` | 要读取的 Persistent 变量|
 
 ## Set Persistent
 
 `blueprint.persistent.set` · Latent
 
-Set Persistent（设置持久化变量）经宿主管理的存储写入 Persistent 变量，然后从`next`继续。写入是被等待的，所以走到`next`就意味着值已经落盘。
+Set Persistent（设置持久化变量）经宿主管理的存储写入 Persistent 变量，然后从`next`继续。写入是被等待的，所以走到`next`就意味着值已经落盘
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 要保存的值。 |
+| `value` | in · data | `any` | 要保存的值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `persistentVariableId` | 要写入的 Persistent 变量。 |
+| `persistentVariableId` | 要写入的 Persistent 变量|
 
 ## Get Scene Var
 
 `blueprint.scene.get`
 
-Get Scene Var（获取场景变量）从运行中剧情的场景局部存储读取一个 Scene 变量。注意它带执行引脚：和`Get Var`不同，剧情变量读取是链上的一步，`value`只有在`next`之后才有意义。
+Get Scene Var（获取场景变量）从运行中剧情的场景局部存储读取一个 Scene 变量。注意它带执行引脚：和`Get Var`不同，剧情变量读取是链上的一步，`value`只有在`next`之后才有意义
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 该变量的当前值。 |
+| `value` | out · data | `any` | 该变量的当前值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `sceneVariableId` | 要读取的 Scene 变量。 |
+| `sceneVariableId` | 要读取的 Scene 变量|
 
 ## Set Scene Var
 
 `blueprint.scene.set`
 
-Set Scene Var（设置场景变量）写入一个 Scene 变量，然后从`next`继续。
+Set Scene Var（设置场景变量）写入一个 Scene 变量，然后从`next`继续
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 要写入的值。 |
+| `value` | in · data | `any` | 要写入的值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `sceneVariableId` | 要写入的 Scene 变量。 |
+| `sceneVariableId` | 要写入的 Scene 变量|
 
 ## Get Saved Var
 
 `blueprint.saved.get`
 
-Get Saved Var（获取存档变量）从运行中剧情的存档存储读取一个 Saved 变量——也就是存档文件会带走的那一份。
+Get Saved Var（获取存档变量）从运行中剧情的存档存储读取一个 Saved 变量——也就是存档文件会带走的那一份
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 该变量的当前值。 |
+| `value` | out · data | `any` | 该变量的当前值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `savedVariableId` | 要读取的 Saved 变量。 |
+| `savedVariableId` | 要读取的 Saved 变量|
 
 ## Set Saved Var
 
 `blueprint.saved.set`
 
-Set Saved Var（设置存档变量）写入一个 Saved 变量，然后从`next`继续。
+Set Saved Var（设置存档变量）写入一个 Saved 变量，然后从`next`继续
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 要写入的值。 |
+| `value` | in · data | `any` | 要写入的值|
 
 **卡上字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `savedVariableId` | 要写入的 Saved 变量。 |
+| `savedVariableId` | 要写入的 Saved 变量|

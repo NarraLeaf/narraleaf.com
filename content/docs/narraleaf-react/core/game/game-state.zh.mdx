@@ -19,14 +19,14 @@ GameState 由玩家组件创建，可以传递给其他主类，例如 `liveGame
 
 ### audioManager
 
-游戏的音频缓存与播放管理器。
+游戏的音频缓存与播放管理器
 
 ```typescript
 // 抓取并解码一个音源进入音频缓存，但不播放。
 void gameState.audioManager.preload(bgm);
 ```
 
-- `preload(sound: Sound): Promise<void>` - 预热一个音源。自 `0.17.0` 起可用。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此它永远不会 reject。**不要用返回的 Promise 为任何东西把关**：在用户手势满足浏览器自动播放策略之前，音频上下文一直是锁住的，因此它完全可能一直挂着不结算。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#场景的声音同样会被预热)。
+- `preload(sound: Sound): Promise<void>` - 预热一个音源。自 `0.17.0` 起可用。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此它永远不会 reject。**不要用返回的 Promise 为任何东西把关**：在用户手势满足浏览器自动播放策略之前，音频上下文一直是锁住的，因此它完全可能一直挂着不结算。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#场景的声音同样会被预热)
 
 ## 公共方法
 
@@ -35,15 +35,15 @@ void gameState.audioManager.preload(bgm);
 <Steps>
 <Step>
 
-指定要预热资源的场景，但不挂载它、也不执行它的任何动作。
+指定要预热资源的场景，但不挂载它、也不执行它的任何动作
 
 ```typescript
 gameState.preloadScene(scene);   // 也可以传 Story，将使用它的入口场景
 ```
 
-自 `0.17.0` 起，`Player` 会自动注册故事的入口场景——但仅在既没有预加载场景、也没有已挂载场景时才生效，因此先调用这个方法就能保留你自己的选择。详见[预加载](/zh/docs/narraleaf-react/core/game/preload)。
+自 `0.17.0` 起，`Player` 会自动注册故事的入口场景——但仅在既没有预加载场景、也没有已挂载场景时才生效，因此先调用这个方法就能保留你自己的选择。详见[预加载](/zh/docs/narraleaf-react/core/game/preload)
 
-- `arg: Scene | Story` - 要预热的场景，或使用其入口场景的故事。若传入的故事没有入口场景则抛出异常。
+- `arg: Scene | Story` - 要预热的场景，或使用其入口场景的故事。若传入的故事没有入口场景则抛出异常
 - `return: this`
 </Step>
 </Steps>
@@ -53,7 +53,7 @@ gameState.preloadScene(scene);   // 也可以传 Story，将使用它的入口�
 <Steps>
 <Step>
 
-把当前行按住不动。只要还有一个挂起未释放，舞台点击、推进键和跳过键都不起作用。自 `0.27.0` 起可用。
+把当前行按住不动。只要还有一个挂起未释放，舞台点击、推进键和跳过键都不起作用。自 `0.27.0` 起可用
 
 ```typescript
 const release = gameState.suspendAdvance();
@@ -61,9 +61,9 @@ const release = gameState.suspendAdvance();
 release();
 ```
 
-挂起可嵌套：全部释放之后行才恢复。返回的函数可以安全地重复调用。
+挂起可嵌套：全部释放之后行才恢复。返回的函数可以安全地重复调用
 
-在 React 组件里请用 [useSuspendAdvance](/zh/docs/narraleaf-react/player/hooks/useSuspendAdvance)，它随组件取得和释放挂起。
+在 React 组件里请用 [useSuspendAdvance](/zh/docs/narraleaf-react/player/hooks/useSuspendAdvance)，它随组件取得和释放挂起
 
 - `return: () => void` - 释放这次挂起
 </Step>
@@ -74,7 +74,7 @@ release();
 <Steps>
 <Step>
 
-当前是否有东西正按住这一行。自 `0.27.0` 起可用。
+当前是否有东西正按住这一行。自 `0.27.0` 起可用
 
 - `return: boolean`
 </Step>

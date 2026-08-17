@@ -3,9 +3,9 @@ title: Studio API
 description: 插件在编辑器中能触碰到的一切——definePlugin 入口、app 对象、服务、ui 套件与提权能力
 ---
 
-Studio API 是 `narraleaf-studio/plugin` 接口：插件在**编辑器进程**（工作区窗口）中能触碰到的一切。它是插件向 Studio 本身贡献内容的地方——面板、操作、快捷键、蓝图节点元数据、控件、语言包——也是它读取项目资源和自身存储的地方。
+Studio API 是 `narraleaf-studio/plugin` 接口：插件在**编辑器进程**（工作区窗口）中能触碰到的一切。它是插件向 Studio 本身贡献内容的地方——面板、操作、快捷键、蓝图节点元数据、控件、语言包——也是它读取项目资源和自身存储的地方
 
-它是 [运行时接口](/zh/docs/studio/plugin/runtime) 的编辑器侧对应物，后者作用于运行中的游戏。插件的 `studio` 入口对接 Studio API，`runtime` 入口对接游戏。参见 [两个入口](/zh/docs/studio/plugin/create-first-plugin)。
+它是 [运行时接口](/zh/docs/studio/plugin/runtime) 的编辑器侧对应物，后者作用于运行中的游戏。插件的 `studio` 入口对接 Studio API，`runtime` 入口对接游戏。参见 [两个入口](/zh/docs/studio/plugin/create-first-plugin)
 
 ## definePlugin
 
@@ -20,16 +20,16 @@ export default definePlugin({
 });
 ```
 
-`setup(app)` 在工作区窗口加载插件时运行。它可以是异步的。返回一个在卸载时运行的清理函数——不返回也行，因为宿主本来就会追踪每次注册。
+`setup(app)` 在工作区窗口加载插件时运行。它可以是异步的。返回一个在卸载时运行的清理函数——不返回也行，因为宿主本来就会追踪每次注册
 
 ## `app` 对象
 
 | 属性 | 类型 | 说明 |
 | --- | --- | --- |
-| `app.plugin` | `PluginIdentity` | 身份信息：`id`、`name`、`version`、`publisher`。 |
-| `app.manifest` | `NormalizedPluginManifestV2` | 规范化后的清单。 |
-| `app.services` | `PluginServices` | 精选的编辑器 API——下方的各个服务族。 |
-| `app.privileged` | `BoundPrivilegedFacade` | 由清单权限控制的提权能力（文件系统、bash）。 |
+| `app.plugin` | `PluginIdentity` | 身份信息：`id`、`name`、`version`、`publisher`|
+| `app.manifest` | `NormalizedPluginManifestV2` | 规范化后的清单|
+| `app.services` | `PluginServices` | 精选的编辑器 API——下方的各个服务族|
+| `app.privileged` | `BoundPrivilegedFacade` | 由清单权限控制的提权能力（文件系统、bash）|
 
 ## 服务
 
@@ -52,14 +52,14 @@ export default definePlugin({
 
 ## 注册约定
 
-以下约定适用于每个会注册内容的服务。
+以下约定适用于每个会注册内容的服务
 
-- **`register` 返回清理函数。** 每个 `register` / `registerMany` 返回一个 `PluginCleanup`（`() => void | Promise<void>`），它只移除自己注册的内容。`registerMany` 返回覆盖整批的一个清理函数。
-- **卸载会回收一切。** 宿主追踪每次注册，所以即使你从不调用返回的清理函数，卸载插件也会移除它。清理函数是幂等的。
-- **id 带命名空间。** 你注册的任何 id 或类型都必须以你的插件 id 为前缀（`yourname.plugin.thing`）。未加前缀会抛错。
-- **命令式调用返回其自身的值，而非清理函数。** `ui.editors.*`、`ui.notifications.*`、`i18n.format*` 和 `blueprintNodes.notifyDynamicSelectOptionsChanged` 都是操作。
-- **蓝图节点注册返回 `void`。** 节点定义在整个会话期间持续存在——移除会让已打开文档中的节点变成孤儿——所以没有需要清理的东西。
+- **`register` 返回清理函数。** 每个 `register` / `registerMany` 返回一个 `PluginCleanup`（`() => void | Promise<void>`），它只移除自己注册的内容。`registerMany` 返回覆盖整批的一个清理函数
+- **卸载会回收一切。** 宿主追踪每次注册，所以即使你从不调用返回的清理函数，卸载插件也会移除它。清理函数是幂等的
+- **id 带命名空间。** 你注册的任何 id 或类型都必须以你的插件 id 为前缀（`yourname.plugin.thing`）。未加前缀会抛错
+- **命令式调用返回其自身的值，而非清理函数。** `ui.editors.*`、`ui.notifications.*`、`i18n.format*` 和 `blueprintNodes.notifyDynamicSelectOptionsChanged` 都是操作
+- **蓝图节点注册返回 `void`。** 节点定义在整个会话期间持续存在——移除会让已打开文档中的节点变成孤儿——所以没有需要清理的东西
 
 <Callout type="warn">
-插件不在沙箱中运行。Studio API 是一份精选白名单，但一旦清单声明了对应权限，`app.privileged` 就能触及真实的文件系统与 shell。一切都以 Studio 本身的访问权限运行。
+插件不在沙箱中运行。Studio API 是一份精选白名单，但一旦清单声明了对应权限，`app.privileged` 就能触及真实的文件系统与 shell。一切都以 Studio 本身的访问权限运行
 </Callout>

@@ -3,7 +3,7 @@ title: "图像"
 ---
 > 此类继承自 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)
 
-`Image` 用于控制角色的外观显示。它只负责外观，不处理对话——对话由 [Character](/zh/docs/narraleaf-react/core/elements/character) 负责。
+`Image` 用于控制角色的外观显示。它只负责外观，不处理对话——对话由 [Character](/zh/docs/narraleaf-react/core/elements/character) 负责
 
 ## 公共方法
 
@@ -13,7 +13,7 @@ title: "图像"
 <Step>
 
 <Callout type="warning">
-    一个 Image 只能使用标签模式、图层模式或 src 模式中的一种，不能混用。
+    一个 Image 只能使用标签模式、图层模式或 src 模式中的一种，不能混用
 </Callout>
 
 - `config: Partial<IImageUserConfig>` - 参见 [IImageUserConfig](/zh/docs/narraleaf-react/core/types/IImageUserConfig)
@@ -93,14 +93,14 @@ yuko.char(["sad"], new Dissolve({ duration: 300 })); // 带转场
 - **函数** — [LayerResolver](/zh/docs/narraleaf-react/core/types/LayeredDefinition)，根据当前标签派生 src（预加载器不可见，优先使用变体映射）
 - `null` — 不绘制
 
-数组顺序即叠放顺序。`defaults` 为每个组指定一个默认标签。
+数组顺序即叠放顺序。`defaults` 为每个组指定一个默认标签
 
 <Callout type="info">
-    同一图像的所有层应共用一张画布，通过居中对齐。作用于整个图像的效果（转场、darken、opacity 等）会整体施加到图层栈上。
+    同一图像的所有层应共用一张画布，通过居中对齐。作用于整个图像的效果（转场、darken、opacity 等）会整体施加到图层栈上
 </Callout>
 
 <Callout type="warning">
-    跟随一个组的层必须重复该组的完整标签集合。只提供部分标签会声明一个新组，导致冲突。每个组都必须在 `defaults` 中列出一个标签。
+    跟随一个组的层必须重复该组的完整标签集合。只提供部分标签会声明一个新组，导致冲突。每个组都必须在 `defaults` 中列出一个标签
 </Callout>
 
 #### 源文件模式（Src-based）
@@ -126,7 +126,7 @@ const parent = new Image({
 }).wear(child);
 ```
 
-> **注意：** 一个图像只能有一个父图像。
+> **注意：** 一个图像只能有一个父图像
 </Step>
 </Steps>
 
@@ -262,7 +262,7 @@ image.addWearable(childImage);
 <Steps>
 <Step>
 
-`addWearable` 的别名。
+`addWearable` 的别名
 </Step>
 </Steps>
 
@@ -287,6 +287,6 @@ childImage.bindWearable(parentImage);
 <Steps>
 <Step>
 
-`bindWearable` 的别名。
+`bindWearable` 的别名
 </Step>
 </Steps>

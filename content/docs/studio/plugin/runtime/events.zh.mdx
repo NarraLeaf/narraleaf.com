@@ -3,7 +3,7 @@ title: events
 description: 订阅游戏生命周期与故事事件，并检查当前环境是否可能触发某个事件
 ---
 
-`app.game.events` 让插件不必接进图里也能对运行中的游戏做出反应——预加载完成、一句台词结束、玩家做出选择、窗口被关闭。
+`app.game.events` 让插件不必接进图里也能对运行中的游戏做出反应——预加载完成、一句台词结束、玩家做出选择、窗口被关闭
 
 ```json
 {
@@ -20,7 +20,7 @@ description: 订阅游戏生命周期与故事事件，并检查当前环境是�
 | `on` | `<K>(event: K, listener: (payload) => void) => RuntimePluginCleanup` |
 | `available` | `(event) => boolean` |
 
-`on` 返回一个移除该订阅的清理函数。宿主同样会追踪每个监听器，所以出错的插件不会把它们泄漏掉。
+`on` 返回一个移除该订阅的清理函数。宿主同样会追踪每个监听器，所以出错的插件不会把它们泄漏掉
 
 ```ts
 export default defineRuntimePlugin({
@@ -36,27 +36,27 @@ export default defineRuntimePlugin({
 
 | 事件 | 负载 | 说明 |
 | --- | --- | --- |
-| `preloadComplete` | `void` | 第一轮预加载完成。**会重放**——订阅晚了也照样触发。 |
-| `firstSceneReady` | `void` | 第一个场景已挂载并完成首次绘制。**会重放**。 |
-| `sceneEnter` | `{ sceneId: string \| null }` | 一个场景组件**挂载**了。见下方警告。 |
-| `sceneExit` | `{ sceneId: string \| null }` | 对应的卸载。 |
-| `dialogueEnd` | `void` | 一句对白显示完毕。 |
-| `choiceMade` | `{ text: string }` | 玩家选了一个选项。 |
-| `characterPrompt` | `{ character: string \| null; text: string }` | 显示了一句角色台词。 |
-| `gameEnd` | `void` | 动作栈在存在存档上下文的情况下清空。 |
-| `beforeRestore` | `void` | 即将恢复一个存档。 |
-| `afterRestore` | `void` | 存档已恢复。 |
-| `fullscreenChanged` | `boolean` | 新的全屏状态。 |
-| `closeRequested` | `void` | 玩家请求关闭窗口。**仅桌面。** |
-| `saveWritten` | `{ id: string }` | 写入了一个存档槽位。 |
+| `preloadComplete` | `void` | 第一轮预加载完成。**会重放**——订阅晚了也照样触发|
+| `firstSceneReady` | `void` | 第一个场景已挂载并完成首次绘制。**会重放**|
+| `sceneEnter` | `{ sceneId: string \| null }` | 一个场景组件**挂载**了。见下方警告|
+| `sceneExit` | `{ sceneId: string \| null }` | 对应的卸载|
+| `dialogueEnd` | `void` | 一句对白显示完毕|
+| `choiceMade` | `{ text: string }` | 玩家选了一个选项|
+| `characterPrompt` | `{ character: string \| null; text: string }` | 显示了一句角色台词|
+| `gameEnd` | `void` | 动作栈在存在存档上下文的情况下清空|
+| `beforeRestore` | `void` | 即将恢复一个存档|
+| `afterRestore` | `void` | 存档已恢复|
+| `fullscreenChanged` | `boolean` | 新的全屏状态|
+| `closeRequested` | `void` | 玩家请求关闭窗口。**仅桌面**|
+| `saveWritten` | `{ id: string }` | 写入了一个存档槽位|
 
 <Callout type="warn">
-`sceneEnter` / `sceneExit` 是**渲染**事件，不是“故事走到了这个场景”。一次重新挂载会为玩家根本没有再次进入的场景再触发一遍 `sceneEnter`。如果你要的是故事进度，请从故事本身（一个蓝图节点）驱动，而不是从挂载驱动。
+`sceneEnter` / `sceneExit` 是**渲染**事件，不是“故事走到了这个场景”。一次重新挂载会为玩家根本没有再次进入的场景再触发一遍 `sceneEnter`。如果你要的是故事进度，请从故事本身（一个蓝图节点）驱动，而不是从挂载驱动
 </Callout>
 
 ## 检查可用性，不要假定有外壳
 
-有些事件在某些环境里根本不可能存在。`closeRequested` 就是最典型的一个：Web 导出没有窗口可关，所以在那里注册的监听器永远不会触发——这种 bug 只会在一个目标上暴露出来。
+有些事件在某些环境里根本不可能存在。`closeRequested` 就是最典型的一个：Web 导出没有窗口可关，所以在那里注册的监听器永远不会触发——这种 bug 只会在一个目标上暴露出来
 
 ```ts
 if (app.game.events?.available("closeRequested")) {
@@ -67,11 +67,11 @@ if (app.game.events?.available("closeRequested")) {
 ```
 
 <Callout type="info">
-`closeRequested` 的监听器是**观察者，不是否决权**。插件会被并行询问，且彼此隔离；从你的监听器里抛错会被读作“无异议”，而不是取消关闭的请求。插件做什么都无法让窗口留下来。
+`closeRequested` 的监听器是**观察者，不是否决权**。插件会被并行询问，且彼此隔离；从你的监听器里抛错会被读作“无异议”，而不是取消关闭的请求。插件做什么都无法让窗口留下来
 </Callout>
 
 ## 重放与实时
 
-`preloadComplete` 和 `firstSceneReady` 会重放：如果插件在它们已经发生之后才订阅，监听器会立即触发。其余所有事件都只是实时的——事后注册的监听器听不到任何过去的事。
+`preloadComplete` 和 `firstSceneReady` 会重放：如果插件在它们已经发生之后才订阅，监听器会立即触发。其余所有事件都只是实时的——事后注册的监听器听不到任何过去的事
 
-这一点很重要，因为 `setup` 可以是异步的。一个先 await 再订阅的插件会错过这期间触发的实时事件，但仍然能收到那两个会重放的事件。
+这一点很重要，因为 `setup` 可以是异步的。一个先 await 再订阅的插件会错过这期间触发的实时事件，但仍然能收到那两个会重放的事件

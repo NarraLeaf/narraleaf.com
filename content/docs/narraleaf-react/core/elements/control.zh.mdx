@@ -1,7 +1,7 @@
 ﻿---
 title: "流程控制"
 ---
-`Control` 提供流程控制的实用方法。
+`Control` 提供流程控制的实用方法
 
 ```typescript
 Control.do([
@@ -160,7 +160,7 @@ scene.action([
 <Steps>
 <Step>
 
-暂停执行，等待用户点击舞台（不含对话框、菜单等 GUI 元素）。类似于在 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 中插入无时长的暂停。
+暂停执行，等待用户点击舞台（不含对话框、菜单等 GUI 元素）。类似于在 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence) 中插入无时长的暂停
 
 适用于 ADV 模式中创建"点击继续"的停顿：
 
@@ -181,9 +181,9 @@ scene.action([
 <Steps>
 <Step>
 
-在当前场景内标记一个跳转点，供 [`jump`](#jump) 使用。label 运行时不可见，仅作为跳转目标。
+在当前场景内标记一个跳转点，供 [`jump`](#jump) 使用。label 运行时不可见，仅作为跳转目标
 
-label 名称仅在当前场景内有效，不同场景可复用同名。同一场景内重复声明会导致构建失败。
+label 名称仅在当前场景内有效，不同场景可复用同名。同一场景内重复声明会导致构建失败
 
 ```typescript
 scene.action([
@@ -202,11 +202,11 @@ scene.action([
 <Steps>
 <Step>
 
-跳转到**同一场景**内的某个 [`label`](#label) 并继续播放。
+跳转到**同一场景**内的某个 [`label`](#label) 并继续播放
 
-与 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 不同，`Control.jump` 不会卸载或重新初始化场景，只移动播放头。目标必须是同一场景内已声明的 label。
+与 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 不同，`Control.jump` 不会卸载或重新初始化场景，只移动播放头。目标必须是同一场景内已声明的 label
 
-`Control.jump` 会重定向主剧本流程，应放在分支末尾（如菜单选项）。若要循环场景，请通过菜单或条件驱动，而非从循环体中跳出。
+`Control.jump` 会重定向主剧本流程，应放在分支末尾（如菜单选项）。若要循环场景，请通过菜单或条件驱动，而非从循环体中跳出
 
 ```typescript
 scene.action([

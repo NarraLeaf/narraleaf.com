@@ -3,74 +3,74 @@ title: 数学
 description: 四则运算、取整、随机数、布尔逻辑与比较——全部纯值节点
 ---
 
-Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。创建浮窗把 Boolean 与 Compare 两个节点组也并入本分类，因此三者都写在这一页。
+Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。创建浮窗把 Boolean 与 Compare 两个节点组也并入本分类，因此三者都写在这一页
 
 ## 约定
 
-- **本页每个节点都是`Pure`。** 它们都没有执行引脚。下游读取`result`时才计算，并且在`event`、`function`和`macro`图中都合法，也可用于 Blueprint Value。
-- **不缓存。** 每次读取都会重新算一遍，所以从同一个节点拉出两条连线就会求值两次。这对`+`无所谓，对`Random Float`就不是。
-- **接了线就不看卡片。** 说明栏标注「接受卡片内联字面量」的引脚会在节点卡上画出输入框，而这个输入框只在该引脚没有连线时才被读取。
-- **凡不是有限数字，一律按 NaN 处理。** 数值引脚原样接受有限数字，把`true`和`false`当作`1`和`0`，并解析数字字符串。其余一切——`null`、留空的卡片输入框、`Infinity`——都是 NaN，而拿到 NaN 的节点输出 NaN。少接一个操作数，它下游的每个结果都会变成 NaN。
-- **`integer`能流入`float`，反过来不行。** `Round`、`Floor`和`Ceil`输出`integer`，可以接到任何`float`输入；`float`输出则接不进`integer`输入。两者都能接入`string`输入，算出的数字就是这样送进[`Log`](/zh/docs/studio/blueprint/nodes/debug)的。
+- **本页每个节点都是`Pure`。** 它们都没有执行引脚。下游读取`result`时才计算，并且在`event`、`function`和`macro`图中都合法，也可用于 Blueprint Value
+- **不缓存。** 每次读取都会重新算一遍，所以从同一个节点拉出两条连线就会求值两次。这对`+`无所谓，对`Random Float`就不是
+- **接了线就不看卡片。** 说明栏标注「接受卡片内联字面量」的引脚会在节点卡上画出输入框，而这个输入框只在该引脚没有连线时才被读取
+- **凡不是有限数字，一律按 NaN 处理。** 数值引脚原样接受有限数字，把`true`和`false`当作`1`和`0`，并解析数字字符串。其余一切——`null`、留空的卡片输入框、`Infinity`——都是 NaN，而拿到 NaN 的节点输出 NaN。少接一个操作数，它下游的每个结果都会变成 NaN
+- **`integer`能流入`float`，反过来不行。** `Round`、`Floor`和`Ceil`输出`integer`，可以接到任何`float`输入；`float`输出则接不进`integer`输入。两者都能接入`string`输入，算出的数字就是这样送进[`Log`](/zh/docs/studio/blueprint/nodes/debug)的
 
 ## 四则运算
 
-两个操作数进，一个数字出。
+两个操作数进，一个数字出
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `float` | 接受卡片内联字面量。 |
-| `b` | in · data | `float` | 接受卡片内联字面量。 |
+| `a` | in · data | `float` | 接受卡片内联字面量|
+| `b` | in · data | `float` | 接受卡片内联字面量|
 | `result` | out · data | `float` | |
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `+` | `blueprint.math.add` | `a`加`b`，以及后续追加的操作数。 |
-| `−` | `blueprint.math.subtract` | `a`减`b`。 |
-| `×` | `blueprint.math.multiply` | `a`乘`b`。 |
-| `÷` | `blueprint.math.divide` | `a`除以`b`。 |
-| `Modulo` | `blueprint.math.modulo` | `a`除以`b`的余数，符号跟随`a`：`−7`与`3`得到`−1`，不是`2`。 |
+| `+` | `blueprint.math.add` | `a`加`b`，以及后续追加的操作数|
+| `−` | `blueprint.math.subtract` | `a`减`b`|
+| `×` | `blueprint.math.multiply` | `a`乘`b`|
+| `÷` | `blueprint.math.divide` | `a`除以`b`|
+| `Modulo` | `blueprint.math.modulo` | `a`除以`b`的余数，符号跟随`a`：`−7`与`3`得到`−1`，不是`2`|
 
-五个节点中只有`+`能接受两个以上的操作数。卡片上的添加输入控件会追加`in_1`、`in_2`……，标签从`Input 3`开始，节点会把它拥有的每个数据输入求和。上表只列出它初始就有的两个引脚。
+五个节点中只有`+`能接受两个以上的操作数。卡片上的添加输入控件会追加`in_1`、`in_2`……，标签从`Input 3`开始，节点会把它拥有的每个数据输入求和。上表只列出它初始就有的两个引脚
 
 <Callout type="warn">
-`÷`不会检查除数。除以零得到`Infinity`或`−Infinity`，`0 ÷ 0`得到 NaN。两者都活不过下一个节点——本页任何地方都把非有限数字读作 NaN——所以问题会在离那次除法好几个节点之外才暴露出来。先把除数和`0`比一次。
+`÷`不会检查除数。除以零得到`Infinity`或`−Infinity`，`0 ÷ 0`得到 NaN。两者都活不过下一个节点——本页任何地方都把非有限数字读作 NaN——所以问题会在离那次除法好几个节点之外才暴露出来。先把除数和`0`比一次
 </Callout>
 
 ## 取整与符号
 
-一个操作数进，一个数字出。
+一个操作数进，一个数字出
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `float` | 接受卡片内联字面量。 |
-| `result` | out · data | `float` 或 `integer` | `Round`、`Floor`和`Ceil`输出`integer`；另外三个输出`float`。 |
+| `value` | in · data | `float` | 接受卡片内联字面量|
+| `result` | out · data | `float` 或 `integer` | `Round`、`Floor`和`Ceil`输出`integer`；另外三个输出`float`|
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `+1` | `blueprint.math.increment` | `value`加一。 |
-| `−1` | `blueprint.math.decrement` | `value`减一。 |
-| `Abs` | `blueprint.math.abs` | `value`的绝对值，去掉符号。 |
-| `Round` | `blueprint.math.round` | 最接近的整数。恰好一半时向上取，所以`2.5`得`3`，`−2.5`得`−2`。 |
-| `Floor` | `blueprint.math.floor` | 不大于`value`的最大整数。 |
-| `Ceil` | `blueprint.math.ceil` | 不小于`value`的最小整数。 |
+| `+1` | `blueprint.math.increment` | `value`加一|
+| `−1` | `blueprint.math.decrement` | `value`减一|
+| `Abs` | `blueprint.math.abs` | `value`的绝对值，去掉符号|
+| `Round` | `blueprint.math.round` | 最接近的整数。恰好一半时向上取，所以`2.5`得`3`，`−2.5`得`−2`|
+| `Floor` | `blueprint.math.floor` | 不大于`value`的最大整数|
+| `Ceil` | `blueprint.math.ceil` | 不小于`value`的最小整数|
 
-`+1`和`−1`只负责算，不负责存。让计数器前进仍然要`Get Var`接`+1`再接`Set Var`——见[变量](/zh/docs/studio/blueprint/variables)。
+`+1`和`−1`只负责算，不负责存。让计数器前进仍然要`Get Var`接`+1`再接`Set Var`——见[变量](/zh/docs/studio/blueprint/variables)
 
 ## Min 与 Max
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `float` | 接受卡片内联字面量。 |
-| `b` | in · data | `float` | 接受卡片内联字面量。 |
+| `a` | in · data | `float` | 接受卡片内联字面量|
+| `b` | in · data | `float` | 接受卡片内联字面量|
 | `result` | out · data | `float` | |
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `Min` | `blueprint.math.min` | 所有操作数中的最小值。 |
-| `Max` | `blueprint.math.max` | 所有操作数中的最大值。 |
+| `Min` | `blueprint.math.min` | 所有操作数中的最小值|
+| `Max` | `blueprint.math.max` | 所有操作数中的最大值|
 
-Min（最小值）与 Max（最大值）追加操作数的方式和`+`一样：添加输入控件会追加`in_1`、`in_2`……，比较覆盖节点上的每个数据输入，而不只是上表那两个。只要其中任何一个操作数不是有限数字，节点就输出 NaN——它不会丢掉那个坏操作数再比较剩下的。
+Min（最小值）与 Max（最大值）追加操作数的方式和`+`一样：添加输入控件会追加`in_1`、`in_2`……，比较覆盖节点上的每个数据输入，而不只是上表那两个。只要其中任何一个操作数不是有限数字，节点就输出 NaN——它不会丢掉那个坏操作数再比较剩下的
 
 ## Random Float
 
@@ -78,11 +78,11 @@ Min（最小值）与 Max（最大值）追加操作数的方式和`+`一样：�
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `min` | in · data | `float` | 接受卡片内联字面量。不是数字时回退为`0`。 |
-| `max` | in · data | `float` | 接受卡片内联字面量。不是数字时回退为`1`。 |
+| `min` | in · data | `float` | 接受卡片内联字面量。不是数字时回退为`0`|
+| `max` | in · data | `float` | 接受卡片内联字面量。不是数字时回退为`1`|
 | `result` | out · data | `float` | |
 
-Random Float（随机浮点数）在`[min, max)`上均匀取值：`min`可能取到，`max`取不到。两个边界会先排序再使用，所以把较大的数接进`min`得到的仍是同一个区间，既不报错也不会变成空区间。
+Random Float（随机浮点数）在`[min, max)`上均匀取值：`min`可能取到，`max`取不到。两个边界会先排序再使用，所以把较大的数接进`min`得到的仍是同一个区间，既不报错也不会变成空区间
 
 ## Random Integer
 
@@ -90,38 +90,38 @@ Random Float（随机浮点数）在`[min, max)`上均匀取值：`min`可能取
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `min` | in · data | `integer` | 接受卡片内联字面量。不是数字时回退为`0`。 |
-| `max` | in · data | `integer` | 接受卡片内联字面量。不是数字时回退为`1`。 |
+| `min` | in · data | `integer` | 接受卡片内联字面量。不是数字时回退为`0`|
+| `max` | in · data | `integer` | 接受卡片内联字面量。不是数字时回退为`1`|
 | `result` | out · data | `integer` | |
 
-Random Integer（随机整数）在`min`到`max`之间的整数上均匀取值，**两端都包含**——`1`和`6`就是一颗骰子，不是五面的。边界先排序，再向内收成整数（`min`向上，`max`向下）；如果收完中间什么都不剩，结果就是向上取整后的`min`。
+Random Integer（随机整数）在`min`到`max`之间的整数上均匀取值，**两端都包含**——`1`和`6`就是一颗骰子，不是五面的。边界先排序，再向内收成整数（`min`向上，`max`向下）；如果收完中间什么都不剩，结果就是向上取整后的`min`
 
 <Callout type="info">
-两个随机节点都不接受种子，结果也不会被记住。每次读取都重新掷一次：一个`Random Integer`接到两个引脚上，两边拿到的是不同的数字，过一会儿再读又是另一个。同一个数字要用两次，就先写进变量。
+两个随机节点都不接受种子，结果也不会被记住。每次读取都重新掷一次：一个`Random Integer`接到两个引脚上，两边拿到的是不同的数字，过一会儿再读又是另一个。同一个数字要用两次，就先写进变量
 </Callout>
 
 ## Boolean
 
-这里的输入是`boolean`，不接受卡片字面量，因此两个操作数都必须接线；没接线的布尔引脚读作`false`。
+这里的输入是`boolean`，不接受卡片字面量，因此两个操作数都必须接线；没接线的布尔引脚读作`false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `boolean` | 在`Not`上标签为`Value`。 |
-| `b` | in · data | `boolean` | `Not`没有这个引脚。 |
+| `a` | in · data | `boolean` | 在`Not`上标签为`Value`|
+| `b` | in · data | `boolean` | `Not`没有这个引脚|
 | `result` | out · data | `boolean` | |
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `And` | `blueprint.boolean.and` | 两个操作数都为真时为真。 |
-| `Or` | `blueprint.boolean.or` | 任意一个为真时为真。 |
-| `Not` | `blueprint.boolean.not` | `a`取反。 |
-| `Xor` | `blueprint.boolean.xor` | 恰好一个为真时为真。 |
+| `And` | `blueprint.boolean.and` | 两个操作数都为真时为真|
+| `Or` | `blueprint.boolean.or` | 任意一个为真时为真|
+| `Not` | `blueprint.boolean.not` | `a`取反|
+| `Xor` | `blueprint.boolean.xor` | 恰好一个为真时为真|
 
-非布尔输入会被转换，而不是被拒绝。有限的非零数字为真，`0`为假，`Infinity`为假。字符串先去掉两端空白再忽略大小写匹配：`"true"`、`"1"`、`"yes"`为真；`""`、`"false"`、`"0"`、`"no"`为假；其余非空字符串都为真。
+非布尔输入会被转换，而不是被拒绝。有限的非零数字为真，`0`为假，`Infinity`为假。字符串先去掉两端空白再忽略大小写匹配：`"true"`、`"1"`、`"yes"`为真；`""`、`"false"`、`"0"`、`"no"`为假；其余非空字符串都为真
 
 ## Compare
 
-Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 的`===`和`!==`比较，不做任何转换。数字`1`和字符串`"1"`不相等；两个分别构造、内容相同的数组也不相等——被检验的是同一性。
+Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 的`===`和`!==`比较，不做任何转换。数字`1`和字符串`"1"`不相等；两个分别构造、内容相同的数组也不相等——被检验的是同一性
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -131,47 +131,47 @@ Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `Equal` | `blueprint.compare.equal` | `a`与`b`严格相等时为真。 |
-| `Not Equal` | `blueprint.compare.notEqual` | 不相等时为真。 |
+| `Equal` | `blueprint.compare.equal` | `a`与`b`严格相等时为真|
+| `Not Equal` | `blueprint.compare.notEqual` | 不相等时为真|
 
-两个引脚都不接受卡片字面量，而没接线的引脚根本解析不出值——于是两个引脚都空着的`Equal`是拿「什么都没有」和「什么都没有」比，报告`true`。两边都要接线。
+两个引脚都不接受卡片字面量，而没接线的引脚根本解析不出值——于是两个引脚都空着的`Equal`是拿「什么都没有」和「什么都没有」比，报告`true`。两边都要接线
 
-四个数值比较节点用的是`float`，转换规则和本页其余部分一致。
+四个数值比较节点用的是`float`，转换规则和本页其余部分一致
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `float` | 接受卡片内联字面量。 |
-| `b` | in · data | `float` | 接受卡片内联字面量。 |
+| `a` | in · data | `float` | 接受卡片内联字面量|
+| `b` | in · data | `float` | 接受卡片内联字面量|
 | `result` | out · data | `boolean` | |
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `Greater Than` | `blueprint.compare.greaterThan` | `a`大于`b`。 |
-| `Greater Than Or Equal` | `blueprint.compare.greaterThanOrEqual` | `a`大于或等于`b`。 |
-| `Less Than` | `blueprint.compare.lessThan` | `a`小于`b`。 |
-| `Less Than Or Equal` | `blueprint.compare.lessThanOrEqual` | `a`小于或等于`b`。 |
+| `Greater Than` | `blueprint.compare.greaterThan` | `a`大于`b`|
+| `Greater Than Or Equal` | `blueprint.compare.greaterThanOrEqual` | `a`大于或等于`b`|
+| `Less Than` | `blueprint.compare.lessThan` | `a`小于`b`|
+| `Less Than Or Equal` | `blueprint.compare.lessThanOrEqual` | `a`小于或等于`b`|
 
-只要有一侧解析不成有限数字，这四个都输出`false`。此时一个比较和它的反面同时为假，所以绝不要把其中一个当成另一个的取反：要取反就用`Not`，而不是换成相反的那个节点。
+只要有一侧解析不成有限数字，这四个都输出`false`。此时一个比较和它的反面同时为假，所以绝不要把其中一个当成另一个的取反：要取反就用`Not`，而不是换成相反的那个节点
 
 ## 符号比较
 
-更早的一套比较节点，因为已有的图还在用，所以仍然注册着。形状和数值 Compare 节点相同，规则不同。
+更早的一套比较节点，因为已有的图还在用，所以仍然注册着。形状和数值 Compare 节点相同，规则不同
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `float` | 接受卡片内联字面量。 |
-| `b` | in · data | `float` | 接受卡片内联字面量。 |
+| `a` | in · data | `float` | 接受卡片内联字面量|
+| `b` | in · data | `float` | 接受卡片内联字面量|
 | `result` | out · data | `boolean` | |
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `=` | `blueprint.math.equal` | 两个数字相等。 |
-| `≠` | `blueprint.math.notEqual` | 两个数字不相等。 |
-| `<` | `blueprint.math.less` | `a`小于`b`。 |
-| `≤` | `blueprint.math.lessOrEqual` | `a`小于或等于`b`。 |
-| `>` | `blueprint.math.greater` | `a`大于`b`。 |
-| `≥` | `blueprint.math.greaterOrEqual` | `a`大于或等于`b`。 |
+| `=` | `blueprint.math.equal` | 两个数字相等|
+| `≠` | `blueprint.math.notEqual` | 两个数字不相等|
+| `<` | `blueprint.math.less` | `a`小于`b`|
+| `≤` | `blueprint.math.lessOrEqual` | `a`小于或等于`b`|
+| `>` | `blueprint.math.greater` | `a`大于`b`|
+| `≥` | `blueprint.math.greaterOrEqual` | `a`大于或等于`b`|
 
-两个操作数都会先转成数字，所以`=`认为数字`1`和字符串`"1"`相等，而`Equal`不认。按你要问的问题来选：数值是否相等用`=`，是否是同一个值用`Equal`。
+两个操作数都会先转成数字，所以`=`认为数字`1`和字符串`"1"`相等，而`Equal`不认。按你要问的问题来选：数值是否相等用`=`，是否是同一个值用`Equal`
 
-有一侧不是数字时，`≠`输出`true`，其余五个输出`false`。
+有一侧不是数字时，`≠`输出`true`，其余五个输出`false`

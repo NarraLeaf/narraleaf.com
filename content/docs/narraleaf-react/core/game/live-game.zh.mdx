@@ -1,7 +1,7 @@
 ﻿---
 title: "LiveGame"
 ---
-LiveGame 是代表游戏当前状态的主类。
+LiveGame 是代表游戏当前状态的主类
 
 ## 公共属性
 
@@ -22,7 +22,7 @@ LiveGame 是代表游戏当前状态的主类。
 
 返回 [Storable](/zh/docs/narraleaf-react/core/game/storable) 实例
 
-在整个 `LiveGame` 的生命周期内始终是同一个实例——`newGame()` 与 `deserialize()` 重建的是其中的命名空间，而不是存储本身；这正是[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)中建立的订阅能够在这两种情况下存活的原因。
+在整个 `LiveGame` 的生命周期内始终是同一个实例——`newGame()` 与 `deserialize()` 重建的是其中的命名空间，而不是存储本身；这正是[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)中建立的订阅能够在这两种情况下存活的原因
 
 - `return: Storable` - [Storable](/zh/docs/narraleaf-react/core/game/storable)
 </Step>
@@ -265,11 +265,11 @@ useEffect(() => {
 <Steps>
 <Step>
 
-获取游戏历史。这个方法用于创建回溯。
+获取游戏历史。这个方法用于创建回溯
 
-回溯历史是玩家已读过的每一行，直到并包含游戏当前所在的那一行。自存档格式 v2 起它会被持久化，因此 `deserialize` 之后本方法会立即返回完整历史 —— 读档后的游戏不再从空回溯开始。
+回溯历史是玩家已读过的每一行，直到并包含游戏当前所在的那一行。自存档格式 v2 起它会被持久化，因此 `deserialize` 之后本方法会立即返回完整历史 —— 读档后的游戏不再从空回溯开始
 
-在 [undo](#undo) 回退之后，播放头之外的那些行**不在**这里。它们是玩家可以再次踏入的未来，由 [getFuture](#getfuture) 返回 —— 把它们列进回溯，等于展示尚未发生的事。
+在 [undo](#undo) 回退之后，播放头之外的那些行**不在**这里。它们是玩家可以再次踏入的未来，由 [getFuture](#getfuture) 返回 —— 把它们列进回溯，等于展示尚未发生的事
 
 ```typescript
 import { useLiveGame, GameHistory } from "narraleaf-react";
@@ -301,12 +301,12 @@ return (
 );
 ```
 
-条目的 `token` 会跨存档与回退持续指向同一行，因此回溯界面可以先持有它、之后再用。
+条目的 `token` 会跨存档与回退持续指向同一行，因此回溯界面可以先持有它、之后再用
 
 - 返回 `GameHistory[]` - 游戏历史，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
 
 <Callout type="info">
-    在 `0.26.0` 之前，每次重建回溯都会为所有条目重新生成令牌，因此读档或恢复某一行会静默地让调用方持有的所有令牌失效 —— 回溯界面的按钮在重新读取列表之前都会失灵，向同一行恢复两次时第二次必定失败。现在令牌会被写入存档，并在读回时保留。更早写出的存档不携带令牌，其条目仍照旧获得新令牌。
+    在 `0.26.0` 之前，每次重建回溯都会为所有条目重新生成令牌，因此读档或恢复某一行会静默地让调用方持有的所有令牌失效 —— 回溯界面的按钮在重新读取列表之前都会失灵，向同一行恢复两次时第二次必定失败。现在令牌会被写入存档，并在读回时保留。更早写出的存档不携带令牌，其条目仍照旧获得新令牌
 </Callout>
 </Step>
 </Steps>
@@ -316,9 +316,9 @@ return (
 <Steps>
 <Step>
 
-播放头之前方的那些行：已经读过、被 [undo](#undo) 回退过、并且可以用 [redo](#redo) 再次抵达。
+播放头之前方的那些行：已经读过、被 [undo](#undo) 回退过、并且可以用 [redo](#redo) 再次抵达
 
-正常游玩期间为空，刚读档之后也为空 —— 在回退之后写出的存档只携带到那一行为止的回溯，之外的一概不带，因此读取它时开局便无处可向前。这正是「在过去存档」的含义。
+正常游玩期间为空，刚读档之后也为空 —— 在回退之后写出的存档只携带到那一行为止的回溯，之外的一概不带，因此读取它时开局便无处可向前。这正是「在过去存档」的含义
 
 ```typescript
 const liveGame = useLiveGame();
@@ -330,7 +330,7 @@ const future = liveGame.getFuture();
 - 返回 `GameHistory[]` - 前方的那些行，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
 
 <Callout type="info">
-    自 `0.26.0` 起可用。
+    自 `0.26.0` 起可用
 </Callout>
 </Step>
 </Steps>
@@ -340,7 +340,7 @@ const future = liveGame.getFuture();
 <Steps>
 <Step>
 
-当前这一行之前是否还有可以回退到的行。
+当前这一行之前是否还有可以回退到的行
 
 ```typescript
 <button disabled={!liveGame.canUndo()} onClick={() => liveGame.undo()}>
@@ -351,7 +351,7 @@ const future = liveGame.getFuture();
 - 返回 `boolean`
 
 <Callout type="info">
-    自 `0.26.0` 起可用。
+    自 `0.26.0` 起可用
 </Callout>
 </Step>
 </Steps>
@@ -361,7 +361,7 @@ const future = liveGame.getFuture();
 <Steps>
 <Step>
 
-前方是否有被回退越过、正在等待的行。
+前方是否有被回退越过、正在等待的行
 
 ```typescript
 <button disabled={!liveGame.canRedo()} onClick={() => liveGame.redo()}>
@@ -372,7 +372,7 @@ const future = liveGame.getFuture();
 - 返回 `boolean`
 
 <Callout type="info">
-    自 `0.26.0` 起可用。
+    自 `0.26.0` 起可用
 </Callout>
 </Step>
 </Steps>
@@ -382,22 +382,22 @@ const future = liveGame.getFuture();
 <Steps>
 <Step>
 
-回退一行。
+回退一行
 
 ```typescript
 liveGame.undo();
 ```
 
-- 返回 `boolean` - 若游戏发生了移动则为 `true`；若这已经是第一行，或那一行没有快照，则为 `false`。
+- 返回 `boolean` - 若游戏发生了移动则为 `true`；若这已经是第一行，或那一行没有快照，则为 `false`
 
-向后与向前是同一套机制：每一行在被抵达时都会记录一份自包含的游戏快照，向任一方向移动都是恢复目标行的那份快照。
+向后与向前是同一套机制：每一行在被抵达时都会记录一份自包含的游戏快照，向任一方向移动都是恢复目标行的那份快照
 
-**读档之后依然可以回退。** 在 `0.26.0` 之前，`undo` 只会遍历一个保存在内存里的闭包栈。闭包无法写进文件，因此读档之后玩家面对的回溯是退不回去的 —— 按钮在那里，但什么也不会发生。只要活的闭包栈还够得着目标行，它仍然是首选路径，正因为它回退时不会惊动任何东西：音乐照常播放，进行中的过渡不受打扰，舞台也不会被重建。栈够不着的地方由快照接手，于是那道边界不复存在。
+**读档之后依然可以回退。** 在 `0.26.0` 之前，`undo` 只会遍历一个保存在内存里的闭包栈。闭包无法写进文件，因此读档之后玩家面对的回溯是退不回去的 —— 按钮在那里，但什么也不会发生。只要活的闭包栈还够得着目标行，它仍然是首选路径，正因为它回退时不会惊动任何东西：音乐照常播放，进行中的过渡不受打扰，舞台也不会被重建。栈够不着的地方由快照接手，于是那道边界不复存在
 
-**再往前读会保留前方的内容。** 被回退离开的那一行不会被丢弃。回退三行后再往前读，走的是同样的三行而不是覆盖它们，因此此前读过的其余部分仍然在前方。只有当故事走向别处时 —— 选择的另一侧 —— 未来才会被丢弃，因为那段未来已不再由当前所在之处推出。
+**再往前读会保留前方的内容。** 被回退离开的那一行不会被丢弃。回退三行后再往前读，走的是同样的三行而不是覆盖它们，因此此前读过的其余部分仍然在前方。只有当故事走向别处时 —— 选择的另一侧 —— 未来才会被丢弃，因为那段未来已不再由当前所在之处推出
 
 <Callout type="info">
-    **`0.26.0` 的签名变更。** `undo()` 不再接受动作 id；一行由它的令牌通过 [restoreToHistory](#restoretohistory) 指定。无处可去时它返回 `false`，而不再抛出异常。
+    **`0.26.0` 的签名变更。** `undo()` 不再接受动作 id；一行由它的令牌通过 [restoreToHistory](#restoretohistory) 指定。无处可去时它返回 `false`，而不再抛出异常
 </Callout>
 </Step>
 </Steps>
@@ -407,18 +407,18 @@ liveGame.undo();
 <Steps>
 <Step>
 
-向前一行，踏入此前被回退越过的那一行。
+向前一行，踏入此前被回退越过的那一行
 
 ```typescript
 liveGame.redo();
 ```
 
-- 返回 `boolean` - 若游戏发生了移动则为 `true`；若前方没有内容、或它没有快照，则为 `false`。
+- 返回 `boolean` - 若游戏发生了移动则为 `true`；若前方没有内容、或它没有快照，则为 `false`
 
-它只能抵达玩家已经读过的行：重放的是记录下来的未来，而不是把故事继续跑下去。要越过未来的末端继续，让游戏照常前进即可。
+它只能抵达玩家已经读过的行：重放的是记录下来的未来，而不是把故事继续跑下去。要越过未来的末端继续，让游戏照常前进即可
 
 <Callout type="info">
-    自 `0.26.0` 起可用。
+    自 `0.26.0` 起可用
 </Callout>
 </Step>
 </Steps>
@@ -428,9 +428,9 @@ liveGame.redo();
 <Steps>
 <Step>
 
-把游戏移动到某一条记录下来的行，由它的令牌指定。
+把游戏移动到某一条记录下来的行，由它的令牌指定
 
-与 [undo](#undo) 和 [redo](#redo) 是同一套机制，并且两个方向都够得着：来自 [getHistory](#gethistory) 的令牌向后走，来自 [getFuture](#getfuture) 的令牌向前走。和它们一样，本方法在**读档之后**依然有效，并且不丢弃任何东西 —— 目标行之后的那些行仍然可以抵达。
+与 [undo](#undo) 和 [redo](#redo) 是同一套机制，并且两个方向都够得着：来自 [getHistory](#gethistory) 的令牌向后走，来自 [getFuture](#getfuture) 的令牌向前走。和它们一样，本方法在**读档之后**依然有效，并且不丢弃任何东西 —— 目标行之后的那些行仍然可以抵达
 
 ```typescript
 const history = liveGame.getHistory();
@@ -439,11 +439,11 @@ const history = liveGame.getHistory();
 liveGame.restoreToHistory(history[0].token);
 ```
 
-- `token: string` - 要移动到的历史项令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)。
-- 返回 `boolean` - 若成功恢复该行则为 `true`；若令牌未知或该条目没有恢复快照则为 `false`。
+- `token: string` - 要移动到的历史项令牌，参见 [GameHistory](/zh/docs/narraleaf-react/core/types/GameHistory)
+- 返回 `boolean` - 若成功恢复该行则为 `true`；若令牌未知或该条目没有恢复快照则为 `false`
 
 <Callout type="info">
-    在 `0.26.0` 之前，本方法只能向后走，并且会把回溯裁剪到它移动到的那一行，之后的一切都会丢失。现在它移动的是播放头，而不是切断时间线。
+    在 `0.26.0` 之前，本方法只能向后走，并且会把回溯裁剪到它移动到的那一行，之后的一切都会丢失。现在它移动的是播放头，而不是切断时间线
 </Callout>
 </Step>
 </Steps>
@@ -453,7 +453,7 @@ liveGame.restoreToHistory(history[0].token);
 <Steps>
 <Step>
 
-创建一个通知。
+创建一个通知
 
 ```typescript
 // 通知 3 秒
@@ -473,7 +473,7 @@ window.addEventListener("keyup", (event) => {
 ```
 
 - `message: string` - 通知消息
-- `duration?: number | null` - 通知持续时间，默认是 3000ms。设置为 `null` 时，通知将一直显示。
+- `duration?: number | null` - 通知持续时间，默认是 3000ms。设置为 `null` 时，通知将一直显示
 - 返回 `NotificationToken` - 参见 [NotificationToken](/zh/docs/narraleaf-react/core/types/NotificationToken)
 </Step>
 </Steps>
@@ -483,7 +483,7 @@ window.addEventListener("keyup", (event) => {
 <Steps>
 <Step>
 
-立即播放声音并返回对应的 `SoundToken`。
+立即播放声音并返回对应的 `SoundToken`
 
 ```typescript
 const {game} = useGame();
@@ -497,15 +497,15 @@ game.getLiveGame()
     });
 ```
 
-音频会以它所属 `Sound` 配置的音量开始播放——`Sound.voice({src, volume: 0.4})` 从 0.4 开始，而不是满音量。
-以字符串或 `URL` 给出的音源会变成一个默认的 `Sound`，也就是满音量；要另行指定，请传入一个 `Sound`。
+音频会以它所属 `Sound` 配置的音量开始播放——`Sound.voice({src, volume: 0.4})` 从 0.4 开始，而不是满音量
+以字符串或 `URL` 给出的音源会变成一个默认的 `Sound`，也就是满音量；要另行指定，请传入一个 `Sound`
 
 <Callout type="info">
-    在 `0.22.0` 之前，这里把「没说音量」当成了*满音量*，因此配置好的 `volume` 会被丢弃。
-    现在调用过 `setVolume` 之后再次播放的音频，会回到它最后被设定的音量，而不是跳到满音量。
+    在 `0.22.0` 之前，这里把「没说音量」当成了*满音量*，因此配置好的 `volume` 会被丢弃
+    现在调用过 `setVolume` 之后再次播放的音频，会回到它最后被设定的音量，而不是跳到满音量
 
     这里没有淡入淡出：这个 Promise 解决时音量已经稳定，也没有留下正在进行的渐变，
-    因此之后在返回的 token 上调用 `setVolume` 或驱动淡入淡出，一定是最后的写入者。
+    因此之后在返回的 token 上调用 `setVolume` 或驱动淡入淡出，一定是最后的写入者
 </Callout>
 
 - `sound: Sound | string | URL` - 声音实例、声音地址或 URL
@@ -518,9 +518,9 @@ game.getLiveGame()
 <Steps>
 <Step>
 
-等待路由退出。
+等待路由退出
 
-此方法可用于在创建新游戏时等待路由退出。
+此方法可用于在创建新游戏时等待路由退出
 
 ```typescript {10}
 const {game} = useGame();
@@ -641,11 +641,11 @@ game.getLiveGame().skipDialog();
 <Steps>
 <Step>
 
-将游戏快进到下一个菜单、故事结尾，或某个指定的动作。
+将游戏快进到下一个菜单、故事结尾，或某个指定的动作
 
-其间的每一行都会被真实执行，因此回溯历史及其恢复快照会像正常游玩一样累积 —— 只是更快且静音。快进期间音频被静音，由本次快进执行到的定时暂停（`Control.sleep`、自动前进）会立即解决。一旦有菜单在等待选择，它就会停下，因此选择本身始终留给玩家。由于历史全程累积，[getHistory](#gethistory) 和 [restoreToHistory](#restoretohistory) 会像正常游玩一样覆盖被快进的区间。
+其间的每一行都会被真实执行，因此回溯历史及其恢复快照会像正常游玩一样累积 —— 只是更快且静音。快进期间音频被静音，由本次快进执行到的定时暂停（`Control.sleep`、自动前进）会立即解决。一旦有菜单在等待选择，它就会停下，因此选择本身始终留给玩家。由于历史全程累积，[getHistory](#gethistory) 和 [restoreToHistory](#restoretohistory) 会像正常游玩一样覆盖被快进的区间
 
-跳过一行是向渲染层广播的一个*请求*，而不是同步的状态变更，因此该请求会被反复重发，直到该行结算为止。始终不响应的一行会以 `"stalled"` 结束本次快进，而不是把调用挂住 —— 这个方法在任何情况下都会结算。
+跳过一行是向渲染层广播的一个*请求*，而不是同步的状态变更，因此该请求会被反复重发，直到该行结算为止。始终不响应的一行会以 `"stalled"` 结束本次快进，而不是把调用挂住 —— 这个方法在任何情况下都会结算
 
 ```typescript
 // 快进到下一个决策点。
@@ -664,21 +664,21 @@ if (result.reason === "action") {
 }
 ```
 
-- `options.until?: "menu" | "end" | { actionId: string }` - `"menu"`（默认）在下一个菜单处停止；`"end"` 运行到故事结束；`{ actionId }` 一直前进到该动作成为下一个待执行项，并在**执行它之前**停下，从而把播放头停在那一行上。只扫描根执行栈 —— 埋在进行中的 `Control.all` / `Control.any` 或异步分支里的 id 不构成停止点。菜单同样会中止 `actionId` 形式的快进，因为在玩家做出选择之前目标无法抵达。
-- `options.maxSteps?: number` - 前进步数的安全上限（默认为 `maxStackModelLoop` 配置）。
-- `options.stepTimeout?: number` - 单个挂起的行在被判定为 `"stalled"` 之前允许结算的时长（毫秒）。默认 `10000`。如果剧情会快进穿过较长的、无法跳过的媒体，请调高它。
-- 返回 `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>` - 停止的原因。
-    - `reason` - `"action"` 抵达了 `until.actionId`；`"menu"` 有菜单在等待选择；`"end"` 调用栈已清空；`"maxSteps"` 触到步数上限；`"stalled"` 某一行在 `stepTimeout` 内拒绝结算。
-    - `reachedTarget` - **仅**在请求了 `until: { actionId }` 时出现，且只有在 `reason` 为 `"action"` 时才为 `true`。`"menu"` / `"end"` 形式仍保持原来的 `{ reason }` 形状。
+- `options.until?: "menu" | "end" | { actionId: string }` - `"menu"`（默认）在下一个菜单处停止；`"end"` 运行到故事结束；`{ actionId }` 一直前进到该动作成为下一个待执行项，并在**执行它之前**停下，从而把播放头停在那一行上。只扫描根执行栈 —— 埋在进行中的 `Control.all` / `Control.any` 或异步分支里的 id 不构成停止点。菜单同样会中止 `actionId` 形式的快进，因为在玩家做出选择之前目标无法抵达
+- `options.maxSteps?: number` - 前进步数的安全上限（默认为 `maxStackModelLoop` 配置）
+- `options.stepTimeout?: number` - 单个挂起的行在被判定为 `"stalled"` 之前允许结算的时长（毫秒）。默认 `10000`。如果剧情会快进穿过较长的、无法跳过的媒体，请调高它
+- 返回 `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>` - 停止的原因
+    - `reason` - `"action"` 抵达了 `until.actionId`；`"menu"` 有菜单在等待选择；`"end"` 调用栈已清空；`"maxSteps"` 触到步数上限；`"stalled"` 某一行在 `stepTimeout` 内拒绝结算
+    - `reachedTarget` - **仅**在请求了 `until: { actionId }` 时出现，且只有在 `reason` 为 `"action"` 时才为 `true`。`"menu"` / `"end"` 形式仍保持原来的 `{ reason }` 形状
 </Step>
 </Steps>
 
 <Callout type="info">
-    `until: { actionId }`、`"action"` 原因与 `reachedTarget` 自 `0.16.0` 起可用。`options.stepTimeout` 与 `"stalled"` 原因自 `0.17.1` 起可用。
+    `until: { actionId }`、`"action"` 原因与 `reachedTarget` 自 `0.16.0` 起可用。`options.stepTimeout` 与 `"stalled"` 原因自 `0.17.1` 起可用
 </Callout>
 
 <Callout type="warning">
-    **快进可能因为一个无法跳过的步骤而提前结束。** 在快进开始时就已经在进行中的步骤、视频（`allowSkipVideo` 默认为 `false`），以及摄像机或图层过渡，都不会响应跳过请求。这类步骤只要能在 `stepTimeout` 内自行结算就仍会照常结算；只有超出该时限的步骤才会结束本次快进 —— 返回 `"stalled"`，并在退出时恢复音量与快进标志。
+    **快进可能因为一个无法跳过的步骤而提前结束。** 在快进开始时就已经在进行中的步骤、视频（`allowSkipVideo` 默认为 `false`），以及摄像机或图层过渡，都不会响应跳过请求。这类步骤只要能在 `stepTimeout` 内自行结算就仍会照常结算；只有超出该时限的步骤才会结束本次快进 —— 返回 `"stalled"`，并在退出时恢复音量与快进标志
 
-    在 `0.17.1` 之前，快进会停在这种步骤上：返回的 Promise 两边都不结算，游戏保持静音并永久停留在快进模式。原本能正常工作的用法不会因此失效，但把"非 `"menu"` 即成功"的宿主现在应当把 `"stalled"` 区分出来；对 `reason` 做穷举 `switch` 的代码也需要补上这个分支才能通过编译。
+    在 `0.17.1` 之前，快进会停在这种步骤上：返回的 Promise 两边都不结算，游戏保持静音并永久停留在快进模式。原本能正常工作的用法不会因此失效，但把"非 `"menu"` 即成功"的宿主现在应当把 `"stalled"` 区分出来；对 `reason` 做穷举 `switch` 的代码也需要补上这个分支才能通过编译
 </Callout>

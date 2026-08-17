@@ -3,29 +3,29 @@ title: 游戏
 description: 驱动运行中游戏的节点——开始与退出、推进对话、读写玩家偏好，以及管理存档与历史
 ---
 
-Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和活着的 NarraLeaf 运行时说话：游玩本身、屏幕上的对话、玩家的偏好、项目的本地存档，以及对话历史。标题画面、设置画面、存读档网格和回顾界面，都由本页的节点搭起来。
+Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和活着的 NarraLeaf 运行时说话：游玩本身、屏幕上的对话、玩家的偏好、项目的本地存档，以及对话历史。标题画面、设置画面、存读档网格和回顾界面，都由本页的节点搭起来
 
 <Callout type="warn">
-本页每一个节点都需要运行中的游戏。编辑器画布没有游戏——放在那里的 Game 节点会以`Host API unavailable (use Dev Mode)`失败，读取它的 Blueprint Value 预览为空。这些行为一律在开发模式中验证。
+本页每一个节点都需要运行中的游戏。编辑器画布没有游戏——放在那里的 Game 节点会以`Host API unavailable (use Dev Mode)`失败，读取它的 Blueprint Value 预览为空。这些行为一律在开发模式中验证
 </Callout>
 
 ## 约定
 
-- **要么 pure，要么 latent，没有中间态。** 二十个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。其余三十三个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果。
-- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败。
-- **状态取值节点会降级，偏好取值节点不会。** `Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`和`Is Text Read`在什么都没有播放时给出中性值——`false`、`null`、`0`、空数组——正因如此，同一个共享 Page 才能按它们分支。十二个偏好取值节点读的是活动`GamePreference`，没有游戏就失败。
-- **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)。
-- **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里。
+- **要么 pure，要么 latent，没有中间态。** 二十个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。其余三十三个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果
+- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
+- **状态取值节点会降级，偏好取值节点不会。** `Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`和`Is Text Read`在什么都没有播放时给出中性值——`false`、`null`、`0`、空数组——正因如此，同一个共享 Page 才能按它们分支。十二个偏好取值节点读的是活动`GamePreference`，没有游戏就失败
+- **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)
+- **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里
 
 ## 游玩
 
-`Start Game`和`Quit Game`是尾节点：它们把控制权交给运行时，没有执行出口，所以后续该发生的事属于剧情，或者属于它们打开的那个 Page。
+`Start Game`和`Quit Game`是尾节点：它们把控制权交给运行时，没有执行出口，所以后续该发生的事属于剧情，或者属于它们打开的那个 Page
 
 ### Start Game
 
 `blueprint.game.startStory` · Latent
 
-Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并切换到游戏舞台。游戏首帧就绪后，当前 Page 栈会被藏到游戏下面，因此之后调用`Go Page`是把目标叠加在舞台之上，而不是替换舞台。
+Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并切换到游戏舞台。游戏首帧就绪后，当前 Page 栈会被藏到游戏下面，因此之后调用`Go Page`是把目标叠加在舞台之上，而不是替换舞台
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -35,14 +35,14 @@ Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并
 
 | 字段 | 含义 |
 | --- | --- |
-| `Story` | 要运行的剧本。必填。 |
-| `Scene` | 要进入的场景。选项按选中的 Story 过滤。必填。 |
+| `Story` | 要运行的剧本。必填|
+| `Scene` | 要进入的场景。选项按选中的 Story 过滤。必填|
 
 ### Quit Game
 
 `blueprint.game.quit` · Latent
 
-Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page。一次调用做完全部事情：丢弃活动游戏与会话、取消仍在等待的启动请求、清空对话名牌、恢复普通 Page 显示，然后导航——不需要再接一个`Go Page`。
+Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page。一次调用做完全部事情：丢弃活动游戏与会话、取消仍在等待的启动请求、清空对话名牌、恢复普通 Page 显示，然后导航——不需要再接一个`Go Page`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -52,13 +52,13 @@ Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page
 
 | 字段 | 含义 |
 | --- | --- |
-| `Page` | 游戏结束后打开的 [Surface](/zh/docs/studio/blueprint/surfaces)。必填。 |
+| `Page` | 游戏结束后打开的 [Surface](/zh/docs/studio/blueprint/surfaces)。必填|
 
 ### Is In Game
 
 `blueprint.game.isInGame` · Pure
 
-Is In Game（是否在游戏中）：只要游戏舞台可见且存在会话就为 `true`——即使上面开着 Page 叠层也一样。普通 Page 预览、首次`Start Game`之前、`Quit Game`之后为 `false`。
+Is In Game（是否在游戏中）：只要游戏舞台可见且存在会话就为 `true`——即使上面开着 Page 叠层也一样。普通 Page 预览、首次`Start Game`之前、`Quit Game`之后为 `false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -68,13 +68,13 @@ Is In Game（是否在游戏中）：只要游戏舞台可见且存在会话就�
 
 `blueprint.game.isGameOverlay` · Pure
 
-Is Game Overlay（是否为游戏覆盖层）：当前 Surface 实例是否以游戏之上的 UI 叠层身份运行。`Start Game`或`Load Save`之后用`Go Page`打开的 Page 返回 `true`，内建的游戏 UI Surface（例如对话槽位）也返回 `true`；通过`nl.frame`嵌入的子 Page 继承父级的答案。普通应用 Page、Page 预览，以及`Quit Game`打开的那个 Page 返回 `false`。
+Is Game Overlay（是否为游戏覆盖层）：当前 Surface 实例是否以游戏之上的 UI 叠层身份运行。`Start Game`或`Load Save`之后用`Go Page`打开的 Page 返回 `true`，内建的游戏 UI Surface（例如对话槽位）也返回 `true`；通过`nl.frame`嵌入的子 Page 继承父级的答案。普通应用 Page、Page 预览，以及`Quit Game`打开的那个 Page 返回 `false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `isGameOverlay` | out · data | `boolean` | |
 
-答案在 Page 实例创建时就锁定，所以正在播放退出动画的暂停菜单仍返回 `true`，哪怕`Quit Game`已经开始拆掉会话。要问运行时是否还在，用`Is In Game`；要问一个共享 Page 该显示成什么样，用这个。
+答案在 Page 实例创建时就锁定，所以正在播放退出动画的暂停菜单仍返回 `true`，哪怕`Quit Game`已经开始拆掉会话。要问运行时是否还在，用`Is In Game`；要问一个共享 Page 该显示成什么样，用这个
 
 ## 推进剧情
 
@@ -82,47 +82,47 @@ Is Game Overlay（是否为游戏覆盖层）：当前 Surface 实例是否以�
 
 `blueprint.game.next` · Latent
 
-Next（下一步）触发运行时的虚拟点击。有对话包装层暴露的点击目标时点它，把「打字中就先补完这句、已完成就进入下一步」的判断交还给引擎；没有对话目标时才退回去点播放器的主内容。它不会强制跳过。
+Next（下一步）触发运行时的虚拟点击。有对话包装层暴露的点击目标时点它，把「打字中就先补完这句、已完成就进入下一步」的判断交还给引擎；没有对话目标时才退回去点播放器的主内容。它不会强制跳过
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `next` | out · exec | — | 推进请求完成后触发。 |
+| `next` | out · exec | — | 推进请求完成后触发|
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ### Skip
 
 `blueprint.game.skip` · Latent
 
-Skip（跳过）跳过当前对话。它是作者显式提供的 Skip 动作；默认对话模板不会替你绑定。
+Skip（跳过）跳过当前对话。它是作者显式提供的 Skip 动作；默认对话模板不会替你绑定
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ### Select Choice
 
 `blueprint.game.choose` · Latent
 
-Select Choice（选择选项）按**原始**序号选择活动选择菜单中的选项。隐藏选项不会呈现给玩家，但仍然占据序号，所以菜单给出的序号不一定连续——请把选项自带的`index`接回来，而不是它在列表里的位置。宿主会重新校验目标的 hidden / disabled 状态，非法选择被静默拒绝。
+Select Choice（选择选项）按**原始**序号选择活动选择菜单中的选项。隐藏选项不会呈现给玩家，但仍然占据序号，所以菜单给出的序号不一定连续——请把选项自带的`index`接回来，而不是它在列表里的位置。宿主会重新校验目标的 hidden / disabled 状态，非法选择被静默拒绝
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `index` | in · data | `integer` | 必须是非负整数。支持卡片字面量。 |
+| `index` | in · data | `integer` | 必须是非负整数。支持卡片字面量|
 
-没有打开的选择菜单时会失败。
+没有打开的选择菜单时会失败
 
 ### Get Choice Count
 
 `blueprint.game.getChoiceCount` · Pure
 
-Get Choice Count（获取选项数量）：活动选择菜单展示了多少个选项。隐藏选项不计入。菜单关闭后回到 `0`。
+Get Choice Count（获取选项数量）：活动选择菜单展示了多少个选项。隐藏选项不计入。菜单关闭后回到 `0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -130,35 +130,35 @@ Get Choice Count（获取选项数量）：活动选择菜单展示了多少个�
 
 ## 对话
 
-对话文本、说话人或完成状态变化时，绑定到对话的元素都会被 flush，因此在`On Flush`里读取下列取值节点的控件会随剧情推进保持最新，而不需要重新挂载。
+对话文本、说话人或完成状态变化时，绑定到对话的元素都会被 flush，因此在`On Flush`里读取下列取值节点的控件会随剧情推进保持最新，而不需要重新挂载
 
 ### Get Nametag
 
 `blueprint.game.getNametag` · Pure
 
-Get Nametag（获取名牌）：当前说话人的名字。旁白、没有说话人、说话人名为空或全是空白时为 `null`。
+Get Nametag（获取名牌）：当前说话人的名字。旁白、没有说话人、说话人名为空或全是空白时为 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `nametag` | out · data | `string` | 没有说话人时为 `null`。 |
+| `nametag` | out · data | `string` | 没有说话人时为 `null`|
 
-默认对话模板用普通`nl.text`做名牌，并在该控件自己的蓝图里驱动它——`Init`与`On Flush`接到`Get Nametag`，再用一次判空控制文本和不透明度。这里没有任何特殊的名牌控件。
+默认对话模板用普通`nl.text`做名牌，并在该控件自己的蓝图里驱动它——`Init`与`On Flush`接到`Get Nametag`，再用一次判空控制文本和不透明度。这里没有任何特殊的名牌控件
 
 ### Get Speaker Avatar
 
 `blueprint.game.getSpeakerAvatar` · Pure
 
-Get Speaker Avatar（获取说话人头像）：说话角色的对话头像。引擎是从该角色的**活的**立绘上解析出来的，所以它天然反映角色当前穿着的差分，并且在撤销、读档、跳过之后依然正确。项目无法映射回资源的头像 URL 会解析为 `null`，而不是猜一个。
+Get Speaker Avatar（获取说话人头像）：说话角色的对话头像。引擎是从该角色的**活的**立绘上解析出来的，所以它天然反映角色当前穿着的差分，并且在撤销、读档、跳过之后依然正确。项目无法映射回资源的头像 URL 会解析为 `null`，而不是猜一个
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `avatar` | out · data | `ImageAsset\|null` | 可接给[图片](/zh/docs/studio/blueprint/nodes/image)节点或图片 Blueprint Value。 |
+| `avatar` | out · data | `ImageAsset\|null` | 可接给[图片](/zh/docs/studio/blueprint/nodes/image)节点或图片 Blueprint Value|
 
 ### Is NVL Mode
 
 `blueprint.game.isNvlMode` · Pure
 
-Is NVL Mode（是否为 NVL 模式）：游戏当前是否处于 NVL 模式。
+Is NVL Mode（是否为 NVL 模式）：游戏当前是否处于 NVL 模式
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -168,7 +168,7 @@ Is NVL Mode（是否为 NVL 模式）：游戏当前是否处于 NVL 模式。
 
 `blueprint.game.getNotifications` · Pure
 
-Get Notifications（获取通知）：运行时当前正在显示的通知，镜像自引擎的通知组件。没有通知时为空数组。
+Get Notifications（获取通知）：运行时当前正在显示的通知，镜像自引擎的通知组件。没有通知时为空数组
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -178,61 +178,61 @@ Get Notifications（获取通知）：运行时当前正在显示的通知，镜
 
 | 字段 | 含义 |
 | --- | --- |
-| `id` | 通知 id。 |
-| `message` | 通知文本。 |
+| `id` | 通知 id|
+| `message` | 通知文本|
 
-默认通知模板不使用该节点：它的[列表](/zh/docs/studio/blueprint/nodes/list)项模板直接从项属性里读`message`。
+默认通知模板不使用该节点：它的[列表](/zh/docs/studio/blueprint/nodes/list)项模板直接从项属性里读`message`
 
 ### Show Dialog
 
 `blueprint.game.showDialog` · Latent
 
-Show Dialog（显示对话框）把`showDialog`偏好设为 `true`，让对话 UI 重新显示。它只改运行时偏好——不改 UI 文档，也不推进剧情。
+Show Dialog（显示对话框）把`showDialog`偏好设为 `true`，让对话 UI 重新显示。它只改运行时偏好——不改 UI 文档，也不推进剧情
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ### Hide Dialog
 
 `blueprint.game.hideDialog` · Latent
 
-Hide Dialog（隐藏对话框）把`showDialog`设为 `false`。隐藏期间对话包装层仍保留自己的交互语义，所以`Next`、`Skip`和之后的`Show Dialog`照常工作。
+Hide Dialog（隐藏对话框）把`showDialog`设为 `false`。隐藏期间对话包装层仍保留自己的交互语义，所以`Next`、`Skip`和之后的`Show Dialog`照常工作
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ### Toggle Dialog Display
 
 `blueprint.game.toggleDialogDisplay` · Latent
 
-Toggle Dialog Display（切换对话框显示）读取`showDialog`并写入相反值——一个 UI 控件配一个节点。它不碰别的：不碰对话文本、不碰名牌、不碰文字速度。
+Toggle Dialog Display（切换对话框显示）读取`showDialog`并写入相反值——一个 UI 控件配一个节点。它不碰别的：不碰对话文本、不碰名牌、不碰文字速度
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ## 偏好
 
-下面每一对都对应活动游戏上引擎`GamePreference`的一个字段。取值节点是 pure 的，可安全放进 Blueprint Value；设值节点是 latent 的，写入前先校验——值不合法时节点失败，而不是被夹到范围内。`showDialog`在这里没有配对节点，由`Show Dialog`、`Hide Dialog`和`Toggle Dialog Display`覆盖。
+下面每一对都对应活动游戏上引擎`GamePreference`的一个字段。取值节点是 pure 的，可安全放进 Blueprint Value；设值节点是 latent 的，写入前先校验——值不合法时节点失败，而不是被夹到范围内。`showDialog`在这里没有配对节点，由`Show Dialog`、`Hide Dialog`和`Toggle Dialog Display`覆盖
 
-这二十四个节点在没有活动游戏运行时都会失败。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行。
+这二十四个节点在没有活动游戏运行时都会失败。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行
 
 ### Get Sentence Speed
 
 `blueprint.game.getCps` · Pure
 
-Get Sentence Speed（获取文字速度）读取`cps`，即一句话逐字显示的每秒字符数。
+Get Sentence Speed（获取文字速度）读取`cps`，即一句话逐字显示的每秒字符数
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -242,19 +242,19 @@ Get Sentence Speed（获取文字速度）读取`cps`，即一句话逐字显示
 
 `blueprint.game.setSentenceSpeed` · Latent
 
-Set Sentence Speed（设置文字速度）写入`cps`。必须是大于 `0` 的有限数字。
+Set Sentence Speed（设置文字速度）写入`cps`。必须是大于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `cps` | in · data | `float` | 支持卡片字面量。 |
+| `cps` | in · data | `float` | 支持卡片字面量|
 
 ### Get Auto Forward
 
 `blueprint.game.getAutoForward` · Pure
 
-Get Auto Forward（获取自动前进）读取`autoForward`，即一句话播完后游戏是否自行推进。
+Get Auto Forward（获取自动前进）读取`autoForward`，即一句话播完后游戏是否自行推进
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -264,7 +264,7 @@ Get Auto Forward（获取自动前进）读取`autoForward`，即一句话播完
 
 `blueprint.game.setAutoForward` · Latent
 
-Set Auto Forward（设置自动前进）写入`autoForward`。必须是布尔值。
+Set Auto Forward（设置自动前进）写入`autoForward`。必须是布尔值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -276,7 +276,7 @@ Set Auto Forward（设置自动前进）写入`autoForward`。必须是布尔值
 
 `blueprint.game.getSkip` · Pure
 
-Get Skip（获取跳过）读取`skip`，即是否允许跳过。
+Get Skip（获取跳过）读取`skip`，即是否允许跳过
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -286,7 +286,7 @@ Get Skip（获取跳过）读取`skip`，即是否允许跳过。
 
 `blueprint.game.setSkip` · Latent
 
-Set Skip（设置跳过）写入`skip`。必须是布尔值。
+Set Skip（设置跳过）写入`skip`。必须是布尔值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -298,7 +298,7 @@ Set Skip（设置跳过）写入`skip`。必须是布尔值。
 
 `blueprint.game.getSkipDelay` · Pure
 
-Get Skip Delay（获取跳过延迟）读取`skipDelay`，单位毫秒——玩家按住多久之后开始跳过。
+Get Skip Delay（获取跳过延迟）读取`skipDelay`，单位毫秒——玩家按住多久之后开始跳过
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -308,19 +308,19 @@ Get Skip Delay（获取跳过延迟）读取`skipDelay`，单位毫秒——玩�
 
 `blueprint.game.setSkipDelay` · Latent
 
-Set Skip Delay（设置跳过延迟）写入`skipDelay`。必须是大于等于 `0` 的有限数字，单位毫秒。
+Set Skip Delay（设置跳过延迟）写入`skipDelay`。必须是大于等于 `0` 的有限数字，单位毫秒
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `skipDelay` | in · data | `float` | 支持卡片字面量。 |
+| `skipDelay` | in · data | `float` | 支持卡片字面量|
 
 ### Get Skip Interval
 
 `blueprint.game.getSkipInterval` · Pure
 
-Get Skip Interval（获取跳过间隔）读取`skipInterval`，单位毫秒——跳过时两句之间的间隔。
+Get Skip Interval（获取跳过间隔）读取`skipInterval`，单位毫秒——跳过时两句之间的间隔
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -330,19 +330,19 @@ Get Skip Interval（获取跳过间隔）读取`skipInterval`，单位毫秒—�
 
 `blueprint.game.setSkipInterval` · Latent
 
-Set Skip Interval（设置跳过间隔）写入`skipInterval`。必须是大于 `0` 的有限数字，单位毫秒。
+Set Skip Interval（设置跳过间隔）写入`skipInterval`。必须是大于 `0` 的有限数字，单位毫秒
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `skipInterval` | in · data | `float` | 支持卡片字面量。 |
+| `skipInterval` | in · data | `float` | 支持卡片字面量|
 
 ### Get Game Speed
 
 `blueprint.game.getGameSpeed` · Pure
 
-Get Game Speed（获取游戏速度）读取`gameSpeed`，即全局速度倍率。
+Get Game Speed（获取游戏速度）读取`gameSpeed`，即全局速度倍率
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -352,19 +352,19 @@ Get Game Speed（获取游戏速度）读取`gameSpeed`，即全局速度倍率�
 
 `blueprint.game.setGameSpeed` · Latent
 
-Set Game Speed（设置游戏速度）写入`gameSpeed`。必须是大于 `0` 的有限数字。
+Set Game Speed（设置游戏速度）写入`gameSpeed`。必须是大于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `gameSpeed` | in · data | `float` | 支持卡片字面量。 |
+| `gameSpeed` | in · data | `float` | 支持卡片字面量|
 
 ### Get Global Volume
 
 `blueprint.game.getGlobalVolume` · Pure
 
-Get Global Volume（获取全局音量）读取`globalVolume`，即其它所有声道都要乘上的总音量。
+Get Global Volume（获取全局音量）读取`globalVolume`，即其它所有声道都要乘上的总音量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -374,19 +374,19 @@ Get Global Volume（获取全局音量）读取`globalVolume`，即其它所有�
 
 `blueprint.game.setGlobalVolume` · Latent
 
-Set Global Volume（设置全局音量）写入`globalVolume`。必须是大于等于 `0` 的有限数字。
+Set Global Volume（设置全局音量）写入`globalVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `globalVolume` | in · data | `float` | 支持卡片字面量。 |
+| `globalVolume` | in · data | `float` | 支持卡片字面量|
 
 ### Get BGM Volume
 
 `blueprint.game.getBgmVolume` · Pure
 
-Get BGM Volume（获取背景音乐音量）读取`bgmVolume`，即背景音乐声道。
+Get BGM Volume（获取背景音乐音量）读取`bgmVolume`，即背景音乐声道
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -396,19 +396,19 @@ Get BGM Volume（获取背景音乐音量）读取`bgmVolume`，即背景音乐�
 
 `blueprint.game.setBgmVolume` · Latent
 
-Set BGM Volume（设置背景音乐音量）写入`bgmVolume`。必须是大于等于 `0` 的有限数字。
+Set BGM Volume（设置背景音乐音量）写入`bgmVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `bgmVolume` | in · data | `float` | 支持卡片字面量。 |
+| `bgmVolume` | in · data | `float` | 支持卡片字面量|
 
 ### Get Sound Volume
 
 `blueprint.game.getSoundVolume` · Pure
 
-Get Sound Volume（获取音效音量）读取`soundVolume`，即音效声道。
+Get Sound Volume（获取音效音量）读取`soundVolume`，即音效声道
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -418,19 +418,19 @@ Get Sound Volume（获取音效音量）读取`soundVolume`，即音效声道。
 
 `blueprint.game.setSoundVolume` · Latent
 
-Set Sound Volume（设置音效音量）写入`soundVolume`。必须是大于等于 `0` 的有限数字。
+Set Sound Volume（设置音效音量）写入`soundVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `soundVolume` | in · data | `float` | 支持卡片字面量。 |
+| `soundVolume` | in · data | `float` | 支持卡片字面量|
 
 ### Get Voice Volume
 
 `blueprint.game.getVoiceVolume` · Pure
 
-Get Voice Volume（获取语音音量）读取`voiceVolume`，即语音声道。
+Get Voice Volume（获取语音音量）读取`voiceVolume`，即语音声道
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -440,75 +440,75 @@ Get Voice Volume（获取语音音量）读取`voiceVolume`，即语音声道。
 
 `blueprint.game.setVoiceVolume` · Latent
 
-Set Voice Volume（设置语音音量）写入`voiceVolume`。必须是大于等于 `0` 的有限数字。
+Set Voice Volume（设置语音音量）写入`voiceVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `voiceVolume` | in · data | `float` | 支持卡片字面量。 |
+| `voiceVolume` | in · data | `float` | 支持卡片字面量|
 
 ### Get Voice Fade Duration
 
 `blueprint.game.getVoiceFadeDuration` · Pure
 
-Get Voice Fade Duration（获取语音淡出时长）读取`voiceFadeDuration`，单位毫秒——一句话结束时语音淡出所需的时间。
+Get Voice Fade Duration（获取语音淡出时长）读取`voiceFadeDuration`，单位毫秒——一句话结束时语音淡出所需的时间
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `voiceFadeDuration` | out · data | `float` | 卡片上标为 **Voice Fade**。 |
+| `voiceFadeDuration` | out · data | `float` | 卡片上标为 **Voice Fade**|
 
 ### Set Voice Fade Duration
 
 `blueprint.game.setVoiceFadeDuration` · Latent
 
-Set Voice Fade Duration（设置语音淡出时长）写入`voiceFadeDuration`。必须是大于等于 `0` 的有限数字，单位毫秒。
+Set Voice Fade Duration（设置语音淡出时长）写入`voiceFadeDuration`。必须是大于等于 `0` 的有限数字，单位毫秒
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `voiceFadeDuration` | in · data | `float` | 卡片上标为 **Voice Fade**。支持卡片字面量。 |
+| `voiceFadeDuration` | in · data | `float` | 卡片上标为 **Voice Fade**。支持卡片字面量|
 
 ### Get Voice End Mode
 
 `blueprint.game.getVoiceEndMode` · Pure
 
-Get Voice End Mode（获取语音结束模式）读取`voiceEndMode`：一句话结束时仍在播放的语音该如何处理。
+Get Voice End Mode（获取语音结束模式）读取`voiceEndMode`：一句话结束时仍在播放的语音该如何处理
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `voiceEndMode` | out · data | `string` | `"fade"`、`"stop"`、`"none"` 之一。 |
+| `voiceEndMode` | out · data | `string` | `"fade"`、`"stop"`、`"none"` 之一|
 
 ### Set Voice End Mode
 
 `blueprint.game.setVoiceEndMode` · Latent
 
-Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰好是 `"fade"`、`"stop"` 或 `"none"`。
+Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰好是 `"fade"`、`"stop"` 或 `"none"`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `voiceEndMode` | in · data | `string` | 支持卡片字面量。 |
+| `voiceEndMode` | in · data | `string` | 支持卡片字面量|
 
 ## 存档
 
-存档是项目本地的，以你自己选的 id 为键。同一个 id 写第二次就是覆盖。
+存档是项目本地的，以你自己选的 id 为键。同一个 id 写第二次就是覆盖
 
 <Callout type="warn">
-`List Saves`只返回玩家存档。自动存档住在保留 id 命名空间里——`@autosave.<n>`——由`List Auto Saves`列出；两个集合永不重叠。这是刻意的：基于`List Saves`做的存读档网格从不需要过滤掉 Studio 自己的簿记条目，自动存档界面也从不需要藏起玩家的存档位。在别的地方，自动存档 id 就是一个普通存档 id，可以原样喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`。
+`List Saves`只返回玩家存档。自动存档住在保留 id 命名空间里——`@autosave.<n>`——由`List Auto Saves`列出；两个集合永不重叠。这是刻意的：基于`List Saves`做的存读档网格从不需要过滤掉 Studio 自己的簿记条目，自动存档界面也从不需要藏起玩家的存档位。在别的地方，自动存档 id 就是一个普通存档 id，可以原样喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`
 </Callout>
 
 ### Save fields
 
-一份存档携带两类数据。一类由引擎在每次存档时写入：存档将从哪一句继续、那句话由谁说出、以及时间戳。另一类由你决定，**存档字段**就是声明它的地方。
+一份存档携带两类数据。一类由引擎在每次存档时写入：存档将从哪一句继续、那句话由谁说出、以及时间戳。另一类由你决定，**存档字段**就是声明它的地方
 
-从 `Save Game` 或 `Get Save Metadata` 卡片底部的按钮打开。每个字段有名称、类型和默认值。
+从 `Save Game` 或 `Get Save Metadata` 卡片底部的按钮打开。每个字段有名称、类型和默认值
 
-声明过的字段会成为具名引脚：在 `Save Game` 上是输入，在 `Get Save Metadata` 上是输出。这份列表属于工程，不属于打开它的那个节点，因此工程内所有存档节点显示的字段完全一致，一个字段只需声明一次。
+声明过的字段会成为具名引脚：在 `Save Game` 上是输入，在 `Get Save Metadata` 上是输出。这份列表属于工程，不属于打开它的那个节点，因此工程内所有存档节点显示的字段完全一致，一个字段只需声明一次
 
-重命名字段只更换引脚标签，已有的连线全部保留。改变类型会重置它的默认值。
+重命名字段只更换引脚标签，已有的连线全部保留。改变类型会重置它的默认值
 
 | 行为 | 结果 |
 | --- | --- |
@@ -516,252 +516,252 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 | 删除字段 | 已写入的值仍留在持有它们的存档文件中 |
 | 会执行到的 `Save Game` 上，声明过的字段留空 | 工程 lint 以 error 报告 `blueprint/save-field-empty` |
 
-两个节点上的 `metadata` 引脚都保留。在 `Save Game` 上，声明字段会覆盖写在它之上，因此同名的键以声明字段为准；在 `Get Save Metadata` 上，它仍然返回完整的存储对象。
+两个节点上的 `metadata` 引脚都保留。在 `Save Game` 上，声明字段会覆盖写在它之上，因此同名的键以声明字段为准；在 `Get Save Metadata` 上，它仍然返回完整的存储对象
 
 ### Save Game
 
 `blueprint.game.save.write` · Latent
 
-Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台 PNG 存为该存档的预览图；截图失败会被上报，但不会连累存档本身。
+Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台 PNG 存为该存档的预览图；截图失败会被上报，但不会连累存档本身
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
-| `metadata` | in · data | `json` | 可选。任意 [JSON](/zh/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`。 |
-| `screenshot` | in · data | `boolean` | 可选。卡片上标为 **Capture**。支持卡片字面量。 |
-| 每个声明字段一个 | in · data | 该字段的类型 | 以字段名标注。类型支持时可用卡片字面量。 |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `metadata` | in · data | `json` | 可选。任意 [JSON](/zh/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`|
+| `screenshot` | in · data | `boolean` | 可选。卡片上标为 **Capture**。支持卡片字面量|
+| 每个声明字段一个 | in · data | 该字段的类型 | 以字段名标注。类型支持时可用卡片字面量|
 
-没有活动游戏会话时会失败。
+没有活动游戏会话时会失败
 
 ### Load Save
 
 `blueprint.game.save.load` · Latent
 
-Load Save（读取存档）读入一份存档并为它放弃当前进度：清空 router 及其历史，创建新的游戏实例并反序列化；等 router 退出后，Page 栈重新被藏到舞台之下——所以这之后的`Go Page`打开的是游戏之上的叠层。
+Load Save（读取存档）读入一份存档并为它放弃当前进度：清空 router 及其历史，创建新的游戏实例并反序列化；等 router 退出后，Page 栈重新被藏到舞台之下——所以这之后的`Go Page`打开的是游戏之上的叠层
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
+| `id` | in · data | `string` | 支持卡片字面量|
 
-尾节点，没有执行出口。存档缺失、损坏，或没有活动游戏运行时都会失败。
+尾节点，没有执行出口。存档缺失、损坏，或没有活动游戏运行时都会失败
 
 ### Delete Save
 
 `blueprint.game.save.delete` · Latent
 
-Delete Save（删除存档）删掉一份存档。删一个本来就不存在的 id 也算成功，所以删除按钮不必先检查。它只需要项目的存档命名空间——不需要运行中的游戏。
+Delete Save（删除存档）删掉一份存档。删一个本来就不存在的 id 也算成功，所以删除按钮不必先检查。它只需要项目的存档命名空间——不需要运行中的游戏
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
+| `id` | in · data | `string` | 支持卡片字面量|
 
 ### List Saves
 
 `blueprint.game.save.listIds` · Latent
 
-List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证。损坏的、或 metadata 不是玩家存档的文件会被跳过，而不是报错。
+List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证。损坏的、或 metadata 不是玩家存档的文件会被跳过，而不是报错
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `ids` | out · data | `array` | `string` 数组。 |
+| `ids` | out · data | `array` | `string` 数组|
 
 ### Get Save Metadata
 
 `blueprint.game.save.getMetadata` · Latent
 
-Get Save Metadata（获取存档元数据）读取一份存档的作者数据。每个声明字段各占一个引脚；`metadata` 引脚返回完整的存储对象，包含没有任何字段声明过的键。系统字段不属于两者：id、记录类型、`createdAt`、`updatedAt` 与预览图分别由`Get Save Time`和`Get Save Preview`读取。
+Get Save Metadata（获取存档元数据）读取一份存档的作者数据。每个声明字段各占一个引脚；`metadata` 引脚返回完整的存储对象，包含没有任何字段声明过的键。系统字段不属于两者：id、记录类型、`createdAt`、`updatedAt` 与预览图分别由`Get Save Time`和`Get Save Preview`读取
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
-| `metadata` | out · data | `json` | 存档不存在或没有用户 metadata 时为 `null`。 |
-| 每个声明字段一个 | out · data | 该字段的类型 | 以字段名标注。存档中没有该字段时给出它的默认值。 |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `metadata` | out · data | `json` | 存档不存在或没有用户 metadata 时为 `null`|
+| 每个声明字段一个 | out · data | 该字段的类型 | 以字段名标注。存档中没有该字段时给出它的默认值|
 
 ### Get Save Time
 
 `blueprint.game.save.getTime` · Latent
 
-Get Save Time（获取存档时间）读取一个槽位的写入时间。存档库会给每条写入的记录盖时间戳，该节点把它们读回来。存档界面无需再把时间写进自己的 `metadata` 并与之保持同步。
+Get Save Time（获取存档时间）读取一个槽位的写入时间。存档库会给每条写入的记录盖时间戳，该节点把它们读回来。存档界面无需再把时间写进自己的 `metadata` 并与之保持同步
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
-| `savedAt` | out · data | `float` | 槽位最后一次写入的时间。存档不存在时为 `0`。 |
-| `createdAt` | out · data | `float` | 槽位首次写入的时间。存档不存在时为 `0`。 |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `savedAt` | out · data | `float` | 槽位最后一次写入的时间。存档不存在时为 `0`|
+| `createdAt` | out · data | `float` | 槽位首次写入的时间。存档不存在时为 `0`|
 | `exists` | out · data | `boolean` | |
 
-两个时间都是 1970 年 1 月 1 日 UTC 以来的毫秒数，与 `List Auto Saves` 报告的单位相同，[Time](/zh/docs/studio/blueprint/nodes/time) 分类的每个节点都接受它。
+两个时间都是 1970 年 1 月 1 日 UTC 以来的毫秒数，与 `List Auto Saves` 报告的单位相同，[Time](/zh/docs/studio/blueprint/nodes/time) 分类的每个节点都接受它
 
 <Callout type="warn">
-空槽位读 `exists` 判断。存档不存在时 `savedAt` 为 `0`，而 `0` 同时也是 1970 年的一个有效时刻。
+空槽位读 `exists` 判断。存档不存在时 `savedAt` 为 `0`，而 `0` 同时也是 1970 年的一个有效时刻
 </Callout>
 
 ### Get Save Line
 
 `blueprint.game.save.getLine` · Latent
 
-Get Save Line（获取存档语句）读取一份存档将从哪一句继续，以及那句话由谁说出。引擎每次序列化都会记下这两项，该节点把它们读回来。存档界面不必在存档时去读 backlog，再把最后一条写进自己的字段。
+Get Save Line（获取存档语句）读取一份存档将从哪一句继续，以及那句话由谁说出。引擎每次序列化都会记下这两项，该节点把它们读回来。存档界面不必在存档时去读 backlog，再把最后一条写进自己的字段
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
-| `line` | out · data | `string` | 存档不存在，或存档写于任何对话播放之前时为空串。 |
-| `speaker` | out · data | `string` | 旁白，以及尚无对话的存档为空串。 |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `line` | out · data | `string` | 存档不存在，或存档写于任何对话播放之前时为空串|
+| `speaker` | out · data | `string` | 旁白，以及尚无对话的存档为空串|
 | `exists` | out · data | `boolean` | |
 
 <Callout type="warn">
-它不是 backlog 的最后一条。backlog 记的是最后显示过的那一句，这两个字段记的是存档将从哪一句继续。从叠层界面存档，或在最后一句之后还执行了非对话动作时，两者并不相同。
+它不是 backlog 的最后一条。backlog 记的是最后显示过的那一句，这两个字段记的是存档将从哪一句继续。从叠层界面存档，或在最后一句之后还执行了非对话动作时，两者并不相同
 </Callout>
 
 ### Get Save Preview
 
 `blueprint.game.save.getPreview` · Latent
 
-Get Save Preview（获取存档预览）把存档里的截图变成当前会话内可用的`ImageAsset`。这张图不会导入项目资源库；直接接给`Set Image Asset`或图片 Blueprint Value 即可。
+Get Save Preview（获取存档预览）把存档里的截图变成当前会话内可用的`ImageAsset`。这张图不会导入项目资源库；直接接给`Set Image Asset`或图片 Blueprint Value 即可
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 支持卡片字面量。 |
-| `preview` | out · data | `ImageAsset\|null` | 存档不存在或没有截图时为 `null`。 |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `preview` | out · data | `ImageAsset\|null` | 存档不存在或没有截图时为 `null`|
 
 ## 自动存档
 
-自动存档按项目配置，位置在**项目 → 游戏**：开关、间隔，以及环保留多少个槽位。它随项目一起出货。图里不排任何日程——调度器自己在跑，并且只在剧情自上次写入以来推进过时才写，所以间隔再短，闲置的游戏也不产生开销。写入沿环轮转，最旧的先被覆盖，因此一直自动存档也只占用有界的磁盘。
+自动存档按项目配置，位置在**项目 → 游戏**：开关、间隔，以及环保留多少个槽位。它随项目一起出货。图里不排任何日程——调度器自己在跑，并且只在剧情自上次写入以来推进过时才写，所以间隔再短，闲置的游戏也不产生开销。写入沿环轮转，最旧的先被覆盖，因此一直自动存档也只占用有界的磁盘
 
 ### Auto Save
 
 `blueprint.game.autoSave.write` · Latent
 
-Auto Save（自动保存）立刻写一次自动存档，落在调度器所用的同一个环的下一个槽位，并附带截图。它同时忽略开关设置和「剧情已推进」这道门——这一次是作者显式要求的——写完之后与定时产生的自动存档没有任何区别。执行继续：自动存档不会打断正在进行的游玩。
+Auto Save（自动保存）立刻写一次自动存档，落在调度器所用的同一个环的下一个槽位，并附带截图。它同时忽略开关设置和「剧情已推进」这道门——这一次是作者显式要求的——写完之后与定时产生的自动存档没有任何区别。执行继续：自动存档不会打断正在进行的游玩
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有正在运行的游戏时会失败，与其它存档写入节点一致。
+没有正在运行的游戏时会失败，与其它存档写入节点一致
 
 ### List Auto Saves
 
 `blueprint.game.autoSave.list` · Latent
 
-List Auto Saves（列出自动存档）列出保留命名空间里的全部自动存档，**从新到旧**。调小环容量后遗留的槽位仍会被列出——改配置不该让玩家的存档凭空消失——只是不会再被轮转覆盖。
+List Auto Saves（列出自动存档）列出保留命名空间里的全部自动存档，**从新到旧**。调小环容量后遗留的槽位仍会被列出——改配置不该让玩家的存档凭空消失——只是不会再被轮转覆盖
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下。 |
+| `entries` | out · data | `array` | 对象数组，字段见下|
 | `count` | out · data | `integer` | |
 
 **条目字段**
 
 | 字段 | 含义 |
 | --- | --- |
-| `id` | 存档 id。可直接喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`。 |
-| `slot` | 在环内的槽位序号。 |
-| `timestamp` | 最后写入时间，Unix 毫秒。 |
-| `createdAt` | 首次写入时间，Unix 毫秒。 |
-| `metadata` | 写入方附带的内容，没有时为 `null`。 |
+| `id` | 存档 id。可直接喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`|
+| `slot` | 在环内的槽位序号|
+| `timestamp` | 最后写入时间，Unix 毫秒|
+| `createdAt` | 首次写入时间，Unix 毫秒|
+| `metadata` | 写入方附带的内容，没有时为 `null`|
 
-条目带的是 **id，而不是序列化后的存档**：`SavedGameData` 那样的数据块在图里毫无用处，而 id 能直接接进既有的存档节点。
+条目带的是 **id，而不是序列化后的存档**：`SavedGameData` 那样的数据块在图里毫无用处，而 id 能直接接进既有的存档节点
 
 ### Get Latest Auto Save
 
 `blueprint.game.autoSave.latest` · Latent
 
-Get Latest Auto Save（获取最新自动存档）取最新的一条自动存档。这是「继续游戏」按钮的专用节点——等价于`List Auto Saves`的第一条，省掉取下标和取字段那几个节点。
+Get Latest Auto Save（获取最新自动存档）取最新的一条自动存档。这是「继续游戏」按钮的专用节点——等价于`List Auto Saves`的第一条，省掉取下标和取字段那几个节点
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | out · data | `string` | 没有自动存档时为空字符串。 |
-| `hasAutoSave` | out · data | `boolean` | 接上它来禁用「继续」。 |
-| `timestamp` | out · data | `float` | 最后写入时间，Unix 毫秒。没有自动存档时为 `0`。 |
+| `id` | out · data | `string` | 没有自动存档时为空字符串|
+| `hasAutoSave` | out · data | `boolean` | 接上它来禁用「继续」|
+| `timestamp` | out · data | `float` | 最后写入时间，Unix 毫秒。没有自动存档时为 `0`|
 
 ## 历史
 
-对话历史——也就是回顾记录——是引擎自己保存的、已经过去的台词与选择菜单，并且可以回放到其中任意一点。
+对话历史——也就是回顾记录——是引擎自己保存的、已经过去的台词与选择菜单，并且可以回放到其中任意一点
 
 ### Get History
 
 `blueprint.game.history.get` · Latent
 
-Get History（获取历史）把回顾记录作为一个扁平数组给出，从旧到新，可以直接绑到列表控件上。
+Get History（获取历史）把回顾记录作为一个扁平数组给出，从旧到新，可以直接绑到列表控件上
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下。 |
+| `entries` | out · data | `array` | 对象数组，字段见下|
 | `count` | out · data | `integer` | |
 
 **条目字段**
 
 | 字段 | 含义 |
 | --- | --- |
-| `id` | 历史 token。喂给`Restore From History`。 |
-| `type` | 台词为 `"say"`，已确定的选择为 `"menu"`。 |
-| `text` | 句子文本，或菜单的提示语。源里没有时为空字符串。 |
-| `character` | say 条目的说话人名牌；菜单与旁白为 `null`。 |
-| `voice` | say 条目的语音 id；没有时为 `null`。 |
-| `selected` | menu 条目里被选中的选项文本；say 条目与未确定的菜单为 `null`。 |
-| `isPending` | 当前还在屏幕上、尚未提交的那一条为 true。 |
+| `id` | 历史 token。喂给`Restore From History`|
+| `type` | 台词为 `"say"`，已确定的选择为 `"menu"`|
+| `text` | 句子文本，或菜单的提示语。源里没有时为空字符串|
+| `character` | say 条目的说话人名牌；菜单与旁白为 `null`|
+| `voice` | say 条目的语音 id；没有时为 `null`|
+| `selected` | menu 条目里被选中的选项文本；say 条目与未确定的菜单为 `null`|
+| `isPending` | 当前还在屏幕上、尚未提交的那一条为 true|
 
-没有游戏运行时为空数组。
+没有游戏运行时为空数组
 
 ### Restore From History
 
 `blueprint.game.history.restore` · Latent
 
-Restore From History（从历史恢复）把游戏跳回某一条回顾记录，丢弃它之后的一切。引擎允许时按该条目的快照恢复，否则退回到 undo——正因如此，它在刚刚读档、undo 栈是空的游戏上依然有效。
+Restore From History（从历史恢复）把游戏跳回某一条回顾记录，丢弃它之后的一切。引擎允许时按该条目的快照恢复，否则退回到 undo——正因如此，它在刚刚读档、undo 栈是空的游戏上依然有效
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `id` | in · data | `string` | 卡片上标为 **Entry Id**。必填；空 id 会让节点失败。支持卡片字面量。 |
+| `id` | in · data | `string` | 卡片上标为 **Entry Id**。必填；空 id 会让节点失败。支持卡片字面量|
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ### Undo Last History Entry
 
 `blueprint.game.history.undoLast` · Latent
 
-Undo Last History Entry（撤销上一条历史）回退一条——即不带目标的`Restore From History`。它就是回顾界面上的「返回」按钮。
+Undo Last History Entry（撤销上一条历史）回退一条——即不带目标的`Restore From History`。它就是回顾界面上的「返回」按钮
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 
-没有活动游戏运行时会失败。
+没有活动游戏运行时会失败
 
 ## 已读文本
 
-一句话在文字显示完毕的那一刻被标为已读——ADV 下是打字结束，NVL 下是等待推进。记录以消息稳定的文本 id 为键，因此能挺过剧本改动，并且跨越项目里的每一个 Story；它按项目级持久化，与任何存档文件无关。「只跳过已读文本」这类选项就建立在它之上。
+一句话在文字显示完毕的那一刻被标为已读——ADV 下是打字结束，NVL 下是等待推进。记录以消息稳定的文本 id 为键，因此能挺过剧本改动，并且跨越项目里的每一个 Story；它按项目级持久化，与任何存档文件无关。「只跳过已读文本」这类选项就建立在它之上
 
 ### Is Text Read
 
 `blueprint.game.isTextRead` · Pure
 
-Is Text Read（文本是否已读）：当且仅当屏幕上有一句对话**并且**它的消息被标为已读时为 `true`——要么早先的游玩里见过，要么刚刚显示完毕。没有台词在显示时为 `false`。
+Is Text Read（文本是否已读）：当且仅当屏幕上有一句对话**并且**它的消息被标为已读时为 `true`——要么早先的游玩里见过，要么刚刚显示完毕。没有台词在显示时为 `false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -771,7 +771,7 @@ Is Text Read（文本是否已读）：当且仅当屏幕上有一句对话**并
 
 `blueprint.game.clearTextRead` · Latent
 
-Clear Text Read（清除已读记录）清空已读记录，内存与磁盘一起清，覆盖项目里的每一个 Story。仍在屏幕上、且已经显示完毕的那一句会立刻重新标为已读——玩家正看着它。
+Clear Text Read（清除已读记录）清空已读记录，内存与磁盘一起清，覆盖项目里的每一个 Story。仍在屏幕上、且已经显示完毕的那一句会立刻重新标为已读——玩家正看着它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

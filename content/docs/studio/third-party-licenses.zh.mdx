@@ -3,20 +3,20 @@ title: 第三方许可
 description: NarraLeaf Studio 随应用一同分发的第三方软件，以及它们所适用的许可
 ---
 
-NarraLeaf Studio 的安装包里除了应用本身，还包含少量第三方软件。本页记录它们是什么，以及适用什么许可。
+NarraLeaf Studio 的安装包里除了应用本身，还包含少量第三方软件。本页记录它们是什么，以及适用什么许可
 
 ## FFmpeg
 
-Studio 附带 `ffmpeg` 与 `ffprobe` 两个可执行文件，用于识别媒体格式，并把导入的文件转换成引擎能播放的格式。它们以独立程序的形式随附、以独立进程运行；FFmpeg 没有任何部分被链接进 Studio。
+Studio 附带 `ffmpeg` 与 `ffprobe` 两个可执行文件，用于识别媒体格式，并把导入的文件转换成引擎能播放的格式。它们以独立程序的形式随附、以独立进程运行；FFmpeg 没有任何部分被链接进 Studio
 
-FFmpeg 适用 LGPL。**版本因平台而异**，每种构建都会把与之相符的许可原文一同安装在 `resources/ffmpeg/` 下。
+FFmpeg 适用 LGPL。**版本因平台而异**，每种构建都会把与之相符的许可原文一同安装在 `resources/ffmpeg/` 下
 
 | 平台 | 构建方式 | 许可 |
 | --- | --- | --- |
 | Windows | 预编译，来自 [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) 的一次固定发布 | [LGPL v3 或更高版本](https://www.gnu.org/licenses/lgpl-3.0.html) |
 | macOS | 从固定的上游源码编译 | [LGPL v2.1 或更高版本](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
 
-两种构建都不含任何 GPL 或 nonfree 组件。
+两种构建都不含任何 GPL 或 nonfree 组件
 
 ### 随附的库
 
@@ -28,8 +28,8 @@ FFmpeg 适用 LGPL。**版本因平台而异**，每种构建都会把与之相�
 
 ### 对应源码
 
-FFmpeg 的源码可从 [FFmpeg 项目](https://www.ffmpeg.org/download.html)获取，其[法律说明页](https://www.ffmpeg.org/legal.html)完整说明了该项目的许可情况。
+FFmpeg 的源码可从 [FFmpeg 项目](https://www.ffmpeg.org/download.html)获取，其[法律说明页](https://www.ffmpeg.org/legal.html)完整说明了该项目的许可情况
 
-macOS 的那份由 FFmpeg 8.1.2 与上表中的库编译而成，构建脚本连同固定的版本号与完整的 configure 参数，公开在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)的 `project/build/build-ffmpeg-macos.sh`。Windows 的那份是 `n8.1.2-34-g9b6c8969e0`，来自 [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) 这次发布。
+macOS 的那份由 FFmpeg 8.1.2 与上表中的库编译而成，构建脚本连同固定的版本号与完整的 configure 参数，公开在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)的 `project/build/build-ffmpeg-macos.sh`。Windows 的那份是 `n8.1.2-34-g9b6c8969e0`，来自 [`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) 这次发布
 
-如需索取任一构建的完整对应源码，请在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)提出 issue。
+如需索取任一构建的完整对应源码，请在 [NarraLeaf Studio 仓库](https://github.com/NarraLeaf/NarraLeaf-Studio)提出 issue

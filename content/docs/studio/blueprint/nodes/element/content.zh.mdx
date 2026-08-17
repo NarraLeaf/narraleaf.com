@@ -3,19 +3,19 @@ title: List、Slider、Image
 description: 列表内容与选中项、滑块数值与范围、图片资源、填充模式与裁剪——全部作用于连入的元素
 ---
 
-三种自己持有状态的控件——List 的条目、Slider 的值、Image 的资源——在这里通过连入的引用操作，而不是从控件内部操作。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)。
+三种自己持有状态的控件——List 的条目、Slider 的值、Image 的资源——在这里通过连入的引用操作，而不是从控件内部操作。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
 
 ## List
 
-List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 List 实例的运行时 items，而这些 items 只存在于该实例中：完全卸载后就没了，也不会自动恢复，需要作者自己从变量或其它数据源重新写入。`itemsBinding` 只在没有运行时 items 时作为读取 fallback。
+List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 List 实例的运行时 items，而这些 items 只存在于该实例中：完全卸载后就没了，也不会自动恢复，需要作者自己从变量或其它数据源重新写入。`itemsBinding` 只在没有运行时 items 时作为读取 fallback
 
-条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/zh/docs/studio/blueprint/nodes/list)。
+条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/zh/docs/studio/blueprint/nodes/list)
 
 ### Get List Content
 
 `blueprint.element.list.getItems` · Pure
 
-读取运行时内容。没有运行时内容时，回退到 `itemsBinding` 或预览数据。
+读取运行时内容。没有运行时内容时，回退到 `itemsBinding` 或预览数据
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -26,7 +26,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.setItems` · Latent
 
-替换运行时内容。非数组按空数组处理。
+替换运行时内容。非数组按空数组处理
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -39,7 +39,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.clear` · Latent
 
-把运行时内容设置为空数组。
+把运行时内容设置为空数组
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -51,7 +51,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.appendItem` · Latent
 
-在末尾追加一项。
+在末尾追加一项
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -64,21 +64,21 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.insertItem` · Latent
 
-在指定下标插入一项。下标会夹到有效范围，而不是被拒绝。
+在指定下标插入一项。下标会夹到有效范围，而不是被拒绝
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `index` | in · data | `integer` | 可在卡片上直接填字面量。 |
+| `index` | in · data | `integer` | 可在卡片上直接填字面量|
 | `item` | in · data | `any` |  |
 
 ### Remove List Item
 
 `blueprint.element.list.removeItem` · Latent
 
-移除第一个与 `item` JSON 等价的项。
+移除第一个与 `item` JSON 等价的项
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -91,20 +91,20 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.removeItemAt` · Latent
 
-移除指定下标的项。
+移除指定下标的项
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `index` | in · data | `integer` | 可在卡片上直接填字面量。 |
+| `index` | in · data | `integer` | 可在卡片上直接填字面量|
 
 ### Refresh List Items
 
 `blueprint.element.list.refreshItems` · Latent
 
-以当前内容原样重新写入一次，从而触发条目重新渲染。
+以当前内容原样重新写入一次，从而触发条目重新渲染
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -116,7 +116,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.getSelectedItem` · Pure
 
-没有有效选中项时输出 `null`。
+没有有效选中项时输出 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -127,7 +127,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.setSelectedItem` · Latent
 
-按 JSON 等价查找并设置当前选中项。
+按 JSON 等价查找并设置当前选中项
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -140,7 +140,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.getSelectedIndex` · Pure
 
-读取当前选中下标。
+读取当前选中下标
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -151,33 +151,33 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.setSelectedIndex` · Latent
 
-设置当前选中下标。
+设置当前选中下标
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `index` | in · data | `integer` | 可在卡片上直接填字面量。 |
+| `index` | in · data | `integer` | 可在卡片上直接填字面量|
 
 ### Scroll To Index
 
 `blueprint.element.list.scrollToIndex` · Latent
 
-滚动到指定条目。
+滚动到指定条目
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `index` | in · data | `integer` | 可在卡片上直接填字面量。 |
+| `index` | in · data | `integer` | 可在卡片上直接填字面量|
 
 ### Scroll To Top
 
 `blueprint.element.list.scrollToTop` · Latent
 
-滚动到顶部。
+滚动到顶部
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -189,7 +189,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 `blueprint.element.list.scrollToBottom` · Latent
 
-滚动到底部。
+滚动到底部
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -199,13 +199,13 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 
 ## Slider
 
-Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告值的每一处——`props.value`、它的 Blueprint Value、事件 payload、`Get Slider Value`——给的都是映射后的值，已经按 `min`、`max`、`step` clamp 和 snap 过。`0..1` 的 normalized 值只能通过 `Get Slider Normalized Value` 取得。Self 形态见 [Slider](/zh/docs/studio/blueprint/nodes/slider)。
+Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告值的每一处——`props.value`、它的 Blueprint Value、事件 payload、`Get Slider Value`——给的都是映射后的值，已经按 `min`、`max`、`step` clamp 和 snap 过。`0..1` 的 normalized 值只能通过 `Get Slider Normalized Value` 取得。Self 形态见 [Slider](/zh/docs/studio/blueprint/nodes/slider)
 
 ### Get Slider Value
 
 `blueprint.element.slider.getValue` · Pure
 
-读取运行时映射值——已经 clamp 和 snap 过。
+读取运行时映射值——已经 clamp 和 snap 过
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -216,20 +216,20 @@ Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告�
 
 `blueprint.element.slider.setValue` · Latent
 
-写入映射值，并按当前范围和步进规范化。它只更新运行时状态：不会派发 `valueChanged`、`dragStart` 或 `dragEnd` 事件，也不写回 UIDocument。
+写入映射值，并按当前范围和步进规范化。它只更新运行时状态：不会派发 `valueChanged`、`dragStart` 或 `dragEnd` 事件，也不写回 UIDocument
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `slider` | in · data | `element:nl.slider` |  |
-| `value` | in · data | `float` | 可在卡片上直接填字面量。 |
+| `value` | in · data | `float` | 可在卡片上直接填字面量|
 
 ### Get Slider Normalized Value
 
 `blueprint.element.slider.getNormalizedValue` · Pure
 
-读取 `0..1` 的 normalized 值。只有这个节点能拿到它。
+读取 `0..1` 的 normalized 值。只有这个节点能拿到它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -240,7 +240,7 @@ Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告�
 
 `blueprint.element.slider.getRange` · Pure
 
-一次读取 `min`、`max`、`step`。
+一次读取 `min`、`max`、`step`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -253,26 +253,26 @@ Slider 节点带 `slider` 引脚，类型是 `element:nl.slider`。滑块报告�
 
 `blueprint.element.slider.setRange` · Latent
 
-写入 `min`、`max`、`step`，并用新范围重新规范化当前运行时值。和 `Set Slider Value` 一样不派发任何事件。
+写入 `min`、`max`、`step`，并用新范围重新规范化当前运行时值。和 `Set Slider Value` 一样不派发任何事件
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `slider` | in · data | `element:nl.slider` |  |
-| `min` | in · data | `float` | 可在卡片上直接填字面量。 |
-| `max` | in · data | `float` | 可在卡片上直接填字面量。 |
-| `step` | in · data | `float` | 可在卡片上直接填字面量。 |
+| `min` | in · data | `float` | 可在卡片上直接填字面量|
+| `max` | in · data | `float` | 可在卡片上直接填字面量|
+| `step` | in · data | `float` | 可在卡片上直接填字面量|
 
 ## Image
 
-Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控件——不表示舞台表演图片、角色立绘或剧情演出资源。产出 `ImageAsset` 的字面量卡片没有派生形态，和 Self 形态一起留在 [Image](/zh/docs/studio/blueprint/nodes/image)。
+Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控件——不表示舞台表演图片、角色立绘或剧情演出资源。产出 `ImageAsset` 的字面量卡片没有派生形态，和 Self 形态一起留在 [Image](/zh/docs/studio/blueprint/nodes/image)
 
 ### Get Image Asset
 
 `blueprint.element.image.getImageAsset` · Pure
 
-控件没有图片时输出 `null`。
+控件没有图片时输出 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -283,20 +283,20 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.setImageAsset` · Latent
 
-`asset` 不接线时，卡片会展开成图片选择器；接线后以连线值为准。传 `null` 清除图片。旧图里直接传字符串 `assetId` 的连线仍可运行，但新图应该传 `ImageAsset`。
+`asset` 不接线时，卡片会展开成图片选择器；接线后以连线值为准。传 `null` 清除图片。旧图里直接传字符串 `assetId` 的连线仍可运行，但新图应该传 `ImageAsset`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.image` |  |
-| `asset` | in · data | `ImageAsset\|null` | 可在卡片上直接填字面量。 |
+| `asset` | in · data | `ImageAsset\|null` | 可在卡片上直接填字面量|
 
 ### Clear Image Asset
 
 `blueprint.element.image.clearImageAsset` · Latent
 
-等价于把 `Set Image Asset` 的 `asset` 设为 `null`。
+等价于把 `Set Image Asset` 的 `asset` 设为 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -308,7 +308,7 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.getFitMode` · Pure
 
-读取 `imageFill.mode`：`cover`、`contain`、`stretch`、`crop` 或 `tile`。
+读取 `imageFill.mode`：`cover`、`contain`、`stretch`、`crop` 或 `tile`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -319,20 +319,20 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.setFitMode` · Latent
 
-设置 `imageFill.mode`，保留当前图片资源和裁剪区域。非法或空字符串回退到当前模式，而不是报错。
+设置 `imageFill.mode`，保留当前图片资源和裁剪区域。非法或空字符串回退到当前模式，而不是报错
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.image` |  |
-| `fitMode` | in · data | `string` | 可在卡片上直接填字面量。 |
+| `fitMode` | in · data | `string` | 可在卡片上直接填字面量|
 
 ### Get Image Crop Rect
 
 `blueprint.element.image.getCropRect` · Pure
 
-读取 `imageFill.cropPlacement`。没有显式裁剪区域时输出默认全图区域。
+读取 `imageFill.cropPlacement`。没有显式裁剪区域时输出默认全图区域
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -346,23 +346,23 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.setCropRect` · Latent
 
-写入裁剪区域，并顺带把 `fitMode` 切换为 `crop`。
+写入裁剪区域，并顺带把 `fitMode` 切换为 `crop`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.image` |  |
-| `leftPct` | in · data | `float` | 可在卡片上直接填字面量。 |
-| `topPct` | in · data | `float` | 可在卡片上直接填字面量。 |
-| `widthPct` | in · data | `float` | 可在卡片上直接填字面量。 |
-| `heightPct` | in · data | `float` | 可在卡片上直接填字面量。 |
+| `leftPct` | in · data | `float` | 可在卡片上直接填字面量|
+| `topPct` | in · data | `float` | 可在卡片上直接填字面量|
+| `widthPct` | in · data | `float` | 可在卡片上直接填字面量|
+| `heightPct` | in · data | `float` | 可在卡片上直接填字面量|
 
 ### Get Image Flip X
 
 `blueprint.element.image.getFlipX` · Pure
 
-读取图片内容层的水平翻转状态。
+读取图片内容层的水平翻转状态
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -373,7 +373,7 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.setFlipX` · Latent
 
-设置水平翻转。
+设置水平翻转
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.getFlipY` · Pure
 
-读取图片内容层的垂直翻转状态。
+读取图片内容层的垂直翻转状态
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -397,7 +397,7 @@ Image 节点带 `element:nl.image` 引脚。它们只处理界面上的图片控
 
 `blueprint.element.image.setFlipY` · Latent
 
-设置垂直翻转。
+设置垂直翻转
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

@@ -3,69 +3,69 @@ title: 数据
 description: 常量、类型转换、类型判断，以及构成一张图所需的全部字符串、数组、对象和 JSON 操作
 ---
 
-Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，或者要拆解字符串、数组、JSON 文档时，都用它。这里没有任何节点带执行引脚——Data 节点由连到它输出端的一方读取。
+Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，或者要拆解字符串、数组、JSON 文档时，都用它。这里没有任何节点带执行引脚——Data 节点由连到它输出端的一方读取
 
 ## 值类型
 
-下面的引脚上一共出现九种`valueType`。
+下面的引脚上一共出现九种`valueType`
 
 | `valueType` | 内容 | 产出方 |
 | --- | --- | --- |
-| `string` | 文本。 | `String`，以及所有字符串节点。 |
-| `integer` | 整数。 | `Integer`，以及各类长度、下标、计数。 |
-| `float` | 数字。 | `Float`、`To Float`、`Parse Float`。 |
-| `boolean` | 真或假。 | `Boolean`，以及所有类型判断和字符串判断。 |
-| `json` | 任意 JSON 值：object、array、string、number、boolean 或`null`。 | `JSON`、`Rect`、`Parse JSON`、`Get JSON Field`、`Make JSON Object`。 |
-| `array` | JSON 数组，但作为独立类型存在。 | `Make JSON Array`、返回数组的那些`Array …`节点、`Object Keys`、`Object Values`。 |
-| `any` | 任意值。 | —— |
-| `RGBAColor` | `{ r, g, b, a }`。 | `Color`。 |
-| `Vector2D` | `{ x, y }`。 | `Vector2D`。 |
+| `string` | 文本| `String`，以及所有字符串节点|
+| `integer` | 整数| `Integer`，以及各类长度、下标、计数|
+| `float` | 数字| `Float`、`To Float`、`Parse Float`|
+| `boolean` | 真或假| `Boolean`，以及所有类型判断和字符串判断|
+| `json` | 任意 JSON 值：object、array、string、number、boolean 或`null`| `JSON`、`Rect`、`Parse JSON`、`Get JSON Field`、`Make JSON Object`|
+| `array` | JSON 数组，但作为独立类型存在| `Make JSON Array`、返回数组的那些`Array …`节点、`Object Keys`、`Object Values`|
+| `any` | 任意值| —— |
+| `RGBAColor` | `{ r, g, b, a }`| `Color`|
+| `Vector2D` | `{ x, y }`| `Vector2D`|
 
 两个数据引脚之间的连线，在类型完全相同时成立；此外还有以下几种：
 
 | 来源 | 目标 | 原因 |
 | --- | --- | --- |
-| `integer` | `float` | 整数一定是浮点数。 |
-| `integer`、`float` | `string` | 读取该输入时数字会被转成文本。这是唯一会改写值的隐式转换——其余允许的连线都原样传递。 |
-| `array` | `json` | 数组本身就是一个 JSON 值。 |
-| `any` | 任意类型 | `any`在两个方向上都匹配。 |
+| `integer` | `float` | 整数一定是浮点数|
+| `integer`、`float` | `string` | 读取该输入时数字会被转成文本。这是唯一会改写值的隐式转换——其余允许的连线都原样传递|
+| `array` | `json` | 数组本身就是一个 JSON 值|
+| `any` | 任意类型 | `any`在两个方向上都匹配|
 | 任意类型 | `any` | |
 
 其余一律拒绝，包括那些作者以为能反过来用的：
 
-- **`json` → `array`。** 这条规则只单向成立。
-- **`float` → `integer`。** 插一个`To Integer`，它向零截断。
-- **`string` → `integer`或`float`。** 插`Parse Int`、`Parse Float`、`To Integer`或`To Float`。
-- **`boolean` → `string`、`json` → `string`。** 只有数字会隐式转成文本。插`To String`或`Stringify JSON`。
-- **`string`、`integer`、`float`、`boolean` → `json`。** 只有`array`能隐式接进`json`输入。插`To JSON`。
-- **`RGBAColor` → `json`、`Vector2D` → `json`。** 它们是各自独立的结构化类型，不是 JSON 文档。`Rect`是例外：它本来输出的就是`json`。
+- **`json` → `array`。** 这条规则只单向成立
+- **`float` → `integer`。** 插一个`To Integer`，它向零截断
+- **`string` → `integer`或`float`。** 插`Parse Int`、`Parse Float`、`To Integer`或`To Float`
+- **`boolean` → `string`、`json` → `string`。** 只有数字会隐式转成文本。插`To String`或`Stringify JSON`
+- **`string`、`integer`、`float`、`boolean` → `json`。** 只有`array`能隐式接进`json`输入。插`To JSON`
+- **`RGBAColor` → `json`、`Vector2D` → `json`。** 它们是各自独立的结构化类型，不是 JSON 文档。`Rect`是例外：它本来输出的就是`json`
 
 <Callout type="info">
-`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行。
+`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
 </Callout>
 
 ## 约定
 
-- **这里每个节点都是纯节点。** 没有执行引脚可连，所以 Data 节点不可能落在执行线路上。它的输出在下游读取时才计算，下一次读取时重新计算。
-- **三种图类型都接受它们**——`event`、`function`、`macro`——Blueprint Value 图同样接受。
-- **不存在原地修改。** 写入类节点在输出引脚上给出一个新值，输入原封不动。
-- **只有`string`、`integer`、`float`、`boolean`引脚支持卡片内联输入。** `json`和`array`输入没有卡片编辑器，请接一个`JSON`常量或`Make JSON …`节点。
-- **输入未连线不算错误。** 它读取该引脚的卡片内联值，没有内联值时读到空；各节点自行归一：缺失的数组读作空数组，缺失的字符串读作`""`，缺失的数字读作`0`。
-- **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到。
+- **这里每个节点都是纯节点。** 没有执行引脚可连，所以 Data 节点不可能落在执行线路上。它的输出在下游读取时才计算，下一次读取时重新计算
+- **三种图类型都接受它们**——`event`、`function`、`macro`——Blueprint Value 图同样接受
+- **不存在原地修改。** 写入类节点在输出引脚上给出一个新值，输入原封不动
+- **只有`string`、`integer`、`float`、`boolean`引脚支持卡片内联输入。** `json`和`array`输入没有卡片编辑器，请接一个`JSON`常量或`Make JSON …`节点
+- **输入未连线不算错误。** 它读取该引脚的卡片内联值，没有内联值时读到空；各节点自行归一：缺失的数组读作空数组，缺失的字符串读作`""`，缺失的数字读作`0`
+- **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到
 
 <Callout type="warn">
-`Array Push`、`Set JSON Field`、`Object Set Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)。
+`Array Push`、`Set JSON Field`、`Object Set Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)
 </Callout>
 
 ## 常量
 
-常量节点有一个输出引脚和一个卡片字段。类型由你选的节点固定下来，图的其余部分才因此能做类型检查。
+常量节点有一个输出引脚和一个卡片字段。类型由你选的节点固定下来，图的其余部分才因此能做类型检查
 
 ### String
 
 `blueprint.data.stringLiteral` · Pure
 
-String（字符串）常量。
+String（字符串）常量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -75,13 +75,13 @@ String（字符串）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 文本内容。 |
+| `value` | 文本内容|
 
 ### Integer
 
 `blueprint.data.integerLiteral` · Pure
 
-Integer（整数）常量。
+Integer（整数）常量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -91,13 +91,13 @@ Integer（整数）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 一个数字。读取时截断为整数。 |
+| `value` | 一个数字。读取时截断为整数|
 
 ### Float
 
 `blueprint.data.floatLiteral` · Pure
 
-Float（浮点数）常量。
+Float（浮点数）常量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -107,13 +107,13 @@ Float（浮点数）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 一个数字。非有限值读作`0`。 |
+| `value` | 一个数字。非有限值读作`0`|
 
 ### Boolean
 
 `blueprint.data.booleanLiteral` · Pure
 
-Boolean（布尔值）常量。
+Boolean（布尔值）常量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -123,23 +123,23 @@ Boolean（布尔值）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | True / False 下拉框。 |
+| `value` | True / False 下拉框|
 
 ### Null
 
 `blueprint.data.nullLiteral` · Pure
 
-Null（空值）是唯一没有卡片字段的常量——`null`没有什么可配置的。它的输出类型是`json`，因此能接到任何`json`或`any`输入。
+Null（空值）是唯一没有卡片字段的常量——`null`没有什么可配置的。它的输出类型是`json`，因此能接到任何`json`或`any`输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | out · data | `json` | 恒为`null`。 |
+| `value` | out · data | `json` | 恒为`null`|
 
 ### JSON
 
 `blueprint.data.jsonLiteral` · Pure
 
-卡片显示根类型和摘要；编辑时打开树形表单，object 用命名字段，array 用顺序条目。新建节点是一个空 object。
+卡片显示根类型和摘要；编辑时打开树形表单，object 用命名字段，array 用顺序条目。新建节点是一个空 object
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -149,13 +149,13 @@ Null（空值）是唯一没有卡片字段的常量——`null`没有什么可�
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 以树形方式编辑的文档。写入的一切都是 JSON-safe 值。 |
+| `value` | 以树形方式编辑的文档。写入的一切都是 JSON-safe 值|
 
 ### Color
 
 `blueprint.data.colorLiteral` · Pure
 
-Color（颜色）用颜色选择器编辑，并以 8 位 RGBA hex 显示。输出永远是归一化后的`{ r, g, b, a }`记录——`r`、`g`、`b`为字节，`a`取值`0`到`1`。
+Color（颜色）用颜色选择器编辑，并以 8 位 RGBA hex 显示。输出永远是归一化后的`{ r, g, b, a }`记录——`r`、`g`、`b`为字节，`a`取值`0`到`1`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -165,13 +165,13 @@ Color（颜色）用颜色选择器编辑，并以 8 位 RGBA hex 显示。输�
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 颜色选择器。 |
+| `value` | 颜色选择器|
 
 ### Vector2D
 
 `blueprint.data.vector2dLiteral` · Pure
 
-Vector2D（二维向量）常量。
+Vector2D（二维向量）常量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -181,13 +181,13 @@ Vector2D（二维向量）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 固定的`x` / `y`数值 schema。额外字段会被拒绝；缺失或非数字的字段读作`0`。 |
+| `value` | 固定的`x` / `y`数值 schema。额外字段会被拒绝；缺失或非数字的字段读作`0`|
 
 ### Rect
 
 `blueprint.data.rectLiteral` · Pure
 
-和`Color`、`Vector2D`不同，Rect（矩形）输出的是普通`json`而不是独立类型，因此能接到任何`json`输入。
+和`Color`、`Vector2D`不同，Rect（矩形）输出的是普通`json`而不是独立类型，因此能接到任何`json`输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -197,13 +197,13 @@ Vector2D（二维向量）常量。
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 固定的`x` / `y` / `width` / `height`数值 schema，校验规则与`Vector2D`相同。 |
+| `value` | 固定的`x` / `y` / `width` / `height`数值 schema，校验规则与`Vector2D`相同|
 
 ### Number
 
 `blueprint.data.numberLiteral` · Pure
 
-Number（数字）是旧版数字常量，已从创建浮窗隐藏，无法加进新图。它仍然注册着，好让旧图继续解析。请用`Float`。
+Number（数字）是旧版数字常量，已从创建浮窗隐藏，无法加进新图。它仍然注册着，好让旧图继续解析。请用`Float`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -213,13 +213,13 @@ Number（数字）是旧版数字常量，已从创建浮窗隐藏，无法加�
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 一个数字。 |
+| `value` | 一个数字|
 
 ### Literal
 
 `blueprint.data.literal` · Pure
 
-Literal（字面量）是旧版无类型常量，同样从创建浮窗隐藏。它的`any`输出能通过任何类型检查——这恰恰是它被那些带类型的常量取代的原因。
+Literal（字面量）是旧版无类型常量，同样从创建浮窗隐藏。它的`any`输出能通过任何类型检查——这恰恰是它被那些带类型的常量取代的原因
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -229,17 +229,17 @@ Literal（字面量）是旧版无类型常量，同样从创建浮窗隐藏。�
 
 | 字段 | 含义 |
 | --- | --- |
-| `value` | 一个无类型的值。 |
+| `value` | 一个无类型的值|
 
 ## 转换
 
-连接规则会把你引向这几个节点。它们都不会失败：读不出来的输入产出该类型的零值，而不是报错。
+连接规则会把你引向这几个节点。它们都不会失败：读不出来的输入产出该类型的零值，而不是报错
 
 ### To String
 
 `blueprint.string.toString` · Pure
 
-To String（转为字符串）：`null`和未连线的输入都读作`""`。object 和 array 会被序列化为 JSON 文本。
+To String（转为字符串）：`null`和未连线的输入都读作`""`。object 和 array 会被序列化为 JSON 文本
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -250,7 +250,7 @@ To String（转为字符串）：`null`和未连线的输入都读作`""`。obje
 
 `blueprint.data.toInteger` · Pure
 
-To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`true`读作`1`，`false`读作`0`，数字字符串可以接受，其余一律得到`0`。
+To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`true`读作`1`，`false`读作`0`，数字字符串可以接受，其余一律得到`0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -261,7 +261,7 @@ To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`t
 
 `blueprint.data.toFloat` · Pure
 
-接受范围与`To Integer`相同，只是不截断。非有限数字得到`0`。
+接受范围与`To Integer`相同，只是不截断。非有限数字得到`0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -272,7 +272,7 @@ To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`t
 
 `blueprint.data.toBoolean` · Pure
 
-字符串在去除首尾空白并转小写后匹配：`""`、`"false"`、`"0"`、`"no"`为假；`"true"`、`"1"`、`"yes"`为真；其他非空字符串一律为真。`0`和非有限数字为假。
+字符串在去除首尾空白并转小写后匹配：`""`、`"false"`、`"0"`、`"no"`为假；`"true"`、`"1"`、`"yes"`为真；其他非空字符串一律为真。`0`和非有限数字为假
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -283,7 +283,7 @@ To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`t
 
 `blueprint.data.toJson` · Pure
 
-字符串会尝试按 JSON 解析，解析不了就保留原字符串——所以这个节点绝不会毁掉文本。其他值会被转成 JSON-safe 值：非有限数字和循环引用变成`null`，函数和 symbol 变成它们的文本形式。
+字符串会尝试按 JSON 解析，解析不了就保留原字符串——所以这个节点绝不会毁掉文本。其他值会被转成 JSON-safe 值：非有限数字和循环引用变成`null`，函数和 symbol 变成它们的文本形式
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -294,40 +294,40 @@ To Integer（转为整数）向零截断——`-2.7`得到`-2`而不是`-3`。`t
 
 `blueprint.data.parseInt` · Pure
 
-固定十进制，取开头的数字——`"12px"`得到`12`。一个数字都没有则得到`0`。
+固定十进制，取开头的数字——`"12px"`得到`12`。一个数字都没有则得到`0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `integer` | |
 
 ### Parse Float
 
 `blueprint.data.parseFloat` · Pure
 
-Parse Float（解析浮点数）。
+Parse Float（解析浮点数）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `float` | |
 
 ### Parse JSON
 
 `blueprint.data.parseJson` · Pure
 
-严格解析：解析不了的文本和空字符串都得到`null`。想保留原文本时改用`To JSON`。
+严格解析：解析不了的文本和空字符串都得到`null`。想保留原文本时改用`To JSON`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
 ### Stringify JSON
 
 `blueprint.data.stringifyJson` · Pure
 
-未连线的输入得到文本`"null"`。无法序列化的值得到`""`。
+未连线的输入得到文本`"null"`。无法序列化的值得到`""`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -336,13 +336,13 @@ Parse Float（解析浮点数）。
 
 ## 类型判断
 
-每个都接收`any`，回答关于实际到达的那个值的一个问题——这就是你弄清`json`或`any`引脚里究竟装着什么的办法。
+每个都接收`any`，回答关于实际到达的那个值的一个问题——这就是你弄清`json`或`any`引脚里究竟装着什么的办法
 
 ### Is String
 
 `blueprint.data.isString` · Pure
 
-Is String（是否为字符串）。
+Is String（是否为字符串）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -353,7 +353,7 @@ Is String（是否为字符串）。
 
 `blueprint.data.isNumber` · Pure
 
-只认有限数字——`NaN`和无穷都为假，数字字符串也为假。它问的是类型，不是能不能解析。
+只认有限数字——`NaN`和无穷都为假，数字字符串也为假。它问的是类型，不是能不能解析
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -364,7 +364,7 @@ Is String（是否为字符串）。
 
 `blueprint.data.isBoolean` · Pure
 
-Is Boolean（是否为布尔值）。
+Is Boolean（是否为布尔值）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -375,7 +375,7 @@ Is Boolean（是否为布尔值）。
 
 `blueprint.data.isArray` · Pure
 
-Is Array（是否为数组）。
+Is Array（是否为数组）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -386,7 +386,7 @@ Is Array（是否为数组）。
 
 `blueprint.data.isObject` · Pure
 
-非 null 且不是数组的 object 才为真。数组归`Is Array`回答，不归它。
+非 null 且不是数组的 object 才为真。数组归`Is Array`回答，不归它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -397,7 +397,7 @@ Is Array（是否为数组）。
 
 `blueprint.data.isNull` · Pure
 
-对`null`为真，对解析不出结果的输入也为真——未连线的引脚在这里读作 null。
+对`null`为真，对解析不出结果的输入也为真——未连线的引脚在这里读作 null
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -408,7 +408,7 @@ Is Array（是否为数组）。
 
 `blueprint.data.notNull` · Pure
 
-`Is Null`的取反，省得你再挂一个`Not`。
+`Is Null`的取反，省得你再挂一个`Not`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -419,7 +419,7 @@ Is Array（是否为数组）。
 
 `blueprint.data.isEmptyValue` · Pure
 
-对`null`、`""`、空数组和空 object 为真。`0`和`false`是值而不是空，两者都为假。
+对`null`、`""`、空数组和空 object 为真。`0`和`false`是值而不是空，两者都为假
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -428,398 +428,398 @@ Is Array（是否为数组）。
 
 ## 字符串
 
-这里每个`value`输入都能在卡片上内联输入，所以一次性的字符串不必单独放一个常量节点。下标从 0 开始，越界的下标会被夹取而不是拒绝。
+这里每个`value`输入都能在卡片上内联输入，所以一次性的字符串不必单独放一个常量节点。下标从 0 开始，越界的下标会被夹取而不是拒绝
 
 ### Concat
 
 `blueprint.string.concat` · Pure
 
-Concat（拼接）按引脚顺序把输入首尾相接，中间不加任何内容。卡片上有添加输入的控件：在`a`和`b`之外可以继续追加`string`输入，下面的签名只列出它初始自带的两个。
+Concat（拼接）按引脚顺序把输入首尾相接，中间不加任何内容。卡片上有添加输入的控件：在`a`和`b`之外可以继续追加`string`输入，下面的签名只列出它初始自带的两个
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `string` | 可在卡片上内联输入。 |
-| `b` | in · data | `string` | 可在卡片上内联输入。 |
+| `a` | in · data | `string` | 可在卡片上内联输入|
+| `b` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Format
 
 `blueprint.string.format` · Pure
 
-把模板中的`{name}`替换为`values`里的同名字段；`values`是数组时用`{0}`、`{1}`……。匹配不到的占位符变成空；`values`既不是 object 也不是 array 时，所有占位符都变成空。
+把模板中的`{name}`替换为`values`里的同名字段；`values`是数组时用`{0}`、`{1}`……。匹配不到的占位符变成空；`values`既不是 object 也不是 array 时，所有占位符都变成空
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `template` | in · data | `string` | 可在卡片上内联输入。 |
-| `values` | in · data | `json` | 接一个`JSON`常量或`Make JSON Object`。 |
+| `template` | in · data | `string` | 可在卡片上内联输入|
+| `values` | in · data | `json` | 接一个`JSON`常量或`Make JSON Object`|
 | `result` | out · data | `string` | |
 
 ### Length
 
 `blueprint.string.length` · Pure
 
-Length（长度）。
+Length（长度）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `length` | out · data | `integer` | |
 
 ### Is Empty
 
 `blueprint.string.isEmpty` · Pure
 
-长度为 0。全是空格的字符串不算空——那是`Is Blank`。
+长度为 0。全是空格的字符串不算空——那是`Is Blank`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Is Blank
 
 `blueprint.string.isBlank` · Pure
 
-为空，或只包含空白字符。
+为空，或只包含空白字符
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Trim
 
 `blueprint.string.trim` · Pure
 
-Trim（去除首尾空白）。
+Trim（去除首尾空白）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Trim Start
 
 `blueprint.string.trimStart` · Pure
 
-Trim Start（去除首部空白）。
+Trim Start（去除首部空白）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Trim End
 
 `blueprint.string.trimEnd` · Pure
 
-Trim End（去除尾部空白）。
+Trim End（去除尾部空白）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### To Upper Case
 
 `blueprint.string.toUpperCase` · Pure
 
-To Upper Case（转为大写）。
+To Upper Case（转为大写）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### To Lower Case
 
 `blueprint.string.toLowerCase` · Pure
 
-To Lower Case（转为小写）。
+To Lower Case（转为小写）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Capitalize
 
 `blueprint.string.capitalize` · Pure
 
-只把第一个字符转成大写，其余原样保留——这不是标题式大小写。
+只把第一个字符转成大写，其余原样保留——这不是标题式大小写
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Equals
 
 `blueprint.string.equals` · Pure
 
-Equals（相等）。
+Equals（相等）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `string` | 可在卡片上内联输入。 |
-| `b` | in · data | `string` | 可在卡片上内联输入。 |
+| `a` | in · data | `string` | 可在卡片上内联输入|
+| `b` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Equals Ignore Case
 
 `blueprint.string.equalsIgnoreCase` · Pure
 
-Equals Ignore Case（相等，忽略大小写）。
+Equals Ignore Case（相等，忽略大小写）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `a` | in · data | `string` | 可在卡片上内联输入。 |
-| `b` | in · data | `string` | 可在卡片上内联输入。 |
+| `a` | in · data | `string` | 可在卡片上内联输入|
+| `b` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Contains
 
 `blueprint.string.contains` · Pure
 
-Contains（包含）。
+Contains（包含）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Starts With
 
 `blueprint.string.startsWith` · Pure
 
-Starts With（以……开头）。
+Starts With（以……开头）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Ends With
 
 `blueprint.string.endsWith` · Pure
 
-Ends With（以……结尾）。
+Ends With（以……结尾）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Index Of
 
 `blueprint.string.indexOf` · Pure
 
-从`start`向后查找，找不到给出`-1`。`start`会被夹进字符串范围，所以越界的值只是从头或从尾开始找，而不会失败。
+从`start`向后查找，找不到给出`-1`。`start`会被夹进字符串范围，所以越界的值只是从头或从尾开始找，而不会失败
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
-| `start` | in · data | `integer` | 可在卡片上内联输入。默认为`0`。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
+| `start` | in · data | `integer` | 可在卡片上内联输入。默认为`0`|
 | `index` | out · data | `integer` | |
 
 ### Last Index Of
 
 `blueprint.string.lastIndexOf` · Pure
 
-从末尾向前查找。没有`start`引脚——这是它与`Index Of`唯一不对称的地方。
+从末尾向前查找。没有`start`引脚——这是它与`Index Of`唯一不对称的地方
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
 | `index` | out · data | `integer` | |
 
 ### Count
 
 `blueprint.string.count` · Pure
 
-统计不重叠的出现次数。`search`为空时给出`0`，而不是字符串长度。
+统计不重叠的出现次数。`search`为空时给出`0`，而不是字符串长度
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
 | `count` | out · data | `integer` | |
 
 ### Char At
 
 `blueprint.string.charAt` · Pure
 
-下标落在字符串之外时给出`""`，而不是报错。
+下标落在字符串之外时给出`""`，而不是报错
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `index` | in · data | `integer` | 可在卡片上内联输入|
 | `char` | out · data | `string` | |
 
 ### Substring
 
 `blueprint.string.substring` · Pure
 
-第二个引脚是**长度**，不是结束下标。两者都会被夹进字符串范围；`length`未连线时取从`start`起的全部剩余内容。
+第二个引脚是**长度**，不是结束下标。两者都会被夹进字符串范围；`length`未连线时取从`start`起的全部剩余内容
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `start` | in · data | `integer` | 可在卡片上内联输入。 |
-| `length` | in · data | `integer` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `start` | in · data | `integer` | 可在卡片上内联输入|
+| `length` | in · data | `integer` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Insert
 
 `blueprint.string.insert` · Pure
 
-`index`会被夹进字符串范围；读不出下标时追加到末尾。
+`index`会被夹进字符串范围；读不出下标时追加到末尾
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
-| `insert` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `index` | in · data | `integer` | 可在卡片上内联输入|
+| `insert` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Replace
 
 `blueprint.string.replace` · Pure
 
-只替换第一处。`search`为空时原样返回，而不是在每个位置插入。
+只替换第一处。`search`为空时原样返回，而不是在每个位置插入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
-| `replacement` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
+| `replacement` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Replace All
 
 `blueprint.string.replaceAll` · Pure
 
-替换全部。`search`是纯文本而不是正则；同样，`search`为空时原样返回。
+替换全部。`search`是纯文本而不是正则；同样，`search`为空时原样返回
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `search` | in · data | `string` | 可在卡片上内联输入。 |
-| `replacement` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `search` | in · data | `string` | 可在卡片上内联输入|
+| `replacement` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Repeat
 
 `blueprint.string.repeat` · Pure
 
-`count`被夹到`0`–`10000`，所以失控的数字不会撑出一个无界的字符串。
+`count`被夹到`0`–`10000`，所以失控的数字不会撑出一个无界的字符串
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `count` | in · data | `integer` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `count` | in · data | `integer` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Pad Start
 
 `blueprint.string.padStart` · Pure
 
-`length`是补齐后的目标总长度，不是要补的字符数。已经够长的字符串原样返回。
+`length`是补齐后的目标总长度，不是要补的字符数。已经够长的字符串原样返回
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `length` | in · data | `integer` | 可在卡片上内联输入。 |
-| `pad` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `length` | in · data | `integer` | 可在卡片上内联输入|
+| `pad` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Pad End
 
 `blueprint.string.padEnd` · Pure
 
-Pad End（尾部填充）。
+Pad End（尾部填充）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `length` | in · data | `integer` | 可在卡片上内联输入。 |
-| `pad` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `length` | in · data | `integer` | 可在卡片上内联输入|
+| `pad` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Split
 
 `blueprint.string.split` · Pure
 
-结果的类型是`json`而不是`array`，所以它能接到`Join`、`For Each`和任何其他`json`输入——但接不到`Array …`节点。
+结果的类型是`json`而不是`array`，所以它能接到`Join`、`For Each`和任何其他`json`输入——但接不到`Array …`节点
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `separator` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `separator` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
 ### Join
 
 `blueprint.string.join` · Pure
 
-它收`json`，而`Array Join`收`array`。`values`不是数组时给出`""`。
+它收`json`，而`Array Join`收`array`。`values`不是数组时给出`""`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `values` | in · data | `json` | |
-| `separator` | in · data | `string` | 可在卡片上内联输入。 |
+| `separator` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Matches Regex
 
 `blueprint.string.matchesRegex` · Pure
 
-`pattern`是正则表达式本体，不带分隔符也不带 flag。编译不了的表达式给出`false`，而不是抛错。
+`pattern`是正则表达式本体，不带分隔符也不带 flag。编译不了的表达式给出`false`，而不是抛错
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `pattern` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `pattern` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Extract Regex
 
 `blueprint.string.extractRegex` · Pure
 
-表达式带捕获组时返回第一个捕获组，否则返回整段匹配。没有匹配，或表达式编译不了，都给出`""`。
+表达式带捕获组时返回第一个捕获组，否则返回整段匹配。没有匹配，或表达式编译不了，都给出`""`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
-| `pattern` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
+| `pattern` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### Normalize Line Breaks
 
 `blueprint.string.normalizeLineBreaks` · Pure
 
-把`\r\n`和单独的`\r`改写为`\n`，这样来自任何平台的文本在比较和分割时表现一致。
+把`\r\n`和单独的`\r`改写为`\n`，这样来自任何平台的文本在比较和分割时表现一致
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | in · data | `string` | 可在卡片上内联输入。 |
+| `value` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ## 数组
 
-这里每个节点都把`array`输入当数组读，不是数组时替换为空数组，所以不会抛错。每个写入类节点都在`result`上返回一个新数组。
+这里每个节点都把`array`输入当数组读，不是数组时替换为空数组，所以不会抛错。每个写入类节点都在`result`上返回一个新数组
 
 ### Array Length
 
 `blueprint.collection.arrayLength` · Pure
 
-Array Length（数组长度）。
+Array Length（数组长度）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -830,24 +830,24 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayGet` · Pure
 
-下标为负或越过末尾时给出`null`。输出类型是`json`，因为数组的一项可以是任何 JSON 值。
+下标为负或越过末尾时给出`null`。输出类型是`json`，因为数组的一项可以是任何 JSON 值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
+| `index` | in · data | `integer` | 可在卡片上内联输入|
 | `item` | out · data | `json` | |
 
 ### Array Set
 
 `blueprint.collection.arraySet` · Pure
 
-在`index`处写入并返回新数组。下标为负或大于`10000`时原样返回输入；下标越过末尾会把数组撑长，中间跳过的位置留空。
+在`index`处写入并返回新数组。下标为负或大于`10000`时原样返回输入；下标越过末尾会把数组撑长，中间跳过的位置留空
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
+| `index` | in · data | `integer` | 可在卡片上内联输入|
 | `item` | in · data | `any` | |
 | `result` | out · data | `array` | |
 
@@ -855,7 +855,7 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayPush` · Pure
 
-追加到末尾。
+追加到末尾
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -867,12 +867,12 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayInsert` · Pure
 
-`index`被夹到`0`–长度之间，所以越界的下标只会变成追加，而不会失败。
+`index`被夹到`0`–长度之间，所以越界的下标只会变成追加，而不会失败
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
+| `index` | in · data | `integer` | 可在卡片上内联输入|
 | `item` | in · data | `any` | |
 | `result` | out · data | `array` | |
 
@@ -880,7 +880,7 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayRemove` · Pure
 
-移除第一个与`item`相等的项，按 JSON 值比较——两个字段相同的 object 会判定为相等，尽管它们并非同一个对象。没有匹配时原样返回输入。
+移除第一个与`item`相等的项，按 JSON 值比较——两个字段相同的 object 会判定为相等，尽管它们并非同一个对象。没有匹配时原样返回输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -892,19 +892,19 @@ Array Length（数组长度）。
 
 `blueprint.collection.arrayRemoveAt` · Pure
 
-移除一项并把后面的补上。下标越界时原样返回输入。
+移除一项并把后面的补上。下标越界时原样返回输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `index` | in · data | `integer` | 可在卡片上内联输入。 |
+| `index` | in · data | `integer` | 可在卡片上内联输入|
 | `result` | out · data | `array` | |
 
 ### Array Contains
 
 `blueprint.collection.arrayContains` · Pure
 
-按 JSON 值相等判断，与`Array Remove`同一套规则。这比 [Math](/zh/docs/studio/blueprint/nodes/math) 里按同一性比较的`Equal`故意放宽了一层。
+按 JSON 值相等判断，与`Array Remove`同一套规则。这比 [Math](/zh/docs/studio/blueprint/nodes/math) 里按同一性比较的`Equal`故意放宽了一层
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -916,32 +916,32 @@ Array Length（数组长度）。
 
 `blueprint.collection.arraySlice` · Pure
 
-`end`不含在内。两端都被夹进数组范围；`end`未连线时一直取到末尾。
+`end`不含在内。两端都被夹进数组范围；`end`未连线时一直取到末尾
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `start` | in · data | `integer` | 可在卡片上内联输入。 |
-| `end` | in · data | `integer` | 可在卡片上内联输入。 |
+| `start` | in · data | `integer` | 可在卡片上内联输入|
+| `end` | in · data | `integer` | 可在卡片上内联输入|
 | `result` | out · data | `array` | |
 
 ### Array Join
 
 `blueprint.collection.arrayJoin` · Pure
 
-把每一项转成文本——object 和 array 转成 JSON——再连接起来。它收`array`，而字符串的`Join`收`json`。
+把每一项转成文本——object 和 array 转成 JSON——再连接起来。它收`array`，而字符串的`Join`收`json`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `separator` | in · data | `string` | 可在卡片上内联输入。 |
+| `separator` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
 ### JSON Array Length
 
 `blueprint.data.jsonArrayLength` · Pure
 
-`Array Length`的旧名字，保留下来让已有的图继续解析。输入不是数组时给出`0`。新图请用`Array Length`。
+`Array Length`的旧名字，保留下来让已有的图继续解析。输入不是数组时给出`0`。新图请用`Array Length`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -950,13 +950,13 @@ Array Length（数组长度）。
 
 ## 对象
 
-这几个节点一次按名字处理一个字段。它们不接受路径——嵌套写入请用`Set JSON Field`。不是 object 的输入按`{}`读取。
+这几个节点一次按名字处理一个字段。它们不接受路径——嵌套写入请用`Set JSON Field`。不是 object 的输入按`{}`读取
 
 ### Object Keys
 
 `blueprint.collection.objectKeys` · Pure
 
-按插入顺序给出字段名。数组或其他任何非 object 都给出空数组。
+按插入顺序给出字段名。数组或其他任何非 object 都给出空数组
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -967,7 +967,7 @@ Array Length（数组长度）。
 
 `blueprint.collection.objectValues` · Pure
 
-Object Values（对象值）。
+Object Values（对象值）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -978,12 +978,12 @@ Object Values（对象值）。
 
 `blueprint.collection.objectSetField` · Pure
 
-`field`是一个纯粹的名字，其中的点是名字的一部分而不是路径分隔。名字为空时原样返回那份副本。
+`field`是一个纯粹的名字，其中的点是名字的一部分而不是路径分隔。名字为空时原样返回那份副本
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `object` | in · data | `json` | |
-| `field` | in · data | `string` | 可在卡片上内联输入。 |
+| `field` | in · data | `string` | 可在卡片上内联输入|
 | `value` | in · data | `any` | |
 | `result` | out · data | `json` | |
 
@@ -991,19 +991,19 @@ Object Values（对象值）。
 
 `blueprint.collection.objectRemoveField` · Pure
 
-Object Remove Field（对象移除字段）。
+Object Remove Field（对象移除字段）
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `object` | in · data | `json` | |
-| `field` | in · data | `string` | 可在卡片上内联输入。 |
+| `field` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
 ### Object Merge
 
 `blueprint.collection.objectMerge` · Pure
 
-浅合并；同名字段以`b`为准。嵌套 object 是整体替换而不是继续合并。`Merge JSON Object`是同一个操作的另一个类型 id。
+浅合并；同名字段以`b`为准。嵌套 object 是整体替换而不是继续合并。`Merge JSON Object`是同一个操作的另一个类型 id
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1013,62 +1013,62 @@ Object Remove Field（对象移除字段）。
 
 ## JSON
 
-路径类节点用点标记定位文档：`user.profile.name`，数组下标用数字段，`items.0`。键名里的字面点用`\.`转义。空路径表示整个文档，所以不填路径的`Set JSON Field`会把文档整体替换掉。
+路径类节点用点标记定位文档：`user.profile.name`，数组下标用数字段，`items.0`。键名里的字面点用`\.`转义。空路径表示整个文档，所以不填路径的`Set JSON Field`会把文档整体替换掉
 
 ### Get JSON Field
 
 `blueprint.data.jsonGet` · Pure
 
-路径不存在时给出`null`，所以「字段缺失」和「字段的值就是`null`」读出来一模一样。这两者需要区分时用`Has JSON Field`。
+路径不存在时给出`null`，所以「字段缺失」和「字段的值就是`null`」读出来一模一样。这两者需要区分时用`Has JSON Field`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `json` | in · data | `json` | |
-| `path` | in · data | `string` | 可在卡片上内联输入。 |
+| `path` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
 ### Has JSON Field
 
 `blueprint.data.jsonHas` · Pure
 
-判断的是存在性而不是真值：值为`null`的字段依然存在。
+判断的是存在性而不是真值：值为`null`的字段依然存在
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `json` | in · data | `json` | |
-| `path` | in · data | `string` | 可在卡片上内联输入。 |
+| `path` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `boolean` | |
 
 ### Set JSON Field
 
 `blueprint.data.jsonSet` · Pure
 
-复制输入，然后写进这份副本。路径上缺失的容器会被创建——下一段是数字就建数组，否则建 object——所以往一个空文档里写`stats.hp`会得到`{ "stats": { "hp": … } }`。
+复制输入，然后写进这份副本。路径上缺失的容器会被创建——下一段是数字就建数组，否则建 object——所以往一个空文档里写`stats.hp`会得到`{ "stats": { "hp": … } }`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `json` | in · data | `json` | |
-| `path` | in · data | `string` | 可在卡片上内联输入。 |
-| `value` | in · data | `any` | 以 JSON-safe 形式写入。 |
+| `path` | in · data | `string` | 可在卡片上内联输入|
+| `value` | in · data | `any` | 以 JSON-safe 形式写入|
 | `result` | out · data | `json` | |
 
 ### Remove JSON Field
 
 `blueprint.data.jsonRemove` · Pure
 
-删除 object 字段，或把数组条目整个抽掉、后面的项依次前移。路径不存在时原样给回那份副本。
+删除 object 字段，或把数组条目整个抽掉、后面的项依次前移。路径不存在时原样给回那份副本
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `json` | in · data | `json` | |
-| `path` | in · data | `string` | 可在卡片上内联输入。 |
+| `path` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
 ### Make JSON Object
 
 `blueprint.data.jsonMakeObject` · Pure
 
-由动态引脚对构造 object，所以下面的签名只有输出。卡片上每加一个字段就生成一个`Name`输入（`string`，可在卡片上内联输入）和一个`Value`输入（`any`）；新建节点自带一对。字段名在运行时读取，因此接线的`Name`可以算出键名。名字为空、或与前面重复的字段会被跳过。
+由动态引脚对构造 object，所以下面的签名只有输出。卡片上每加一个字段就生成一个`Name`输入（`string`，可在卡片上内联输入）和一个`Value`输入（`any`）；新建节点自带一对。字段名在运行时读取，因此接线的`Name`可以算出键名。名字为空、或与前面重复的字段会被跳过
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1078,7 +1078,7 @@ Object Remove Field（对象移除字段）。
 
 `blueprint.data.jsonMakeArray` · Pure
 
-按引脚顺序由动态`Item`输入构造数组，所以下面的签名只有输出。新建节点一个都没有——在卡片上添加。它是产出`array`类型的那个节点，因此也是把构造好的数组交给`Array Length`或 List 的`Set Items`的办法。
+按引脚顺序由动态`Item`输入构造数组，所以下面的签名只有输出。新建节点一个都没有——在卡片上添加。它是产出`array`类型的那个节点，因此也是把构造好的数组交给`Array Length`或 List 的`Set Items`的办法
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1088,7 +1088,7 @@ Object Remove Field（对象移除字段）。
 
 `blueprint.data.jsonMergeObject` · Pure
 
-浅合并、`b`为准，与`Object Merge`完全一致。非 object 的输入按`{}`处理。
+浅合并、`b`为准，与`Object Merge`完全一致。非 object 的输入按`{}`处理
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1100,7 +1100,7 @@ Object Remove Field（对象移除字段）。
 
 `blueprint.data.jsonClone` · Pure
 
-一份 JSON-safe 深拷贝。写入类节点本来就会复制输入，所以只有当你要把同一份文档交给两条互不应看见对方修改的分支时才需要它。
+一份 JSON-safe 深拷贝。写入类节点本来就会复制输入，所以只有当你要把同一份文档交给两条互不应看见对方修改的分支时才需要它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

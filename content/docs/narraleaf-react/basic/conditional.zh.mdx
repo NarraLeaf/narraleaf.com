@@ -2,7 +2,7 @@
 title: "条件分支"
 ---
 
-使用 [Condition](/zh/docs/narraleaf-react/core/elements/condition) 在运行时选择要执行的动作列表。
+使用 [Condition](/zh/docs/narraleaf-react/core/elements/condition) 在运行时选择要执行的动作列表
 
 ```ts
 import { Condition } from "narraleaf-react";
@@ -16,7 +16,7 @@ scene.action([
 ]);
 ```
 
-一个条件可以包含一个 `If`、任意数量的 `ElseIf`，以及最后一个 `Else`。
+一个条件可以包含一个 `If`、任意数量的 `ElseIf`，以及最后一个 `Else`
 
 ```ts
 scene.action([
@@ -34,7 +34,7 @@ scene.action([
 
 ## 读取多个值
 
-条件依赖多个值时可直接传入函数。上下文中的 `$()` 用于读取已注册的命名空间。
+条件依赖多个值时可直接传入函数。上下文中的 `$()` 用于读取已注册的命名空间
 
 ```ts
 scene.action([
@@ -47,8 +47,8 @@ scene.action([
 ]);
 ```
 
-只判断一个字段时，优先使用 `equals`、`isTrue`、`isFalse` 或 `evaluate`。写法更短，也能保留字段类型。
+只判断一个字段时，优先使用 `equals`、`isTrue`、`isFalse` 或 `evaluate`。写法更短，也能保留字段类型
 
 <Callout type="warning">
-    分支顺序固定。`ElseIf()` 必须写在 `If()` 后面，`Else()` 必须放在最后。在 `Else()` 后继续添加分支会抛出错误。
+    分支顺序固定。`ElseIf()` 必须写在 `If()` 后面，`Else()` 必须放在最后。在 `Else()` 后继续添加分支会抛出错误
 </Callout>

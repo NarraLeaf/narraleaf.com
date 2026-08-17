@@ -1,9 +1,9 @@
 ﻿---
 title: "服务"
 ---
-Service 是一个抽象类，用于创建自定义操作与行为，或在多个场景之间共享自定义逻辑。
+Service 是一个抽象类，用于创建自定义操作与行为，或在多个场景之间共享自定义逻辑
 
-使用时需要继承它，并实现全部抽象方法。
+使用时需要继承它，并实现全部抽象方法
 
 ```typescript
 import {Service} from "narraleaf-react";
@@ -106,7 +106,7 @@ class MyCustomService extends Service {
 }
 ```
 
-关于 `ServiceHandlerCtx` 的详细说明见 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx)。
+关于 `ServiceHandlerCtx` 的详细说明见 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx)
 
 要启用类型检查，可以定义操作类型：
 
@@ -130,7 +130,7 @@ class MyCustomService extends Service<MyCustomActions> {
 
 异步操作可以返回一个 promise，同时建议让操作支持中止，以便撤销时能够及时清理：
 
-当玩家在该服务仍在执行时执行 _撤销_（undo）操作，游戏引擎会自动调用当前 Action 上注册的所有 `onAbort` 回调。脚本**有义务**中止任何正在进行的任务（网络请求、定时器、动画等）并清理已产生的副作用，以确保再次执行相同操作时能够得到完全一致的结果。
+当玩家在该服务仍在执行时执行 _撤销_（undo）操作，游戏引擎会自动调用当前 Action 上注册的所有 `onAbort` 回调。脚本**有义务**中止任何正在进行的任务（网络请求、定时器、动画等）并清理已产生的副作用，以确保再次执行相同操作时能够得到完全一致的结果
 
 ```typescript
 this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {

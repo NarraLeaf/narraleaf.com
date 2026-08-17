@@ -1,9 +1,9 @@
 ---
 title: "对话框"
 ---
-`Dialog` 渲染对话框：角色名牌、对话正文，以及可选的头像。
+`Dialog` 渲染对话框：角色名牌、对话正文，以及可选的头像
 
-用自定义组件替换内置对话框，通过 `game.configure({ dialog })` 传入。在组件内组合 `Avatar`、`Nametag`、`Texts`，或用 [`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 读取当前台词。
+用自定义组件替换内置对话框，通过 `game.configure({ dialog })` 传入。在组件内组合 `Avatar`、`Nametag`、`Texts`，或用 [`useDialog`](/zh/docs/narraleaf-react/player/hooks/useDialog) 读取当前台词
 
 ## 示例
 
@@ -31,7 +31,7 @@ function GameDialog() {
 }
 ```
 
-`Avatar` 是可选的。内置对话框使用这套布局。
+`Avatar` 是可选的。内置对话框使用这套布局
 
 3. 在游戏中注册
 
@@ -53,41 +53,41 @@ function App() {
 
 ### Dialog
 
-渲染对话框容器。子节点通常是 `Avatar`、`Nametag`、`Texts`，布局自定。
+渲染对话框容器。子节点通常是 `Avatar`、`Nametag`、`Texts`，布局自定
 
-- `children?: React.ReactNode` - 对话框内容。
-- `...props: HTMLMotionProps<"div">` - 传给内部的 `motion.div`，接受普通 div props 以及 `initial`、`animate`、`exit`、`transition`、`layout` 等 Motion props 和 Motion 事件处理器。
+- `children?: React.ReactNode` - 对话框内容
+- `...props: HTMLMotionProps<"div">` - 传给内部的 `motion.div`，接受普通 div props 以及 `initial`、`animate`、`exit`、`transition`、`layout` 等 Motion props 和 Motion 事件处理器
 
-视觉 transform 写在 `Dialog` 上，播放器会把它们应用到内部的 motion 元素。
+视觉 transform 写在 `Dialog` 上，播放器会把它们应用到内部的 motion 元素
 
 ### Nametag
 
-渲染说话人名字，需放在 `Dialog` 内。未传 `children` 或 `name` 时显示当前说话人，未传 `color` 时使用当前角色颜色。
+渲染说话人名字，需放在 `Dialog` 内。未传 `children` 或 `name` 时显示当前说话人，未传 `color` 时使用当前角色颜色
 
-- `character?: Character | null` - 取名字的角色。
-- `entry?: NvlDialogEntry` - 取名字的 NVL 条目。
-- `name?: React.ReactNode` - 要显示的名字。
-- `color?: Color` - 文字颜色。
-- `children?: React.ReactNode` - 自定义名牌内容。
+- `character?: Character | null` - 取名字的角色
+- `entry?: NvlDialogEntry` - 取名字的 NVL 条目
+- `name?: React.ReactNode` - 要显示的名字
+- `color?: Color` - 文字颜色
+- `children?: React.ReactNode` - 自定义名牌内容
 - `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
 
 ### Texts
 
-渲染逐字显示的对话正文，需放在 `Dialog` 内。这些 props 设定默认外观，未设定的属性从 CSS 继承，`Sentence` 与 `Word` 上的样式覆盖两者。
+渲染逐字显示的对话正文，需放在 `Dialog` 内。这些 props 设定默认外观，未设定的属性从 CSS 继承，`Sentence` 与 `Word` 上的样式覆盖两者
 
 - `children?: never`
-- `defaultColor?: Color` - 句子和词都未设颜色时使用的文字颜色。
+- `defaultColor?: Color` - 句子和词都未设颜色时使用的文字颜色
 - `fontSize?: React.CSSProperties["fontSize"]`
 - `fontWeight?: React.CSSProperties["fontWeight"]`
-- `fontWeightBold?: React.CSSProperties["fontWeight"]` - 句子或词为粗体时的字重。
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` - 句子或词为粗体时的字重
 - `fontFamily?: React.CSSProperties["fontFamily"]`
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
 
-渲染当前台词解析出的头像；该行没有头像时不渲染任何节点。
+渲染当前台词解析出的头像；该行没有头像时不渲染任何节点
 
-- `...props: React.ImgHTMLAttributes<HTMLImageElement>` - 与默认图片样式合并。
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` - 与默认图片样式合并
 
 默认图片样式：
 
@@ -98,7 +98,7 @@ function App() {
 
 ## 动画
 
-向 `Dialog` 传入 Motion props。内置对话框没有进入和退出动画。
+向 `Dialog` 传入 Motion props。内置对话框没有进入和退出动画
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -121,33 +121,33 @@ function GameDialog() {
 
 播放器在这些时机播放动画：
 
-- 一句对话被另一句替换：对话框保持不动，不播放 `exit`，也不会因为正文或名字变化而重播进入动画。
-- 对话之后是非对话内容：`exit` 与剧情推进同时进行。
-- 上一次 `exit` 尚未结束又出现新对话：两段动画同时播放。
-- 在对话框中显示的菜单 prompt：选项出现前采用同样的行为。
+- 一句对话被另一句替换：对话框保持不动，不播放 `exit`，也不会因为正文或名字变化而重播进入动画
+- 对话之后是非对话内容：`exit` 与剧情推进同时进行
+- 上一次 `exit` 尚未结束又出现新对话：两段动画同时播放
+- 在对话框中显示的菜单 prompt：选项出现前采用同样的行为
 
-正在退出的对话框忽略点击、跳过和自动播放。
+正在退出的对话框忽略点击、跳过和自动播放
 
-`GameConfig.animationPropagate` 作用于对话框的 `AnimatePresence` 边界。只有当自定义对话框内部嵌套了需要播放退出动画的 `AnimatePresence` 时，才设为 `true`。
+`GameConfig.animationPropagate` 作用于对话框的 `AnimatePresence` 边界。只有当自定义对话框内部嵌套了需要播放退出动画的 `AnimatePresence` 时，才设为 `true`
 
 ## 头像
 
-`Avatar` 为当前说话的角色显示小头像。头像可以配置在角色上、绑定到角色的舞台立绘上，或单独某一行上。
+`Avatar` 为当前说话的角色显示小头像。头像可以配置在角色上、绑定到角色的舞台立绘上，或单独某一行上
 
 每一行按以下顺序解析头像：
 
-1. 旁白或无名角色：无头像。
-2. 句子配置中的 `avatar: false`：无头像。
-3. 句子级头像。
-4. 绑定到该角色、最近显示且仍可见的立绘的头像。
-5. 角色级头像。
-6. 无头像。
+1. 旁白或无名角色：无头像
+2. 句子配置中的 `avatar: false`：无头像
+3. 句子级头像
+4. 绑定到该角色、最近显示且仍可见的立绘的头像
+5. 角色级头像
+6. 无头像
 
-引擎不会把全身立绘裁切成头像。没有配置头像的角色不显示头像。
+引擎不会把全身立绘裁切成头像。没有配置头像的角色不显示头像
 
 ### 角色级头像
 
-台上台词与画外音使用同一张图。
+台上台词与旁白使用同一张图
 
 ```ts
 import { Character } from "narraleaf-react";
@@ -170,7 +170,7 @@ alice.say("本句使用默认头像。");
 
 ### 舞台立绘
 
-把舞台 `Image` 绑定到角色，由可见立绘决定头像。
+把舞台 `Image` 绑定到角色，由可见立绘决定头像
 
 ```ts
 import { Character, Image } from "narraleaf-react";
@@ -192,7 +192,7 @@ const alice = new Character("Alice", {
 });
 ```
 
-`aliceBody` 在当前场景可见时使用立绘头像，否则使用角色级头像。
+`aliceBody` 在当前场景可见时使用立绘头像，否则使用角色级头像
 
 ```ts
 const alice = new Character("Alice")
@@ -208,7 +208,7 @@ const alice = new Character("Alice")
 
 - 图片 URL 或 `StaticImageData`；
 - `null`，不显示头像；
-- `undefined`，继续按解析顺序进入下一步。
+- `undefined`，继续按解析顺序进入下一步
 
 ```ts
 const aliceBody = new Image({
@@ -259,15 +259,15 @@ alice.say("本行使用解析函数。", {
 });
 ```
 
-`avatar: false` 隐藏该行头像，其他值优先于立绘头像和角色级头像。
+`avatar: false` 隐藏该行头像，其他值优先于立绘头像和角色级头像
 
 ### 多个立绘同时可见
 
-同一角色有多个绑定立绘可见时，引擎按场景的显示顺序（从后到前）取最近显示的那一个。`opacity` 等效为 0 的显示对象会被忽略。
+同一角色有多个绑定立绘可见时，引擎按场景的显示顺序（从后到前）取最近显示的那一个。`opacity` 等效为 0 的显示对象会被忽略
 
 ### 依赖头像的布局
 
-`useAvatar()` 返回 `visible`、`src`、`character`、`portrait`，可据此让网格或弹性布局在没有头像时改变。返回值结构与示例见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)。
+`useAvatar()` 返回 `visible`、`src`、`character`、`portrait`，可据此让网格或弹性布局在没有头像时改变。返回值结构与示例见 [useAvatar](/zh/docs/narraleaf-react/player/hooks/useAvatar)
 
 ## 外观
 
@@ -310,9 +310,9 @@ function GameDialog() {
 
 ## 叠层
 
-ADV 对话框自带一个叠层，它覆盖对话框并画在其上，且处于同一个缩放后的舞台内。凡是属于某一行、又放不进文本框的东西都放在那里：行内词的释义浮层、名字上的提示框。用 [`useDialogOverlay`](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 取得它。
+ADV 对话框自带一个叠层，它覆盖对话框并画在其上，且处于同一个缩放后的舞台内。凡是属于某一行、又放不进文本框的东西都放在那里：行内词的释义浮层、名字上的提示框。用 [`useDialogOverlay`](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 取得它
 
-叠层是内置 `Dialog` 组件的一部分，因此由 `Dialog` 组合而成的自定义对话框同样具备它。NVL 模式没有叠层。
+叠层是内置 `Dialog` 组件的一部分，因此由 `Dialog` 组合而成的自定义对话框同样具备它。NVL 模式没有叠层
 
 ## 导出的类型
 
@@ -323,4 +323,4 @@ ADV 对话框自带一个叠层，它覆盖对话框并画在其上，且处于�
 - 立绘：`CharacterPortraitConfig`、`DialogAvatarResolution`
 - React：`Avatar`、`useAvatar`，以及类型 `DialogAvatarContext`
 
-`Character` 提供 `setAvatar`、`addPortrait`、`setPortraits`。参见 [Character](/zh/docs/narraleaf-react/core/elements/character)、[CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)，以及 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig) 和 [SentenceConfig](/zh/docs/narraleaf-react/core/types/SentenceConfig) 的 `avatar` 字段。
+`Character` 提供 `setAvatar`、`addPortrait`、`setPortraits`。参见 [Character](/zh/docs/narraleaf-react/core/elements/character)、[CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)，以及 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig) 和 [SentenceConfig](/zh/docs/narraleaf-react/core/types/SentenceConfig) 的 `avatar` 字段

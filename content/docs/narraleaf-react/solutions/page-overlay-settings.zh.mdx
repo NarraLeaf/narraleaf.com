@@ -3,13 +3,13 @@ title: "添加页面叠层（设置页面）"
 ---
 ## 路由结构
 
-页面叠层指在游戏主界面上方叠加显示的 UI（如设置、存档、图鉴等），不中断游戏流程。通过 [Layout](/zh/docs/narraleaf-react/player/page-router/layout) 和 [Page](/zh/docs/narraleaf-react/player/page-router/page) 定义路由结构，使用 [useRouter](/zh/docs/narraleaf-react/player/hooks/useRouter) 进行导航，即可实现设置页等叠层。
+页面叠层指在游戏主界面上方叠加显示的 UI（如设置、存档、图鉴等），不中断游戏流程。通过 [Layout](/zh/docs/narraleaf-react/player/page-router/layout) 和 [Page](/zh/docs/narraleaf-react/player/page-router/page) 定义路由结构，使用 [useRouter](/zh/docs/narraleaf-react/player/hooks/useRouter) 进行导航，即可实现设置页等叠层
 
-下面的设置页叠层通过[快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu)打开和关闭。
+下面的设置页叠层通过[快捷菜单](/zh/docs/narraleaf-react/solutions/quick-menu)打开和关闭
 
 ## 1. 定义 Layout 与 Page 结构
 
-定义 `settings` 布局，并加入 `general`、`audio` 等子页面。`Player` 已经创建根布局，因此直接把 `Page` 和 `Layout` 放在 Player 内即可。`Page name={null}` 表示父布局的默认页面。
+定义 `settings` 布局，并加入 `general`、`audio` 等子页面。`Player` 已经创建根布局，因此直接把 `Page` 和 `Layout` 放在 Player 内即可。`Page name={null}` 表示父布局的默认页面
 
 ```tsx
 import { GameProviders, Layout, Page, Player } from "narraleaf-react";
@@ -44,11 +44,11 @@ function AppLayout() {
 }
 ```
 
-不要再手动添加 `RootLayout`。在 Player 内嵌套第二个根布局会产生错误的路由边界。
+不要再手动添加 `RootLayout`。在 Player 内嵌套第二个根布局会产生错误的路由边界
 
 ## 2. 实现设置页面组件
 
-设置页作为叠层，通常使用半透明背景遮罩 + 居中面板，点击遮罩或关闭按钮可返回游戏。
+设置页作为叠层，通常使用半透明背景遮罩 + 居中面板，点击遮罩或关闭按钮可返回游戏
 
 ```tsx
 import { useRouter } from "narraleaf-react";

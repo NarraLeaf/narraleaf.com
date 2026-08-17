@@ -3,40 +3,40 @@ title: List
 description: 列表控件的运行时内容、选中项、滚动位置和条目上下文
 ---
 
-List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、选中项和滚动位置。当行是在游戏运行时才决定的——存档槽、历史回顾、设置菜单——而不是在检视器里一次性写好时，就用它们。把数组和对象整理成最终形状的工作仍然留在 [Data](/zh/docs/studio/blueprint/nodes/data)。
+List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、选中项和滚动位置。当行是在游戏运行时才决定的——存档槽、历史回顾、设置菜单——而不是在检视器里一次性写好时，就用它们。把数组和对象整理成最终形状的工作仍然留在 [Data](/zh/docs/studio/blueprint/nodes/data)
 
 ## 约定
 
-- **List 渲染的是运行时条目数组。** `Set List Content`（设置列表内容）写入的是实例级的运行时数组；`Append`、`Insert`、`Remove`、`Clear` 和 `Refresh` 更新的是同一份存储。条目按 JSON-safe 形式保存，因此撑不过一次 JSON 往返的东西在写入时就会丢掉。
-- **`itemsBinding` 只是 fallback。** 没有写入过运行时条目时才读取元素的 items binding；连 binding 也没有时，由检视器里的预览条目顶上。对运行时存储的第一次写入就终结了这条 fallback。
-- **改写节点会把 fallback 固化下来。** 除 `Set List Content` 和 `Clear List` 之外的每个改写节点都会先读当前条目、再把整个数组写回去。在一个从未被写入过的 List 上，这次读取取自 fallback，而这次写回把该快照变成了运行时条目——从此 binding 不再生效。
-- **卸载会清空实例。** List 实例完全卸载时，运行时条目、选中项和待处理的滚动指令都会被丢弃。系统不会替你持久化；把内容写进变量或状态，并在 List 回来时显式恢复。
-- **读取是纯节点，改写是 latent。** `Get` 系列节点可用于 `event`、`function` 和 `macro` 图。每个改写节点都是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入。
-- **内容与选中项的写入会排队触发 flush，滚动节点不会。** 滚动节点只是记录一个供渲染器消费的意图，因此不会重新跑那些由 flush 驱动的工作。
-- **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现。
-- **条目上下文需要模板后代。** 四个 `Get List Item …` 节点只出现在 List item template 内部元素所拥有的蓝图中，读取的是该元素当前渲染所处的那个条目作用域。
+- **List 渲染的是运行时条目数组。** `Set List Content`（设置列表内容）写入的是实例级的运行时数组；`Append`、`Insert`、`Remove`、`Clear` 和 `Refresh` 更新的是同一份存储。条目按 JSON-safe 形式保存，因此撑不过一次 JSON 往返的东西在写入时就会丢掉
+- **`itemsBinding` 只是 fallback。** 没有写入过运行时条目时才读取元素的 items binding；连 binding 也没有时，由检视器里的预览条目顶上。对运行时存储的第一次写入就终结了这条 fallback
+- **改写节点会把 fallback 固化下来。** 除 `Set List Content` 和 `Clear List` 之外的每个改写节点都会先读当前条目、再把整个数组写回去。在一个从未被写入过的 List 上，这次读取取自 fallback，而这次写回把该快照变成了运行时条目——从此 binding 不再生效
+- **卸载会清空实例。** List 实例完全卸载时，运行时条目、选中项和待处理的滚动指令都会被丢弃。系统不会替你持久化；把内容写进变量或状态，并在 List 回来时显式恢复
+- **读取是纯节点，改写是 latent。** `Get` 系列节点可用于 `event`、`function` 和 `macro` 图。每个改写节点都是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入
+- **内容与选中项的写入会排队触发 flush，滚动节点不会。** 滚动节点只是记录一个供渲染器消费的意图，因此不会重新跑那些由 flush 驱动的工作
+- **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现
+- **条目上下文需要模板后代。** 四个 `Get List Item …` 节点只出现在 List item template 内部元素所拥有的蓝图中，读取的是该元素当前渲染所处的那个条目作用域
 
 <Callout type="warn">
-`Clear List` 写入的是一个空的运行时数组，而空数组同样算作已写入的内容——`itemsBinding` 不会回来，List 会一直空着，直到你再次写入条目。唯一能恢复 fallback 的是卸载 List 实例，而它会连同选中项和滚动状态一起丢弃。
+`Clear List` 写入的是一个空的运行时数组，而空数组同样算作已写入的内容——`itemsBinding` 不会回来，List 会一直空着，直到你再次写入条目。唯一能恢复 fallback 的是卸载 List 实例，而它会连同选中项和滚动状态一起丢弃
 </Callout>
 
 ## Set List Content
 
 `blueprint.list.setItems` · Latent
 
-`Set List Content` 整体替换运行时条目数组。不是数组的值会被当成空数组写入，而不是被拒绝，因此一条接错的 `items` 连线会悄无声息地把 List 清空。
+`Set List Content` 整体替换运行时条目数组。不是数组的值会被当成空数组写入，而不是被拒绝，因此一条接错的 `items` 连线会悄无声息地把 List 清空
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `items` | in · data | `array` | 非数组值按空数组写入。 |
+| `items` | in · data | `array` | 非数组值按空数组写入|
 
 ## Append List Item
 
 `blueprint.list.appendItem` · Latent
 
-`Append List Item`（追加列表条目）读取当前条目，在末尾加一项，再把整个数组写回去。
+`Append List Item`（追加列表条目）读取当前条目，在末尾加一项，再把整个数组写回去
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -48,20 +48,20 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.insertItem` · Latent
 
-`Insert List Item`（插入列表条目）在指定下标之前插入。下标会夹到 `0…length`，不是数字的下标则回退为末尾，因此越界位置不会抛错。
+`Insert List Item`（插入列表条目）在指定下标之前插入。下标会夹到 `0…length`，不是数字的下标则回退为末尾，因此越界位置不会抛错
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `index` | in · data | `integer` | 夹到 `0…length`。可在卡片上直接填写字面量。 |
+| `index` | in · data | `integer` | 夹到 `0…length`。可在卡片上直接填写字面量|
 | `item` | in · data | `any` | |
 
 ## Remove List Item
 
 `blueprint.list.removeItem` · Latent
 
-`Remove List Item`（移除列表条目）移除第一个与 `item` JSON 等价的项——比较的是序列化后的值而不是引用，所以用相同字段重新构造出来的对象照样能匹配上。没有任何匹配时数组保持不变，执行继续从 `next` 走。
+`Remove List Item`（移除列表条目）移除第一个与 `item` JSON 等价的项——比较的是序列化后的值而不是引用，所以用相同字段重新构造出来的对象照样能匹配上。没有任何匹配时数组保持不变，执行继续从 `next` 走
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -73,19 +73,19 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.removeItemAt` · Latent
 
-`Remove List Item At`（按下标移除列表条目）移除指定下标的项。下标落在 `0…length-1` 之外，或者不是数字时，数组保持不变，执行继续从 `next` 走。
+`Remove List Item At`（按下标移除列表条目）移除指定下标的项。下标落在 `0…length-1` 之外，或者不是数字时，数组保持不变，执行继续从 `next` 走
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `index` | in · data | `integer` | 可在卡片上直接填写字面量。 |
+| `index` | in · data | `integer` | 可在卡片上直接填写字面量|
 
 ## Clear List
 
 `blueprint.list.clear` · Latent
 
-`Clear List`（清空列表）写入一个空的运行时数组。除执行引脚对之外它没有别的引脚。
+`Clear List`（清空列表）写入一个空的运行时数组。除执行引脚对之外它没有别的引脚
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.refreshItems` · Latent
 
-`Refresh List Items`（刷新列表条目）把当前条目原样写回去，从而重新渲染每一行，并刷新其后代读取的条目上下文。当变的是条目内部的内容——被就地改动的对象、行从状态里读到的值——而数组本身没变时，用它。
+`Refresh List Items`（刷新列表条目）把当前条目原样写回去，从而重新渲染每一行，并刷新其后代读取的条目上下文。当变的是条目内部的内容——被就地改动的对象、行从状态里读到的值——而数组本身没变时，用它
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -107,19 +107,19 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.setSelectedIndex` · Latent
 
-`Set Selected Index`（设置选中下标）按传入值保存选中下标。它会截断为整数但不会夹取范围：落在当前条目之外的下标照样保留，`Get Selected Item` 对它输出 `null`。不是数字的下标解析为 `-1`。
+`Set Selected Index`（设置选中下标）按传入值保存选中下标。它会截断为整数但不会夹取范围：落在当前条目之外的下标照样保留，`Get Selected Item` 对它输出 `null`。不是数字的下标解析为 `-1`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `index` | in · data | `integer` | 不会夹到条目范围内。可在卡片上直接填写字面量。 |
+| `index` | in · data | `integer` | 不会夹到条目范围内。可在卡片上直接填写字面量|
 
 ## Set Selected Item
 
 `blueprint.list.setSelectedItem` · Latent
 
-`Set Selected Item`（设置选中项）找到第一个与 `item` JSON 等价的项并选中它的下标。没有任何匹配时，当前选中项保持不动——这是一次静默的 no-op，不是错误。
+`Set Selected Item`（设置选中项）找到第一个与 `item` JSON 等价的项并选中它的下标。没有任何匹配时，当前选中项保持不动——这是一次静默的 no-op，不是错误
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -131,19 +131,19 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.scrollToIndex` · Latent
 
-`Scroll To Index`（滚动到指定条目）为该行排入一个滚动请求。负数和非数字下标解析为 `0`。
+`Scroll To Index`（滚动到指定条目）为该行排入一个滚动请求。负数和非数字下标解析为 `0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `index` | in · data | `integer` | 下限为 `0`。可在卡片上直接填写字面量。 |
+| `index` | in · data | `integer` | 下限为 `0`。可在卡片上直接填写字面量|
 
 ## Scroll To Top
 
 `blueprint.list.scrollToTop` · Latent
 
-`Scroll To Top`（滚动到顶部）为 List 的开头排入一个滚动请求。
+`Scroll To Top`（滚动到顶部）为 List 的开头排入一个滚动请求
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -154,7 +154,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.scrollToBottom` · Latent
 
-`Scroll To Bottom`（滚动到底部）为 List 的末尾排入一个滚动请求。和 `Append List Item` 搭配使用，可以让日志始终贴着最新一行。
+`Scroll To Bottom`（滚动到底部）为 List 的末尾排入一个滚动请求。和 `Append List Item` 搭配使用，可以让日志始终贴着最新一行
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -165,7 +165,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.setVisible` · Latent
 
-`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`。
+`Set Visible`（设置可见）设置控件的运行时可见性。这是 authored 的 `visible` 属性，不是 Displayable 的渲染开关——想让元素保持挂载、只用 `display: none` 藏起来时，看 [Displayable](/zh/docs/studio/blueprint/nodes/displayable) 里的 `Set Display`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -177,7 +177,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.setEnabled` · Latent
 
-`Set Enabled`（设置启用）打开或关闭 List 的运行时交互。
+`Set Enabled`（设置启用）打开或关闭 List 的运行时交互
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -189,7 +189,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getItems` · Pure
 
-`Get List Content`（获取列表内容）输出运行时条目数组；还没有写入过时，输出 `itemsBinding` / 预览 fallback。
+`Get List Content`（获取列表内容）输出运行时条目数组；还没有写入过时，输出 `itemsBinding` / 预览 fallback
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -199,7 +199,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getSelectedIndex` · Pure
 
-`Get Selected Index`（获取选中下标）输出运行时选中下标，缺省回退到元素 authored 的 `selectedIndex`。
+`Get Selected Index`（获取选中下标）输出运行时选中下标，缺省回退到元素 authored 的 `selectedIndex`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -209,7 +209,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getSelectedItem` · Pure
 
-`Get Selected Item`（获取选中项）输出选中下标处的条目；该下标落在当前条目之外时输出 `null`。
+`Get Selected Item`（获取选中项）输出选中下标处的条目；该下标落在当前条目之外时输出 `null`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -235,21 +235,21 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getItemProps` · Pure
 
-`Get List Item Props`（获取条目 props）输出当前行正在渲染的条目：条目本身是 object 时就是它，否则是 `{ value: item }`，因此哪怕是一个纯字符串的 List，也照样有一个字段可读。没有条目上下文时输出 `{ value: null }`。
+`Get List Item Props`（获取条目 props）输出当前行正在渲染的条目：条目本身是 object 时就是它，否则是 `{ value: item }`，因此哪怕是一个纯字符串的 List，也照样有一个字段可读。没有条目上下文时输出 `{ value: null }`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `props` | out · data | `json` | |
 
 <Callout type="info">
-四个条目上下文节点读取的是正在渲染那一行的条目作用域，并且除事件图之外也能用于 Blueprint Value 图——模板里的一个文本元素之所以能逐行显示不同的字符串，靠的就是这个。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id。
+四个条目上下文节点读取的是正在渲染那一行的条目作用域，并且除事件图之外也能用于 Blueprint Value 图——模板里的一个文本元素之所以能逐行显示不同的字符串，靠的就是这个。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id
 </Callout>
 
 ## Get List Item Index
 
 `blueprint.list.getItemIndex` · Pure
 
-`Get List Item Index`（获取条目下标）输出当前行的下标。没有条目上下文时输出 `-1`。
+`Get List Item Index`（获取条目下标）输出当前行的下标。没有条目上下文时输出 `-1`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -259,7 +259,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getItemCount` · Pure
 
-`Get List Item Count`（获取条目总数）输出本次渲染的行数。没有条目上下文时输出 `0`。
+`Get List Item Count`（获取条目总数）输出本次渲染的行数。没有条目上下文时输出 `0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -269,7 +269,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getItemKey` · Pure
 
-`Get List Item Key`（获取条目 key）输出该行的 key：List 的 `itemKeyPath` 指向的值是字符串或数字时用该值，否则用行下标的字符串形式。没有条目上下文时输出空字符串。
+`Get List Item Key`（获取条目 key）输出该行的 key：List 的 `itemKeyPath` 指向的值是字符串或数字时用该值，否则用行下标的字符串形式。没有条目上下文时输出空字符串
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

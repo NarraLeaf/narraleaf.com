@@ -30,7 +30,7 @@ type RuntimePluginSaveMetadata = {
 };
 ```
 
-没有 `saves.write` 时，`write` 和 `load` 不在对象上，所以要防护：`app.game.saves?.write?.(...)`。
+没有 `saves.write` 时，`write` 和 `load` 不在对象上，所以要防护：`app.game.saves?.write?.(...)`
 
 ## 完整的快速存档
 
@@ -47,12 +47,12 @@ const meta = await app.game.saves?.readMetadata(SLOT);
 await app.game.saves?.load?.(SLOT);
 ```
 
-槽位 id 请用你的插件 id 加命名空间，这样它永远不会和玩家自己命名的槽位撞车。`metadata` 要经过 JSON 往返——只传纯数据。
+槽位 id 请用你的插件 id 加命名空间，这样它永远不会和玩家自己命名的槽位撞车。`metadata` 要经过 JSON 往返——只传纯数据
 
 <Callout type="warn">
-`write` 会**覆盖**槽位，`load` 会**放弃当前的游玩进程**。安装提示就是用这样的措辞告诉作者的。只有当覆盖槽位本身就是你插件的意义所在时——快速存档插件、章节选择——才声明 `saves.write`，绝不要把它当成 `saves.read` 之上的顺手之便。
+`write` 会**覆盖**槽位，`load` 会**放弃当前的游玩进程**。安装提示就是用这样的措辞告诉作者的。只有当覆盖槽位本身就是你插件的意义所在时——快速存档插件、章节选择——才声明 `saves.write`，绝不要把它当成 `saves.read` 之上的顺手之便
 </Callout>
 
 ## 这里没有什么
 
-没有 `deleteSave`，没有截图抓取，除了 `listIds` 返回的那些 id 之外也没法枚举别的插件的槽位。插件能看到有哪些槽位存在、随它们存了什么元数据；游玩进程的内容无法通过这套 API 读取。
+没有 `deleteSave`，没有截图抓取，除了 `listIds` 返回的那些 id 之外也没法枚举别的插件的槽位。插件能看到有哪些槽位存在、随它们存了什么元数据；游玩进程的内容无法通过这套 API 读取

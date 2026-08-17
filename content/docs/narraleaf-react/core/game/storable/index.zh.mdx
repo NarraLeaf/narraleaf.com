@@ -1,14 +1,14 @@
 ﻿---
 title: "Storable"
 ---
-Storable 允许你在游戏状态中存储数据。存储在 Storable 中的数据将与当前游戏状态一起保存和加载。
+Storable 允许你在游戏状态中存储数据。存储在 Storable 中的数据将与当前游戏状态一起保存和加载
 
-> 如果你需要创建操作数据的动作，可以使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 抽象。
+> 如果你需要创建操作数据的动作，可以使用 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 抽象
 
-存储在 Storable 中的数据按命名空间分隔。你可以在不同的命名空间中使用相同的键。
-例如，你可以在 `player1` 命名空间中存储玩家 1 的名字，也可以在 `player2` 命名空间中存储玩家 2 的名字。
+存储在 Storable 中的数据按命名空间分隔。你可以在不同的命名空间中使用相同的键
+例如，你可以在 `player1` 命名空间中存储玩家 1 的名字，也可以在 `player2` 命名空间中存储玩家 2 的名字
 
-`game` 命名空间已经定义且可以存储数据，你可以通过实例化一个新的 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 来添加自己的命名空间。
+`game` 命名空间已经定义且可以存储数据，你可以通过实例化一个新的 [Namespace](/zh/docs/narraleaf-react/core/game/storable/namespace) 来添加自己的命名空间
 
 例如，创建一个新的 `player1` 命名空间，并在其中存储玩家 1 的名字：
 
@@ -55,7 +55,7 @@ console.log(name); // John Doe
 
 ### events
 
-- `EventDispatcher<StorableEvents>` - 所有存储事件都经由的分发器：`event:storable.change` 携带 [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange)，`event:storable.restore` 携带 [StorableRestore](/zh/docs/narraleaf-react/core/types/StorableRestore)。优先使用 [onChange](#onchange)，它会按命名空间与键过滤。参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+- `EventDispatcher<StorableEvents>` - 所有存储事件都经由的分发器：`event:storable.change` 携带 [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange)，`event:storable.restore` 携带 [StorableRestore](/zh/docs/narraleaf-react/core/types/StorableRestore)。优先使用 [onChange](#onchange)，它会按命名空间与键过滤。参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)
 
 ## 公共方法
 
@@ -149,21 +149,21 @@ console.log(name); // John Doe
 ### onChange
 
 <Callout type="info">
-    自 `0.19.0` 起可用。
+    自 `0.19.0` 起可用
 </Callout>
 
-监听存储值的变化。
+监听存储值的变化
 
-监听器在新值可读之后才运行，并且只在值确实发生变化时触发——写入一个与当前值相同的值不会报告任何东西；相等性判断是结构性的，因此重建一个内容相同的对象同样不算变化。**读档不会报告变化**，参见 [onRestore](#onrestore)。
+监听器在新值可读之后才运行，并且只在值确实发生变化时触发——写入一个与当前值相同的值不会报告任何东西；相等性判断是结构性的，因此重建一个内容相同的对象同样不算变化。**读档不会报告变化**，参见 [onRestore](#onrestore)
 
-订阅比它所监听的命名空间活得更久：`newGame()` 与读档都会从头重建每一个命名空间，而注册在这里的监听器能够存活下来。完整说明参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)。
+订阅比它所监听的命名空间活得更久：`newGame()` 与读档都会从头重建每一个命名空间，而注册在这里的监听器能够存活下来。完整说明参见[监听存储值的变化](/zh/docs/narraleaf-react/core/game/storable/events)
 
 <Steps>
 <Step>
 
 #### 重载 1 / 3
 
-任意已注册命名空间中的任意变化。
+任意已注册命名空间中的任意变化
 
 ```typescript
 storable.onChange(({namespace, key, previous, next}) => {
@@ -176,7 +176,7 @@ storable.onChange(({namespace, key, previous, next}) => {
 
 #### 重载 2 / 3
 
-某一个命名空间中的变化。
+某一个命名空间中的变化
 
 ```typescript
 storable.onChange("persistent:player", ({key, next}) => {...});
@@ -188,7 +188,7 @@ storable.onChange("persistent:player", ({key, next}) => {...});
 
 #### 重载 3 / 3
 
-某一个键的变化。
+某一个键的变化
 
 ```typescript
 const token = storable.onChange("persistent:player", "gold", ({next}) => {
@@ -208,12 +208,12 @@ token.cancel();
 ### onRestore
 
 <Callout type="info">
-    自 `0.19.0` 起可用。
+    自 `0.19.0` 起可用
 </Callout>
 
-监听存储被整体替换——读入存档，或把某个命名空间回退到快照。每次批量应用只触发一次，列出涉及的命名空间，而不是它所隐含的那些变化。
+监听存储被整体替换——读入存档，或把某个命名空间回退到快照。每次批量应用只触发一次，列出涉及的命名空间，而不是它所隐含的那些变化
 
-此事件触发时，请重新读取你从存储派生出的一切。
+此事件触发时，请重新读取你从存储派生出的一切
 
 <Steps>
 <Step>
@@ -230,5 +230,5 @@ storable.onRestore(({namespaces}) => {
 </Steps>
 
 <Callout type="warning">
-    跨读档监听一个值需要**同时**使用两个信号。`onChange` 在读档期间是刻意保持沉默的，因此若监听器还需要在读入的存档一开始就处于目标值时触发，就必须在 `onRestore` 时重新检查该值。
+    跨读档监听一个值需要**同时**使用两个信号。`onChange` 在读档期间是刻意保持沉默的，因此若监听器还需要在读入的存档一开始就处于目标值时触发，就必须在 `onRestore` 时重新检查该值
 </Callout>

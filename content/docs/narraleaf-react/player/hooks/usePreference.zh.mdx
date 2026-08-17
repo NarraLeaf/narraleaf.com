@@ -1,9 +1,9 @@
 ---
 title: "usePreference"
 ---
-通过这个钩子可以访问和管理偏好设置。
+通过这个钩子可以访问和管理偏好设置
 
-> **注意：** 此钩子只能在 [GameProvider](/zh/docs/narraleaf-react/player/game-providers) 的后代组件中使用。
+> **注意：** 此钩子只能在 [GameProvider](/zh/docs/narraleaf-react/player/game-providers) 的后代组件中使用
 
 ```typescript
 function usePreference<K extends StringKeyOf<GamePreference>>(
@@ -11,11 +11,11 @@ function usePreference<K extends StringKeyOf<GamePreference>>(
 ): [GamePreference[K], (value: GamePreference[K]) => void];
 ```
 
-- 关于 `GamePreference` 的说明见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)。
+- 关于 `GamePreference` 的说明见 [GamePreference](/zh/docs/narraleaf-react/core/types/GamePreference)
 
 ## 用法
 
-此钩子类似 [useState](https://react.dev/reference/react/useState)，返回一个由当前值和更新函数组成的元组。
+此钩子类似 [useState](https://react.dev/reference/react/useState)，返回一个由当前值和更新函数组成的元组
 
 ```typescript
 import {usePreference} from "narraleaf-react";

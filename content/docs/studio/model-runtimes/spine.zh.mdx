@@ -3,25 +3,25 @@ title: Spine
 description: 构建 Spine 运行时适配器并安装到项目中，将 Spine 骨骼动画作为 Studio 角色使用
 ---
 
-Spine 通过**骨骼**驱动动画：骨架控制打包图集中的附件。一个 Spine 模型由骨骼文件（`.json` 或 `.skel`）、`.atlas` 文件，以及图集引用的贴图页组成。
+Spine 通过**骨骼**驱动动画：骨架控制打包图集中的附件。一个 Spine 模型由骨骼文件（`.json` 或 `.skel`）、`.atlas` 文件，以及图集引用的贴图页组成
 
-Studio 支持 Spine 角色，但与 [Live2D](/zh/docs/studio/model-runtimes/live2d) 不同，Studio 不构建 Spine 适配器。适配器需自行构建一次，再安装到项目中。适配器模块的通用契约见[编写自己的运行时](/zh/docs/studio/model-runtimes/custom)，本页说明 Spine 特有的部分。
+Studio 支持 Spine 角色，但与 [Live2D](/zh/docs/studio/model-runtimes/live2d) 不同，Studio 不构建 Spine 适配器。适配器需自行构建一次，再安装到项目中。适配器模块的通用契约见[编写自己的运行时](/zh/docs/studio/model-runtimes/custom)，本页说明 Spine 特有的部分
 
 ## 许可要求
 
 <Callout type="warn">
-    **Spine Runtimes 由 Esoteric Software 授权。** 其 Editor License Agreement 要求将 Spine 运行时集成进工具的一方持有有效的 Spine Editor 授权，Trial 授权不满足该要求。NarraLeaf 未持有 Spine 授权，因此 Studio 不包含 Spine 代码，也不提供代为构建适配器的功能。
+    **Spine Runtimes 由 Esoteric Software 授权。** 其 Editor License Agreement 要求将 Spine 运行时集成进工具的一方持有有效的 Spine Editor 授权，Trial 授权不满足该要求。NarraLeaf 未持有 Spine 授权，因此 Studio 不包含 Spine 代码，也不提供代为构建适配器的功能
 </Callout>
 
 由此产生三项要求：
 
-1. **每位使用 Spine 的成员需各自持有 Editor 授权。** 该授权按人计算，不按项目计算。参见 [Spine 购买页](https://esotericsoftware.com/spine-purchase)。
-2. **集成由使用方完成**，即构建下述适配器。Editor 授权涵盖该行为。
-3. **Spine Runtimes License 需随发行的游戏一并提供**，包含完整文本，置于随产品分发的文档中。该义务由发行方承担。
+1. **每位使用 Spine 的成员需各自持有 Editor 授权。** 该授权按人计算，不按项目计算。参见 [Spine 购买页](https://esotericsoftware.com/spine-purchase)
+2. **集成由使用方完成**，即构建下述适配器。Editor 授权涵盖该行为
+3. **Spine Runtimes License 需随发行的游戏一并提供**，包含完整文本，置于随产品分发的文档中。该义务由发行方承担
 
 ## 构建适配器
 
-适配器是一个 ES 模块，用于将 Spine 运行时桥接到引擎的 puppet 契约。Esoteric 在 npm 上发布运行时，应以 npm 依赖方式引用，而非复制其源码。
+适配器是一个 ES 模块，用于将 Spine 运行时桥接到引擎的 puppet 契约。Esoteric 在 npm 上发布运行时，应以 npm 依赖方式引用，而非复制其源码
 
 <Steps>
 <Step>
@@ -39,7 +39,7 @@ npm install @esotericsoftware/spine-webgl esbuild
 
 ### 编写适配器
 
-适配器为单个文件，实现引擎的 `PuppetBackend`。Spine 特有的部分有两点：骨骼与图集是独立文件，图集需相对宿主提供的入口解析；Spine 需要独立的 WebGL 上下文。
+适配器为单个文件，实现引擎的 `PuppetBackend`。Spine 特有的部分有两点：骨骼与图集是独立文件，图集需相对宿主提供的入口解析；Spine 需要独立的 WebGL 上下文
 
 ```js title="src/index.js"
 import {
@@ -62,14 +62,14 @@ export default function createPuppetBackends({ log }) {
 }
 ```
 
-引擎的[木偶 (Puppet)](/zh/docs/narraleaf-react/core/elements/puppet) 页面说明了各方法的调用时机，以及「完整状态」的定义。字段映射关系为：`motion` 对应 Spine 动画名，`skin` 对应 Spine 皮肤，`expression` 对应绑定中表示表情的机制，若不存在则可留空。
+引擎的[木偶 (Puppet)](/zh/docs/narraleaf-react/core/elements/puppet) 页面说明了各方法的调用时机，以及「完整状态」的定义。字段映射关系为：`motion` 对应 Spine 动画名，`skin` 对应 Spine 皮肤，`expression` 对应绑定中表示表情的机制，若不存在则可留空
 
 </Step>
 <Step>
 
 ### 打包
 
-产物必须是单个自包含的 ES 模块，Studio 加载的即为该模块。
+产物必须是单个自包含的 ES 模块，Studio 加载的即为该模块
 
 ```js title="build.mjs"
 import { build } from "esbuild";
@@ -95,49 +95,49 @@ await build({
 
 ### 打开安装器
 
-在通过 **新建角色 → Spine** 创建的角色中，选择*绘制运行时*一行的 **安装**；或选择 **项目 → 运行时 → Spine → 安装**。
+在通过 **新建角色 → Spine** 创建的角色中，选择*绘制运行时*一行的 **安装**；或选择 **项目 → 运行时 → Spine → 安装**
 
 </Step>
 <Step>
 
 ### 确认许可条款
 
-对话框会重述上述许可要求。勾选确认后继续。
+对话框会重述上述许可要求。勾选确认后继续
 
 </Step>
 <Step>
 
 ### 指定适配器产物
 
-单个打包产物 `index.js` 使用 **选择文件**。若适配器包含运行时加载的其他文件，使用 **选择目录**，此时整个目录会被复制。
+单个打包产物 `index.js` 使用 **选择文件**。若适配器包含运行时加载的其他文件，使用 **选择目录**，此时整个目录会被复制
 
 </Step>
 <Step>
 
 ### 校验
 
-Studio 会以游戏运行时的相同方式加载该模块，确认其产出了后端。未产出后端的模块会被拒绝并回滚，不会保留在项目中。
+Studio 会以游戏运行时的相同方式加载该模块，确认其产出了后端。未产出后端的模块会被拒绝并回滚，不会保留在项目中
 
 </Step>
 </Steps>
 
 <Callout type="info">
-    **目录名取自模块注册的 backend 名。** 若模块注册名为 `spine-pro`，而安装时选择的是 `spine`，Studio 会将目录重命名为 `spine-pro` 并给出提示。引擎按注册名解析角色的运行时，名称不一致会导致角色在舞台上不显示。
+    **目录名取自模块注册的 backend 名。** 若模块注册名为 `spine-pro`，而安装时选择的是 `spine`，Studio 会将目录重命名为 `spine-pro` 并给出提示。引擎按注册名解析角色的运行时，名称不一致会导致角色在舞台上不显示
 </Callout>
 
 ## 导入模型
 
 Spine 模型是一个目录，包含骨骼、图集与贴图页，因此按目录导入。有两项设置由 Spine 格式决定：
 
-- **入口文件。** Studio 会识别其中的骨骼文件。若模型包中有多套骨骼共用一个图集，在 **入口** 字段中指定当前角色使用的一套。
+- **入口文件。** Studio 会识别其中的骨骼文件。若模型包中有多套骨骼共用一个图集，在 **入口** 字段中指定当前角色使用的一套
 - **图集。** 文件名不足以判断哪个文件是图集，该判断由适配器完成，通常从 **选项** 中读取：
 
 ```json
 { "atlas": "spineboy/spineboy-pma.atlas", "format": "binary" }
 ```
 
-选项会原样传递给适配器，Studio 不解析其中的任何键。
+选项会原样传递给适配器，Studio 不解析其中的任何键
 
 ## 角色支持的内容
 
-取决于适配器报告的内容。若适配器实现了引擎的 `describe()`，Studio 会从模型填充动作、皮肤与参数字段，包括动画名、皮肤名以及适配器暴露的参数，预览也会以静止姿态绘制骨骼。若未实现，各字段为文本输入框，需手动输入名称。
+取决于适配器报告的内容。若适配器实现了引擎的 `describe()`，Studio 会从模型填充动作、皮肤与参数字段，包括动画名、皮肤名以及适配器暴露的参数，预览也会以静止姿态绘制骨骼。若未实现，各字段为文本输入框，需手动输入名称

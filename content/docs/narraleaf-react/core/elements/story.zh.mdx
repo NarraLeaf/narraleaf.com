@@ -1,7 +1,7 @@
 ﻿---
 title: "Story"
 ---
-`Story` 是创建剧本的主入口。
+`Story` 是创建剧本的主入口
 
 ```ts
 import { Story } from 'narraleaf-react';
@@ -161,7 +161,7 @@ story.registerPersistent(persistent);
 <Steps>
 <Step>
 
-返回剧本的 64 位哈希值。
+返回剧本的 64 位哈希值
 
 哈希值基于剧本的逻辑结构和操作顺序计算，而非文本内容：
 
@@ -169,7 +169,7 @@ story.registerPersistent(persistent);
 - 文本内容改变（对话、描述等）**不会**影响哈希值
 - `strict` 为 `true` 时，哈希值还会包含字符串化的 lambda 函数
 
-主要用于检查存档之间的剧本兼容性。
+主要用于检查存档之间的剧本兼容性
 
 ```ts
 const story = new Story("故事名称");
