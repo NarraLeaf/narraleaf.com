@@ -7,6 +7,7 @@
     "push",
     "reveal",
     "through-color",
+    "exposure",
     "mask"
   ]
 }
