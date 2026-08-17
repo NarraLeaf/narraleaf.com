@@ -1,13 +1,11 @@
 ---
 title: Patches
-description: Change a released game by exporting a patch file that players add to the copy they already have.
+description: Update a released game with a patch file that players add to the copy they already have.
 ---
 
-A patch changes a desktop game after it has been released. It carries rewritten lines, new scenes, replaced assets and updated translations into a copy a player already has installed. The player drops one folder into the game's own folder, and deletes the file inside it to go back to what the game shipped with.
+A patch updates a released desktop game without a new installer. It carries rewritten lines, new scenes, replaced assets and updated translations into the copy a player already has. The player adds one folder to the game's folder, and removes it to return the game to what it shipped with.
 
-A patch is read alongside the installed game. No file in the install folder is replaced or modified, and no installer runs.
-
-## What a patch carries
+## Contents
 
 A patch changes:
 
@@ -17,7 +15,7 @@ A patch changes:
 - asset files
 - plugin data
 
-A patch does not change the engine or the game's executable. Those ship in a new build and a new installer.
+A patch does not change the engine or the game's executable. Those ship in a new build.
 
 <Callout type="info">
 Desktop builds read patches. Web, Android and iOS builds do not.
@@ -25,38 +23,36 @@ Desktop builds read patches. Web, Android and iOS builds do not.
 
 ## Distribution key
 
-A build accepts patches only if the project had a distribution key at the time that build was made. Open the **Project** panel, choose **Project**, and select **Create** under **Distribution key**.
+A build accepts patches only if the project had a distribution key when that build was made. Create the key before the build that ships to players.
 
-The key is stored with the project and travels with it in version control, so everyone who builds the project builds under the same key. The page reports whether a key exists and the date it was last replaced. The key itself is never displayed.
+Open the **Project** panel, choose **Project**, and select **Create** under **Distribution key**. The key is stored with the project and travels with it in version control, so everyone who builds the project builds under the same key. The page reports whether a key exists and the date it was last replaced. The key itself is never displayed.
 
-**Replace** puts a new key in place. Builds already released under the previous key do not accept patches made after the replacement.
+**Replace** puts a new key in place. Builds released under the previous key do not accept patches made after the replacement.
 
-Create the key before the build that ships to players. Builds made before the key exists do not accept patches.
-
-## Export a patch
+## Export
 
 <Steps>
 <Step>
 
 ### Edit the project
 
-Change assets, rewrite lines, add scenes. A patch is exported from the project in its current state.
+A patch is exported from the project in its current state.
 </Step>
 <Step>
 
 ### Open the dialog
 
-Choose **Export Patch…** from the **Run and build** dropdown in the top bar. The dialog is titled **Export patch**.
+Choose **Export Patch…** from the **Run and build** dropdown in the top bar.
 </Step>
 <Step>
 
-### Fill in the four fields
+### Fill in the fields
 
-**Variant** is the build variant this patch is for. A patch opens only in builds of the variant it was made for.
+**Variant** is the build variant the patch is for. The patch opens only in builds of that variant.
 
-**Build this patch is for** is the released build the patch is measured against. **Browse…** selects the desktop build folder the packager wrote. Only what differs from that build is carried. An empty field carries the whole game.
+**Build this patch updates** is the released build the patch is measured against. **Browse…** selects the desktop build folder the packager wrote. Only the files that differ from it are included; an empty field includes the whole game.
 
-**Save as** is where the patch file is written. Studio offers a `patch` folder inside the project's `dist` folder and names the file after the project. The export always writes into a `patch` folder at the location chosen here.
+**Save as** is where the patch is written. The export writes into a `patch` folder at the location chosen here.
 
 **Name** appears in the game's log beside the patch's filename.
 </Step>
@@ -64,28 +60,26 @@ Choose **Export Patch…** from the **Run and build** dropdown in the top bar. T
 
 ### Export
 
-Choose **Export**. Studio compiles the project and writes one `.patch.dat` file inside the `patch` folder. Progress, findings and the final size appear in the **Console**.
+Choose **Export**. Studio writes one `.patch.dat` file inside the `patch` folder. Progress, findings and the final size appear in the **Console**.
 </Step>
 </Steps>
 
-An export and a production build use the same session, so they cannot run at the same time.
+An export cannot run while a production build is running.
 
-## What the export reports about saves
+## Existing saves
 
-The console reports what the patch does to saves players already have, as two counts:
+The console reports two counts:
 
-- Places a save can stop at that no longer exist. Saves that stopped at one of them refuse to load while the patch is installed, and open again once the file is removed.
-- Elements a save can hold state for that no longer exist. Those saves load, and the state they held for those elements is dropped.
+- Places a save can stop at that no longer exist. Saves that stopped at one of them refuse to load while the patch is installed, and open again once it is removed.
+- Elements a save can hold state for that no longer exist. Those saves load, and the state held for those elements is dropped.
 
-Both lines name the scenes the losses fall in.
+Both lines name the scenes the losses fall in. Deleting a line or a scene produces these counts; adding lines, rewriting lines and replacing assets do not.
 
-Adding lines, rewriting lines and replacing assets produce neither count. Deleting a line or a scene produces them.
+The counts are warnings and the export runs. With **Build this patch updates** empty, the console reports that no saves were checked.
 
-These are warnings, and the export runs. With no build selected in **Build this patch is for**, the console reports that nothing was checked about existing saves.
+## Installation
 
-## Give the patch to players
-
-Zip the `patch` folder and send it. The player extracts it into the game's own folder, so the game ends up like this:
+Zip the `patch` folder and send it. The player extracts it into the game's folder:
 
 <Files>
     <Folder name="patch" defaultOpen>
@@ -95,15 +89,15 @@ Zip the `patch` folder and send it. The player extracts it into the game's own f
     <File name="My Game.exe" />
 </Files>
 
-The game's own folder is the one holding its `resources` folder. On Windows and Linux that folder holds the executable. On macOS it is `Contents`, inside the app bundle.
+The game's folder is the one holding its `resources` folder. On Windows and Linux the executable is in that folder. On macOS it is `Contents`, inside the app bundle.
 
-Deleting the `.patch.dat` file undoes the patch, and the game returns to what it shipped with.
+Deleting the `.patch.dat` file returns the game to what it shipped with.
 
-The game also reads a `patch` folder inside the player data folder. A patch kept there survives reinstalling the game, and wins over one in the game's own folder. The **Player files** section on **Project ▸ App** lists that folder's path on each platform.
+A `patch` folder in the player data folder also applies. A patch kept there survives reinstalling the game, and wins over one in the game's folder. **Project ▸ App** lists that folder's path on each platform under **Player files**.
 
-More than one patch file can sit in a folder. They apply in filename order, and a later one wins wherever two of them change the same thing.
+Several patch files can sit in one folder. They apply in filename order, and a later one wins where two of them change the same thing.
 
-## What a build accepts
+## Compatibility
 
 A patch opens only in builds of the project and the variant it was made for. A file made for another project, made for another variant, or altered after export is not applied, and the game starts normally. The game's log records each patch that was applied and each one that was not.
 
