@@ -9,6 +9,7 @@
     "blueprint",
     "model-runtimes",
     "security",
+    "patches",
     "plugin",
     "third-party-licenses"
   ]
