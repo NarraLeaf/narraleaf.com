@@ -308,6 +308,12 @@ function GameDialog() {
 }
 ```
 
+## Line breaking
+
+Dialogue text is typeset to the strict kinsoku rules in both writing modes. A line does not begin with 、 。 」 ？ ！, a small kana, or a prolonged sound mark, and does not end with 「 （. A Latin word is never split, and a run that fits nowhere, such as a URL, breaks rather than overflowing.
+
+The strict rules apply only when the document declares a language. Set `lang` on the page hosting the player. Any value is enough, and a shell built by NarraLeaf Studio already carries one.
+
 ## Overlay
 
 The ADV dialog box carries an overlay that covers it and paints above it, inside the same scaled stage. Anything that belongs to a line but does not fit inside the text box goes there: the definition popup of an inline word, a tooltip on a name. Reach it with [`useDialogOverlay`](/docs/narraleaf-react/player/hooks/useDialogOverlay).

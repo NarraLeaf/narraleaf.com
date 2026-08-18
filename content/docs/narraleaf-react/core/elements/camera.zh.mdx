@@ -89,6 +89,10 @@ story.camera.darken(0.6, 500, "easeInOut");
 story.camera.resetCamera(600, "easeInOut");
 ```
 
+滤镜在第一帧清除，姿态在给定时长内缓动
+
+更换调色时不要给时长。滤镜从一条链缓动到另一条链，会让舞台经过两者之间的颜色
+
 <Callout type="warning">
     **`0.26.0` 重命名：它此前叫 `camera.reset`。** 每个元素都自带一个内部的 `reset()` —— 新游戏开始或读档时引擎在全体元素上运行的生命周期钩子 —— 而 Camera 却把这个名字给了这个创作用的辅助方法，于是 `newGame()` 从不恢复镜头姿态，平移或缩放过的故事会把那个取景带进下一次游玩
 

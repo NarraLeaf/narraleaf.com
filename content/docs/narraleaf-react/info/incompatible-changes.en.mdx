@@ -3,6 +3,15 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.29.1
+
+- [`Camera.resetCamera`](/docs/narraleaf-react/core/elements/camera#resetcamera) clears the filter on the first frame instead of easing it out across the duration. The pose still eases. A scene that timed a grade fading away with the pan loses the grade at once instead
+
+## 0.29.0
+
+- Dialogue text is typeset to the strict kinsoku rules in both writing modes, and a Latin word inside a CJK line is no longer split. Lines wrap in different places than before: a word that used to be broken now moves to the next line whole, so a dialogue box measured against the old wrapping can come out one line taller. No story needs editing for this
+- The strict rules apply only when the document declares a language. A page hosting the player with no `lang` on it gets the browser's default rules, see [Dialog](/docs/narraleaf-react/player/dialog#line-breaking)
+
 ## 0.27.0
 
 - A transition given to [`Scene.jumpTo`](/docs/narraleaf-react/core/elements/scene#jumpto) is played across the whole stage rather than across the outgoing scene's background image. Sprites, text and every other layer now take part in the jump instead of vanishing at the end of it. Nothing about how a transition is written changes, but its geometry is now the stage: a `Push` travels the width of the stage, a `Mask` is laid over the stage rectangle, and a background deliberately smaller than the stage is swept along rather than being the thing swept. See [JumpConfig](/docs/narraleaf-react/core/types/JumpConfig)

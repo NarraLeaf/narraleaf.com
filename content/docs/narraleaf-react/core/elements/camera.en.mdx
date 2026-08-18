@@ -92,6 +92,10 @@ Return the camera to its neutral pose: centred, zoom `1`, no rotation, fully opa
 story.camera.resetCamera(600, "easeInOut");
 ```
 
+The filter is cleared on the first frame, and the pose eases over the duration given.
+
+Give no duration when a grade is replaced. A filter eased from one chain to another takes the stage through the colors between them.
+
 <Callout type="warning">
     **Renamed in `0.26.0`: this was `camera.reset`.** Every element carries an internal `reset()` —
     the lifecycle hook the engine runs over the cast when a new game starts or a save loads — and

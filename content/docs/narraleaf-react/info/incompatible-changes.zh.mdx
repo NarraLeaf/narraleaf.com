@@ -3,6 +3,15 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)
 
+## 0.29.1
+
+- [`Camera.resetCamera`](/zh/docs/narraleaf-react/core/elements/camera#resetcamera) 在第一帧清除滤镜，不再让滤镜随时长一起缓动退出。姿态仍然缓动。原先靠这段时长让调色随平移一起淡出的场景，现在调色会立即消失
+
+## 0.29.0
+
+- 对话正文在横排与竖排下都按严格禁则排版，CJK 行内的拉丁词不再被拆开。断行位置与此前不同：原先会被拆开的词现在整体移到下一行，因此按旧断行量过的对话框可能多出一行。剧本不需要任何改动
+- 严格禁则只在文档声明了语言时生效。承载播放器的页面若没有 `lang`，得到的是浏览器的默认规则，参见 [Dialog](/zh/docs/narraleaf-react/player/dialog#断行)
+
 ## 0.27.0
 
 - 传给 [`Scene.jumpTo`](/zh/docs/narraleaf-react/core/elements/scene#jumpto) 的过渡跨整个舞台播放，而不再作用于离场场景的背景图。立绘、文字以及其他所有层现在都参与跳转，不会在跳转结束时凭空消失。过渡本身的写法没有任何变化，但它的几何依据变成了舞台：`Push` 位移的距离是舞台宽度，`Mask` 铺在舞台矩形上，刻意小于舞台的背景会被一起扫过，而不再是被扫的那一张图。参见 [JumpConfig](/zh/docs/narraleaf-react/core/types/JumpConfig)
