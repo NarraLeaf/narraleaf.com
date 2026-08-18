@@ -14,7 +14,7 @@ A sprite or background transition plays across the image being replaced. A [scen
 The transition API separates *how the change plays* from *what shape it takes*:
 
 - **Engines** are transition classes. They are instantiated with `new`, and every engine takes a single options object: `new Dissolve({ duration: 500 })`.
-- **Patterns** are geometry. They are built with the static factories on [Mask](/docs/narraleaf-react/core/animation/transition/mask) and passed to a mask-driven engine's `pattern` option. Patterns are plain values — they are never instantiated with `new`.
+- **Patterns** are geometry. They are built with the static factories on [Mask](/docs/narraleaf-react/core/animation/transition/mask) and passed to a mask-driven engine's `pattern` option. Patterns are plain values: you never instantiate them with `new`.
 
 A transition therefore reads as *engine(animation)*: the engine decides how the pixels change, and the pattern is the animation it plays.
 
@@ -46,6 +46,7 @@ image.char("image1.jpg", new Dissolve({ duration: 3000, easing: "linear" }));
 - [Push](/docs/narraleaf-react/core/animation/transition/push) - slide the next image in while the current one slides out
 - [Reveal](/docs/narraleaf-react/core/animation/transition/reveal) - reveal the next image directly through any mask pattern
 - [Through Color](/docs/narraleaf-react/core/animation/transition/through-color) - cover with a colour, hold, then uncover on the next image
+- [Exposure](/docs/narraleaf-react/core/animation/transition/exposure) - burn the frame out to white in stops, then bring the next image back down
 
 ### Mask Patterns
 

@@ -1,0 +1,33 @@
+---
+title: "Exposure"
+---
+> Available on [Image](/docs/narraleaf-react/core/elements/image) changes and on [scene jumps](/docs/narraleaf-react/core/types/JumpConfig).
+
+Drive the frame up in stops until it burns out to white, change images inside the white, then bring the next frame back down to a normal exposure.
+
+The highlights burn out first, a saturated colour shifts as it goes, and the shadows are the last to give way. [Through Color](/docs/narraleaf-react/core/animation/transition/through-color) with a white `color` is the flat version, where every colour reaches white together.
+
+## Usage
+
+```tsx
+import { Exposure } from "narraleaf-react";
+
+image.char("image1.jpg", new Exposure({ duration: 1200 }));
+
+// Burn harder, and stay on white before coming back down
+image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, hold: 0.2 }));
+
+// A night frame needs a stronger lift to carry its shadows up
+image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: ExposureOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `ev?: number` - The peak exposure in stops. The frame is driven to a gain of `2 ** ev`, so each step of `1` doubles it. Defaults to `4.6`.
+  - `lift?: number` - The shadow lift (`0`–`1`) applied ahead of the gain. At `0` the shadows never reach white and a dark frame ends the burn as a silhouette. Defaults to `0.04`.
+  - `hold?: number` - The fraction (`0`–`1`) of the duration spent fully blown out. Defaults to `0`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
