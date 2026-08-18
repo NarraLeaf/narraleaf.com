@@ -1,7 +1,7 @@
 ---
 title: "useKeyBinding"
 ---
-`useKeyBinding` 是一个 React Hook，用于读取并修改指定动作的键位绑定。
+`useKeyBinding` 是一个 React Hook，用于读取并修改指定动作的键位绑定
 
 ```typescript
 function useKeyBinding(type: KeyBindingType): [KeyBindingValue, (value: KeyBindingValue) => void];
@@ -24,4 +24,4 @@ function ShortcutSetting() {
 }
 ```
 
-> 该组件会在其他地方修改绑定时自动重新渲染，因为此 Hook 内部监听了 `game.keyMap.onKeyBindingChange` 事件。
+> 该组件会在其他地方修改绑定时自动重新渲染，因为此 Hook 内部监听了 `game.keyMap.onKeyBindingChange` 事件

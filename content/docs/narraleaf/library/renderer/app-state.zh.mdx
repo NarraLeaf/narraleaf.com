@@ -3,7 +3,7 @@ title: "App State"
 description: 从 React 中访问 RendererApp、播放状态和应用级 actions
 ---
 
-在 NarraLeaf 渲染树内使用 `useApp()` 访问稳定的 `RendererApp` 接口。
+在 NarraLeaf 渲染树内使用 `useApp()` 访问稳定的 `RendererApp` 接口
 
 ```tsx
 import { useApp } from "narraleaf/renderer";
@@ -33,7 +33,7 @@ export function MainMenu() {
 
 ## 播放状态
 
-`useGamePlayback()` 返回只读的高层播放状态。
+`useGamePlayback()` 返回只读的高层播放状态
 
 ```tsx
 import { useGamePlayback } from "narraleaf/renderer";
@@ -47,7 +47,7 @@ export function Overlay() {
 
 ## useAppState
 
-`useAppState(key)` 会订阅一个渲染器 app state key，并返回 `[value, setValue]`。
+`useAppState(key)` 会订阅一个渲染器 app state key，并返回 `[value, setValue]`
 
 ```tsx
 import { useAppState } from "narraleaf/renderer";
@@ -65,11 +65,11 @@ export function PauseButton() {
 
 当前公共 state keys：
 
-- `isPlaying`：NarraLeaf-React live game 是否处于活动状态。
+- `isPlaying`：NarraLeaf-React live game 是否处于活动状态
 
 ## 继续游戏
 
-`continueGame()` 会在存在普通存档时加载最近的一个。
+`continueGame()` 会在存在普通存档时加载最近的一个
 
 ```tsx
 const continued = await app.continueGame();

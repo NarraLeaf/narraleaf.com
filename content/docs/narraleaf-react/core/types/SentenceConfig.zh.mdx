@@ -13,19 +13,19 @@ type SentenceConfig = {
 } & Font;
 ```
 
-`SentenceMetadata` 见下文。`DialogAvatar` 见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+`SentenceMetadata` 见下文。`DialogAvatar` 见 [Dialog](/zh/docs/narraleaf-react/player/dialog)
 
-面向作者的局部配置见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)。
+面向作者的局部配置见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 
-`Font` 见 [Font](/zh/docs/narraleaf-react/core/types/Font)。
+`Font` 见 [Font](/zh/docs/narraleaf-react/core/types/Font)
 
 ## pause
 
-句后是否停顿及停顿长短，可为 `boolean` 或时长。
+句后是否停顿及停顿长短，可为 `boolean` 或时长
 
 ## voice
 
-播放的语音资源。若指定了 `voice`，将忽略 `voiceId`。
+播放的语音资源。若指定了 `voice`，将忽略 `voiceId`
 
 ```ts
 character1.say("hello!", {
@@ -37,7 +37,7 @@ character1.say("hello!", {
 
 ## voiceId
 
-语音标识，可为字符串或数字。
+语音标识，可为字符串或数字
 
 ```ts
 const voiceScene = new Scene("voice-scene", {
@@ -64,11 +64,11 @@ const voiceScene = new Scene("voice-scene", {
 
 ## character
 
-说话的 [Character](/zh/docs/narraleaf-react/core/elements/character)。设置后会覆盖之前的角色。
+说话的 [Character](/zh/docs/narraleaf-react/core/elements/character)。设置后会覆盖之前的角色
 
 ## color
 
-句子文本颜色。
+句子文本颜色
 
 ```ts
 new Sentence("hello!", {
@@ -90,8 +90,8 @@ new Sentence("hello!", {
 
 ## metadata
 
-随句子附带的**运行时**元数据（`SentenceMetadata`，即 `Record<string, unknown>`）。**不会**写入存档。尽量使用可序列化的纯数据。运行时用 `Sentence.getMetadata()` 读取。
+随句子附带的**运行时**元数据（`SentenceMetadata`，即 `Record<string, unknown>`）。**不会**写入存档。尽量使用可序列化的纯数据。运行时用 `Sentence.getMetadata()` 读取
 
 ## avatar
 
-按行的对话框头像覆盖：静态资源、解析器，或 `false` 隐藏本行头像。详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+按行的对话框头像覆盖：静态资源、解析器，或 `false` 隐藏本行头像。详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)

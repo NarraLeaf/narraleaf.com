@@ -3,12 +3,12 @@ title: "视觉效果 (Vfx)"
 ---
 
 <Callout type="info">
-    自 `0.16.0` 起可用。
+    自 `0.16.0` 起可用
 </Callout>
 
-Vfx 以**全屏循环视频叠加层**的形式播放粒子与氛围效果（落樱、光尘、雨、雪、雾、光斑），无需 canvas 或 WebGL。
+Vfx 以**全屏循环视频叠加层**的形式播放粒子与氛围效果（落樱、光尘、雨、雪、雾、光斑），无需 canvas 或 WebGL
 
-叠加层渲染在场景与正在播放的 [Video](/zh/docs/narraleaf-react/core/elements/video) 之上、舞台摄像机边界之内：[Camera](/zh/docs/narraleaf-react/core/elements/camera) 的平移/缩放/晃动会带着天气效果一起运动，而对话框 UI 保持固定。
+叠加层渲染在场景与正在播放的 [Video](/zh/docs/narraleaf-react/core/elements/video) 之上、舞台摄像机边界之内：[Camera](/zh/docs/narraleaf-react/core/elements/camera) 的平移/缩放/晃动会带着天气效果一起运动，而对话框 UI 保持固定
 
 ```ts
 import {Vfx} from "narraleaf-react";
@@ -48,14 +48,14 @@ ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-bla
 ```
 
 <Callout type="warning">
-    含暗色或不透明像素的素材必须走 alpha 路线。循环素材应保证首尾帧一致，以获得无缝循环。
+    含暗色或不透明像素的素材必须走 alpha 路线。循环素材应保证首尾帧一致，以获得无缝循环
 </Callout>
 
 ## 行为
 
-- 玩家跳过（skip）时，`show`/`hide` 的淡变**立即完成**；素材加载失败会记录错误并立即完成动作，因此损坏的资源不会阻塞剧情。
-- 舞台上的叠加层会被存档捕获，读档后直接重现，播放中或（若被暂停）冻结，不重放淡入。`0.16.0` 之前的旧存档可以正常读取。
-- 撤销（undo）会恢复叠加层此前的可见性。
+- 玩家跳过（skip）时，`show`/`hide` 的淡变**立即完成**；素材加载失败会记录错误并立即完成动作，因此损坏的资源不会阻塞剧情
+- 舞台上的叠加层会被存档捕获，读档后直接重现，播放中或（若被暂停）冻结，不重放淡入。`0.16.0` 之前的旧存档可以正常读取
+- 撤销（undo）会恢复叠加层此前的可见性
 
 ## 公共方法
 
@@ -81,7 +81,7 @@ const rain = new Vfx({src: "/fx/rain-black.webm", blendMode: "screen"});
 
 - `options?: VfxFadeOptions` - [VfxFadeOptions](/zh/docs/narraleaf-react/core/types/VfxFadeOptions)
 
-将叠加层加入舞台，等待首帧就绪后淡入，并开始循环播放。动作会等待淡入完成。在已显示时调用是幂等的（从当前不透明度重新应用淡入）。
+将叠加层加入舞台，等待首帧就绪后淡入，并开始循环播放。动作会等待淡入完成。在已显示时调用是幂等的（从当前不透明度重新应用淡入）
 
 ```ts
 petals.show({duration: 800, easing: "easeOut"});
@@ -96,7 +96,7 @@ petals.show({duration: 800, easing: "easeOut"});
 
 - `options?: VfxFadeOptions` - [VfxFadeOptions](/zh/docs/narraleaf-react/core/types/VfxFadeOptions)
 
-将叠加层淡出，然后停止播放并从舞台移除。动作会等待淡出完成。在未显示时调用是 no-op。
+将叠加层淡出，然后停止播放并从舞台移除。动作会等待淡出完成。在未显示时调用是 no-op
 
 ```ts
 petals.hide({duration: 1200});
@@ -109,7 +109,7 @@ petals.hide({duration: 1200});
 <Steps>
 <Step>
 
-将叠加层冻结在当前帧。
+将叠加层冻结在当前帧
 
 ```ts
 dust.pause();
@@ -122,7 +122,7 @@ dust.pause();
 <Steps>
 <Step>
 
-从当前帧继续播放。
+从当前帧继续播放
 
 ```ts
 dust.resume();
@@ -135,9 +135,9 @@ dust.resume();
 <Steps>
 <Step>
 
-- `rate: number` - 播放速度（例如 `0.5` 表示慢速飘落）。
+- `rate: number` - 播放速度（例如 `0.5` 表示慢速飘落）
 
-调整播放速度。运行期的速度变更不会持久化；读档后速度回到 `config.playbackRate`。
+调整播放速度。运行期的速度变更不会持久化；读档后速度回到 `config.playbackRate`
 
 ```ts
 petals.setPlaybackRate(0.5);

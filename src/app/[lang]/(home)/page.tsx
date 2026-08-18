@@ -650,12 +650,32 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
               <div className="absolute top-0 left-1/2 h-full w-full -translate-x-1/2 transition-[width] duration-[350ms] ease-out group-hover:w-[96vw] sm:group-hover:w-[92vw] lg:group-hover:w-[1121px] xl:group-hover:w-[1246px]">
                 <div className="h-full origin-center rotate-[-1.5deg] transition-transform duration-[350ms] ease-out will-change-transform group-hover:rotate-0">
                   <div className="relative h-full overflow-hidden">
+                    {/*
+                      The LCP element. `preload` is what puts it in a preload
+                      link instead of leaving it for the scanner to find after
+                      the stylesheet resolves, and `fetchPriority` is what
+                      lifts that link out of the browser's default low priority
+                      for images. They are two separate props: as of Next 16
+                      `preload` (and the `priority` alias it replaced) no
+                      longer implies the priority hint on its own.
+
+                      The last `sizes` branch says `100vw` where the box is
+                      really 118vw: the extra 18% is the `-mx-6` bleed plus the
+                      hover widening, and asking for it pushed a 412px phone at
+                      DPR 2.625 to 1276 device px — past the 1200 candidate and
+                      onto 1920, which is 77 KB for a picture that is cropped by
+                      `object-cover` and 330px tall there. `100vw` lands on 1200
+                      instead, and `quality` 60 takes that to 30 KB. The two
+                      desktop branches are already exact and stay as they were.
+                    */}
                     <Image
                       src={studioWorkspaceImage}
                       alt={copy.hero.imageAlt}
                       fill
-                      priority
-                      sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 118vw"
+                      preload
+                      fetchPriority="high"
+                      quality={60}
+                      sizes="(min-width: 1280px) 1246px, (min-width: 1024px) 1121px, 100vw"
                       className="object-cover object-left-top"
                     />
                   </div>

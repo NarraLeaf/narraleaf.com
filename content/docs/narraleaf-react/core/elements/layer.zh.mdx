@@ -3,7 +3,7 @@ title: "图层"
 ---
 > 此类继承自 [Displayble](/zh/docs/narraleaf-react/core/elements/displayable)
 
-你可以使用 `Layer` 类来管理可显示元素的图层。
+你可以使用 `Layer` 类来管理可显示元素的图层
 
 ## 用法
 
@@ -28,7 +28,7 @@ layer.opacity(0.5, 1000, "linear"); // 更改图层的不透明度，所有链�
 ```
 
 <Callout type="info">
-    **自 `0.26.0` 起，图层不会把自己的姿态带出声明它的那个场景。** 离开场景现在会把该场景摆上舞台的图层还原到配置的 z-index 与姿态，而不只是还原站在图层上的可显示元素；`newGame()` 同样如此。在此之前，被移开或淡出的图层会在之后的每个场景里都保持那个样子。故事[镜头](/zh/docs/narraleaf-react/core/elements/camera)是刻意的例外：一个故事只拥有一个镜头，而它要跨场景切换地为舞台取景。
+    **自 `0.26.0` 起，图层不会把自己的姿态带出声明它的那个场景。** 离开场景现在会把该场景摆上舞台的图层还原到配置的 z-index 与姿态，而不只是还原站在图层上的可显示元素；`newGame()` 同样如此。在此之前，被移开或淡出的图层会在之后的每个场景里都保持那个样子。故事[镜头](/zh/docs/narraleaf-react/core/elements/camera)是刻意的例外：一个故事只拥有一个镜头，而它要跨场景切换地为舞台取景
 </Callout>
 
 ## 链式方法
@@ -38,7 +38,7 @@ layer.opacity(0.5, 1000, "linear"); // 更改图层的不透明度，所有链�
 <Steps>
 <Step>
 
-设置图层的 z-index。z-index 越高，图层越靠前。
+设置图层的 z-index。z-index 越高，图层越靠前
 
 - `zIndex: number` - 图层的 z-index
 </Step>

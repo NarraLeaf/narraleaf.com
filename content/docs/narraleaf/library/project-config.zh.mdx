@@ -3,7 +3,7 @@ title: "项目配置"
 description: 配置 narraleaf.config.js、必需目录、渲染路径、开发端口、资源和打包输出
 ---
 
-`narraleaf.config.js` 会在 CLI 执行 `dev`、`build` 和 `info` 前加载。它决定主进程入口的位置、渲染应用的位置，以及应用如何打包。
+`narraleaf.config.js` 会在 CLI 执行 `dev`、`build` 和 `info` 前加载。它决定主进程入口的位置、渲染应用的位置，以及应用如何打包
 
 ## 基础配置
 
@@ -43,19 +43,19 @@ module.exports = {
 
 CLI 会验证这些文件和目录：
 
-- `package.json`：必须包含非空的 `name`、`version` 和 `description`。
-- `narraleaf.config.js`：必须导出项目配置对象。
-- 主进程入口：默认是 `main/index.js`。
-- 渲染器根目录：默认是 `renderer`。
-- 渲染应用组件：`renderer/App.tsx` 或 `renderer/App.jsx`。
-- 渲染页面目录：`renderer/pages`。
-- 渲染 public 目录：`renderer/public`。
+- `package.json`：必须包含非空的 `name`、`version` 和 `description`
+- `narraleaf.config.js`：必须导出项目配置对象
+- 主进程入口：默认是 `main/index.js`
+- 渲染器根目录：默认是 `renderer`
+- 渲染应用组件：`renderer/App.tsx` 或 `renderer/App.jsx`
+- 渲染页面目录：`renderer/pages`
+- 渲染 public 目录：`renderer/public`
 
 ## 配置字段
 
 ### main
 
-主进程入口文件。它会被打包为 Electron main，并应使用 `AppConfig` 创建应用。
+主进程入口文件。它会被打包为 Electron main，并应使用 `AppConfig` 创建应用
 
 ```js
 module.exports = {
@@ -65,12 +65,12 @@ module.exports = {
 
 ### renderer
 
-控制渲染项目根目录和开发资源模式。
+控制渲染项目根目录和开发资源模式
 
-- `baseDir`：渲染项目目录。
-- `allowHTTP`：允许生成的 CSP 中图片使用 `http:` 和 `https:` 来源。
-- `httpDevServer`：开发模式下通过 HTTP 服务渲染输出。
-- `httpDevServerPort`：默认是 `5051`。
+- `baseDir`：渲染项目目录
+- `allowHTTP`：允许生成的 CSP 中图片使用 `http:` 和 `https:` 来源
+- `httpDevServer`：开发模式下通过 HTTP 服务渲染输出
+- `httpDevServerPort`：默认是 `5051`
 
 ```js
 module.exports = {
@@ -85,7 +85,7 @@ module.exports = {
 
 ### temp
 
-用于生成构建输出和开发输出的目录。默认是 `.narraleaf`。
+用于生成构建输出和开发输出的目录。默认是 `.narraleaf`
 
 ```js
 module.exports = {
@@ -95,7 +95,7 @@ module.exports = {
 
 ### resources
 
-由 Electron Builder 复制到打包应用中的额外资源目录。
+由 Electron Builder 复制到打包应用中的额外资源目录
 
 ```js
 module.exports = {
@@ -105,7 +105,7 @@ module.exports = {
 
 ### dev
 
-CLI 与运行中应用使用的开发 WebSocket 端口。
+CLI 与运行中应用使用的开发 WebSocket 端口
 
 ```js
 module.exports = {
@@ -117,16 +117,16 @@ module.exports = {
 
 ### build
 
-传给 Electron Builder 的打包选项。
+传给 Electron Builder 的打包选项
 
-- `appId`：应用标识。
-- `productName`：打包产物名称。
-- `copyright`：版权文本。
-- `dist`：输出目录。
-- `dev`：为 true 时使用更快的开发打包设置。
-- `targets`：一个 `PlatformBuildTarget` 或数组。
+- `appId`：应用标识
+- `productName`：打包产物名称
+- `copyright`：版权文本
+- `dist`：输出目录
+- `dev`：为 true 时使用更快的开发打包设置
+- `targets`：一个 `PlatformBuildTarget` 或数组
 
-构建目标 helpers 参见 [构建目标](/zh/docs/narraleaf/library/build-targets)。
+构建目标 helpers 参见 [构建目标](/zh/docs/narraleaf/library/build-targets)
 
 ## 默认值
 

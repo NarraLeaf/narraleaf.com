@@ -14,19 +14,19 @@ type ImageConfig = {
 } & CommonDisplayable;
 ```
 
-图像的配置。
+图像的配置
 
-关于 CommonDisplayable，参见 [CommonDisplayable](/zh/docs/narraleaf-react/core/types/CommonDisplayable)。
+关于 CommonDisplayable，参见 [CommonDisplayable](/zh/docs/narraleaf-react/core/types/CommonDisplayable)
 
 ## 公共属性
 
 ### src
 
-图像的来源，可以是 URL 或 StaticImageData。
+图像的来源，可以是 URL 或 StaticImageData
 
 ### wearables
 
-图像的穿戴物。穿戴物是可以被角色穿戴的图像。
+图像的穿戴物。穿戴物是可以被角色穿戴的图像
 
 等同于 `image.addWearable`
 
@@ -52,12 +52,12 @@ const child = new Image(/* ... */).bindWearable(parent);
 
 ### isWearable
 
-图像是否为穿戴物，默认为 `false`。
+图像是否为穿戴物，默认为 `false`
 
-如果使用 `parent.addWearable(child)` 或 `child.bindWearable(parent)`，会自动将 `isWearable` 设为 `true`。
+如果使用 `parent.addWearable(child)` 或 `child.bindWearable(parent)`，会自动将 `isWearable` 设为 `true`
 
-> **注意：** 未将 `isWearable` 设为 `true` 且没有父图像时，无法使用穿戴物。
+> **注意：** 未将 `isWearable` 设为 `true` 且没有父图像时，无法使用穿戴物
 
 ### autoInit
 
-设为 `false` 时，只有调用 `init` 方法后图像才会初始化。
+设为 `false` 时，只有调用 `init` 方法后图像才会初始化

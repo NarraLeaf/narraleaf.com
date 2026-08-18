@@ -2,7 +2,7 @@
 title: "创建场景"
 ---
 
-[Scene](/zh/docs/narraleaf-react/core/elements/scene) 表示故事中的一段内容。它包含背景、动作列表和场景内临时数据。
+[Scene](/zh/docs/narraleaf-react/core/elements/scene) 表示故事中的一段内容。它包含背景、动作列表和场景内临时数据
 
 ```ts
 import { Scene } from "narraleaf-react";
@@ -12,11 +12,11 @@ const room = new Scene("清晨的房间", {
 });
 ```
 
-第一个参数是场景名称。名称应保持唯一，NarraLeaf 在构建故事和恢复存档时会使用它。第二个参数是可选的 [ISceneUserConfig](/zh/docs/narraleaf-react/core/types/ISceneUserConfig)。
+第一个参数是场景名称。名称应保持唯一，NarraLeaf 在构建故事和恢复存档时会使用它。第二个参数是可选的 [ISceneUserConfig](/zh/docs/narraleaf-react/core/types/ISceneUserConfig)
 
 ## 背景
 
-背景可以使用 URL、导入的图片或 CSS 颜色。
+背景可以使用 URL、导入的图片或 CSS 颜色
 
 ```ts
 const blackScreen = new Scene("黑屏", {
@@ -31,7 +31,7 @@ const importedRoom = new Scene("导入背景的房间", {
 });
 ```
 
-使用 `setBackground()` 在剧情中更换背景。传入 Transition 后会播放过渡动画。
+使用 `setBackground()` 在剧情中更换背景。传入 Transition 后会播放过渡动画
 
 ```ts
 import { Dissolve } from "narraleaf-react";
@@ -43,7 +43,7 @@ room.action([
 
 ## 场景内数据
 
-`scene.local` 用于保存临时值。离开场景后数据会被清除，也不需要注册到 Story。
+`scene.local` 用于保存临时值。离开场景后数据会被清除，也不需要注册到 Story
 
 ```ts
 room.action([
@@ -52,4 +52,4 @@ room.action([
 ]);
 ```
 
-需要跨场景保留的数据请使用 [Persistent](/zh/docs/narraleaf-react/basic/store-data)。
+需要跨场景保留的数据请使用 [Persistent](/zh/docs/narraleaf-react/basic/store-data)

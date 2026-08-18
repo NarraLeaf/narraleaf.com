@@ -3,9 +3,9 @@ title: "自定义 Notification"
 ---
 ## 作用
 
-通知（Notification）用于在游戏中显示短暂提示，如「已保存」「已解锁」等。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `notification` 配置项，可替换默认的 [Notification](/zh/docs/narraleaf-react/player/notification) 组件，实现自定义样式和布局。
+通知（Notification）用于在游戏中显示短暂提示，如「已保存」「已解锁」等。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `notification` 配置项，可替换默认的 [Notification](/zh/docs/narraleaf-react/player/notification) 组件，实现自定义样式和布局
 
-触发通知使用 [liveGame.notify](/zh/docs/narraleaf-react/core/game/live-game) 方法。自定义组件接收 `notifications` 数组（`INotificationsProps`），自行渲染每条通知。
+触发通知使用 [liveGame.notify](/zh/docs/narraleaf-react/core/game/live-game) 方法。自定义组件接收 `notifications` 数组（`INotificationsProps`），自行渲染每条通知
 
 ## 1. 创建自定义 Notification 组件
 
@@ -66,7 +66,7 @@ const notice = liveGame.notify("重要提示", null);
 notice.cancel();
 ```
 
-`notify()` 返回 `NotificationToken`，其中包含 `cancel()` 和 `promise`。通知消失后，promise 会结束。
+`notify()` 返回 `NotificationToken`，其中包含 `cancel()` 和 `promise`。通知消失后，promise 会结束
 
 ## 4. 带动画的示例
 

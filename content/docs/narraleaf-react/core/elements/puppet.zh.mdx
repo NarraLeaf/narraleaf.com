@@ -4,24 +4,24 @@ title: "Puppet"
 > 该类继承自 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)
 
 <Callout type="info">
-    自 `0.20.0` 起可用。
+    自 `0.20.0` 起可用
 </Callout>
 
-Puppet 是舞台上的一个盒子，盒子内部由你注册的后端绘制。引擎负责盒子的外部：位置、所在图层、变换、不透明度，以及它在存档中的条目。盒子内部由你的后端绘制。
+Puppet 是舞台上的一个盒子，盒子内部由你注册的后端绘制。引擎负责盒子的外部：位置、所在图层、变换、不透明度，以及它在存档中的条目。盒子内部由你的后端绘制
 
 ```ts
 import {Puppet} from "narraleaf-react";
 ```
 
-引擎不附带任何渲染器。`src`、`options`、命令名与载荷都是不透明的值，引擎原样存储、转发和序列化，因此宿主可以接入自己已有的 2D 模型渲染器、粒子系统或其他渲染器。它绘制出来的角色仍然站在剧本指定的位置、随 [Camera](/zh/docs/narraleaf-react/core/elements/camera) 移动、由剧本驱动姿态，并能从存档正确恢复。
+引擎不附带任何渲染器。`src`、`options`、命令名与载荷都是不透明的值，引擎原样存储、转发和序列化，因此宿主可以接入自己已有的 2D 模型渲染器、粒子系统或其他渲染器。它绘制出来的角色仍然站在剧本指定的位置、随 [Camera](/zh/docs/narraleaf-react/core/elements/camera) 移动、由剧本驱动姿态，并能从存档正确恢复
 
-没有注册后端时，元素依然占据舞台上的位置、参与变换、能够保存与恢复，只是什么都不画。这是正常状态而非崩溃，参见 [后端缺失或失败](#后端缺失或失败)。
+没有注册后端时，元素依然占据舞台上的位置、参与变换、能够保存与恢复，只是什么都不画。这是正常状态而非崩溃，参见 [后端缺失或失败](#后端缺失或失败)
 
 ## 注册后端
 
-后端注册在 [Game](/zh/docs/narraleaf-react/core/game/game) 实例上，而不是通过 config 传入：它是带方法的活对象，而 config 会被深合并，也可能被冻结。请在**游戏挂载之前**注册。插件可以在自己的 `register(game)` 里调用。
+后端注册在 [Game](/zh/docs/narraleaf-react/core/game/game) 实例上，而不是通过 config 传入：它是带方法的活对象，而 config 会被深合并，也可能被冻结。请在**游戏挂载之前**注册。插件可以在自己的 `register(game)` 里调用
 
-下面是一个完整的后端。它的模型是一份 JSON 清单，其中写着一个颜色和一张贴图，覆盖了真实后端必须处理的两件事：解析之后才能确定的一组文件，以及在模型仍在加载时就到达的第一个姿态。
+下面是一个完整的后端。它的模型是一份 JSON 清单，其中写着一个颜色和一张贴图，覆盖了真实后端必须处理的两件事：解析之后才能确定的一组文件，以及在模型仍在加载时就到达的第一个姿态
 
 ```ts title="swatch.ts"
 import {Game, type PuppetBackend} from "narraleaf-react";
@@ -87,30 +87,30 @@ game.registerPuppetBackend(swatch);
 </GameProviders>
 ```
 
-用已被占用的名字注册会替换掉之前的后端。
+用已被占用的名字注册会替换掉之前的后端
 
 ## 后端调用顺序
 
 引擎按以下顺序调用后端：
 
-1. `mount()` 返回实例。
-2. `apply()` 立即以完整的初始状态被调用，**早于 `ready()` 被调用**。第一个姿态在模型仍在加载时就会到达。
-3. `apply()` 返回的内容结束后，`ready()` 被调用；它 resolve 时元素进入 `"ready"`。
-4. 只要元素还在舞台上，`apply()`、`command()`、`resize()` 会继续到来。它们都可能早于 `ready()` 的 resolve。
-5. `dispose()` 结束这一切，可能发生在任何时刻，包括加载过程中。此后引擎不再调用该实例的任何方法，容器会被清空。
+1. `mount()` 返回实例
+2. `apply()` 立即以完整的初始状态被调用，**早于 `ready()` 被调用**。第一个姿态在模型仍在加载时就会到达
+3. `apply()` 返回的内容结束后，`ready()` 被调用；它 resolve 时元素进入 `"ready"`
+4. 只要元素还在舞台上，`apply()`、`command()`、`resize()` 会继续到来。它们都可能早于 `ready()` 的 resolve
+5. `dispose()` 结束这一切，可能发生在任何时刻，包括加载过程中。此后引擎不再调用该实例的任何方法，容器会被清空
 
 第 2 步是固定行为，有两种处理方式：
 
-- **保存这个状态**，等模型就绪后重新应用一次。
-- **从 `apply()` 返回一个 promise**，等待加载完成。这同时会推迟 `ready()`，让元素在姿态到位之前不会进入 `"ready"`。上面的示例采用这种做法。
+- **保存这个状态**，等模型就绪后重新应用一次
+- **从 `apply()` 返回一个 promise**，等待加载完成。这同时会推迟 `ready()`，让元素在姿态到位之前不会进入 `"ready"`。上面的示例采用这种做法
 
 <Callout type="warning">
-    `PuppetInstance` 中未标记为可选的成员都要实现。引擎在调用 `ready` 和 `resize` 前会检查它们是否存在，因为纯 JavaScript 宿主或被强制转型为 `PuppetBackend` 的对象可能不满足契约。这些检查并不表示这两个成员可以省略。
+    `PuppetInstance` 中未标记为可选的成员都要实现。引擎在调用 `ready` 和 `resize` 前会检查它们是否存在，因为纯 JavaScript 宿主或被强制转型为 `PuppetBackend` 的对象可能不满足契约。这些检查并不表示这两个成员可以省略
 </Callout>
 
 ## 解析模型包内的文件
 
-一个 2D 角色模型是清单加图集加贴图页，或者模型文件加动作加物理加贴图。有哪些同级文件只有解析完第一个文件才知道，因此由后端自己解析。
+一个 2D 角色模型是清单加图集加贴图页，或者模型文件加动作加物理加贴图。有哪些同级文件只有解析完第一个文件才知道，因此由后端自己解析
 
 `ctx.resolveSibling(path)` 以 `src` 所在的目录为基准解析路径：
 
@@ -124,24 +124,24 @@ ctx.resolveSibling("https://cdn/x.png");      // -> 原样返回；绝对路径�
 
 规则：
 
-- `.` 与 `..` 会被折叠，越界时钳制在根目录而不是爬出去。
-- 已经是绝对形式的路径（带 scheme、以 `/` 开头、协议相对的 `//host/…`、data URI）原样返回。
-- 空路径解析为 `src` 本身。
-- `\` 按 `/` 读取，返回结果一律使用 `/`。
+- `.` 与 `..` 会被折叠，越界时钳制在根目录而不是爬出去
+- 已经是绝对形式的路径（带 scheme、以 `/` 开头、协议相对的 `//host/…`、data URI）原样返回
+- 空路径解析为 `src` 本身
+- `\` 按 `/` 读取，返回结果一律使用 `/`
 
-目录是引擎唯一会从 `src` 里读出的结构，而且只在 `resolveSibling` 被调用时读取。引擎不知道 `src` 的格式、内容，也不知道它会牵出哪些文件。如果某个后端的 `src` 是一个不透明的键而非位置，它没有可供解析的目录，路径会原样返回，此时应改用自己的 `options`，引擎同样会原样转发。
+目录是引擎唯一会从 `src` 里读出的结构，而且只在 `resolveSibling` 被调用时读取。引擎不知道 `src` 的格式、内容，也不知道它会牵出哪些文件。如果某个后端的 `src` 是一个不透明的键而非位置，它没有可供解析的目录，路径会原样返回，此时应改用自己的 `options`，引擎同样会原样转发
 
 ## 预加载
 
-`ctx.resolveSrc` 按与图片相同的规则解析资源：data URI 原样返回，其余先查预加载缓存，未命中则原样返回。`resolveSibling` 最后也会走同一道流程，因此用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 预热过的贴图在这里同样命中缓存。
+`ctx.resolveSrc` 按与图片相同的规则解析资源：data URI 原样返回，其余先查预加载缓存，未命中则原样返回。`resolveSibling` 最后也会走同一道流程，因此用 [scene.preloadImage](/zh/docs/narraleaf-react/core/elements/scene#preloadimage) 预热过的贴图在这里同样命中缓存
 
 <Callout type="warning">
-    **Puppet 自身的 `src` 不会被登记为预加载对象。** 它是模型清单而非图片，引擎不知道它会牵出哪些贴图。要预热后端的贴图，请对它们调用 `scene.preloadImage`；不在缓存中的一律是后端自己去取的普通 URL。
+    **Puppet 自身的 `src` 不会被登记为预加载对象。** 它是模型清单而非图片，引擎不知道它会牵出哪些贴图。要预热后端的贴图，请对它们调用 `scene.preloadImage`；不在缓存中的一律是后端自己去取的普通 URL
 </Callout>
 
 ## 创建 Puppet
 
-`backend` 与 `src` 是必填，其余都有默认值。
+`backend` 与 `src` 是必填，其余都有默认值
 
 ```typescript
 const alice = new Puppet({
@@ -153,16 +153,16 @@ const alice = new Puppet({
 });
 ```
 
-把 Puppet 放上舞台的方式与 [Image](/zh/docs/narraleaf-react/core/elements/image) 相同：在场景的动作中引用它，场景就会初始化它。
+把 Puppet 放上舞台的方式与 [Image](/zh/docs/narraleaf-react/core/elements/image) 相同：在场景的动作中引用它，场景就会初始化它
 
-`size` 是盒子的逻辑尺寸，单位为像素。默认值 `null` 表示舞台尺寸。后端在盒子内部缩放自己的内容，元素的变换（位置、zoom、scale、rotation）叠加在其上，与图片一致。
+`size` 是盒子的逻辑尺寸，单位为像素。默认值 `null` 表示舞台尺寸。后端在盒子内部缩放自己的内容，元素的变换（位置、zoom、scale、rotation）叠加在其上，与图片一致
 
 <Callout type="warning">
-    **Puppet 不能更换 `src`。** 后端实例的生命周期与元素在舞台上的时间完全一致。请改用第二个元素。
+    **Puppet 不能更换 `src`。** 后端实例的生命周期与元素在舞台上的时间完全一致。请改用第二个元素
 </Callout>
 
 <Callout type="info">
-    本版本中 Puppet 没有自己的转场。`show()` 与 `hide()` 以不透明度淡入淡出整个盒子。
+    本版本中 Puppet 没有自己的转场。`show()` 与 `hide()` 以不透明度淡入淡出整个盒子
 </Callout>
 
 ## 从剧本驱动 Puppet
@@ -186,42 +186,42 @@ scene.action([
 ]);
 ```
 
-五个 `set*` 各写入持久状态的一个字段，然后把**完整**状态交给后端。读档只需一次 `apply` 就能恢复，撤销再来一次即可，中间不重放任何东西。`params` 与 `slots` 按键合并，因此改动一个参数不会清空其余的。
+五个 `set*` 各写入持久状态的一个字段，然后把**完整**状态交给后端。读档只需一次 `apply` 就能恢复，撤销再来一次即可，中间不重放任何东西。`params` 与 `slots` 按键合并，因此改动一个参数不会清空其余的
 
-`command` 发送一次性动作，引擎既不建模也不解释。它不留下任何状态，因此读档不会恢复它，撤销也不会撤回它。只播一次的动作、命中测试、口型同步都用它。
+`command` 发送一次性动作，引擎既不建模也不解释。它不留下任何状态，因此读档不会恢复它，撤销也不会撤回它。只播一次的动作、命中测试、口型同步都用它
 
 <Callout type="info">
-    **不主动要求就不会等待。** `{await: true}` 是 `command` 上的显式选项，`set*` 方法没有对应能力。等待中的命令与其他计时动作一样可以跳过。
+    **不主动要求就不会等待。** `{await: true}` 是 `command` 上的显式选项，`set*` 方法没有对应能力。等待中的命令与其他计时动作一样可以跳过
 </Callout>
 
-后端抛出异常、reject 或根本没注册时只会记录日志，不会致命：状态变更依然成立，并在元素下次挂载时被完整应用。发给不在舞台上的 Puppet 的命令会告警并被丢弃。
+后端抛出异常、reject 或根本没注册时只会记录日志，不会致命：状态变更依然成立，并在元素下次挂载时被完整应用。发给不在舞台上的 Puppet 的命令会告警并被丢弃
 
 ## Puppet 状态
 
-Puppet 的持久状态是 `{motion, expression, skin, params, slots}`，也就是存档中关于它的全部内容。
+Puppet 的持久状态是 `{motion, expression, skin, params, slots}`，也就是存档中关于它的全部内容
 
-`apply` 收到的是**完整**状态，不是差量。读档时引擎从存档重建状态并应用一次，而不是重放模型经历过的每一次姿态变化。
+`apply` 收到的是**完整**状态，不是差量。读档时引擎从存档重建状态并应用一次，而不是重放模型经历过的每一次姿态变化
 
-因此一次性效果走 `command()`，状态不建模的东西也放在那里。`motion`、`expression`、`skin` 是每个 2D 角色渲染器都有的三个概念；专有的东西放进 `params`（自由数值）、`slots`（自由字符串）或命令。这些名字都不属于某个特定渲染器。
+因此一次性效果走 `command()`，状态不建模的东西也放在那里。`motion`、`expression`、`skin` 是每个 2D 角色渲染器都有的三个概念；专有的东西放进 `params`（自由数值）、`slots`（自由字符串）或命令。这些名字都不属于某个特定渲染器
 
 ### null 的含义
 
-每个字段都是一次请求，`null` 表示没有这个请求，而不是「保持现状」。状态是整体应用的，因此被清空的字段会真的清空，读档与撤销也就能重现它记录下的样子。
+每个字段都是一次请求，`null` 表示没有这个请求，而不是「保持现状」。状态是整体应用的，因此被清空的字段会真的清空，读档与撤销也就能重现它记录下的样子
 
 | 字段 | `null` 的含义 |
 |---|---|
-| `motion` | 什么都没有在播。模型停在不施加任何动作时的样子：它的设置／静止／绑定姿态，或者在格式没有这种概念时，后端自己的默认。 |
-| `expression` | 不施加任何表情；脸是动作与皮肤共同决定的样子。要清空这一轨，而不是替换成模型自带的某个叫「neutral」的表情，这样 `null` 与 `"neutral"` 才是两回事。 |
-| `skin` | 模型的默认皮肤，也就是在任何人挑选之前它呈现的那一套。 |
-| `slots[id]` | 该槽位被清空，这与这个键压根不存在是相同的状态。键之所以还在，是因为 `setSlot(id, null)` 合并到已有的映射上。 |
-| `params[id]` | 不存在这种情况：`params` 里没有 `null`。映射中没有提到的参数保持模型自己的默认值，因此清空一个参数意味着删掉这个键。 |
+| `motion` | 什么都没有在播。模型停在不施加任何动作时的样子：它的设置／静止／绑定姿态，或者在格式没有这种概念时，后端自己的默认|
+| `expression` | 不施加任何表情；脸是动作与皮肤共同决定的样子。要清空这一轨，而不是替换成模型自带的某个叫「neutral」的表情，这样 `null` 与 `"neutral"` 才是两回事|
+| `skin` | 模型的默认皮肤，也就是在任何人挑选之前它呈现的那一套|
+| `slots[id]` | 该槽位被清空，这与这个键压根不存在是相同的状态。键之所以还在，是因为 `setSlot(id, null)` 合并到已有的映射上|
+| `params[id]` | 不存在这种情况：`params` 里没有 `null`。映射中没有提到的参数保持模型自己的默认值，因此清空一个参数意味着删掉这个键|
 
 <Callout type="warning">
-    模型中不存在的名字触发 `ctx.warn`，而不是抛出异常。从 `apply()` 抛出会让整个元素进入 `"error"`。
+    模型中不存在的名字触发 `ctx.warn`，而不是抛出异常。从 `apply()` 抛出会让整个元素进入 `"error"`
 </Callout>
 
 <Callout type="info">
-    更新版本引擎写入的键在读档时会被原样保留。
+    更新版本引擎写入的键在读档时会被原样保留
 </Callout>
 
 ## 公共方法
@@ -235,19 +235,19 @@ Puppet 的持久状态是 `{motion, expression, skin, params, slots}`，也就�
 
 字段：
 
-- `backend: string` - 已注册后端所响应的名字。**必填**；缺少时构造阶段抛出异常。
-- `src: string` - 交给后端的资源描述符，原样传递。**必填**。
-- `options: Record<string, unknown>` - 后端专属选项，原样传递。默认 `{}`。
-- `size: PuppetSize | null` - 盒子的逻辑尺寸，单位像素。默认 `null`，表示舞台尺寸。
-- `layer?: Layer` - 参见 [Layer](/zh/docs/narraleaf-react/core/elements/layer)。
-- `className?: string` - 盒子的类名。它们落在承载盒子 `position: relative` 与宽高的那个元素上，也就是交给 `mount` 的容器的**父元素**，而不是容器本身。再往上一层是写入变换的包裹元素，所以在这里用类名设置 `transform` 会被逐帧覆盖。
-- `motion: string | null` - 初始动作。属于存档状态，能通过存读档往返。
-- `expression: string | null` - 初始表情。
-- `skin: string | null` - 初始皮肤。
-- `params: Record<string, number>` - 初始数值参数。
-- `slots: Record<string, string | null>` - 初始字符串槽位。
+- `backend: string` - 已注册后端所响应的名字。**必填**；缺少时构造阶段抛出异常
+- `src: string` - 交给后端的资源描述符，原样传递。**必填**
+- `options: Record<string, unknown>` - 后端专属选项，原样传递。默认 `{}`
+- `size: PuppetSize | null` - 盒子的逻辑尺寸，单位像素。默认 `null`，表示舞台尺寸
+- `layer?: Layer` - 参见 [Layer](/zh/docs/narraleaf-react/core/elements/layer)
+- `className?: string` - 盒子的类名。它们落在承载盒子 `position: relative` 与宽高的那个元素上，也就是交给 `mount` 的容器的**父元素**，而不是容器本身。再往上一层是写入变换的包裹元素，所以在这里用类名设置 `transform` 会被逐帧覆盖
+- `motion: string | null` - 初始动作。属于存档状态，能通过存读档往返
+- `expression: string | null` - 初始表情
+- `skin: string | null` - 初始皮肤
+- `params: Record<string, number>` - 初始数值参数
+- `slots: Record<string, string | null>` - 初始字符串槽位
 
-以及可显示元素的全部变换属性：`position`、`scale`、`rotation`、`opacity` 等。
+以及可显示元素的全部变换属性：`position`、`scale`、`rotation`、`opacity` 等
 
 ```typescript
 const alice = new Puppet({
@@ -266,13 +266,13 @@ const alice = new Puppet({
 <Steps>
 <Step>
 
-绘制该 Puppet 的后端当前处于什么状态。
+绘制该 Puppet 的后端当前处于什么状态
 
 - 返回 `PuppetStatus` - 参见 [PuppetStatus](#puppetstatus)
 
-其中两个值值得处理。`"missing-backend"` 表示没有后端响应 `config.backend`，`"error"` 表示后端抛出异常或模型加载失败。这两种情况下元素仍在舞台上、仍参与变换、仍会存档，只是没有被绘制。
+其中两个值值得处理。`"missing-backend"` 表示没有后端响应 `config.backend`，`"error"` 表示后端抛出异常或模型加载失败。这两种情况下元素仍在舞台上、仍参与变换、仍会存档，只是没有被绘制
 
-状态描述的是活的实例，**不属于存档**：读档会重新挂载，状态从 `"unmounted"` 重新开始。
+状态描述的是活的实例，**不属于存档**：读档会重新挂载，状态从 `"unmounted"` 重新开始
 
 ```typescript
 if (alice.getStatus() === "missing-backend") {
@@ -287,12 +287,12 @@ if (alice.getStatus() === "missing-backend") {
 <Steps>
 <Step>
 
-监听该 Puppet 的状态变化，回调收到新状态。
+监听该 Puppet 的状态变化，回调收到新状态
 
 - `listener: (status: PuppetStatus) => void` - 以新状态调用
 - 返回 `LiveGameEventToken` - dispose 它以停止监听
 
-后端是异步失败的：元素先挂载，模型随后加载成功或失败。要知道渲染器是否起来了，订阅这个事件。
+后端是异步失败的：元素先挂载，模型随后加载成功或失败。要知道渲染器是否起来了，订阅这个事件
 
 ```typescript
 const token = alice.onStatusChange((status) => {
@@ -307,7 +307,7 @@ const token = alice.onStatusChange((status) => {
 <Steps>
 <Step>
 
-覆盖该 Puppet 使用的图层。
+覆盖该 Puppet 使用的图层
 
 - `layer: Layer` - 参见 [Layer](/zh/docs/narraleaf-react/core/elements/layer)
 - 返回 `this`
@@ -325,11 +325,11 @@ puppet.useLayer(foreground);
 <Steps>
 <Step>
 
-请求一个具名动作，通常是模型稳定下来后循环播放的那个。
+请求一个具名动作，通常是模型稳定下来后循环播放的那个
 
 - `motion: string | null` - 要请求的动作，`null` 表示清空
 
-这是持久状态而非一次性动作：它会被保存，并在模型下次挂载时被完整重新应用。只播一次就结束的动作属于 [command](#command)。剧本不会等待后端摆出这个姿态。
+这是持久状态而非一次性动作：它会被保存，并在模型下次挂载时被完整重新应用。只播一次就结束的动作属于 [command](#command)。剧本不会等待后端摆出这个姿态
 
 ```typescript
 alice.setMotion("idle");
@@ -342,7 +342,7 @@ alice.setMotion("idle");
 <Steps>
 <Step>
 
-请求一个具名表情。与动作一样属于持久状态。
+请求一个具名表情。与动作一样属于持久状态
 
 - `expression: string | null` - 要请求的表情，`null` 表示清空
 
@@ -357,7 +357,7 @@ alice.setExpression("smile");
 <Steps>
 <Step>
 
-请求一套具名皮肤或服装。与动作一样属于持久状态。
+请求一套具名皮肤或服装。与动作一样属于持久状态
 
 - `skin: string | null` - 要请求的皮肤，`null` 表示清空
 
@@ -372,12 +372,12 @@ alice.setSkin("winter");
 <Steps>
 <Step>
 
-设置一个数值参数，其余参数保持原样。
+设置一个数值参数，其余参数保持原样
 
 - `id: string` - 参数 id
 - `value: number` - 新值
 
-id 的含义由后端决定：绑定参数、骨骼覆盖、混合权重都可以。引擎只负责记住它、保存它，并在读档时把整张映射交回去。
+id 的含义由后端决定：绑定参数、骨骼覆盖、混合权重都可以。引擎只负责记住它、保存它，并在读档时把整张映射交回去
 
 ```typescript
 alice.setParam("ParamAngleX", 12);
@@ -390,12 +390,12 @@ alice.setParam("ParamAngleX", 12);
 <Steps>
 <Step>
 
-设置一个自由字符串槽位，其余槽位保持原样。
+设置一个自由字符串槽位，其余槽位保持原样
 
 - `id: string` - 槽位 id
 - `value: string | null` - 新值；`null` 清空该槽位
 
-槽位用于 `motion` / `expression` / `skin` 覆盖不到的具名内容：挂点、替换上去的道具，或某个渲染器自己的叫法。
+槽位用于 `motion` / `expression` / `skin` 覆盖不到的具名内容：挂点、替换上去的道具，或某个渲染器自己的叫法
 
 ```typescript
 alice.setSlot("prop", "umbrella");
@@ -408,15 +408,15 @@ alice.setSlot("prop", "umbrella");
 <Steps>
 <Step>
 
-向后端发送一条引擎既不建模也不解释的命令。
+向后端发送一条引擎既不建模也不解释的命令
 
 - `name: string` - 原样转发
 - `payload?: unknown` - 原样转发
 - `options?: PuppetCommandOptions` - 参见 [PuppetCommandOptions](#puppetcommandoptions)
 
-用于 `PuppetState` 不覆盖的部分：只播一次就结束的动作、命中测试、口型同步。这些都不会被保存，因此读档不恢复、撤销不撤回。需要留存的内容请通过上面的 `set*` 方法写进状态。
+用于 `PuppetState` 不覆盖的部分：只播一次就结束的动作、命中测试、口型同步。这些都不会被保存，因此读档不恢复、撤销不撤回。需要留存的内容请通过上面的 `set*` 方法写进状态
 
-**不主动要求，剧本就不会等待。**
+**不主动要求，剧本就不会等待**
 
 ```typescript
 alice.command("playMotion", {id: "wave"});                  // 剧本直接继续
@@ -429,19 +429,19 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 
 可显示元素提供的一切在 Puppet 上原样可用，作用于整个盒子：
 
-[`pos`](/zh/docs/narraleaf-react/core/elements/displayable#pos)、[`scale`](/zh/docs/narraleaf-react/core/elements/displayable#scale)、[`scaleX`](/zh/docs/narraleaf-react/core/elements/displayable#scalex)、[`scaleY`](/zh/docs/narraleaf-react/core/elements/displayable#scaley)、[`scaleXY`](/zh/docs/narraleaf-react/core/elements/displayable#scalexy)、[`zoom`](/zh/docs/narraleaf-react/core/elements/displayable#zoom)、[`rotate`](/zh/docs/narraleaf-react/core/elements/displayable#rotate)、[`opacity`](/zh/docs/narraleaf-react/core/elements/displayable#opacity)、[`transform`](/zh/docs/narraleaf-react/core/elements/displayable#transform)、[`show`](/zh/docs/narraleaf-react/core/elements/displayable#show)、[`hide`](/zh/docs/narraleaf-react/core/elements/displayable#hide)，以及[视觉效果](/zh/docs/narraleaf-react/core/elements/displayable#visual-effects)：`mask`、`clip`、`wipe`、`filter`、`backdrop`、`blend` 及其对应方法。
+[`pos`](/zh/docs/narraleaf-react/core/elements/displayable#pos)、[`scale`](/zh/docs/narraleaf-react/core/elements/displayable#scale)、[`scaleX`](/zh/docs/narraleaf-react/core/elements/displayable#scalex)、[`scaleY`](/zh/docs/narraleaf-react/core/elements/displayable#scaley)、[`scaleXY`](/zh/docs/narraleaf-react/core/elements/displayable#scalexy)、[`zoom`](/zh/docs/narraleaf-react/core/elements/displayable#zoom)、[`rotate`](/zh/docs/narraleaf-react/core/elements/displayable#rotate)、[`opacity`](/zh/docs/narraleaf-react/core/elements/displayable#opacity)、[`transform`](/zh/docs/narraleaf-react/core/elements/displayable#transform)、[`show`](/zh/docs/narraleaf-react/core/elements/displayable#show)、[`hide`](/zh/docs/narraleaf-react/core/elements/displayable#hide)，以及[视觉效果](/zh/docs/narraleaf-react/core/elements/displayable#visual-effects)：`mask`、`clip`、`wipe`、`filter`、`backdrop`、`blend` 及其对应方法
 
 ## 后端契约
 
-这些类型不从库的其他部分导入任何东西，因此渲染器可以独立针对它们编写。
+这些类型不从库的其他部分导入任何东西，因此渲染器可以独立针对它们编写
 
 ### PuppetBackend
 
 <Steps>
 <Step>
 
-- `name: string` - Puppet 的 `backend` 配置所指向的键。
-- `mount(container: HTMLDivElement, ctx: PuppetMountContext): PuppetInstance` - 创建绑定到宿主元素的实例。引擎负责盒子，后端负责盒子内部。实例被 dispose 时容器会被清空。
+- `name: string` - Puppet 的 `backend` 配置所指向的键
+- `mount(container: HTMLDivElement, ctx: PuppetMountContext): PuppetInstance` - 创建绑定到宿主元素的实例。引擎负责盒子，后端负责盒子内部。实例被 dispose 时容器会被清空
 </Step>
 </Steps>
 
@@ -450,14 +450,14 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 <Steps>
 <Step>
 
-挂载后端时引擎交给它的信息。
+挂载后端时引擎交给它的信息
 
-- `src: string` - Puppet 声明的资源描述符，原样传递。引擎唯一会从中读出的结构是它所在的目录，而且只通过 `resolveSibling`。
-- `options: Readonly<Record<string, unknown>>` - 作者为该后端提供的选项，原样传递。
-- `size: PuppetSize` - 盒子的逻辑尺寸，单位像素。之后的变化通过 `resize` 送达。
-- `resolveSrc(src: string): string` - 按照与图片相同的规则解析资源。参见 [预加载](#预加载)。
-- `resolveSibling(relativePath: string): string` - 解析相对于该 Puppet 自身 `src` 的路径，即同一套文件里的同级文件。参见 [解析模型包内的文件](#解析模型包内的文件)。
-- `warn(message: string, detail?: unknown): void` - 报告非致命问题。引擎会记录并保持舞台存活，绝不抛出。
+- `src: string` - Puppet 声明的资源描述符，原样传递。引擎唯一会从中读出的结构是它所在的目录，而且只通过 `resolveSibling`
+- `options: Readonly<Record<string, unknown>>` - 作者为该后端提供的选项，原样传递
+- `size: PuppetSize` - 盒子的逻辑尺寸，单位像素。之后的变化通过 `resize` 送达
+- `resolveSrc(src: string): string` - 按照与图片相同的规则解析资源。参见 [预加载](#预加载)
+- `resolveSibling(relativePath: string): string` - 解析相对于该 Puppet 自身 `src` 的路径，即同一套文件里的同级文件。参见 [解析模型包内的文件](#解析模型包内的文件)
+- `warn(message: string, detail?: unknown): void` - 报告非致命问题。引擎会记录并保持舞台存活，绝不抛出
 </Step>
 </Steps>
 
@@ -466,16 +466,16 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 <Steps>
 <Step>
 
-一个已挂载的模型。引擎持有的只有这个句柄。各成员何时被调用参见 [后端调用顺序](#后端调用顺序)。
+一个已挂载的模型。引擎持有的只有这个句柄。各成员何时被调用参见 [后端调用顺序](#后端调用顺序)
 
-- `ready(): Promise<void>` - 模型加载完成且第一帧绘制之后 resolve。
-- `apply(state: Readonly<PuppetState>): void | Promise<void>` - 应用**完整**状态。挂载时先调用一次，早于 `ready()`，之后每次变化都会调用。
-- `command(name: string, payload: unknown): void | Promise<void>` - 执行具名命令。引擎不解释 `name` 与 `payload`。返回 promise 可以让传了 `{await: true}` 的调用方等待它；默认不等待。
-- `resize(size: PuppetSize): void` - 盒子尺寸发生变化。
-- `describe?(): Promise<PuppetDescription>` - 可选。向编辑器宿主描述模型。
-- `dispose(): void` - 拆除实例。之后容器会被清空。
+- `ready(): Promise<void>` - 模型加载完成且第一帧绘制之后 resolve
+- `apply(state: Readonly<PuppetState>): void | Promise<void>` - 应用**完整**状态。挂载时先调用一次，早于 `ready()`，之后每次变化都会调用
+- `command(name: string, payload: unknown): void | Promise<void>` - 执行具名命令。引擎不解释 `name` 与 `payload`。返回 promise 可以让传了 `{await: true}` 的调用方等待它；默认不等待
+- `resize(size: PuppetSize): void` - 盒子尺寸发生变化
+- `describe?(): Promise<PuppetDescription>` - 可选。向编辑器宿主描述模型
+- `dispose(): void` - 拆除实例。之后容器会被清空
 
-`describe` 不受状态限制，`mount` 与 `dispose` 之间的任何时刻都可能被调用，包括 `ready()` resolve 之前，也可能被多次调用。只有加载完成才能描述的后端，请在 `describe` 内部等待自己的加载。reject 也是安全的：宿主会记录日志并退回到让作者手动输入名字。
+`describe` 不受状态限制，`mount` 与 `dispose` 之间的任何时刻都可能被调用，包括 `ready()` resolve 之前，也可能被多次调用。只有加载完成才能描述的后端，请在 `describe` 内部等待自己的加载。reject 也是安全的：宿主会记录日志并退回到让作者手动输入名字
 </Step>
 </Steps>
 
@@ -484,13 +484,13 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 <Steps>
 <Step>
 
-各字段的空值语义参见 [null 的含义](#null-的含义)。
+各字段的空值语义参见 [null 的含义](#null-的含义)
 
-- `motion: string | null` - 当前请求的具名动作，通常是模型稳定下来后循环播放的那个。
-- `expression: string | null` - 当前请求的具名表情。
-- `skin: string | null` - 当前请求的具名皮肤／服装。
-- `params: Record<string, number>` - 自由数值参数。
-- `slots: Record<string, string | null>` - 自由字符串槽位，用于上面三个名字覆盖不到的内容。
+- `motion: string | null` - 当前请求的具名动作，通常是模型稳定下来后循环播放的那个
+- `expression: string | null` - 当前请求的具名表情
+- `skin: string | null` - 当前请求的具名皮肤／服装
+- `params: Record<string, number>` - 自由数值参数
+- `slots: Record<string, string | null>` - 自由字符串槽位，用于上面三个名字覆盖不到的内容
 </Step>
 </Steps>
 
@@ -499,11 +499,11 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 <Steps>
 <Step>
 
-剧本如何对待一次性 `command`。
+剧本如何对待一次性 `command`
 
-- `await?: boolean` - 剧本继续之前等待后端完成该命令。默认 `false`。
+- `await?: boolean` - 剧本继续之前等待后端完成该命令。默认 `false`
 
-等待中的命令与其他计时动作一样可以跳过。
+等待中的命令与其他计时动作一样可以跳过
 </Step>
 </Steps>
 
@@ -512,13 +512,13 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 <Steps>
 <Step>
 
-模型对编辑器宿主的自述，宿主据此用活实例的数据填充检查器里的下拉框。无法回答的后端不实现 `describe`，宿主则退回到让作者手动输入名字。
+模型对编辑器宿主的自述，宿主据此用活实例的数据填充检查器里的下拉框。无法回答的后端不实现 `describe`，宿主则退回到让作者手动输入名字
 
 - `motions: string[]`
 - `expressions: string[]`
 - `skins: string[]`
 - `params: {id: string; min: number; max: number; default: number}[]`
-- `size: PuppetSize | null` - 模型自己的画布尺寸，不提供时为 `null`。
+- `size: PuppetSize | null` - 模型自己的画布尺寸，不提供时为 `null`
 </Step>
 </Steps>
 
@@ -530,35 +530,35 @@ alice.command("playMotion", {id: "bow"}, {await: true});    // 这一句会等�
 - `width: number`
 - `height: number`
 
-逻辑像素。
+逻辑像素
 </Step>
 </Steps>
 
 ## 后端缺失或失败
 
-没有注册后端的 Puppet 保留它在舞台上的位置、变换与存档状态，什么都不画。引擎**按后端名字告警一次**，而不是每个元素告警一次。
+没有注册后端的 Puppet 保留它在舞台上的位置、变换与存档状态，什么都不画。引擎**按后端名字告警一次**，而不是每个元素告警一次
 
-后端行为异常时同样处理。`mount` 抛出、模型始终加载不出来、`apply` reject，都会被记录，舞台继续存活。
+后端行为异常时同样处理。`mount` 抛出、模型始终加载不出来、`apply` reject，都会被记录，舞台继续存活
 
-要对这两种情况作出反应，用 [`getStatus()`](#getstatus) 读取活实例，用 [`onStatusChange()`](#onstatuschange) 订阅变化。
+要对这两种情况作出反应，用 [`getStatus()`](#getstatus) 读取活实例，用 [`onStatusChange()`](#onstatuschange) 订阅变化
 
 ### PuppetStatus
 
 | 值 | 含义 |
 |---|---|
-| `unmounted` | 元素不在舞台上，或它的组件尚未挂载。 |
-| `missing-backend` | 元素在舞台上，但没有任何后端响应它的 `backend` 名字。盒子照常参与变换、图层与存档，什么都不画。 |
-| `loading` | 后端已挂载，其 `ready()` 尚未 resolve。 |
-| `ready` | 第一帧已经绘制。 |
-| `error` | 挂载、应用状态或加载过程中抛出了异常。无论如何舞台都会继续存活。 |
+| `unmounted` | 元素不在舞台上，或它的组件尚未挂载|
+| `missing-backend` | 元素在舞台上，但没有任何后端响应它的 `backend` 名字。盒子照常参与变换、图层与存档，什么都不画|
+| `loading` | 后端已挂载，其 `ready()` 尚未 resolve|
+| `ready` | 第一帧已经绘制|
+| `error` | 挂载、应用状态或加载过程中抛出了异常。无论如何舞台都会继续存活|
 
 ## Game 上的方法
 
 <Steps>
 <Step>
 
-- `game.registerPuppetBackend(backend: PuppetBackend): this` - 注册一个后端。返回 game 本身，可链式调用。
-- `game.getPuppetBackend(name: string): PuppetBackend | null` - 某个名字下注册的后端，没有则为 `null`。
-- `game.listPuppetBackends(): string[]` - 所有已注册后端的名字，按注册顺序。
+- `game.registerPuppetBackend(backend: PuppetBackend): this` - 注册一个后端。返回 game 本身，可链式调用
+- `game.getPuppetBackend(name: string): PuppetBackend | null` - 某个名字下注册的后端，没有则为 `null`
+- `game.listPuppetBackends(): string[]` - 所有已注册后端的名字，按注册顺序
 </Step>
 </Steps>

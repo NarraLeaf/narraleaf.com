@@ -1,27 +1,27 @@
 ﻿---
 title: "NarraLeaf-React 核心"
 ---
-核心是 NarraLeaf-React 的主体，提供了用 React 创作视觉小说的基本构建块。
+核心是 NarraLeaf-React 的主体，提供了用 React 创作视觉小说的基本构建块
 
-如果你还没读过[快速开始](/zh/docs/narraleaf-react/quick-start)，建议先读一遍，它会帮你理解 NarraLeaf-React 的基本概念。
+如果你还没读过[快速开始](/zh/docs/narraleaf-react/quick-start)，建议先读一遍，它会帮你理解 NarraLeaf-React 的基本概念
 
-如果你要找的是 `Player`、`GameProviders` 或 `Stage` 这类组件，它们在[播放器](/zh/docs/narraleaf-react/player)部分。
+如果你要找的是 `Player`、`GameProviders` 或 `Stage` 这类组件，它们在[播放器](/zh/docs/narraleaf-react/player)部分
 
 ## 核心
 
-核心是 NarraLeaf-React 的主要功能，你可以用它的抽象类来创作故事，它由三部分组成：
+核心是 NarraLeaf-React 的主要功能，你可以用它的抽象类来编写剧本，它由三部分组成：
 
-[元素](/zh/docs/narraleaf-react/core/elements)是 NarraLeaf-React 的基本构建块，用于在故事中产生动作。  
-[动画](/zh/docs/narraleaf-react/core/animation)用于为元素制作复杂动画。  
-[游戏](/zh/docs/narraleaf-react/core/game)是代表游戏当前状态的主类。例如，可以用 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game) 保存和读取游戏。
+[元素](/zh/docs/narraleaf-react/core/elements)是 NarraLeaf-React 的基本构建块，用于在故事中产生动作
+[动画](/zh/docs/narraleaf-react/core/animation)用于为元素制作复杂动画
+[游戏](/zh/docs/narraleaf-react/core/game)是代表游戏当前状态的主类。例如，可以用 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game) 保存和读取游戏
 
 ## 核心概念
 
-动手之前，先了解 NarraLeaf-React 的几个核心概念。
+动手之前，先了解 NarraLeaf-React 的几个核心概念
 
-NarraLeaf 基于**场景**、**元素**和**动作**三个概念。
+NarraLeaf 基于**场景**、**元素**和**动作**三个概念
 
-场景包含动作，动作由元素产生。
+场景包含动作，动作由元素产生
 
 例如：
 
@@ -42,13 +42,13 @@ scene1.action([
 ]);
 ```
 
-这个例子中有一个场景和两个角色。第一个角色说「Hello, World!」和「Good morning!」，第二个角色说「Hi, John!」和「How are you?」。
+这个例子中有一个场景和两个角色。第一个角色说「Hello, World!」和「Good morning!」，第二个角色说「Hi, John!」和「How are you?」
 
-两个角色都是元素，场景就是场景，动作则是这些台词。
+两个角色都是元素，场景就是场景，这些台词则对应各自的动作
 
 上面的代码会产生如下动作：
 
-1. 初始化场景 `scene-1-wake-up`。
+1. 初始化场景 `scene-1-wake-up`
 2. 角色 `John Smith` 说「Hello, World!」
 3. 角色 `John Smith` 说「Good morning!」
 4. 角色 `Alice` 说「Hi, John!」
@@ -56,25 +56,25 @@ scene1.action([
 
 ### 场景
 
-**场景**是按顺序执行的**动作**集合。可以用**场景**组织对话、选项或过场动画。
+**场景**是按顺序执行的**动作**集合。可以用**场景**组织对话、选项或过场动画
 
-例如，可以把按背景、时间或流程划分的对话放进不同的**场景**。
+例如，可以把按背景、时间或流程划分的对话放进不同的**场景**
 
-一个基础的故事可能包含这些**场景**：  
-1. `scene-1-wake-up`：主角早上醒来。  
-2. `scene-2-go-to-school`：主角去上学。  
-3. `scene-3-meet-friend`：主角遇见朋友。  
+一个简单的故事可能包含这些**场景**：
+1. `scene-1-wake-up`：主角早上醒来
+2. `scene-2-go-to-school`：主角去上学
+3. `scene-3-meet-friend`：主角遇见朋友
 
-一个场景也可以使用多个背景。
+一个场景也可以使用多个背景
 
 ### 元素
 
-元素是故事的基本单元，可以是一个角色、一张图片或一段声音。
+元素是故事的基本单元，可以是一个角色、一张图片或一段声音
 
-例如，用 `Character` 表示故事中的角色，它可以显示台词；用 `Image` 表示故事中的图像，它可以显示角色。
-> **注意：** `Character` 只显示台词，`Image` 只显示图像，两者相互独立。
+例如，用 `Character` 表示故事中的角色，它可以显示台词；用 `Image` 表示故事中的图像，它可以显示角色
+> **注意：** `Character` 只显示台词，`Image` 只显示图像，两者相互独立
 
-下图展示了 NarraLeaf-React 中的基本元素。
+下图展示了 NarraLeaf-React 中的基本元素
 
 <Files>
     <Folder name="Story（故事）" defaultOpen>
@@ -97,13 +97,13 @@ scene1.action([
     </Folder>
 </Files>
 
-如你所见，这些就是 NarraLeaf-React 的基本元素，下一节我们将用它们创作一个故事。
+如你所见，这些就是 NarraLeaf-React 的基本元素，下一节我们会用它们写一段剧本
 
 ### 动作
 
-动作是 NarraLeaf-React 中最重要的概念。
+动作是 NarraLeaf-React 中最重要的概念
 
-你在元素上调用的每个方法都是一个**动作**。动作能做一些事情，比如显示台词、播放声音或更换背景。NarraLeaf-React 只能理解**动作**。
+你在元素上调用的每个方法都会产生一个**动作**。动作负责执行显示台词、播放声音、更换背景等操作。NarraLeaf-React 只会执行这些**动作**
 
 例如，用 `character.say` 显示台词：
 
@@ -114,7 +114,7 @@ const character1 = new Character("约翰-史密斯");
 character1.say("你好，世界！"); // 这是一个动作
 ```
 
-有些元素可以接收动作，比如 `Scene`，场景会按顺序执行动作。
+有些元素可以接收动作，比如 `Scene`，场景会按顺序执行动作
 
 ```typescript
 import {Scene, Character} from "narraleaf-react";
@@ -148,13 +148,13 @@ story.entry(scene1);
 export default story;
 ```
 
-把 `Player` 组件放进 React 应用时，导入故事并传给 `Player` 即可，我们稍后会讲到这一步。
+把 `Player` 组件放进 React 应用时，导入故事并传给 `Player` 即可，我们稍后会讲到这一步
 
 ## 创建故事
 
 ### 构建故事
 
-故事是 NarraLeaf-React 中最重要的概念。你可以在一个 TypeScript 文件里定义故事并导出。
+故事是 NarraLeaf-React 中最重要的概念。你可以在一个 TypeScript 文件里定义故事并导出
 
 ```ts
 import {Story,Scene} from "narraleaf-react";
@@ -193,7 +193,7 @@ export default function App() {
 
 ### 添加动作
 
-要在屏幕上显示内容，你需要向故事添加动作。
+要在屏幕上显示内容，你需要向故事添加动作
 
 最基本的动作容器是 `场景`，可以这样创建：
 
@@ -213,13 +213,13 @@ scene1.action([
 ]);
 ```
 
-故事会按顺序执行动作，在屏幕上依次显示「你好，世界！」和「早上好！」两句台词。
+故事会按顺序执行动作，在屏幕上依次显示「你好，世界！」和「早上好！」两句台词
 
-更多关于 `元素` 的内容见[元素](/zh/docs/narraleaf-react/core/elements)部分。
+更多关于 `元素` 的内容见[元素](/zh/docs/narraleaf-react/core/elements)部分
 
 ### 完整示例
 
-这里是一个完整故事的示例。
+这里是一个完整故事的示例
 
 <Tabs items={['src/story.ts', 'src/page.tsx']}><Tab value="src/story.ts">
         ```ts
@@ -288,7 +288,7 @@ scene1.action([
 
 ## 下一步
 
-用 NarraLeaf-React 创作复杂的故事吧。阅读[元素](/zh/docs/narraleaf-react/core/elements)部分，学习如何构建更复杂的动作。
+用 NarraLeaf-React 创作复杂的故事吧。阅读[元素](/zh/docs/narraleaf-react/core/elements)部分，学习如何构建更复杂的动作
 
 <Cards>
     <Card

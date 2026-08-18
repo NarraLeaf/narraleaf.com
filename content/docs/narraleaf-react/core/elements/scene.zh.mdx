@@ -27,7 +27,7 @@ scene.action([
 <Steps>
 <Step>
 
-`scene.local` 是一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 实例，仅限于场景内使用，用于存储仅在该场景中可用的临时数据。
+`scene.local` 是一个 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 实例，仅限于场景内使用，用于存储仅在该场景中可用的临时数据
 
 本地数据不需要注册或初始化，但在使用前是「未定义」的
 
@@ -141,7 +141,7 @@ story.entry(
 
 手动注册图像源
 
-用于预加载器无法自行预测的图像源 —— 最常见的是[层叠图像](/zh/docs/narraleaf-react/core/elements/image#layered-image)中函数图层返回的源（对预加载器不透明），或是复杂到会触发「未预测的图像源」警告的外观变更。
+用于预加载器无法自行预测的图像源 —— 最常见的是[层叠图像](/zh/docs/narraleaf-react/core/elements/image#layered-image)中函数图层返回的源（对预加载器不透明），或是复杂到会触发「未预测的图像源」警告的外观变更
 
 - `src: string | string[]` - 图像的 URL 或 URL 数组
 - 返回 `this`
@@ -178,7 +178,7 @@ scene.action([
 <Steps>
 <Step>
 
-跳转到另一个场景。如果提供了过渡效果，它会在两个场景切换期间跨整个舞台播放：立绘、文字以及其他所有层都参与其中，而不只是背景。参见 [JumpConfig](/zh/docs/narraleaf-react/core/types/JumpConfig)。
+跳转到另一个场景。如果提供了过渡效果，它会在两个场景切换期间跨整个舞台播放：立绘、文字以及其他所有层都参与其中，而不只是背景。参见 [JumpConfig](/zh/docs/narraleaf-react/core/types/JumpConfig)
 
 > 注意：跳转到另一个场景后，当前场景将被释放。剩余的操作将不会执行
 
@@ -204,7 +204,7 @@ scene.action([
 <Steps>
 <Step>
 
-创建 NVL（小说）模式块，用于堆叠显示多条对话。在 NVL 模式下，对话会逐条堆叠在屏幕上，而不是互相覆盖，类似传统视觉小说的旁白形式。
+创建 NVL（小说）模式块，用于堆叠显示多条对话。在 NVL 模式下，对话会逐条堆叠在屏幕上，而不是互相覆盖，类似传统视觉小说的旁白形式
 
 #### 重载 1：仅 actions
 
@@ -262,6 +262,6 @@ scene.action([
 
 | 方法 | 说明 |
 |------|------|
-| `nvl.show(options?)` | 显示 NVL 层，可传入过渡选项（如 `{ duration: 500 }`）。参见 [CommonTransformProps](/zh/docs/narraleaf-react/core/types/CommonTransformProps)。 |
-| `nvl.hide(options?)` | 隐藏 NVL 层，可传入过渡选项。不会退出 NVL 模式或清空对话。 |
-| `nvl.end()` | 立即强制退出 NVL 模式。清空所有已堆叠的对话并隐藏 NVL 层。 |
+| `nvl.show(options?)` | 显示 NVL 层，可传入过渡选项（如 `{ duration: 500 }`）。参见 [CommonTransformProps](/zh/docs/narraleaf-react/core/types/CommonTransformProps)|
+| `nvl.hide(options?)` | 隐藏 NVL 层，可传入过渡选项。不会退出 NVL 模式或清空对话|
+| `nvl.end()` | 立即强制退出 NVL 模式。清空所有已堆叠的对话并隐藏 NVL 层|

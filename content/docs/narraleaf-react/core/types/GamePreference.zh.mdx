@@ -83,26 +83,26 @@ type GamePreference = {
 
 ## autoForward
 
-是否自动前进游戏。
+是否自动前进游戏
 
-启用后，当当前句子完成时，游戏将自动前进到下一句。
+启用后，当当前句子完成时，游戏将自动前进到下一句
 
-游戏将在前进前等待 [GameConfig.elements.say.autoForwardDelay](/zh/docs/narraleaf-react/core/types/GameConfig) 指定的时间。
+游戏将在前进前等待 [GameConfig.elements.say.autoForwardDelay](/zh/docs/narraleaf-react/core/types/GameConfig) 指定的时间
 
 一行「完成」的判据是：文字打完**并且**该行语音播完。0.24.0 起，有语音的行会先等语音播完再开始计时，
-自动模式因此不会在台词说到一半时翻页；没有语音、或语音已经结束的行，行为与以前完全一致。
+自动模式因此不会在台词说到一半时翻页；没有语音、或语音已经结束的行，行为与以前完全一致
 
 ## skip
 
-启用后，玩家可以通过按下 [GameConfig.elements.say.nextKey](/zh/docs/narraleaf-react/core/types/GameConfig) 来跳过当前句子。
+启用后，玩家可以通过按下 [GameConfig.elements.say.nextKey](/zh/docs/narraleaf-react/core/types/GameConfig) 来跳过当前句子
 
 ## showDialog
 
-是否显示对话框。
+是否显示对话框
 
 ## gameSpeed
 
-对话速度的倍数，默认为 1.0。
+对话速度的倍数，默认为 1.0
 
 对话速度将应用于：
 
@@ -111,50 +111,50 @@ type GamePreference = {
 
 ## cps
 
-文字效果的速度，以每秒字符数计。
+文字效果的速度，以每秒字符数计
 
 ## voiceVolume
 
-语音音量。
+语音音量
 
 ## voiceFadeDuration
 
-当 `voiceEndMode` 设置为 `fade` 时，使用此值作为语音淡出的时长（毫秒）。
+当 `voiceEndMode` 设置为 `fade` 时，使用此值作为语音淡出的时长（毫秒）
 
 ## voiceEndMode
 
-控制语音在句子结束时的处理方式。
+控制语音在句子结束时的处理方式
 
-- `fade`：在 `voiceFadeDuration` 毫秒内淡出语音。
-- `stop`：立即停止播放（默认）。
+- `fade`：在 `voiceFadeDuration` 毫秒内淡出语音
+- `stop`：立即停止播放（默认）
 - `none`：保持语音继续播放。它会一直播到自己结束，或播到**下一句有配音的台词**开始为止，以先到者为准——
-  没有配音的行会从还在收尾的语音上直接过去，不会打断它。任何时候都不会有两条语音同时响。
+  没有配音的行会从还在收尾的语音上直接过去，不会打断它。任何时候都不会有两条语音同时响
   （0.24.1 之前没有任何东西去掐掉这条拖尾语音，于是连着推进有配音的对话会把它们一层层叠起来。）
 
-当你想要在下一句出现前保持音频的平滑过渡时，可以将 `voiceFadeDuration` 与 `fade` 模式搭配使用。
+当你想要在下一句出现前保持音频的平滑过渡时，可以将 `voiceFadeDuration` 与 `fade` 模式搭配使用
 
 ## bgmVolume
 
-背景音乐音量。
+背景音乐音量
 
 ## soundVolume
 
-音效音量。
+音效音量
 
 ## globalVolume
 
-全局音频音量。这是一个独立的乘数，影响游戏中的所有音频。
+全局音频音量。这是一个独立的乘数，影响游戏中的所有音频
 
 ## skipDelay
 
-游戏开始跳过动作前的延迟时间（毫秒）。
+游戏开始跳过动作前的延迟时间（毫秒）
 
-这用于防止玩家按下跳过键时游戏过快跳过动作。
+这用于防止玩家按下跳过键时游戏过快跳过动作
 
-设置为 0 可在玩家按下跳过键时立即跳过动作。
+设置为 0 可在玩家按下跳过键时立即跳过动作
 
 ## skipInterval
 
-每次跳过动作之间的间隔时间（毫秒）。
+每次跳过动作之间的间隔时间（毫秒）
 
-例如，100 毫秒意味着玩家每秒可以跳过 10 个动作。值越高意味着跳过速度越慢。
+例如，100 毫秒意味着玩家每秒可以跳过 10 个动作。值越高意味着跳过速度越慢

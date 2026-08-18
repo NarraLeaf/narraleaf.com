@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import {
@@ -26,6 +26,10 @@ function localizedPathname(pathname: string, targetLocale: Locale): string {
 export function I18nRootProvider(props: { children: ReactNode; locale: Locale }) {
   const { children, locale } = props;
   const pathname = usePathname();
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const i18n = useMemo(
     () => ({

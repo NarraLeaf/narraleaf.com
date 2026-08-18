@@ -5,7 +5,7 @@ title: "LambdaHandler"
 type LambdaHandler<T = any> = (ctx: LambdaCtx) => T;
 ```
 
-`LambdaHandler` 是接收 `LambdaCtx` 上下文对象并返回 `T` 类型值的函数。它是 NarraLeaf 中实现动态、上下文相关逻辑的核心概念，可以读取游戏状态、玩家数据和其他运行时信息。
+`LambdaHandler` 是接收 `LambdaCtx` 上下文对象并返回 `T` 类型值的函数。它是 NarraLeaf 中实现动态、上下文相关逻辑的核心概念，可以读取游戏状态、玩家数据和其他运行时信息
 
 ## 概述
 
@@ -126,4 +126,4 @@ const getPlayerLevel: LambdaHandler<number> = (ctx) => {
 };
 ```
 
-上下文对象的更多说明见 [LambdaCtx](/zh/docs/narraleaf-react/core/types/LambdaCtx) 和 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)。
+上下文对象的更多说明见 [LambdaCtx](/zh/docs/narraleaf-react/core/types/LambdaCtx) 和 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)

@@ -1,7 +1,7 @@
 ---
 title: "持久 Gallery（Service + localStorage）"
 ---
-这个版本把解锁记录放在普通游戏存档之外。开始新游戏或读取旧槽位后，CG 仍保持解锁。如果解锁记录应该跟随每个存档，直接使用 `narraleaf-react` 导出的内置 `Gallery`；已注册 Service 的数据本来就会写入 `SavedGame`。
+这个版本把解锁记录放在普通游戏存档之外。开始新游戏或读取旧槽位后，CG 仍保持解锁。如果解锁记录应该跟随每个存档，直接使用 `narraleaf-react` 导出的内置 `Gallery`；已注册 Service 的数据本来就会写入 `SavedGame`
 
 ## 第一部分：完整的 Gallery 源代码实现
 
@@ -221,7 +221,7 @@ export function GalleryPage() {
 
 ### 4) 独立于游戏存档的持久化
 
-该实现的 localStorage 与游戏存档系统分离。`serialize()` 返回 `null`，因此读取旧槽位不会让画廊回退。
+该实现的 localStorage 与游戏存档系统分离。`serialize()` 返回 `null`，因此读取旧槽位不会让画廊回退
 
 ## 第三部分：API
 

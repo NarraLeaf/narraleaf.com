@@ -1,11 +1,11 @@
 ---
 title: "曝光"
 ---
-> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)。
+> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)
 
-按曝光量把画面推到过曝纯白，在白场中完成图像交换，再让下一张图像回落到正常曝光。
+按曝光量把画面推到过曝纯白，在白场中完成图像交换，再让下一张图像回落到正常曝光
 
-高光最先烧到白，饱和色在中途偏色，暗部最后交出。[Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 传入白色 `color` 是它的平铺版本，所有颜色同时到达白色。
+高光最先烧到白，饱和色在中途偏色，暗部最后交出。[Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 传入白色 `color` 是它的平铺版本，所有颜色同时到达白色
 
 ## 用法
 
@@ -27,7 +27,7 @@ image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
 
 - `options: ExposureOptions`
   - `duration: number` - 过渡时长，单位毫秒
-  - `ev?: number` - 峰值曝光量，单位档（EV）。画面被推到 `2 ** ev` 的增益，因此每增加 `1` 增益翻倍。默认为 `4.6`。
-  - `lift?: number` - 增益之前施加的暗部提亮（`0`–`1`）。取 `0` 时暗部永远不会到达白色，深色画面会以剪影结束整段过曝。默认为 `0.04`。
-  - `hold?: number` - 完全过曝状态占总时长的比例（`0`–`1`）。默认为 `0`。
+  - `ev?: number` - 峰值曝光量，单位档（EV）。画面被推到 `2 ** ev` 的增益，因此每增加 `1` 增益翻倍。默认为 `4.6`
+  - `lift?: number` - 增益之前施加的暗部提亮（`0`–`1`）。取 `0` 时暗部永远不会到达白色，深色画面会以剪影结束整段过曝。默认为 `0.04`
+  - `hold?: number` - 完全过曝状态占总时长的比例（`0`–`1`）。默认为 `0`
   - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

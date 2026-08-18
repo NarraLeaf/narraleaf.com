@@ -1,11 +1,11 @@
 ---
-title: "Player 组件"
+title: "播放器组件"
 ---
-`Player` 组件用于渲染剧本。
+`Player` 组件用于渲染剧本
 
-> **注意：** 必须将 `Player` 包裹在 [GameProviders](/zh/docs/narraleaf-react/player/game-providers) 中。
+> **注意：** 必须将 `Player` 包裹在 [GameProviders](/zh/docs/narraleaf-react/player/game-providers) 中
 
-若使用抽象类构建剧本，请参见 [Core](/zh/docs/narraleaf-react/core) 文档。
+若使用抽象类构建剧本，请参见 [Core](/zh/docs/narraleaf-react/core) 文档
 
 ## 示例
 
@@ -33,37 +33,37 @@ export default function Page() {
 
 ### story
 
-剧本对象。
+剧本对象
 
 ### width
 
-Player 宽度。
+Player 宽度
 
 ### height
 
-Player 高度。
+Player 高度
 
 ### className
 
-Player 的 CSS 类名。
+Player 的 CSS 类名
 
 ### onReady
 
-Player 就绪时的回调，返回 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象。
+Player 就绪时的回调，返回 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象
 
-`newGame()` 应在此处调用。它**不保证**预加载完成或已渲染——参见下方 `onPreloadComplete` 和 `onFirstSceneReady`。
+`newGame()` 应在此处调用。它**不保证**预加载完成或已渲染——参见下方 `onPreloadComplete` 和 `onFirstSceneReady`
 
 ### onPreloadComplete
 
 可选
 
-首次预加载完成时触发一次。
+首次预加载完成时触发一次
 
 <Callout type="warning">
-    自 `0.17.0` 起，此回调在**进入游戏之前**触发，此时菜单可能仍在屏幕上，且无场景挂载。如需等待游戏内容上屏，请使用 `onFirstSceneReady`。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)。
+    自 `0.17.0` 起，此回调在**进入游戏之前**触发，此时菜单可能仍在屏幕上，且无场景挂载。如需等待游戏内容上屏，请使用 `onFirstSceneReady`。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)
 </Callout>
 
-回调参数 `{game, gameState, liveGame, storable, scene}`，其中 `scene` 可能是预加载中的场景。每个游戏生命周期内最多调用一次。
+回调参数 `{game, gameState, liveGame, storable, scene}`，其中 `scene` 可能是预加载中的场景。每个游戏生命周期内最多调用一次
 
 ```tsx
 <Player story={story} onPreloadComplete={() => setLoadingBarDone(true)} />
@@ -73,9 +73,9 @@ Player 就绪时的回调，返回 [ScriptCtx](/zh/docs/narraleaf-react/core/typ
 
 可选
 
-预加载完成、首个场景已挂载、浏览器已渲染一帧后触发。这是「游戏已就绪」的最直接信号。
+预加载完成、首个场景已挂载、浏览器已渲染一帧后触发。这是「游戏已就绪」的最直接信号
 
-回调参数与 `onPreloadComplete` 相同，每个游戏生命周期内最多调用一次。
+回调参数与 `onPreloadComplete` 相同，每个游戏生命周期内最多调用一次
 
 ```tsx
 <Player story={story} onFirstSceneReady={() => setLoadingOverlay(false)} />
@@ -85,22 +85,22 @@ Player 就绪时的回调，返回 [ScriptCtx](/zh/docs/narraleaf-react/core/typ
 
 可选，已废弃
 
-请改用 `onPreloadComplete`。
+请改用 `onPreloadComplete`
 
 ### onEnd
 
-剧本结束时触发。
+剧本结束时触发
 
 ### onError
 
-游戏发生错误时触发。每个生命周期内最多调用一次，接收 `error` 和 `errorInfo` 两个参数。
+游戏发生错误时触发。每个生命周期内最多调用一次，接收 `error` 和 `errorInfo` 两个参数
 
 ### children
 
-Player 的子组件。可用于自定义快捷菜单等，参见 [PageRouter API](/zh/docs/narraleaf-react/player/page-router)。
+Player 的子组件。可用于自定义快捷菜单等，参见 [PageRouter API](/zh/docs/narraleaf-react/player/page-router)
 
 ### active
 
 可选，默认 `true`
 
-是否显示 Player。即使为 `false`，页面仍会被渲染。
+是否显示 Player。即使为 `false`，页面仍会被渲染

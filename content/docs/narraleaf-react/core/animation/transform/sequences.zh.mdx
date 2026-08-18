@@ -1,11 +1,11 @@
 ---
 title: "序列"
 ---
-一个 `Transform` 由一个或多个序列组成。每个序列包含视觉 `props` 和时间 `options`。
+一个 `Transform` 由一个或多个序列组成。每个序列包含视觉 `props` 和时间 `options`
 
 ## 链式 API 与原始序列
 
-链式 API 和构造函数创建的是同一种 `Transform`。手写动画时更推荐链式 API，因为时间选项会贴近对应的变化。
+链式 API 和构造函数创建的是同一种 `Transform`。手写动画时更推荐链式 API，因为时间选项会贴近对应的变化
 
 <Tabs items={['链式 API', '原始序列']}><Tab value="链式 API">
         ```typescript
@@ -43,7 +43,7 @@ title: "序列"
 
 ## 构造函数
 
-当你已经有序列对象，或由工具生成序列数组时，可以使用构造函数。
+当你已经有序列对象，或由工具生成序列数组时，可以使用构造函数
 
 ### 序列数组
 
@@ -95,7 +95,7 @@ new Transform<TransformDefinitions.ImageTransformProps>({
 
 ### left / right / center
 
-把图片移动到常用舞台位置。
+把图片移动到常用舞台位置
 
 - `duration: number` - 移动时长，单位为毫秒
 - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数。参见 [EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
@@ -109,14 +109,14 @@ Transform.right(250, "easeOut");
 
 ### immediate\<T extends TransformDefinitions.Types\>
 
-创建一个立即应用属性的 transform。
+创建一个立即应用属性的 transform
 
 - `props: SequenceProps<T>` - 单个序列属性对象
 - 返回 `Transform<T>`
 
 ### create\<T extends TransformDefinitions.Types\>
 
-创建空 transform，之后可用链式属性方法构建。
+创建空 transform，之后可用链式属性方法构建
 
 - `config?: Partial<TransformDefinitions.TransformConfig>` - Transform 配置
 - 返回 `Transform<T>`
@@ -125,7 +125,7 @@ Transform.right(250, "easeOut");
 
 ### commit
 
-`commit()` 会把它前面的所有属性调用组合成一个序列。这个序列里的所有属性会使用同一组时间选项，同时开始变化。
+`commit()` 会把它前面的所有属性调用组合成一个序列。这个序列里的所有属性会使用同一组时间选项，同时开始变化
 
 ```typescript
 transform
@@ -138,14 +138,14 @@ transform
     .commit({ duration: 1000 });
 ```
 
-如果没有待提交的属性调用，`commit()` 会直接返回当前实例。
+如果没有待提交的属性调用，`commit()` 会直接返回当前实例
 
 - `options?: Partial<TransformDefinitions.SequenceOptions>` - 序列时间选项
 - 返回 `this`
 
 ### repeat
 
-重复 transform。
+重复 transform
 
 ```typescript
 transform
@@ -159,6 +159,6 @@ transform
 
 ### copy
 
-复制 transform。
+复制 transform
 
 - 返回 `Transform<T>`

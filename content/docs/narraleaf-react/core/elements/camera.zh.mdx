@@ -3,9 +3,9 @@ title: "镜头"
 ---
 > 该类继承自 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable)
 
-`Camera` 对整个舞台进行变换：每个 [Scene](/zh/docs/narraleaf-react/core/elements/scene)、背景、立绘和 [Video](/zh/docs/narraleaf-react/core/elements/video) 会一起运动。对话框、菜单和 NVL 层保持固定。
+`Camera` 对整个舞台进行变换：每个 [Scene](/zh/docs/narraleaf-react/core/elements/scene)、背景、立绘和 [Video](/zh/docs/narraleaf-react/core/elements/video) 会一起运动。对话框、菜单和 NVL 层保持固定
 
-每个 [Story](/zh/docs/narraleaf-react/core/elements/story) 恰好拥有一个 Camera，通过 `story.camera` 访问。
+每个 [Story](/zh/docs/narraleaf-react/core/elements/story) 恰好拥有一个 Camera，通过 `story.camera` 访问
 
 ```ts
 import { Story, Scene, Character } from "narraleaf-react";
@@ -27,7 +27,7 @@ scene.action([
 <Callout type="info">
     Camera 复用与 Image、Layer 相同的 [Transform](/zh/docs/narraleaf-react/core/animation/transform) 管线，
     继承了 [Displayable](/zh/docs/narraleaf-react/core/elements/displayable) 的全部变换方法：
-    `pos`、`zoom`、`scale`、`rotate`、`opacity`、`transform`、`filter`、`effect` 等，均作用于整个舞台。
+    `pos`、`zoom`、`scale`、`rotate`、`opacity`、`transform`、`filter`、`effect` 等，均作用于整个舞台
 </Callout>
 
 ## 访问 Camera
@@ -35,7 +35,7 @@ scene.action([
 <Steps>
 <Step>
 
-`story.camera` 是全局唯一的 Camera。每个故事只有一个，其姿态在场景切换间保持不变，并随存档/读档保存与恢复。
+`story.camera` 是全局唯一的 Camera。每个故事只有一个，其姿态在场景切换间保持不变，并随存档/读档保存与恢复
 
 ```ts
 scene.action([
@@ -73,7 +73,7 @@ story.camera.darken(0.6, 500, "easeInOut");
 ```
 
 <Callout type="warning">
-    darken 与其他滤镜共用 CSS `filter` 通道，会相互覆盖。若需组合使用，请手动写出完整滤镜字符串，例如 `camera.filter("blur(4px) brightness(0.4)")`。
+    darken 与其他滤镜共用 CSS `filter` 通道，会相互覆盖。若需组合使用，请手动写出完整滤镜字符串，例如 `camera.filter("blur(4px) brightness(0.4)")`
 </Callout>
 </Step>
 </Steps>
@@ -90,9 +90,9 @@ story.camera.resetCamera(600, "easeInOut");
 ```
 
 <Callout type="warning">
-    **`0.26.0` 重命名：它此前叫 `camera.reset`。** 每个元素都自带一个内部的 `reset()` —— 新游戏开始或读档时引擎在全体元素上运行的生命周期钩子 —— 而 Camera 却把这个名字给了这个创作用的辅助方法，于是 `newGame()` 从不恢复镜头姿态，平移或缩放过的故事会把那个取景带进下一次游玩。
+    **`0.26.0` 重命名：它此前叫 `camera.reset`。** 每个元素都自带一个内部的 `reset()` —— 新游戏开始或读档时引擎在全体元素上运行的生命周期钩子 —— 而 Camera 却把这个名字给了这个创作用的辅助方法，于是 `newGame()` 从不恢复镜头姿态，平移或缩放过的故事会把那个取景带进下一次游玩
 
-    请把剧本里所有 `camera.reset(...)` 改名。现在在 Camera 上调用 `reset()` 触及的是生命周期钩子：它立即恢复到构造配置描述的姿态，不做任何动画，返回的是 Camera 本身而不是可链式调用的动作。
+    请把剧本里所有 `camera.reset(...)` 改名。现在在 Camera 上调用 `reset()` 触及的是生命周期钩子：它立即恢复到构造配置描述的姿态，不做任何动画，返回的是 Camera 本身而不是可链式调用的动作
 </Callout>
 </Step>
 </Steps>
@@ -122,5 +122,5 @@ const story = new Story("entry", {
 ```
 
 <Callout type="info">
-    Camera 只移动视觉舞台。对话框、菜单和 NVL 层渲染在舞台之外，不受镜头移动影响，文本始终清晰可读。
+    Camera 只移动视觉舞台。对话框、菜单和 NVL 层渲染在舞台之外，不受镜头移动影响，文本始终清晰可读
 </Callout>

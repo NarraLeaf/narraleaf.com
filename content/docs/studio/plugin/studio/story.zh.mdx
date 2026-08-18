@@ -3,7 +3,7 @@ title: story
 description: 向场景编辑器插入故事块的调板操作
 ---
 
-`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。该块是标准故事块——插入后文档不再依赖你的插件。
+`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。该块是标准故事块——插入后文档不再依赖你的插件
 
 ## 方法
 
@@ -24,7 +24,7 @@ type StoryPluginActionRegistration = {
 };
 ```
 
-`createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及在调板有待处理文本时的 `initialText`。返回一个 `StoryBlock`。
+`createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及在调板有待处理文本时的 `initialText`。返回一个 `StoryBlock`
 
 ```ts
 app.services.story.actions.register({
@@ -37,4 +37,4 @@ app.services.story.actions.register({
 });
 ```
 
-`StoryBlock`、`StoryBlockId` 和 `StoryBlockKind` 由 `narraleaf-studio/plugin` 导出。
+`StoryBlock`、`StoryBlockId` 和 `StoryBlockKind` 由 `narraleaf-studio/plugin` 导出

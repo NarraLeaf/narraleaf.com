@@ -2,11 +2,11 @@
 title: "自定义字体"
 ---
 
-字体分为两层：普通播放器 UI 继承 CSS；对话和选项文字还可以通过 `Texts`、`Item` 单独指定默认值。
+字体分为两层：普通播放器 UI 继承 CSS；对话和选项文字还可以通过 `Texts`、`Item` 单独指定默认值
 
 ## 1. 加载字体
 
-网页优先使用 WOFF2，并保留系统字体作为回退。
+网页优先使用 WOFF2，并保留系统字体作为回退
 
 ```css
 @font-face {
@@ -22,7 +22,7 @@ title: "自定义字体"
 }
 ```
 
-Next.js 项目也可以使用 `next/font/local`，把生成的 className 放在同一个 Player 边界上。
+Next.js 项目也可以使用 `next/font/local`，把生成的 className 放在同一个 Player 边界上
 
 ## 2. 应用到播放器
 
@@ -36,11 +36,11 @@ Next.js 项目也可以使用 `next/font/local`，把生成的 className 放在�
 </GameProviders>
 ```
 
-页面、按钮和其他继承 `font-family` 的 UI 都会使用该字体。
+页面、按钮和其他继承 `font-family` 的 UI 都会使用该字体
 
 ## 3. 设置对话文字默认值
 
-从 NarraLeaf 0.10 开始，对话字体默认值属于组件 props，不再放在 `GameConfig` 中。
+从 NarraLeaf 0.10 开始，对话字体默认值属于组件 props，不再放在 `GameConfig` 中
 
 ```tsx
 import { Dialog, Nametag, Texts } from "narraleaf-react";
@@ -61,11 +61,11 @@ export function GameDialog() {
 }
 ```
 
-Sentence 和 Word 上的局部样式仍然优先。
+Sentence 和 Word 上的局部样式仍然优先
 
 ## 4. 设置选项文字默认值
 
-自定义菜单在每个 `Item` 上设置文字样式。
+自定义菜单在每个 `Item` 上设置文字样式
 
 ```tsx
 <Item
@@ -79,7 +79,7 @@ Sentence 和 Word 上的局部样式仍然优先。
 
 ## 检查项
 
-- 确认字体 URL 返回 200，且没有被 CORS 拦截。
-- 检查常规和粗体字重。缺少字重时浏览器会自行合成。
-- 保留 `font-display: swap`，避免加载期间文字长时间不可见。
-- 游戏使用中日韩文字时，检查字体是否包含对应字形。只有拉丁字符的字体会逐字回退到系统字体。
+- 确认字体 URL 返回 200，且没有被 CORS 拦截
+- 检查常规和粗体字重。缺少字重时浏览器会自行合成
+- 保留 `font-display: swap`，避免加载期间文字长时间不可见
+- 游戏使用中日韩文字时，检查字体是否包含对应字形。只有拉丁字符的字体会逐字回退到系统字体

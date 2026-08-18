@@ -1,21 +1,21 @@
 ---
 title: "DevTools"
 ---
-`DevTools` 是一个面向**编辑器宿主**的静态工具类：实时预览、检查器、舞台编辑器、缩略图渲染器等。它暴露了这类宿主所需、而常规剧本 API 有意不提供的少数引擎内部能力：动作标识、直接注册可显示元素、当前对话行，以及层叠图像的逐层 src。
+`DevTools` 是一个面向**编辑器宿主**的静态工具类：实时预览、检查器、舞台编辑器、缩略图渲染器等。它暴露了这类宿主所需、而常规剧本 API 有意不提供的少数引擎内部能力：动作标识、直接注册可显示元素、当前对话行，以及层叠图像的逐层 src
 
-编写游戏本身完全不需要它。
+编写游戏本身完全不需要它
 
 ```typescript
 import {DevTools} from "narraleaf-react/built-in";
 ```
 
 <Callout type="info">
-    所有成员都是静态的，没有需要构造的实例。`DevTools` 同时也从包根入口（`narraleaf-react`）重新导出，但请优先使用 `narraleaf-react/built-in` 这个入口。
+    所有成员都是静态的，没有需要构造的实例。`DevTools` 同时也从包根入口（`narraleaf-react`）重新导出，但请优先使用 `narraleaf-react/built-in` 这个入口
 </Callout>
 
 ## 动作标识
 
-故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址，例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝。
+故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址，例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝
 
 ### getActionId
 
@@ -206,11 +206,11 @@ DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
 ```
 
 <Callout type="warning">
-    如果变换状态被一个正在进行的变换锁定，此方法会抛出异常。请只在舞台空闲时注入。
+    如果变换状态被一个正在进行的变换锁定，此方法会抛出异常。请只在舞台空闲时注入
 </Callout>
 
 <Callout type="info">
-    **存档会知道这次写入。** 自存档格式 v3（`0.26.0`）起，元素只有在有人声明其状态已改变时才会被写入存档，而引擎会在动作于该元素上运行时自动声明。本方法是在这条路径之外写入状态的，因此它会替你在该可显示元素上调用 `markDirty()`。若宿主以其他方式写入元素状态，则需自行调用，否则这次写入会被跳过，读档时回到剧本所写的状态。在 `app.debug: true` 时，引擎会定期遍历全部元素并对发现的未标记状态发出警告。参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)。
+    **存档会知道这次写入。** 自存档格式 v3（`0.26.0`）起，元素只有在有人声明其状态已改变时才会被写入存档，而引擎会在动作于该元素上运行时自动声明。本方法是在这条路径之外写入状态的，因此它会替你在该可显示元素上调用 `markDirty()`。若宿主以其他方式写入元素状态，则需自行调用，否则这次写入会被跳过，读档时回到剧本所写的状态。在 `app.debug: true` 时，引擎会定期遍历全部元素并对发现的未标记状态发出警告。参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)
 </Callout>
 </Step>
 </Steps>
@@ -263,11 +263,11 @@ DevTools.setElementId(ghost, "preview:ghost");
 <Steps>
 <Step>
 
-给元素一个在故事构建后仍然保留的名字。
+给元素一个在故事构建后仍然保留的名字
 
-没有这个名字时，元素的 id 在构建时生成，并随故事的改动而改变。存档按 id 还原元素状态，因此凡是状态需要在剧本改动后继续可用的元素，都要命名。
+没有这个名字时，元素的 id 在构建时生成，并随故事的改动而改变。存档按 id 还原元素状态，因此凡是状态需要在剧本改动后继续可用的元素，都要命名
 
-[setElementId](#setelementid) 直接赋一个 id，场景动作树能到达的元素在构建时会被覆盖。这里传 `null` 可以去掉名字，改用生成的 id。
+[setElementId](#setelementid) 直接赋一个 id，场景动作树能到达的元素在构建时会被覆盖。这里传 `null` 可以去掉名字，改用生成的 id
 
 - `element: LogicAction.GameElement` - 元素
 - `id: string | null` - 要保留的名字，传 `null` 则使用生成的 id
@@ -377,7 +377,7 @@ const Dynamic = DevTools.DynamicPersistent;
 ```
 
 <Callout type="warning">
-    这是有意保持内部的能力。它在这里可达，是为了让宿主能够镜像引擎自己的命名空间，而不是给剧本代码使用的。
+    这是有意保持内部的能力。它在这里可达，是为了让宿主能够镜像引擎自己的命名空间，而不是给剧本代码使用的
 </Callout>
 </Step>
 </Steps>

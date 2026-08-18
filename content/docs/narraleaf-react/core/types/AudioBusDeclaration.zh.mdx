@@ -20,8 +20,8 @@ type AudioBusDeclaration = {
 };
 ```
 
-宿主在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的一条总线。
-只有 `id` 是必填的。
+宿主在 [`GameConfig.audioBuses`](/zh/docs/narraleaf-react/core/game/audio-buses) 中声明的一条总线
+只有 `id` 是必填的
 
 ```ts
 new Game({
@@ -35,15 +35,15 @@ new Game({
 
 ## volume
 
-**作者混音中的位置**，既不是音频实际播放的音量，也不是玩家的滑条。「音效在我的混音里压低 40%」就是 `volume: 0.6`。
+**作者混音中的位置**，既不是音频实际播放的音量，也不是玩家的滑条。「音效在我的混音里压低 40%」就是 `volume: 0.6`
 
 玩家的控制是*另一个*数字，叠乘在它之上，默认值为 1。因此什么都没改过的玩家听到的是作者做的那份混音，
-而把滑条拉到最大的玩家拿到的是作者的意图，而不是一条满增益的总线。
-参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+而把滑条拉到最大的玩家拿到的是作者的意图，而不是一条满增益的总线
+参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
 
 ## AudioBusNode
 
-总线树解析之后的一条总线，`game.audioBuses.getTree().getNodes()` 返回的就是它。
+总线树解析之后的一条总线，`game.audioBuses.getTree().getNodes()` 返回的就是它
 
 ```ts
 type AudioBusNode = {
@@ -62,5 +62,5 @@ type AudioBusNode = {
 ```
 
 <Callout type="info">
-    `0.23.0` 新增。
+    `0.23.0` 新增
 </Callout>

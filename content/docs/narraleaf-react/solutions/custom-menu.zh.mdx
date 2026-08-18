@@ -3,13 +3,13 @@ title: "自定义 Menu（游戏内选项）"
 ---
 ## 作用
 
-游戏内选项（Menu）用于在故事中展示选择分支，玩家点击或按快捷键选择后执行对应动作。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `menu` 配置项，可替换默认的 [Menu](/zh/docs/narraleaf-react/player/menu) 组件，实现自定义的选项样式和布局。
+游戏内选项（Menu）用于在故事中展示选择分支，玩家点击或按快捷键选择后执行对应动作。通过 [game.configure](/zh/docs/narraleaf-react/core/game/game) 的 `menu` 配置项，可替换默认的 [Menu](/zh/docs/narraleaf-react/player/menu) 组件，实现自定义的选项样式和布局
 
-使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为选项容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染单个选项。`Item.bindKey` 用于绑定快捷键。
+使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为选项容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染单个选项。`Item.bindKey` 用于绑定快捷键
 
 ## 1. 创建自定义 Menu 组件
 
-自定义菜单组件接收 `items`（选项索引数组），使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染每个选项。`Item` 会自动从上下文中获取对应选项的文本和点击逻辑。
+自定义菜单组件接收 `items`（选项索引数组），使用 [GameMenu](/zh/docs/narraleaf-react/player/menu) 作为容器，[Item](/zh/docs/narraleaf-react/player/menu) 渲染每个选项。`Item` 会自动从上下文中获取对应选项的文本和点击逻辑
 
 ```tsx
 import { GameMenu, Item } from "narraleaf-react";
@@ -36,7 +36,7 @@ function CustomMenu({ items }: { items: number[] }) {
 
 ## 2. 为选项绑定快捷键
 
-`Item` 支持 `bindKey` 属性，按下对应按键时可直接选中该选项。键值参考 [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)。
+`Item` 支持 `bindKey` 属性，按下对应按键时可直接选中该选项。键值参考 [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
 
 ```tsx
 function CustomMenu({ items }: { items: number[] }) {
@@ -95,7 +95,7 @@ function CustomMenu({ items }: { items: number[] }) {
 }
 ```
 
-菜单选项文字由自定义菜单组件控制。可以向 `Item` 传入 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold`，也可以让文字从 CSS 继承。
+菜单选项文字由自定义菜单组件控制。可以向 `Item` 传入 `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold`，也可以让文字从 CSS 继承
 
 ## 4. 横向布局示例
 

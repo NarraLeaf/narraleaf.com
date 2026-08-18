@@ -20,25 +20,25 @@ type AudioBusState = {
 };
 ```
 
-一条总线连同它的两个数字，由 `game.audioBuses.list()` 返回。
+一条总线连同它的两个数字，由 `game.audioBuses.list()` 返回
 
-两个数字是分开的：**声明值 × 玩家值 = 节点上的值**，谁也覆盖不了谁。
+两个数字是分开的：**声明值 × 玩家值 = 节点上的值**，谁也覆盖不了谁
 
 ## volume
 
-玩家的控制，也是**要持久化的那一半**。恢复它可以让作者重新混音一款已发行的游戏，而不会被回访玩家保存的设置钉在旧混音上。`game.audioBuses.getVolumes()` 返回的正是这些值，以 id 为键。
+玩家的控制，也是**要持久化的那一半**。恢复它可以让作者重新混音一款已发行的游戏，而不会被回访玩家保存的设置钉在旧混音上。`game.audioBuses.getVolumes()` 返回的正是这些值，以 id 为键
 
 ## declaredVolume
 
-作者混音中的位置，来自 [AudioBusDeclaration](/zh/docs/narraleaf-react/core/types/AudioBusDeclaration)。
-它来自游戏而不是存储；持久化它等于持久化游戏自身的内容。
+作者混音中的位置，来自 [AudioBusDeclaration](/zh/docs/narraleaf-react/core/types/AudioBusDeclaration)
+它来自游戏而不是存储；持久化它等于持久化游戏自身的内容
 
 ## effectiveVolume
 
-两者的乘积，也就是增益节点上的值。
+两者的乘积，也就是增益节点上的值
 
-- 完整模型参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)。
+- 完整模型参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
 
 <Callout type="info">
-    `0.23.0` 新增。
+    `0.23.0` 新增
 </Callout>

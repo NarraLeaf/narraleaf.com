@@ -5,7 +5,7 @@ title: "KeyMap"
     此页面正在建设中
 </Callout>
 
-KeyMap 用于存储并管理不同游戏动作的键盘绑定。
+KeyMap 用于存储并管理不同游戏动作的键盘绑定
 
 ## 公共方法
 
@@ -14,7 +14,7 @@ KeyMap 用于存储并管理不同游戏动作的键盘绑定。
 <Steps>
 <Step>
 
-为指定动作设置（或覆盖）键位绑定。
+为指定动作设置（或覆盖）键位绑定
 
 ```typescript
 game.keyMap.setKeyBinding(KeyBindingType.skipAction, " ");
@@ -34,7 +34,7 @@ game.keyMap.setKeyBinding(KeyBindingType.skipAction, null);
 <Steps>
 <Step>
 
-获取动作的当前键位绑定。
+获取动作的当前键位绑定
 
 ```typescript
 const current = game.keyMap.getKeyBinding(KeyBindingType.skipAction);
@@ -47,7 +47,7 @@ const current = game.keyMap.getKeyBinding(KeyBindingType.skipAction);
 <Steps>
 <Step>
 
-向已有绑定追加一个或多个按键。
+向已有绑定追加一个或多个按键
 
 ```typescript
 game.keyMap.addKeyBinding(KeyBindingType.skipAction, "F3");
@@ -60,7 +60,7 @@ game.keyMap.addKeyBinding(KeyBindingType.skipAction, "F3");
 <Steps>
 <Step>
 
-获取所有按键绑定。
+获取所有按键绑定
 </Step>
 </Steps>
 
@@ -69,7 +69,7 @@ game.keyMap.addKeyBinding(KeyBindingType.skipAction, "F3");
 <Steps>
 <Step>
 
-监听按键绑定变化。
+监听按键绑定变化
 
 ```typescript
 const token = game.keyMap.onKeyBindingChange(KeyBindingType.skipAction, (value) => {
@@ -86,7 +86,7 @@ token.cancel(); // 停止监听
 <Steps>
 <Step>
 
-判断某个按键是否符合预设绑定（不区分大小写）。
+判断某个按键是否符合预设绑定（不区分大小写）
 
 ```typescript
 if (game.keyMap.match(KeyBindingType.skipAction, event.key)) {
@@ -98,4 +98,4 @@ if (game.keyMap.match(KeyBindingType.skipAction, event.key)) {
 
 ## 相关 Hook
 
-在 React 环境中，你可以使用 [`useKeyBinding`](/zh/docs/narraleaf-react/player/hooks/useKeyBinding) 来方便地获取并更新按键绑定。
+在 React 环境中，你可以使用 [`useKeyBinding`](/zh/docs/narraleaf-react/player/hooks/useKeyBinding) 来方便地获取并更新按键绑定

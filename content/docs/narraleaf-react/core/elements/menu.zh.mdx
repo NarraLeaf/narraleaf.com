@@ -1,7 +1,7 @@
 ﻿---
 title: "选项"
 ---
-`Menu` 在视觉小说中创建选项菜单，用于在故事的不同分支之间导航。
+`Menu` 在视觉小说中创建选项菜单，用于在故事的不同分支之间导航
 
 ```ts
 Menu.prompt("我应该做什么？")
@@ -18,7 +18,7 @@ Menu.prompt("我应该做什么？")
 
 ### prompt
 
-创建一个带提示的菜单。
+创建一个带提示的菜单
 
 <Steps>
 <Step>
@@ -67,7 +67,7 @@ Menu.prompt("我应该做什么？")
 
 ### choose
 
-向菜单添加一个选择。
+向菜单添加一个选择
 
 <Steps>
 <Step>
@@ -114,7 +114,7 @@ new Menu("我应该做什么？")
 
 ### hideIf
 
-魔法方法，当条件为真时隐藏最后一个选择。此方法会覆盖该选择的 `config.hidden`。
+魔法方法，当条件为真时隐藏最后一个选择。此方法会覆盖该选择的 `config.hidden`
 
 ```ts
 menu.choose(
@@ -132,7 +132,7 @@ menu.choose(
 
 ### disableIf
 
-魔法方法，当条件为真时禁用最后一个选择。此方法会覆盖该选择的 `config.disabled`。
+魔法方法，当条件为真时禁用最后一个选择。此方法会覆盖该选择的 `config.disabled`
 
 ```ts
 menu.choose(
@@ -150,7 +150,7 @@ menu.choose(
 
 ### enableWhen
 
-添加一个选择，仅在条件为真时启用。
+添加一个选择，仅在条件为真时启用
 
 ```ts
 menu.enableWhen(persis.isTrue("flag"), "往左走", [
@@ -169,7 +169,7 @@ menu.enableWhen(persis.isTrue("flag"), "往左走", [
 
 ### showWhen
 
-添加一个选择，仅在条件为真时显示。
+添加一个选择，仅在条件为真时显示
 
 ```ts
 menu.showWhen(persis.isTrue("flag"), "往左走", [

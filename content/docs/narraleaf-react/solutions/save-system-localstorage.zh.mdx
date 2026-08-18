@@ -2,15 +2,15 @@
 title: "使用 localStorage 实现存档系统"
 ---
 
-NarraLeaf 提供存档数据，不提供存储界面。`serialize()` 返回 `SavedGame`，`deserialize()` 恢复状态。下面实现五个普通槽位和一个快速存档槽位。
+NarraLeaf 提供存档数据，不提供存储界面。`serialize()` 返回 `SavedGame`，`deserialize()` 恢复状态。下面实现五个普通槽位和一个快速存档槽位
 
 <Callout type="warning">
-    localStorage 只保存在当前设备，读写是同步的，而且用户可以直接修改。小型网页游戏可以使用；存档较大或需要跨设备同步时，应改用 IndexedDB、文件或服务器。
+    localStorage 只保存在当前设备，读写是同步的，而且用户可以直接修改。小型网页游戏可以使用；存档较大或需要跨设备同步时，应改用 IndexedDB、文件或服务器
 </Callout>
 
 ## 存储工具
 
-把解析和兼容性检查集中在一个文件中。
+把解析和兼容性检查集中在一个文件中
 
 ```ts title="save-storage.ts"
 import type { SavedGame } from "narraleaf-react";
@@ -48,11 +48,11 @@ function isSavedGame(value: unknown): value is SavedGame {
 }
 ```
 
-这只是最低限度的类型检查。存档来自上传或服务器时，建议使用 Zod、Valibot 等工具校验完整结构。
+这只是最低限度的类型检查。存档来自上传或服务器时，建议使用 Zod、Valibot 等工具校验完整结构
 
 ## 保存与读取 Hook
 
-覆盖当前游戏前先检查故事 hash。`deserialize()` 不会自动做这项检查。
+覆盖当前游戏前先检查故事 hash。`deserialize()` 不会自动做这项检查
 
 ```tsx title="use-save-system.ts"
 import { useLiveGame } from "narraleaf-react";
@@ -83,11 +83,11 @@ export function useSaveSystem() {
 }
 ```
 
-修改动作顺序、分支、场景或其他故事结构后，旧存档可能失效。只修改台词通常不会改变非严格模式下的 hash。
+修改动作顺序、分支、场景或其他故事结构后，旧存档可能失效。只修改台词通常不会改变非严格模式下的 hash
 
 ## 存档槽位 UI
 
-读取元数据显示保存时间和最后一句台词。写入后重新读取一次本地状态。
+读取元数据显示保存时间和最后一句台词。写入后重新读取一次本地状态
 
 ```tsx
 import { useState } from "react";
@@ -137,7 +137,7 @@ function readMetadata(): Record<string, SavedGameMetaData | null> {
 
 ## 快速保存与读取
 
-在 effect 中注册键盘事件，并在清理函数中移除。F5、Ctrl+S 等按键有浏览器默认行为，除非明确需要覆盖，否则选择其他组合。
+在 effect 中注册键盘事件，并在清理函数中移除。F5、Ctrl+S 等按键有浏览器默认行为，除非明确需要覆盖，否则选择其他组合
 
 ```tsx
 import { useEffect } from "react";
@@ -165,10 +165,10 @@ export function QuickSaveKeys() {
 }
 ```
 
-把 `QuickSaveKeys` 挂载在 `GameProviders` 内。需要提示结果时，在两个分支中调用 `liveGame.notify()`。
+把 `QuickSaveKeys` 挂载在 `GameProviders` 内。需要提示结果时，在两个分支中调用 `liveGame.notify()`
 
 ## 存档包含什么
 
-`SavedGame` 包含 Persistent 命名空间、场景局部状态、元素状态、动作栈、异步动作栈、播放器舞台状态、回溯历史和已注册 Service 的数据。偏好设置不在其中，需要通过 `game.preference.exportPreferences()` 单独导出。
+`SavedGame` 包含 Persistent 命名空间、场景局部状态、元素状态、动作栈、异步动作栈、播放器舞台状态、回溯历史和已注册 Service 的数据。偏好设置不在其中，需要通过 `game.preference.exportPreferences()` 单独导出
 
-自存档格式 v3（`0.26.0`）起，写出的元素状态只包含与剧本所写不同的部分，读档会在应用存档之前重置每一个元素 —— 因此存档的大小取决于舞台上有什么，而不是项目有多大。0.26.0 写出的存档无法被更旧的引擎正确读取，参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)。
+自存档格式 v3（`0.26.0`）起，写出的元素状态只包含与剧本所写不同的部分，读档会在应用存档之前重置每一个元素 —— 因此存档的大小取决于舞台上有什么，而不是项目有多大。0.26.0 写出的存档无法被更旧的引擎正确读取，参见 [SavedGame](/zh/docs/narraleaf-react/core/types/SavedGame)

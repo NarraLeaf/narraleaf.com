@@ -16,9 +16,9 @@ title: "角色"
     />
 </Cards>
 
-Character 负责控制角色说出的台词。
+Character 负责控制角色说出的台词
 
-**注意：** `Character` 本身不驱动舞台立绘布局；舞台展示请使用 [Image](/zh/docs/narraleaf-react/core/elements/image)。**对话框旁小头像**（ADV 头像）通过 `avatar` / `portraits` 配置，并在 UI 中使用 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) — 详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+**注意：** `Character` 本身不驱动舞台立绘布局；舞台展示请使用 [Image](/zh/docs/narraleaf-react/core/elements/image)。**对话框旁小头像**（ADV 头像）通过 `avatar` / `portraits` 配置，并在 UI 中使用 [`Avatar`](/zh/docs/narraleaf-react/player/dialog) — 详见 [Dialog](/zh/docs/narraleaf-react/player/dialog)
 
 ## 公共方法
 
@@ -27,7 +27,7 @@ Character 负责控制角色说出的台词。
 <Steps>
 <Step>
 
-- `name: string | null` - 传入 `null` 即为旁白，旁白在对话框中不显示名字。
+- `name: string | null` - 传入 `null` 即为旁白，旁白在对话框中不显示名字
 - `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)
 </Step>
 </Steps>
@@ -37,7 +37,7 @@ Character 负责控制角色说出的台词。
 <Steps>
 <Step>
 
-`character.say` 可以作为标签函数使用。
+`character.say` 可以作为标签函数使用
 
 ```typescript
 character`Hello, ${Word.color("Alice", "#f00")}!`, // 将输出 "Hello, Alice"，其中 "Alice" 为红色
@@ -66,7 +66,7 @@ character.say`Hello, ${Word.color("Alice", "#f00")}!`
 
 #### 重载 1 / 4
 
-说一句话。
+说一句话
 
 ```typescript
 character
@@ -79,7 +79,7 @@ character
 
 #### 重载 2 / 4
 
-使用自定义句子对象。
+使用自定义句子对象
 
 ```typescript
 character.say(
@@ -90,13 +90,13 @@ character.say(
 ) // 将输出「早上好，我是 Alice」，其中 "Alice" 为红色
 ```
 
-> **注意：** 台词名称将与句子的名称相同。
+> **注意：** 台词名称将与句子的名称相同
 
 - `content: Sentence` - 参见 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence)
 
 #### 重载 3 / 4
 
-使用字符串和 Word 对象的混合内容。
+使用字符串和 Word 对象的混合内容
 
 ```typescript
 character.say([
@@ -110,7 +110,7 @@ character.say([
 
 #### 重载 4 / 4
 
-使用 SentencePrompt 的简写形式。
+使用 SentencePrompt 的简写形式
 
 ```typescript
     character.say`你好，${Word.color("艾丽斯", "#f00")}！` // 将输出「你好，艾丽斯」，其中 "艾丽斯" 为红色
@@ -126,7 +126,7 @@ character.say([
 <Steps>
 <Step>
 
-设置角色的名称。
+设置角色的名称
 
 ```typescript
 character
@@ -137,9 +137,9 @@ character
 - `name: string` - 角色的名称
 
 <Callout type="info">
-    **自 `0.26.0` 起，名字的改动会随存档保存。** 在此之前 `Character` 从不序列化自身状态，因此没有任何存档记录过改名：在一位显示为「???」的说话人揭晓之后存档的玩家，读回来仍然是「???」——对话框里如此，回溯里也如此。现在开始新游戏或读档都会交还剧本所写的名字，而不是上一次游玩留下的那个。
+    **自 `0.26.0` 起，名字的改动会随存档保存。** 在此之前 `Character` 从不序列化自身状态，因此没有任何存档记录过改名：在一位显示为「???」的说话人揭晓之后存档的玩家，读回来仍然是「???」——对话框里如此，回溯里也如此。现在开始新游戏或读档都会交还剧本所写的名字，而不是上一次游玩留下的那个
 
-    更早版本写出的存档不含角色条目，仍可照常读取，读回后保留剧本所写的名字。由于角色现在也会占用存档条目，而自动生成的元素 id 描述的是元素在动作树中的位置而非身份，需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名。
+    更早版本写出的存档不含角色条目，仍可照常读取，读回后保留剧本所写的名字。由于角色现在也会占用存档条目，而自动生成的元素 id 描述的是元素在动作树中的位置而非身份，需要恢复存档的应用应当通过 [`DevTools.setElementStaticId`](/zh/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) 给自己的角色阵容命名
 </Callout>
 </Step>
 </Steps>
@@ -149,7 +149,7 @@ character
 <Steps>
 <Step>
 
-设置或清除**角色级**对话框头像（画外音、以及无可见绑定立绘时的回退）。
+设置或清除**角色级**对话框头像（旁白、以及无可见绑定立绘时的回退）
 
 ```typescript
 const alice = new Character("Alice")
@@ -158,9 +158,9 @@ const alice = new Character("Alice")
 alice.setAvatar(false); // 关闭角色级头像
 ```
 
-- `avatar: DialogAvatar | false | null` — 图片源、解析器、`false` 关闭，或 `null` 清除。
+- `avatar: DialogAvatar | false | null` — 图片源、解析器、`false` 关闭，或 `null` 清除
 
-解析语义与优先级见 [Dialog](/zh/docs/narraleaf-react/player/dialog)。
+解析语义与优先级见 [Dialog](/zh/docs/narraleaf-react/player/dialog)
 </Step>
 </Steps>
 
@@ -169,7 +169,7 @@ alice.setAvatar(false); // 关闭角色级头像
 <Steps>
 <Step>
 
-将舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 绑定到该角色，并可选择为该绑定配置**立绘级**对话框头像（字符串或解析器）。
+将舞台 [`Image`](/zh/docs/narraleaf-react/core/elements/image) 绑定到该角色，并可选择为该绑定配置**立绘级**对话框头像（字符串或解析器）
 
 ```typescript
 alice.addPortrait(aliceBody, {
@@ -177,8 +177,8 @@ alice.addPortrait(aliceBody, {
 });
 ```
 
-- `image: Image` — 舞台立绘。
-- `config?: { avatar?: DialogAvatar }` — 该绑定可选的头像覆盖。
+- `image: Image` — 舞台立绘
+- `config?: { avatar?: DialogAvatar }` — 该绑定可选的头像覆盖
 </Step>
 </Steps>
 
@@ -187,7 +187,7 @@ alice.addPortrait(aliceBody, {
 <Steps>
 <Step>
 
-替换完整的 `portraits` 列表（可为裸 `Image` 或 `{ image, avatar }`）。
+替换完整的 `portraits` 列表（可为裸 `Image` 或 `{ image, avatar }`）
 
 ```typescript
 alice.setPortraits([
@@ -196,7 +196,7 @@ alice.setPortraits([
 ]);
 ```
 
-- `portraits: (Image | CharacterPortraitConfig)[]` — 见 [CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)。
+- `portraits: (Image | CharacterPortraitConfig)[]` — 见 [CharacterConfig](/zh/docs/narraleaf-react/core/types/CharacterConfig)
 </Step>
 </Steps>
 
@@ -205,7 +205,7 @@ alice.setPortraits([
 <Steps>
 <Step>
 
-这是一个 `say` 的特殊别名。
+这是一个 `say` 的特殊别名
 
 ```typescript
 character`Hello, ${Word.color("Alice", "#f00")}!`;
@@ -227,7 +227,7 @@ character`Hello, ${Word.color("Alice", "#f00")}!`;
 > ]);
 > ```
 
-这个方法在角色只说一句话时缩短了代码。
+这个方法在角色只说一句话时缩短了代码
 
 ```typescript
 scene.action([

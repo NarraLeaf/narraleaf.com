@@ -1,7 +1,7 @@
 ﻿---
 title: "脚本"
 ---
-`Script` 允许执行任意脚本代码，并与游戏交互。
+`Script` 允许执行任意脚本代码，并与游戏交互
 
 ```typescript
 scene.action([
@@ -26,7 +26,7 @@ scene.action([
 <Steps>
 <Step>
 
-用给定的处理程序创建 `Script` 实例，并以代理对象形式返回。
+用给定的处理程序创建 `Script` 实例，并以代理对象形式返回
 
 - `handler: ScriptRun` - 要执行的脚本处理函数
 - 返回 `Proxied<Script, Chained<LogicAction.Actions>>` - 代理后的 `Script` 实例
@@ -52,10 +52,10 @@ scene.action([
 <Steps>
 <Step>
 
-- `handler: (ctx: ScriptCtx) => void` - 脚本执行时调用，接收一个 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象。
+- `handler: (ctx: ScriptCtx) => void` - 脚本执行时调用，接收一个 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx) 对象
 
 <Callout type="warning">
-    脚本有副作用时，处理程序应返回一个清理函数，玩家撤销操作时会被调用。
+    脚本有副作用时，处理程序应返回一个清理函数，玩家撤销操作时会被调用
 
     ```typescript
     new Script((ctx) => {

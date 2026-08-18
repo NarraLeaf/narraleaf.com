@@ -1,11 +1,11 @@
 ---
 title: "显现"
 ---
-> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)。
+> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)
 
-通过任意[遮罩图案](/zh/docs/narraleaf-react/core/animation/transition/mask)，将下一张图像覆盖到当前图像之上显现，这是不经过纯色保持的 A→B 直接切换。`Reveal` 是 [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 的直切版本，后者让相同的图案经过一段纯色保持。
+通过任意[遮罩图案](/zh/docs/narraleaf-react/core/animation/transition/mask)，将下一张图像覆盖到当前图像之上显现，这是不经过纯色保持的 A→B 直接切换。`Reveal` 是 [Through Color](/zh/docs/narraleaf-react/core/animation/transition/through-color) 的直切版本，后者让相同的图案经过一段纯色保持
 
-几何形状完全由图案决定，因此同一个 `Mask` 工厂方法只需改一个词就能在两种引擎之间切换。
+几何形状完全由图案决定，因此同一个 `Mask` 工厂方法只需改一个词就能在两种引擎之间切换
 
 ## 用法
 
@@ -34,5 +34,5 @@ image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
 
 - `options: RevealOptions`
   - `duration: number` - 过渡效果的持续时间，以毫秒为单位
-  - `pattern: MaskPattern` - 下一张图像显现所经过的覆盖几何形状。使用 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) 上的静态工厂方法构建，或手写自定义图案。
+  - `pattern: MaskPattern` - 下一张图像显现所经过的覆盖几何形状。使用 [Mask](/zh/docs/narraleaf-react/core/animation/transition/mask) 上的静态工厂方法构建，或手写自定义图案
   - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

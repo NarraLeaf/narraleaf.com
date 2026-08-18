@@ -1,7 +1,7 @@
 ﻿---
 title: "Word\\<T extends string | DynamicWord | Pausing = string | DynamicWord | Pausing\\>"
 ---
-Word 是句子的一部分。它用于为文本添加样式。
+Word 是句子的一部分。它用于为文本添加样式
 
 构建一个红色的单词：
 
@@ -34,7 +34,7 @@ const word = new Word((ctx) =>
 <Step>
 
 - `obj: any` - 要检查的对象
-- 如果对象是 `Word` 的实例，则返回 `true`，否则返回 `false`。
+- 如果对象是 `Word` 的实例，则返回 `true`，否则返回 `false`
 </Step>
 </Steps>
 
@@ -74,7 +74,7 @@ const word = new Word((ctx) =>
 <Steps>
 <Step>
 
-用你自己的组件渲染一个词，参见[自定义渲染](#自定义渲染)。自 `0.27.0` 起可用。
+用你自己的组件渲染一个词，参见[自定义渲染](#自定义渲染)。自 `0.27.0` 起可用
 
 - `text: string | Word` - 要渲染的文本或 Word 实例
 - `render: WordRenderer` - 一个组件，或已用 [registerWordRenderer](#registerwordrenderer) 注册的组件 id
@@ -109,7 +109,7 @@ const word = new Word((ctx) =>
 
 ## 自定义渲染
 
-自定义词仍是一个普通的文本词，只是套了一个组件。它和其他词一样逐字打出，进入回想、已读记录和配音管线时都是它的纯文本，并且从不参与序列化：行被重新求值时组件会重新挂上，因此存档里不留任何痕迹。
+自定义词仍是一个普通的文本词，只是套了一个组件。它和其他词一样逐字打出，进入回想、已读记录和配音管线时都是它的纯文本，并且从不参与序列化：行被重新求值时组件会重新挂上，因此存档里不留任何痕迹
 
 ```tsx
 import { Word, WordRenderProps } from "narraleaf-react";
@@ -130,33 +130,33 @@ character.say([
 ]);
 ```
 
-组件接收 [WordRenderProps](/zh/docs/narraleaf-react/core/types/WordRenderProps)。基于它做出的完整浮层，参见[自定义词](/zh/docs/narraleaf-react/solutions/custom-word)。
+组件接收 [WordRenderProps](/zh/docs/narraleaf-react/core/types/WordRenderProps)。基于它做出的完整浮层，参见[自定义词](/zh/docs/narraleaf-react/solutions/custom-word)
 
 ### 已排版的文本
 
-`children` 是引擎已经排好版的词文本，注音（ruby）、竖排书写模式和縦中横都已应用其中。请渲染 `children`；用 `text` 代替它会得到同样的字符，但这三样都没有。
+`children` 是引擎已经排好版的词文本，注音（ruby）、竖排书写模式和縦中横都已应用其中。请渲染 `children`；用 `text` 代替它会得到同样的字符，但这三样都没有
 
 ### 样式顺序
 
-组件渲染在引擎负责设置样式的那个元素内部，因此解析后的样式已经生效：引擎默认值、对话框的文字 props、句子、词，依次覆盖。组件在最内层，所以它设置的任何样式都最后应用。
+组件渲染在引擎负责设置样式的那个元素内部，因此解析后的样式已经生效：引擎默认值、对话框的文字 props、句子、词，依次覆盖。组件在最内层，所以它设置的任何样式都最后应用
 
-`Word.custom` 与其他工厂方法可以双向组合。`Word.bold(Word.custom(text, Term))` 和 `Word.custom(Word.color(text, "#f00"), Term)` 都同时保留样式和组件。
+`Word.custom` 与其他工厂方法可以双向组合。`Word.bold(Word.custom(text, Term))` 和 `Word.custom(Word.color(text, "#f00"), Term)` 都同时保留样式和组件
 
 ### 点击
 
-词还在打字时，点击它与点击其他任何地方一样推进当前行。词完全显示之后，它接管自己的点击，行不会在它背后推进。
+词还在打字时，点击它与点击其他任何地方一样推进当前行。词完全显示之后，它接管自己的点击，行不会在它背后推进
 
 ### 换行
 
-含换行的自定义词会按行拆成多个包裹元素（换行处于两者之间，不属于任何一边），其中只有最后一个报告 `revealed`。请把换行放在自定义词前后的词里，而不是放进它内部。
+含换行的自定义词会按行拆成多个包裹元素（换行处于两者之间，不属于任何一边），其中只有最后一个报告 `revealed`。请把换行放在自定义词前后的词里，而不是放进它内部
 
 ### NVL 模式
 
-NVL 模式下自定义词的渲染与行为完全相同，但 [useDialogOverlay](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 在那里没有宿主，不会给出容器。需要在 NVL 模式下工作的浮层要就地渲染。
+NVL 模式下自定义词的渲染与行为完全相同，但 [useDialogOverlay](/zh/docs/narraleaf-react/player/hooks/useDialogOverlay) 在那里没有宿主，不会给出容器。需要在 NVL 模式下工作的浮层要就地渲染
 
 ## 渲染器注册表
 
-在代码里构建的词直接携带组件。以数据形式到来的词（从故事文件编译而来，或由插件提供）携带的是一个 id，绘制这个词时再解析该 id。以下三个函数均自 `0.27.0` 起可用。
+在代码里构建的词直接携带组件。以数据形式到来的词（从故事文件编译而来，或由插件提供）携带的是一个 id，绘制这个词时再解析该 id。以下三个函数均自 `0.27.0` 起可用
 
 ```tsx
 import { registerWordRenderer, Word } from "narraleaf-react";
@@ -166,7 +166,7 @@ registerWordRenderer("glossary", GlossaryTerm);
 new Word("以太浓度", {render: "glossary", data: {entry: "aether"}});
 ```
 
-没有注册过的 id 会退回渲染为纯文本，并在控制台按 id 各报告一次。它不会抛出异常，因此插件缺失的那一行仍然可读。
+没有注册过的 id 会退回渲染为纯文本，并在控制台按 id 各报告一次。它不会抛出异常，因此插件缺失的那一行仍然可读
 
 ### registerWordRenderer
 
@@ -177,7 +177,7 @@ new Word("以太浓度", {render: "glossary", data: {entry: "aether"}});
 - `component: React.ComponentType<WordRenderProps<T>>` - 用来绘制这些词的组件
 - 返回一个用于取消注册的函数
 
-重复注册同一个 id 会替换掉原组件，屏幕上已有的行会在下一次渲染时用上新组件。
+重复注册同一个 id 会替换掉原组件，屏幕上已有的行会在下一次渲染时用上新组件
 </Step>
 </Steps>
 

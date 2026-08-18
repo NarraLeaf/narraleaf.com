@@ -75,6 +75,21 @@ type UiEditorSlideshowProps = {
 
 const slideInterval = 4500;
 
+/**
+ * What the optimizer re-encodes the inline slides at.
+ *
+ * These captures are flat editor UI — large areas of one colour, thin text, no
+ * photographic gradients — which is the case webp handles well below the
+ * default 75. Measured on `story-editor` at the width a phone actually asks
+ * for: 31.6 KB at 75 against 23.6 KB at 60, with nothing to tell apart at the
+ * size the slide is drawn.
+ *
+ * Deliberately not applied to the expanded preview below. That one exists to be
+ * read closely, and is fetched only when someone asks for it, so it keeps the
+ * default quality rather than trading detail for bytes nobody waits on.
+ */
+const slideQuality = 60;
+
 export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
   const { slides, labels } = props;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -182,7 +197,7 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
                   src={slide.src}
                   alt={slide.alt}
                   fill
-                  unoptimized
+                  quality={slideQuality}
                   sizes="(min-width: 1024px) 1000px, calc(100vw - 48px)"
                   className="pointer-events-none object-contain object-center"
                 />
@@ -246,7 +261,6 @@ export function UiEditorSlideshow(props: UiEditorSlideshowProps) {
                 src={expandedSlide.src}
                 alt={expandedSlide.alt}
                 fill
-                unoptimized
                 sizes="96vw"
                 className="object-contain object-center"
               />

@@ -1,13 +1,13 @@
 ---
 title: "useSuspendAdvance"
 ---
-在你自己的浮层打开期间，把当前行按住不动。只要还有一个挂起未释放，舞台点击、推进键和跳过键都不会到达对话框。自 `0.27.0` 起可用。
+在你自己的浮层打开期间，把当前行按住不动。只要还有一个挂起未释放，舞台点击、推进键和跳过键都不会到达对话框。自 `0.27.0` 起可用
 
 ```typescript
 function useSuspendAdvance(active: boolean): void;
 ```
 
-画在行上方的浮层必须阻止行在它底下推进，否则用来关闭浮层的那一次按键会直接跳到下一行。
+画在行上方的浮层必须阻止行在它底下推进，否则用来关闭浮层的那一次按键会直接跳到下一行
 
 ## 用法
 
@@ -33,13 +33,13 @@ function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string
 
 ## 行为
 
-- `active` 变为 `true` 时取得挂起，变为 `false` 或组件卸载时释放。浮层消失后不会把游戏卡住。
-- 挂起可嵌套。同时可以有多个，最后一个释放后行才恢复。
-- 只有推进被挂起。打字机、正在播放的过渡和音频都不受影响。
+- `active` 变为 `true` 时取得挂起，变为 `false` 或组件卸载时释放。浮层消失后不会把游戏卡住
+- 挂起可嵌套。同时可以有多个，最后一个释放后行才恢复
+- 只有推进被挂起。打字机、正在播放的过渡和音频都不受影响
 
 ## 在 React 之外
 
-[`GameState.suspendAdvance`](/zh/docs/narraleaf-react/core/game/game-state#suspendadvance) 做同样的事，并把释放函数作为返回值。
+[`GameState.suspendAdvance`](/zh/docs/narraleaf-react/core/game/game-state#suspendadvance) 做同样的事，并把释放函数作为返回值
 
 ```typescript
 const release = gameState.suspendAdvance();

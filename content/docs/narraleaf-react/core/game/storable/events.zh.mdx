@@ -3,10 +3,10 @@ title: "监听存储值"
 ---
 
 <Callout type="info">
-    自 `0.19.0` 起可用。
+    自 `0.19.0` 起可用
 </Callout>
 
-[Storable](/zh/docs/narraleaf-react/core/game/storable) 会报告每一次写入，因此需要对存储值作出反应的宿主可以订阅而不是轮询：`gold` 达到 100 时解锁成就、把某个标记同步到编辑器面板、或者让 HUD 保持同步。
+[Storable](/zh/docs/narraleaf-react/core/game/storable) 会报告每一次写入，因此需要对存储值作出反应的宿主可以订阅而不是轮询：`gold` 达到 100 时解锁成就、把某个标记同步到编辑器面板、或者让 HUD 保持同步
 
 ```typescript
 const storable = game.getLiveGame().getStorable();
@@ -29,21 +29,21 @@ const token = storable.onChange("persistent:player", "gold", ({next}) => {
 token.cancel();
 ```
 
-载荷是 [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange)。其中的 `namespace` 是该命名空间注册时使用的**键**，也就是 `getNamespace` 接受的、存档里携带的那个字符串，而不是给人看的名字。声明为 `new Persistent("player", ...)` 的命名空间注册为 `"persistent:player"`；场景的局部存储注册为 `"local:"` 加场景名。
+载荷是 [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange)。其中的 `namespace` 是该命名空间注册时使用的**键**，也就是 `getNamespace` 接受的、存档里携带的那个字符串，而不是给人看的名字。声明为 `new Persistent("player", ...)` 的命名空间注册为 `"persistent:player"`；场景的局部存储注册为 `"local:"` 加场景名
 
-监听器在新值可读**之后**运行，因此它可以读取命名空间的其余部分并看到一致的状态。[assign](/zh/docs/narraleaf-react/core/game/storable/namespace#assign) 每个键报告一次变化。[reset](/zh/docs/narraleaf-react/core/game/storable/namespace#reset) 报告每个键回到默认值，并把构造之后才写入的键报告为变为 `undefined`。
+监听器在新值可读**之后**运行，因此它可以读取命名空间的其余部分并看到一致的状态。[assign](/zh/docs/narraleaf-react/core/game/storable/namespace#assign) 每个键报告一次变化。[reset](/zh/docs/narraleaf-react/core/game/storable/namespace#reset) 报告每个键回到默认值，并把构造之后才写入的键报告为变为 `undefined`
 
 ## 订阅挂在 Storable 上，不是 Namespace 上
 
-`newGame()` 与读档都会**从头重建每一个命名空间**：存储被清空，每个已注册的 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 构造出全新的 `Namespace` 对象。`Storable` 本身随 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game) 创建一次，永不被替换。注册在存储上的订阅因此在这两种情况下都能存活；绑定到命名空间对象的订阅会在第一次读档之后失声，而且没有任何错误提示。
+`newGame()` 与读档都会**从头重建每一个命名空间**：存储被清空，每个已注册的 [Persistent](/zh/docs/narraleaf-react/core/elements/persistent) 构造出全新的 `Namespace` 对象。`Storable` 本身随 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game) 创建一次，永不被替换。注册在存储上的订阅因此在这两种情况下都能存活；绑定到命名空间对象的订阅会在第一次读档之后失声，而且没有任何错误提示
 
 <Callout type="warning">
-    出于同样的原因，不要跨 `newGame()` 或读档缓存 `getNamespace` 返回的对象，每次重新调用 `getNamespace`。持有的旧引用指向一个已不再注册的命名空间，读到的是过期值，写入也不会发出事件。
+    出于同样的原因，不要跨 `newGame()` 或读档缓存 `getNamespace` 返回的对象，每次重新调用 `getNamespace`。持有的旧引用指向一个已不再注册的命名空间，读到的是过期值，写入也不会发出事件
 </Callout>
 
 ## 值没有变化的写入
 
-写入与当前值相等的值不会发出任何事件。
+写入与当前值相等的值不会发出任何事件
 
 相等性判断是**结构性的，不是按引用的**。存储值按定义是可序列化的（基本类型、`Date`，或由它们构成的普通对象／数组），而常见的写法即使内容没变也会重建容器：
 
@@ -54,8 +54,8 @@ namespace.assign({gold: 10});                        // 不报告
 namespace.set("bag", v => ({...v, gold: v.gold}));   // 新对象，内容相同：不报告
 ```
 
-- `Date` 按时间戳比较，不按身份比较。
-- 超出可序列化范围的值（类实例，或函数，`set` 会告警但仍然存储）只与自身相等，因此总是报告变化。
+- `Date` 按时间戳比较，不按身份比较
+- 超出可序列化范围的值（类实例，或函数，`set` 会告警但仍然存储）只与自身相等，因此总是报告变化
 
 ## 读档
 
@@ -67,10 +67,10 @@ storable.onRestore(({namespaces}) => {
 });
 ```
 
-这涵盖 [deserialize](/zh/docs/narraleaf-react/core/game/live-game#deserialize)（整个存档触发一次事件），以及把单个命名空间回滚到快照（场景局部变量的撤销就是这样实现的，触发一次事件并指明该命名空间）。正常游玩时仍然逐键报告变化。
+这涵盖 [deserialize](/zh/docs/narraleaf-react/core/game/live-game#deserialize)（整个存档触发一次事件），以及把单个命名空间回滚到快照（场景局部变量的撤销就是这样实现的，触发一次事件并指明该命名空间）。正常游玩时仍然逐键报告变化
 
 <Callout type="warning">
-    **宿主需要同时用这两个信号。** 读档过程中 `onChange` 是静默的，因此只监听某个键的监听器不会在读进来的存档本身就处于目标值时触发。请在 `onRestore` 中重新读取一次该值。
+    **宿主需要同时用这两个信号。** 读档过程中 `onChange` 是静默的，因此只监听某个键的监听器不会在读进来的存档本身就处于目标值时触发。请在 `onRestore` 中重新读取一次该值
 </Callout>
 
 ```typescript
@@ -98,4 +98,4 @@ storable.onRestore(({namespaces}) => {
 | `event:storable.change` | [StorableChange](/zh/docs/narraleaf-react/core/types/StorableChange) |
 | `event:storable.restore` | [StorableRestore](/zh/docs/narraleaf-react/core/types/StorableRestore) |
 
-优先使用 `onChange`，它会按命名空间与键过滤。
+优先使用 `onChange`，它会按命名空间与键过滤

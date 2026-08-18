@@ -1,9 +1,9 @@
 ﻿---
 title: "Game"
 ---
-Game 是代表游戏本身的主类。它包含游戏的所有配置和 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game)。
+Game 是代表游戏本身的主类。它包含游戏的所有配置和 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game)
 
-Game 使用单例模式，所以你可以通过调用钩子 `useGame()` 获取实例。
+Game 使用单例模式，所以你可以通过调用钩子 `useGame()` 获取实例
 
 ## 公共属性
 
@@ -27,8 +27,8 @@ game.preference.setPreference("autoForward", true);
 <Steps>
 <Step>
 
-音频总线混音器：`GameConfig.audioBuses` 中声明的总线树，以及玩家对它做过的改动。
-在 `new Game(...)` 之后的任何时刻都可以使用——包括音频上下文解锁之前、播放器挂载之前。
+音频总线混音器：`GameConfig.audioBuses` 中声明的总线树，以及玩家对它做过的改动
+在 `new Game(...)` 之后的任何时刻都可以使用——包括音频上下文解锁之前、播放器挂载之前
 
 - `AudioBusMixer` - 参见[音频总线](/zh/docs/narraleaf-react/core/game/audio-buses)
 
@@ -72,9 +72,9 @@ game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
 
 为游戏分配新的配置
 
-> **注意：** 此方法设计为在游戏初始化之前使用。
+> **注意：** 此方法设计为在游戏初始化之前使用
 > 
-> 在游戏初始化之后调用此方法将不会生效或不会立即生效。设置在 [Preference](/zh/docs/narraleaf-react/core/game/preference/preference) 中的配置会立即生效。
+> 在游戏初始化之后调用此方法将不会生效或不会立即生效。设置在 [Preference](/zh/docs/narraleaf-react/core/game/preference/preference) 中的配置会立即生效
 
 ```typescript
 const { game } = useGame();
@@ -98,11 +98,11 @@ useEffect(() => {
 <Steps>
 <Step>
 
-注册一个插件到游戏。
+注册一个插件到游戏
 
-> **注意**: 具有相同名称的插件将不会被注册。
+> **注意**: 具有相同名称的插件将不会被注册
 >
-> 一个名称由 `namespace` 和 `name` 组成，推荐使用 `"@Namespace/PluginName"`，`"@Author/PluginName"`，`"PluginName"` 格式。
+> 一个名称由 `namespace` 和 `name` 组成，推荐使用 `"@Namespace/PluginName"`，`"@Author/PluginName"`，`"PluginName"` 格式
 
 ```typescript
 game.use({
@@ -119,9 +119,9 @@ game.use({
 <Steps>
 <Step>
 
-销毁游戏并释放所有资源。
+销毁游戏并释放所有资源
 
-> **注意**：此操作不可逆。
+> **注意**：此操作不可逆
 
 ```typescript
 game.dispose();
@@ -134,9 +134,9 @@ game.dispose();
 <Steps>
 <Step>
 
-配置游戏并冻结特定字段以防止进一步修改。
+配置游戏并冻结特定字段以防止进一步修改
 
-> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法。
+> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法
 
 ```typescript
 game.configureAndFreeze({
@@ -154,9 +154,9 @@ game.configureAndFreeze({
 <Steps>
 <Step>
 
-冻结特定的配置字段以防止进一步修改。
+冻结特定的配置字段以防止进一步修改
 
-> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法。
+> **警告**：不建议在未使用 NarraLeaf 引擎或插件环境的情况下使用此方法
 
 ```typescript
 game.freeze(["ratioUpdateInterval", "cursor"]);
@@ -168,10 +168,10 @@ game.freeze(["ratioUpdateInterval", "cursor"]);
 
 ## 生命周期事件
 
-游戏启动过程中有两个时点可以监听。每个时点在一个游戏生命周期内最多触发一次，所有监听器收到的都是同一个上下文对象：`{game, gameState, liveGame, storable, scene}`，其中 `scene` 可能为 `null`。
+游戏启动过程中有两个时点可以监听。每个时点在一个游戏生命周期内最多触发一次，所有监听器收到的都是同一个上下文对象：`{game, gameState, liveGame, storable, scene}`，其中 `scene` 可能为 `null`
 
 <Callout type="warning">
-    **`preloadComplete` 的时机在 `0.17.0` 发生了变化。** 它现在在**进入游戏之前**触发，此时菜单可能还在屏幕上——而不是在 `newGame()` 挂载出场景之后。请用它为加载步骤把关；"游戏内容已经上屏"请改用 `firstSceneReady`。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)。
+    **`preloadComplete` 的时机在 `0.17.0` 发生了变化。** 它现在在**进入游戏之前**触发，此时菜单可能还在屏幕上——而不是在 `newGame()` 挂载出场景之后。请用它为加载步骤把关；"游戏内容已经上屏"请改用 `firstSceneReady`。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#该等哪个信号)
 </Callout>
 
 ### onPreloadComplete
@@ -179,7 +179,7 @@ game.freeze(["ratioUpdateInterval", "cursor"]);
 <Steps>
 <Step>
 
-监听首次预加载完成。自 `0.17.0` 起，这发生在进入游戏之前。
+监听首次预加载完成。自 `0.17.0` 起，这发生在进入游戏之前
 
 ```typescript
 const token = game.onPreloadComplete(({scene}) => {
@@ -199,7 +199,7 @@ token.cancel();
 <Steps>
 <Step>
 
-同上，但在第一次调用后自动移除。
+同上，但在第一次调用后自动移除
 
 - `fc: (ctx: GameLifecycleEventContext) => void`
 - 返回 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
@@ -211,7 +211,7 @@ token.cancel();
 <Steps>
 <Step>
 
-在首次预加载完成时 resolve。如果它已经完成，则立即 resolve——因此当监听器可能注册得较晚时，用这个形式是安全的。
+在首次预加载完成时 resolve。如果它已经完成，则立即 resolve——因此当监听器可能注册得较晚时，用这个形式是安全的
 
 ```typescript
 const {scene} = await game.whenPreloadComplete();
@@ -226,7 +226,7 @@ const {scene} = await game.whenPreloadComplete();
 <Steps>
 <Step>
 
-首次预加载是否已完成。
+首次预加载是否已完成
 
 - `return: boolean`
 </Step>
@@ -237,7 +237,7 @@ const {scene} = await game.whenPreloadComplete();
 <Steps>
 <Step>
 
-监听第一个场景真正就绪：预加载已完成、第一个场景组件已挂载，**并且**浏览器已经有一帧的时间把它渲染出来。这是"游戏在视觉上已经准备好"最直接的信号。
+监听第一个场景真正就绪：预加载已完成、第一个场景组件已挂载，**并且**浏览器已经有一帧的时间把它渲染出来。这是"游戏在视觉上已经准备好"最直接的信号
 
 ```typescript
 const token = game.onFirstSceneReady(() => hideLoadingOverlay());
@@ -255,7 +255,7 @@ token.cancel();
 <Steps>
 <Step>
 
-同上，但在第一次调用后自动移除。
+同上，但在第一次调用后自动移除
 
 - `fc: (ctx: GameLifecycleEventContext) => void`
 - 返回 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
@@ -267,7 +267,7 @@ token.cancel();
 <Steps>
 <Step>
 
-在第一个场景真正就绪时 resolve。如果它已经就绪，则立即 resolve。
+在第一个场景真正就绪时 resolve。如果它已经就绪，则立即 resolve
 
 ```typescript
 await game.whenFirstSceneReady();
@@ -282,7 +282,7 @@ await game.whenFirstSceneReady();
 <Steps>
 <Step>
 
-第一个场景是否已经真正就绪。
+第一个场景是否已经真正就绪
 
 - `return: boolean`
 </Step>

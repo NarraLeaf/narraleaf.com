@@ -3,7 +3,7 @@ title: "解决方案"
 description: UI、路由、存档、通知、画廊和迁移的完整实现模式
 ---
 
-解决方案把故事 API 和 React UI 组合起来。每一页都从可用的实现开始，并说明扩展位置。
+解决方案把故事 API 和 React UI 组合起来。每一页都从可用的实现开始，并说明扩展位置
 
 ## 播放器 UI
 
@@ -31,7 +31,7 @@ description: UI、路由、存档、通知、画廊和迁移的完整实现模�
 
 ### Game 是全局单例吗？
 
-不是。`useGame()` 返回最近一层 `GameProviders` 所持有的 `Game`。传入同一个实例会共享状态；不同 Provider 可以拥有不同游戏。
+不是。`useGame()` 返回最近一层 `GameProviders` 所持有的 `Game`。传入同一个实例会共享状态；不同 Provider 可以拥有不同游戏
 
 ```tsx
 const game = useGame();
@@ -40,8 +40,8 @@ const liveGame = game.getLiveGame();
 
 ### NarraLeaf 是否内置存档槽位？
 
-NarraLeaf 通过 `liveGame.serialize()` 和 `liveGame.deserialize()` 序列化、恢复运行状态。应用自行选择 localStorage、IndexedDB、文件或服务器，并实现槽位 UI。见 [localStorage 存档](/zh/docs/narraleaf-react/solutions/save-system-localstorage)。
+NarraLeaf 通过 `liveGame.serialize()` 和 `liveGame.deserialize()` 序列化、恢复运行状态。应用自行选择 localStorage、IndexedDB、文件或服务器，并实现槽位 UI。见 [localStorage 存档](/zh/docs/narraleaf-react/solutions/save-system-localstorage)
 
 ### 自定义 UI 放在哪里？
 
-对话框、选项、NVL 和通知使用 `Game` 配置替换。设置、历史、画廊和存档页使用 `Page`、`Layout` 放在 `Player` 内。
+对话框、选项、NVL 和通知使用 `Game` 配置替换。设置、历史、画廊和存档页使用 `Page`、`Layout` 放在 `Player` 内

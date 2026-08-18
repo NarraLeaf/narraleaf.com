@@ -3,7 +3,7 @@ title: Renderer
 description: 渲染器运行时、应用 hooks、存档 API、主进程事件和文件路由
 ---
 
-**Renderer** 模块是 NarraLeaf 桌面应用的 React 侧。它挂载生成的应用入口，提供应用壳，嵌入 NarraLeaf-React `Player`，并暴露用于存档、播放状态和 renderer-to-main 通信的 hooks。
+**Renderer** 模块是 NarraLeaf 桌面应用的 React 侧。它挂载生成的应用入口，提供应用壳，嵌入 NarraLeaf-React `Player`，并暴露用于存档、播放状态和 renderer-to-main 通信的 hooks
 
 ```ts
 import {
@@ -60,8 +60,8 @@ import {
 - `invokeMainEvent`
 - `SaveType`
 
-渲染入口还导出 `RendererApp`、`RendererAppRootProps`、`GameMetadata`、路由模块类型、存档结果类型、`MainProcessEventMap` 和 `MainProcessEventEntry` 等公共类型。
+渲染入口还导出 `RendererApp`、`RendererAppRootProps`、`GameMetadata`、路由模块类型、存档结果类型、`MainProcessEventMap` 和 `MainProcessEventEntry` 等公共类型
 
 ## 与 NarraLeaf-React 的关系
 
-NarraLeaf 使用 NarraLeaf-React 播放故事。故事、场景、角色、菜单和 displayables 请使用 [NarraLeaf-React](/zh/docs/narraleaf-react) 创建，然后通过 NarraLeaf 渲染应用的 `metadata.story` 导出。
+NarraLeaf 使用 NarraLeaf-React 播放故事。故事、场景、角色、菜单和 displayables 请使用 [NarraLeaf-React](/zh/docs/narraleaf-react) 创建，然后通过 NarraLeaf 渲染应用的 `metadata.story` 导出

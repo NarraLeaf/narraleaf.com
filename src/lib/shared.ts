@@ -1,3 +1,20 @@
+/**
+ * The origin every absolute URL in the site's metadata is built from.
+ *
+ * `www`, not the apex, because the apex only ever answers with a 308 to this
+ * host — and that redirect carries `max-age=0, must-revalidate`, which is set
+ * by Vercel's domain layer before a request reaches this app and cannot be
+ * given cache headers from `next.config` or `vercel.json`. The hop itself is
+ * not removable, so the lever left is to stop pointing at the apex: anything
+ * Next resolves against this base (Open Graph images, canonical links) names
+ * `www` directly and costs no redirect when a crawler or a shared link follows
+ * it.
+ *
+ * Without it Next falls back to `http://localhost:3000` and says so at build
+ * time — which is where the `og:image` on every docs page had been pointing.
+ */
+export const siteUrl = 'https://www.narraleaf.com';
+
 export const appName = 'NarraLeaf Project';
 export const navBrandName = 'NarraLeaf';
 export const appDescription =

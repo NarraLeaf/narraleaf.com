@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
+import { siteLogoPath } from '@/lib/shared';
 
 export type ProjectTone = 'studio' | 'electron' | 'react';
 export type ProjectLogoKind = 'narraleaf' | 'electron' | 'react';
@@ -62,9 +63,17 @@ export function ProductLogo(props: {
         className,
       )}
     >
+      {/*
+        `siteLogoPath`, not the favicon, for the reason given where it is
+        declared: `/narraleaf.ico` is a 176KB multi-resolution icon, and the
+        optimizer cannot re-encode `.ico` — it passes the file through whole, so
+        asking for it at `w=64` still put all 176KB on the wire for a mark drawn
+        at 24px. The nav and footer already draw the same mark from this webp;
+        this was the last place still pointing at the icon.
+      */}
       {logo === 'narraleaf' ? (
         <Image
-          src="/narraleaf.ico"
+          src={siteLogoPath}
           alt=""
           width={26}
           height={26}
