@@ -1,0 +1,42 @@
+---
+title: "规则图显现"
+---
+> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)
+
+按一张灰度图指定的顺序，将下一张图像覆盖到当前图像之上显现：灰度图的暗部最先切换，亮部最后切换。画成螺旋的规则图，就以螺旋的方式擦除
+
+[Reveal](/zh/docs/narraleaf-react/core/animation/transition/reveal) 的几何形状来自[遮罩图案](/zh/docs/narraleaf-react/core/animation/transition/mask)，`RuleReveal` 的形状来自一张图片，且其他图像过渡能用的地方它都能用
+
+## 用法
+
+```tsx
+import { RuleReveal } from "narraleaf-react";
+import spiral from "path/to/rules/spiral.png";
+
+// 以路径给出规则图
+scene.jumpTo(next, new RuleReveal({ duration: 1200, rule: "/rules/spiral.png" }));
+
+// 更锐利的边缘，并从规则图的亮端开始
+scene.jumpTo(next, new RuleReveal({ duration: 900, rule: spiral, feather: 0.03, inverted: true }));
+
+// 背景与立绘使用同一个过渡
+scene.setBackground("/backgrounds/room-night.webp", new RuleReveal({ duration: 1000, rule: spiral }));
+image.char("image1.jpg", new RuleReveal({ duration: 800, rule: spiral }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: RuleRevealOptions`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `rule: ImageSrc` - 决定画面切换顺序的灰度图，参见 [ImageSrc](/zh/docs/narraleaf-react/core/types/ImageSrc)
+  - `feather?: number` - 柔边宽度，以规则图色调范围的比例表示。数值越小边缘越锐利。取值范围为 `0.002`–`1`，超出范围的值会被收拢到最近的一端。默认为 `0.12`
+  - `inverted?: boolean` - 改为让规则图的亮部最先切换。默认为 `false`
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
+
+## 规则图
+
+任何灰度图都可以作为规则图。黑色在过渡开始时切换，白色在过渡结束时切换，`inverted: true` 则改为从亮端开始扫过
+
+规则图会被拉伸到它所作用的元素上，因此按舞台的宽高比绘制。规则图不需要很大，`960x540` 足以覆盖 1080p 舞台

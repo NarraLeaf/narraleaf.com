@@ -1,0 +1,42 @@
+---
+title: "RuleReveal"
+---
+> Available on [Image](/docs/narraleaf-react/core/elements/image) changes and on [scene jumps](/docs/narraleaf-react/core/types/JumpConfig).
+
+Reveal the next image over the current one in the order a grayscale picture dictates: the dark areas of that picture change over first, the bright areas last. A rule painted as a spiral wipes as a spiral.
+
+[Reveal](/docs/narraleaf-react/core/animation/transition/reveal) takes its geometry from a [mask pattern](/docs/narraleaf-react/core/animation/transition/mask). `RuleReveal` takes it from an image, and plays anywhere the other image transitions play.
+
+## Usage
+
+```tsx
+import { RuleReveal } from "narraleaf-react";
+import spiral from "path/to/rules/spiral.png";
+
+// A rule given by path
+scene.jumpTo(next, new RuleReveal({ duration: 1200, rule: "/rules/spiral.png" }));
+
+// A crisper edge, running from the bright end of the rule
+scene.jumpTo(next, new RuleReveal({ duration: 900, rule: spiral, feather: 0.03, inverted: true }));
+
+// Backgrounds and sprites take the same transition
+scene.setBackground("/backgrounds/room-night.webp", new RuleReveal({ duration: 1000, rule: spiral }));
+image.char("image1.jpg", new RuleReveal({ duration: 800, rule: spiral }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: RuleRevealOptions`
+  - `duration: number` - The duration of the transition in milliseconds
+  - `rule: ImageSrc` - The grayscale picture that sets the order the frame changes over. See [ImageSrc](/docs/narraleaf-react/core/types/ImageSrc).
+  - `feather?: number` - The width of the soft edge, as a fraction of the rule's tonal range. Smaller is crisper. The accepted range is `0.002`–`1`, and a value outside it is brought to the nearest end. Defaults to `0.12`.
+  - `inverted?: boolean` - Change the bright areas of the rule over first instead of the dark ones. Defaults to `false`.
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
+
+## Rule Images
+
+Any grayscale picture works as a rule. Black changes over at the start of the transition and white at the end, and `inverted: true` runs the sweep from the bright end instead.
+
+The rule is stretched to the element it plays on, so it is painted at the stage's aspect ratio. Rules do not need to be large: `960x540` covers a 1080p stage.
