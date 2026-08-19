@@ -23,7 +23,7 @@ type VfxBlendMode =
 ```
 
 - `src` — the video URL. Required.
-- `blendMode` — how the overlay is composited onto the stage. Default `"normal"`. `"normal"` is for true-alpha material (VP9 `yuva420p` alpha WebM); `"screen"` is additive blending for glow material rendered on a black background (dark pixels wash out on bright backdrops); `"multiply"` is for shadow material rendered on a white background.
+- `blendMode` — how the overlay is composited onto the stage. Default `"normal"`. `"normal"` is for true-alpha material (VP9 `yuva420p` alpha WebM); `"screen"` is additive blending for glow material rendered on a black background (dark pixels wash out on bright backdrops); `"multiply"` is for shadow material rendered on a white background. Values other than `"normal"` take effect since `0.31.4`.
 - `loop` — loop playback. Default `true`.
 - `muted` — default `true`. Unmuted autoplay may be rejected by the browser.
 - `opacity` — the overlay's target opacity (the fade-in end value). Default `1`.

@@ -23,7 +23,7 @@ type VfxBlendMode =
 ```
 
 - `src` — 视频 URL。必填
-- `blendMode` — 叠加层与舞台的混合方式。默认 `"normal"`。`"normal"` 用于真 alpha 素材（VP9 `yuva420p` alpha WebM）；`"screen"` 是加法混合，用于绘制在黑底上的发光素材（暗色像素在亮背景上会被冲蚀）；`"multiply"` 用于绘制在白底上的阴影素材
+- `blendMode` — 叠加层与舞台的混合方式。默认 `"normal"`。`"normal"` 用于真 alpha 素材（VP9 `yuva420p` alpha WebM）；`"screen"` 是加法混合，用于绘制在黑底上的发光素材（暗色像素在亮背景上会被冲蚀）；`"multiply"` 用于绘制在白底上的阴影素材。`"normal"` 以外的取值自 `0.31.4` 起生效
 - `loop` — 是否循环播放。默认 `true`
 - `muted` — 默认 `true`。非静音的自动播放可能被浏览器策略拒绝
 - `opacity` — 叠加层的目标不透明度（淡入的终值）。默认 `1`

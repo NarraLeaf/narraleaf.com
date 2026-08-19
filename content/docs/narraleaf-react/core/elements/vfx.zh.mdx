@@ -39,6 +39,12 @@ scene.action([
 | **真 alpha** | VP9 `yuva420p` alpha WebM | `"normal"`（默认） | 任意背景色彩保真；体积较大，alpha 解码走软解 |
 | **黑底发光** | VP9 `yuv420p`，效果绘制在黑底上 | `"screen"` | 体积小 5–10 倍、可硬件解码；加法混合会冲蚀暗色像素，只适合纯发光类效果 |
 
+<Callout type="info">
+    **自 `0.31.4` 起，`"normal"` 以外的 `blendMode` 才真正生效。** 在此之前，无论声明的是哪个值，叠加层
+    一律按 `"normal"` 合成，因此黑底素材会以一块不透明的矩形盖住场景，而不是把它的光叠加上去。构造参数没有变化，
+    `"normal"` 的表现也一如既往
+</Callout>
+
 ```bash
 # 真 alpha 路线
 ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 34 fx-alpha.webm

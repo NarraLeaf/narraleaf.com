@@ -39,6 +39,13 @@ Two complementary asset routes are supported through [`blendMode`](/docs/narrale
 | **True alpha** | VP9 `yuva420p` alpha WebM | `"normal"` (default) | Faithful colors on any background; larger files, software alpha decode |
 | **Black-background glow** | VP9 `yuv420p`, effect drawn on black | `"screen"` | 5–10× smaller, hardware decodable; additive blending washes out dark pixels, so purely luminous effects only |
 
+<Callout type="info">
+    **Since `0.31.4`, a `blendMode` other than `"normal"` takes effect.** Before that, every overlay
+    composited as `"normal"` whatever the mode said, so black-background material covered the scene
+    with an opaque rectangle instead of adding its light to it. The constructor is unchanged, and
+    `"normal"` behaves as it always has.
+</Callout>
+
 ```bash
 # true-alpha route
 ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 34 fx-alpha.webm
