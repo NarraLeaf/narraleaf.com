@@ -1,0 +1,34 @@
+---
+title: "压暗"
+---
+> 可用于[图像](/zh/docs/narraleaf-react/core/elements/image)切换与[场景跳转](/zh/docs/narraleaf-react/core/types/JumpConfig)
+
+将下一张图像一次性换入，并让它的暗度从一个数值过渡到另一个数值。暗度 `0` 表示图像不受影响，`1` 表示全黑，因此 `from: 1, to: 0` 让新图像从黑场中亮起，`from: 0, to: 1` 则让它暗入黑场
+
+[`image.darken`](/zh/docs/narraleaf-react/core/elements/image) 由这个过渡承担：原地压暗一张图像，就是从当前暗度过渡到新的暗度。其他图像过渡能用的地方，`Darkness` 都能用
+
+## 用法
+
+```tsx
+import { Darkness } from "narraleaf-react";
+
+// 让下一张图像从黑场中亮起
+scene.jumpTo(next, new Darkness({ from: 1, to: 0, duration: 800 }));
+
+// 暗入黑场
+scene.jumpTo(next, new Darkness({ from: 0, to: 1, duration: 600, easing: "easeIn" }));
+
+// 背景与立绘使用同一个过渡
+scene.setBackground("/backgrounds/room-night.webp", new Darkness({ from: 1, to: 0, duration: 1000 }));
+image.char("image1.jpg", new Darkness({ from: 0, to: 0.6, duration: 400 }));
+```
+
+## 公共方法
+
+### constructor
+
+- `options: DarknessOptions`
+  - `from: number` - 图像起始的暗度，取值范围为 `0`–`1`
+  - `to: number` - 图像结束时的暗度，取值范围为 `0`–`1`
+  - `duration: number` - 过渡效果的持续时间，以毫秒为单位
+  - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见[TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

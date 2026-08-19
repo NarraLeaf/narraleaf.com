@@ -1,0 +1,34 @@
+---
+title: "Darkness"
+---
+> Available on [Image](/docs/narraleaf-react/core/elements/image) changes and on [scene jumps](/docs/narraleaf-react/core/types/JumpConfig).
+
+Swap the next image in at once and animate its darkness from one level to another. Darkness `0` leaves the image untouched and `1` is fully black, so `from: 1, to: 0` brings the new image up out of black and `from: 0, to: 1` dims it into black.
+
+This is what backs [`image.darken`](/docs/narraleaf-react/core/elements/image): darkening an image in place is a transition from its current darkness to the new one. `Darkness` plays anywhere the other image transitions play.
+
+## Usage
+
+```tsx
+import { Darkness } from "narraleaf-react";
+
+// Bring the next image up out of black
+scene.jumpTo(next, new Darkness({ from: 1, to: 0, duration: 800 }));
+
+// Dim into black
+scene.jumpTo(next, new Darkness({ from: 0, to: 1, duration: 600, easing: "easeIn" }));
+
+// Backgrounds and sprites take the same transition
+scene.setBackground("/backgrounds/room-night.webp", new Darkness({ from: 1, to: 0, duration: 1000 }));
+image.char("image1.jpg", new Darkness({ from: 0, to: 0.6, duration: 400 }));
+```
+
+## Public Methods
+
+### constructor
+
+- `options: DarknessOptions`
+  - `from: number` - The darkness the image starts from. The accepted range is `0`–`1`.
+  - `to: number` - The darkness the image ends at. The accepted range is `0`–`1`.
+  - `duration: number` - The duration of the transition in milliseconds
+  - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
