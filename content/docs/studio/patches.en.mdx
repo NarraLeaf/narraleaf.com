@@ -79,7 +79,7 @@ The counts are warnings and the export runs. With **Build this patch updates** e
 
 ## Installation
 
-Zip the `patch` folder and send it. The player extracts it into the game's folder:
+Zip the `patch` folder and send it. The player extracts it into the game's folder — the folder they start the game from:
 
 <Files>
     <Folder name="patch" defaultOpen>
@@ -89,11 +89,18 @@ Zip the `patch` folder and send it. The player extracts it into the game's folde
     <File name="My Game.exe" />
 </Files>
 
-The game's folder is the one holding its `resources` folder. On Windows and Linux the executable is in that folder. On macOS it is `Contents`, inside the app bundle: right-click the app, choose **Show Package Contents**, and open `Contents`.
+On macOS that folder holds the application rather than an executable, and nothing goes inside the application itself:
+
+<Files>
+    <Folder name="patch" defaultOpen>
+        <File name="episode-two.patch.dat" />
+    </Folder>
+    <File name="My Game.app" />
+</Files>
 
 Deleting the `.patch.dat` file returns the game to what it shipped with.
 
-A `patch` folder in the player data folder also applies. A patch kept there survives reinstalling the game, and wins over one in the game's folder. **Project ▸ App** lists that folder's path on each platform under **Player files**.
+A `patch` folder in the player data folder also applies. A patch kept there survives reinstalling the game, and wins over one in the game's folder. **Project ▸ App** shows where a game keeps the player's files, under **Player files**.
 
 Several patch files can sit in one folder. They apply in filename order, and a later one wins where two of them change the same thing.
 

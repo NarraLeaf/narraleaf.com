@@ -79,7 +79,7 @@ description: 导出补丁文件，让玩家把它加进手上已有的副本，�
 
 ## 安装
 
-把 `patch` 目录打成压缩包发送。玩家将它解压到游戏目录：
+把 `patch` 目录打成压缩包发送。玩家将它解压到游戏目录——也就是他启动游戏的那个目录：
 
 <Files>
     <Folder name="patch" defaultOpen>
@@ -89,11 +89,18 @@ description: 导出补丁文件，让玩家把它加进手上已有的副本，�
     <File name="My Game.exe" />
 </Files>
 
-游戏目录就是放着它 `resources` 目录的那一层。在 Windows 和 Linux 上，可执行文件也在这一层；在 macOS 上是应用包内的 `Contents`：右键点按应用，选择**显示包内容**，再打开 `Contents`
+在 macOS 上，这个目录里放的是应用本身而不是可执行文件，应用内部不放任何东西：
+
+<Files>
+    <Folder name="patch" defaultOpen>
+        <File name="episode-two.patch.dat" />
+    </Folder>
+    <File name="My Game.app" />
+</Files>
 
 删掉 `.patch.dat` 文件，游戏回到发布时的样子
 
-玩家文件目录下的 `patch` 目录同样生效。放在那里的补丁在重装游戏之后依然生效，并且优先于游戏目录下的补丁。**项目 ▸ 应用**在**玩家文件**一节列出该目录在各平台的路径
+玩家文件目录下的 `patch` 目录同样生效。放在那里的补丁在重装游戏之后依然生效，并且优先于游戏目录下的补丁。**项目 ▸ 应用**在**玩家文件**一节说明游戏把玩家文件放在哪里
 
 一个目录里可以同时放多个补丁文件，它们按文件名顺序生效，两个补丁改动同一处时以靠后的那个为准
 
