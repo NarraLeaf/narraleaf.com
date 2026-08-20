@@ -292,6 +292,61 @@ element.transform(new Transform(
 </Step>
 </Steps>
 
+### loop
+
+<Steps>
+<Step>
+
+让元素反复播放一个变换，直到有东西让它停下。
+
+**这一行不会等待。** 这是它与 `transform()` 唯一的区别：`transform()` 是故事的一步，下一行要等它播完；
+而 `loop()` 是元素自己带着的一个属性——设上之后故事继续往下走，动作在后面的一切之下一直跑着。
+
+一个元素同一时刻只带**一个**变换，所以任何别的东西作用到它身上都会把它收回来：`transform()`、`pos()`、
+`zoom()`、`show()`、`hide()` 等等都会结束循环，并从它当时所在的位置继续。**不会**结束它的有：玩家跳过或快进、
+转场换图、切换场景，以及存档读档——读回来的存档会把循环装回去。
+
+循环开始前元素所处的姿态，就是它要回到的地方，也是存档唯一记下的东西；中间那些帧从不落盘。
+
+```typescript
+const breathe = Transform.create()
+    .scaleY(1.015)
+    .commit({ duration: 1900, ease: "easeInOut" });
+
+scene.action([
+    yuko.loop(breathe, { repeatType: "mirror" }),
+    yuko.say`今天很安静。`,            // 她一边呼吸，这句一边播
+    yuko.stopLoop({ duration: 300 }),
+]);
+```
+
+- `transform: Transform` - 要重复的动作，参见 [Transform](/zh/docs/narraleaf-react/core/animation/transform)。它必须已经 commit，这一点和 `transform()` 一样。如果不希望每次重复时画面跳一下，要么让它回到起点，要么传 `repeatType: "mirror"`。
+- `options?: LoopOptions` - 重复的方式。
+  - `repeatType?: "loop" | "reverse" | "mirror"` - 默认 `"loop"`。
+  - `repeatDelay?: number` - 下一次重复开始前，保持最后一个姿态的毫秒数。默认 `0`。
+</Step>
+</Steps>
+
+### stopLoop
+
+<Steps>
+<Step>
+
+结束元素的循环变换，并把它放回循环开始前的姿态。
+
+与 `loop()` 不同，这一行**会**等待——因为它有一个明确的终点。不给时长时，元素在同一帧就回到位。
+对没有在循环的元素调用它不做任何事。
+
+```typescript
+yuko.stopLoop({ duration: 300, ease: "easeOut" });
+```
+
+- `options?: LoopStopOptions` - 元素如何从循环中退出。
+  - `duration?: number` - 回到循环开始前那个姿态所花的毫秒数。默认 `0`。
+  - `ease?: EasingDefinition` - 参见 [Transform](/zh/docs/narraleaf-react/core/animation/transform)。
+</Step>
+</Steps>
+
 ### show
 
 <Steps>

@@ -293,6 +293,66 @@ element.transform(new Transform(
 </Step>
 </Steps>
 
+### loop
+
+<Steps>
+<Step>
+
+Play a transform on the element over and over until something stops it.
+
+**The line does not wait.** That is the one difference from `transform()`: `transform()` is a step of
+the story and the next line waits for it to finish, while `loop()` is a property the element carries
+— it is set, the story moves on, and the motion keeps running underneath everything that follows.
+
+An element carries **one** transform at a time, so anything else applied to it takes the element
+back: `transform()`, `pos()`, `zoom()`, `show()`, `hide()` and the rest all end the loop and move on
+from wherever it had got to. What does *not* end it: the player skipping or fast-forwarding, a
+transition changing the picture, changing scene, or saving and loading — a loaded save puts the loop
+back.
+
+The pose the element had when the loop started is what it returns to, and the only thing a save
+records; the frames in between are never written down.
+
+```typescript
+const breathe = Transform.create()
+    .scaleY(1.015)
+    .commit({ duration: 1900, ease: "easeInOut" });
+
+scene.action([
+    yuko.loop(breathe, { repeatType: "mirror" }),
+    yuko.say`It's quiet today.`,     // plays while she keeps breathing
+    yuko.stopLoop({ duration: 300 }),
+]);
+```
+
+- `transform: Transform` - The motion to repeat, see [Transform](/docs/narraleaf-react/core/animation/transform). It has to be committed, exactly as for `transform()`. For anything that should not snap on each repeat, either bring it back to where it started or pass `repeatType: "mirror"`.
+- `options?: LoopOptions` - How the repeat behaves.
+  - `repeatType?: "loop" | "reverse" | "mirror"` - Default `"loop"`.
+  - `repeatDelay?: number` - Milliseconds to hold the last pose before the next repeat starts. Default `0`.
+</Step>
+</Steps>
+
+### stopLoop
+
+<Steps>
+<Step>
+
+End the element's looping transform and put it back to the pose it had before the loop started.
+
+Unlike `loop()`, this **is** something the line waits for — there is a definite end to wait for.
+With no duration the element is back in place on the same frame. It is a no-op on an element that is
+not looping.
+
+```typescript
+yuko.stopLoop({ duration: 300, ease: "easeOut" });
+```
+
+- `options?: LoopStopOptions` - How the element eases out of the loop.
+  - `duration?: number` - Milliseconds spent returning to the pose the element had before the loop started. Default `0`.
+  - `ease?: EasingDefinition` - See [Transform](/docs/narraleaf-react/core/animation/transform).
+</Step>
+</Steps>
+
 ### show
 
 <Steps>
