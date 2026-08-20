@@ -40,6 +40,25 @@ scene.action([
 
 ## Chainable Methods
 
+### preload
+
+<Callout type="info">
+    Available since `0.33.0`.
+</Callout>
+
+<Steps>
+<Step>
+
+Put the video element on the stage without showing it, so it starts buffering. The action resolves immediately, and does nothing to a video already on the stage.
+
+Use it a few lines before the video is shown or played, so the first frame is ready when it is.
+
+```typescript
+video.preload();
+```
+</Step>
+</Steps>
+
 ### show
 
 <Steps>

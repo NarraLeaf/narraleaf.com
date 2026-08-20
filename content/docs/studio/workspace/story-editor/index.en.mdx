@@ -34,6 +34,20 @@ A scene opens as a tab and is edited as a list of rows. A row is either a line o
 - **Find in scene** searches within the open scene, with case, whole word, and regular expression options, and replaces matches.
 - Rows that reference a missing asset, or a name a character's model does not have, are marked in place.
 
+## Putting something on stage
+
+It takes two directions. **Image**, **Text**, **Video** and **Ambience** declare an object: the direction names it, gives it a source, and puts it where it starts. Nothing appears until **Show** reveals it, and **Hide** takes it away again. Both address the object by name.
+
+**Layer** is the exception. A layer exists visible from the direction that creates it.
+
+Declaring an object a few lines before showing it also loads its picture or clip ahead of time, so the moment it appears is not the moment it starts loading.
+
+**Ambience** is the one object that outlives its scene. An overlay shown in one scene is still playing in the next, and any scene can hide it. Ctrl-click its name on a row to open the direction that declared it, wherever that is.
+
+A **Show** of an ambience overlay can carry its own opacity and speed, which apply to that showing only.
+
+The **Project check** reports an object that nothing shows, under **Unshown stage object**.
+
 ## Branching and variables
 
 Choices, conditions, and jumps are written as directions in the scene. Story flow shows the resulting branches between scenes as a graph.

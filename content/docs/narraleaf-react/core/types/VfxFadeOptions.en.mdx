@@ -5,10 +5,15 @@ title: "VfxFadeOptions"
 type VfxFadeOptions = {
     duration?: number;
     easing?: TransformDefinitions.EasingDefinition;
+    opacity?: number;
+    rate?: number;
 };
 ```
 
 - `duration` — fade duration in milliseconds. Default `0` (instant).
 - `easing` — [EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition). Bezier arrays map exactly to CSS `cubic-bezier`; the named easings `linear`, `easeIn`, `easeOut`, and `easeInOut` map to their CSS equivalents; anything else falls back to CSS `ease`.
+
+- `opacity` - opacity to fade in to, for this showing only. Default `config.opacity`. Read by `show`; a `hide` always fades to zero. Since `0.33.0`.
+- `rate` - playback speed for this showing only. Default `config.playbackRate`. Not persisted: a loaded save plays at the configured rate. Since `0.33.0`.
 
 See [Vfx](/docs/narraleaf-react/core/elements/vfx).

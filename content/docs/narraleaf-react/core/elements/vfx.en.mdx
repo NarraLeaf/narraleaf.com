@@ -20,13 +20,16 @@ const petals = new Vfx({src: "/fx/petals-alpha.webm"});
 const dust = new Vfx({src: "/fx/dust-black.webm", blendMode: "screen", opacity: 0.9});
 
 scene.action([
+    petals.preload(),               // load it now; nothing on screen yet
+    dust.preload(),
+    character`The wind is picking up.`,
     petals.show({duration: 800}),   // fade in; the action waits for the fade
-    dust.show(),
+    dust.show({opacity: 0.4}),      // this showing only
     character`The petals are falling...`,
     petals.setPlaybackRate(0.5),    // slow drifting
     dust.pause(),                   // freeze on the current frame
     dust.resume(),
-    petals.hide({duration: 1200}),  // fade out, then stop and leave the stage
+    petals.hide({duration: 1200}),  // fade out and stop playing
 ]);
 ```
 
@@ -62,7 +65,8 @@ ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-bla
 ## Behavior
 
 - `show`/`hide` fades **complete instantly** when the player skips, and a source that fails to load logs an error and resolves immediately, so a broken asset never blocks the story.
-- Visible overlays are captured by save/load and re-appear without a fade, playing or frozen if paused. Saves created before `0.16.0` load fine.
+- Overlays on the stage are captured by save/load and re-appear without a fade, playing or frozen if paused. Since `0.33.0` this covers preloaded overlays as well, which restore hidden. Saves created before `0.16.0` load fine.
+- A save naming an overlay the story no longer has loads without it, and logs a warning.
 - Undo restores the overlay's previous visibility.
 
 ## Public Methods
@@ -82,6 +86,29 @@ const rain = new Vfx({src: "/fx/rain-black.webm", blendMode: "screen"});
 
 ## Chainable Methods
 
+### preload
+
+<Callout type="info">
+    Available since `0.33.0`.
+</Callout>
+
+<Steps>
+<Step>
+
+Put the overlay on the stage without showing it. The clip starts loading, and the action resolves immediately.
+
+Use it a few lines before the overlay is shown. `show` waits for the first frame, so a preloaded overlay appears at once. Calling it on an overlay already on the stage does nothing.
+
+```ts
+scene.action([
+    rain.preload(),
+    character`The sky has been grey all afternoon.`,
+    rain.show({duration: 800}),
+]);
+```
+</Step>
+</Steps>
+
 ### show
 
 <Steps>
@@ -91,8 +118,11 @@ const rain = new Vfx({src: "/fx/rain-black.webm", blendMode: "screen"});
 
 Add the overlay to the stage, wait for the first frame, fade it in, and start looping playback. The action waits for the fade-in to finish. Calling it while the overlay is already shown is idempotent (the fade-in is re-applied from the current opacity).
 
+Since `0.33.0`, `options.opacity` and `options.rate` apply to this showing only and fall back to the configured values, so a plain `show()` after an overridden one is back to normal. Neither is persisted: a loaded save plays at the configured opacity and rate.
+
 ```ts
 petals.show({duration: 800, easing: "easeOut"});
+petals.show({opacity: 0.35, rate: 2});   // faint and fast, this time only
 ```
 </Step>
 </Steps>
@@ -104,7 +134,9 @@ petals.show({duration: 800, easing: "easeOut"});
 
 - `options?: VfxFadeOptions` - [VfxFadeOptions](/docs/narraleaf-react/core/types/VfxFadeOptions)
 
-Fade the overlay out, then stop playback and remove it from the stage. The action waits for the fade-out to finish. Calling it while the overlay is not shown is a no-op.
+Fade the overlay out and stop playback. The action waits for the fade-out to finish. Calling it while the overlay is not shown is a no-op.
+
+Since `0.33.0` the overlay stays on the stage, invisible and not playing, and a later `show` resumes from the frame it stopped on rather than restarting. Only a new game or a load clears the stage.
 
 ```ts
 petals.hide({duration: 1200});

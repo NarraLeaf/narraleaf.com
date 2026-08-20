@@ -5,10 +5,15 @@ title: "VfxFadeOptions"
 type VfxFadeOptions = {
     duration?: number;
     easing?: TransformDefinitions.EasingDefinition;
+    opacity?: number;
+    rate?: number;
 };
 ```
 
 - `duration` — 淡变时长（毫秒）。默认 `0`（立即完成）
 - `easing` — [EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)。贝塞尔数组精确映射为 CSS `cubic-bezier`；命名缓动 `linear`、`easeIn`、`easeOut`、`easeInOut` 映射为对应的 CSS 缓动；其余回退为 CSS `ease`
+
+- `opacity` - 本次显示淡入到的不透明度。默认为 `config.opacity`。仅 `show` 读取；`hide` 始终淡出到 0。自 `0.33.0` 起
+- `rate` - 本次显示的播放速度。默认为 `config.playbackRate`。不进存档：读档后按配置的速度播放。自 `0.33.0` 起
 
 参见 [Vfx](/zh/docs/narraleaf-react/core/elements/vfx)

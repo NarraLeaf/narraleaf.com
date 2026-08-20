@@ -38,6 +38,25 @@ scene.action([
 
 ## 链式方法
 
+### preload
+
+<Callout type="info">
+    自 `0.33.0` 起可用
+</Callout>
+
+<Steps>
+<Step>
+
+将视频元素加入舞台但不显示，使其开始缓冲。动作立即完成；对已在舞台上的视频调用不会有任何效果
+
+在显示或播放它的前几行调用，首帧就会在需要时已经就绪
+
+```typescript
+video.preload();
+```
+</Step>
+</Steps>
+
 ### show
 
 <Steps>
