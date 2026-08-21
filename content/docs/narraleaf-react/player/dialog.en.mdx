@@ -81,8 +81,8 @@ Renders the typed dialogue text. Use it inside `Dialog`. These props set the def
 - `fontWeight?: React.CSSProperties["fontWeight"]`
 - `fontWeightBold?: React.CSSProperties["fontWeight"]` - Weight for bold sentences and words.
 - `fontFamily?: React.CSSProperties["fontFamily"]`
-- `autoFit?: boolean` - Fits the whole line inside its box by setting it smaller. Default `false`. Since `0.34.0`.
-- `autoFitMinFontSize?: number` - Smallest size `autoFit` sets, in px. Default `12`. Since `0.34.0`.
+- `autoFit?: boolean` - Keeps the whole line inside its box by setting it smaller as it is typed. Default `true`. Since `0.34.0`.
+- `autoFitMinFontSize?: number` - Smallest size scaling sets, in px. Default `12`. Since `0.34.0`.
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
@@ -316,21 +316,21 @@ Dialogue text is typeset to the strict kinsoku rules in both writing modes. A li
 
 The strict rules apply only when the document declares a language. Set `lang` on the page hosting the player. Any value is enough, and a shell built by NarraLeaf Studio already carries one.
 
-## Auto fit
+## Text scaling
 
 <Callout type="info">
-    Available since `0.34.0`.
+    Available since `0.35.0`.
 </Callout>
 
-`autoFit` turns `fontSize` into a ceiling. The line is set at `fontSize` whenever the finished line fits the box, and smaller when it does not, down to `autoFitMinFontSize`. A line that still overflows at the smallest size is left overflowing.
+A dialogue line is kept inside its box by being set down as it is typed. It is set at `fontSize` and stays there for as long as it fits, so a short line is drawn at full size. Once the text reaches the end of the box, every further character is measured and the size comes down by what it takes to keep the whole line inside, to no less than `autoFitMinFontSize`. A line that still overflows at the smallest size is left overflowing.
+
+Scaling is on by default. Turn it off for one line with `autoFit={false}`, or for the whole game with `GameConfig.disableTextScaling`.
 
 ```tsx
-<Texts fontSize={24} autoFit autoFitMinFontSize={16} />
+<Texts fontSize={24} autoFitMinFontSize={16} />
 ```
 
-The finished line is what has to fit, so the size is settled before the first character appears and holds for the rest of the line.
-
-Sizes set on a `Sentence` or a `Word` are multiplied by the same factor, so their relative weights hold at every size.
+Sizes set on a `Sentence` or a `Word` are scaled with the line rather than replaced, so their relative weights hold at every size.
 
 The box is the container's parent element. A parent with no height of its own leaves the line at its authored size.
 

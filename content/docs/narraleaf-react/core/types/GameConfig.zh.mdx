@@ -269,6 +269,14 @@ type GameConfig = {
         guard: GuardConfig;
     };
     /**
+     * 关闭整个游戏的文本缩放。
+     *
+     * 对白文本在逐字显示的过程中缩小，以保持整行留在盒子内。开启该项后，每一行都保持作者设定的
+     * 字号，超出盒子的行会溢出。
+     * @default false
+     */
+    disableTextScaling: boolean;
+    /**
      * 覆盖默认舞台
      * @default null
      */

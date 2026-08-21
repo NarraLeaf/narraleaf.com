@@ -81,8 +81,8 @@ function App() {
 - `fontWeight?: React.CSSProperties["fontWeight"]`
 - `fontWeightBold?: React.CSSProperties["fontWeight"]` - 句子或词为粗体时的字重
 - `fontFamily?: React.CSSProperties["fontFamily"]`
-- `autoFit?: boolean` - 缩小字号，使整行放进它所在的盒子。默认 `false`。自 `0.34.0` 起
-- `autoFitMinFontSize?: number` - `autoFit` 能设到的最小字号，单位 px。默认 `12`。自 `0.34.0` 起
+- `autoFit?: boolean` - 在逐字显示过程中缩小字号，使整行留在它所在的盒子内。默认 `true`。自 `0.34.0` 起
+- `autoFitMinFontSize?: number` - 缩放能设到的最小字号，单位 px。默认 `12`。自 `0.34.0` 起
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
@@ -316,21 +316,21 @@ function GameDialog() {
 
 严格禁则只在文档声明了语言时生效。在承载播放器的页面上设置 `lang`，取任意值均可；NarraLeaf Studio 构建出的外壳已经带有该属性
 
-## 自动缩小
+## 文本缩放
 
 <Callout type="info">
-    自 `0.34.0` 起可用
+    自 `0.35.0` 起可用
 </Callout>
 
-`autoFit` 把 `fontSize` 变成上限。整行放得下时按 `fontSize` 排版，放不下时缩小，最小到 `autoFitMinFontSize`。在最小字号下仍然溢出的行保持溢出
+对白行在逐字显示的过程中缩小，以保持整行留在盒子内。起始字号为 `fontSize` 并在放得下时一直保持，因此短行按原字号显示。文本抵达盒子末端后，其后每多一个字都会重新测量，并按需要缩小到整行仍能容纳，最小到 `autoFitMinFontSize`。在最小字号下仍然溢出的行保持溢出
+
+缩放默认开启。单行关闭用 `autoFit={false}`，整个游戏关闭用 `GameConfig.disableTextScaling`
 
 ```tsx
-<Texts fontSize={24} autoFit autoFitMinFontSize={16} />
+<Texts fontSize={24} autoFitMinFontSize={16} />
 ```
 
-要放得下的是完整的一行，因此字号在第一个字出现之前就已确定，并在该行逐字显示的全程保持不变
-
-`Sentence` 与 `Word` 上设定的字号按同一系数一并缩放，相对大小关系在任何字号下都成立
+`Sentence` 与 `Word` 上设定的字号随行一并缩放而不是被替换，相对大小关系在任何字号下都成立
 
 盒子是容器的父元素。父元素自身没有高度时，行保持作者设定的字号
 
