@@ -81,6 +81,8 @@ function App() {
 - `fontWeight?: React.CSSProperties["fontWeight"]`
 - `fontWeightBold?: React.CSSProperties["fontWeight"]` - 句子或词为粗体时的字重
 - `fontFamily?: React.CSSProperties["fontFamily"]`
+- `autoFit?: boolean` - 缩小字号，使整行放进它所在的盒子。默认 `false`。自 `0.34.0` 起
+- `autoFitMinFontSize?: number` - `autoFit` 能设到的最小字号，单位 px。默认 `12`。自 `0.34.0` 起
 - `...props: React.HTMLAttributes<HTMLDivElement>`
 
 ### Avatar
@@ -313,6 +315,24 @@ function GameDialog() {
 对话正文在横排与竖排下都按严格禁则排版。行首不会出现 、 。 」 ？ ！、小写假名与长音符，行尾不会出现 「 （。拉丁词不会被拆开，在任何宽度下都放不下的连续串（例如网址）会断开而不是溢出
 
 严格禁则只在文档声明了语言时生效。在承载播放器的页面上设置 `lang`，取任意值均可；NarraLeaf Studio 构建出的外壳已经带有该属性
+
+## 自动缩小
+
+<Callout type="info">
+    自 `0.34.0` 起可用
+</Callout>
+
+`autoFit` 把 `fontSize` 变成上限。整行放得下时按 `fontSize` 排版，放不下时缩小，最小到 `autoFitMinFontSize`。在最小字号下仍然溢出的行保持溢出
+
+```tsx
+<Texts fontSize={24} autoFit autoFitMinFontSize={16} />
+```
+
+要放得下的是完整的一行，因此字号在第一个字出现之前就已确定，并在该行逐字显示的全程保持不变
+
+`Sentence` 与 `Word` 上设定的字号按同一系数一并缩放，相对大小关系在任何字号下都成立
+
+盒子是容器的父元素。父元素自身没有高度时，行保持作者设定的字号
 
 ## 叠层
 

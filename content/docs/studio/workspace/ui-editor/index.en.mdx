@@ -30,6 +30,12 @@ An interface opens as a tab: the UI Outline on the left, the canvas in the cente
 
 The canvas never crops: the runtime always fits the whole stage inside the window, so what falls outside the safe area stays visible on some devices.
 
+## Auto fit
+
+A **Text** widget can shrink its content until it fits the box it is drawn in. Turn on **Auto fit** in **Typography**: the size set on the widget becomes a ceiling, and the text is set smaller until the whole of it fits, down to **Smallest size**. Text that still does not fit at **Smallest size** is clipped.
+
+**Smallest size** appears while **Auto fit** is on. Both properties apply on the canvas and in the running game, and the **Sentence** and **NVL Texts** widgets carry them as well.
+
 ## Components
 
 A selection can be saved to the **Component Library** and placed again elsewhere. Use a component when a group of widgets is ready to be reused rather than copied.
