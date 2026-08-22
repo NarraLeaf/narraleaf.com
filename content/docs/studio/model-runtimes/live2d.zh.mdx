@@ -10,7 +10,7 @@ Studio 安装 Cubism 运行时的方式是使用所提供的 SDK 在本机编译
 ## 开始之前
 
 <Callout type="warn">
-    **Live2D Cubism 由 Live2D Inc. 授权，而非 NarraLeaf。** 从 Live2D 下载 SDK 时即接受 Cubism SDK 许可协议，且在构建的游戏中，分发方为使用者本人。免费使用存在边界：超过 Live2D 公布的年营收阈值后，商业发行需另行向其申请 **Publication License**。发行前请在 [Live2D 许可页面](https://www.live2d.com/en/sdk/license/) 核对现行条款。NarraLeaf 不是该协议的当事方，无法就其授予任何权利
+    **Live2D Cubism 由 Live2D Inc. 授权，而非 NarraLeaf。** 从 Live2D 下载 SDK 时即接受 Cubism SDK 许可协议，且在构建的游戏中，分发方为使用者本人。免费使用存在边界：超过 Live2D 公布的年营收阈值后，商业发行需另行向其申请 **Publication License**。单一标题收录多个独立作品、或读取构建时未包含的模型，属于 **Expandable Application**，即使免费发行也须在发行前获得 Live2D 批准。发行前请在 [Live2D 许可页面](https://www.live2d.com/en/sdk/license/) 核对现行条款。NarraLeaf 不是该协议的当事方，无法就其授予任何权利
 </Callout>
 
 所需文件为 **Cubism SDK for Web**，不是 Cubism Editor，也不是 SDK for Native。它是单个 `.zip` 文件，约 20 MB，可从 [Live2D 下载页](https://www.live2d.com/en/sdk/download/web/) 获取。压缩包保持下载时的原样即可，无需解压，Studio 直接读取压缩包
@@ -58,7 +58,9 @@ Studio 解出 Core、Framework 与 shader 源码，与自带的适配器代码�
     </Folder>
 </Files>
 
-`index.js` 为生成文件，约 1 MB，渲染器编译在其中。`licenses/` 保存 Live2D 的许可文本，与压缩包中的内容一致；`README.md` 记录生成该文件的 SDK 版本。以上文件均属于项目内容，需纳入版本控制，并会随每个构建产物一同分发
+`index.js` 为生成文件，约 1 MB，渲染器编译在其中，并带有 Live2D 的版权声明。`licenses/` 保存 Live2D 的许可文本（与压缩包中的内容一致）以及 Core 的可再分发文件清单；`README.md` 记录生成该文件的 SDK 版本。以上文件均属于项目内容，并会随每个构建产物一同分发
+
+Live2D 的许可涵盖的是「在发行的游戏中再分发 SDK」，不涵盖公开的源码仓库。请将该目录排除在你公开的仓库之外
 
 <Callout type="info">
     **重新构建**（更换较新的 SDK，或 Studio 更新了适配器）只需再次安装并覆盖。项目中不存在对该文件内容的引用，只引用 `live2d` 这一名称，因此角色不受影响
@@ -121,7 +123,7 @@ Cubism 模型是一个目录，因此按目录导入。Studio 会定位其中的
 
 | 现象 | 通常原因 |
 | --- | --- |
-| 「本项目未安装该运行时」 | 当前机器未安装。项目为新克隆，或从未安装过运行时|
+| 「本机未安装该运行时」 | 当前机器未安装。项目为新克隆，或从未安装过运行时|
 | 「无法绘制该模型」并附带原因 | 即为所报告的原因：入口文件缺失、包无法读取，或运行时已不存在|
 | 游戏中角色显示为空盒子 | 角色上的 backend 名与任何已安装的运行时都不匹配。检查 **项目 → 运行时**|
 | 模型绘制为纯白色块 | 贴图上传被拒。开启 `diagnostics` 后查看控制台|

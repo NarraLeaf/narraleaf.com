@@ -15,7 +15,7 @@ A **Live2D** or **Spine** character is not a picture. It is a rigged model with 
 
 ## Why the runtime is supplied
 
-Studio is free software with published source, and the licences these renderers ship under do not permit that combination: Live2D's forbids letting a source-available, freely modifiable licence cover its code, and Spine's requires whoever integrates a runtime to hold a paid Editor licence. NarraLeaf therefore cannot distribute either renderer with Studio, and fetching one on the user's behalf would also constitute distribution.
+Studio is free software with published source, and neither renderer can ship inside it. Live2D's licence forbids letting a source-available, freely modifiable licence cover its code. Spine's requires every user of a product containing its runtime to hold a paid Editor licence. NarraLeaf therefore distributes neither renderer with Studio, and fetching one on the user's behalf would also constitute distribution.
 
 Studio covers everything around the renderer:
 
@@ -46,6 +46,7 @@ One folder per runtime, inside the project:
             </Folder>
             <Folder name="spine">
                 <File name="index.js" />
+                <File name="README.md" />
             </Folder>
         </Folder>
     </Folder>
@@ -53,7 +54,9 @@ One folder per runtime, inside the project:
 
 The folder name is the runtime's name: it is what a character refers to, and what the engine resolves at runtime. `index.js` is the only required file; a folder without one is reported as an incomplete install and is skipped when packaging.
 
-A runtime is project content, not a cache. It belongs in version control alongside the assets, and it is copied into every build. The Live2D runtime file is around 1 MB, because the renderer is compiled into it.
+A runtime is project content, not a cache, and every build carries it. The Live2D runtime file is around 1 MB, because the renderer is compiled into it.
+
+Both vendors' terms cover redistributing their renderer inside the game that ships, and not a public source repository. Keep `runtimes/puppet/` out of any repository you publish; a machine without it installs it again.
 
 ## Managing runtimes
 

@@ -10,14 +10,14 @@ Studio supports Spine characters, but unlike [Live2D](/docs/studio/model-runtime
 ## Licence requirements
 
 <Callout type="warn">
-    **Spine Runtimes are licensed by Esoteric Software.** Their Editor License Agreement requires whoever integrates a Spine runtime into a tool to hold a valid Spine Editor licence; a trial licence does not satisfy it. NarraLeaf holds no Spine licence, so Studio ships no Spine code and offers no build-it-for-me step.
+    **Spine Runtimes are licensed by Esoteric Software.** Every user of a product containing them holds their own Spine Editor licence, and every redistribution carries the Spine Runtimes License Agreement and its copyright notice. Studio ships no Spine code and does not build the adapter.
 </Callout>
 
 Three requirements follow:
 
 1. **Everyone who works with Spine needs their own Editor licence.** It is counted per person, not per project. See [Spine's purchase page](https://esotericsoftware.com/spine-purchase).
-2. **Integration is performed by the user**, by building the adapter described below. The Editor licence covers that.
-3. **The Spine Runtimes License must be supplied with the game that ships**, in full, in the documentation distributed with the product. That obligation belongs to whoever ships the game.
+2. **Spine Essential and Professional are valid only below USD 500,000** in revenue and financing. Above that, Spine Enterprise is required; exceeding the threshold terminates an Essential or Professional licence rather than downgrading it.
+3. **The Spine Runtimes License Agreement ships with the game**, in full. Put it in the runtime folder beside `index.js`: every file in that folder is published with the game.
 
 ## Build the adapter
 
@@ -74,6 +74,14 @@ The output must be a single self-contained ES module, because that is what Studi
 
 ```js title="build.mjs"
 import { build } from "esbuild";
+
+// esbuild keeps a comment only when it contains `@license` or `@preserve` or opens with `/*!`, and
+// the Spine sources open with none of them, so their copyright header is placed here instead.
+const notice = `/*!
+ * Spine Runtimes License Agreement: https://esotericsoftware.com/spine-runtimes-license
+ * Copyright (c) 2013-2025, Esoteric Software LLC
+ */`;
+
 await build({
     entryPoints: ["src/index.js"],
     outfile: "dist/index.js",
@@ -81,10 +89,11 @@ await build({
     format: "esm",
     platform: "browser",
     target: "es2022",
-    // Keeps the Spine Runtimes licence header in the output.
-    legalComments: "inline",
+    banner: { js: notice },
 });
 ```
+
+The banner keeps the copyright notice in the module. The agreement itself is the file placed in the runtime folder.
 
 </Step>
 </Steps>
@@ -121,6 +130,10 @@ Studio loads the module the same way the game will and confirms that it produces
 
 </Step>
 </Steps>
+
+<Callout type="info">
+    **Studio writes a `README.md` into the runtime folder**, unless the folder already carries one. It records that the runtime was supplied rather than built by Studio, and that the licence has to be published with the game.
+</Callout>
 
 <Callout type="info">
     **The folder is named after the backend the module registers.** If the module registers itself as `spine-pro` and was installed as `spine`, Studio renames the folder to `spine-pro` and reports it. The engine resolves a character's runtime by the registered name, and a mismatch leaves the character undrawn on stage.

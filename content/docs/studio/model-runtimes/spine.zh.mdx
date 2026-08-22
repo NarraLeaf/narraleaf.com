@@ -10,14 +10,14 @@ Studio 支持 Spine 角色，但与 [Live2D](/zh/docs/studio/model-runtimes/live
 ## 许可要求
 
 <Callout type="warn">
-    **Spine Runtimes 由 Esoteric Software 授权。** 其 Editor License Agreement 要求将 Spine 运行时集成进工具的一方持有有效的 Spine Editor 授权，Trial 授权不满足该要求。NarraLeaf 未持有 Spine 授权，因此 Studio 不包含 Spine 代码，也不提供代为构建适配器的功能
+    **Spine Runtimes 由 Esoteric Software 授权。** 使用含有该运行时的产品的每一位用户须各自持有 Spine Editor 授权，且每一次再分发都须附带 Spine Runtimes License Agreement 与其版权声明。Studio 不包含 Spine 代码，也不代为构建适配器
 </Callout>
 
 由此产生三项要求：
 
 1. **每位使用 Spine 的成员需各自持有 Editor 授权。** 该授权按人计算，不按项目计算。参见 [Spine 购买页](https://esotericsoftware.com/spine-purchase)
-2. **集成由使用方完成**，即构建下述适配器。Editor 授权涵盖该行为
-3. **Spine Runtimes License 需随发行的游戏一并提供**，包含完整文本，置于随产品分发的文档中。该义务由发行方承担
+2. **Spine Essential 与 Professional 仅在营收与融资低于 50 万美元时有效。** 超过该额度须改用 Spine Enterprise；超过时 Essential 与 Professional 授权即刻终止，而非降级
+3. **Spine Runtimes License Agreement 需随发行的游戏一并提供**，包含完整文本。将其放在运行时文件夹中、与 `index.js` 并列：该文件夹中的每个文件都会随游戏发布
 
 ## 构建适配器
 
@@ -73,6 +73,14 @@ export default function createPuppetBackends({ log }) {
 
 ```js title="build.mjs"
 import { build } from "esbuild";
+
+// esbuild 仅在注释含有 `@license` 或 `@preserve`、或以 `/*!` 开头时保留它，而 Spine 源码三者皆无，
+// 因此其版权声明改由此处写入。
+const notice = `/*!
+ * Spine Runtimes License Agreement: https://esotericsoftware.com/spine-runtimes-license
+ * Copyright (c) 2013-2025, Esoteric Software LLC
+ */`;
+
 await build({
     entryPoints: ["src/index.js"],
     outfile: "dist/index.js",
@@ -80,10 +88,11 @@ await build({
     format: "esm",
     platform: "browser",
     target: "es2022",
-    // 保留产物中的 Spine Runtimes 许可头。
-    legalComments: "inline",
+    banner: { js: notice },
 });
 ```
+
+banner 使版权声明留在模块中；许可协议全文则是放进运行时文件夹的那个文件
 
 </Step>
 </Steps>
@@ -120,6 +129,10 @@ Studio 会以游戏运行时的相同方式加载该模块，确认其产出了�
 
 </Step>
 </Steps>
+
+<Callout type="info">
+    **Studio 会在运行时文件夹中写入一份 `README.md`**，除非该文件夹已经带了一份。它记录该运行时由使用方提供而非 Studio 构建，以及许可须随游戏发布
+</Callout>
 
 <Callout type="info">
     **目录名取自模块注册的 backend 名。** 若模块注册名为 `spine-pro`，而安装时选择的是 `spine`，Studio 会将目录重命名为 `spine-pro` 并给出提示。引擎按注册名解析角色的运行时，名称不一致会导致角色在舞台上不显示

@@ -10,7 +10,7 @@ Studio installs the Cubism runtime by compiling it locally from the SDK that is 
 ## Before you start
 
 <Callout type="warn">
-    **Live2D Cubism is licensed by Live2D Inc., not by NarraLeaf.** Downloading the SDK from Live2D constitutes acceptance of the Cubism SDK licence, and the party distributing it inside the resulting game is whoever builds that game. Free use is bounded: above the annual-revenue threshold Live2D publishes, a commercial release requires a separate **Publication License** from them. Check the current terms on [Live2D's licensing page](https://www.live2d.com/en/sdk/license/) before shipping. NarraLeaf is not a party to that agreement and cannot grant anything under it.
+    **Live2D Cubism is licensed by Live2D Inc., not by NarraLeaf.** Downloading the SDK from Live2D constitutes acceptance of the Cubism SDK licence, and the party distributing it inside the resulting game is whoever builds that game. Free use is bounded: above the annual-revenue threshold Live2D publishes, a commercial release requires a separate **Publication License** from them. A title that collects several separate works, or that loads models it was not built with, is an **Expandable Application** and needs Live2D's approval before release, including when it is free. Check the current terms on [Live2D's licensing page](https://www.live2d.com/en/sdk/license/) before shipping. NarraLeaf is not a party to that agreement and cannot grant anything under it.
 </Callout>
 
 The required download is the **Cubism SDK for Web** — not the Cubism Editor, and not the SDK for Native. It is a single `.zip` of around 20 MB, from [Live2D's download page](https://www.live2d.com/en/sdk/download/web/). Leave the archive as downloaded; it does not need to be extracted, as Studio reads it directly.
@@ -29,7 +29,7 @@ From a character: create one with **New character → Live2D Cubism**, then sele
 
 ### Read the terms
 
-The dialog states what is being agreed to and links to Live2D's download page. Studio does not fetch the SDK, because the download page is where Live2D's licence is accepted. Tick the acknowledgement to continue.
+The dialog states what is being agreed to and links to Live2D's download page. Studio does not fetch the SDK: the download page is where Live2D's licence is accepted. Tick the acknowledgement to continue.
 
 </Step>
 <Step>
@@ -58,7 +58,9 @@ The install produces:
     </Folder>
 </Files>
 
-`index.js` is generated and about a megabyte, with the renderer compiled into it. `licenses/` holds Live2D's own licence texts exactly as they shipped in the archive, and `README.md` records which SDK version produced the file. All of it is project content: it belongs in version control, and every build carries it.
+`index.js` is generated and about a megabyte, with the renderer compiled into it, and it carries Live2D's copyright headers. `licenses/` holds Live2D's own licence texts exactly as they shipped in the archive, together with the Core's list of redistributable files, and `README.md` records which SDK version produced the file. All of it is project content and every build carries it.
+
+Live2D's licence covers redistributing the SDK inside the game that ships, and not a public source repository. Keep this folder out of any repository you publish.
 
 <Callout type="info">
     **To rebuild** — for a newer SDK, or after a Studio update improves the adapter — install again over the top. Nothing in the project refers to the contents of that file, only to the `live2d` name, so characters are unaffected.
@@ -121,7 +123,7 @@ The adapter records what it loaded and writes that trail to the console when a m
 
 | Symptom | Usual cause |
 | --- | --- |
-| "Runtime not installed in this project" | The runtime is not installed on this machine. A fresh clone, or a project that never had it. |
+| "Runtime not installed here" | The runtime is not installed on this machine. A fresh clone, or a project that never had it. |
 | "This model could not be drawn", with a reason | The reported reason: a missing entry file, an unreadable bundle, or a runtime that is gone. |
 | The character is an empty box in the game | The backend name on the character matches no installed runtime. Check **Project → Runtimes**. |
 | The model draws as a flat white shape | A texture upload was rejected. Turn on `diagnostics` and check the console. |
