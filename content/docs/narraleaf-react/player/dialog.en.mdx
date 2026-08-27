@@ -101,6 +101,39 @@ Default image style:
 - `borderRadius`: `6`
 - `flex`: `"0 0 auto"`
 
+### TextsPreview
+
+Renders a line with the same typewriter as `Texts`, but detached from the running dialogue. Use it wherever a sample of dialogue text has to appear outside a line: the text-speed row of a settings page, a font preview, a style picker.
+
+It reads the `cps` and `gameSpeed` preferences and restarts when they change, which is what makes it a live preview of a speed slider. Outside `GameProviders` it falls back to `Game.DefaultPreference` and `Game.DefaultConfig`, so it also renders on a page with no game running.
+
+```tsx
+import { TextsPreview, Word } from "narraleaf-react";
+
+<TextsPreview
+    text={["The quick brown fox ", new Word("jumps", { color: "#f00" }), " over the lazy dog."]}
+    fontSize={18}
+/>
+```
+
+Give it one source of content. `words` wins over `text`, and `text` over `sentence`.
+
+- `text?: TextsPreviewInput` - Static content: a `StaticWord<string | Pausing>`, or an array of them.
+- `sentence?: Sentence` - A [Sentence](/docs/narraleaf-react/core/elements/character/sentence) to preview. Its dynamic words are **not** evaluated — they are dropped, so pass `words` when previewing content that has already run. The sentence's own colour, font and bold/italic flags do apply.
+- `words?: Word<Pausing | string | TextEvent>[]` - Already-evaluated words.
+- `useTypeEffect?: boolean` - Type the line out rather than showing it whole. Default `true`.
+- `loop?: TextsPreviewLoop` - `false` plays once; `{enabled?: boolean, delay?: number}` sets the gap between cycles in milliseconds. Default `true`.
+- `restartDelay?: number` - Gap before the next cycle, in milliseconds, when `loop` is a boolean. Ignored when `loop` is an object carrying its own `delay`. Defaults to `GameConfig.autoForwardDefaultPause`.
+- `cps?: number` - Characters per second. Defaults to the `cps` preference.
+- `gameSpeed?: number` - Speed multiplier. Defaults to the `gameSpeed` preference.
+- `pauseDuration?: number` - How long a `Pause` with no duration of its own holds, in milliseconds. Defaults to `GameConfig.autoForwardDefaultPause`.
+- `defaultColor?: Color`, `fontSize`, `fontWeight`, `fontWeightBold`, `fontFamily` - As on `Texts`.
+- `writingMode?: TextWritingMode`, `textOrientation?: TextGlyphOrientation`, `tateChuYoko?: TateChuYoko` - As on `Texts`. Since `0.26.0`.
+- `onCompleted?: () => void` - Called each time the line finishes, so a looping preview calls it once per cycle.
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children">`
+
+A preview is side-effect free: a [TextEvent](/docs/narraleaf-react/core/elements/character/text-event) in the content is passed over without firing, so previewing a line never changes a portrait or plays a sound. There is no `autoFit` either — a preview is not inside a dialog box, so there is nothing to fit it to.
+
 ## Animation
 
 Pass Motion props to `Dialog`. The built-in dialog box has no enter or exit animation.
@@ -347,7 +380,7 @@ The overlay is part of the built-in `Dialog` component, so a custom dialog compo
 
 `narraleaf-react` exports:
 
-- Component props: `NametagProps`, `TextAppearanceProps`, `TextsProps`, `RawTextsProps`, `EntryTextsProps`
+- Component props: `NametagProps`, `TextAppearanceProps`, `TextsProps`, `RawTextsProps`, `EntryTextsProps`, `TextsPreviewProps`, `TextsPreviewInput`, `TextsPreviewLoop`
 - Avatar sources: `DialogAvatarSource`, `DialogAvatarResolverContext`, `DialogAvatarResolver`, `DialogAvatar`
 - Portraits: `CharacterPortraitConfig`, `DialogAvatarResolution`
 - React: `Avatar`, `useAvatar`, and the type `DialogAvatarContext`

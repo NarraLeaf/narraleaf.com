@@ -3,6 +3,7 @@
   "pages": [
     "sentence",
     "word",
-    "pause"
+    "pause",
+    "text-event"
   ]
 }

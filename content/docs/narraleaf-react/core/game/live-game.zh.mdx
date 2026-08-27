@@ -457,12 +457,12 @@ liveGame.restoreToHistory(history[0].token);
 
 ```typescript
 // 通知 3 秒
-game.notify("Save success", 3000);
+game.getLiveGame().notify("Save success", 3000);
 ```
 
 ```typescript
 // 通知持续时间设置为 `null` 时，通知将一直显示
-const token = game.notify("Fast forward", null);
+const token = game.getLiveGame().notify("Fast forward", null);
 
 // 当玩家释放箭头右键时，取消通知
 window.addEventListener("keyup", (event) => {
@@ -681,4 +681,91 @@ if (result.reason === "action") {
     **快进可能因为一个无法跳过的步骤而提前结束。** 在快进开始时就已经在进行中的步骤、视频（`allowSkipVideo` 默认为 `false`），以及摄像机或图层过渡，都不会响应跳过请求。这类步骤只要能在 `stepTimeout` 内自行结算就仍会照常结算；只有超出该时限的步骤才会结束本次快进 —— 返回 `"stalled"`，并在退出时恢复音量与快进标志
 
     在 `0.17.1` 之前，快进会停在这种步骤上：返回的 Promise 两边都不结算，游戏保持静音并永久停留在快进模式。原本能正常工作的用法不会因此失效，但把"非 `"menu"` 即成功"的宿主现在应当把 `"stalled"` 区分出来；对 `reason` 做穷举 `switch` 的代码也需要补上这个分支才能通过编译
+</Callout>
+
+### onCurrentActionChange
+
+<Callout type="info">
+    自 `0.16.0` 起可用
+</Callout>
+
+<Steps>
+<Step>
+
+订阅"当前动作"事件流。每当一个动作开始执行，处理函数就会被调用一次，并收到该动作的 id 与类型——外部播放头（例如编辑器的时间轴）据此就能跟住一局正在跑的游戏
+
+它对**每一个**被执行的动作都会触发，包括 `Control.all` / `Control.any` 之中的，以及 `Control.doAsync` / `Control.allAsync` 的异步分支里的。只关心顶层行的监听者应当按自己的 id 集合过滤
+
+```typescript
+const liveGame = useLiveGame();
+
+useEffect(() => {
+    return liveGame.onCurrentActionChange(({actionId, actionType}) => {
+        // 把播放头移到 actionId
+    }).cancel;
+}, []);
+```
+
+- `fc: (payload: {actionId: string | null, actionType: string | null}) => void` - 收到刚开始执行的那个动作。剧情没有为该动作记录 id 或类型时，对应字段为 `null`
+- 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **实验性，只读。** 这套接口是给"观察一局游戏怎么跑"的工具用的。不要用它驱动剧情逻辑，也不要把它报告的东西存下来——存档格式是 [serialize](#serialize)
+</Callout>
+
+### getCurrentActionId
+
+<Callout type="info">
+    自 `0.16.0` 起可用
+</Callout>
+
+<Steps>
+<Step>
+
+最近一次执行的动作 id。它是 [onCurrentActionChange](#oncurrentactionchange) 的拉取式对应物，供轮询而非订阅的宿主使用
+
+```typescript
+const actionId = game.getLiveGame().getCurrentActionId();
+```
+
+- 返回 `string | null` - 本局第一个动作执行之前为 `null`；剧情没有为该动作记录 id 时也是 `null`
+</Step>
+</Steps>
+
+### getStackSnapshot
+
+<Callout type="info">
+    自 `0.16.0` 起可用
+</Callout>
+
+<Steps>
+<Step>
+
+执行栈的自顶向下视图，用于调用栈面板或调试面板：根栈，加上 `Control.doAsync` / `Control.allAsync` 启动的每一条进行中的异步栈
+
+```typescript
+const {root, async} = game.getLiveGame().getStackSnapshot();
+
+// 当前正在执行的那一行
+root.frames[0]?.actionId;
+
+// 并发帧带着它的各条分支，每条分支本身就是一个完整快照
+root.frames[0]?.branches?.[0]?.frames;
+
+// Control.repeat 的帧带着它的迭代计数
+root.frames[0]?.branches?.[0]?.loop?.counter;
+```
+
+- 返回 `{root: StackSnapshot, async: StackSnapshot[]}` - 游戏开始之前 frames 为空
+
+`StackSnapshot` 的形状是 `{tag?: string, frames: StackFrameSnapshot[], loop?: {type: "count" | "condition", counter: number, limit?: number, broken: boolean}}`。`frames` 自顶向下排列：`frames[0]` 就是此刻正在执行的帧
+
+`StackFrameSnapshot` 的形状是 `{actionId: string | null, actionType: string | null, branchWaitType?: string, branches?: StackSnapshot[]}`。属于并发组（`Control.all` / `Control.any`）的帧会列出它的各条分支，而每条分支都是一个完整的 `StackSnapshot`——因此嵌套栈自己的 `loop` 计数与 `tag` 也一并带出
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **实验性，只读。** 这个形状是为方便阅读而做的投影，不是稳定性契约，可能在没有大版本变更的情况下改变。永远不要序列化快照——存档请用 [serialize](#serialize)
 </Callout>

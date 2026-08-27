@@ -86,6 +86,25 @@ DefaultNvlContainer is the default slot component. It receives `dialogs` and `re
 - `dialogs?: NvlDialogProxy[]` - The list of dialog entries (provided by the player).
 - `renderDialogItem?: NvlDialogItemRenderer` - Optional. Use when you only need to customize each item's layout (e.g. styling) without replacing the whole container.
 
+### NvlDialogList
+
+NvlDialogList renders the entries themselves. `DefaultNvlContainer` uses it, and a custom container built on `NvlContainer` needs it (or its own equivalent) to draw the list. Each entry is wrapped in the dialog context, so `Nametag` and `Texts` rendered inside it read that entry rather than the ADV line.
+
+- `children?: React.ReactNode` - A custom item element. It is cloned once per entry with `entry` and `index` injected.
+- `renderDialogItem?: NvlDialogItemRenderer` - Takes precedence over `children`. Receives `{ entry, index, isActive, nametag, texts }`.
+- `className?: string` / `style?: React.CSSProperties` - Applied to the list container.
+
+With neither `children` nor `renderDialogItem`, each entry is drawn by `DefaultNvlDialogItem`.
+
+### DefaultNvlDialogItem
+
+The default row: the speaker's name followed by a colon, then the line. Use it as the fallback inside a custom list, or as a reference.
+
+- `entry: NvlDialogEntry` - The entry to draw.
+- `index: number` - Its index in the list.
+- `texts?: React.ReactNode` - Replaces the rendered line, leaving the nametag alone.
+- `className?: string` / `style?: React.CSSProperties`
+
 ## Props
 
 ### INvlContainerProps
@@ -126,3 +145,43 @@ function CustomNvlWithRenderer({ dialogs }: INvlContainerProps) {
 
 // Then configure: game.configure({ nvlDialog: CustomNvlWithRenderer });
 ```
+
+## Hooks
+
+Four hooks read NVL state. They are context readers with no arguments, and they return the values the `NvlProvider` the player mounts is holding.
+
+The provider wraps the stage, the dialogs and the NVL overlay — so a custom NVL container, a custom dialog, or anything else the stage renders can call them. A page rendered by the [page router](/docs/narraleaf-react/player/page-router) sits outside that provider and gets the inert default instead: not active, not visible, no entries.
+
+```tsx
+import { useIsNvlMode, useNvlDialogs } from "narraleaf-react";
+
+function LineCount() {
+    const inNvl = useIsNvlMode();
+    const dialogs = useNvlDialogs();
+
+    if (!inNvl) return null;
+    return <span>{dialogs.length} lines</span>;
+}
+```
+
+### useNvl
+
+Returns the whole NVL context value.
+
+- `state: NvlState` - The full record: `active`, `visible`, `sessionId`, `dialogs`, `options`, `activeDialogId`, `phase` (`"idle" | "typing" | "awaitAdvance"`), `pendingAdvance`, `isTyping`.
+- `dialogs: NvlDialogEntry[]` - The entries currently in the list.
+- `isActive: boolean` - Whether the game is in NVL mode.
+- `isVisible: boolean` - Whether the NVL layer is on screen. A session stays active while the layer is hidden, so these two are not the same question.
+- `transitionOptions: Partial<TransformDefinitions.CommonTransformProps> | null` - The transform options of the show or hide transition in effect, or `null`.
+
+### useNvlDialogs
+
+`useNvl().dialogs` — the entries currently in the list.
+
+### useIsNvlMode
+
+`useNvl().isActive` — whether the game is in NVL mode.
+
+### useIsNvlVisible
+
+`useNvl().isVisible` — whether the NVL layer is on screen.
