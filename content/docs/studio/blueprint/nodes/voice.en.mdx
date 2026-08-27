@@ -1,0 +1,68 @@
+---
+title: Voice
+description: Playing a recorded line from a blueprint, and the dub language the game is set to.
+---
+
+Five nodes for the game's voice tracks: playing a take, playing the take attached to a choice option, and reading or setting which dub language is in force.
+
+## Conventions
+
+- **All five are latent.** They declare `event` and `macro`, so none can appear in a `function` graph or back a Blueprint Value.
+- **A take is addressed by voice id**, which is the line's stable text id — the same key the translation table uses.
+- **Setting the language restarts the game.** See [Language](/docs/studio/workspace/localization) for what a language switch does.
+
+## Play Voice
+
+`blueprint.voice.play` · Latent
+
+Plays the take recorded for one line, in the dub language currently in force.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `voiceId` | in · data | `string` | The line's voice id. |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | Whether a take was found and played. |
+
+## Play Choice Voice
+
+`blueprint.voice.playChoice` · Latent
+
+Plays the take attached to the choice option this graph is running for. Used inside a choice row, where the row is the only thing that knows which option it is.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `interruptOthers` | in · data | `boolean` | Optional, literal. Stops the take another option is already speaking, so hovering down a list does not stack voices. |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | Whether a take was found and played. |
+
+## Get Voice Language
+
+`blueprint.voice.getLanguage` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `string` | The dub language in force. |
+
+## Set Voice Language
+
+`blueprint.voice.setLanguage` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `language` | in · data | `string` | |
+| `next` | out · exec | — | |
+
+## Get Available Voice Languages
+
+`blueprint.voice.getAvailableLanguages` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | The dub languages this build ships, as an array — what a settings page lists. |

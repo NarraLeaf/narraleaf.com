@@ -29,9 +29,9 @@ These hold for every Element node, on this page and the four above.
 A target pin that is unwired, points at another Surface, or carries the wrong widget type does not fail the same way on both sides. A reader returns `undefined` and the graph carries on as if nothing happened; a writer throws a blueprint execution error. When a value downstream of an Element reader is empty, suspect the reference before you suspect the property.
 </Callout>
 
-## Reference and event bubbling
+## Reference
 
-Three nodes that are about the wiring itself rather than about a widget's properties.
+The one node that is about the wiring itself rather than about a widget's properties.
 
 ### Element
 
@@ -42,25 +42,3 @@ The binding every other Element node waits for. Click the card and Studio switch
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `element` | out · data | `element` | `element` while unbound, `element:<widgetType>` once bound — `element:nl.text` for a Text element. That typed form is what a Text or Slider node will accept. |
-
-### Continue Event Bubble
-
-`blueprint.element.continueEventBubble` · Latent
-
-Re-dispatches the event currently being handled, with its original payload, to the structural parent element. A child button's `Mouse Click` graph runs this and the parent container's `Mouse Click` graph runs next; the parent can bubble further up. It needs both an element owner and a live event, so a function graph, an event-less macro, or a root element with no parent produces no parent event at all.
-
-| Pin | Direction | Type | Notes |
-| --- | --- | --- | --- |
-| `in` | in · exec | — |  |
-| `next` | out · exec | — |  |
-
-### Stop Event Bubble
-
-`blueprint.element.stopEventBubble`
-
-Marks the current event handled, then carries on down `next` with the rest of the local graph. Any later `Continue Event Bubble` becomes a no-op, and the same keyboard event stops reaching further Surface and widget listeners. The usual use is a foreground overlay's `On Key Down` swallowing Space before the game underneath sees it.
-
-| Pin | Direction | Type | Notes |
-| --- | --- | --- | --- |
-| `in` | in · exec | — |  |
-| `next` | out · exec | — |  |

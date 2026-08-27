@@ -43,6 +43,15 @@ export default definePlugin({
   <Card title="blueprintNodes" href="/docs/studio/plugin/studio/blueprint-nodes" description="Register blueprint node definitions and dynamic select options." />
 </Cards>
 
+Four more are on `app.studio` and have no page of their own yet:
+
+| Service | What |
+| --- | --- |
+| `workspace` | Whether project data may be written right now (`frozen`, `freezeReason`, `onFreezeChange`), and `registerReloader` — re-read what you hold when the project's documents have been replaced under you. |
+| `textEditor` | `registerLanguage`, `registerPreview`, `registerAction` for Studio's text editor. |
+| `tests` | Checks an author runs against their own game from Run > Test: `protocolVersion`, `register`, `registerMany`. Nothing to do with your plugin's unit tests — a test here is started by the author and reports into the Test Report tab. Every id must be listed in `contributes.tests`. |
+| `voice` | `listUnits(localeCode?)` — the project's voice units, read-only. |
+
 Two more pages cover what is not a service:
 
 <Cards>

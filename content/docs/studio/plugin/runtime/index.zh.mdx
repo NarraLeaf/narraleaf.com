@@ -18,13 +18,14 @@ export default defineRuntimePlugin({
 });
 ```
 
-## 四个成员始终存在
+## 五个成员始终存在
 
 | 成员 | 说明 |
 | --- | --- |
 | `game.blueprintNodes` | 为你的节点类型 `register` / `registerMany` 游戏侧的 `execute`|
 | `game.widgets` | 为你的控件类型 `register` / `registerMany` 游戏侧的渲染器|
 | `game.data` | `readJson(namespace)`——读取随游戏一同发布的插件存储|
+| `game.config` | `get(key)` —— 作者为你的 `contributes.buildConfig` 字段填了什么。与 `game.data` 同理始终存在：声明一个字段不会给插件任何能力，所以这里没有可把关的能力|
 | `game.log` | 向宿主日志写入 `log(level, message)`|
 
 你注册的每个类型都必须在 `contributes.blueprintNodes` / `contributes.widgets` 中声明，而 `game.data` 只看得到 `contributes.runtimeData` 里列出的命名空间。参见 [清单参考](/zh/docs/studio/plugin/manifest)
@@ -47,7 +48,7 @@ export default defineRuntimePlugin({
 
 整份契约就这么多。安装提示列出的正是 `app.game` 上存在的那些域，所以作者批准的内容和你的插件能做的事，在构造上就是同一个集合。这些权限永远不用你手写——Studio 会从 `contributes` 派生它们，手写的权限是一种 [清单错误](/zh/docs/studio/plugin/manifest#permissions-are-derived)
 
-### 九项能力
+### 十项能力
 
 | 能力 | 授予 | 用途 |
 | --- | --- | --- |
@@ -60,6 +61,7 @@ export default defineRuntimePlugin({
 | `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素|
 | `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL|
 | `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言|
+| `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十项里最重的一项：一个 pass 会跑遍工程的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
 
 这份列表是封闭的。无法识别的能力字符串会让清单校验失败，而不是被忽略，所以拼错永远不会被读成“什么都没申请”
 

@@ -9,7 +9,7 @@ These are not for assets. Images, audio and video are project content, they ship
 
 ## Conventions
 
-- **The project has to allow it.** [Allow HTTP](/docs/studio/security#allow-http) is off in every new project, and while it is off these nodes cannot run. See [When the project does not allow HTTP](#when-the-project-does-not-allow-http) below.
+- **The project has to allow it.** [Network access](/docs/studio/security#network-access) is **Off** in every new project, and while it is off these nodes cannot run. Either of the other two positions — Allowlist or Any host — lets them run, and an Allowlist also decides which addresses they may reach. See [When the project does not allow HTTP](#when-the-project-does-not-allow-http) below.
 - **`Fetch` is latent; the two readers are not.** `Fetch` waits for the request, so it declares `event` and `macro` and cannot appear in a `function` graph or back a Blueprint Value. The readers work on a Response the host already holds, so they return immediately, but they are still exec nodes and still cannot back a Blueprint Value.
 - **Only `http` and `https`.** Any other scheme is refused before a request is made. This is what keeps `file:` out, and with it the possibility of using this node to read the player's disk.
 - **The request is made by the game's main process, not by the page.** That is why an ordinary third-party API works here without sending CORS headers. The Web export is the exception and is subject to CORS like any other page.
@@ -19,7 +19,7 @@ These are not for assets. Images, audio and video are project content, they ship
 
 ## When the project does not allow HTTP
 
-With Allow HTTP off, the shipped game is confined to its own protocol and every HTTP request is cancelled, so a network node in the graph is code that cannot run. Three things say so, at falling distance from the author:
+With Network access set to Off, the shipped game is confined to its own protocol and every HTTP request is cancelled, so a network node in the graph is code that cannot run. Three things say so, at falling distance from the author:
 
 | Where | What happens |
 | --- | --- |
@@ -27,7 +27,7 @@ With Allow HTTP off, the shipped game is confined to its own protocol and every 
 | Production build | The build is refused and names the blueprint. This refusal is not part of the project-checks sweep and is not affected by its settings. |
 | Run time | The request is refused before it is issued, and `Fetch` leaves by `networkError`. |
 
-The remedy is either one: turn Allow HTTP on, or remove the nodes.
+The remedy is either one: move Network access off Off — to Allowlist, naming the addresses, or to Any host — or remove the nodes.
 
 <Callout type="warn">
 The setting is not enforced in the **Web export**. It works through a content security policy and a request filter that only a desktop shell has, and a game served over HTTP(S) is already on the network by construction. Network nodes run in a Web build. The build refusal above still applies to Web targets, so a project with the setting off cannot produce one either way.
@@ -62,7 +62,7 @@ Sends a request and waits for it to finish. Which execution pin it leaves by dep
 
 `Request Body` is sent only by `POST`, `PUT` and `PATCH`; the other methods ignore the pin.
 
-`networkError` is the catch-all for "no HTTP response happened": DNS failure, connection refused, a scheme that is not http(s), a response over the size cap, and a project whose Allow HTTP setting is off. They share a pin because an author's response to all of them is the same — there is no data, show the player something else — and the `Error` pin says which it was.
+`networkError` is the catch-all for "no HTTP response happened": DNS failure, connection refused, a scheme that is not http(s), a response over the size cap, a project whose Network access is Off, and an address an Allowlist does not name. They share a pin because an author's response to all of them is the same — there is no data, show the player something else — and the `Error` pin says which it was.
 
 **`Response` is produced on `httpError` too.** A REST API's 404 usually carries the JSON that says what was not found, and a graph that branches there needs to be able to read it.
 

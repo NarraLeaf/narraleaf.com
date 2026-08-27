@@ -1,0 +1,68 @@
+---
+title: Voice
+description: 从蓝图里播放一条录好的语音，以及游戏当前的配音语言
+---
+
+五个节点，管游戏的语音轨：播放某一条的录音、播放选项自带的录音，以及读取或设置当前生效的配音语言。
+
+## 约定
+
+- **五个都是 latent。** 它们声明 `event` 与 `macro`，所以都不能出现在 `function` 图里，也不能给蓝图值当后端
+- **一条录音按 voice id 寻址**，也就是那一行稳定的文本 id——与翻译表用的是同一个键
+- **设置语言会重启游戏。** 语言切换会做什么见[本地化](/zh/docs/studio/workspace/localization)
+
+## Play Voice
+
+`blueprint.voice.play` · Latent
+
+按当前生效的配音语言，播放某一行录好的那一条。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `voiceId` | in · data | `string` | 那一行的 voice id |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | 是否找到并播放了录音 |
+
+## Play Choice Voice
+
+`blueprint.voice.playChoice` · Latent
+
+播放**当前这张图所属的那个选项**自带的录音。用在选项行里——只有那一行知道自己是哪个选项。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `interruptOthers` | in · data | `boolean` | 可选，字面量。打断另一个选项正在说的那一条，于是沿着列表快速划过时语音不会叠起来 |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | 是否找到并播放了录音 |
+
+## Get Voice Language
+
+`blueprint.voice.getLanguage` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `string` | 当前生效的配音语言 |
+
+## Set Voice Language
+
+`blueprint.voice.setLanguage` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `language` | in · data | `string` |
+| `next` | out · exec | — |
+
+## Get Available Voice Languages
+
+`blueprint.voice.getAvailableLanguages` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | 这份产物带的配音语言，是一个数组——设置页要列的就是它 |

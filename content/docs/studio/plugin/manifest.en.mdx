@@ -51,6 +51,10 @@ Entry paths cannot be absolute or contain `..`, `.`, null bytes, `?`, or `#`.
 | `runtimeCapabilities` | `string[]` | Capability domains the runtime entry may use. |
 | `sidecars` | object[] | Native child processes shipped inside the author's game. |
 | `buildDependencies` | object[] | External binaries fetched and cached at build time. |
+| `tests` | `string[]` | Test types this plugin provides, for Run > Test. |
+| `buildConfig` | object[] | Build-configuration fields this plugin adds to the build dialog. |
+| `externalLinks` | `string[]` | Address patterns the runtime entry may open in the player's browser. |
+| `network` | `string[]` | Host patterns the runtime entry may fetch bytes from. |
 
 Every node type, widget type, storage namespace, sidecar id, and build-dependency id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
 
@@ -70,7 +74,7 @@ The list is an explicit allowlist so editor-only plugin state cannot leak into a
 
 ### runtimeCapabilities
 
-The nine capability domains, each mapping onto one namespace of `app.game`. An undeclared domain is **absent from the object**, not a method that throws. Declaring one without an `entries.runtime` is a manifest error.
+The ten capability domains, each mapping onto one namespace of `app.game`. An undeclared domain is **absent from the object**, not a method that throws. Declaring one without an `entries.runtime` is a manifest error.
 
 ```json
 { "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
@@ -117,9 +121,11 @@ These affect the **studio** entry only. Grants are recorded per `pluginId@versio
 | `runtime` | Each entry in `contributes.runtimeCapabilities`. |
 | `sidecar` | Each `contributes.sidecars` entry, with the platform keys it ships. |
 | `buildDependency` | Each `contributes.buildDependencies` entry, with the hostnames it downloads from. |
+| `externalLink` | `contributes.externalLinks`, as the author's own patterns — unrewritten, so the prompt and the manifest are one document. |
+| `network` | `contributes.network`. A separate question from `externalLink` and never folded into it: opening a page hands an address to the browser and nothing comes back, while this fetches, and what comes back runs inside the game. |
 
 <Callout type="warn">
-Writing a `runtime`, `sidecar`, or `buildDependency` permission by hand is a **manifest error** — the plugin fails to install with *"permission kind … is derived from contributes and must not be declared by hand."* Declare the capability once, in `contributes`, and the permission follows.
+Writing a `runtime`, `sidecar`, `buildDependency`, `externalLink` or `network` permission by hand is a **manifest error** — the plugin fails to install with *"permission kind … is derived from contributes and must not be declared by hand."* Declare the capability once, in `contributes`, and the permission follows.
 </Callout>
 
 This is what keeps the install prompt honest: a capability is declared in exactly one place, so what the prompt lists and what the plugin can actually reach cannot drift apart. It also makes updates behave — adding a capability widens the derived permission set, which re-prompts the author automatically, while a version that widens nothing inherits the existing grant.
@@ -135,3 +141,9 @@ This is what keeps the install prompt honest: a capability is declared in exactl
 | Registration throws at load | A node or widget type that is not in `contributes`, or not prefixed with the plugin id. |
 | Preview fails with "Plugin validation failed" | A node or widget the project uses has no runtime provider — plugin disabled, missing, no `entries.runtime`, or the type is not declared. |
 | Digest mismatch on install | A sidecar file's bytes do not match its `sha256`. |
+
+### Contributions that derive no permission
+
+`tests` and `buildConfig` are the two contribution kinds that produce no install permission, and in both cases the absence is a decision rather than an omission.
+
+Every other code-backed contribution gains a power the moment the plugin loads. A **test** only ever runs because the author opened Run > Test, picked it out of the dialog and pressed Start; there is no ambient capability to consent to at install time, and what a test may reach while running is gated separately by its own `requires`. A **build-configuration field** is a blank the author fills in, and filling it in gives the plugin no reach it did not already have.

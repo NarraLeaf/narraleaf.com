@@ -18,13 +18,14 @@ export default defineRuntimePlugin({
 });
 ```
 
-## Four members are always there
+## Five members are always there
 
 | Member | What |
 | --- | --- |
 | `game.blueprintNodes` | `register` / `registerMany` the game-side `execute` for your node types. |
 | `game.widgets` | `register` / `registerMany` the game-side renderer for your widget types. |
 | `game.data` | `readJson(namespace)` — read plugin storage published with the game. |
+| `game.config` | `get(key)` — what the author filled in for your `contributes.buildConfig` fields. Always present for the same reason `game.data` is: declaring a field grants the plugin nothing, so there is no capability to gate on. |
 | `game.log` | `log(level, message)` into the host log. |
 
 Every type you register must be declared in `contributes.blueprintNodes` / `contributes.widgets`, and `game.data` only sees namespaces listed in `contributes.runtimeData`. See the [manifest reference](/docs/studio/plugin/manifest).
@@ -47,7 +48,7 @@ An undeclared domain is **absent from the object**, not a method that throws. `a
 
 That is the whole contract. The install prompt lists exactly the domains present on `app.game`, so what the author approved at install and what your plugin can do are the same set by construction. You never write these permissions by hand — Studio derives them from `contributes`, and a hand-written one is a [manifest error](/docs/studio/plugin/manifest#permissions-are-derived).
 
-### The nine capabilities
+### The ten capabilities
 
 | Capability | Grants | What it is for |
 | --- | --- | --- |
@@ -60,6 +61,7 @@ That is the whole contract. The install prompt lists exactly the domains present
 | `ui.overlay` | [`app.game.ui.overlay`](/docs/studio/plugin/runtime/overlay) | Draw an element on top of the game. |
 | `assets` | [`app.game.assets`](/docs/studio/plugin/runtime/assets-locale) | Resolve a packaged asset id to a URL. |
 | `locale` | [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale) | Read and observe the game's display language. |
+| `story.compile` | `app.game.story` | Register a compile pass that observes each scene and injects engine actions around its rows. The heaviest of the ten: a pass runs over *every* scene of the project, sees who speaks in each, and can put actions around lines it did not write. It is not `state.write` in disguise and does not imply it — a pass builds actions, it does not run them. |
 
 The list is closed. An unrecognized capability string fails manifest validation rather than being ignored, so a typo can never read as "asked for nothing".
 

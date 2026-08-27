@@ -5,15 +5,19 @@ description: The two project settings that decide what a built game may do and w
 
 Two settings, both under **Security** in the project's settings, and both stored per project. They take effect in packaged and previewed builds; neither changes anything about Dev Mode.
 
-## Allow HTTP
+## Network access
 
-Whether the game may reach the network at all.
+How far the game may reach onto the network. Three positions, listed least reach first.
 
 **Off** — the default in every new project. The game is confined to its own internal protocol, and every HTTP, HTTPS and WebSocket request it makes is cancelled.
 
-**On** — the game may make HTTP and HTTPS requests. This is what the [Network nodes](/docs/studio/blueprint/nodes/network) need in order to run.
+**Allowlist** — only the addresses the project lists, plus the hosts its plugins declared in `contributes.network`. Choosing it reveals the allowlist editor beneath the chooser; a plugin's own patterns are shown there attributed to that plugin, so the list can say why a host is reachable rather than silently making room for it.
 
-The setting is checked in three places: the project checks report a network node as an error while it is off, a production build is refused, and the request itself is refused at run time.
+**Any host** — the game may request anything. This and Allowlist are what the [Network nodes](/docs/studio/blueprint/nodes/network) need in order to run.
+
+A setting this build does not recognize — a word from a future version — reads as **Off** rather than as the widest position: a project whose setting cannot be understood is not one this build can vouch for, and refusing requests is the failure an author notices immediately rather than the one that ships.
+
+The setting is checked in three places: the project checks report a network node as an error while it is Off, a production build is refused, and the request itself is refused at run time.
 
 <Callout type="warn">
 Not enforced in the **Web export**. It works through mechanisms only a desktop build has, and a game served over HTTP(S) is on the network by construction. Network nodes run in a Web build. The build refusal still applies, so a project with this off cannot produce a Web build containing them either way.

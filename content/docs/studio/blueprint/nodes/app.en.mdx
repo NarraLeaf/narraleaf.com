@@ -19,7 +19,7 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 Opens the Surface picked on the card, through the same navigation path the runtime uses for every Page change — same enter and exit animations, same Surface lifecycle, same widget blueprints. Picking `None` instead closes the current top Page layer.
 
-There is no back node. `Go Page` with `None` is the only way to close a layer, and `Go Page` with a target is the only way to open one.
+`Go Page` with a target is the only way to open a layer. To close one, prefer [Go back](#go-back): navigation is a stack, so `Go Page` at a page the player came *from* pushes a third page over the two already there rather than returning to it. `Go Page` with `None` closes the current top Page layer.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -33,6 +33,34 @@ There is no back node. `Go Page` with `None` is the only way to close a layer, a
 | `Page` | The Surface to open, chosen from the project's app Surfaces. `None` closes the current top Page layer instead. |
 
 Once a game is running, the Page stack is hidden beneath the stage. `Go Page` then opens its target as a UI layer *above* the stage, and `None` closes that layer to reveal the stage again. To leave the game itself, use `Quit Game` from [Game](/docs/studio/blueprint/nodes/game) — it names the Page to return to.
+
+## Go back
+
+`blueprint.page.back` · Latent
+
+Pops the top Page layer and returns to the one beneath it.
+
+Every page a game opens over a running story — save, load, config, backlog — needs a way out, and `Go Page` is not it: navigation is a stack, so "go to the page I came from" pushes a third page over the two already there and the game is still buried.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Keep Window Open
+
+`blueprint.app.keepWindowOpen`
+
+Holds the current window close request open, so the game decides rather than the window closing under it. A game that wants to ask "really quit?" runs this first, shows its own question, and calls `Quit Application` if the player says yes.
+
+It stops nothing else. It is not a way to swallow a key, dismiss a page, or keep an element's event from reaching anything — and outside a close request it has nothing at all to act on, which is an execution error rather than a quiet no-op, because a graph holding one there is asking for a guarantee it is not being given.
+
+Global and Surface graphs only.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
 
 ## Quit Application
 

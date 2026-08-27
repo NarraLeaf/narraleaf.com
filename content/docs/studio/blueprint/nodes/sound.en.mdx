@@ -1,0 +1,100 @@
+---
+title: Sound
+description: Playing a clip from a blueprint, and the handle every later node needs to reach it again.
+---
+
+Seven nodes for the sound an *interface* makes: the click of a button, a hover tick, an ambience a Page starts while it is up. The music and effects a story plays belong to the story and are written as `/bgm` and `/sound` rows there.
+
+## Conventions
+
+- **Every one of them is latent.** They declare `event` and `macro`, so none can appear in a `function` graph or back a Blueprint Value.
+- **`Play Sound` hands back a handle, and the other six take it.** The handle names the playing clip, not the asset — start the same clip twice and you have two handles that stop, seek and fade independently.
+- **The clip is chosen on the card.** `Audio Clip` picks the asset and `Track` picks the audio track it plays on, so the player's volume for that track applies. The `Asset Id` pin is for the case where the clip is decided at run time.
+
+## Play Sound
+
+`blueprint.sound.play` · Latent
+
+Starts a clip and returns the handle that reaches it afterwards.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `assetId` | in · data | `string` | Optional. Overrides the card's `Audio Clip`, for a clip chosen at run time. |
+| `loop` | in · data | `boolean` | Optional, literal. |
+| `volume` | in · data | `float` | Optional, literal. |
+| `fadeIn` | in · data | `float` | Optional, literal. Seconds. |
+| `next` | out · exec | — | |
+| `handle` | out · data | `SoundHandle` | What every other node in this category takes. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Audio Clip` | The audio asset to play. |
+| `Track` | The project audio track it plays on, so the player's volume for that track applies. |
+
+## Stop Sound
+
+`blueprint.sound.stop` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | Optional. |
+| `fade` | in · data | `float` | Optional, literal. Seconds. |
+| `next` | out · exec | — | |
+
+## Pause Sound
+
+`blueprint.sound.pause` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `next` | out · exec | — | |
+
+## Resume Sound
+
+`blueprint.sound.resume` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `next` | out · exec | — | |
+
+## Seek Sound
+
+`blueprint.sound.seek` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `time` | in · data | `float` | Literal. Seconds from the start of the clip. |
+| `next` | out · exec | — | |
+
+## Set Sound Volume
+
+`blueprint.sound.setVolume` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `volume` | in · data | `float` | Optional, literal. |
+| `fade` | in · data | `float` | Optional, literal. Seconds — this is how a clip is ducked under a line rather than cut. |
+| `next` | out · exec | — | |
+
+## Is Sound Playing
+
+`blueprint.sound.isPlaying` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `next` | out · exec | — | |
+| `isPlaying` | out · data | `boolean` | |

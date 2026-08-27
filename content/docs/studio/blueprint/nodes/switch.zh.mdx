@@ -1,0 +1,95 @@
+---
+title: Switch
+description: Switch 控件的选中状态，以及每个控件都有的启用与可见两个开关
+---
+
+九个节点，对应一个 `nl.switch` 元素：界面需要的各种形态的选中状态，加上启用与可见这一对。
+
+## 约定
+
+- **只能用于控件蓝图，且只在 Switch 上。** 它们的 scope 就是 `nl.switch`，所以只在那个控件自己的蓝图里出现，别处没有。要从别的图里够到一个 Switch，用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的对应版本
+- **三个读取节点是 pure**，所以能出现在 `function` 图里、也能给蓝图值当后端。六个写入节点是 latent
+
+## Get Checked
+
+`blueprint.switch.getChecked` · Pure
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `checked` | out · data | `boolean` |
+
+## Set Checked
+
+`blueprint.switch.setChecked` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `checked` | in · data | `boolean` | 字面量 |
+| `next` | out · exec | — | |
+
+## Turn On
+
+`blueprint.switch.turnOn` · Latent
+
+就是传 `true` 的 `Set Checked`，单独做成一张卡，好让最常见的那件事读起来只有一个词。
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Turn Off
+
+`blueprint.switch.turnOff` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Toggle
+
+`blueprint.switch.toggle` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `checked` | out · data | `boolean` | 翻完之后停在哪一边 |
+
+## Get Enabled
+
+`blueprint.switch.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `enabled` | out · data | `boolean` |
+
+## Set Enabled
+
+`blueprint.switch.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `enabled` | in · data | `boolean` |
+| `next` | out · exec | — |
+
+## Get Visible
+
+`blueprint.switch.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `visible` | out · data | `boolean` |
+
+## Set Visible
+
+`blueprint.switch.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `visible` | in · data | `boolean` |
+| `next` | out · exec | — |

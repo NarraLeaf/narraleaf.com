@@ -545,8 +545,9 @@ Reads a save and abandons the current progress for it: the router and its histor
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `failed` | out · exec | — | Runs when the save is missing or unreadable, or when no game runtime is active. |
 
-Tail node: no exec output. Fails on a missing or unreadable save, or with no game runtime active.
+There is no `next`: a load that succeeds replaces the running game, so there is nothing left of this graph to carry on with. `failed` is the only way out, and it is the branch where a game says so.
 
 ### Delete Save
 

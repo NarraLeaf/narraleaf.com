@@ -40,10 +40,13 @@ export default defineRuntimePlugin({
 | `firstSceneReady` | `void` | First scene mounted and painted once. **Replayed**. |
 | `sceneEnter` | `{ sceneId: string \| null }` | A scene component **mounted**. See the warning below. |
 | `sceneExit` | `{ sceneId: string \| null }` | The counterpart unmount. |
-| `dialogueEnd` | `void` | One line of dialogue finished displaying. |
+| `dialogueEnd` | `{ textId: string \| null }` | One line of dialogue finished displaying. `textId` is the line's stable text id — the same key the translation table and the engine's `voiceId` use — or null for a line the host cannot name. It is the id to record against when a plugin keeps its own account of what the player has heard. |
 | `choiceMade` | `{ text: string }` | The player picked a choice. |
+| `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | A choice menu went on screen, with every option it is offering — the other half of `choiceMade`, which only says what was taken. Fires whenever the menu mounts, so a rollback into the same choice reports it again. `index` is the engine's index and is what picking one addresses; options a condition hid are absent and do **not** shift it, so the indices can have gaps. |
 | `characterPrompt` | `{ character: string \| null; text: string }` | A character line was shown. |
-| `gameEnd` | `void` | The action stack drained with a save context present. |
+| `audioPlayed` | `{ assetId: string }` | The story started playing an audio asset: a `/bgm` or `/sound` row, or a scene whose configured background music begins as it mounts. Reports what the *story* began, not every sound the game makes — a clip a Page starts through `Play Sound` belongs to the interface and does not appear here. Like `sceneEnter` it follows execution rather than a first visit, so make what you do with it idempotent. |
+| `gameEnd` | `void` | The story reached an ending: an `/ending` row ran, **or** the action stack drained with a save context present. Both, deliberately — an authored ending is the game ending, so a plugin watching only the drained stack would stop hearing about endings the moment a project started marking them. |
+| `endingReached` | `{ endingId: string; name: string }` | An `/ending` row ran, naming the ending it declares. The one that can say *which* ending it was. |
 | `beforeRestore` | `void` | A save is about to be restored. |
 | `afterRestore` | `void` | A save has been restored. |
 | `fullscreenChanged` | `boolean` | The new fullscreen state. |

@@ -1,0 +1,100 @@
+---
+title: Sound
+description: 从蓝图里播放一个音频片段，以及之后每个节点都要用的那个句柄
+---
+
+七个节点，管的是**界面**发出的声音：按钮的点击声、悬停的提示音、某个 Page 打开期间的环境音。故事播放的音乐与音效属于故事，写成那边的 `/bgm` 与 `/sound` 行。
+
+## 约定
+
+- **七个都是 latent。** 它们声明 `event` 与 `macro`，所以都不能出现在 `function` 图里，也不能给蓝图值当后端
+- **`Play Sound` 交出一个句柄，其余六个都收它。** 句柄指的是**正在播放的这一次**，不是资产——同一个片段播两次就是两个句柄，各自独立地停止、跳转与淡入淡出
+- **片段在卡片上选。** `Audio Clip` 选资产，`Track` 选它播放所在的音轨，于是玩家对那条音轨的音量会生效。`Asset Id` 引脚留给运行时才决定播哪个的情况
+
+## Play Sound
+
+`blueprint.sound.play` · Latent
+
+起播一个片段，并返回之后用来找到它的句柄。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `assetId` | in · data | `string` | 可选。覆盖卡片上的 `Audio Clip`，用于运行时才决定的片段 |
+| `loop` | in · data | `boolean` | 可选，字面量 |
+| `volume` | in · data | `float` | 可选，字面量 |
+| `fadeIn` | in · data | `float` | 可选，字面量。单位秒 |
+| `next` | out · exec | — | |
+| `handle` | out · data | `SoundHandle` | 本分类其余节点都收它 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Audio Clip` | 要播放的音频资产 |
+| `Track` | 它播放所在的工程音轨，于是玩家对那条音轨的音量会生效 |
+
+## Stop Sound
+
+`blueprint.sound.stop` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | 可选 |
+| `fade` | in · data | `float` | 可选，字面量。单位秒 |
+| `next` | out · exec | — | |
+
+## Pause Sound
+
+`blueprint.sound.pause` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+
+## Resume Sound
+
+`blueprint.sound.resume` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+
+## Seek Sound
+
+`blueprint.sound.seek` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `time` | in · data | `float` | 字面量。从片段开头算起的秒数 |
+| `next` | out · exec | — | |
+
+## Set Sound Volume
+
+`blueprint.sound.setVolume` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `volume` | in · data | `float` | 可选，字面量 |
+| `fade` | in · data | `float` | 可选，字面量。单位秒——想把一段音乐压在台词底下而不是直接切掉，用的就是它 |
+| `next` | out · exec | — | |
+
+## Is Sound Playing
+
+`blueprint.sound.isPlaying` · Latent
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+| `isPlaying` | out · data | `boolean` |

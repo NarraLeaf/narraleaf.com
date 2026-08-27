@@ -5,7 +5,18 @@ description: Scene-editor palette actions that insert story blocks.
 
 `app.services.story.actions` registers actions in the scene editor's insert palette, under the Plugin category. Each action builds a story block and inserts it. The block is a standard story block — the document does not depend on your plugin after insertion.
 
-## Methods
+## Reading the project's stories
+
+`app.services.story` also carries a read-only catalogue, for a plugin panel that has to let the author point at a story location — a recollection entry naming the scene it replays, an achievement naming where it unlocks.
+
+| Method | Signature |
+| --- | --- |
+| `listStories` | `() => PluginStoryEntry[]` — `{ id, name }`. The story list is already in memory, so this is synchronous. |
+| `listScenes` | `(storyId: string) => Promise<PluginSceneEntry[]>` — `{ id, name, storyId }`, in the author's own document order. It needs the story document, so it awaits a load. |
+
+Read-only on purpose: creating and editing stories stays with Studio.
+
+## Methods on `actions`
 
 | Method | Signature |
 | --- | --- |

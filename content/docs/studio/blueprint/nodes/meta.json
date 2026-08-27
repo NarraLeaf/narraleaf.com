@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "events",
+    "input",
     "flow",
     "functions",
     "variables",
@@ -10,11 +11,14 @@
     "math",
     "time",
     "game",
+    "sound",
+    "voice",
     "app",
     "localization",
     "network",
     "displayable",
     "element",
+    "component",
     "image",
     "text",
     "text-input",
@@ -23,6 +27,7 @@
     "frame",
     "list",
     "slider",
+    "switch",
     "debug"
   ]
 }

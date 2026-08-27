@@ -1,0 +1,34 @@
+---
+title: Input
+description: 玩家在用哪一类设备，以及某个输入动作此刻是不是被按住的
+---
+
+两个 pure 节点，读的是**图跑到那一刻**玩家的输入状态。两个都声明 `event`、`function` 与 `macro`，所以都能给蓝图值当后端。
+
+两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头；这两个回答的是「此刻是什么」，正是控件外观上的绑定想要的东西。
+
+## Get Input Device
+
+`blueprint.input.getDevice` · Pure
+
+玩家最近用的是哪一类设备，于是界面可以说「按空格」或者「点击继续」，而不必从屏幕尺寸去猜。
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `device` | out · data | `string` |
+
+## Is Action Held
+
+`blueprint.input.isActionHeld` · Pure
+
+卡片上选中的那个输入动作，此刻是不是被按住的。
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `held` | out · data | `boolean` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Action` | 工程的输入动作之一 |

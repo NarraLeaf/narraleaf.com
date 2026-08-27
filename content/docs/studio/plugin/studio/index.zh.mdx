@@ -43,6 +43,15 @@ export default definePlugin({
   <Card title="blueprintNodes" href="/zh/docs/studio/plugin/studio/blueprint-nodes" description="注册蓝图节点定义与动态下拉选项" />
 </Cards>
 
+还有四个在 `app.studio` 上，目前还没有各自的页面：
+
+| 服务 | 说明 |
+| --- | --- |
+| `workspace` | 当下能不能写工程数据（`frozen`、`freezeReason`、`onFreezeChange`），以及 `registerReloader` —— 工程的文档在你脚下被换掉时重读你手上拿着的东西 |
+| `textEditor` | Studio 文本编辑器的 `registerLanguage`、`registerPreview`、`registerAction` |
+| `tests` | 作者从 Run > Test 针对自己游戏跑的检查：`protocolVersion`、`register`、`registerMany`。与你插件的单元测试无关 —— 这里的测试由作者发起，结果报到 Test Report 页。每一个 id 都必须列在 `contributes.tests` 里 |
+| `voice` | `listUnits(localeCode?)` —— 工程的语音单元，只读 |
+
 另有两页覆盖非服务的内容：
 
 <Cards>

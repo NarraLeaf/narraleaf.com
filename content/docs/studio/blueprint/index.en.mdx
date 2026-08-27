@@ -29,6 +29,7 @@ The **owner** is where a blueprint lives. It decides the blueprint's lifetime an
 | `widgetValue` | one property of one widget | the binding that owns it |
 | `componentWidgetMain` | a reusable component widget | each instance of the component |
 | `sharedAsset` | a shared blueprint asset | whatever imports it |
+| `storyAction` | one story blueprint, in `action`, `value` or `condition` mode | the row that calls it |
 
 A `widgetMain` blueprint acts on its own widget through **Self nodes**, which take no `Element` input. To act on a *different* widget you wire an `Element` reference into an **Element node**. That split runs through the whole node catalog, and it is the first thing to understand about the palette.
 

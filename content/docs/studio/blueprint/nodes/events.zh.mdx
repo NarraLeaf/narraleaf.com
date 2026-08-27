@@ -42,10 +42,7 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 
 元素事件只在运行时命中的那个元素上触发，然后就停在那里——它不会向上传给祖先，父元素也不会默默接管子元素的事件。[Element 分类](/zh/docs/studio/blueprint/nodes/element)里的两个节点负责改变这一点：
 
-- `Continue Event Bubble`沿用当前事件名和原始 payload，把当前事件继续派发给结构父元素，然后从`next`继续执行。只能用于控件蓝图；当前没有进行中的事件可转发时执行失败
-- `Stop Event Bubble`把事件标记为已处理。后续的父级派发会被跳过，应用层的键盘派发同样会被跳过
-
-后一种用法最常用到。键盘事件先经 DOM 冒泡到达获得焦点的控件，随后由窗口级监听派发给全局蓝图、再派发给当前 active Surface 蓝图。控件按键处理里的一个`Stop Event Bubble`会把后面这两段全部切断——叠层 Page 正是用这种方式吃掉 Space，而不让它推进底下的游戏。在`On Window Close Requested`中，同一个节点用来取消窗口关闭
+曾经用来控制它的两个节点 `Continue Event Bubble` 与 `Stop Event Bubble` 已经被删除。它们真正被稳定用到的那一件事 —— 把窗口关闭挂住 —— 现在是 App 分类下的 [`Keep Window Open`](/zh/docs/studio/blueprint/nodes/app)，它只做这一件事
 
 <Callout type="warn">
 焦点位于文本输入元素时，窗口级键盘派发被整体跳过：全局与 Surface 的`On Key Down`/`Any Key Down`都不会执行，所以输入名字时按 Space 不会推进对话、按 Escape 不会打开菜单。获得焦点的控件自己的键盘 Head 仍然照常触发——它们走的是 DOM 冒泡，不是窗口监听
@@ -96,7 +93,7 @@ On Fullscreen Changed（全屏状态变更时）在应用窗口进入或退出�
 
 `blueprint.event.head.windowCloseRequested`
 
-On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。主进程会把这次关闭挂起，等全局蓝图、再等 Surface 蓝图跑完；两者中任意一个执行了`Stop Event Bubble`就取消关闭，没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口
+On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。主进程会把这次关闭挂起，等全局蓝图、再等 Surface 蓝图跑完；两者中任意一个执行了 `Keep Window Open` 就取消关闭，没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口
 
 只在全局蓝图和 Surface 蓝图中提供。取消动作依附于本次派发共享的 event control，而控件派发路径不传递它——这和键盘 Head 止步于 Surface 是同一个原因
 

@@ -5,7 +5,18 @@ description: 向场景编辑器插入故事块的调板操作
 
 `app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。该块是标准故事块——插入后文档不再依赖你的插件
 
-## 方法
+## 读取工程里的故事
+
+`app.services.story` 上还有一份**只读**目录，给那些需要让作者指向某个故事位置的插件面板用 —— 一条回忆记录要点名它重放的场景，一个成就要点名它在哪里解锁。
+
+| 方法 | 签名 |
+| --- | --- |
+| `listStories` | `() => PluginStoryEntry[]` —— `{ id, name }`。故事列表本就在内存里，所以它是同步的 |
+| `listScenes` | `(storyId: string) => Promise<PluginSceneEntry[]>` —— `{ id, name, storyId }`，按作者自己文档里的顺序。它需要故事文档，所以要等一次加载 |
+
+只读是故意的：创建与编辑故事仍然归 Studio。
+
+## `actions` 上的方法
 
 | 方法 | 签名 |
 | --- | --- |

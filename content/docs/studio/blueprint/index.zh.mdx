@@ -29,6 +29,7 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 | `widgetValue` | 单个控件的单个属性 | 拥有它的绑定 |
 | `componentWidgetMain` | 可复用的组件控件 | 组件的每个实例 |
 | `sharedAsset` | 共享蓝图资源 | 引用它的一方 |
+| `storyAction` | 一张故事蓝图，处于 `action`、`value` 或 `condition` 模式 | 调用它的那一行 |
 
 `widgetMain` 蓝图通过 **Self 节点**操作自己所属的控件，这类节点没有 `Element` 输入。要操作**别的**控件，则把一个 `Element` 引用接进 **Element 节点**。这条区分贯穿整个节点目录，也是理解创建浮窗的第一件事
 

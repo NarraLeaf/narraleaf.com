@@ -1,0 +1,34 @@
+---
+title: Input
+description: Which device the player is using, and whether an input action is being held.
+---
+
+Two pure nodes for reading the player's input at the moment the graph runs. Both declare `event`, `function` and `macro`, so either can back a Blueprint Value.
+
+Neither is an event head. To *react* to input, use the keyboard and pointer heads in [Events](/docs/studio/blueprint/nodes/events); these two answer "what is true right now", which is what a binding on a widget's appearance wants.
+
+## Get Input Device
+
+`blueprint.input.getDevice` · Pure
+
+The kind of device the player last used, so an interface can say "Press Space" or "Tap to continue" without guessing from the screen size.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `device` | out · data | `string` |
+
+## Is Action Held
+
+`blueprint.input.isActionHeld` · Pure
+
+Whether the input action chosen on the card is being held down at this instant.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `held` | out · data | `boolean` |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Action` | One of the project's input actions. |

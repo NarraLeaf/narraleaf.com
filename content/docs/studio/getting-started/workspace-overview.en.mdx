@@ -14,12 +14,22 @@ The workspace has an activity bar, sidebars, an editor area, a Properties panel,
 
 | Area | Purpose |
 | --- | --- |
-| Left activity bar | Switch between Project, Story, UI, Characters, Assets, and Localization |
+| Left activity bar | Switch between Dashboard, Project, Story, Search, UI, Characters, Assets, Localization, Voice, Story Variables, Dictionary and Plugins |
 | Left sidebar | Browse and create content for the current tool |
 | Center editor area | Open pages, scenes, asset previews, and Blueprints in tabs |
 | Right Properties panel | Edit the selected page, widget, asset, or story action |
 | Bottom bar | Show the console, build output, motion tools, and the assets panel |
 | Top bar | File actions, version control, and the run and build controls |
+
+## The left rail
+
+Twelve panels are registered on the rail. Three are worth naming because they are easy to miss:
+
+- **Dashboard** is first on the rail (it sorts ahead of everything else) and opens as a tab rather than a sidebar — the project's scale, its cast's line counts, and recent writing activity.
+- **Search** looks across the project rather than within one editor.
+- **Voice** is the voice-line library: the takes recorded for each line, per dub language. Hidden until you turn it on, like Story Variables, Dictionary and Plugins.
+
+Which panels are on the rail is yours to set; a plugin can add its own through [`app.services.ui.panels`](/docs/studio/plugin/studio/ui).
 
 ## Selection and properties
 

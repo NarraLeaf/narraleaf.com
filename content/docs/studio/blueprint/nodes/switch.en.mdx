@@ -1,0 +1,95 @@
+---
+title: Switch
+description: The Switch widget's checked state, and the enabled and visible flags every widget has.
+---
+
+Nine nodes for a `nl.switch` element: the checked state in every form an interface needs it, plus the enabled and visible pair.
+
+## Conventions
+
+- **Widget blueprints only, and only on a Switch.** These are scoped to `nl.switch`, so they are offered on that widget's own blueprint and nowhere else. To reach a Switch from another graph, use the [Element](/docs/studio/blueprint/nodes/element) versions.
+- **The three readers are pure**, so they can appear in a `function` graph and back a Blueprint Value. The six writers are latent.
+
+## Get Checked
+
+`blueprint.switch.getChecked` · Pure
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `checked` | out · data | `boolean` |
+
+## Set Checked
+
+`blueprint.switch.setChecked` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `checked` | in · data | `boolean` | Literal. |
+| `next` | out · exec | — | |
+
+## Turn On
+
+`blueprint.switch.turnOn` · Latent
+
+`Set Checked` with `true`, as its own card so the common case reads as one word.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Turn Off
+
+`blueprint.switch.turnOff` · Latent
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Toggle
+
+`blueprint.switch.toggle` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `checked` | out · data | `boolean` | The state it ended up in. |
+
+## Get Enabled
+
+`blueprint.switch.getEnabled` · Pure
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `enabled` | out · data | `boolean` |
+
+## Set Enabled
+
+`blueprint.switch.setEnabled` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `enabled` | in · data | `boolean` | |
+| `next` | out · exec | — | |
+
+## Get Visible
+
+`blueprint.switch.getVisible` · Pure
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `visible` | out · data | `boolean` |
+
+## Set Visible
+
+`blueprint.switch.setVisible` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `visible` | in · data | `boolean` | |
+| `next` | out · exec | — | |

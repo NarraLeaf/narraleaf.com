@@ -40,12 +40,9 @@ Two further narrowings apply inside a widget blueprint. `List Item Refresh` is o
 
 ## Event bubbling
 
-An element event fires on the element the runtime targeted and stops there — it does not climb to ancestors, and a parent does not silently take over its children's events. Two nodes in the [Element category](/docs/studio/blueprint/nodes/element) control that:
+An element event fires on the element the runtime targeted and stops there — it does not climb to ancestors, and a parent does not silently take over its children's events.
 
-- `Continue Event Bubble` re-dispatches the current event to the structural parent under the same event name and the original payload, then carries on from `next`. Widget blueprints only, and it fails if there is no event in flight to forward.
-- `Stop Event Bubble` marks the event handled. Later parent dispatches are skipped, and so is the app-level keyboard dispatch.
-
-That second use is the one that matters most often. Keyboard events reach a focused widget through DOM bubbling first, then a window listener dispatches them to the global blueprint and then the active Surface blueprint. A `Stop Event Bubble` in the widget's key handler cuts both of those off — which is how an overlay Page swallows Space instead of letting it advance the game underneath. The same node cancels a window close inside `On Window Close Requested`.
+The two nodes that used to steer that, `Continue Event Bubble` and `Stop Event Bubble`, were removed. The one thing they were reliably used for — holding a window close open — is now [`Keep Window Open`](/docs/studio/blueprint/nodes/app) in the App category, which does that and nothing else.
 
 <Callout type="warn">
 While focus is in a text-entry element, the window-level keyboard dispatch is skipped entirely: the global and Surface `On Key Down` / `Any Key Down` heads do not run, so typing a name cannot advance dialogue on Space or open the menu on Escape. The focused widget's own keyboard heads still fire — they arrive through DOM bubbling, not the window listener.
@@ -96,7 +93,7 @@ Fires when the application window enters or leaves fullscreen, including a chang
 
 `blueprint.event.head.windowCloseRequested`
 
-Fires when the player asks to close the window. The main process holds the close open while the global blueprint runs and then the Surface blueprint; a `Stop Event Bubble` in either cancels the close, and absent one the window proceeds to close. In Dev Mode this covers the Dev Mode window; in preview and production, the game window.
+Fires when the player asks to close the window. The main process holds the close open while the global blueprint runs and then the Surface blueprint; a `Keep Window Open` in either cancels the close, and absent one the window proceeds to close. In Dev Mode this covers the Dev Mode window; in preview and production, the game window.
 
 Global and Surface blueprints only. Cancellation travels on the dispatch's shared event control, which the widget dispatch path does not thread — the same reason the keyboard heads stop at the Surface.
 

@@ -1,0 +1,26 @@
+---
+title: Component
+description: Reading the parameter that tells one placement of a component apart from another.
+---
+
+One node, and it exists for the whole point of component blueprints: a component is authored once and placed many times, so the graph on the definition needs a way to ask which placement it is running for.
+
+## Get Component Param
+
+`blueprint.component.getParam` · Pure
+
+The value the placement gave for one of the component's declared parameters.
+
+Available only on a component's own blueprint (`componentWidgetMain`) — outside a component there is no placement to ask about.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `value` | out · data | `string` |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Param` | One of the parameters this component declares. |
+
+Twelve save slots are one component with a `slot` parameter placed twelve times, not twelve copies of the same element tree: the definition's graph reads `slot` here and writes to, or loads from, the slot the placement named. A graph inside a function called from the component sees the same placement, so a helper `Fn` can read parameters too.

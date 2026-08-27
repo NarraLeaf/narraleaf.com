@@ -40,10 +40,13 @@ export default defineRuntimePlugin({
 | `firstSceneReady` | `void` | 第一个场景已挂载并完成首次绘制。**会重放**|
 | `sceneEnter` | `{ sceneId: string \| null }` | 一个场景组件**挂载**了。见下方警告|
 | `sceneExit` | `{ sceneId: string \| null }` | 对应的卸载|
-| `dialogueEnd` | `void` | 一句对白显示完毕|
+| `dialogueEnd` | `{ textId: string \| null }` | 一句对白显示完毕。`textId` 是这一行稳定的文本 id —— 与翻译表、引擎的 `voiceId` 用的是同一个键 —— 宿主叫不出名字的行则为 null。插件自己记“玩家听过什么”时，记的就是它|
 | `choiceMade` | `{ text: string }` | 玩家选了一个选项|
+| `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | 一个选项菜单上了屏，带着它提供的全部选项 —— `choiceMade` 的另一半，那个只说选走了哪一个。菜单每次挂载都会触发，所以回退到同一个选择会再报一次。`index` 是引擎的索引，也是选中时寻址用的；被条件藏掉的选项不在列表里且**不会**把它前移，所以索引可能有缺口|
 | `characterPrompt` | `{ character: string \| null; text: string }` | 显示了一句角色台词|
-| `gameEnd` | `void` | 动作栈在存在存档上下文的情况下清空|
+| `audioPlayed` | `{ assetId: string }` | 故事开始播放一个音频资产：一行 `/bgm` 或 `/sound`，或者一个配置了背景音乐的场景在挂载时起播。报的是**故事**起的那一声，不是游戏发出的每一声 —— 页面通过 `Play Sound` 起的属于界面，不会出现在这里。与 `sceneEnter` 一样它跟的是执行而不是首次抵达，所以拿它做的事要幂等|
+| `gameEnd` | `void` | 故事走到了结局：一行 `/ending` 跑了，**或者**动作栈在存在存档上下文的情况下清空。两者都算，是故意的 —— 作者写的结局就是游戏结束，只盯栈清空的插件会在工程开始标结局的那一天开始什么都听不到|
+| `endingReached` | `{ endingId: string; name: string }` | 一行 `/ending` 跑了，并说出它声明的结局。能告诉你是**哪个**结局的就是它|
 | `beforeRestore` | `void` | 即将恢复一个存档|
 | `afterRestore` | `void` | 存档已恢复|
 | `fullscreenChanged` | `boolean` | 新的全屏状态|

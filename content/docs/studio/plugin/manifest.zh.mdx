@@ -51,6 +51,10 @@ description: manifest.json 中的每一个字段——入口、完整的 contrib
 | `runtimeCapabilities` | `string[]` | runtime 入口可以使用的能力域|
 | `sidecars` | object[] | 随作者游戏一同发布的原生子进程|
 | `buildDependencies` | object[] | 构建时抓取并缓存的外部二进制文件|
+| `tests` | `string[]` | 本插件提供的测试类型，供 Run > Test 使用|
+| `buildConfig` | object[] | 本插件往构建对话框里加的构建配置字段|
+| `externalLinks` | `string[]` | runtime 入口可以在玩家浏览器里打开的地址模式|
+| `network` | `string[]` | runtime 入口可以向其请求字节的主机模式|
 
 每一个节点类型、控件类型、存储命名空间、sidecar id 和构建时依赖 id 都必须以你的插件 id 为前缀。`contributes` 下出现未知的键会被拒绝，而不是被忽略
 
@@ -70,7 +74,7 @@ description: manifest.json 中的每一个字段——入口、完整的 contrib
 
 ### runtimeCapabilities
 
-九个能力域，每一个对应 `app.game` 的一个命名空间。未声明的域**在对象上根本不存在**，而不是一个会抛错的方法。声明了它却没有 `entries.runtime` 是清单错误
+十个能力域，每一个对应 `app.game` 的一个命名空间。未声明的域**在对象上根本不存在**，而不是一个会抛错的方法。声明了它却没有 `entries.runtime` 是清单错误
 
 ```json
 { "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
@@ -117,9 +121,11 @@ description: manifest.json 中的每一个字段——入口、完整的 contrib
 | `runtime` | `contributes.runtimeCapabilities` 中的每一项|
 | `sidecar` | 每个 `contributes.sidecars` 条目，以及它所发布的平台键|
 | `buildDependency` | 每个 `contributes.buildDependencies` 条目，以及它下载所用的主机名|
+| `externalLink` | `contributes.externalLinks`，用作者自己写的模式原样列出 —— 不改写，好让提示与清单是同一份文件|
+| `network` | `contributes.network`。与 `externalLink` 是两个问题，永远不合并：打开一个页面只是把地址交给浏览器、什么都不会回来，而这个是取字节，取回来的东西会在游戏里跑|
 
 <Callout type="warn">
-手写 `runtime`、`sidecar` 或 `buildDependency` 权限是**清单错误**——插件会安装失败，并提示 *"permission kind … is derived from contributes and must not be declared by hand."*。在 `contributes` 中把能力声明一次，权限自然随之而来
+手写 `runtime`、`sidecar`、`buildDependency`、`externalLink` 或 `network` 权限是**清单错误**——插件会安装失败，并提示 *"permission kind … is derived from contributes and must not be declared by hand."*。在 `contributes` 中把能力声明一次，权限自然随之而来
 </Callout>
 
 这正是安装提示能保持诚实的原因：一项能力只在一个地方声明，因此提示列出的内容与插件真正能触及的内容不可能漂移开来。它也让更新的行为变得正常——新增一项能力会扩大派生出的权限集，于是自动重新向作者索取批准；而没有扩大任何范围的版本则沿用已有的授权
@@ -135,3 +141,9 @@ description: manifest.json 中的每一个字段——入口、完整的 contrib
 | 加载时注册抛错 | 某个节点或控件类型不在 `contributes` 中，或没有以插件 id 为前缀|
 | 预览报 "Plugin validation failed" | 项目用到的某个节点或控件没有 runtime 提供方——插件被禁用、缺失、没有 `entries.runtime`，或该类型未被声明|
 | 安装时摘要不匹配 | 某个 sidecar 文件的字节与它的 `sha256` 不符|
+
+### 不派生任何权限的两种贡献
+
+`tests` 和 `buildConfig` 是唯两种不会产生安装权限的贡献，且两者都是**裁定而不是漏掉**。
+
+其余每一种带代码的贡献，在插件装载那一刻就拿到了一项能力。而**测试**只有在作者打开 Run > Test、在对话框里挑中它、再按下 Start 时才会跑；安装时根本没有一项“环境里一直在”的能力需要同意，而测试跑起来之后能碰什么，由它自己的 `requires` 单独把关。而**构建配置字段**只是一个留给作者填的空，填了也不会让插件多碰到任何东西。
