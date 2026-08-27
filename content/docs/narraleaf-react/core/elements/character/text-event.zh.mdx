@@ -1,0 +1,104 @@
+---
+title: "文本事件 (TextEvent)"
+---
+
+<Callout type="info">
+    自 `0.16.0` 起可用
+</Callout>
+
+TextEvent 是一个行内对白标记，在逐字机走到它的那一刻，于一行**之内**触发一个效果。它像 [Pause](/zh/docs/narraleaf-react/core/elements/character/pause) 一样待在句子的词流里——本身不渲染任何东西，也不是动作，因此永远不会进入执行栈
+
+没有它的时候，立绘只能在两行之间换；想在句子中途换表情，就只能把句子拆成两句
+
+```ts
+import {TextEvent} from "narraleaf-react";
+
+scene.action([
+    character.say([
+        "别",
+        TextEvent.expression(aliceImage, ["angry"]),  // 立绘就在这里翻脸
+        "试探我。",
+    ]),
+    character.say([
+        "……",
+        TextEvent.sound(sting),                       // 只放一记音效，不换立绘
+    ]),
+]);
+```
+
+## 效果集合是封闭的
+
+一个文本事件携带的东西只有三种可能：切换角色表情、播放音效，或者两者兼有。这就是全部——它被刻意设计成不是动作的通用逃生舱
+
+文本事件做的任何事都不会被压入执行栈，因此不给存档增加任何负担。它的效果落在普通的元素状态上，而元素状态**是**会被序列化的；当所属的 `say` 动作被重新求值时，效果自然会再次生效。表情切换不带过渡——是瞬间替换，直接写到元素上
+
+## 跳过与瞬间显示
+
+跳过逐字机——或者一次不走打字效果、把整句一次性显示出来的瞬间显示——都不会漏掉沿途经过的标记。每一个被越过的标记都按源码顺序恰好触发一次，因此结果与让逐字机逐个走到它们完全一致：图像最终停在**最后**一个被越过的标记所指定的外观上，被越过的每一记音效各播放一次
+
+在同一次显示过程中再次经过已经触发过的标记不会有任何效果，因此玩家已经读过的一行，在其容器重新挂载时不会重放它的效果。这道防护只存在于运行期，不进存档，所以读档后是一次全新的显示，会正常触发
+
+## 静态方法
+
+### expression
+
+<Steps>
+<Step>
+
+在逐字机走到该处时切换某个图像的外观，可同时附带一记音效
+
+- `image: Image` - 要切换外观的 [Image](/zh/docs/narraleaf-react/core/elements/image)
+- `appearance: TextEventAppearance` - 标签数组，或静态的 `src` / 颜色——即 [`Image.char`](/zh/docs/narraleaf-react/core/elements/image#char) 接受的那几种形式。与 `char` 一样，裸字符串会被当作 `src`，因此按标签切换**必须**写成数组
+- `options?: {sound?: Sound}` - 在同一处播放的 [Sound](/zh/docs/narraleaf-react/core/elements/sound)
+- 返回 `TextEvent`
+
+```ts
+TextEvent.expression(alice, ["angry"]);
+TextEvent.expression(alice, ["angry"], {sound: slap});
+TextEvent.expression(alice, "/images/alice-angry.png");
+```
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+在逐字机走到该处时只播放一记音效，别的什么也不做
+
+- `sound: Sound` - 要播放的 [Sound](/zh/docs/narraleaf-react/core/elements/sound)
+- 返回 `TextEvent`
+
+```ts
+TextEvent.sound(sting);
+```
+</Step>
+</Steps>
+
+## 公共方法
+
+### constructor
+
+<Steps>
+<Step>
+
+用显式的效果描述符构造一个文本事件。常见情况请优先用 `expression` / `sound` 工厂方法
+
+- `config: TextEventConfig` - 效果描述符
+
+```ts
+new TextEvent({expression: {image: alice, appearance: ["angry"]}, sound: slap});
+```
+</Step>
+</Steps>
+
+## 导出的类型
+
+`narraleaf-react` 在导出 `TextEvent` 的同时也导出三个类型：
+
+| 类型 | 形状 |
+|---|---|
+| `TextEventAppearance` | `ImageSrc \| Color \| string[]`——参见 [ImageSrc](/zh/docs/narraleaf-react/core/types/ImageSrc) 与 [Color](/zh/docs/narraleaf-react/core/types/color) |
+| `TextEventExpression` | `{image: Image, appearance: TextEventAppearance}` |
+| `TextEventConfig` | `{expression?: TextEventExpression, sound?: Sound}` |

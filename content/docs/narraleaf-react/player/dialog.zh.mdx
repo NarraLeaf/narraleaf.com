@@ -101,6 +101,39 @@ function App() {
 - `borderRadius`：`6`
 - `flex`：`"0 0 auto"`
 
+### TextsPreview
+
+用与 `Texts` 相同的逐字机渲染一行文本，但与正在进行的对白脱钩。凡是需要在台词之外展示一段对白样例的地方都用它：设置页的文本速度那一行、字体预览、样式选择器
+
+它读取 `cps` 与 `gameSpeed` 偏好，并在两者变化时重新播放——这正是它能给速度滑块做实时预览的原因。在 `GameProviders` 之外，它退回到 `Game.DefaultPreference` 与 `Game.DefaultConfig`，因此在没有游戏在跑的页面上同样能渲染
+
+```tsx
+import { TextsPreview, Word } from "narraleaf-react";
+
+<TextsPreview
+    text={["敏捷的棕色狐狸", new Word("跃过", { color: "#f00" }), "了懒狗。"]}
+    fontSize={18}
+/>
+```
+
+内容来源给一个就够。`words` 优先于 `text`，`text` 优先于 `sentence`
+
+- `text?: TextsPreviewInput` - 静态内容：一个 `StaticWord<string | Pausing>`，或它们组成的数组
+- `sentence?: Sentence` - 要预览的 [Sentence](/zh/docs/narraleaf-react/core/elements/character/sentence)。其中的动态词**不会**被求值，而是被丢弃；预览已经跑过的内容请改用 `words`。句子自身的颜色、字体与粗体/斜体标志则照常生效
+- `words?: Word<Pausing | string | TextEvent>[]` - 已经求值完毕的词
+- `useTypeEffect?: boolean` - 逐字打出而不是整行直接显示。默认 `true`
+- `loop?: TextsPreviewLoop` - `false` 表示只播一次；`{enabled?: boolean, delay?: number}` 可设定两轮之间的间隔（毫秒）。默认 `true`
+- `restartDelay?: number` - `loop` 为布尔值时，下一轮开始前的间隔（毫秒）。`loop` 为带 `delay` 的对象时忽略。缺省取 `GameConfig.autoForwardDefaultPause`
+- `cps?: number` - 每秒字数。缺省取 `cps` 偏好
+- `gameSpeed?: number` - 速度倍率。缺省取 `gameSpeed` 偏好
+- `pauseDuration?: number` - 未自带时长的 `Pause` 停多久（毫秒）。缺省取 `GameConfig.autoForwardDefaultPause`
+- `defaultColor?: Color`、`fontSize`、`fontWeight`、`fontWeightBold`、`fontFamily` - 与 `Texts` 上的同名 props 一致
+- `writingMode?: TextWritingMode`、`textOrientation?: TextGlyphOrientation`、`tateChuYoko?: TateChuYoko` - 与 `Texts` 上的同名 props 一致。自 `0.26.0` 起
+- `onCompleted?: () => void` - 每次一行播完时调用，因此循环播放的预览每轮都会调用一次
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children">`
+
+预览没有副作用：内容里的 [TextEvent](/zh/docs/narraleaf-react/core/elements/character/text-event) 会被跳过而不触发，因此预览一行永远不会换立绘、也不会放音效。这里同样没有 `autoFit`——预览不在对话框内，没有可供适配的盒子
+
 ## 动画
 
 向 `Dialog` 传入 Motion props。内置对话框没有进入和退出动画
@@ -347,7 +380,7 @@ ADV 对话框自带一个叠层，它覆盖对话框并画在其上，且处于�
 
 `narraleaf-react` 导出：
 
-- 组件 props：`NametagProps`、`TextAppearanceProps`、`TextsProps`、`RawTextsProps`、`EntryTextsProps`
+- 组件 props：`NametagProps`、`TextAppearanceProps`、`TextsProps`、`RawTextsProps`、`EntryTextsProps`、`TextsPreviewProps`、`TextsPreviewInput`、`TextsPreviewLoop`
 - 头像来源：`DialogAvatarSource`、`DialogAvatarResolverContext`、`DialogAvatarResolver`、`DialogAvatar`
 - 立绘：`CharacterPortraitConfig`、`DialogAvatarResolution`
 - React：`Avatar`、`useAvatar`，以及类型 `DialogAvatarContext`
