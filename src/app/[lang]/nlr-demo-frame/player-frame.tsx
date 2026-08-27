@@ -123,6 +123,9 @@ function GlossaryTerm({ children, revealed, data }: WordRenderProps<GlossaryData
   );
 }
 
+/** The point every demonstration returns to. Label names are scene-local. */
+const MENU_LABEL = 'demos';
+
 /** The sprite's own pixel height. An image keeps its natural size in stage units, so this is the
  *  height it is drawn at before `zoom`. */
 const NARRA_HEIGHT = 1100;
@@ -213,32 +216,38 @@ function createDemoStory(locale: Locale) {
           ],
     ),
 
-    Control.whileLoop(() => true, [
-      Menu.prompt(isZh ? '选择一项演示。' : 'Select a demonstration.')
-        .choose(isZh ? '镜头运动' : 'Camera movement', [
-          narra.say`${isZh ? '缩放、平移、暗角与快门都是相机属性，作用于整个舞台。' : 'Zoom, pan, vignette and shutter are camera properties applied to the whole stage.'}`,
-          story.camera.zoom(1.22, 900, 'easeInOut'),
-          story.camera.pan({ xalign: 0.42 }, 900, 'easeInOut'),
-          story.camera.vignette(0.68, 500),
-          narra.say`${isZh ? '暗角固定在视野上，舞台在它下面移动。' : 'The vignette is fixed to the view, and the stage moves beneath it.'}`,
-          story.camera.shutter(1, 170, 'easeInOut'),
-          story.camera.shutter(0, 240, 'easeInOut'),
-          narra.say`${isZh ? '相机随后回到默认取景。' : 'The camera then returns to its default framing.'}`,
-          story.camera.resetCamera(700),
-        ])
-        .choose(isZh ? '场景转场' : 'Scene transition', [
-          narra.say`${isZh ? '转场作用于整个舞台，立绘、背景与文本框都参与其中。' : 'A transition plays across the whole stage, and the sprite, the background and the text box all take part.'}`,
-          hall.jumpTo(room, {
-            transition: new Reveal({ duration: 900, pattern: Mask.iris() }),
-            returnable: true,
-          }),
-          narra.say`${isZh ? '另一个场景播放期间，走廊保持原有状态。' : 'The corridor kept its state for as long as the other scene played.'}`,
-        ])
-        .choose(isZh ? '场景调用' : 'Scene call', [
-          narra.say`${isZh ? '以 returnable 跳转会挂起当前场景，目标场景结束后继续执行。' : 'A jump made with returnable suspends this scene, and execution continues once the target scene ends.'}`,
-          hall.jumpTo(aside, { transition: new Dissolve({ duration: 600 }), returnable: true }),
-          narra.say`${isZh ? '执行从跳转之后的一行继续。' : 'Execution resumed at the line after the jump.'}`,
-        ]),
+    // Every branch ends by jumping back here, so a visitor can watch the other demonstrations
+    // without reloading the page. The target is resolved when the story is built, so a name that
+    // does not match a label in this scene fails the build rather than the play head.
+    Control.label(MENU_LABEL),
+
+    Menu.prompt(isZh ? '选择一项演示。' : 'Select a demonstration.')
+      .choose(isZh ? '镜头运动' : 'Camera movement', [
+        narra.say`${isZh ? '缩放、平移、暗角与快门都是相机属性，作用于整个舞台。' : 'Zoom, pan, vignette and shutter are camera properties applied to the whole stage.'}`,
+        story.camera.zoom(1.22, 900, 'easeInOut'),
+        story.camera.pan({ xalign: 0.42 }, 900, 'easeInOut'),
+        story.camera.vignette(0.68, 500),
+        narra.say`${isZh ? '暗角固定在视野上，舞台在它下面移动。' : 'The vignette is fixed to the view, and the stage moves beneath it.'}`,
+        story.camera.shutter(1, 170, 'easeInOut'),
+        story.camera.shutter(0, 240, 'easeInOut'),
+        narra.say`${isZh ? '相机随后回到默认取景。' : 'The camera then returns to its default framing.'}`,
+        story.camera.resetCamera(700),
+        Control.jump(MENU_LABEL),
+      ])
+      .choose(isZh ? '场景转场' : 'Scene transition', [
+        narra.say`${isZh ? '转场作用于整个舞台，立绘、背景与文本框都参与其中。' : 'A transition plays across the whole stage, and the sprite, the background and the text box all take part.'}`,
+        hall.jumpTo(room, {
+          transition: new Reveal({ duration: 900, pattern: Mask.iris() }),
+          returnable: true,
+        }),
+        narra.say`${isZh ? '另一个场景播放期间，走廊保持原有状态。' : 'The corridor kept its state for as long as the other scene played.'}`,
+        Control.jump(MENU_LABEL),
+      ])
+      .choose(isZh ? '场景调用' : 'Scene call', [
+        narra.say`${isZh ? '以 returnable 跳转会挂起当前场景，目标场景结束后继续执行。' : 'A jump made with returnable suspends this scene, and execution continues once the target scene ends.'}`,
+        hall.jumpTo(aside, { transition: new Dissolve({ duration: 600 }), returnable: true }),
+        narra.say`${isZh ? '执行从跳转之后的一行继续。' : 'Execution resumed at the line after the jump.'}`,
+        Control.jump(MENU_LABEL),
     ]),
   ]);
 
