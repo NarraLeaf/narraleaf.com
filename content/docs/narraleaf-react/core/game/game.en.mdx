@@ -3,7 +3,7 @@ title: "Game"
 ---
 Game is the main class that represents the game itself. It contains all the game's configuration and [LiveGame](/docs/narraleaf-react/core/game/live-game)s
 
-Game use Singleton pattern, so you can get the instance by calling hook `useGame()`
+A `Game` belongs to the [GameProvider](/docs/narraleaf-react/player/game-providers) that owns it — a provider constructs one, and separate providers own separate games. Reach the one you are inside with the `useGame()` hook.
 
 ## Public Properties
 
@@ -78,7 +78,7 @@ Assign a new configuration to the game
 > Calling this method after the game is initialized will not take effect or not taking effect immediately. Settings in the [Preference](/docs/narraleaf-react/core/game/preference/preference) will take effect immediately.
 
 ```typescript
-const { game } = useGame();
+const game = useGame();
 
 useEffect(() => {
     game.configure({

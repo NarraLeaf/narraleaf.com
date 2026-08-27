@@ -36,7 +36,7 @@ The same instance for the life of the `LiveGame` — `newGame()` and `deserializ
 Returns the [Storable](/docs/narraleaf-react/core/game/storable) instance
 
 ```typescript {2}
-const {game} = useGame();
+const game = useGame();
 const storable = game.getLiveGame().storable;
 
 // is equivalent to
@@ -77,7 +77,7 @@ const savedGame = {
 };
 
 // use hook inside a component
-const {game} = useGame();
+const game = useGame();
 
 // pass the saved game data to the game instance
 game.getLiveGame().deserialize(savedGame);
@@ -113,7 +113,7 @@ Called when a character says something
 - Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const [texts, setTexts] = useState<string[]>([]);
 
 useEffect(() => {
@@ -159,7 +159,7 @@ Returns a PNG image base64-encoded data URL
 > **Note: **Image returned by this method is not compressed, and it is not affected by the `screenshotQuality` option
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 function handleButtonClick() {
     game.getLiveGame().capturePng().then((dataUrl) => {
@@ -246,7 +246,7 @@ Exit full screen
 Listen to the events of the player element
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 useEffect(() => {
     return game.getLiveGame().onPlayerEvent("click", (event) => {
@@ -497,7 +497,7 @@ window.addEventListener("keyup", (event) => {
 Play a sound immediately and return its `SoundToken`.
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 game.getLiveGame()
     .playSound("https://example.com/voice.mp3")
@@ -536,7 +536,7 @@ Wait for the router to exit.
 This method is useful when you want to create a new game and wait for the router to exit.
 
 ```typescript {10}
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 const liveGame = game.getLiveGame();
 
@@ -571,7 +571,7 @@ useEffect(() => {
 Wait for the page to mount
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 const liveGame = game.getLiveGame();
 
@@ -601,7 +601,7 @@ useEffect(() => {
 Listen to the events of the window
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 useEffect(() => {
     return game.getLiveGame().onWindowEvent("resize", (event) => {
@@ -627,7 +627,7 @@ Reset the game state
 > **Note:** Calling this method will lose the current game state
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 
 game.getLiveGame().reset();

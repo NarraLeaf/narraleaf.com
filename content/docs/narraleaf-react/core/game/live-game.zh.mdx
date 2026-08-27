@@ -36,7 +36,7 @@ LiveGame 是代表游戏当前状态的主类
 返回 [Storable](/zh/docs/narraleaf-react/core/game/storable) 实例
 
 ```typescript {2}
-const {game} = useGame();
+const game = useGame();
 const storable = game.getLiveGame().storable;
 
 // 等价于
@@ -77,7 +77,7 @@ const savedGame = {
 };
 
 // 在组件中使用钩子
-const {game} = useGame();
+const game = useGame();
 
 // 将保存的游戏数据传递给游戏实例
 game.getLiveGame().deserialize(savedGame);
@@ -113,7 +113,7 @@ game.getLiveGame().deserialize(savedGame);
 - 返回 `LiveGameEventToken` - 参见 [LiveGameEventToken](/zh/docs/narraleaf-react/core/types/LiveGameEventToken)
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const [texts, setTexts] = useState<string[]>([]);
 
 useEffect(() => {
@@ -157,7 +157,7 @@ return (
 返回 PNG 图像的 Base64 编码数据 URL
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 function handleButtonClick() {
     game.getLiveGame().capturePng().then((dataUrl) => {
@@ -244,7 +244,7 @@ Safari iOS 和 Webview iOS 不支持，更多信息请参见 [MDN-requestFullscr
 监听玩家元素的事件
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 useEffect(() => {
     return game.getLiveGame().onPlayerEvent("click", (event) => {
@@ -486,7 +486,7 @@ window.addEventListener("keyup", (event) => {
 立即播放声音并返回对应的 `SoundToken`
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 game.getLiveGame()
     .playSound("https://example.com/voice.mp3")
@@ -523,7 +523,7 @@ game.getLiveGame()
 此方法可用于在创建新游戏时等待路由退出
 
 ```typescript {10}
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 const liveGame = game.getLiveGame();
 
@@ -558,7 +558,7 @@ useEffect(() => {
 等待页面挂载
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 const liveGame = game.getLiveGame();
 
@@ -588,7 +588,7 @@ useEffect(() => {
 监听窗口事件
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 
 useEffect(() => {
     return game.getLiveGame().onWindowEvent("resize", (event) => {
@@ -614,7 +614,7 @@ useEffect(() => {
 > **注意：**调用此方法将丢失当前游戏状态
 
 ```typescript
-const {game} = useGame();
+const game = useGame();
 const router = useRouter();
 
 game.getLiveGame().reset();

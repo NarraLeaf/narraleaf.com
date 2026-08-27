@@ -15,7 +15,7 @@ import { Exposure } from "narraleaf-react";
 image.char("image1.jpg", new Exposure({ duration: 1200 }));
 
 // 加大曝光量，并在白场停留后再回落
-image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, hold: 0.2 }));
+image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, holdMs: 400 }));
 
 // 夜景需要更强的暗部提亮，才能把暗部一起带上去
 image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
@@ -29,5 +29,6 @@ image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
   - `duration: number` - 过渡时长，单位毫秒
   - `ev?: number` - 峰值曝光量，单位档（EV）。画面被推到 `2 ** ev` 的增益，因此每增加 `1` 增益翻倍。默认为 `4.6`
   - `lift?: number` - 增益之前施加的暗部提亮（`0`–`1`）。取 `0` 时暗部永远不会到达白色，深色画面会以剪影结束整段过曝。默认为 `0.04`
-  - `hold?: number` - 完全过曝状态占总时长的比例（`0`–`1`）。默认为 `0`
+  - `holdMs?: number` - 画面完全过曝的保持时长，单位毫秒。`duration` 剩下的部分在过曝与回落两半平分，所以 `{duration: 3000, holdMs: 1500}` 是 750ms 过曝、1500ms 保持、750ms 回落。自 `0.36.0` 起
+  - `hold?: number` - **自 `0.36.0` 起已弃用，请改用 `holdMs`。** 完全过曝状态占总时长的比例（`0`–`1`），仅在没有 `holdMs` 时被读取，此时默认 `0`
   - `easing?: TransformDefinitions.EasingDefinition` - 缓动函数，参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)

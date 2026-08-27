@@ -180,10 +180,18 @@ scene.action([
 
 跳转到另一个场景。如果提供了过渡效果，它会在两个场景切换期间跨整个舞台播放：立绘、文字以及其他所有层都参与其中，而不只是背景。参见 [JumpConfig](/zh/docs/narraleaf-react/core/types/JumpConfig)
 
-> 注意：跳转到另一个场景后，当前场景将被释放。剩余的操作将不会执行
+> 注意：普通跳转会释放当前场景，它后面的动作永远不会执行。而带 [`returnable`](/zh/docs/narraleaf-react/core/types/JumpConfig) 的跳转是把当前场景**挂起**，目标场景的动作跑完就回来，所以跳转后面的动作会执行
 
-- `scene: Scene | string` - 要跳转到的场景实例或场景名称
+- `scene: Scene` - 要跳转到的场景
 - `config: Partial<JumpConfig> | Transition` - [跳转配置](/zh/docs/narraleaf-react/core/types/JumpConfig)，或直接传过渡本身
+
+```typescript
+// 单向：这个场景就此结束，跳转后面的一行都不会跑
+scene.jumpTo(nextScene);
+
+// 调用：这个场景被停在那儿，储藏室跑完之后跳转后面的那一行接着跑
+scene.jumpTo(storeroom, {returnable: true});
+```
 </Step>
 </Steps>
 

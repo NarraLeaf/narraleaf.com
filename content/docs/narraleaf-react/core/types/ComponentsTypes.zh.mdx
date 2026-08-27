@@ -5,8 +5,12 @@ title: "ComponentsTypes"
 type ComponentsTypes = {
     say: SayComponent;
     menu: MenuComponent;
+    notification: NotificationComponent;
+    nvlDialog: NvlDialogComponent;
 };
 ```
+
+游戏可以用自己的组件替换的全部槽位，通过 [`Game.configure`](/zh/docs/narraleaf-react/core/game/game) 传入。
 
 ## say
 
@@ -15,3 +19,11 @@ type ComponentsTypes = {
 ## menu
 
 参见 [MenuComponent](/zh/docs/narraleaf-react/core/types/MenuComponent)
+
+## notification
+
+`Components<INotificationsProps>` —— 绘制游戏通知的组件。参见 [Notification](/zh/docs/narraleaf-react/player/notification)。
+
+## nvlDialog
+
+`Components<INvlContainerProps>` —— 绘制 NVL 模式的组件。参见 [NVL Container](/zh/docs/narraleaf-react/player/nvl-container)。

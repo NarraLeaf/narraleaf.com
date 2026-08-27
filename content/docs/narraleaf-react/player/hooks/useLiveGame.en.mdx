@@ -11,6 +11,10 @@ function useLiveGame(): LiveGame;
 
 - For LiveGame, see [LiveGame](/docs/narraleaf-react/core/game/live-game).
 
+A `LiveGame` carries three properties — `game`, `events` and `story` — and everything else it
+offers is a method. The scene the story is in comes from `getLastScene()`, and the player's
+preferences belong to the `Game` it is running (`liveGame.game.preference`).
+
 ## Usage
 
 ```typescript
@@ -22,14 +26,14 @@ function myComponent() {
     const liveGame = useLiveGame();
 
     useEffect(() => {
-        // Access story services
+        // Story services
         const gallery = liveGame.story?.getService<Gallery>("gallery");
-        
-        // Access game state
-        const currentScene = liveGame.scene;
-        
-        // Access preferences
-        const preferences = liveGame.preferences;
+
+        // The scene the story is in
+        const currentScene = liveGame.getLastScene();
+
+        // Player preferences live on the Game, not on the LiveGame
+        const cps = liveGame.game.preference.getPreference("cps");
     }, [liveGame]);
 }
 ```
@@ -64,11 +68,11 @@ function GalleryComponent() {
 ```typescript
 function GameStatusComponent() {
     const liveGame = useLiveGame();
-    
+
     return (
         <div>
-            <p>Current Scene: {liveGame.scene?.name}</p>
-            <p>Game State: {liveGame.state}</p>
+            <p>Current Scene: {liveGame.getLastScene()?.config.name}</p>
+            <p>Playing: {String(liveGame.isPlaying())}</p>
         </div>
     );
 }

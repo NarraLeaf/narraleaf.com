@@ -18,7 +18,7 @@ element.pos({
 }, 1000, "linear"); // 在 1000 毫秒内以线性缓动将元素移动到 x: 0.3
 ```
 
-- `position: CommonDisplayableConfig["position"]` - 元素的新位置，参见 [CommonDisplayableConfig](/zh/docs/narraleaf-react/core/types/CommonDisplayable#position)
+- `position: CommonDisplayableConfig["position"]` - 元素的新位置，参见 [CommonDisplayableConfig](/zh/docs/narraleaf-react/core/types/CommonDisplayableConfig)
 - `duration?: number` - 变换的持续时间，以毫秒为单位
 - `easing?: TransformDefinitions.EasingDefinition` - 使用的缓动函数，参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/zh/docs/narraleaf-react/core/types/EasingDefinition)
 </Step>
@@ -424,5 +424,25 @@ element.hide({
 ```
 
 - `options: Partial<TransformDefinitions.CommonTransformProps>` - 参见 [TransformDefinitions](/zh/docs/narraleaf-react/core/types/TransformDefinitions).[CommonTransformProps](/zh/docs/narraleaf-react/core/types/CommonTransformProps)
+</Step>
+</Steps>
+
+### bringToFront
+
+<Steps>
+<Step>
+
+> 自 `0.30.0` 起可用
+
+把这个元素提到所在图层的最前面，盖在已经站在那里的一切之上。在下一个元素被提前之前它一直在前面。
+
+- 返回链
+
+```typescript
+scene.action([
+    yukoSprite.bringToFront(),
+    yuko.say`一直都是我。`,
+]);
+```
 </Step>
 </Steps>

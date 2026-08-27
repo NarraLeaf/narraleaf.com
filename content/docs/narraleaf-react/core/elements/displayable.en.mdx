@@ -19,7 +19,7 @@ element.pos({
 }, 1000, "linear"); // Move the element to x: 0.3 in 1000ms with linear ease.
 ```
 
-- `position: CommonDisplayableConfig["position"]` - The new position of the element, see [CommonDisplayableConfig](/docs/narraleaf-react/core/types/CommonDisplayable#position)
+- `position: CommonDisplayableConfig["position"]` - The new position of the element, see [CommonDisplayableConfig](/docs/narraleaf-react/core/types/CommonDisplayableConfig)
 - `duration?: number` - The duration of the transform in milliseconds
 - `easing?: TransformDefinitions.EasingDefinition` - The easing function to use, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)
 </Step>
@@ -430,5 +430,25 @@ element.hide({
 ```
 
 - `options: Partial<TransformDefinitions.CommonTransformProps>` - See [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[CommonTransformProps](/docs/narraleaf-react/core/types/CommonTransformProps)
+</Step>
+</Steps>
+
+### bringToFront
+
+<Steps>
+<Step>
+
+> Available since `0.30.0`
+
+Move this element to the front of its layer, above everything already standing there. It stays in front until something else is brought forward.
+
+- Returns the chain
+
+```typescript
+scene.action([
+    yukoSprite.bringToFront(),
+    yuko.say`It was me, all along.`,
+]);
+```
 </Step>
 </Steps>

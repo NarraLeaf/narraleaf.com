@@ -5,8 +5,12 @@ title: "ComponentsTypes"
 type ComponentsTypes = {
     say: SayComponent;
     menu: MenuComponent;
+    notification: NotificationComponent;
+    nvlDialog: NvlDialogComponent;
 };
 ```
+
+Every slot a game may replace with a component of its own, passed through [`Game.configure`](/docs/narraleaf-react/core/game/game).
 
 ## say
 
@@ -15,3 +19,11 @@ See [SayComponent](/docs/narraleaf-react/core/types/SayComponent)
 ## menu
 
 See [MenuComponent](/docs/narraleaf-react/core/types/MenuComponent)
+
+## notification
+
+`Components<INotificationsProps>` — the component that draws the game's notifications. See [Notification](/docs/narraleaf-react/player/notification).
+
+## nvlDialog
+
+`Components<INvlContainerProps>` — the component that draws NVL mode. See [NVL Container](/docs/narraleaf-react/player/nvl-container).

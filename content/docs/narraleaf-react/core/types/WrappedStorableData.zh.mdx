@@ -5,12 +5,16 @@ title: "WrappedStorableData"
 
 ```typescript
 export type WrappedStorableData<T extends StorableType = any> = {
-    type: "any" | "date";
+    type: BaseStorableTypeName;
     data: T;
+    dates?: StorablePath[];
+    undefineds?: StorablePath[];
 }
 ```
 
-写入存档时，值会被打上其类型的标签，好让 JSON 无法表达的类型也能完整往返。目前这样的类型只有 `Date`：它以 `date` 标签存为字符串，读档时再重建为 `Date`。其余的值都以 `any` 标签原样存储
+写入存档时，值会被打上其类型的标签，好让 JSON 无法表达的类型也能完整往返。目前这样的类型有两种：`Date`，以及嵌在里面的 `undefined`。
+
+两者都**不是写在值里**的——没有插入任何可能与真实数据撞车的哨兵对象。`data` 仍然是纯 JSON，而那些位置被按路径记在 `dates` 和 `undefineds` 里，读档时由加载器沿着路径把真值放回去。没有可记的东西时两个字段都不出现，所以既不含 `Date` 也不含 `undefined` 的值，序列化结果与这套机制存在之前逐字相同，旧存档也照旧能读
 
 ```typescript
 {type: "any", data: 42}

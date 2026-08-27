@@ -81,6 +81,9 @@ function App() {
 - `fontWeight?: React.CSSProperties["fontWeight"]`
 - `fontWeightBold?: React.CSSProperties["fontWeight"]` - 句子或词为粗体时的字重
 - `fontFamily?: React.CSSProperties["fontFamily"]`
+- `writingMode?: TextWritingMode` - 文本框的排版流向。`vertical-rl` 就是日文小说的经典设定：字列从上往下读、列向左推进。默认 `"horizontal-tb"`。自 `0.26.0` 起
+- `textOrientation?: TextGlyphOrientation` - 字形在竖列里怎么站。`mixed` 让 CJK 立着、拉丁字母躺着。横排时忽略。默认 `"mixed"`。自 `0.26.0` 起
+- `tateChuYoko?: TateChuYoko` - 縦中横：把短的拉丁或数字串横着立在字列里，而不是让它躺着。`true` 合并不超过两个字符的串，传数字则自定上限。横排时忽略。默认 `true`。自 `0.26.0` 起
 - `autoFit?: boolean` - 在逐字显示过程中缩小字号，使整行留在它所在的盒子内。默认 `true`。自 `0.34.0` 起
 - `autoFitMinFontSize?: number` - 缩放能设到的最小字号，单位 px。默认 `12`。自 `0.34.0` 起
 - `...props: React.HTMLAttributes<HTMLDivElement>`

@@ -15,7 +15,7 @@ import { Exposure } from "narraleaf-react";
 image.char("image1.jpg", new Exposure({ duration: 1200 }));
 
 // Burn harder, and stay on white before coming back down
-image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, hold: 0.2 }));
+image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, holdMs: 400 }));
 
 // A night frame needs a stronger lift to carry its shadows up
 image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
@@ -29,5 +29,6 @@ image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
   - `duration: number` - The duration of the transition in milliseconds
   - `ev?: number` - The peak exposure in stops. The frame is driven to a gain of `2 ** ev`, so each step of `1` doubles it. Defaults to `4.6`.
   - `lift?: number` - The shadow lift (`0`–`1`) applied ahead of the gain. At `0` the shadows never reach white and a dark frame ends the burn as a silhouette. Defaults to `0.04`.
-  - `hold?: number` - The fraction (`0`–`1`) of the duration spent fully blown out. Defaults to `0`.
+  - `holdMs?: number` - How long the frame is held fully blown out, in milliseconds. The rest of `duration` is split evenly between the burn and the cool-down, so `{duration: 3000, holdMs: 1500}` burns for 750ms, holds white for 1500ms and cools for 750ms. Since `0.36.0`.
+  - `hold?: number` - **Deprecated since `0.36.0`; use `holdMs`.** The share (`0`–`1`) of the duration spent fully blown out. Read only when `holdMs` is absent, in which case it defaults to `0`.
   - `easing?: TransformDefinitions.EasingDefinition` - The easing function, see [TransformDefinitions](/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/docs/narraleaf-react/core/types/EasingDefinition)

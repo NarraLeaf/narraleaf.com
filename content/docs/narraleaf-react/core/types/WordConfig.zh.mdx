@@ -6,7 +6,10 @@ type WordConfig = {
     className: string;
     ruby: string;
     color: Color;
+    pause: boolean;
     cps?: number;
+    emphasis?: WordEmphasis;
+    fontScale?: number;
     render?: WordRenderer;
     data?: unknown;
 } & Font;
@@ -47,6 +50,44 @@ new Word({
 new Word({
     cps: 10, // 10 characters per second
 });
+```
+
+## pause
+
+这个词是不是一段停顿而非文字。由 [`Word.pause`](/zh/docs/narraleaf-react/core/elements/character/word) 置位，手写的词不会设它。
+
+## emphasis
+
+> 自 `0.37.0` 起可用
+
+画在这个词每个字旁边的**着重号**（日文叫傍点 / 圈点，中文叫着重号）——东亚排版里强调一段话的做法，对应拉丁文的斜体。标记跟着文字一起逐字出现，所以只显了一半的词也只带一半标记。
+
+```typescript
+type WordEmphasis = {
+    mark?: "dot" | "circle" | "sesame" | "triangle";  // 默认 "dot"
+    fill?: "filled" | "open";                          // 默认 "filled"
+    position?: "over" | "under";                       // 默认 "over"
+};
+```
+
+`position` 是相对书写方向读的：横排时 `over` 在行上、`under` 在行下；竖排时两者都在字列右侧，也就是惯例的位置。
+
+```typescript
+new Word("灵子密度", {emphasis: {mark: "sesame"}});
+```
+
+由 [`Word.emphasis`](/zh/docs/narraleaf-react/core/elements/character/word) 置位。
+
+## fontScale
+
+> 自 `0.37.0` 起可用
+
+这个词相对整行的字号倍率 —— `1.25` 是大四分之一，`0.8` 是小五分之一。用相对值而不是绝对值，所以无论整行被排到多大，这个词在行里的轻重不变——包括[文本缩放](/zh/docs/narraleaf-react/player/dialog)为了塞进框里而把整行调小的时候。
+
+设了 `fontSize` 时它被忽略，因为那是把词钉在一个绝对字号上。
+
+```typescript
+new Word("安静", {fontScale: 0.8});
 ```
 
 ## render

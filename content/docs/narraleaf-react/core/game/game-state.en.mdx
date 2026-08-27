@@ -26,7 +26,7 @@ The game's audio cache and playback manager.
 void gameState.audioManager.preload(bgm);
 ```
 
-- `preload(sound: Sound): Promise<void>` - warm one source. Available since `0.17.0`. A source that fails to load is logged as a warning and loads on first play instead, so this never rejects. **Do not gate anything on the returned promise**: the audio context stays locked until a user gesture satisfies the browser's autoplay policy, so it can legitimately stay pending. See [Preloading](/docs/narraleaf-react/core/game/preload#the-scenes-sounds-are-warmed-too).
+- `preload(sound: Sound): Promise<void>` - warm one source. Available since `0.17.0`. A source that fails to load is logged as a warning and loads on first play instead, so this never rejects. **Do not gate anything on the returned promise**: the audio context stays locked until a user gesture satisfies the browser's autoplay policy, so it can legitimately stay pending. See [Preloading](/docs/narraleaf-react/core/game/preload#sound-preloading).
 
 ## Public Methods
 

@@ -6,7 +6,10 @@ type WordConfig = {
     className: string;
     ruby: string;
     color: Color;
+    pause: boolean;
     cps?: number;
+    emphasis?: WordEmphasis;
+    fontScale?: number;
     render?: WordRenderer;
     data?: unknown;
 } & Font;
@@ -47,6 +50,44 @@ The `cps` property is used to set the speed of the word. Using this property, yo
 new Word({
     cps: 10, // 10 characters per second
 });
+```
+
+## pause
+
+Whether the word is a pause rather than text. Set by [`Word.pause`](/docs/narraleaf-react/core/elements/character/word); a word written by hand does not set it.
+
+## emphasis
+
+> Available since `0.37.0`
+
+Emphasis marks drawn beside this word's characters: a small glyph beside every character, the typographic way East Asian text stresses a phrase where a Latin one would go italic (傍点 / 圏点 in Japanese, 着重号 in Chinese). The marks follow the characters as they are typed out, so a word that is half revealed carries half its marks.
+
+```typescript
+type WordEmphasis = {
+    mark?: "dot" | "circle" | "sesame" | "triangle";  // default "dot"
+    fill?: "filled" | "open";                          // default "filled"
+    position?: "over" | "under";                       // default "over"
+};
+```
+
+`position` is read against the writing direction: in horizontal writing `over` is above the line and `under` below it; in vertical writing both sit to the right of the column, where the convention places them.
+
+```typescript
+new Word("aether density", {emphasis: {mark: "sesame"}});
+```
+
+[`Word.emphasis`](/docs/narraleaf-react/core/elements/character/word) sets this field.
+
+## fontScale
+
+> Available since `0.37.0`
+
+This word's size as a share of the line's — `1.25` for a quarter larger, `0.8` for a fifth smaller. Relative rather than absolute, so the word keeps its weight against the rest of the line whatever size the line is set at, including while [text scaling](/docs/narraleaf-react/player/dialog) brings the line down to fit its box.
+
+Ignored when `fontSize` is set, which pins the word to an absolute size.
+
+```typescript
+new Word("QUIET", {fontScale: 0.8});
 ```
 
 ## render

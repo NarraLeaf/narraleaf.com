@@ -3,6 +3,19 @@ title: "不兼容的变更"
 ---
 完整变更见 [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md)
 
+## 0.39.2
+
+- 宿主收到的脚本错误（`RuntimeScriptError`，通过 [`GameConfig.onError`](/zh/docs/narraleaf-react/core/types/GameConfig) 拿到）的 `message` 现在只是那一句话。以前它后面还接着出错动作的 id、类型以及那个动作的整个构造栈，宿主把它显在面板里时，折叠线上方全是打包器的栈帧。现在这些各自成字段 —— `error.action`（`id` 与 `type`）、`error.actionStack`，以及仍然给出单字符串形式的 `error.composedMessage`。**靠解析 message 字符串来拆这几样东西的宿主要改成读字段。** 把错误对象整个打进日志的不会丢任何东西：`error.stack` 依旧带着完整拼接
+
+## 0.36.0
+
+- [`ThroughColor`](/zh/docs/narraleaf-react/core/animation/transition/through-color) 和 [`Exposure`](/zh/docs/narraleaf-react/core/animation/transition/exposure) 的 `hold` 已弃用，改用 `holdMs`，单位是毫秒而不是占总时长的比例。没有 `holdMs` 时 `hold` 仍然被读取，所以不会编译不过
+- **同一个 `hold` 值现在会比以前保持得久。** 那个比例从来就不是它自称的比例：在默认缓动下，标称 30% 的保持实际只占墙上时间的 **17.8%**，所以全默认的 `ThroughColor` 跑在 300ms 上时纯色只保持了 53 毫秒。按旧行为调过节奏的转场会明显变慢；改用 `holdMs` 直接写你想要的长度
+
+## 0.35.0
+
+- **对话文本缩放默认开启。** 一行先按 `fontSize` 排，能装下就不动；一旦顶到盒子边缘，每多一个字都会重新测量并把字号降到刚好能装下整行，下限是 `autoFitMinFontSize`。如果一个游戏的对话框尺寸当初就是按“会溢出”调的，那些行现在会变小而不是溢出。单个框用 `autoFit={false}` 关掉，全局用 [`GameConfig.disableTextScaling`](/zh/docs/narraleaf-react/core/types/GameConfig)
+
 ## 0.29.1
 
 - [`Camera.resetCamera`](/zh/docs/narraleaf-react/core/elements/camera#resetcamera) 在第一帧清除滤镜，不再让滤镜随时长一起缓动退出。姿态仍然缓动。原先靠这段时长让调色随平移一起淡出的场景，现在调色会立即消失

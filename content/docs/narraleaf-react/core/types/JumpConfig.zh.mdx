@@ -4,6 +4,7 @@ title: "JumpConfig"
 ```ts
 type JumpConfig = {
     transition: Transition;
+    returnable: boolean;
 };
 ```
 
@@ -27,3 +28,17 @@ scene.jumpTo(nextScene, new Reveal({duration: 800, pattern: Mask.iris()}));
 该字段的类型是 `Transition` 而不是 `ImageTransition`。所有内置过渡两者都满足，因此 `0.27.0` 之前写下的调用不受影响
 
 跳过键是否跳过这段过渡由 [`allowSkipSceneTransition`](/zh/docs/narraleaf-react/core/types/GameConfig) 决定
+
+## returnable
+
+目标场景的动作跑完后回到这里，而不是一去不回。`0.39.0` 新增，默认 `false`，也就是 `jumpTo` 一直以来的普通跳转。
+
+```typescript
+scene.jumpTo(storeroom, {returnable: true});
+```
+
+置为 `true` 时，发起跳转的场景是**被挂起**而不是被卸载：它保留自己的舞台、立绘、图层和场景局部变量，背景音乐被暂停，并在目标场景占据画面期间停止绘制。目标场景的动作跑完时调用返回：目标被卸载，调用方重新绘制，音乐从暂停处接着放，跳转后面那一个动作开始执行。
+
+**只有场景自己的背景音乐会被挂起。** 其余声音属于故事而不属于某一个场景，跨调用照常播放，与跨普通跳转时完全一致。
+
+已经在调用栈上的场景不能被再次调用：一个 `Scene` 只有一份舞台位置和一份场景局部变量，无处存放第二份，因此这种调用会抛错。一条调用链最多能同时挂起多少个场景由 [`maxSceneCallDepth`](/zh/docs/narraleaf-react/core/types/GameConfig) 决定，默认为 `8`。

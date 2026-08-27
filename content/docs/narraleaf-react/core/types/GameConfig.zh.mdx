@@ -240,6 +240,11 @@ type GameConfig = {
      */
     dialog: SayComponent;
     /**
+     * NVL 模式对话使用的组件
+     * @default DefaultNvlContainer
+     */
+    nvlDialog: NvlDialogComponent;
+    /**
      * 发生错误时要调用的函数
      * @default () => {}
      */
@@ -291,6 +296,16 @@ type GameConfig = {
      * @default 100
      */
     maxActionHistory: number;
+    /**
+     * 一条可返回跳转的调用链最多能同时挂起多少个场景。
+     *
+     * 可返回跳转会把离开的场景留在台上，所以一条调用链会把链上每个场景连同它们的图层和立绘一起挂在舞台上。这是那条链的上限；
+     * 越过它的调用会让故事抛错。
+     *
+     * 它不是递归保护——递归本来就不成立，因为已在调用栈上的场景不能被再次调用。
+     * @default 8
+     */
+    maxSceneCallDepth: number;
 };
 ```
 

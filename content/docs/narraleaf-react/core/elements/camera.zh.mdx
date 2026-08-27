@@ -78,6 +78,89 @@ story.camera.darken(0.6, 500, "easeInOut");
 </Step>
 </Steps>
 
+### shutter
+
+<Steps>
+<Step>
+
+> 自 `0.31.0` 起可用
+
+开合快门：两片叶片从画面上下向中间合拢。
+
+`1` 是完全合上，`0` 是完全打开，中间的值是部分遮挡 —— 所以一个长期保持的小值是宽银幕而不是眨眼，`0.12` 大约就是电影感的遮幅。眨眼就是把它推到 `1` 再收回来；一次眨眼的节奏属于故事，所以引擎只提供这条通道而不提供一个命名好的套路。
+
+- `shutter: number` - 遮挡程度，`0`（开）到 `1`（合）。越界值会被截断
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.shutter(1, 180, "easeInOut"),
+    story.camera.shutter(0, 220, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### vignette
+
+<Steps>
+<Step>
+
+> 自 `0.31.0` 起可用
+
+压暗画面四角。
+
+与 [darken](#darken) 不同，那个是盖在**画面**上的滤镜，而暗角是盖在**视野**上的一块板：它不跟着相机走，所以舞台在下面推拉、平移、旋转时，暗角是稳不动的。它的行法用 [lens](#lens) 调。
+
+- `vignette: number` - 强度，`0`（无）到 `1`。越界值会被截断
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.vignette(0.72, 300, "easeInOut"),
+    narrator.say`一切都收到了房间正中央。`,
+    story.camera.vignette(0, 300, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### lens
+
+<Steps>
+<Step>
+
+> 自 `0.31.0` 起可用
+
+一次性设置镜头的各条通道 —— 两个强度，以及它们绘制时用的颜色与行法几何。
+
+几何字段在它们所属的强度下一次大于 `0` 时生效，所以通常先一刀设好，再把效果淡入。
+
+```typescript
+type CameraLensProps = {
+    shutter?: number;        // 0 开，1 合。默认 0
+    shutterColor?: string;   // 默认 "#000"
+    vignette?: number;       // 0 无，1 边缘完全不透。默认 0
+    vignetteColor?: string;  // 默认 "#000"
+    vignetteInner?: string;  // 暗角开始的半径。默认 "44%"
+    vignetteOuter?: string;  // 达到满强度的半径。默认 "78%"
+};
+```
+
+- `lens: CameraLensProps`
+- `options?: VisualEffectOptions`
+
+```typescript
+scene.action([
+    story.camera.lens({vignetteColor: "#1a0b2e", vignetteInner: "20%", vignetteOuter: "95%"}),
+    story.camera.vignette(0.9, 400),
+]);
+```
+</Step>
+</Steps>
+
 ### resetCamera
 
 <Steps>

@@ -4,7 +4,20 @@ title: "IStoryConfig"
 ```typescript
 interface IStoryConfig {
     origin: Origins;
+    camera?: Camera;
 }
 ```
 
+## origin
+
 关于 Origin，参见 [Origins](/zh/docs/narraleaf-react/core/types/Origins)
+
+## camera
+
+故事的舞台[相机](/zh/docs/narraleaf-react/core/elements/camera)。不传则使用默认相机；传入只是为了定下初始姿态。一个故事只有一个相机。
+
+```typescript
+const story = new Story("故事名称", {
+    camera: new Camera({scale: 1.1}),
+});
+```

@@ -3,6 +3,19 @@ title: "Incompatible Changes"
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 0.39.2
+
+- The script error a host receives (`RuntimeScriptError`, reached through [`GameConfig.onError`](/docs/narraleaf-react/core/types/GameConfig)) now carries the sentence alone in `message`. It used to carry the offending action's id and type and that action's whole construction stack appended to it, which in a host that shows the message in a panel is several lines of bundle frames above the fold. The parts are now separate fields — `error.action` (its `id` and `type`), `error.actionStack`, and `error.composedMessage` for the one-string form. **A host that parsed the message string to split those out must read the fields instead.** Nothing that logs the error object loses anything: `error.stack` still carries the whole composition
+
+## 0.36.0
+
+- `hold` on [`ThroughColor`](/docs/narraleaf-react/core/animation/transition/through-color) and [`Exposure`](/docs/narraleaf-react/core/animation/transition/exposure) is deprecated in favour of `holdMs`, which is milliseconds rather than a share of the run. `hold` is still read when `holdMs` is absent, so nothing stops compiling
+- **The same `hold` value now plays for longer than it used to.** The fraction was never the fraction it claimed: under the default easing a nominal 30% hold played as 17.8% of the wall clock, so a `ThroughColor` left at its defaults on a 300ms run held the colour for 53 milliseconds. A transition whose timing was tuned against the old behaviour will hold visibly longer; give it `holdMs` and set the length you actually want
+
+## 0.35.0
+
+- **Dialogue text scaling is on by default.** A line is set at `fontSize` and stays there while it fits; once it reaches the end of its box every further character is measured and the size comes down to keep the whole line inside, to no less than `autoFitMinFontSize`. A game whose box was sized around lines that used to overflow will now see those lines set smaller instead. Turn it off for one box with `autoFit={false}`, or for the whole game with [`GameConfig.disableTextScaling`](/docs/narraleaf-react/core/types/GameConfig)
+
 ## 0.29.1
 
 - [`Camera.resetCamera`](/docs/narraleaf-react/core/elements/camera#resetcamera) clears the filter on the first frame instead of easing it out across the duration. The pose still eases. A scene that timed a grade fading away with the pan loses the grade at once instead

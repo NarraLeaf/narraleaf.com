@@ -5,12 +5,16 @@ A single stored value as it appears in a saved game.
 
 ```typescript
 export type WrappedStorableData<T extends StorableType = any> = {
-    type: "any" | "date";
+    type: BaseStorableTypeName;
     data: T;
+    dates?: StorablePath[];
+    undefineds?: StorablePath[];
 }
 ```
 
-Values are tagged with their type on the way into a save so that types JSON cannot express survive the round-trip. Today that is only `Date`, which is stored as a string under the `date` tag and rebuilt into a `Date` when the save is read. Everything else is stored as-is under the `any` tag.
+Values are tagged with their type on the way into a save so that types JSON cannot express survive the round-trip. Today those are `Date` and a nested `undefined`.
+
+Neither is encoded in-band — no sentinel object is inserted that a stored value could collide with. `data` stays plain JSON, and the positions that held one of the two are named by path in `dates` and `undefineds`, which the loader walks to put the real values back. Both are absent when there is nothing to name, so a value holding neither serializes exactly as it did before this scheme existed, and a save written before it loads unchanged.
 
 ```typescript
 {type: "any", data: 42}

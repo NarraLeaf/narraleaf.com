@@ -81,6 +81,89 @@ story.camera.darken(0.6, 500, "easeInOut");
 </Step>
 </Steps>
 
+### shutter
+
+<Steps>
+<Step>
+
+> Available since `0.31.0`
+
+Close or open the shutter: two blades that meet in the middle of the frame.
+
+`1` is fully shut and `0` fully open, and everything between is a partial cover — which makes a small standing value a letterbox rather than a blink, `0.12` being about a cinematic matte. A blink is this driven to `1` and back; the timing of one is the story's to choose, so the engine offers the channel rather than a named routine.
+
+- `shutter: number` - Coverage between `0` (open) and `1` (shut). Out-of-range values are clamped
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.shutter(1, 180, "easeInOut"),
+    story.camera.shutter(0, 220, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### vignette
+
+<Steps>
+<Step>
+
+> Available since `0.31.0`
+
+Darken the corners of the frame.
+
+Unlike [darken](#darken), which is a filter over the picture, this is a plate over the **view**: it does not move with the camera, so a vignette holds still while the stage underneath it zooms, pans and rotates. Adjust its falloff with [lens](#lens).
+
+- `vignette: number` - Strength between `0` (none) and `1`. Out-of-range values are clamped
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.vignette(0.72, 300, "easeInOut"),
+    narrator.say`Everything narrowed to the middle of the room.`,
+    story.camera.vignette(0, 300, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### lens
+
+<Steps>
+<Step>
+
+> Available since `0.31.0`
+
+Set any of the lens channels at once — the two strengths, and the colour and falloff geometry they are drawn with.
+
+The geometry fields take effect the next time the strength they belong to is above `0`, so they are usually set as a cut before the effect is faded in.
+
+```typescript
+type CameraLensProps = {
+    shutter?: number;        // 0 open, 1 shut. Default 0
+    shutterColor?: string;   // Default "#000"
+    vignette?: number;       // 0 none, 1 opaque at the edges. Default 0
+    vignetteColor?: string;  // Default "#000"
+    vignetteInner?: string;  // Radius the vignette starts at. Default "44%"
+    vignetteOuter?: string;  // Radius it reaches full strength at. Default "78%"
+};
+```
+
+- `lens: CameraLensProps`
+- `options?: VisualEffectOptions`
+
+```typescript
+scene.action([
+    story.camera.lens({vignetteColor: "#1a0b2e", vignetteInner: "20%", vignetteOuter: "95%"}),
+    story.camera.vignette(0.9, 400),
+]);
+```
+</Step>
+</Steps>
+
 ### resetCamera
 
 <Steps>

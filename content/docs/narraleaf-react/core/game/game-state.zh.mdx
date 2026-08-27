@@ -26,7 +26,7 @@ GameState 由玩家组件创建，可以传递给其他主类，例如 `liveGame
 void gameState.audioManager.preload(bgm);
 ```
 
-- `preload(sound: Sound): Promise<void>` - 预热一个音源。自 `0.17.0` 起可用。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此它永远不会 reject。**不要用返回的 Promise 为任何东西把关**：在用户手势满足浏览器自动播放策略之前，音频上下文一直是锁住的，因此它完全可能一直挂着不结算。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#场景的声音同样会被预热)
+- `preload(sound: Sound): Promise<void>` - 预热一个音源。自 `0.17.0` 起可用。加载失败的音源只会记录一条警告，并改为在首次播放时加载，因此它永远不会 reject。**不要用返回的 Promise 为任何东西把关**：在用户手势满足浏览器自动播放策略之前，音频上下文一直是锁住的，因此它完全可能一直挂着不结算。详见[预加载](/zh/docs/narraleaf-react/core/game/preload#声音预加载)
 
 ## 公共方法
 

@@ -81,6 +81,9 @@ Renders the typed dialogue text. Use it inside `Dialog`. These props set the def
 - `fontWeight?: React.CSSProperties["fontWeight"]`
 - `fontWeightBold?: React.CSSProperties["fontWeight"]` - Weight for bold sentences and words.
 - `fontFamily?: React.CSSProperties["fontFamily"]`
+- `writingMode?: TextWritingMode` - Block flow of the text box. `vertical-rl` is the classic Japanese novel setting: columns read top to bottom and advance leftwards. Default `"horizontal-tb"`. Since `0.26.0`.
+- `textOrientation?: TextGlyphOrientation` - How glyphs sit inside a vertical column. `mixed` keeps CJK upright and lays Latin on its side. Ignored while the box is horizontal. Default `"mixed"`. Since `0.26.0`.
+- `tateChuYoko?: TateChuYoko` - Tate-chu-yoko (縦中横): sets a short Latin or digit run upright across the column instead of on its side. `true` combines runs of up to two characters; a number sets the limit. Ignored while the box is horizontal. Default `true`. Since `0.26.0`.
 - `autoFit?: boolean` - Keeps the whole line inside its box by setting it smaller as it is typed. Default `true`. Since `0.34.0`.
 - `autoFitMinFontSize?: number` - Smallest size scaling sets, in px. Default `12`. Since `0.34.0`.
 - `...props: React.HTMLAttributes<HTMLDivElement>`

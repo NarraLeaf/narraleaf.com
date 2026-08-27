@@ -11,6 +11,8 @@ function useLiveGame(): LiveGame;
 
 - 关于 `LiveGame` 的说明见 [LiveGame](/zh/docs/narraleaf-react/core/game/live-game)
 
+`LiveGame` 身上只有三个属性 —— `game`、`events`、`story`，其余一律是方法。故事当前所在的场景用 `getLastScene()` 取，玩家偏好则属于它正在跑的 `Game`（`liveGame.game.preference`）。
+
 ## 用法
 
 ```typescript
@@ -22,14 +24,14 @@ function myComponent() {
     const liveGame = useLiveGame();
 
     useEffect(() => {
-        // 访问故事服务
+        // 故事服务
         const gallery = liveGame.story?.getService<Gallery>("gallery");
-        
-        // 访问游戏状态
-        const currentScene = liveGame.scene;
-        
-        // 访问偏好设置
-        const preferences = liveGame.preferences;
+
+        // 故事当前所在的场景
+        const currentScene = liveGame.getLastScene();
+
+        // 玩家偏好属于 Game，不在 LiveGame 上
+        const cps = liveGame.game.preference.getPreference("cps");
     }, [liveGame]);
 }
 ```
@@ -67,8 +69,8 @@ function GameStatusComponent() {
     
     return (
         <div>
-            <p>当前场景: {liveGame.scene?.name}</p>
-            <p>游戏状态: {liveGame.state}</p>
+            <p>当前场景: {liveGame.getLastScene()?.config.name}</p>
+            <p>是否在播放: {String(liveGame.isPlaying())}</p>
         </div>
     );
 }

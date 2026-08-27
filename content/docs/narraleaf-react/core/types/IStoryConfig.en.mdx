@@ -4,7 +4,20 @@ title: "IStoryConfig"
 ```typescript
 interface IStoryConfig {
     origin: Origins;
+    camera?: Camera;
 }
 ```
 
+## origin
+
 For Origin, see [Origins](/docs/narraleaf-react/core/types/Origins)
+
+## camera
+
+The story's stage [Camera](/docs/narraleaf-react/core/elements/camera). Omit it to use a default camera; provide one only to set the initial pose. There is exactly one camera per story.
+
+```typescript
+const story = new Story("story name", {
+    camera: new Camera({scale: 1.1}),
+});
+```

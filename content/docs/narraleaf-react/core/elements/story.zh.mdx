@@ -34,40 +34,6 @@ story.entry(scene1);
 </Step>
 </Steps>
 
-### registerScene
-
-<Steps>
-<Step>
-
-注册场景后可通过名称访问。例如用字符串跳转到指定场景：
-
-```ts
-const scene1 = new Scene("场景 1");
-const scene2 = new Scene("场景 2");
-
-scene1.action([
-    scene1.jumpTo("场景 2") // 使用字符串而非场景实例
-]);
-
-const story = new Story("故事名称");
-story.registerScene("场景 2", scene2);
-```
-
-#### 重载 1 / 2
-
-- `scene: Scene` - 要注册的场景
-- 返回 `this`
-
-#### 重载 2 / 2
-
-此重载允许传递场景别名：
-
-- `name: string` - 场景别名
-- `scene: Scene` - 场景实例
-- 返回 `this`
-</Step>
-</Steps>
-
 ### registerPersistent
 
 <Steps>
@@ -120,7 +86,7 @@ story.registerService("gallery", gallery);
 通过名称获取服务，未找到时抛出错误：
 
 ```tsx
-const {game} = useGame();
+const game = useGame();
 const liveGame = game.getLiveGame();
 
 const gallery = liveGame.story?.getService<Gallery>("gallery");

@@ -4,6 +4,7 @@ title: "JumpConfig"
 ```ts
 type JumpConfig = {
     transition: Transition;
+    returnable: boolean;
 };
 ```
 
@@ -27,3 +28,17 @@ Two things follow from a transition covering the stage:
 The field is typed `Transition` rather than `ImageTransition`. Every built-in transition satisfies both, so calls written before `0.27.0` are unaffected.
 
 Whether the skip key skips this transition is governed by [`allowSkipSceneTransition`](/docs/narraleaf-react/core/types/GameConfig).
+
+## returnable
+
+Come back here when the target scene runs out of actions, instead of leaving for good. Added in `0.39.0`; defaults to `false`, which is the plain jump `jumpTo` has always performed.
+
+```typescript
+scene.jumpTo(storeroom, {returnable: true});
+```
+
+With `true` the calling scene is **suspended** rather than unloaded. It keeps its stage, its sprites, its layers and its scene-local variables, its background music is paused, and it stops painting while the target scene is on screen. When the target scene runs out of actions the call returns: the target is unloaded, the calling scene paints again, its music resumes from where it was paused, and the action after the jump runs.
+
+Only the scene's own background music is suspended. Everything else a sound plays through belongs to the story rather than to one scene, and plays on across a call exactly as it plays on across a plain jump.
+
+A scene cannot be called while it is already on the call stack: one `Scene` owns one place on the stage and one set of scene-local variables, so it cannot be in two of them at once. Calling one that is already there throws. How many scenes a chain of calls may keep suspended at once is [`maxSceneCallDepth`](/docs/narraleaf-react/core/types/GameConfig), which defaults to `8`.
