@@ -1,0 +1,104 @@
+---
+title: "TextEvent"
+---
+
+<Callout type="info">
+    Available since `0.16.0`.
+</Callout>
+
+TextEvent is an inline dialogue token that fires an effect **inside** a line, at the moment the typewriter reveals it. It sits in a sentence's word stream the way [Pause](/docs/narraleaf-react/core/elements/character/pause) does — it renders nothing of its own, and it is not an action, so it never enters the execution stack.
+
+Without it a portrait could only change between lines, so a mid-sentence expression change meant splitting the sentence in two.
+
+```ts
+import {TextEvent} from "narraleaf-react";
+
+scene.action([
+    character.say([
+        "Don't ",
+        TextEvent.expression(aliceImage, ["angry"]),  // the portrait flips right here
+        "test me.",
+    ]),
+    character.say([
+        "...",
+        TextEvent.sound(sting),                       // a sting, no portrait change
+    ]),
+]);
+```
+
+## A closed set of effects
+
+A text event carries a character-expression switch, a sound effect, or both. That is the whole set: it is deliberately not a general escape hatch for actions.
+
+Nothing a text event does is pushed onto the execution stack, so it adds nothing to a save. Its effect rides on ordinary element state, which **is** serialized, and is applied again when the owning `say` action is re-evaluated. The expression switch takes no transition — the swap is instant, written straight onto the element.
+
+## Skipping and instant reveal
+
+Skipping the typewriter — or an instant, non-type-effect reveal that uncovers the whole sentence at once — does not drop the tokens it flies past. Every crossed token fires exactly once, in source order, so the outcome is the same as letting the typewriter reach each one in turn: the image ends in the appearance the **last** crossed token names, and each crossed sound effect plays once.
+
+Re-visiting an already-fired token within the same reveal does nothing, so a line the player has already read never replays its effects when its container re-mounts. The guard is runtime-only and is not part of the save, so loading a game starts a fresh reveal that fires normally.
+
+## Static Methods
+
+### expression
+
+<Steps>
+<Step>
+
+Switch an image's appearance when the typewriter reveals this point, optionally alongside a sound effect.
+
+- `image: Image` - The [Image](/docs/narraleaf-react/core/elements/image) whose appearance is switched.
+- `appearance: TextEventAppearance` - A tag list, or a static `src` / colour — the same forms [`Image.char`](/docs/narraleaf-react/core/elements/image#char) accepts. As with `char`, a bare string is read as a `src`, so a tag switch **must** be written as an array.
+- `options?: {sound?: Sound}` - A [Sound](/docs/narraleaf-react/core/elements/sound) to play at the same point.
+- Returns `TextEvent`
+
+```ts
+TextEvent.expression(alice, ["angry"]);
+TextEvent.expression(alice, ["angry"], {sound: slap});
+TextEvent.expression(alice, "/images/alice-angry.png");
+```
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+Play a sound effect when the typewriter reveals this point, and nothing else.
+
+- `sound: Sound` - The [Sound](/docs/narraleaf-react/core/elements/sound) to play.
+- Returns `TextEvent`
+
+```ts
+TextEvent.sound(sting);
+```
+</Step>
+</Steps>
+
+## Public Method
+
+### constructor
+
+<Steps>
+<Step>
+
+Build a text event from an explicit effect descriptor. Prefer the `expression` / `sound` factories for the common cases.
+
+- `config: TextEventConfig` - The effect descriptor.
+
+```ts
+new TextEvent({expression: {image: alice, appearance: ["angry"]}, sound: slap});
+```
+</Step>
+</Steps>
+
+## Exported types
+
+`narraleaf-react` exports `TextEvent` along with three types:
+
+| Type | Shape |
+|---|---|
+| `TextEventAppearance` | `ImageSrc \| Color \| string[]` — see [ImageSrc](/docs/narraleaf-react/core/types/ImageSrc) and [Color](/docs/narraleaf-react/core/types/color) |
+| `TextEventExpression` | `{image: Image, appearance: TextEventAppearance}` |
+| `TextEventConfig` | `{expression?: TextEventExpression, sound?: Sound}` |

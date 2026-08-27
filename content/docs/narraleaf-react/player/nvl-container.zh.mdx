@@ -84,6 +84,25 @@ NVL 模式的外层容器，处理可见性、过渡动画和宽高比缩放
 - `dialogs?: NvlDialogProxy[]` - 对话条目列表
 - `renderDialogItem?: NvlDialogItemRenderer` - 可选，仅需定制每条对话布局时使用
 
+### NvlDialogList
+
+NvlDialogList 负责渲染条目本身。`DefaultNvlContainer` 用的就是它；基于 `NvlContainer` 自建的容器需要它（或自己的等价物）来画出列表。每个条目都被包进对话上下文，因此在其中渲染的 `Nametag` 与 `Texts` 读的是该条目，而不是 ADV 那一行
+
+- `children?: React.ReactNode` - 自定义的条目元素。它会按条目逐个克隆，并注入 `entry` 与 `index`
+- `renderDialogItem?: NvlDialogItemRenderer` - 优先级高于 `children`。接收 `{ entry, index, isActive, nametag, texts }`
+- `className?: string` / `style?: React.CSSProperties` - 应用在列表容器上
+
+`children` 与 `renderDialogItem` 都不传时，每个条目由 `DefaultNvlDialogItem` 绘制
+
+### DefaultNvlDialogItem
+
+默认的条目样式：说话人名字加一个冒号，后面跟着这一行台词。可以在自定义列表里当兜底用，也可以当作参考实现
+
+- `entry: NvlDialogEntry` - 要绘制的条目
+- `index: number` - 它在列表中的序号
+- `texts?: React.ReactNode` - 替换渲染出来的正文，名牌不受影响
+- `className?: string` / `style?: React.CSSProperties`
+
 ## 属性
 
 ### INvlContainerProps
@@ -124,3 +143,43 @@ function CustomNvlWithRenderer({ dialogs }: INvlContainerProps) {
 
 // 注册：game.configure({ nvlDialog: CustomNvlWithRenderer });
 ```
+
+## Hooks
+
+有四个钩子用于读取 NVL 状态。它们都是不带参数的上下文读取器，返回的就是播放器挂载的那个 `NvlProvider` 所持有的值
+
+该 provider 包住的是舞台、对话与 NVL 叠层——因此自定义 NVL 容器、自定义对话框，以及舞台渲染的其他任何东西都可以调用它们。由[页面路由](/zh/docs/narraleaf-react/player/page-router)渲染的页面位于该 provider 之外，拿到的是惰性的默认值：未激活、不可见、没有条目
+
+```tsx
+import { useIsNvlMode, useNvlDialogs } from "narraleaf-react";
+
+function LineCount() {
+    const inNvl = useIsNvlMode();
+    const dialogs = useNvlDialogs();
+
+    if (!inNvl) return null;
+    return <span>{dialogs.length} 行</span>;
+}
+```
+
+### useNvl
+
+返回整个 NVL 上下文值
+
+- `state: NvlState` - 完整记录：`active`、`visible`、`sessionId`、`dialogs`、`options`、`activeDialogId`、`phase`（`"idle" | "typing" | "awaitAdvance"`）、`pendingAdvance`、`isTyping`
+- `dialogs: NvlDialogEntry[]` - 当前列表中的条目
+- `isActive: boolean` - 游戏是否处于 NVL 模式
+- `isVisible: boolean` - NVL 层是否显示在屏幕上。会话在该层被隐藏期间仍然是激活的，所以这两件事问的不是同一个问题
+- `transitionOptions: Partial<TransformDefinitions.CommonTransformProps> | null` - 当前生效的显示或隐藏过渡的 transform 选项，没有则为 `null`
+
+### useNvlDialogs
+
+即 `useNvl().dialogs`——当前列表中的条目
+
+### useIsNvlMode
+
+即 `useNvl().isActive`——游戏是否处于 NVL 模式
+
+### useIsNvlVisible
+
+即 `useNvl().isVisible`——NVL 层是否显示在屏幕上

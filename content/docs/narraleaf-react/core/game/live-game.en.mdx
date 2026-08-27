@@ -468,12 +468,12 @@ The style of the notification is defined by [Notification](/docs/narraleaf-react
 
 ```typescript
 // notify for 3 seconds
-game.notify("Save success", 3000);
+game.getLiveGame().notify("Save success", 3000);
 ```
 
 ```typescript
 // to control the notification, set the duration to `null` to make the notification stay forever
-const token = game.notify("Fast forward", null);
+const token = game.getLiveGame().notify("Fast forward", null);
 
 // cancel the notification when the player releases the right key
 window.addEventListener("keyup", (event) => {
@@ -694,4 +694,91 @@ if (result.reason === "action") {
     **A run can end early on a step that cannot be skipped.** A step already in flight when the run started, a video (`allowSkipVideo` is `false` by default), and a camera or layer transition all ignore the skip request. Such a step still settles on its own if it finishes within `stepTimeout`, so only one that outlives the timeout ends the run — with `"stalled"`, and with volume and the fast-forward flag restored on the way out.
 
     Before `0.17.1` the run parked on such a step instead: the promise settled neither way, the game stayed muted and permanently in fast-forward mode. Nothing that worked before starts failing, but a host that treats any non-`"menu"` reason as success should now distinguish `"stalled"`, and an exhaustive `switch` over `reason` needs the extra arm to keep compiling.
+</Callout>
+
+### onCurrentActionChange
+
+<Callout type="info">
+    Available since `0.16.0`.
+</Callout>
+
+<Steps>
+<Step>
+
+Subscribe to the current-action stream. The handler runs each time an action begins executing, carrying that action's id and type — enough for an external play head, such as an editor timeline, to follow a running game.
+
+It fires for **every** executed action, including those inside `Control.all` / `Control.any` and the async branches of `Control.doAsync` / `Control.allAsync`. A listener that only tracks top-level lines should filter by its own set of ids.
+
+```typescript
+const liveGame = useLiveGame();
+
+useEffect(() => {
+    return liveGame.onCurrentActionChange(({actionId, actionType}) => {
+        // move the play head to actionId
+    }).cancel;
+}, []);
+```
+
+- `fc: (payload: {actionId: string | null, actionType: string | null}) => void` - Called with the action that just began executing. Both fields are `null` for an action the story carries no id or type for.
+- Returns `LiveGameEventToken` - See [LiveGameEventToken](/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **Experimental, read-only.** This surface exists for tooling that watches a game run. Do not drive story logic from it, and do not persist what it reports — [serialize](#serialize) is the save format.
+</Callout>
+
+### getCurrentActionId
+
+<Callout type="info">
+    Available since `0.16.0`.
+</Callout>
+
+<Steps>
+<Step>
+
+The id of the most recently executed action. The pull-based companion to [onCurrentActionChange](#oncurrentactionchange), for a host that polls rather than subscribes.
+
+```typescript
+const actionId = game.getLiveGame().getCurrentActionId();
+```
+
+- Returns `string | null` - `null` before the first action of the run has executed, and for an action the story carries no id for.
+</Step>
+</Steps>
+
+### getStackSnapshot
+
+<Callout type="info">
+    Available since `0.16.0`.
+</Callout>
+
+<Steps>
+<Step>
+
+A top-first view of the execution stacks, for a call-stack or debug panel: the root stack, plus one entry per in-flight async stack started by `Control.doAsync` / `Control.allAsync`.
+
+```typescript
+const {root, async} = game.getLiveGame().getStackSnapshot();
+
+// the line currently executing
+root.frames[0]?.actionId;
+
+// a concurrent frame carries its branches, each a whole snapshot
+root.frames[0]?.branches?.[0]?.frames;
+
+// a Control.repeat frame carries its iteration counter
+root.frames[0]?.branches?.[0]?.loop?.counter;
+```
+
+- Returns `{root: StackSnapshot, async: StackSnapshot[]}` - Empty frames before the game starts.
+
+`StackSnapshot` is `{tag?: string, frames: StackFrameSnapshot[], loop?: {type: "count" | "condition", counter: number, limit?: number, broken: boolean}}`. `frames` is ordered top-first: `frames[0]` is the frame executing now.
+
+`StackFrameSnapshot` is `{actionId: string | null, actionType: string | null, branchWaitType?: string, branches?: StackSnapshot[]}`. A frame that is a concurrent group (`Control.all` / `Control.any`) lists its branches, and each branch is a whole `StackSnapshot` — so a nested stack's own `loop` counter and `tag` come with it.
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **Experimental, read-only.** The shape is a convenience projection, not a stability contract, and it may change without a major version. Never serialize a snapshot — use [serialize](#serialize) for saves.
 </Callout>
