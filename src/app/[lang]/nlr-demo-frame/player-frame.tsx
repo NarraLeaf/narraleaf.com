@@ -1,113 +1,219 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   b,
   c,
   Character,
+  Control,
   Dialog,
   Dissolve,
-  FadeIn,
-  Game,
   GameMenu,
+  Game,
   GameProviders,
   Image as NarraImage,
   Item,
+  Mask,
   Menu,
   Nametag,
   Player,
   type PlayerEventContext,
+  Reveal,
   Scene,
   Story,
   Texts,
   Transform,
   useDialog,
+  useDialogOverlay,
+  useSuspendAdvance,
+  Word,
+  type WordRenderProps,
 } from 'narraleaf-react';
+import demoClassImage from '@/assets/demo/demo-class.webp';
+import demoHallImage from '@/assets/demo/demo-hall.webp';
 import demoNarraImage from '@/assets/demo/demo-narra.webp';
-import demoOutsideImage from '@/assets/demo/demo-outside.webp';
 import demoRoomImage from '@/assets/demo/demo-room.webp';
 import { type Locale } from '@/lib/i18n';
+
+type GlossaryData = { term: string; body: string };
+
+/** Authored units, like everything else the overlay is measured in. */
+const POPUP_WIDTH = 420;
+
+/**
+ * A word in a line that opens its own definition.
+ *
+ * Three pieces do the work. `Word.custom` attaches this component to the word; `useDialogOverlay`
+ * gives the popup somewhere to be drawn that the text box does not clip and the stage still scales;
+ * and `useSuspendAdvance` holds the line while the popup is open, because otherwise the click that
+ * dismisses it advances the line behind it.
+ */
+function GlossaryTerm({ children, revealed, data }: WordRenderProps<GlossaryData>) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const overlay = useDialogOverlay();
+  const rect = open ? overlay.measure(anchorRef.current) : null;
+
+  useSuspendAdvance(open);
+
+  // The overlay covers the dialog box, and a line sits near the bottom of it, so a popup opened
+  // below the word falls off the stage. Placed above the word instead, and kept inside the
+  // overlay's own width — both read off the container, which is the box at its authored size.
+  const overlayWidth = overlay.container?.clientWidth ?? 0;
+  const left = rect ? Math.max(0, Math.min(rect.left, overlayWidth - POPUP_WIDTH)) : 0;
+
+  return (
+    <span
+      ref={anchorRef}
+      className="cursor-pointer underline decoration-cyan-200/80 decoration-dotted underline-offset-4"
+      onClick={() => revealed && setOpen((value) => !value)}
+    >
+      {children}
+      {rect && (
+        <overlay.Portal>
+          <div
+            style={{
+              position: 'absolute',
+              left,
+              top: rect.top - 12,
+              transform: 'translateY(-100%)',
+              width: POPUP_WIDTH,
+              pointerEvents: 'auto',
+            }}
+            className="rounded-lg border border-cyan-200/70 bg-black/85 p-4 text-[22px] leading-snug text-cyan-50 shadow-2xl backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          >
+            <div className="mb-1 text-[18px] font-semibold uppercase tracking-wide text-cyan-200/90">
+              {data.term}
+            </div>
+            {data.body}
+          </div>
+        </overlay.Portal>
+      )}
+    </span>
+  );
+}
 
 function createDemoStory(locale: Locale) {
   const isZh = locale === 'zh';
   const story = new Story(isZh ? '嵌入式 NarraLeaf-React 示例' : 'Embedded NarraLeaf-React demo');
-  const introScene = new Scene('intro_scene', {
-    background: '#08151b',
-  });
-  const featureScene = new Scene('feature_scene', {
-    background: demoOutsideImage.src,
-  });
-  const loopScene = new Scene('loop_scene', {
-    background: demoOutsideImage.src,
-  });
+
+  const hall = new Scene('hall', { background: demoHallImage.src });
+  const room = new Scene('room', { background: demoRoomImage.src });
+  const aside = new Scene('aside', { background: demoClassImage.src });
 
   const narrator = new Character(isZh ? '旁白' : 'Narrator');
   const narra = new Character('Narra');
   const narraImage = new NarraImage<any>({
     src: demoNarraImage.src,
-    position: {
-      xalign: 0.64,
-      yalign: 0.48,
-    },
+    position: { xalign: 0.66, yalign: 0.52 },
     zoom: 0.56,
   });
 
-  introScene.action([
-    introScene.background.char(demoRoomImage.src, new FadeIn(600)),
+  // She keeps breathing while the story goes on: a property she carries, not an action it waits for.
+  const breathe = Transform.create()
+    .scaleY(1.014)
+    .commit({ duration: 2100, ease: 'easeInOut' });
+
+  hall.action([
     narraImage.show({ duration: 600 }),
-    narraImage.transform(
-      Transform.create()
-        .position({ yoffset: -24 })
-        .commit({ duration: 260, ease: 'easeInOut' })
-        .position({ yoffset: 0 })
-        .commit({ duration: 260, ease: 'easeInOut' }),
-    ),
+    narraImage.loop(breathe, { repeatType: 'mirror' }),
+
     narrator
       .say`${isZh ? '这个播放器就嵌在当前页面里。' : 'This player is mounted inside the current page.'}`
-      .say`${isZh ? '它执行的是可以放进应用里的故事动作，不是截图。' : 'It is running story actions you can ship in an app, not a screenshot.'}`,
-    narra
-      .say`${isZh ? '外层是 React，流程仍然是视觉小说脚本。' : 'The shell is React, but the flow is still a visual novel.'}`
-      .say`${isZh ? `文本里可以有${c('颜色', '#7dd3fc')}。` : `Text can carry ${c('color', '#7dd3fc')}.`}`
-      .say`${isZh ? `需要的时候也可以${b('强调')}。` : `Use ${b('emphasis')} when the line needs it.`}`,
-    Menu.prompt(isZh ? '接下来试哪一步？' : 'What should happen next?')
-      .choose(isZh ? '切换背景' : 'Change the background', [
-        narra.say`${isZh ? '好，我先退场。' : 'Sure. Let me step out first.'}`,
-        narraImage.hide({ duration: 500 }),
-        introScene.jumpTo(featureScene, new Dissolve(500)),
-      ])
-      .choose(isZh ? '继续对白' : 'Keep talking', [
-        narra.say`${isZh ? '那我们就留在这个场景里继续说。' : 'Then we can keep the same scene and continue.'}`,
-      ]),
-  ]);
+      .say`${isZh ? '它执行的是可以直接放进应用里的故事动作，不是一段录屏。' : 'It runs story actions you can ship in an app, not a recording.'}`,
 
-  featureScene.action([
-    narraImage.show({ duration: 600 }),
-    narra.say`${isZh ? '背景已经切过去了。这里还是同一个 Player，只是执行了新的 Scene。' : 'The background changed. Same Player, new Scene.'}`,
-    narraImage.transform(
-      Transform.create()
-        .position({ xoffset: -80 })
-        .commit({ duration: 260, ease: 'easeInOut' })
-        .position({ xoffset: 0 })
-        .commit({ duration: 260, ease: 'easeInOut' }),
+    narra.say`${isZh ? '外层是 React，流程仍然是视觉小说脚本。' : 'The shell is React, but the flow is still a visual novel script.'}`,
+
+    narra.say(
+      isZh
+        ? [
+            '一行字里可以有',
+            c('颜色', '#7dd3fc'),
+            '、',
+            b('粗体'),
+            '、',
+            Word.emphasis('着重号', { mark: 'sesame' }),
+            '，还有',
+            new Word('放大的词', { fontScale: 1.3 }),
+            '。',
+          ]
+        : [
+            'A line can carry ',
+            c('colour', '#7dd3fc'),
+            ', ',
+            b('bold'),
+            ', ',
+            Word.emphasis('emphasis marks', { mark: 'sesame' }),
+            ', and ',
+            new Word('a larger word', { fontScale: 1.3 }),
+            '.',
+          ],
     ),
-    narra.say`${isZh ? '继续往下，可以接分支、音频、存档，也可以接外层页面自己的 UI。' : 'From here, you can add branches, audio, saves, or the surrounding UI your page needs.'}`,
-    Menu.prompt(isZh ? '接下来呢？' : 'Next?')
-      .choose(isZh ? '回到开头' : 'Back to the start', [
-        narraImage.hide({ duration: 500 }),
-        featureScene.jumpTo(introScene, new Dissolve(500)),
-      ])
-      .choose(isZh ? '继续停在这里' : 'Stay here', [
-        narra.say`${isZh ? '可以。播放器会像页面里的其他 React 部分一样留在这里。' : 'That works. The player can stay here like any other part of the page.'}`,
-        featureScene.jumpTo(loopScene),
-      ]),
+
+    narra.say(
+      isZh
+        ? [
+            '也可以放一个自己会说话的词，比如',
+            Word.custom('场景调用', GlossaryTerm, {
+              data: {
+                term: '场景调用',
+                body: '带 returnable 的跳转把当前场景挂起而不是卸载它。目标场景的动作跑完，故事就回到跳转后面那一行。',
+              },
+            }),
+            '——点它试试。',
+          ]
+        : [
+            'A word can open its own definition, like ',
+            Word.custom('scene call', GlossaryTerm, {
+              data: {
+                term: 'scene call',
+                body: 'A returnable jump suspends the current scene instead of unloading it. When the target scene runs out of actions, the story comes back to the line after the jump.',
+              },
+            }),
+            ' — click it.',
+          ],
+    ),
+
+    Control.whileLoop(() => true, [
+      Menu.prompt(isZh ? '想看哪一样？' : 'What would you like to see?')
+        .choose(isZh ? '让镜头动起来' : 'Move the camera', [
+          narra.say`${isZh ? '整个舞台是一台相机，立绘和背景一起走。' : 'The whole stage is one camera: the sprite and the background move together.'}`,
+          story.camera.zoom(1.22, 900, 'easeInOut'),
+          story.camera.pan({ xalign: 0.42 }, 900, 'easeInOut'),
+          story.camera.vignette(0.68, 500),
+          narra.say`${isZh ? '暗角是盖在视野上的一块板，不跟着舞台一起动。' : 'The vignette is a plate over the view, so it holds still while the stage moves under it.'}`,
+          story.camera.shutter(1, 170, 'easeInOut'),
+          story.camera.shutter(0, 240, 'easeInOut'),
+          narra.say`${isZh ? '快门是两片叶子，一合一开就是一次眨眼。' : 'The shutter is two blades: closed and opened again is a blink.'}`,
+          story.camera.resetCamera(700),
+        ])
+        .choose(isZh ? '换个场景' : 'Change the scene', [
+          narra.say`${isZh ? '转场铺满整个舞台，立绘和文字都参与其中。' : 'A transition plays across the whole stage, so sprites and text take part rather than only the background.'}`,
+          hall.jumpTo(room, {
+            transition: new Reveal({ duration: 900, pattern: Mask.iris() }),
+            returnable: true,
+          }),
+          narra.say`${isZh ? '回来了。这个场景一直站在这里，没有被重建。' : 'And back. This scene stood here the whole time; nothing was rebuilt.'}`,
+        ])
+        .choose(isZh ? '去隔壁待一会儿' : 'Step next door', [
+          hall.jumpTo(aside, { transition: new Dissolve({ duration: 600 }), returnable: true }),
+          narra.say`${isZh ? '这就是刚才那个词说的事。' : 'That is the thing the word explained.'}`,
+        ]),
+    ]),
   ]);
 
-  loopScene.action([
-    narra.say`${isZh ? '示例会保持可交互状态，你可以继续点击选项。' : 'The example stays interactive, so you can keep clicking through it.'}`,
-    loopScene.jumpTo(featureScene),
+  room.action([
+    narrator.say`${isZh ? '新的场景，同一个 Player。' : 'A new scene, the same Player.'}`,
+    narrator.say`${isZh ? '走廊没有被卸载——它被挂起了，还在后面站着。' : 'The hall was not unloaded. It is suspended, still standing behind this.'}`,
   ]);
 
-  story.entry(introScene);
+  aside.action([
+    narrator.say`${isZh ? '这里的动作跑完，故事自己就回去了。' : 'When the actions here run out, the story returns on its own.'}`,
+    narrator.say`${isZh ? '没有一句话是写来跳回去的。' : 'Nothing here jumps back — there is no return statement to write.'}`,
+  ]);
+
+  story.entry(hall);
   return story;
 }
 
@@ -123,7 +229,8 @@ function DemoDialog() {
         />
       </div>
       <div className="flex h-full items-center gap-3 pt-1 text-[30px] leading-[1.45] text-white">
-        <Texts className="max-w-full" defaultColor="white" />
+        {/* autoFit sets a long line down until it fits rather than letting it overflow the box. */}
+        <Texts className="max-w-full" defaultColor="white" autoFit autoFitMinFontSize={18} />
         <div className="flex shrink-0 flex-col items-center">
           <div
             className={[
