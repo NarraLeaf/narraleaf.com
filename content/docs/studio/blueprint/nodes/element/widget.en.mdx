@@ -1,9 +1,9 @@
 ---
-title: Button, Container, Frame
-description: Button label and pointer, container clipping, and the Page a Frame shows — all on a wired element.
+title: Button, Container, Switch, Frame
+description: Button label and pointer, container clipping, a Switch's checked state, and the Page a Frame shows — all on a wired element.
 ---
 
-Three small property surfaces: a Button's label and cursor, a Container's clipping, and the Page a Frame shows. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
+Four small property surfaces: a Button's label and cursor, a Container's clipping, a Switch's checked state, and the Page a Frame shows. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
 
 ## Button
 
@@ -124,6 +124,67 @@ The old id-based write, hidden from the palette. Use `Set Element Variant`.
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.container` |  |
+
+## Switch
+
+Switch nodes take an `element:nl.switch` pin. The Self forms are in [Switch](/docs/studio/blueprint/nodes/switch); the Switch's `visible` and `enabled` pair is with the rest of that family on [Displayable](/docs/studio/blueprint/nodes/element/displayable).
+
+None of these dispatch the Switch's `Changed`, `Turned On` or `Turned Off` heads — those are for the player toggling it. A graph that writes the Switch it also listens to does not trigger itself.
+
+### Get Switch Checked
+
+`blueprint.element.switch.getChecked` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` |  |
+
+### Set Switch Checked
+
+`blueprint.element.switch.setChecked` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | in · data | `boolean` | Accepts an on-card literal. |
+
+### Turn Switch On
+
+`blueprint.element.switch.turnOn` · Latent
+
+`Set Switch Checked` with `true`, as its own card so the common case reads as one word.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Turn Switch Off
+
+`blueprint.element.switch.turnOff` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Toggle Switch
+
+`blueprint.element.switch.toggle` · Latent
+
+Flips the state and hands back what it became, so the branch after it does not need a second read.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` | The new state. |
 
 ## Frame
 

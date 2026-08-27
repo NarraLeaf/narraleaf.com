@@ -14,7 +14,8 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 - **读取是纯节点，改写是 latent。** `Get` 系列节点可用于 `event`、`function` 和 `macro` 图。每个改写节点都是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入
 - **内容与选中项的写入会排队触发 flush，滚动节点不会。** 滚动节点只是记录一个供渲染器消费的意图，因此不会重新跑那些由 flush 驱动的工作
 - **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现
-- **条目上下文需要模板后代。** 四个 `Get List Item …` 节点只出现在 List item template 内部元素所拥有的蓝图中，读取的是该元素当前渲染所处的那个条目作用域
+- **条目上下文需要模板后代。** 三个 `Get List Item …` 节点、`Get List Item Props` 与 `Get Item Field` 只出现在 List item template 内部元素所拥有的蓝图中，读取的是该元素当前渲染所处的那个条目作用域
+- **字段类节点指的是已声明的字段，不是 JSON 路径。** `Get Item Field`、`Set Item Field At`、`Find Item By Field` 与 `Sort List By Field` 从 List 为其条目声明的那些字段里挑，卡片存的是字段的稳定 id 而不是属性名——所以改属性名、调字段顺序，对图都毫无代价。深层路径仍然归 `Get JSON Field`。两个写入节点在没选字段时拒绝运行；两个读取节点则只是什么也答不出来
 
 <Callout type="warn">
 `Clear List` 写入的是一个空的运行时数组，而空数组同样算作已写入的内容——`itemsBinding` 不会回来，List 会一直空着，直到你再次写入条目。唯一能恢复 fallback 的是卸载 List 实例，而它会连同选中项和滚动状态一起丢弃
@@ -185,6 +186,45 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | `next` | out · exec | — | |
 | `enabled` | in · data | `boolean` | |
 
+## Set Item Field At
+
+`blueprint.list.setItemFieldAt` · Latent
+
+写一行里的一个字段，这一行的其余部分和列表的其余部分都不动。它是把整行重写一遍而不是原地改：列表的内容是以副本形式交出去的，改你读到的那份不会让任何人渲染的东西发生变化
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | 可填字面量 |
+| `value` | in · data | `any` | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 要写 List 条目的哪个字段。必填 |
+
+行不存在时是安静的空操作而不是错误：一张图往它刚拿到的那一行里写，是最普通的情形，而列表在它脚下缩短了不该把整条链停掉
+
+## Sort List By Field
+
+`blueprint.list.sortByField` · Latent
+
+按条目的某个字段重排运行时条目并写回。排序是一次写入，所以它和其它改写节点一样会把 fallback 固化下来
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 按哪个条目字段排。必填 |
+| `Direction` | `Ascending` 或 `Descending` |
+
 ## Get List Content
 
 `blueprint.list.getItems` · Pure
@@ -215,6 +255,87 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | --- | --- | --- | --- |
 | `item` | out · data | `json` | |
 
+## Get List Length
+
+`blueprint.list.getLength` · Pure
+
+List 当前有多少行
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `length` | out · data | `integer` | |
+
+## Get Item At
+
+`blueprint.list.getItemAt` · Pure
+
+按下标取一行，不必用 `Get List Content` 把整个数组拽过来
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `index` | in · data | `integer` | 可填字面量 |
+| `item` | out · data | `json` | 下标落在当前条目之外时为 `null` |
+
+## Find Item By Field
+
+`blueprint.list.findItemByField` · Pure
+
+按条目的某个字段找一行——`id` 是 `"auto"` 的那个存档槽、`code` 与当前语言相符的那一行语言
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | 该字段应当等于什么 |
+| `index` | out · data | `integer` | 没有命中时为 `-1` |
+| `item` | out · data | `json` | 没有命中时为 `null` |
+| `found` | out · data | `boolean` | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 按哪个条目字段匹配 |
+
+## Get Scroll Progress
+
+`blueprint.list.getScrollProgress` · Pure
+
+List 滚到了哪里，取值 `0`–`1`
+
+`Scroll` 事件 Head 告诉一张图列表**动了**；这四个节点告诉一张图它**停在哪**。这个区别对那些由列表之外的东西触发的逻辑很要紧——包在它外面那一页上的滚轮处理器没人会通知它，只能自己问——而把 Head 的答案镜像进一个变量，正是那种会悄悄过期的写法
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `progress` | out · data | `float` | |
+
+## Get Scroll Offset
+
+`blueprint.list.getScrollOffset` · Pure
+
+同一个位置，按像素给出，并附上总共还有多长可走
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `offset` | out · data | `float` | |
+| `maxOffset` | out · data | `float` | 内容装得下、没什么可滚时为 `0` |
+
+## Is Scrolled To Start
+
+`blueprint.list.isScrolledToStart` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `atStart` | out · data | `boolean` | 距近端一个像素以内。内容装得下时为 `true` |
+
+## Is Scrolled To End
+
+`blueprint.list.isScrolledToEnd` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `atEnd` | out · data | `boolean` | 距远端一个像素以内。内容装得下时为 `true` |
+
+两端都由“这条轴到头了”的同一个定义判定，所以它们和 `Get Scroll Progress` 不可能各说各话——这正是一个“跳到最新”按钮能在回顾已经到底时恰好把自己藏起来的原因
+
 ## Get Visible
 
 `blueprint.list.getVisible` · Pure
@@ -242,7 +363,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | `props` | out · data | `json` | |
 
 <Callout type="info">
-四个条目上下文节点读取的是正在渲染那一行的条目作用域，并且除事件图之外也能用于 Blueprint Value 图——模板里的一个文本元素之所以能逐行显示不同的字符串，靠的就是这个。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id
+五个条目上下文节点读取的是正在渲染那一行的条目作用域，并且除事件图之外也能用于 Blueprint Value 图——模板里的一个文本元素之所以能逐行显示不同的字符串，靠的就是这个。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id
 </Callout>
 
 ## Get List Item Index
@@ -274,3 +395,21 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `key` | out · data | `string` | |
+
+## Get Item Field
+
+`blueprint.list.getItemField` · Pure
+
+正在渲染那一行里某个已声明字段的值。它是 `Get List Item Props` 的窄口版本：在卡片上把字段选出来，而不是把整个条目读回来再从里面挖一个 key，图也就不再依赖那个属性碰巧叫什么
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | 形状随所选字段而定 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 要读条目的哪个字段 |
+
+和上面三个 `Get List Item …` 一样需要条目上下文，也和它们一样能用在 Blueprint Value 里——模板中的一个文本元素之所以能逐行显示不同的字符串，靠的就是这条路。

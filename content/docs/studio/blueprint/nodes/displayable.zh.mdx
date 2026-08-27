@@ -8,7 +8,7 @@ description: 每个可视控件共有的几何与外观接口——属性、Appe
 ## 约定
 
 - **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的控件。作用于连入元素的版本放在 [Element](/zh/docs/studio/blueprint/nodes/element) 分类，叫`Get Element Property`、`Set Element Variant`等。`Stop Element Animation`也归在那里，尽管它没有`Element`输入——一个`AnimationToken`已经指明了某个控件上的某个动画，没有别的目标可指
-- **出现位置。** 出现在`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.slider`、`nl.list`和`nl.frame`的`widgetMain`蓝图中。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant
+- **出现位置。** 出现在每一种可显示控件的`widgetMain`蓝图中：`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`，以及五个舞台控件`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant
 - **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`
 - **写入落在运行时 patch 层**，不改 authored UI document。没有真正改变任何值的写入不会排队 flush
 - **坐标使用 Surface 设计坐标系**——和检视器 Position `X` / `Y` 显示的是同一组数字
@@ -69,6 +69,28 @@ Set Property（设置属性）写入所属控件的某个属性。可写的属�
 | `value` | 属性值，在`value`引脚未接线时使用。`visible`是 Visible / Hidden 下拉，`opacity`按百分比输入，其它属性使用数字输入|
 
 `offsetX`和`offsetY`保存在控件持久的运行时 transform 中，而不是一次性的 motion 槽里，因此之后接管该控件的动画不会把位移丢掉
+
+## Get Measured Rect
+
+`blueprint.displayable.getMeasuredRect` · Pure
+
+控件最后实际落在哪里，是从画出来的东西上量出来的，而不是从文档里读出来的。
+
+这就是它和 `Get Property` 取 `bounds` 键的全部差别。`bounds` 是 authored layout 加上写在它上面的运行时 patch，所以连还没被画过的控件它也答得出来。这一个量的是 Surface 设计坐标系里真实的那个盒子，也就是一个位于 Container 里、List 行里或组件实例里的控件真正占据的位置。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `rect` | out · data | `Rect` | `{ x, y, width, height }`。控件没被画出来时为 `null` |
+
+## Get Center
+
+`blueprint.displayable.getCenter` · Pure
+
+量出来的那个矩形的中心点。`Move Mouse To Element` 瞄准的就是这同一次测量；这里给的是那个点本身，而不是那次移动。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `center` | out · data | `Vector2D` | 控件没被画出来时为 `null` |
 
 ## Get Display
 
@@ -200,7 +222,7 @@ Get Bounds（获取边界）已由`Get Property`的`bounds`键取代；在创建
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `bounds` | out · data | `json` | `{ x, y, width, height }`|
+| `bounds` | out · data | `Rect` | `{ x, y, width, height }`|
 
 ## Get Rotation
 

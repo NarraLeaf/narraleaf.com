@@ -11,9 +11,9 @@ Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和
 
 ## 约定
 
-- **要么 pure，要么 latent，没有中间态。** 二十个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。其余三十三个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果
-- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
-- **状态取值节点会降级，偏好取值节点不会。** `Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`和`Is Text Read`在什么都没有播放时给出中性值——`false`、`null`、`0`、空数组——正因如此，同一个共享 Page 才能按它们分支。十二个偏好取值节点读的是活动`GamePreference`，没有游戏就失败
+- **基本上要么 pure 要么 latent。** 四十一个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。四十七个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果。第八十九个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以它和 latent 节点一样只能用于`event`和`macro`，自己却不是 latent
+- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。结局、走过的路线、DLC 与构建变体那几组读取节点同样如此——结局画廊本来就是从标题界面打开的，那时还没有任何游戏。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
+- **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十六个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起
 - **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)
 - **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里
 
@@ -30,13 +30,18 @@ Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `storyId` | in · data | `string` | 可选。连线优先于卡片 |
+| `sceneId` | in · data | `string` | 可选。连线优先于卡片——`Import Progress` 的 `Scene` 就接到这里 |
+| `startBlockId` | in · data | `string` | 可选，卡片上标作 **From Row**，只能连线。从该行进入场景，而不是从场景开头 |
 
 **卡片字段**
 
 | 字段 | 含义 |
 | --- | --- |
-| `Story` | 要运行的剧本。必填|
-| `Scene` | 要进入的场景。选项按选中的 Story 过滤。必填|
+| `Story` | 要运行的剧本。除非 `storyId` 已连线，否则必填|
+| `Scene` | 要进入的场景。选项按选中的 Story 过滤。除非 `sceneId` 已连线，否则必填|
+
+十次里有九次作者要的是选择器：它列出工程自己的剧本，也拼不错。这几个引脚是为第十次准备的——写图的时候还不知道目标是哪一个，比如一个「继续」按钮要从玩家上次的位置接着走
 
 ### Quit Game
 
@@ -154,6 +159,65 @@ Get Speaker Avatar（获取说话人头像）：说话角色的对话头像。�
 | --- | --- | --- | --- |
 | `avatar` | out · data | `ImageAsset\|null` | 可接给[图片](/zh/docs/studio/blueprint/nodes/image)节点或图片 Blueprint Value|
 
+### Get Dialog Text
+
+`blueprint.game.getDialogText` · Pure
+
+当前屏幕上那句话的文本。没有人在说话时为空字符串
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+
+### Get Speaker Color
+
+`blueprint.game.getSpeakerColor` · Pure
+
+说话角色的主题色，用来给名牌或姓名条上色
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `color` | out · data | `RGBAColor` | 没有人说话时为不透明白。这个引脚是非空颜色，没有「缺省」可以承载 |
+
+### Is Narrator
+
+`blueprint.game.isNarrator` · Pure
+
+屏幕上这一句是旁白还是有角色在说。要为旁白整体换一套对话框外观，用它比对 `Get Nametag` 判空干净
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isNarrator` | out · data | `boolean` | |
+
+### Is Dialog Waiting
+
+`blueprint.game.isDialogWaiting` · Pure
+
+这一句是否已经打完字、正等玩家推进。「点击继续」的指示器绑的就是这个引脚
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isWaiting` | out · data | `boolean` | 没有宿主、屏幕上也没有句子时为 `false`——指示器必须在任何游戏存在之前就能排好版 |
+
+### Get Character
+
+`blueprint.game.getCharacter` · Pure
+
+工程里某一个角色的记录，在卡片上选。和上面三个「说话人」读取不同，它问的不是谁在说话——它是人物档案、好感度界面或者角色画廊用来画一个不在台上的人的那条路
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `name` | out · data | `string` | 没选或角色已不存在时为空 |
+| `characterColor` | out · data | `RGBAColor` | 没有记录时为默认色 |
+| `characterAvatar` | out · data | `ImageAsset\|null` | |
+| `found` | out · data | `boolean` | |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Character` | 工程里的某个角色 |
+
 ### Is NVL Mode
 
 `blueprint.game.isNvlMode` · Pure
@@ -222,11 +286,21 @@ Toggle Dialog Display（切换对话框显示）读取`showDialog`并写入相�
 
 没有活动游戏运行时会失败
 
+### Is Dialog Shown
+
+`blueprint.game.isDialogShown` · Pure
+
+上面三个的读取那一半。它是顶着状态读取名字的偏好读取——它读的值就是 `showDialog`——所以没有活动游戏时它失败，而不是降级
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isShown` | out · data | `boolean` | |
+
 ## 偏好
 
-下面每一对都对应活动游戏上引擎`GamePreference`的一个字段。取值节点是 pure 的，可安全放进 Blueprint Value；设值节点是 latent 的，写入前先校验——值不合法时节点失败，而不是被夹到范围内。`showDialog`在这里没有配对节点，由`Show Dialog`、`Hide Dialog`和`Toggle Dialog Display`覆盖
+下面每一对都对应活动游戏上引擎`GamePreference`的一个字段。取值节点是 pure 的，可安全放进 Blueprint Value；设值节点是 latent 的，写入前先校验——值不合法时节点失败，而不是被夹到范围内。`showDialog`在这里没有配对节点，由`Show Dialog`、`Hide Dialog`、`Toggle Dialog Display`和`Is Dialog Shown`覆盖
 
-这二十四个节点在没有活动游戏运行时都会失败。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行
+本节的设值节点在没有活动游戏运行时都会失败，取值节点也一样，只有 `Get Track Volume` 例外——它读的是引擎的总线混音器而不是`GamePreference`。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行
 
 ### Get Sentence Speed
 
@@ -272,6 +346,26 @@ Set Auto Forward（设置自动前进）写入`autoForward`。必须是布尔值
 | `next` | out · exec | — | |
 | `autoForward` | in · data | `boolean` | |
 
+### Get Auto Forward Delay
+
+`blueprint.game.getAutoForwardDelay` · Pure
+
+读取`autoForwardDelay`，即自动前进在一句话打完之后要等多久才推进
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `autoForwardDelay` | out · data | `float` | |
+
+### Set Auto Forward Delay
+
+`blueprint.game.setAutoForwardDelay` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `autoForwardDelay` | in · data | `float` | 支持卡片字面量 |
+
 ### Get Skip
 
 `blueprint.game.getSkip` · Pure
@@ -293,6 +387,48 @@ Set Skip（设置跳过）写入`skip`。必须是布尔值
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `skip` | in · data | `boolean` | |
+
+### Get Skipping
+
+`blueprint.game.getSkipping` · Pure
+
+读取`skipping`，即**此刻**是不是正在跳过。上面的`skip`是「允许跳过」这个设置，这一个是状态
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `skipping` | out · data | `boolean` | |
+
+### Set Skipping
+
+`blueprint.game.setSkipping` · Latent
+
+从图里开关跳过——一个会自锁的跳过按钮，而不是按住才跳的 `Skip` 动作
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipping` | in · data | `boolean` | |
+
+### Get Skip Read Text
+
+`blueprint.game.getSkipReadText` · Pure
+
+读取`skipReadText`，即跳过是否会在玩家没见过的那一句停下来。这里说的「读过」就是本页「已读文本」一节背后的那份记录
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `skipReadText` | out · data | `boolean` | |
+
+### Set Skip Read Text
+
+`blueprint.game.setSkipReadText` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipReadText` | in · data | `boolean` | |
 
 ### Get Skip Delay
 
@@ -404,21 +540,21 @@ Set BGM Volume（设置背景音乐音量）写入`bgmVolume`。必须是大于�
 | `next` | out · exec | — | |
 | `bgmVolume` | in · data | `float` | 支持卡片字面量|
 
-### Get Sound Volume
+### Get SFX Volume
 
 `blueprint.game.getSoundVolume` · Pure
 
-Get Sound Volume（获取音效音量）读取`soundVolume`，即音效声道
+Get SFX Volume（获取音效音量）读取`soundVolume`，即音效声道
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `soundVolume` | out · data | `float` | |
 
-### Set Sound Volume
+### Set SFX Volume
 
 `blueprint.game.setSoundVolume` · Latent
 
-Set Sound Volume（设置音效音量）写入`soundVolume`。必须是大于等于 `0` 的有限数字
+Set SFX Volume（设置音效音量）写入`soundVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -491,6 +627,42 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `voiceEndMode` | in · data | `string` | 支持卡片字面量|
+
+### Get Track Volume
+
+`blueprint.game.getTrackVolume` · Pure
+
+玩家给工程某一条音轨设的音量。混音器是工程自己声明的一棵音轨树——需要的话可以给每个角色一条总线——而这一对正是「一条音轨一行」的设置界面的搭法
+
+它是本节里的异类：值来自引擎的总线混音器而不是`GamePreference`，所以没有活动游戏它也不失败。没选音轨、或者没有东西可问时读作 1——绑在它上面的滑块会停在顶端，而不是在页面还没连完的时候塌到零
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `audioTrackId` | in · data | `string` | 可选。连线优先于卡片 |
+| `volume` | out · data | `float` | 没有指名音轨时为 `1` |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Track` | 工程的某一条音轨 |
+
+### Set Track Volume
+
+`blueprint.game.setTrackVolume` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `audioTrackId` | in · data | `string` | 可选。连线优先于卡片 |
+| `volume` | in · data | `float` | 支持卡片字面量 |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Track` | 工程的某一条音轨 |
 
 ## 存档
 
@@ -627,6 +799,24 @@ Get Save Line（获取存档语句）读取一份存档将从哪一句继续，�
 它不是 backlog 的最后一条。backlog 记的是最后显示过的那一句，这两个字段记的是存档将从哪一句继续。从叠层界面存档，或在最后一句之后还执行了非对话动作时，两者并不相同
 </Callout>
 
+### Get Save Playtime
+
+`blueprint.game.save.getPlaytime` · Latent
+
+某个存档槽写下时，那一局已经玩了多久——存读档网格在缩略图下面写的那个「12 小时 34 分」
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | 支持卡片字面量 |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+| `recorded` | out · data | `boolean` | 在开始记录游玩时长之前写下的存档为 `false`——槽在，数字不在 |
+| `exists` | out · data | `boolean` | |
+
+排版用 [Time](/zh/docs/studio/blueprint/nodes/time) 里的 `Format Duration`
+
 ### Get Save Preview
 
 `blueprint.game.save.getPreview` · Latent
@@ -700,6 +890,8 @@ Get Latest Auto Save（获取最新自动存档）取最新的一条自动存档
 
 对话历史——也就是回顾记录——是引擎自己保存的、已经过去的台词与选择菜单，并且可以回放到其中任意一点
 
+它是一条带播放头的时间线，这七个节点就是它的两侧。`Get History` 是播放头之前的一切：已经读过的台词，按顺序。往回退会移动播放头，被它退过去的那些台词就成了**未来**，`Get Future History` 返回它们，`Redo Next History Entry` 再走回去。`Can Undo History` 与 `Can Redo History` 则是一对回顾按钮据以禁用自己的东西
+
 ### Get History
 
 `blueprint.game.history.get` · Latent
@@ -754,6 +946,52 @@ Undo Last History Entry（撤销上一条历史）回退一条——即不带目
 
 没有活动游戏运行时会失败
 
+### Redo Next History Entry
+
+`blueprint.game.history.redoNext` · Latent
+
+走进那些撤销造出来的未来——「返回」旁边的那个「前进」。用别的方式推进剧情会把那个未来丢掉，这正是它是 redo 而不是第二个 `Next` 的原因
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+没有活动游戏运行时会失败
+
+### Get Future History
+
+`blueprint.game.history.getFuture` · Latent
+
+播放头之前方的那些条目，形状与 `Get History` 给出的相同。想让玩家看见自己退回来之前走到哪的回顾界面，把它绑到第二个列表上
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | 条目字段与 `Get History` 相同 |
+| `count` | out · data | `integer` | |
+
+没有游戏在跑时、以及什么都没退过时，都是空数组
+
+### Can Undo History
+
+`blueprint.game.history.canUndo` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `canUndo` | out · data | `boolean` | 没有游戏在跑时为 `false` |
+
+它是 pure 的，所以能直接支撑 Blueprint Value：把返回按钮的 `enabled` 绑上去，它就会在记录开头自己变灰，而不必每帧跑一张图
+
+### Can Redo History
+
+`blueprint.game.history.canRedo` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `canRedo` | out · data | `boolean` | 没有游戏在跑时为 `false` |
+
 ## 已读文本
 
 一句话在文字显示完毕的那一刻被标为已读——ADV 下是打字结束，NVL 下是等待推进。记录以消息稳定的文本 id 为键，因此能挺过剧本改动，并且跨越项目里的每一个 Story；它按项目级持久化，与任何存档文件无关。「只跳过已读文本」这类选项就建立在它之上
@@ -778,3 +1016,254 @@ Clear Text Read（清除已读记录）清空已读记录，内存与磁盘一�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
+
+### Has Read Text
+
+`blueprint.game.isTextReadById` · Pure
+
+指定的某一句是否被读过，按它的文本 id 来问，而不是问屏幕上那一句。上面的 `Is Text Read` 回答的是当前这句；这一个回答的是玩家此刻并没有在看的某一句，那正是额外内容界面或语音画廊需要的
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `textId` | in · data | `string` | 支持卡片字面量 |
+| `isRead` | out · data | `boolean` | id 为空时为 `false`，于是连了一半的画廊行只是保持锁住，而不是把整页带垮 |
+
+## 游玩时长
+
+### Get Playtime
+
+`blueprint.game.getPlaytime` · Pure
+
+当前这一局已经玩了多久。两个引脚是同一个数字的两种单位，于是要排版小时的界面和要按毫秒算数的界面各取所需
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+
+没有东西在计时时为 `0`——在任何一局开始之前，标题界面问「这一局玩了多久」是一个有真实答案的正当问题，而故事预览根本就没有秒表
+
+### Get Total Playtime
+
+`blueprint.game.getTotalPlaytime` · Pure
+
+在这个工程上一共花过多少秒，跨越每一次游玩。通关界面写的是这个数，暂停菜单写的是 `Get Playtime`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `totalPlaytimeSeconds` | out · data | `float` | |
+| `totalPlaytimeMilliseconds` | out · data | `float` | |
+
+## 路线进度
+
+`Is Scene Visited` 与 `Is Option Picked` 读的是剧情编译器随玩家推进写下的那份记录。它存在**存档里**，因此会随读档一起回退——它回答的是「在**这一局**里我走过这条路线没有」，一次性选项和剧情中途的解锁要的就是这个。下面的结局记录恰好相反，存在工程持久化里
+
+两个读取节点都是 pure 的，所以画廊的一行可以把「锁住」的样子直接绑到引脚上，而不必每行跑一张图；id 为空时回答「没有」，而不是抛错
+
+<Callout type="info">
+它不是 `Has Read Text`。已读记录是在一句话被**显示**时写下的，所以玩家只是打开过的菜单里的每个选项都算读过。`Is Option Picked` 是在选中的那一刻写下的
+</Callout>
+
+### Is Scene Visited
+
+`blueprint.game.isSceneVisited` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | 可选。连线优先于卡片 |
+| `sceneId` | in · data | `string` | 可选。连线优先于卡片 |
+| `isVisited` | out · data | `boolean` | |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Story` | 要问的剧本 |
+| `Scene` | 场景，按该剧本过滤 |
+
+十次里有九次用选择器就够了。这两个引脚是为第十次准备的：一张画廊卡放一次、从自己的参数里读出自己是哪个场景，而不是一个场景复制一张卡
+
+### Is Option Picked
+
+`blueprint.game.isOptionPicked` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | 可选。连线优先于卡片 |
+| `optionId` | in · data | `string` | 可选。连线优先于卡片 |
+| `isPicked` | out · data | `boolean` | |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Story` | 要问的剧本 |
+| `Option` | 一个选项，按该剧本过滤 |
+
+### Clear Visited
+
+`blueprint.game.clearVisited`
+
+把两份记录都清空。它有副作用但不是 latent——它在这一 tick 内清掉活动 `Storable` 里的两个键，不像 `Clear Text Read` 要写宿主持久化、必须被等待
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## 结局
+
+剧本里的一行 `/ending` 就是完整的声明，它的 block id 就是这里一切据以索引的身份。这四个节点是结局界面的搭法：玩家找到了哪些，以及全集是什么、好把它们摆开来对照
+
+结局记录存在**工程持久化**里而不是存档里，没有任何东西会让它回退。结局界面问的是这个玩家**曾经**见过什么，所以建在存档记录上的画廊会在有人读了旧档之后当着他的面重新锁上条目，「8 个里的 5 个」会变少。这也意味着这四个节点都不需要正在运行的剧情——结局画廊本来就是从标题界面打开的
+
+### Is Ending Reached
+
+`blueprint.game.isEndingReached` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isReached` | out · data | `boolean` | 没选结局时为 `false`，于是连了一半的行保持锁住 |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Story` | 要问的剧本 |
+| `Ending` | 该剧本里声明的一个结局 |
+
+### Get Endings
+
+`blueprint.game.getEndings` · Pure
+
+该剧本声明的全部结局，不论是否已达成——画廊摆开、并据以计数的那个全集
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `endings` | out · data | `array` | 没选剧本时为空 |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Story` | 要列出结局的剧本 |
+
+### Clear Ending State
+
+`blueprint.game.clearEndingState` · Latent
+
+把一个结局重新锁上
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `Story` | 要问的剧本 |
+| `Ending` | 要忘掉的那个结局 |
+
+### Clear Endings
+
+`blueprint.game.clearEndings` · Latent
+
+把它们全部重新锁上。两个清除节点都要写宿主持久化，所以都是 latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## 版本与额外内容
+
+### Get Build Variant
+
+`blueprint.game.getAppTag` · Pure
+
+这个包是工程的哪一个[变体](/zh/docs/studio/patches)。
+
+它是整份目录里唯一一个在游戏存在之前就已经定下值的节点。一次构建产出一个变体，它的名字在这里被代入，消费它的那次比较被折叠，这一版不走的那条分支被**删除**——于是变体判断背后的内容是从包里**不存在**，而不只是在包里到不了。如果一张图里的 `Get Build Variant` 最终没有决定任何分支，它会在构建闸门上被拒绝，每一种构建包括正式版都是如此：这里没有可以退回去的运行期值，所以这样的图不是一个可以容忍的泄漏，而是根本编译不出来
+
+这也是它不收任何输入、也没有卡片字段的原因。能给它的任何东西，都是给一个已经只有一个答案的问题再加一个输入
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `appTag` | out · data | `string` | 变体的名字。完整正式版是 `main` |
+
+### Is DLC Installed
+
+`blueprint.game.isDlcInstalled` · Pure
+
+某一份额外内容此刻是不是就在运行中的游戏旁边。
+
+这个问题问的刻意是**在不在**，而不是有没有买。DLC 是作为一个文件出现在游戏旁边的，是玩家从哪里买的、哪里就把它放过来；它在不在，是这个包看得见的事实。玩家是否**拥有**它，是商店的事实、是商店插件的节点去回答的——而拿它来挡内容，会在玩家离线时把他买过的章节夺走，问「在不在」永远不会
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isInstalled` | out · data | `boolean` | 没选 DLC 时为 `false`，于是连了一半的菜单行保持隐藏 |
+
+**卡片字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `DLC` | 工程声明的某一个 DLC |
+
+## 在版本之间携带进度
+
+试玩版和完整版是两个独立的包、两个独立的 app id，因此各有各的用户数据目录，资源保护密钥也刻意不同：正式版读不了试玩版的存档文件，也不该去读。这两个节点就是那条确实跨过去的通道，而且它刻意不是一个存档文件——它是每个作品一份的普通 JSON 文档，装着工程级变量、玩家走到哪里，以及他见过哪些场景
+
+那份文档放在哪里由执行这件事的宿主决定，绝不由图决定：桌面宿主把这件事交给自己的主进程，Web 导出则拒绝，因为一个网页没有共享文件可写。所以两个节点都带一条失败分支和一个原因，图必须听得懂「不行」
+
+### Export Progress
+
+`blueprint.game.progress.export` · Latent
+
+把这一局持有的一切写进该作品的进度文档。它不收任何输入：跨过去的是工程声明的那一整套，而不是某一张图替**另一个版本**必须能读的文档挑出来的一个子集
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | 写不了的宿主、没有进度键的构建，或者磁盘拒绝了 |
+| `error` | out · data | `string` | 是其中哪一种 |
+
+### Import Progress
+
+`blueprint.game.progress.import` · Latent
+
+读那份文档，并把它持有的内容应用到运行中的游戏上。
+
+**它不会跳转。** `Scene` 只是作为数据交出来，节点就停在这里。启动剧情的是 `Start Game`，而标题界面通常还有别的事要先做——一次淡出、一次确认、一个章节选择。一个自己就跳过去的节点，会成为绕开这一切的第二种开始剧情的方式
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `found` | out · exec | — | |
+| `missing` | out · exec | — | 没有人导出过 |
+| `failed` | out · exec | — | 读不出来的文档 |
+| `sceneId` | out · data | `string` | 玩家走到了哪里。文档没有锚点时为空。接给 `Start Game` |
+| `error` | out · data | `string` | |
+
+三条出路，因为作者对三者的回答不一样。`Missing` 是所有从没导出过的人的常态——全新安装、直接买完整版的玩家——它通向「开始新游戏」，而不是一句道歉；把它并进 `Failed` 会让每一个第一次玩的人先看到一个错误。`Failed` 是读不出来的文档：更新的构建写的、属于别的作品的，或者已经损坏
+
+## 存储
+
+### Check Storage Durability
+
+`blueprint.game.storageDurability` · Latent
+
+这个构建写下去的东西留不留得住——关于玩家存档，唯一一件宿主知道而游戏自己推不出来的事。
+
+打包的桌面游戏把文件放在没人会去回收的用户数据目录里。Web 导出则是浏览器的客人：一个没有拿到持久化存储授权的站点，可能在存储压力下被整体清除，存档、持久变量和已读记录一起没。页面在加载时申请那份授权，而这里给出的就是它得到的答复
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `durable` | out · exec | — | |
+| `evictable` | out · exec | — | |
+| `unknown` | out · exec | — | |
+
+三条分支，因为它们通向三种不同的措辞。`Evictable` 是「这个浏览器可能会删掉存档」；`Unknown` 是浏览器不肯说，而在真相是后者时告诉玩家前者，是一个没人许下过的承诺。这里不替你做任何决定——存储可能被回收的页面，仍然是一个能把游戏打通的页面，而玩家要不要听说这件事，属于作品本身

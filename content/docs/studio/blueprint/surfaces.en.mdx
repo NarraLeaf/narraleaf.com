@@ -32,9 +32,9 @@ The NarraLeaf stage is built at the design size of whichever Surface is active a
 The runtime keeps one stack of **layers**. A layer is an *instance* of a Surface, not the Surface itself: it carries its own props, its own runtime scope, and its own presentation. Open the same Surface twice and you get two independent layers that share nothing.
 
 - On boot the stack is reset to a single layer — the host's entry Surface, or the first `appSurface` in the document.
-- **Opening pushes.** `Go Page` pushes the selected Page with whatever you wired into its `props` input.
-- **Closing pops the top layer.** `Go Page` with its Page selector set to `None` *is* the close: an empty target closes the top layer instead of opening anything. There is no separate back node.
-- **The floor is permanent.** A close is refused when only one layer is left, so the entry Surface is always underneath something. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
+- **Opening pushes.** `Go Page` pushes the selected Page with whatever you wired into its `props` input. `Show Layer` pushes one too, and hands back a **handle** naming that showing of it — the value `Hide Layer`, `Wait For Layer` and `Is Layer Mounted` address. Nothing else names a layer: stacking order is mount order, and no screen can be written to depend on sitting at a particular depth.
+- **Four ways to close.** `Go back` pops exactly one layer. `Go Page` with its Page selector set to `None` empties the stack. `Clear Page` removes only the overlay pages a running game put up, and does nothing outside a game. `Hide Layer` closes the one its handle names, and `Close This Layer` closes the layer the running blueprint is *inside*, optionally with a result for whoever is waiting on it.
+- **The floor is permanent.** A close is refused when only one layer is left, so the entry Surface is always underneath something, and `Go back` at the bottom of the stack is a no-op rather than an error. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
 
 ### Presentation
 
@@ -122,7 +122,7 @@ What it can reach:
 - **Its own props**, through `Get Page Props`.
 - Everything that is not per-Surface anyway: persistent variables, global state, saves, the running game.
 
-Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, the keyboard heads, the game-preference heads, fullscreen changes, the window-close request, and the broadcast receivers.
+Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Action`, the keyboard heads, the game-preference heads, fullscreen changes, the window-close request, the broadcast receivers, and the two bound-element heads.
 
 `Mouse Click` and `Right Click` behave differently here than on a widget: on a Surface they fire for **any** click inside it and output coordinates in that Surface's design space, where the widget version only fires for its own element. A Page embedded in a Frame gets its own Surface click before the parent Surface sees one.
 

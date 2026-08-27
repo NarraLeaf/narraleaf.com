@@ -7,7 +7,7 @@ Flow 节点决定执行接下来去哪里。其它节点都在计算或改变什
 
 ## 约定
 
-- **图类型。** 所有 Flow 节点都可用于`event`图，除`Return Value`外也都可用于`macro`图。它们都不出现在`function`图里：那种图只提供纯的、非 latent（会挂起执行）的节点，而本页每个节点都声明为有副作用
+- **图类型。** 除一个之外，Flow 节点都可用于`event`图，除`Return Value`外也都可用于`macro`图。它们都不出现在`function`图里：那种图只提供纯的、非 latent（会挂起执行）的节点，而它们每一个都声明为有副作用。本页末尾的 `Function Entry` 在两个方向上都是例外——它只存在于`function`图里，别处都没有
 - **引脚命名。** `in`是执行入口。`next`、`true`、`false`、`then`、`else`、`then0`…、`case0`…、`default`、`loop`、`completed`是执行出口，卡片上其余引脚都是数据引脚
 - **卡上字面量是按引脚给的，不是按类型给的。** 下面表格里注明可以填字面量的引脚，才能直接在卡片上输入而不必接线。没有任何一个`condition`引脚可以这样填：`If`、`If Else`和`While`的布尔条件永远要接线
 - **循环使用单游标推进。** `For Loop`、`For Each`和`While`每次进入只走一步。把循环体末尾接回**同一个**节点的`in`引脚，节点才会从`loop`交出下一轮，并最终从`completed`离开。没有接回`in`的循环体只会执行一次
@@ -185,3 +185,16 @@ Noop（空操作）什么都不改，直接把执行传下去。适合做多条�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
+
+## Function Entry
+
+`blueprint.function.entry` · Pure
+
+`function` 图的起点。它是本分类里唯一被 `function` 图提供的节点，也是唯一不被其它任何图类型提供的节点
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then` | out · exec | — | |
+
+`function` 图不是 fn 的函数体——那是一张普通的事件图，它的头是 [Functions](/zh/docs/studio/blueprint/nodes/functions) 里的 `Fn`。`function` 是支撑计算值的那种图类型，它只提供纯的、非 latent 的节点

@@ -14,7 +14,8 @@ List nodes drive the runtime content, selection, and scroll position of the list
 - **Reads are pure, mutations are latent.** The `Get` nodes run in `event`, `function`, and `macro` graphs. Every mutation is latent and is limited to `event` and `macro` — a function returns synchronously to its caller and has nowhere to hand a pending write.
 - **Content and selection writes queue a flush; scroll nodes do not.** A scroll node only records an intent for the renderer to consume, so it never re-runs flush-driven work.
 - **These are Self nodes.** They act on the list-like widget that owns the graph — `nl.list`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list` — and take no target pin. To drive a different List, use the `blueprint.element.list.*` twins in [Element](/docs/studio/blueprint/nodes/element), which carry a `list` input and only appear once the graph holds a binding node for an `nl.list`.
-- **Item context needs a template descendant.** The four `Get List Item …` nodes appear only in blueprints owned by an element inside the List's item template, and read the item scope that element is currently rendering under.
+- **Item context needs a template descendant.** The three `Get List Item …` nodes, `Get List Item Props`, and `Get Item Field` appear only in blueprints owned by an element inside the List's item template, and read the item scope that element is currently rendering under.
+- **The field nodes name a declared field, not a JSON path.** `Get Item Field`, `Set Item Field At`, `Find Item By Field`, and `Sort List By Field` pick from the fields the List declares for its items, and the card stores the field's stable id rather than the property name — so renaming the property, or reordering the fields, costs a graph nothing. Deep paths still belong to `Get JSON Field`. The two writers refuse to run with no field picked; the two reads simply answer with nothing.
 
 <Callout type="warn">
 `Clear List` writes an empty runtime array, and an empty array is still written content — `itemsBinding` does not come back, and the List stays empty until you write items again. Unmounting the List instance is the only thing that restores the fallback, and it discards selection and scroll state with it.
@@ -185,6 +186,45 @@ Turns runtime interaction on or off for the List.
 | `next` | out · exec | — | |
 | `enabled` | in · data | `boolean` | |
 
+## Set Item Field At
+
+`blueprint.list.setItemFieldAt` · Latent
+
+Writes one field of one row, leaving the rest of that row and the rest of the list alone. The row is rewritten rather than edited in place — the list hands its content out as a copy, so mutating what you read would change nothing anybody renders.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `value` | in · data | `any` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which of the List's item fields to write. Required. |
+
+A row that is not there is a quiet no-op rather than an error: a graph writing into the row it was just handed is the ordinary case, and a list that shrank underneath it should not stop the chain.
+
+## Sort List By Field
+
+`blueprint.list.sortByField` · Latent
+
+Reorders the runtime items by one of their fields and writes the result back. Sorting is a write, so the fallback is promoted the way every other mutation promotes it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to order by. Required. |
+| `Direction` | `Ascending` or `Descending`. |
+
 ## Get List Content
 
 `blueprint.list.getItems` · Pure
@@ -215,6 +255,87 @@ Outputs the item at the selected index, or `null` when that index falls outside 
 | --- | --- | --- | --- |
 | `item` | out · data | `json` | |
 
+## Get List Length
+
+`blueprint.list.getLength` · Pure
+
+How many rows the List currently holds.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `length` | out · data | `integer` | |
+
+## Get Item At
+
+`blueprint.list.getItemAt` · Pure
+
+One row by index, without pulling the whole array through `Get List Content`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | out · data | `json` | `null` when the index falls outside the current items. |
+
+## Find Item By Field
+
+`blueprint.list.findItemByField` · Pure
+
+Looks a row up by one of its fields — the save slot whose `id` is `"auto"`, the language row whose `code` matches the current locale.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | What the field should equal. |
+| `index` | out · data | `integer` | `-1` when nothing matches. |
+| `item` | out · data | `json` | `null` when nothing matches. |
+| `found` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to match on. |
+
+## Get Scroll Progress
+
+`blueprint.list.getScrollProgress` · Pure
+
+Where the List is scrolled to, as `0`–`1`.
+
+The `Scroll` head tells a graph that the List has *moved*; these four tell a graph where it *ended up*. The difference matters to anything triggered by something other than the List — a wheel handler on the page around it cannot be told, it has to ask — and mirroring the head's answer into a variable instead is the shape that silently goes stale.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `progress` | out · data | `float` | |
+
+## Get Scroll Offset
+
+`blueprint.list.getScrollOffset` · Pure
+
+The same position in pixels, with the distance there is to travel.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `offset` | out · data | `float` | |
+| `maxOffset` | out · data | `float` | `0` when the content fits and there is nothing to scroll. |
+
+## Is Scrolled To Start
+
+`blueprint.list.isScrolledToStart` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `atStart` | out · data | `boolean` | Within one pixel of the near edge. `true` when the content fits. |
+
+## Is Scrolled To End
+
+`blueprint.list.isScrolledToEnd` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `atEnd` | out · data | `boolean` | Within one pixel of the far edge. `true` when the content fits. |
+
+Both edges are decided from one definition of "as far as this axis goes", so they and `Get Scroll Progress` cannot disagree — which is what lets a "jump to newest" button hide itself exactly when the backlog is already at the bottom.
+
 ## Get Visible
 
 `blueprint.list.getVisible` · Pure
@@ -242,7 +363,7 @@ Outputs the item the current row is rendering: the item itself when it is an obj
 | `props` | out · data | `json` | |
 
 <Callout type="info">
-The four item context nodes read the item scope of the row being rendered, and they work in Blueprint Value graphs as well as event graphs — that is how one text element inside the template shows a different string per row. Repeated rows are isolated from each other, so each copy keeps its own event locals and its own resolved Blueprint Value even though every copy comes from the same source element id.
+The five item context nodes read the item scope of the row being rendered, and they work in Blueprint Value graphs as well as event graphs — that is how one text element inside the template shows a different string per row. Repeated rows are isolated from each other, so each copy keeps its own event locals and its own resolved Blueprint Value even though every copy comes from the same source element id.
 </Callout>
 
 ## Get List Item Index
@@ -274,3 +395,21 @@ Outputs the row's key: the value at the List's `itemKeyPath` when that value is 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `key` | out · data | `string` | |
+
+## Get Item Field
+
+`blueprint.list.getItemField` · Pure
+
+One declared field of the row being rendered. The narrow form of `Get List Item Props`: pick the field on the card instead of reading the whole item and digging a key out of it, and the graph stops depending on what the property happens to be called.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | Shape follows the field. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to read. |
+
+Item context, like the three `Get List Item …` reads above — and like them it works inside a Blueprint Value, which is how one Text element in the template shows a different string per row.

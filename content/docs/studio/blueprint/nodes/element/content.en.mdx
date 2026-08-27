@@ -197,6 +197,125 @@ Scrolls to the bottom.
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
 
+### Get List Length
+
+`blueprint.element.list.getLength` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `length` | out · data | `integer` |  |
+
+### Get Item At
+
+`blueprint.element.list.getItemAt` · Pure
+
+One row by index, without pulling the whole array through `Get List Content`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `item` | out · data | `json` | `null` outside the current items. |
+
+### Find Item By Field
+
+`blueprint.element.list.findItemByField` · Pure
+
+Looks a row up by one of the List's declared item fields. The card stores the field's stable id, so renaming the property costs the graph nothing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `value` | in · data | `any` | What the field should equal. |
+| `index` | out · data | `integer` | `-1` when nothing matches. |
+| `item` | out · data | `json` | `null` when nothing matches. |
+| `found` | out · data | `boolean` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to match on. |
+
+### Set Item Field At
+
+`blueprint.element.list.setItemFieldAt` · Latent
+
+Writes one field of one row, leaving the rest of that row alone. A row that is not there is a quiet no-op.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | Accepts an on-card literal. |
+| `value` | in · data | `any` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to write. Required — the node refuses to run without one. |
+
+### Sort List By Field
+
+`blueprint.element.list.sortByField` · Latent
+
+Reorders the runtime items by one of their fields and writes the result back. Ordering rules are the same as `Array Sort By Key` in [Data](/docs/studio/blueprint/nodes/data).
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | Which item field to order by. Required. |
+| `Direction` | `Ascending` or `Descending`. |
+
+### Get Scroll Progress
+
+`blueprint.element.list.getScrollProgress` · Pure
+
+Where the List is scrolled to, as `0`–`1`. The `Scroll` head says the List moved; these four say where it ended up — which is what a control outside the List has to ask, because nothing tells it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `progress` | out · data | `float` |  |
+
+### Get Scroll Offset
+
+`blueprint.element.list.getScrollOffset` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `offset` | out · data | `float` | Pixels. |
+| `maxOffset` | out · data | `float` | `0` when the content fits. |
+
+### Is Scrolled To Start
+
+`blueprint.element.list.isScrolledToStart` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `atStart` | out · data | `boolean` | Within one pixel of the near edge. `true` when the content fits. |
+
+### Is Scrolled To End
+
+`blueprint.element.list.isScrolledToEnd` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `atEnd` | out · data | `boolean` | Within one pixel of the far edge. `true` when the content fits. |
+
 ## Slider
 
 Slider nodes take a `slider` pin typed `element:nl.slider`. Everywhere a slider reports a value — `props.value`, its Blueprint Value, its event payloads, `Get Slider Value` — that value is the mapped one, already clamped and snapped to `min`, `max` and `step`. The `0..1` ratio is reachable only through `Get Slider Normalized Value`. The Self forms are in [Slider](/docs/studio/blueprint/nodes/slider).

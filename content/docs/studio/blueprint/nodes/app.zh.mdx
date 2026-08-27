@@ -3,14 +3,14 @@ title: 应用
 description: Surface 导航、应用窗口，以及一个 Page 对自身的认知
 ---
 
-App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一个 Surface、关掉最上面那个、进入全屏、退出应用。Surface 模型本身——栈、层叠、游戏舞台——在 [Surfaces](/zh/docs/studio/blueprint/surfaces) 中说明
+App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一个 Surface、在它上面再压一层、调整窗口大小、跳转一个链接、退出应用。Surface 模型本身——栈、层叠、游戏舞台——在 [Surfaces](/zh/docs/studio/blueprint/surfaces) 中说明
 
 ## 约定
 
-- **这里的每个节点都只支持 `event` 和 `macro`。** 它们都不能用于 `function` 图
+- **这里的每个节点都只支持 `event` 和 `macro`**，只有 `Is Layer Mounted` 例外：它是 pure，也能用于 `function` 图和蓝图值。本分类再没有第二个
 - **其中两个是尾节点。** `Go Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
-- **type id 里写的是 `page`。** 这一组在长出窗口和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*` 和 `blueprint.frame.*` 就是本分类
-- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航与窗口节点没有宿主限制
+- **type id 并不都写 `app`。** 这一组在长出窗口、叠层和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*`、`blueprint.frame.*`、`blueprint.layer.*` 和 `blueprint.app.*` 全都属于这同一个分类
+- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航、叠层、窗口、指针与链接节点没有宿主限制
 - **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `Host API unavailable (use Dev Mode)` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
 
 ## Go Page
@@ -19,11 +19,12 @@ App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一�
 
 Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时切换 Page 时的同一条导航路径——同样的进退场动画、同样的 Surface 生命周期、同样的控件蓝图。选择 `None` 则改为关闭当前顶层 Page 叠层
 
-带目标的 `Go Page` 是打开一层的唯一手段。要关掉一层，优先用 [Go back](#go-back)：导航是一个栈，对着玩家**来时的**那一页再 `Go Page`，是在已有的两页上再压上第三页，而不是回到它。带 `None` 的 `Go Page` 则关闭当前顶层 Page 叠层
+`Go Page` 是**替换**玩家眼前的东西。要把一页压在当前这一页**之上**并拿到一个句柄，用 [Show Layer](#show-layer)。要关掉一层，优先用 [Go back](#go-back)：导航是一个栈，对着玩家**来时的**那一页再 `Go Page`，是在已有的两页上再压上第三页，而不是回到它。带 `None` 的 `Go Page` 则关闭当前顶层 Page 叠层
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | 可选。连线即在运行时决定目标；未连线时用卡片上的 `Page` 字段 |
 | `props` | in · data | `json` | 作为目标 Page 的 Page props 传入，在那边由`Get Page Props`读取。可选——未连线时为`{}`|
 
 **卡片字段**
@@ -42,10 +43,127 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 
 游戏在运行中的故事上打开的每一个页面 —— 存档、读档、设置、回顾 —— 都需要一条出路，而 `Go Page` 不是：导航是一个栈，“去我来时那一页”会在已有的两页上再压上第三页，游戏依旧埋在底下。
 
+关掉最后一页是空操作而不是错误。从标题界面进来的那一页就是栈底，如果在那里抛错，同一个返回按钮就会因为玩家怎么走过来的而时灵时不灵。
+
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
+
+## Clear Page
+
+`blueprint.page.clear` · Latent
+
+把运行中的游戏身上披着的每一页都摘掉，只留下舞台 —— 在任何页面上按 Escape 都成立，图不必知道玩家现在有多深。
+
+三种“关闭”并不能互换。`Go back` 只弹一层，所以在两页深的游戏上按 Escape 只会落到下面那一页。带 `None` 的 `Go Page` 会清空整个栈，在标题界面上那会把标题本身也关掉。`Clear Page` 只清掉一次游戏会话叠上去的那些页面，而在游戏之外它什么也不做 —— 这正是 `Clear Page → Go back` 能当作一个通用 Escape 处理的原因：读起来就是“在游戏里就离开游戏，否则退一步”。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Show Layer
+
+`blueprint.layer.show` · Latent
+
+把一页**盖在**屏幕上已有的东西之上，而不是替换掉它，并交回一个句柄指代这一次显示。
+
+叠层的深度是没法寻址的。叠放次序就是挂载次序，而唯一能指代某一层的东西就是那个句柄 —— 对任何没拿到它的图来说毫无意义。这是刻意的：一个界面无法被写成依赖于“自己在从上往下第三层”，于是第一个想在暂停菜单之上再加一层的工程，不会把整套合成变成一个谁也改不动的编号方案。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `props` | in · data | `json` | 这一层的 Page props，在里面由 `Get Page Props` 读取。可选 |
+| `modal` | in · data | `boolean` | 挡住与下面的交互。可填字面量。未连线读作 `false` |
+| `dismissible` | in · data | `boolean` | 玩家能否不靠图自己把它关掉。可填字面量。**未连线读作 `true`** —— 玩家出不来的一层是一个决定，没动过的引脚不该替人做这个决定 |
+| `group` | in · data | `string` | 可选。声明同一分组的层会互相排队，而不是叠在一起。可填字面量 |
+| `layer` | out · data | `string` | 句柄。交给 `Hide Layer`、`Wait For Layer` 或 `Is Layer Mounted` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Page` | 要显示的 Surface，与 `Go Page` 选的是同一份列表。一层**就是**一页；给两份不同的列表会暗示它们不是一回事 |
+
+指向工程里没有的 Page 时，节点会带着宿主自己那句话失败，于是失败落在你能改的那一行上。
+
+## Hide Layer
+
+`blueprint.layer.hide` · Latent
+
+关掉句柄指代的那一层。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `layer` | in · data | `string` | 来自 `Show Layer` 的句柄 |
+
+指向不存在的句柄 —— 从未设置过、或者已经关掉了 —— 是空操作而不是错误，和 `Go back` 在栈底做的是同一笔交易：那一层已经不在了，本来就是这个节点被要求达成的结果。
+
+## Wait For Layer
+
+`blueprint.layer.wait` · Latent
+
+挂起，直到那一层关闭，然后带着它关闭时给出的东西继续。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `layer` | in · data | `string` | 来自 `Show Layer` 的句柄 |
+| `result` | out · data | `json` | `Close This Layer` 收到的东西。被玩家关掉、或者关闭时什么都没给，都是 `null` |
+
+## Close This Layer
+
+`blueprint.layer.closeSelf` · Latent
+
+关掉当前蓝图**所在**的那一层，并可以给等着它的人一个答复。这是 `Wait For Layer` 的另一半：被显示出来的那一页自己报告结果，而不是打开它的人伸手进去读。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `result` | in · data | `json` | 可选。未连线时这一层以 `null` 关闭 |
+
+## Is Layer Mounted
+
+`blueprint.layer.isMounted` · Pure
+
+句柄指代的那一层是否还在屏幕上。本分类里唯一的 pure 节点，也就是唯一能支撑蓝图值的一个 —— 比如一个在自己的菜单开着时把自己禁用掉的暂停按钮。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `layer` | in · data | `string` | 来自 `Show Layer` 的句柄 |
+| `mounted` | out · data | `boolean` | 空句柄或未知句柄都读作 `false` |
+
+## Show Confirm
+
+`blueprint.layer.confirm` · Latent
+
+用你自己的一页去问一个问题，并从玩家按下的那个按钮走出去。
+
+底下没有任何“确认框”专用机制。这个节点把选中的 Page 作为一个模态、可关闭、归在 `confirm` 分组的叠层显示出来 —— 于是第二个问题会排在第一个后面而不是压在它上面 —— 并通过普通的 Page props 把问题交给它：`message`，以及 `buttons`，形如 `{ id, text, index, disabled }`，可以直接给 List 绑定。用 `Show Layer` 手搭的一页读到的是一模一样的 props。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `message` | in · data | `string` | 问题本身。可填字面量 |
+| `tag` | in · data | `string` | 可选。原样传给页面，供一页回答多个问题时区分。可填字面量 |
+| `data` | in · data | `json` | 可选。原样传给页面 |
+| `dismissed` | out · exec | — | 玩家没有作答就关掉了问题时走这里 |
+| `index` | out · data | `integer` | 按钮的位置；走 `dismissed` 时为 `-1` |
+| `label` | out · data | `string` | 按钮的文字；走 `dismissed` 时为 `""` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Page` | 画出这个问题的 Surface |
+
+卡片上的 **Add Button** 会追加一个 `string` 输入 `button_N_label` 和与它配对的 exec 输出 `button_N_pressed`，插在固定的 `dismissed` 之上。配对按 id 而不是按位置，所以从中间删掉一个按钮不会让编号错位，也不会把分支接错。页面用 `Close This Layer` 关闭自己来报告答案 —— 直接给一个下标，或者给一个带 `index` 字段的对象。其它任何东西，包括关闭时什么都不给，都走 `dismissed`。
 
 ## Keep Window Open
 
@@ -106,6 +224,152 @@ Get Fullscreen（获取全屏状态）读取应用窗口当前是否处于全屏
 | `isFullscreen` | out · data | `boolean` | |
 
 它是 latent 而不是 pure，因为答案来自窗口而不是来自图——这也意味着它无法支撑 Blueprint Value。请改在事件图里驱动全屏指示
+
+## Get Window Size
+
+`blueprint.app.getWindowSize` · Latent
+
+舞台当前的像素尺寸，无论窗口处在什么状态。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `width` | out · data | `float` | |
+| `height` | out · data | `float` | |
+
+## Set Window Size
+
+`blueprint.app.setWindowSize` · Latent
+
+把舞台调整到指定的像素尺寸。
+
+**项目 → 应用 → 窗口**里列出的那些尺寸，是给设置界面搭出来用的，而不是图能提出什么要求的上限：尺寸另有来源的游戏 —— 它记住的一个值、它量到的一块显示器、玩家自己填的一个数 —— 就在这里说出来。它做不到的是跑出屏幕：尺寸会被收进显示器的工作区，并受窗口自身最小值约束，因为比桌面还大的窗口谁也用不了。
+
+全屏与最大化会先被退出，理由和 `Set Window Scale` 一样：两者都是同一个问题的答案，在它们底下改出来的尺寸，玩家一退出就会弹回去。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `width` | in · data | `float` | |
+| `height` | in · data | `float` | |
+
+## Get Window Scale
+
+`blueprint.app.getWindowScale` · Latent
+
+窗口当前的大小，写成设计尺寸的倍数。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scale` | out · data | `float` | `1` 是设计尺寸，`0.5` 是它的一半 |
+
+## Set Window Scale
+
+`blueprint.app.setWindowScale` · Latent
+
+把窗口调整到设计尺寸的某个倍数。
+
+工程没有提供的倍数会被换成它提供的最接近的一档，而不是被拒绝：这一档档梯子是作者的，算出 `0.8` 的图应该把窗口挪一挪而不是失败。全屏与最大化会先被退出。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scale` | in · data | `float` | 不是正数的值会回落到 `1` |
+
+## Get Window Scale Options
+
+`blueprint.app.getWindowScaleOptions` · Latent
+
+设置界面可以提供的那些尺寸，就是作者在**项目 → 应用 → 窗口**里写下的那份。把 List 绑到它上面，提供哪些尺寸就来自工程，而不是来自图里敲进去的数字。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scales` | out · data | `array` | 设计尺寸的倍数 |
+
+<Callout type="info">
+**空是一个答案，不是失败。** 没有自己窗口可调的宿主 —— Web 导出、开发模式、故事预览 —— 在这里什么也不返回，据此搭出来的那一行在那里也就什么都不画。这正是要的效果：一个动不了窗口的尺寸控件比没有更糟。
+</Callout>
+
+## Open Link
+
+`blueprint.app.openExternal` · Latent
+
+把一个地址交给玩家本来就在用的浏览器：商店页、更新说明、支持表单。
+
+别处没有任何要声明的东西。图是作者写的，所以图里的地址就是作者的决定。宿主检查的是**协议**，而且只在真正要打开页面的那个进程里检查、绝不在渲染进程里 —— 能到达的只有 `http:`、`https:` 与 `mailto:`。这是一份允许清单，而不是把已知有害的那几个列出来禁掉：`shell.openExternal` 会把地址交给操作系统为它登记的任何程序，而玩家装的任何软件都能登记一个新协议。清单之外的协议 —— 最常被问到的是 `steam:` —— 要通过插件到达，那条路上模式写在 manifest 里，安装时逐条具名批准。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `url` | in · data | `string` | 连线优先于卡片。空地址是执行错误 |
+| `next` | out · exec | — | 页面已经交出去时走这里 |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | 是哪一种拒绝 |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `URL` | 直接填写的地址。`url` 引脚未连线时用它 |
+
+`failed` 同时覆盖“这个节点打不开的协议”和“浏览器没能打开这一页”。它们共用一个引脚，因为作者对两者的应对是同一个 —— 玩家没拿到这一页，那就给他看点别的。
+
+它**不是网络权限**。这里不发请求，也没有任何字节回到游戏里，所以它不受工程网络设置的约束，把网络关掉也不会禁用它。见[安全](/zh/docs/studio/security)。
+
+## Move Mouse To
+
+`blueprint.app.movePointerTo` · Latent
+
+把玩家真正的光标放到 Surface 上的某个点。这与 Windows 在“自动移到默认按钮”打开时替你做的是同一件事，也是对手柄友好的菜单需要、而只认鼠标的菜单假装不出来的东西。
+
+坐标是 Surface 的设计坐标 —— 和 `Get Measured Rect`、`Get Bounds` 以及每个鼠标事件的 `x` / `y` 是同一套。作者看不见窗口，也不该被要求去想它。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `point` | in · data | `Vector2D` | 用 [Data](/zh/docs/studio/blueprint/nodes/data) 里的 `Make Vector2D` 造一个 |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Duration (s)` | `0` 是立刻放过去；任何正值都会让它走过去 |
+| `Easing` | `linear`、`easeIn`、`easeOut` 或 `easeInOut` |
+
+**只在桌面构建与开发模式下有效。** Web 导出无法摆布系统指针，节点在那里走 `failed`；而当一个含有这些节点的工程被导出到非桌面目标时，构建控制台会给出警告 —— 作者该从构建里知道这件事，而不是从玩家那里。
+
+## Move Mouse To Element
+
+`blueprint.app.movePointerToElement` · Latent
+
+同一件事，但瞄准某个控件的中心，而且是量出来的，不是从文档里算出来的。
+
+它是一个独立的节点，而不是 `Get Element Measured Rect` 接 `Move Mouse To`，因为两半必须对“这个控件最后被画在哪个 Surface 上”达成一致。组件实例是被放到哪里就在哪里渲染内容的，那未必是这个元素被写下时所属的 Surface。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `element` | in · data | `element` | |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Duration (s)` | 同上 |
+| `Easing` | 同上 |
 
 ## Get Page Props
 

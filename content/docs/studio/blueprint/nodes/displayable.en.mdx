@@ -8,7 +8,7 @@ Every visual widget is a Displayable: it has a position, a size, a rotation, an 
 ## Conventions
 
 - **Self nodes only.** Nothing in this category takes an `Element` input; the target is always the widget that owns the blueprint. The versions that act on a wired element live in [Element](/docs/studio/blueprint/nodes/element) as `Get Element Property`, `Set Element Variant`, and so on. `Stop Element Animation` is filed there too even though it takes no `Element` input — an `AnimationToken` already names one animation on one widget, so there is nothing left to target.
-- **Where they appear.** In the `widgetMain` blueprint of `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.slider`, `nl.list`, and `nl.frame`. `Set Variant` and `Get Variant` are narrower: only `nl.container`, `nl.text`, `nl.image`, and `nl.button` carry appearance variants.
+- **Where they appear.** In the `widgetMain` blueprint of every displayable widget: `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.textInput`, `nl.switch`, `nl.slider`, `nl.list`, `nl.frame`, `nl.video`, `nl.puppet`, and the five stage widgets `nl.dialog.sentence`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list`, `nl.nvl.texts`. `Set Variant` and `Get Variant` are narrower: only `nl.container`, `nl.text`, `nl.image`, and `nl.button` carry appearance variants.
 - **Graph kinds.** The getters are pure and run in `event`, `function`, and `macro` graphs, including inside a Blueprint Value. The writers are latent and run in `event` and `macro` only.
 - **Writes land on a runtime patch layer**, not on the authored UI document. A write that changes nothing queues no flush.
 - **Coordinates are Surface design pixels** — the same numbers the inspector's Position `X` / `Y` show.
@@ -69,6 +69,28 @@ Writes one property on the owning widget. The writable keys are `x`, `y`, `offse
 | `value` | The value, used when the `value` pin is unwired. `visible` is a Visible / Hidden dropdown, `opacity` a percentage, everything else a number. |
 
 `offsetX` and `offsetY` are stored in the widget's persistent runtime transform rather than in the one-shot motion slot, so a later animation taking over the widget does not throw the offset away.
+
+## Get Measured Rect
+
+`blueprint.displayable.getMeasuredRect` · Pure
+
+Where the widget actually ended up, measured from what was painted rather than read off the document.
+
+That is the whole difference from `Get Property` with the `bounds` key. `bounds` is the authored layout plus whatever runtime patches have been written over it, so it answers even for a widget nothing has drawn yet. This one measures the real box in the Surface's design coordinates, which is what a widget inside a Container, inside a List row, or inside a component instance is actually occupying.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `rect` | out · data | `Rect` | `{ x, y, width, height }`. `null` when the widget is not painted. |
+
+## Get Center
+
+`blueprint.displayable.getCenter` · Pure
+
+The centre of the measured rect, as a point. The same measurement `Move Mouse To Element` aims at, when you want the point rather than the move.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `center` | out · data | `Vector2D` | `null` when the widget is not painted. |
 
 ## Get Display
 
@@ -194,7 +216,7 @@ Superseded by `Get Property` with the `bounds` key; hidden from the palette but 
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `bounds` | out · data | `json` | `{ x, y, width, height }`. |
+| `bounds` | out · data | `Rect` | `{ x, y, width, height }`. |
 
 ## Get Rotation
 

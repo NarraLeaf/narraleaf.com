@@ -3,11 +3,11 @@ title: Data
 description: Literals, type conversion, type tests, and every string, array, object, and JSON operation a graph is built out of.
 ---
 
-Data holds the values a blueprint computes with. Reach for it when you need a constant, when a value arrives as the wrong type, or when you have to take apart a string, an array, or a JSON document. Nothing here has an exec pin — a Data node is read by whoever is wired to its output.
+Data holds the values a blueprint computes with. Reach for it when you need a constant, when a value arrives as the wrong type, or when you have to take apart a string, an array, or a JSON document. Almost nothing here has an exec pin — a Data node is read by whoever is wired to its output. `Memo` is the one exception, and it explains itself below.
 
 ## Value types
 
-Nine `valueType`s appear on the pins below.
+Ten `valueType`s appear on the pins below.
 
 | `valueType` | Holds | Produced by |
 | --- | --- | --- |
@@ -15,11 +15,12 @@ Nine `valueType`s appear on the pins below.
 | `integer` | A whole number. | `Integer`, lengths, indices, counts. |
 | `float` | A number. | `Float`, `To Float`, `Parse Float`. |
 | `boolean` | True or false. | `Boolean`, every type test and string test. |
-| `json` | Any JSON value: object, array, string, number, boolean, or `null`. | `JSON`, `Rect`, `Parse JSON`, `Get JSON Field`, `Make JSON Object`. |
-| `array` | A JSON array, as a type of its own. | `Make JSON Array`, the `Array …` nodes that return an array, `Object Keys`, `Object Values`. |
-| `any` | Anything. | — |
+| `json` | Any JSON value: object, array, string, number, boolean, or `null`. | `JSON`, `Parse JSON`, `Get JSON Field`, `Make Object`. |
+| `array` | A JSON array, as a type of its own. | `Make Array`, the `Array …` nodes that return an array, `Object Keys`, `Object Values`. |
+| `any` | Anything. | `Memo`, `Get Item Field`, and the property reads whose shape follows a card selection. |
 | `RGBAColor` | `{ r, g, b, a }`. | `Color`. |
-| `Vector2D` | `{ x, y }`. | `Vector2D`. |
+| `Vector2D` | `{ x, y }`. | `Vector2D`, `Make Vector2D`, `Rect Center`, `Get Center`. |
+| `Rect` | `{ x, y, width, height }`. | `Rect`, `Make Rect`, `Get Bounds`, `Get Measured Rect`. |
 
 An edge between two data pins is allowed when the types are identical, or when one of these holds:
 
@@ -28,17 +29,24 @@ An edge between two data pins is allowed when the types are identical, or when o
 | `integer` | `float` | Every integer is a float. |
 | `integer`, `float` | `string` | The number is converted to text as the input is read. This is the only coercion that rewrites the value — every other permitted edge passes it through untouched. |
 | `array` | `json` | An array is a JSON value. |
+| `Rect` | `json` | A migration allowance rather than a rule about structured values — see below. |
 | `any` | anything | `any` matches in both directions. |
 | anything | `any` | |
 
+Types from other categories widen the same way and nowhere else: `element` connects to any `element:nl.…` pin and back, and `ImageAsset` and `string` both reach an `ImageAsset|null` input.
+
 Everything else is refused, including the reverses authors expect to work:
 
-- **`json` → `array`.** The rule runs one way only.
+- **`json` → `array`, `json` → `Rect`.** Every widening rule runs one way only. An arbitrary object is not a rectangle.
 - **`float` → `integer`.** Insert `To Integer`, which truncates toward zero.
 - **`string` → `integer` or `float`.** Insert `Parse Int`, `Parse Float`, `To Integer`, or `To Float`.
 - **`boolean` → `string`, `json` → `string`.** Only numbers coerce to text. Insert `To String` or `Stringify JSON`.
-- **`string`, `integer`, `float`, `boolean` → `json`.** `array` is the only type that reaches a `json` input implicitly. Insert `To JSON`.
-- **`RGBAColor` → `json`, `Vector2D` → `json`.** They are structured types of their own, not JSON documents. `Rect` is the exception: it already outputs `json`.
+- **`string`, `integer`, `float`, `boolean` → `json`.** `array` and `Rect` are the only types that reach a `json` input implicitly. Insert `To JSON`.
+- **`RGBAColor` → `json`, `Vector2D` → `json`.** They are structured types of their own, not JSON documents. Take them apart with `Break Vector2D`, or build a document with `Make Object`.
+
+<Callout type="info">
+`Rect` → `json` is there for graphs written before `Rect` was a type. The `Rect` literal and `Get Bounds` both published `json` until it became one, so rectangles authored back then still feed `Get JSON Field` and keep working. `Vector2D` never was a `json` pin and stays narrow.
+</Callout>
 
 <Callout type="info">
 `array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array — `Split`'s result, `Parse JSON`, `Get JSON Field` — will not connect to an `array` input such as `Array Length` or List's `Set Items`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
@@ -46,10 +54,10 @@ Everything else is refused, including the reverses authors expect to work:
 
 ## Conventions
 
-- **Every node here is pure.** There are no exec pins to connect, so a Data node cannot sit on the execution path. Its output is computed when a consumer reads it, and recomputed on the next read.
-- **All three graph kinds accept them** — `event`, `function`, and `macro` — and so does a Blueprint Value graph.
+- **Every node here is pure but one.** There are no exec pins to connect, so a Data node cannot sit on the execution path. Its output is computed when a consumer reads it, and recomputed on the next read. `Memo` is the exception: it is an exec node, because holding a value still is exactly what a pure node cannot do.
+- **All three graph kinds accept them** — `event`, `function`, and `macro` — and so does a Blueprint Value graph. `Memo` again excepted: `event` and `macro` only.
 - **Nothing is modified in place.** A node that writes returns a new value on its output pin and leaves its input alone.
-- **On-card literals exist for `string`, `integer`, `float`, and `boolean` pins only.** A `json` or `array` input has no on-card editor; feed it a `JSON` literal or a `Make JSON …` node.
+- **On-card literals exist for `string`, `integer`, `float`, and `boolean` pins only.** A `json` or `array` input has no on-card editor; feed it a `JSON` literal or a `Make Object` / `Make Array` node.
 - **An unwired input is not an error.** It reads the pin's on-card literal, or nothing when there is none, and each node normalizes: a missing array reads as empty, a missing string as `""`, a missing number as `0`.
 - **A chain of pure nodes resolves at most 32 links deep.** Past that the read returns nothing, silently.
 
@@ -177,11 +185,11 @@ Edited with a color picker and shown as 8-digit RGBA hex. The output is always t
 
 `blueprint.data.rectLiteral` · Pure
 
-Unlike `Color` and `Vector2D`, `Rect` outputs plain `json` rather than a type of its own, so it connects to any `json` input.
+Like `Color` and `Vector2D`, `Rect` is a type of its own. Unlike them, it also widens into `json`, so it still connects to any `json` input — see the note under [Value types](#value-types).
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `value` | out · data | `json` | |
+| `value` | out · data | `Rect` | |
 
 **On-card fields**
 
@@ -433,7 +441,7 @@ Replaces `{name}` in the template with the matching field of `values`, or `{0}`,
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `template` | in · data | `string` | Accepts an on-card literal. |
-| `values` | in · data | `json` | Wire a `JSON` literal or a `Make JSON Object`. |
+| `values` | in · data | `json` | Wire a `JSON` literal or a `Make Object`. |
 | `result` | out · data | `string` | |
 
 ### Length
@@ -893,6 +901,132 @@ Converts each item to text — objects and arrays become JSON — and joins them
 | `separator` | in · data | `string` | Accepts an on-card literal. |
 | `result` | out · data | `string` | |
 
+### Array First
+
+`blueprint.collection.arrayFirst` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | `null` for an empty array. |
+
+### Array Last
+
+`blueprint.collection.arrayLast` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | `null` for an empty array. |
+
+### Array Is Empty
+
+`blueprint.collection.arrayIsEmpty` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `boolean` | |
+
+### Array Index Of
+
+`blueprint.collection.arrayIndexOf` · Pure
+
+The position of the first item equal to `item`, compared by value the way `Array Contains` compares. `-1` when nothing matches.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `index` | out · data | `integer` | |
+
+### Array Concat
+
+`blueprint.collection.arrayConcat` · Pure
+
+`a` followed by `b`, as a new array.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `a` | in · data | `array` | |
+| `b` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Reverse
+
+`blueprint.collection.arrayReverse` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Unique
+
+`blueprint.collection.arrayUnique` · Pure
+
+Drops later duplicates, keeping the first of each. Items are compared by value, so two objects with the same fields count as one.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Range
+
+`blueprint.collection.arrayRange` · Pure
+
+`count` numbers starting at `start`, each one `step` further on. The array a page needs when it has to draw N of something and the numbers are the content.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `start` | in · data | `integer` | Accepts an on-card literal. Defaults to `0`. |
+| `count` | in · data | `integer` | Accepts an on-card literal. Clamped to `0` or above. |
+| `step` | in · data | `integer` | Accepts an on-card literal. Defaults to `1`, and a `step` of `0` is read as `1` — it would otherwise be `count` copies of `start` wearing the shape of a range. |
+| `result` | out · data | `array` | |
+
+### Array Find By Key
+
+`blueprint.collection.arrayFind` · Pure
+
+The first item whose `key` field equals `value`, and where it was.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | The field name. Accepts an on-card literal. |
+| `value` | in · data | `any` | |
+| `item` | out · data | `json` | `null` when nothing matches. |
+| `index` | out · data | `integer` | `-1` when nothing matches. |
+
+### Array Filter By Key
+
+`blueprint.collection.arrayFilter` · Pure
+
+Every item whose `key` field equals `value`, in their original order.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | Accepts an on-card literal. |
+| `value` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Sort By Key
+
+`blueprint.collection.arraySort` · Pure
+
+Orders records by one of their fields. The three key-based nodes take a field name rather than a comparator, because a comparator is a function value and sorting records by one of their fields is what a list actually needs.
+
+Numbers compare as numbers, booleans as `false` before `true`, and everything else as text, ordered the way the runtime collates strings. Items whose field is missing, `null`, or `""` sort to the end in **both** directions, and ties keep the order they arrived in. An empty `key` returns the array unchanged.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | Accepts an on-card literal. |
+| `descending` | in · data | `boolean` | Accepts an on-card literal. |
+| `result` | out · data | `array` | |
+
 ### JSON Array Length
 
 `blueprint.data.jsonArrayLength` · Pure
@@ -903,6 +1037,69 @@ The older name for `Array Length`, kept so existing graphs keep resolving. A val
 | --- | --- | --- | --- |
 | `value` | in · data | `array` | |
 | `length` | out · data | `integer` | |
+
+## Geometry
+
+`Vector2D` and `Rect` are structured types rather than JSON documents, so they are built and taken apart with nodes of their own rather than with `Get JSON Field`. Every input reads a non-number as `0`.
+
+### Make Vector2D
+
+`blueprint.data.makeVector2d` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | Accepts an on-card literal. |
+| `y` | in · data | `float` | Accepts an on-card literal. |
+| `value` | out · data | `Vector2D` | |
+
+Unlike the `Vector2D` literal, both components can be wired — which is what `Move Mouse To` wants when the point is computed.
+
+### Break Vector2D
+
+`blueprint.data.breakVector2d` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `Vector2D` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Make Rect
+
+`blueprint.data.makeRect` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | Accepts an on-card literal. |
+| `y` | in · data | `float` | Accepts an on-card literal. |
+| `width` | in · data | `float` | Accepts an on-card literal. |
+| `height` | in · data | `float` | Accepts an on-card literal. |
+| `value` | out · data | `Rect` | |
+
+A negative `width` or `height` is normalized rather than kept: the origin moves and the extent is made positive, so the rectangle you get is the one you drew.
+
+### Break Rect
+
+`blueprint.data.breakRect` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `width` | out · data | `float` | |
+| `height` | out · data | `float` | |
+
+### Rect Center
+
+`blueprint.data.rectCenter` · Pure
+
+The point equidistant from the rectangle's four edges.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `center` | out · data | `Vector2D` | |
 
 ## Objects
 
@@ -1016,7 +1213,7 @@ Deletes an object field, or splices out an array entry so the later items shift 
 | `path` | in · data | `string` | Accepts an on-card literal. |
 | `result` | out · data | `json` | |
 
-### Make JSON Object
+### Make Object
 
 `blueprint.data.jsonMakeObject` · Pure
 
@@ -1026,7 +1223,7 @@ Builds an object from dynamic pin pairs, so the signature below is only the outp
 | --- | --- | --- | --- |
 | `result` | out · data | `json` | |
 
-### Make JSON Array
+### Make Array
 
 `blueprint.data.jsonMakeArray` · Pure
 
@@ -1058,3 +1255,22 @@ A deep, JSON-safe copy. The writer nodes already copy their input, so you only n
 | --- | --- | --- | --- |
 | `value` | in · data | `json` | |
 | `result` | out · data | `json` | |
+
+## Holding a value
+
+### Memo
+
+`blueprint.data.memo`
+
+Reads its input once, when execution passes through, and keeps that value on its output until the next time execution passes through.
+
+It is the one data output in the catalogue that may feed **several** consumers. Everything else is single-consumer, and for two different reasons: a pure node re-evaluates at every read, so one `Random Float` wired to three pins gives three numbers; and an exec node's output belongs to the pulse that produced it. A Memo has exactly one writer — itself — so every read returns what that write left, and fanning it out cannot surprise anybody.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | Read once, as execution passes. |
+| `result` | out · data | `any` | Labelled Value on the card. |
+
+Synchronous rather than latent on purpose: there is nothing to await, and a latent node would be barred from an inline story value. `function` graphs stay pure, so a Memo cannot go in one.

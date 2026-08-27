@@ -32,9 +32,9 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 运行时维护一个**图层**栈。图层是某个 Surface 的一个*实例*，而不是 Surface 本身：它带着自己的 props、自己的运行时 scope、自己的呈现方式。同一个 Surface 打开两次，就得到两个互不相干的图层
 
 - 启动时栈被重置为单个图层——宿主指定的入口 Surface，或文档中第一个 `appSurface`
-- **打开即入栈。** `Go Page`（切换到 Page）把选中的 Page 压入栈，并带上你接到它 `props` 输入上的值
-- **关闭即弹出顶层图层。** 把 `Go Page` 的 Page 选择器设为 `None` 就*是*关闭：空目标不会打开任何东西，而是关掉顶层图层。没有单独的返回节点
-- **栈底是拆不掉的。** 只剩一个图层时关闭会被拒绝，所以入口 Surface 永远垫在最下面。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)
+- **打开即入栈。** `Go Page`（切换到 Page）把选中的 Page 压入栈，并带上你接到它 `props` 输入上的值。`Show Layer` 同样是入栈，并交回一个指代**这一次显示**的**句柄**——`Hide Layer`、`Wait For Layer` 与 `Is Layer Mounted` 寻址的就是它。除此之外没有任何东西能指代某一层：叠放次序就是挂载次序，任何界面都无法被写成依赖于自己在第几层
+- **四种关闭方式。** `Go back` 只弹出一层。把 `Go Page` 的 Page 选择器设为 `None` 会清空整个栈。`Clear Page` 只摘掉运行中的游戏叠上去的那些覆盖页，在游戏之外什么也不做。`Hide Layer` 关掉句柄指代的那一层，`Close This Layer` 则关掉当前蓝图**所在**的那一层，并可以带上一个结果给等着它的人
+- **栈底是拆不掉的。** 只剩一个图层时关闭会被拒绝，所以入口 Surface 永远垫在最下面，在栈底调用 `Go back` 是空操作而不是错误。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)
 
 ### 呈现方式
 
@@ -122,7 +122,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 - **自己的 props**，通过 `Get Page Props`
 - 一切本来就不按 Surface 划分的东西：持久变量、全局状态、存档、正在运行的游戏
 
-它的事件 Head：`Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`（鼠标点击）、`Right Click`（鼠标右键点击）、键盘事件 Head、Game Preference 变化事件 Head、全屏变化、窗口关闭请求，以及广播接收 Head
+它的事件 Head：`Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`（鼠标点击）、`Right Click`（鼠标右键点击）、`On Action`、键盘事件 Head、Game Preference 变化事件 Head、全屏变化、窗口关闭请求、广播接收 Head，以及两个绑定元素的 Head
 
 `Mouse Click` 和 `Right Click` 在这里的行为和在控件上不同：在 Surface 上，它们对该 Surface 内的**任意**点击触发，并按该 Surface 的设计坐标输出坐标；而控件版只对自己那个元素触发。嵌在 Frame 里的 Page 会先收到自己的 Surface 点击，父 Surface 才会收到
 

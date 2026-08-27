@@ -1,9 +1,9 @@
 ---
 title: 可显示对象
-description: 对连入元素的几何、透明度、Variant 和属性动画操作，以及每个控件都带的 visible / enabled 四件套
+description: 对连入元素的几何、透明度、Variant 和属性动画操作，以及八种控件都带的 visible / enabled 四件套
 ---
 
-两组适用于所有控件类型的节点：Displayable 的几何与外观节点，以及每个内建控件都重复一遍的 `visible` / `enabled` 四件套。所有 Element 节点共通的规则——创建浮窗何时提供它、目标缺失时如何失败——见 [Element](/zh/docs/studio/blueprint/nodes/element)
+两组适用于所有控件类型的节点：Displayable 的几何与外观节点，以及八种内建控件都重复一遍的 `visible` / `enabled` 四件套。所有 Element 节点共通的规则——创建浮窗何时提供它、目标缺失时如何失败——见 [Element](/zh/docs/studio/blueprint/nodes/element)
 
 ## Displayable
 
@@ -129,6 +129,28 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | `element` | in · data | `element` |  |
 | `display` | in · data | `boolean` |  |
 
+### Get Element Measured Rect
+
+`blueprint.element.displayable.getMeasuredRect` · Pure
+
+元素最后实际落在哪里，是从画出来的东西上量出来的，而不是从文档里读出来的。`Get Element Property` 取 `bounds` 键回答的是 authored layout 加上写在它上面的运行时 patch，所以连还没被画过的元素也答得出来；这一个量的是真实的那个盒子
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `rect` | out · data | `Rect` | Surface 设计坐标。元素没被画出来时为 `null` |
+
+### Get Element Center
+
+`blueprint.element.displayable.getCenter` · Pure
+
+上面那个矩形的中心点。`Move Mouse To Element` 瞄准的就是这同一次测量；当图要的是那个点而不是那次移动时用它
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `center` | out · data | `Vector2D` | 元素没被画出来时为 `null` |
+
 ### Get Element Position
 
 `blueprint.element.displayable.getPosition` · Pure
@@ -160,7 +182,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `bounds` | out · data | `json` |  |
+| `bounds` | out · data | `Rect` |  |
 
 ### Get Element Rotation
 
@@ -208,7 +230,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 
 ## Visible 与 Enabled
 
-每个内建控件都带同样的四个节点：读写 `visible`、读写 `enabled`。它们各自的目标引脚按自己的控件类型定型，所以创建浮窗提供哪四个，取决于当前图绑定了哪些控件类型。`Set … Enabled` 传 `false` 会映射到渲染器的禁用交互机制；节点面上刻意不暴露 `interactionDisabled`
+八种控件带同样的四个节点：读写 `visible`、读写 `enabled`。它们是 Button、Container、Frame、Image、List、Slider、Switch 和 Text——`nl.textInput` 是唯一没有这一对 Element 节点的内建控件，要改它请用 `Get Element Property` / `Set Element Property`。它们各自的目标引脚按自己的控件类型定型，所以创建浮窗提供哪四个，取决于当前图绑定了哪些控件类型。`Set … Enabled` 传 `false` 会映射到渲染器的禁用交互机制；节点面上刻意不暴露 `interactionDisabled`
 
 要隐藏元素但不卸载它，用 `Set Element Display`——`visible` 和 `display` 是两个开关，只有 `display` 会折叠整棵子树
 
@@ -450,6 +472,46 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.slider` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Switch Visible
+
+`blueprint.element.switch.getVisible` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.switch` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Switch Visible
+
+`blueprint.element.switch.setVisible` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.switch` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Switch Enabled
+
+`blueprint.element.switch.getEnabled` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.switch` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Switch Enabled
+
+`blueprint.element.switch.setEnabled` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.switch` |  |
 | `enabled` | in · data | `boolean` |  |
 
 ### Get Text Visible

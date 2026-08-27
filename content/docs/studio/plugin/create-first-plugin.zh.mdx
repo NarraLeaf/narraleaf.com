@@ -279,7 +279,7 @@ export default definePlugin({
 
 `i18n.t(key)` 先在当前编辑器语言的表中解析，然后是 `fallbackLocale`，最后返回该 key 本身。`i18n.locale`、`formatNumber`、`formatDate` 和 `formatList` 也都可用，全部绑定到编辑器的当前语言。这是编辑器的 UI 语言——它与游戏面向玩家的本地化无关，而 runtime 入口拿不到后者
 
-## 发布 Studio 语言包
+## 发布 Studio 语言包 [#ship-a-studio-language-pack]
 
 插件还可以翻译 **Studio 本身**——新增一种语言，或补全已有语言的缺失项。在 `contributes.locales` 中声明每个语言，并指向一个 JSON 词条文件
 

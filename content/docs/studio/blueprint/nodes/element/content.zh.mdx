@@ -1,6 +1,6 @@
 ---
 title: List、Slider、Image
-description: 列表内容与选中项、滑块数值与范围、图片资源、填充模式与裁剪——全部作用于连入的元素
+description: 列表内容、选中项、滚动位置与条目字段、滑块数值与范围、图片资源、填充模式与裁剪——全部作用于连入的元素
 ---
 
 三种自己持有状态的控件——List 的条目、Slider 的值、Image 的资源——在这里通过连入的引用操作，而不是从控件内部操作。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
@@ -196,6 +196,125 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
+
+### Get List Length
+
+`blueprint.element.list.getLength` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `length` | out · data | `integer` |  |
+
+### Get Item At
+
+`blueprint.element.list.getItemAt` · Pure
+
+按下标取一行，不必用 `Get List Content` 把整个数组拽过来
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | 可填字面量 |
+| `item` | out · data | `json` | 落在当前条目之外时为 `null` |
+
+### Find Item By Field
+
+`blueprint.element.list.findItemByField` · Pure
+
+按 List 已声明的某个条目字段找一行。卡片存的是字段的稳定 id，所以改属性名对图毫无代价
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `value` | in · data | `any` | 该字段应当等于什么 |
+| `index` | out · data | `integer` | 没有命中时为 `-1` |
+| `item` | out · data | `json` | 没有命中时为 `null` |
+| `found` | out · data | `boolean` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 按哪个条目字段匹配 |
+
+### Set Item Field At
+
+`blueprint.element.list.setItemFieldAt` · Latent
+
+写一行里的一个字段，这一行的其余部分不动。行不存在时是安静的空操作
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+| `index` | in · data | `integer` | 可填字面量 |
+| `value` | in · data | `any` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 要写哪个条目字段。必填——没选就拒绝运行 |
+
+### Sort List By Field
+
+`blueprint.element.list.sortByField` · Latent
+
+按条目的某个字段重排运行时条目并写回。排序规则与 [Data](/zh/docs/studio/blueprint/nodes/data) 里的 `Array Sort By Key` 相同
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `list` | in · data | `element:nl.list` |  |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 按哪个条目字段排。必填 |
+| `Direction` | `Ascending` 或 `Descending` |
+
+### Get Scroll Progress
+
+`blueprint.element.list.getScrollProgress` · Pure
+
+List 滚到了哪里，取值 `0`–`1`。`Scroll` 事件头说列表动了，这四个说它停在哪——列表之外的控件只能自己问，没人会通知它
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `progress` | out · data | `float` |  |
+
+### Get Scroll Offset
+
+`blueprint.element.list.getScrollOffset` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `offset` | out · data | `float` | 像素 |
+| `maxOffset` | out · data | `float` | 内容装得下时为 `0` |
+
+### Is Scrolled To Start
+
+`blueprint.element.list.isScrolledToStart` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `atStart` | out · data | `boolean` | 距近端一个像素以内。内容装得下时为 `true` |
+
+### Is Scrolled To End
+
+`blueprint.element.list.isScrolledToEnd` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `list` | in · data | `element:nl.list` |  |
+| `atEnd` | out · data | `boolean` | 距远端一个像素以内。内容装得下时为 `true` |
 
 ## Slider
 

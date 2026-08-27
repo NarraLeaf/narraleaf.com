@@ -19,8 +19,8 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 
 | 宿主 | 提供的 Head |
 | --- | --- |
-| 全局蓝图（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Close Requested`、四个键盘 Head、两个 preference Head |
-| Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Close Requested`、四个键盘 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
+| 全局蓝图（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
+| Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
 | 控件私有蓝图（`widgetMain`、`componentWidgetMain`） | 由该控件类型声明的能力决定，见下表 |
 | Blueprint Value（`widgetValue`） | `Init`与`On Flush` |
 | Story Action 蓝图 | `On Call` |
@@ -31,6 +31,8 @@ description: 启动 event 图的事件 Head、它们各自携带的 payload，�
 | --- | --- |
 | 所有支持私有蓝图的控件 | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、四个键盘 Head、`On Fullscreen Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
 | `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 九个鼠标 Head、`Focus`、`Blur`、`List Item Refresh` |
+| `nl.video`、`nl.puppet` | 九个鼠标 Head、`Focus`、`Blur` |
+| `nl.switch` | 九个鼠标 Head、`Focus`、`Blur`、`Changed`、`Turned On`、`Turned Off` |
 | `nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list` | `Scroll`、`Scroll End`、`Item Render`、`Item Click`、`Item Hover`、`Selection Changed` |
 | `nl.slider` | `Drag Start`、`Value Changed`、`Drag End` |
 | `nl.textInput` | `Value Changed`、`Submit`、`Focus`、`Blur` |
@@ -388,6 +390,35 @@ Any Key Up（任意按键抬起）在运行时窗口收到任意键盘抬起事�
 | `shiftKey` | out · data | `boolean` | |
 | `metaKey` | out · data | `boolean` | Meta / Command / Windows|
 
+## 输入动作
+
+### On Action
+
+`blueprint.event.head.action`
+
+卡片上选中的那个输入动作被触发时触发，不论玩家是怎么触发的。
+
+动作是工程给某个手势起的名字——“推进”“打开记录”“取消”——而它背后的绑定写在工程的动作词表上、以及每个 Surface 对它的回应里，从来不写在图上。这正是这个 Head 存在的意义：作者按名字选动作，至于哪个键、哪次点击算数，那是工程的事。卡片存的是动作的 id，所以给动作改名不会让任何图失去指向。
+
+只能用于全局与 Surface 图。一个动作按其构造就是整块面板范围的，所以它属于那两个能代表整块面板的宿主：Surface 回答它启用了哪些动作，全局蓝图回答那些在每一页上含义都相同的手势。一个控件说“在我这里点一下就是推进”，正是词表要取代的那种安排——想要原始手势的元素仍然有它自己的鼠标 Head。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `source` | out · data | `string` | 是哪一类输入触发的：`pointer`、`key`、`gamepad` 或 `touch` |
+| `x` | out · data | `float` | 手势落点，与鼠标 Head 用的是同一套坐标 |
+| `y` | out · data | `float` | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Action` | 工程的输入动作之一 |
+
+对按键和手柄绑定来说 `x` / `y` 没有意义，在那里读作 `0`——这正是 `source` 紧挨着它们的原因：它就是那个说明另外两个有没有意义的引脚。同一个动作确实会因来源不同而想要不同的行为：来自一次点击的“推进”有一个屏幕上的位置可以回应，来自空格键的没有。
+
+要问某个动作**是否正被按住**而不是对它被触发做出反应，用 [Input](/zh/docs/studio/blueprint/nodes/input) 里的 `Is Action Held`。
+
 ## 绑定元素的 Head
 
 这两个 Head 先绑定同一 Surface 内的目标控件——和`Element`节点一样——然后监听**那个**控件而不是自己。它们同时也是元素绑定来源：Element 派生节点只有在当前图里已经存在兼容的`Element`、`Element Flush`或`Element Click`时才出现在创建浮窗中，而它们的`element`输出可以直接连到这类节点的目标输入
@@ -557,6 +588,40 @@ Drag End（拖拽结束）在滑块拖拽结束时触发
 | `then` | out · exec | — | |
 | `value` | out · data | `float` | 映射值|
 
+## Switch
+
+`nl.switch` 上的三个 Head，讲的都是玩家自己去拨它。从图里写状态——[Switch](/zh/docs/studio/blueprint/nodes/switch) 里的 `Set Checked`、`Turn On`、`Turn Off`、`Toggle`——不会派发其中任何一个，因此一张既写又听同一个开关的图不会把自己触发起来。
+
+一次拨动先触发 `Changed`，然后触发 `Turned On` / `Turned Off` 之中恰好一个，顺序如此，且后一个要等前一条链跑完。拨到它本来就在的那个状态则什么也不触发。
+
+### Changed
+
+`blueprint.event.head.switchChanged`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `checked` | out · data | `boolean` | 新状态 |
+| `previousChecked` | out · data | `boolean` | |
+
+### Turned On
+
+`blueprint.event.head.switchTurnedOn`
+
+`Changed` 中不需要分支的那一半——给只在一个方向上有事可做的处理用。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Turned Off
+
+`blueprint.event.head.switchTurnedOff`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
 ## 文本输入
 
 这些 Head 属于`nl.textInput`。读写字段内容见 [Text input 节点](/zh/docs/studio/blueprint/nodes/text-input)
@@ -618,7 +683,7 @@ On Preference Changed（偏好变更时）在所选偏好键变化时触发
 
 | 字段 | 说明 |
 | --- | --- |
-| `Preference` | 要监听的偏好键：`autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval`。空值不订阅任何键——任意键请用`On Any Preference Changed`|
+| `Preference` | 要监听的偏好键，共十六个：`autoForward`、`autoForwardDelay`、`skip`、`skipping`、`skipReadText`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval`。空值不订阅任何键——任意键请用`On Any Preference Changed`|
 
 ### On Any Preference Changed
 

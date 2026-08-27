@@ -172,7 +172,7 @@ export default defineRuntimePlugin({
 - **环境变量**就是游戏主进程自己的那套，未作改动，只有 `ELECTRON_RUN_AS_NODE` 例外：`kind: "node"` 时设置它，`kind: "executable"` 时移除它。此外不注入任何东西——所有上下文都随 `hello` 抵达
 - **共享库**从可执行文件旁边（Windows）或经由 rpath（POSIX）加载，而不是从 cwd 加载。请把它们放在 `entry` 旁边一起分发
 
-## 总是要降级
+## 总是要降级 [#degrade-always]
 
 `available()` 返回 false 在大多数目标上都是正常情况，而不是错误路径：
 

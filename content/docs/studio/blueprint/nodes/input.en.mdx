@@ -5,7 +5,7 @@ description: Which device the player is using, and whether an input action is be
 
 Two pure nodes for reading the player's input at the moment the graph runs. Both declare `event`, `function` and `macro`, so either can back a Blueprint Value.
 
-Neither is an event head. To *react* to input, use the keyboard and pointer heads in [Events](/docs/studio/blueprint/nodes/events); these two answer "what is true right now", which is what a binding on a widget's appearance wants.
+Neither is an event head. To *react* to input, use the keyboard and pointer heads in [Events](/docs/studio/blueprint/nodes/events), or the [`On Action`](/docs/studio/blueprint/nodes/events#on-action) head for the action vocabulary these two read; these two answer "what is true right now", which is what a binding on a widget's appearance wants.
 
 ## Get Input Device
 
@@ -16,6 +16,8 @@ The kind of device the player last used, so an interface can say "Press Space" o
 | Pin | Direction | Type |
 | --- | --- | --- |
 | `device` | out · data | `string` |
+
+One of four values — `pointer`, `key`, `gamepad`, `touch` — the same four the `On Action` head reports on its `source` pin. A plain string rather than a dropdown of its own, so a graph compares both against the same literals.
 
 ## Is Action Held
 

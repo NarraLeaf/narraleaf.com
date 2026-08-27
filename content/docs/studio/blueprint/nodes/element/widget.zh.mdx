@@ -1,9 +1,9 @@
 ---
-title: Button、Container、Frame
-description: 按钮文本与指针、容器裁剪，以及 Frame 展示哪个 Page——全部作用于连入的元素
+title: Button、Container、Switch、Frame
+description: 按钮文本与指针、容器裁剪、Switch 的开合状态，以及 Frame 展示哪个 Page——全部作用于连入的元素
 ---
 
-三组比较小的属性面：Button 的文本与指针、Container 的裁剪，以及 Frame 展示的 Page。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
+四组比较小的属性面：Button 的文本与指针、Container 的裁剪、Switch 的开合状态，以及 Frame 展示的 Page。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
 
 ## Button
 
@@ -124,6 +124,67 @@ Container 节点带 `element:nl.container` 引脚。Self 形态见 [Container](/
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.container` |  |
+
+## Switch
+
+Switch 节点带 `element:nl.switch` 引脚。Self 形态见 [Switch](/zh/docs/studio/blueprint/nodes/switch)；Switch 的 `visible` / `enabled` 一对和同族的其它节点一起放在 [Displayable](/zh/docs/studio/blueprint/nodes/element/displayable)
+
+它们都不会派发 Switch 的 `Changed`、`Turned On` 或 `Turned Off` 事件头——那几个是留给玩家自己去拨的。一张既写又听同一个开关的图不会把自己触发起来
+
+### Get Switch Checked
+
+`blueprint.element.switch.getChecked` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` |  |
+
+### Set Switch Checked
+
+`blueprint.element.switch.setChecked` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | in · data | `boolean` | 可填字面量 |
+
+### Turn Switch On
+
+`blueprint.element.switch.turnOn` · Latent
+
+传 `true` 的 `Set Switch Checked`，单独做成一张卡，好让最常见的那件事读起来就是一个词
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Turn Switch Off
+
+`blueprint.element.switch.turnOff` · Latent
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Toggle Switch
+
+`blueprint.element.switch.toggle` · Latent
+
+翻转状态，并把翻成了什么交回来，于是它后面的分支不必再读一次
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` | 新状态 |
 
 ## Frame
 

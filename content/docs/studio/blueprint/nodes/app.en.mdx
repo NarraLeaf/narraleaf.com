@@ -3,14 +3,14 @@ title: App
 description: Surface navigation, the application window, and what a Page knows about itself.
 ---
 
-App nodes are where a blueprint reaches the application it is running inside: open a Surface, close the top one, go fullscreen, quit. The Surface model itself — the stack, the layers, the game stage — is described in [Surfaces](/docs/studio/blueprint/surfaces).
+App nodes are where a blueprint reaches the application it is running inside: open a Surface, stack one over it, size the window, follow a link, quit. The Surface model itself — the stack, the layers, the game stage — is described in [Surfaces](/docs/studio/blueprint/surfaces).
 
 ## Conventions
 
-- **Every node here is `event` and `macro` only.** None of them is available in a `function` graph.
+- **Every node here is `event` and `macro` only**, except `Is Layer Mounted`, which is pure and also runs in a `function` graph and inside a Blueprint Value. Nothing else in the category does.
 - **Two of them are tail nodes.** `Go Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
-- **The type ids say `page`.** This group was called Page before it grew window and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*` and `blueprint.frame.*` are this category.
-- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in a global blueprint, which has no current Page to ask about. The navigation and window nodes have no owner restriction.
+- **The type ids do not all say `app`.** This group was called Page before it grew window, layer and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*`, `blueprint.frame.*`, `blueprint.layer.*` and `blueprint.app.*` are all this one category.
+- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in a global blueprint, which has no current Page to ask about. The navigation, layer, window, pointer and link nodes have no owner restriction.
 - **The editor canvas has no application to talk to.** On the author-time canvas every effectful node here fails with `Host API unavailable (use Dev Mode)`; the pure reads degrade quietly instead, so `Get Page Props` reads `{}` and the three `Is Surface …` reads report `false`. In the story editor's Game UI preview, navigation and quit reach stubs and do nothing, and the two fullscreen nodes report that they are not available there. Verify all of it in Dev Mode.
 
 ## Go Page
@@ -19,11 +19,12 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 Opens the Surface picked on the card, through the same navigation path the runtime uses for every Page change — same enter and exit animations, same Surface lifecycle, same widget blueprints. Picking `None` instead closes the current top Page layer.
 
-`Go Page` with a target is the only way to open a layer. To close one, prefer [Go back](#go-back): navigation is a stack, so `Go Page` at a page the player came *from* pushes a third page over the two already there rather than returning to it. `Go Page` with `None` closes the current top Page layer.
+`Go Page` *replaces* what the player is looking at. To put a page **over** the current one and get a handle back, use [Show Layer](#show-layer). To close one, prefer [Go back](#go-back): navigation is a stack, so `Go Page` at a page the player came *from* pushes a third page over the two already there rather than returning to it. `Go Page` with `None` closes the current top Page layer.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | Optional. Wire it to choose the target at run time; the card's `Page` field is what is used when it is unwired. |
 | `props` | in · data | `json` | Handed to the target Page as its Page props, where `Get Page Props` reads it. Optional — unwired it is `{}`. |
 
 **On-card fields**
@@ -42,10 +43,127 @@ Pops the top Page layer and returns to the one beneath it.
 
 Every page a game opens over a running story — save, load, config, backlog — needs a way out, and `Go Page` is not it: navigation is a stack, so "go to the page I came from" pushes a third page over the two already there and the game is still buried.
 
+Closing the last remaining page is a no-op rather than an error. A page reached from the title screen is the bottom of the stack, and a Back button that threw there would be unusable on the same screen depending on how the player arrived.
+
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
+
+## Clear Page
+
+`blueprint.page.clear` · Latent
+
+Removes every page a running game is wearing, leaving the stage bare — Escape, on any page, without the graph having to know how deep the player is.
+
+The three closes are not interchangeable. `Go back` pops exactly one, so Escape over a game two pages deep lands on the page underneath. `Go Page` with `None` empties the stack, which on the title screen would dismiss the title itself. `Clear Page` clears only the overlay pages a game session put up, and outside a game it does nothing at all — which is what makes `Clear Page → Go back` a single Escape handler that reads as "leave the game if I am in one, otherwise step back".
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Show Layer
+
+`blueprint.layer.show` · Latent
+
+Puts a Page **over** what is on screen instead of replacing it, and hands back a handle naming that one showing of it.
+
+Nothing about a layer's depth is addressable. Stacking order is mount order, and the handle is the only thing that names a layer — meaningless to any graph that was not given it. That is deliberate: a screen cannot be built to depend on sitting third from the top, so the first project that wants one more layer above the pause menu does not turn the composite into a numbering scheme.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `props` | in · data | `json` | The layer's Page props, read by `Get Page Props` inside it. Optional. |
+| `modal` | in · data | `boolean` | Blocks interaction with what is underneath. Accepts an on-card literal. Unwired reads as `false`. |
+| `dismissible` | in · data | `boolean` | Whether the player may close it without the graph's help. Accepts an on-card literal. **Unwired reads as `true`** — a layer the player cannot escape is a decision, and an untouched pin should not make it. |
+| `group` | in · data | `string` | Optional. Layers claiming the same group queue behind one another rather than stacking. Accepts an on-card literal. |
+| `layer` | out · data | `string` | The handle. Feed it to `Hide Layer`, `Wait For Layer`, or `Is Layer Mounted`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Page` | The Surface to show, from the same list `Go Page` picks from. A layer *is* a page; two different lists would suggest otherwise. |
+
+A Page the project does not hold fails on this node with the host's own sentence, so the failure lands on the row you can fix.
+
+## Hide Layer
+
+`blueprint.layer.hide` · Latent
+
+Closes the layer a handle names.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `layer` | in · data | `string` | The handle from `Show Layer`. |
+
+A handle naming nothing — never set, already closed — is a no-op rather than an error, the same bargain `Go back` makes at the bottom of the stack: the layer being gone already is the outcome the node was asked for.
+
+## Wait For Layer
+
+`blueprint.layer.wait` · Latent
+
+Suspends until the layer closes, then continues with whatever it closed with.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `layer` | in · data | `string` | The handle from `Show Layer`. |
+| `result` | out · data | `json` | What `Close This Layer` was given. `null` for a layer dismissed by the player, or closed with nothing. |
+
+## Close This Layer
+
+`blueprint.layer.closeSelf` · Latent
+
+Closes the layer the running blueprint is *inside*, optionally with an answer for whoever is waiting on it. This is the other half of `Wait For Layer`: the page that was shown reports its own outcome rather than the opener reaching in to read it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `result` | in · data | `json` | Optional. Unwired the layer closes with `null`. |
+
+## Is Layer Mounted
+
+`blueprint.layer.isMounted` · Pure
+
+Whether the layer a handle names is still on screen. The one pure node in this category, so it is the only one that can back a Blueprint Value — a pause button that disables itself while its own menu is up.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `layer` | in · data | `string` | The handle from `Show Layer`. |
+| `mounted` | out · data | `boolean` | `false` for an empty or unknown handle. |
+
+## Show Confirm
+
+`blueprint.layer.confirm` · Latent
+
+Asks a question on a Page of your own and leaves through the button the player pressed.
+
+There is no confirm-specific machinery underneath. The node shows the chosen Page as a modal, dismissible layer in the `confirm` group — so a second question queues behind the first instead of over it — and hands it the question through ordinary Page props: `message`, and `buttons` as `{ id, text, index, disabled }` for a List to bind to. A page built by hand out of `Show Layer` reads exactly the same props.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `message` | in · data | `string` | The question. Accepts an on-card literal. |
+| `tag` | in · data | `string` | Optional. Passed through to the page, for one page answering several questions. Accepts an on-card literal. |
+| `data` | in · data | `json` | Optional. Passed through to the page. |
+| `dismissed` | out · exec | — | Taken when the player closed the question without answering it. |
+| `index` | out · data | `integer` | The button's position, `-1` on `dismissed`. |
+| `label` | out · data | `string` | The button's text, `""` on `dismissed`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Page` | The Surface that draws the question. |
+
+**Add Button** appends a `string` input `button_N_label` and its matching exec output `button_N_pressed`, inserted above the fixed `dismissed`. The pairs are matched by id rather than by position, so deleting a button from the middle renumbers nothing and misroutes nothing. The page reports its answer by closing itself with `Close This Layer` — a bare index, or an object with an `index` field. Anything else, including a page that closes with nothing, leaves through `dismissed`.
 
 ## Keep Window Open
 
@@ -106,6 +224,152 @@ Reads whether the application window is currently fullscreen.
 | `isFullscreen` | out · data | `boolean` | |
 
 It is latent rather than pure because the answer comes from the window, not from the graph — which also means it cannot back a Blueprint Value. Drive a fullscreen indicator from an event graph instead.
+
+## Get Window Size
+
+`blueprint.app.getWindowSize` · Latent
+
+The stage's current size in pixels, whatever the window is at.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `width` | out · data | `float` | |
+| `height` | out · data | `float` | |
+
+## Set Window Size
+
+`blueprint.app.setWindowSize` · Latent
+
+Resizes the stage to a size in pixels.
+
+The sizes offered in **Project → App → Window** are what a configuration screen is built from, not a limit on what a graph may ask for: a game whose size comes from somewhere else — a value it remembered, a display it measured, a number a player typed — says it here. What it cannot do is leave the screen. The size is fitted to the display's work area and to the window's own minimum, because a window bigger than the desktop is one nobody can use.
+
+Fullscreen and maximised are left first, for the reason `Set Window Scale` leaves them: both are answers to the same question, and a window sized underneath either would spring back the moment the player left it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `width` | in · data | `float` | |
+| `height` | in · data | `float` | |
+
+## Get Window Scale
+
+`blueprint.app.getWindowScale` · Latent
+
+The size the window is at now, as a multiple of the game's design size.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scale` | out · data | `float` | `1` is the design size, `0.5` half of it. |
+
+## Set Window Scale
+
+`blueprint.app.setWindowScale` · Latent
+
+Resizes the window to a multiple of the design size.
+
+A scale the project does not offer is answered with the nearest one it does, rather than refused: the ladder belongs to the author, and a graph that computed `0.8` should move the window rather than fail. Fullscreen and maximised are left first.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scale` | in · data | `float` | A value that is not a positive number falls back to `1`. |
+
+## Get Window Scale Options
+
+`blueprint.app.getWindowScaleOptions` · Latent
+
+The sizes a configuration screen may offer, as the author wrote them in **Project → App → Window**. Bind a List to this and the offered sizes come from the project rather than from numbers typed into the graph.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `scales` | out · data | `array` | Multiples of the design size. |
+
+<Callout type="info">
+**Empty is an answer, not a failure.** A shell with no window of its own to size — the web export, Dev Mode, the story preview — returns nothing here, and a row built from it draws nothing there. That is the point: a size control that cannot move a window is worse than no control at all.
+</Callout>
+
+## Open Link
+
+`blueprint.app.openExternal` · Latent
+
+Hands an address to the browser the player already uses: a store page, a patch note, a support form.
+
+There is nothing to declare anywhere else. The author wrote the graph, so an address in it is the author's decision. What the shell checks — in the process that would open the page, never in the renderer — is the **scheme**, and only `http:`, `https:` and `mailto:` are reachable. That is an allowlist rather than a ban on the known-bad ones: `shell.openExternal` hands the address to whatever the operating system registered for it, and any software the player installs can register a new scheme. A scheme outside the set — `steam:` is the one that comes up — is reached through a plugin, where the pattern is named in the manifest and approved by name at install.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `url` | in · data | `string` | Wired wins over the card. An empty address is an execution error. |
+| `next` | out · exec | — | Taken when the page was handed over. |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | Which refusal it was. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `URL` | The address, typed. Used when the `url` pin is unwired. |
+
+`failed` covers both a scheme this node does not open and a browser that would not open the page. They share a pin because the author's answer to both is the same — the player did not get the page, so show them something else.
+
+This is **not a network permission**. No request is made and no bytes come back into the game, so it is not gated on the project's network settings, and turning the network off does not disable it. See [Security](/docs/studio/security).
+
+## Move Mouse To
+
+`blueprint.app.movePointerTo` · Latent
+
+Puts the player's real cursor on a point of the Surface. It is the same act Windows performs when "snap to default button" is on, and it is what a controller-friendly menu needs and a mouse-only one cannot fake.
+
+Coordinates are Surface design coordinates — the same ones `Get Measured Rect`, `Get Bounds`, and every mouse event's `x` / `y` are in. The author never sees the window and should not have to.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `point` | in · data | `Vector2D` | Build one with `Make Vector2D` from [Data](/docs/studio/blueprint/nodes/data). |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Duration (s)` | `0` puts the cursor there at once; any positive value makes it travel. |
+| `Easing` | `linear`, `easeIn`, `easeOut`, or `easeInOut`. |
+
+**Desktop builds and Dev Mode only.** A web export cannot position the system pointer, so the node reports `failed` there, and the build console warns when a project holding one is exported for a non-desktop target — an author should learn this from the build rather than from a player.
+
+## Move Mouse To Element
+
+`blueprint.app.movePointerToElement` · Latent
+
+The same act aimed at a widget's centre, measured rather than computed from the document.
+
+It is a node of its own rather than `Get Element Measured Rect` wired into `Move Mouse To`, because the two halves have to agree about which Surface the widget turned out to be painted on. A component instance renders its contents wherever it was placed, so that is not always the Surface the element was authored under.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `element` | in · data | `element` | |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | |
+| `error` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Duration (s)` | As above. |
+| `Easing` | As above. |
 
 ## Get Page Props
 

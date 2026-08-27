@@ -40,6 +40,8 @@ The editor canvas does not execute the complete game. Check page navigation, sto
 
 Choose **Production Build…** from the Run dropdown in the top bar, or from the **Develop** menu. The dialog is titled **Build for distribution**.
 
+Its rail has up to seven sections — **Variant**, **Targets**, **Identity**, **Content**, **Plugins**, **Signing**, **Output**. Variant appears only for a project with more than one edition to build, and Plugins only where an installed plugin asks for a value. The steps below walk the ones every project meets.
+
 <Figure
     src="/static/img/docs/studio/en/build-dialog.webp"
     alt="The Build for distribution dialog on its Targets step, with the platforms and their formats"
@@ -70,7 +72,9 @@ The dialog also lists the bundled plugins, locales, network policy, and asset pr
 
 ### Choose an output directory
 
-Choose a writable directory and a compression level. Existing artifacts with the same names are overwritten. The Artifacts section lists the expected filenames before the build starts.
+Choose a writable directory. Existing artifacts with the same names are overwritten, and the Artifacts list names the files the selected targets will produce before the build starts. Two switches sit here as well: open the output folder when the build finishes, and — for a variant that has any — build this variant's DLC alongside it, each into its own folder beside the installers.
+
+How much the shipped assets are compressed is not decided here. It belongs to the project, under **Project → Settings → Compression**, and it is one switch each for images, audio and video.
 </Step>
 <Step>
 

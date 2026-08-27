@@ -5,7 +5,7 @@ description: 玩家在用哪一类设备，以及某个输入动作此刻是不�
 
 两个 pure 节点，读的是**图跑到那一刻**玩家的输入状态。两个都声明 `event`、`function` 与 `macro`，所以都能给蓝图值当后端。
 
-两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头；这两个回答的是「此刻是什么」，正是控件外观上的绑定想要的东西。
+两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头，或者用 `On Action` 头——它对应的正是这两个节点读的那套动作词表；这两个回答的是「此刻是什么」，正是控件外观上的绑定想要的东西。
 
 ## Get Input Device
 
@@ -16,6 +16,8 @@ description: 玩家在用哪一类设备，以及某个输入动作此刻是不�
 | 引脚 | 方向 | 类型 |
 | --- | --- | --- |
 | `device` | out · data | `string` |
+
+四个取值之一——`pointer`、`key`、`gamepad`、`touch`——与 `On Action` 头在 `source` 引脚上报告的是同一组。它是一个普通字符串而不是自己的下拉框，于是一张图对两边比的是同一批字面量。
 
 ## Is Action Held
 

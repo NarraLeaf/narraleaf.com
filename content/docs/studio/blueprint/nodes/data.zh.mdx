@@ -3,11 +3,11 @@ title: 数据
 description: 常量、类型转换、类型判断，以及构成一张图所需的全部字符串、数组、对象和 JSON 操作
 ---
 
-Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，或者要拆解字符串、数组、JSON 文档时，都用它。这里没有任何节点带执行引脚——Data 节点由连到它输出端的一方读取
+Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，或者要拆解字符串、数组、JSON 文档时，都用它。这里几乎没有节点带执行引脚——Data 节点由连到它输出端的一方读取。`Memo` 是唯一的例外，它在本页末尾自己解释
 
 ## 值类型
 
-下面的引脚上一共出现九种`valueType`
+下面的引脚上一共出现十种`valueType`
 
 | `valueType` | 内容 | 产出方 |
 | --- | --- | --- |
@@ -15,11 +15,12 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 | `integer` | 整数| `Integer`，以及各类长度、下标、计数|
 | `float` | 数字| `Float`、`To Float`、`Parse Float`|
 | `boolean` | 真或假| `Boolean`，以及所有类型判断和字符串判断|
-| `json` | 任意 JSON 值：object、array、string、number、boolean 或`null`| `JSON`、`Rect`、`Parse JSON`、`Get JSON Field`、`Make JSON Object`|
-| `array` | JSON 数组，但作为独立类型存在| `Make JSON Array`、返回数组的那些`Array …`节点、`Object Keys`、`Object Values`|
-| `any` | 任意值| —— |
+| `json` | 任意 JSON 值：object、array、string、number、boolean 或`null`| `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`|
+| `array` | JSON 数组，但作为独立类型存在| `Make Array`、返回数组的那些`Array …`节点、`Object Keys`、`Object Values`|
+| `any` | 任意值| `Memo`、`Get Item Field`，以及形状随卡片选择而定的那些属性读取|
 | `RGBAColor` | `{ r, g, b, a }`| `Color`|
-| `Vector2D` | `{ x, y }`| `Vector2D`|
+| `Vector2D` | `{ x, y }`| `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`|
+| `Rect` | `{ x, y, width, height }`| `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`|
 
 两个数据引脚之间的连线，在类型完全相同时成立；此外还有以下几种：
 
@@ -28,17 +29,24 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 | `integer` | `float` | 整数一定是浮点数|
 | `integer`、`float` | `string` | 读取该输入时数字会被转成文本。这是唯一会改写值的隐式转换——其余允许的连线都原样传递|
 | `array` | `json` | 数组本身就是一个 JSON 值|
+| `Rect` | `json` | 一条为旧图留的兼容口子，而不是关于结构化类型的规则——见下|
 | `any` | 任意类型 | `any`在两个方向上都匹配|
 | 任意类型 | `any` | |
 
+其它分类的类型也只在同样的地方放宽：`element`能接到任意`element:nl.…`引脚上、也能反过来；`ImageAsset`与`string`都能接进`ImageAsset|null`输入
+
 其余一律拒绝，包括那些作者以为能反过来用的：
 
-- **`json` → `array`。** 这条规则只单向成立
+- **`json` → `array`、`json` → `Rect`。** 每一条放宽规则都只单向成立。一个任意对象并不是一个矩形
 - **`float` → `integer`。** 插一个`To Integer`，它向零截断
 - **`string` → `integer`或`float`。** 插`Parse Int`、`Parse Float`、`To Integer`或`To Float`
 - **`boolean` → `string`、`json` → `string`。** 只有数字会隐式转成文本。插`To String`或`Stringify JSON`
-- **`string`、`integer`、`float`、`boolean` → `json`。** 只有`array`能隐式接进`json`输入。插`To JSON`
-- **`RGBAColor` → `json`、`Vector2D` → `json`。** 它们是各自独立的结构化类型，不是 JSON 文档。`Rect`是例外：它本来输出的就是`json`
+- **`string`、`integer`、`float`、`boolean` → `json`。** 只有`array`和`Rect`能隐式接进`json`输入。插`To JSON`
+- **`RGBAColor` → `json`、`Vector2D` → `json`。** 它们是各自独立的结构化类型，不是 JSON 文档。要拆开就用`Break Vector2D`，要造文档就用`Make Object`
+
+<Callout type="info">
+`Rect` → `json` 是给 `Rect` 成为独立类型之前写下的图留的。那时 `Rect` 常量和 `Get Bounds` 发布的都是 `json`，所以当年写下的矩形至今仍能接进 `Get JSON Field` 并继续工作。`Vector2D` 从来就不是 `json` 引脚，因此保持窄口
+</Callout>
 
 <Callout type="info">
 `array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
@@ -46,10 +54,10 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 
 ## 约定
 
-- **这里每个节点都是纯节点。** 没有执行引脚可连，所以 Data 节点不可能落在执行线路上。它的输出在下游读取时才计算，下一次读取时重新计算
-- **三种图类型都接受它们**——`event`、`function`、`macro`——Blueprint Value 图同样接受
+- **这里除一个之外都是纯节点。** 没有执行引脚可连，所以 Data 节点不可能落在执行线路上。它的输出在下游读取时才计算，下一次读取时重新计算。`Memo` 是例外：它是执行节点，因为把一个值按住不动恰恰是纯节点做不到的事
+- **三种图类型都接受它们**——`event`、`function`、`macro`——Blueprint Value 图同样接受。仍然要排除 `Memo`：它只支持 `event` 与 `macro`
 - **不存在原地修改。** 写入类节点在输出引脚上给出一个新值，输入原封不动
-- **只有`string`、`integer`、`float`、`boolean`引脚支持卡片内联输入。** `json`和`array`输入没有卡片编辑器，请接一个`JSON`常量或`Make JSON …`节点
+- **只有`string`、`integer`、`float`、`boolean`引脚支持卡片内联输入。** `json`和`array`输入没有卡片编辑器，请接一个`JSON`常量或`Make Object` / `Make Array`节点
 - **输入未连线不算错误。** 它读取该引脚的卡片内联值，没有内联值时读到空；各节点自行归一：缺失的数组读作空数组，缺失的字符串读作`""`，缺失的数字读作`0`
 - **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到
 
@@ -187,11 +195,11 @@ Vector2D（二维向量）常量
 
 `blueprint.data.rectLiteral` · Pure
 
-和`Color`、`Vector2D`不同，Rect（矩形）输出的是普通`json`而不是独立类型，因此能接到任何`json`输入
+和`Color`、`Vector2D`一样，Rect（矩形）是一个独立类型。与它们不同的是，它还能放宽成`json`，因此仍能接到任何`json`输入——理由见本页开头“值类型”一节
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | out · data | `json` | |
+| `value` | out · data | `Rect` | |
 
 **卡片字段**
 
@@ -451,7 +459,7 @@ Concat（拼接）按引脚顺序把输入首尾相接，中间不加任何内�
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `template` | in · data | `string` | 可在卡片上内联输入|
-| `values` | in · data | `json` | 接一个`JSON`常量或`Make JSON Object`|
+| `values` | in · data | `json` | 接一个`JSON`常量或`Make Object`|
 | `result` | out · data | `string` | |
 
 ### Length
@@ -937,6 +945,132 @@ Array Length（数组长度）
 | `separator` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `string` | |
 
+### Array First
+
+`blueprint.collection.arrayFirst` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | 空数组时为 `null` |
+
+### Array Last
+
+`blueprint.collection.arrayLast` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | 空数组时为 `null` |
+
+### Array Is Empty
+
+`blueprint.collection.arrayIsEmpty` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `boolean` | |
+
+### Array Index Of
+
+`blueprint.collection.arrayIndexOf` · Pure
+
+第一个与 `item` 相等的项的位置，按值比较，与 `Array Contains` 用的是同一套。没有命中时为 `-1`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `index` | out · data | `integer` | |
+
+### Array Concat
+
+`blueprint.collection.arrayConcat` · Pure
+
+`a` 接上 `b`，返回一个新数组
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `a` | in · data | `array` | |
+| `b` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Reverse
+
+`blueprint.collection.arrayReverse` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Unique
+
+`blueprint.collection.arrayUnique` · Pure
+
+丢掉后出现的重复项，保留每一种的第一个。按值比较，所以字段相同的两个对象算作同一项
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Range
+
+`blueprint.collection.arrayRange` · Pure
+
+从 `start` 开始的 `count` 个数字，每个比前一个多 `step`。当一页要画 N 个东西、而那些数字本身就是内容时，需要的就是这个数组
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `start` | in · data | `integer` | 可填字面量。默认 `0` |
+| `count` | in · data | `integer` | 可填字面量。会被夹到 `0` 及以上 |
+| `step` | in · data | `integer` | 可填字面量。默认 `1`；`step` 为 `0` 时按 `1` 读——否则那会是 `count` 份 `start`，一个披着 range 外形却永远不前进的循环 |
+| `result` | out · data | `array` | |
+
+### Array Find By Key
+
+`blueprint.collection.arrayFind` · Pure
+
+第一个 `key` 字段等于 `value` 的项，以及它在哪里
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | 字段名。可填字面量 |
+| `value` | in · data | `any` | |
+| `item` | out · data | `json` | 没有命中时为 `null` |
+| `index` | out · data | `integer` | 没有命中时为 `-1` |
+
+### Array Filter By Key
+
+`blueprint.collection.arrayFilter` · Pure
+
+所有 `key` 字段等于 `value` 的项，保持原有顺序
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | 可填字面量 |
+| `value` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Sort By Key
+
+`blueprint.collection.arraySort` · Pure
+
+按记录的某个字段排序。这三个按键节点收的是字段名而不是比较函数，因为比较函数是一个函数值，而按记录的某个字段排序才是列表真正需要的东西。
+
+数字按数字比，布尔按 `false` 在前、`true` 在后比，其余按文本比，用运行时排列字符串的那套次序。字段缺失、为 `null` 或为 `""` 的项在**两个方向上**都排到最后，相持时保持原有先后。`key` 为空时原样返回
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | 可填字面量 |
+| `descending` | in · data | `boolean` | 可填字面量 |
+| `result` | out · data | `array` | |
+
 ### JSON Array Length
 
 `blueprint.data.jsonArrayLength` · Pure
@@ -947,6 +1081,69 @@ Array Length（数组长度）
 | --- | --- | --- | --- |
 | `value` | in · data | `array` | |
 | `length` | out · data | `integer` | |
+
+## 几何
+
+`Vector2D` 与 `Rect` 是结构化类型而不是 JSON 文档，因此要用它们自己的节点来构造和拆解，而不是 `Get JSON Field`。每个输入收到非数字都读作 `0`
+
+### Make Vector2D
+
+`blueprint.data.makeVector2d` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | 可填字面量 |
+| `y` | in · data | `float` | 可填字面量 |
+| `value` | out · data | `Vector2D` | |
+
+与 `Vector2D` 常量不同，两个分量都可以连线——当那个点是算出来的时候，`Move Mouse To` 要的就是这个
+
+### Break Vector2D
+
+`blueprint.data.breakVector2d` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Vector2D` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Make Rect
+
+`blueprint.data.makeRect` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | 可填字面量 |
+| `y` | in · data | `float` | 可填字面量 |
+| `width` | in · data | `float` | 可填字面量 |
+| `height` | in · data | `float` | 可填字面量 |
+| `value` | out · data | `Rect` | |
+
+负的 `width` 或 `height` 会被归一而不是保留：原点移过去、边长取正，于是你拿到的就是你画出来的那个矩形
+
+### Break Rect
+
+`blueprint.data.breakRect` · Pure
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `width` | out · data | `float` | |
+| `height` | out · data | `float` | |
+
+### Rect Center
+
+`blueprint.data.rectCenter` · Pure
+
+到矩形四条边等距的那个点
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `center` | out · data | `Vector2D` | |
 
 ## 对象
 
@@ -1064,7 +1261,7 @@ Object Remove Field（对象移除字段）
 | `path` | in · data | `string` | 可在卡片上内联输入|
 | `result` | out · data | `json` | |
 
-### Make JSON Object
+### Make Object
 
 `blueprint.data.jsonMakeObject` · Pure
 
@@ -1074,7 +1271,7 @@ Object Remove Field（对象移除字段）
 | --- | --- | --- | --- |
 | `result` | out · data | `json` | |
 
-### Make JSON Array
+### Make Array
 
 `blueprint.data.jsonMakeArray` · Pure
 
@@ -1106,3 +1303,22 @@ Object Remove Field（对象移除字段）
 | --- | --- | --- | --- |
 | `value` | in · data | `json` | |
 | `result` | out · data | `json` | |
+
+## 把一个值按住
+
+### Memo
+
+`blueprint.data.memo`
+
+执行经过它时读一次输入，把那个值留在输出上，直到执行下一次经过。
+
+它是整份目录里唯一一个可以喂给**多个**下游的数据输出。其余全都是单消费者，而且是两个不同的理由：纯节点每次被读都会重新求值，一个 `Random Float` 接到三个引脚上就是三个数字；执行节点的输出则属于产生它的那一次脉冲。Memo 只有一个写入方——它自己——所以每次读到的都是那次写入留下的东西，扇出去也不会让任何人意外。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | 执行经过时读一次 |
+| `result` | out · data | `any` | 卡片上标作 Value |
+
+它是同步的而不是 latent，这是刻意的：这里没有什么可等的，而 latent 节点会被内联故事值挡在门外。`function` 图保持纯净，所以 Memo 不能放进去。

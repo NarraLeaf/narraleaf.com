@@ -11,9 +11,9 @@ Every node here needs the running game. The editor canvas has none — a Game no
 
 ## Conventions
 
-- **Pure or latent, nothing in between.** The twenty getters are `Pure` and may appear in `event`, `function` and `macro` graphs, and back a Blueprint Value. The other thirty-three are `Latent`, so `event` and `macro` only — a latent node has nowhere to hand a pending result inside a `function`.
-- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
-- **State getters degrade; preference getters do not.** `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode` and `Is Text Read` answer with a neutral value — `false`, `null`, `0`, an empty array — when nothing is playing, which is what lets one shared Page branch on them. The twelve preference getters read the live `GamePreference` and fail when there is no game.
+- **Pure or latent, near enough.** Forty-one getters are `Pure` and may appear in `event`, `function` and `macro` graphs, and back a Blueprint Value. Forty-seven are `Latent`, so `event` and `macro` only — a latent node has nowhere to hand a pending result inside a `function`. `Clear Visited` is the eighty-ninth and the odd one: effectful but synchronous, so it is `event` and `macro` like a latent node without being one.
+- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Playtime`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. So do the endings, visited, DLC and build-variant readers — an endings gallery is opened from the title screen, before any game exists. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
+- **State getters degrade; preference getters do not.** Every pure state read — `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Speaker Color`, `Get Dialog Text`, `Is Narrator`, `Is Dialog Waiting`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode`, `Is Text Read`, `Has Read Text`, `Can Undo History`, `Can Redo History`, `Get Track Volume`, both playtime reads, and the endings, visited, DLC, build-variant and character readers — answers with a neutral value when nothing is playing: `false`, `null`, `0`, an empty array, opaque white for a colour, unity for a track volume. That is what lets one shared Page branch on them, and what lets a gallery row bind a locked look straight to a pin. The sixteen preference getters are the exception: they read the live `GamePreference` and fail when there is no game. `Is Dialog Shown` is one of them — it reads the `showDialog` preference and is named for the question rather than the key.
 - **Initialise preferences from `On Game Ready`, not `App Boot`.** `App Boot` can run before the `LiveGame` exists, and a preference write with no live game fails. See [Events](/docs/studio/blueprint/nodes/events).
 - **Save ids are validated.** An id is trimmed, may not be empty, and may not contain path separators or control characters. The file on disk is named from a hash of it; the id you chose is kept inside the record's metadata.
 
@@ -30,13 +30,18 @@ Starts the Story and Scene picked on the card and switches to the game stage. On
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `storyId` | in · data | `string` | Optional. Wired wins over the card. |
+| `sceneId` | in · data | `string` | Optional. Wired wins over the card — this is the pin `Import Progress` hands its `Scene` to. |
+| `startBlockId` | in · data | `string` | Optional, labelled **From Row** and wire-only. Enters the scene at that row instead of at its start. |
 
 **On-card fields**
 
 | Field | What |
 | --- | --- |
-| `Story` | The story to run. Required. |
-| `Scene` | The scene to enter. The list is filtered to the chosen story. Required. |
+| `Story` | The story to run. Required unless `storyId` is wired. |
+| `Scene` | The scene to enter. The list is filtered to the chosen story. Required unless `sceneId` is wired. |
+
+The picker is what an author reaches for nine times in ten: it lists the project's own stories and cannot be spelled wrong. The pins are for the tenth, where the target is not known when the graph is written — a Continue button that resumes wherever the player was.
 
 ### Quit Game
 
@@ -154,6 +159,65 @@ The speaking character's dialog avatar. The engine resolves it off that characte
 | --- | --- | --- | --- |
 | `avatar` | out · data | `ImageAsset\|null` | Feed to an [image](/docs/studio/blueprint/nodes/image) node or an image Blueprint Value. |
 
+### Get Dialog Text
+
+`blueprint.game.getDialogText` · Pure
+
+The line currently on screen, as text. Empty string when nothing is speaking.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+
+### Get Speaker Color
+
+`blueprint.game.getSpeakerColor` · Pure
+
+The speaking character's accent colour, for tinting a nametag or a name plate.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `color` | out · data | `RGBAColor` | Opaque white when nobody is speaking. The pin is a non-nullable colour, so there is no "absent" it could carry. |
+
+### Is Narrator
+
+`blueprint.game.isNarrator` · Pure
+
+Whether the line on screen is narration rather than a character speaking. The clean way to swap a dialog box's whole look for narration, instead of null-checking `Get Nametag`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isNarrator` | out · data | `boolean` | |
+
+### Is Dialog Waiting
+
+`blueprint.game.isDialogWaiting` · Pure
+
+Whether the line has finished typing and the game is waiting for the player to advance. This is the pin a "click to continue" indicator binds to.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isWaiting` | out · data | `boolean` | `false` with no host and with no line on screen — the indicator has to lay out before any game exists. |
+
+### Get Character
+
+`blueprint.game.getCharacter` · Pure
+
+The project's record for one character, picked on the card. Unlike the three speaker reads above, this one is not about who is talking — it is how a character sheet, a relationship screen or a cast gallery draws somebody who is not on stage.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `name` | out · data | `string` | Empty when nothing is picked or the character is gone. |
+| `characterColor` | out · data | `RGBAColor` | The default colour when there is no record. |
+| `characterAvatar` | out · data | `ImageAsset\|null` | |
+| `found` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Character` | One of the project's characters. |
+
 ### Is NVL Mode
 
 `blueprint.game.isNvlMode` · Pure
@@ -222,11 +286,21 @@ Reads `showDialog` and writes the opposite — one node for a single UI control.
 
 Fails when no game runtime is active.
 
+### Is Dialog Shown
+
+`blueprint.game.isDialogShown` · Pure
+
+The read half of those three. It is a preference getter under a state getter's name — the value it reads is `showDialog` — so it fails when there is no live game rather than degrading.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isShown` | out · data | `boolean` | |
+
 ## Preferences
 
-Each pair below maps to one field of the engine's `GamePreference` on the live game. The getter is pure and safe inside a Blueprint Value; the setter is latent and validates before it writes — a bad value fails the node rather than being clamped. `showDialog` has no pair here; `Show Dialog`, `Hide Dialog` and `Toggle Dialog Display` cover it.
+Each pair below maps to one field of the engine's `GamePreference` on the live game. The getter is pure and safe inside a Blueprint Value; the setter is latent and validates before it writes — a bad value fails the node rather than being clamped. `showDialog` has no pair here; `Show Dialog`, `Hide Dialog`, `Toggle Dialog Display` and `Is Dialog Shown` cover it.
 
-All twenty-four fail when no game runtime is active. To seed a new playthrough's preferences, hang the setters off `On Game Ready`, which runs after the `LiveGame` exists and before the first line plays.
+Every setter here fails when no game runtime is active, and so does every getter except `Get Track Volume`, which reads the engine's bus mixer rather than `GamePreference`. To seed a new playthrough's preferences, hang the setters off `On Game Ready`, which runs after the `LiveGame` exists and before the first line plays.
 
 ### Get Sentence Speed
 
@@ -272,6 +346,26 @@ Writes `autoForward`. Must be a boolean.
 | `next` | out · exec | — | |
 | `autoForward` | in · data | `boolean` | |
 
+### Get Auto Forward Delay
+
+`blueprint.game.getAutoForwardDelay` · Pure
+
+Reads `autoForwardDelay`, how long auto-forward waits on a finished line before advancing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `autoForwardDelay` | out · data | `float` | |
+
+### Set Auto Forward Delay
+
+`blueprint.game.setAutoForwardDelay` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `autoForwardDelay` | in · data | `float` | Accepts an on-card literal. |
+
 ### Get Skip
 
 `blueprint.game.getSkip` · Pure
@@ -293,6 +387,48 @@ Writes `skip`. Must be a boolean.
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `skip` | in · data | `boolean` | |
+
+### Get Skipping
+
+`blueprint.game.getSkipping` · Pure
+
+Reads `skipping`, whether the game is skipping **right now**. `skip` above is the setting that permits it; this is the state.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `skipping` | out · data | `boolean` | |
+
+### Set Skipping
+
+`blueprint.game.setSkipping` · Latent
+
+Turns skipping on or off from the graph — a skip button that latches, rather than the hold-to-skip `Skip` action.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipping` | in · data | `boolean` | |
+
+### Get Skip Read Text
+
+`blueprint.game.getSkipReadText` · Pure
+
+Reads `skipReadText`, whether skipping stops at a line the player has not seen before. What it means by "read" is the record behind [Text read](#text-read).
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `skipReadText` | out · data | `boolean` | |
+
+### Set Skip Read Text
+
+`blueprint.game.setSkipReadText` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipReadText` | in · data | `boolean` | |
 
 ### Get Skip Delay
 
@@ -404,7 +540,7 @@ Writes `bgmVolume`. Must be a finite number greater than or equal to `0`.
 | `next` | out · exec | — | |
 | `bgmVolume` | in · data | `float` | Accepts an on-card literal. |
 
-### Get Sound Volume
+### Get SFX Volume
 
 `blueprint.game.getSoundVolume` · Pure
 
@@ -414,7 +550,7 @@ Reads `soundVolume`, the sound-effect channel.
 | --- | --- | --- | --- |
 | `soundVolume` | out · data | `float` | |
 
-### Set Sound Volume
+### Set SFX Volume
 
 `blueprint.game.setSoundVolume` · Latent
 
@@ -491,6 +627,42 @@ Writes `voiceEndMode`. Must be exactly `"fade"`, `"stop"` or `"none"`.
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `voiceEndMode` | in · data | `string` | Accepts an on-card literal. |
+
+### Get Track Volume
+
+`blueprint.game.getTrackVolume` · Pure
+
+The player's volume for one of the project's audio tracks. The mixer is a tree of tracks the project declares — a bus per character if you want one — and this pair is what a settings screen with a row per track is built from.
+
+It is the odd one in this section: the value comes off the engine's bus mixer rather than out of `GamePreference`, so it does not fail without a live game. Nothing picked, or nothing to ask, reads as unity — a slider bound to it sits at the top rather than collapsing to zero while the page is still being wired.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `audioTrackId` | in · data | `string` | Optional. Wired wins over the card. |
+| `volume` | out · data | `float` | `1` when no track is named. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Track` | One of the project's audio tracks. |
+
+### Set Track Volume
+
+`blueprint.game.setTrackVolume` · Latent
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `audioTrackId` | in · data | `string` | Optional. Wired wins over the card. |
+| `volume` | in · data | `float` | Accepts an on-card literal. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Track` | One of the project's audio tracks. |
 
 ## Saves
 
@@ -627,6 +799,24 @@ The line a save resumes from, and who spoke it. The engine records both every ti
 This is not the newest backlog entry. The backlog holds the last line shown; these two fields hold the line the save resumes from. Saving from an overlay, or from a point where non-dialogue actions followed the last line, moves the two apart.
 </Callout>
 
+### Get Save Playtime
+
+`blueprint.game.save.getPlaytime` · Latent
+
+How long the playthrough in a slot had been played when it was written — the "12h 34m" a save grid puts under the thumbnail.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | Accepts an on-card literal. |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+| `recorded` | out · data | `boolean` | `false` for a save written before playtime was tracked — the slot exists, the number does not. |
+| `exists` | out · data | `boolean` | |
+
+Format it with `Format Duration` from [Time](/docs/studio/blueprint/nodes/time).
+
 ### Get Save Preview
 
 `blueprint.game.save.getPreview` · Latent
@@ -700,6 +890,8 @@ The newest autosave. This is the Continue button's node — the same thing as th
 
 The dialogue history — the backlog — is the engine's own record of the lines and menus that have already gone by, and it can be replayed into.
 
+It is a timeline with a play head on it, and these seven nodes are its two sides. `Get History` is everything up to the head: the lines already read, in order. Stepping back moves the head, and the lines it moved past become the **future**, which `Get Future History` returns and `Redo Next History Entry` steps back into. `Can Undo History` and `Can Redo History` are what a pair of backlog buttons disable themselves on.
+
 ### Get History
 
 `blueprint.game.history.get` · Latent
@@ -754,6 +946,52 @@ Goes back one entry — `Restore From History` with no target. This is the "back
 
 Fails when no game runtime is active.
 
+### Redo Next History Entry
+
+`blueprint.game.history.redoNext` · Latent
+
+Steps forward into the future the undos created — the "forward" button beside the back one. Advancing the story any other way discards that future, which is what makes this a redo rather than a second `Next`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+Fails when no game runtime is active.
+
+### Get Future History
+
+`blueprint.game.history.getFuture` · Latent
+
+The entries ahead of the play head, in the same shape `Get History` publishes. A backlog screen that lets the player see where they were before they stepped back binds this to a second list.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | Same entry fields as `Get History`. |
+| `count` | out · data | `integer` | |
+
+Empty array when no game is running, and when nothing has been stepped back over.
+
+### Can Undo History
+
+`blueprint.game.history.canUndo` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `canUndo` | out · data | `boolean` | `false` when no game is running. |
+
+Pure, so it backs a Blueprint Value directly: bind a back button's `enabled` to it and the button greys itself out at the start of the log without a graph running per frame.
+
+### Can Redo History
+
+`blueprint.game.history.canRedo` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `canRedo` | out · data | `boolean` | `false` when no game is running. |
+
 ## Text read
 
 A line is marked read the moment its text finishes displaying — typing done in ADV, awaiting advance in NVL. The record is keyed by the message's stable text id, so it survives edits to the story and spans every story in the project, and it is persisted at project level, independent of any save file. This is what a "skip read text only" option is built on.
@@ -778,3 +1016,254 @@ Wipes the read record, in memory and on disk, for every story in the project. A 
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
+
+### Has Read Text
+
+`blueprint.game.isTextReadById` · Pure
+
+Whether one named line has ever been read, asked by its text id rather than about whatever is on screen. `Is Text Read` above answers for the current line; this one answers for a line the player is not looking at, which is what an extras screen or a voice gallery needs.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textId` | in · data | `string` | Accepts an on-card literal. |
+| `isRead` | out · data | `boolean` | `false` for an empty id, so a half-wired gallery row stays locked instead of taking the page down. |
+
+## Playtime
+
+### Get Playtime
+
+`blueprint.game.getPlaytime` · Pure
+
+How long the running playthrough has been played. Both pins carry the same number in different units, so a screen that formats hours and one that does arithmetic in milliseconds each get what they want.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+
+`0` when nothing is counting — a title screen asking how long this run has gone before any run exists is a fair question with a real answer, and the story preview has no stopwatch at all.
+
+### Get Total Playtime
+
+`blueprint.game.getTotalPlaytime` · Pure
+
+Seconds ever spent in this project, across every playthrough. This is the number a completion screen shows; `Get Playtime` is the one a pause menu shows.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `totalPlaytimeSeconds` | out · data | `float` | |
+| `totalPlaytimeMilliseconds` | out · data | `float` | |
+
+## Route progress
+
+`Is Scene Visited` and `Is Option Picked` read the record the story compiler writes as the player goes. It lives in the **save**, so it rewinds with a load — it answers "have I been down this route in *this* playthrough", which is what a one-shot choice and a mid-story unlock want. The endings record below is the opposite and lives in project persistence.
+
+Both readers are pure, so a gallery row can bind a locked look straight to the pin instead of running a graph per row, and an empty id answers "no" rather than throwing.
+
+<Callout type="info">
+This is not `Has Read Text`. The read record is written when a line is **displayed**, so every option of a menu the player merely opened counts as read. `Is Option Picked` is written on the pick.
+</Callout>
+
+### Is Scene Visited
+
+`blueprint.game.isSceneVisited` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | Optional. Wired wins over the card. |
+| `sceneId` | in · data | `string` | Optional. Wired wins over the card. |
+| `isVisited` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Story` | The story to ask about. |
+| `Scene` | The scene, filtered to that story. |
+
+The picker covers nine cases in ten. The pins are for the tenth: one gallery card placed once per scene, reading which scene it is from its own params, instead of one card copied per scene.
+
+### Is Option Picked
+
+`blueprint.game.isOptionPicked` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | Optional. Wired wins over the card. |
+| `optionId` | in · data | `string` | Optional. Wired wins over the card. |
+| `isPicked` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Story` | The story to ask about. |
+| `Option` | A choice option, filtered to that story. |
+
+### Clear Visited
+
+`blueprint.game.clearVisited`
+
+Empties both records. Effectful but not latent — it clears two keys in the live `Storable` within the tick, unlike `Clear Text Read`, which writes host persistence and has to be awaited.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Endings
+
+An `/ending` row in a story is the whole declaration, and its block id is the identity everything here keys on. These four are what an endings screen is built out of: which of them the player has found, and what the full set is to lay them out against.
+
+The endings record sits in **project persistence** rather than in a save, and nothing rewinds it. An endings screen asks what this player has ever seen, so a gallery built on the saved record would re-lock entries in front of somebody who loaded an older save, and a "5 of 8" count would go down. That also means none of the four needs a running story — a title screen is exactly where an endings gallery is opened from.
+
+### Is Ending Reached
+
+`blueprint.game.isEndingReached` · Pure
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isReached` | out · data | `boolean` | `false` for an unpicked ending, so a half-wired row stays locked. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Story` | The story to ask about. |
+| `Ending` | An ending declared in that story. |
+
+### Get Endings
+
+`blueprint.game.getEndings` · Pure
+
+Every ending the story declares, whether reached or not — the set a gallery lays out and counts against.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `endings` | out · data | `array` | Empty when nothing is picked. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Story` | The story whose endings to list. |
+
+### Clear Ending State
+
+`blueprint.game.clearEndingState` · Latent
+
+Re-locks one ending.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Story` | The story to ask about. |
+| `Ending` | The ending to forget. |
+
+### Clear Endings
+
+`blueprint.game.clearEndings` · Latent
+
+Re-locks all of them. Both wipes write host persistence, so both are latent.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Editions and extra content
+
+### Get Build Variant
+
+`blueprint.game.getAppTag` · Pure
+
+Which [variant](/docs/studio/patches) of the project this package is.
+
+It is the one node in the catalogue whose value is decided before the game exists. A build produces one variant, its name is substituted here, whatever comparison consumes it is folded, and the branch this edition does not take is **deleted** — so the content behind a variant check is absent from the package rather than merely unreachable in it. A graph whose `Get Build Variant` does not end up deciding a branch is refused at the build gate, in every build including the release one: there is no play-time value to fall back on, so such a graph cannot be compiled at all.
+
+That is also why it takes nothing and has no card field. Anything it could be given would be a second input to a question that already has one answer.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `appTag` | out · data | `string` | The variant's name. The full release is `main`. |
+
+### Is DLC Installed
+
+`blueprint.game.isDlcInstalled` · Pure
+
+Whether a piece of extra content is sitting beside the running game.
+
+The question is deliberately about **presence**, not ownership. A DLC arrives as a file next to the game, put there by whatever the player bought it from, and whether it is here is a fact this build can see. Whether the player *owns* it is a storefront's fact and a storefront plugin's node to answer — and gating content on that would take an offline player's bought chapter away from them, which presence never does.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isInstalled` | out · data | `boolean` | `false` when nothing is picked, so a half-wired menu row stays hidden. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `DLC` | One of the project's declared DLCs. |
+
+## Carrying progress between editions
+
+A demo and the full game are separate packages with separate app ids, so they keep separate user-data directories and their asset protection keys differ on purpose: the release build cannot read the demo's save files and must not try. These two nodes are the channel that does cross, and it is deliberately not a save file — it is one plain JSON document per title holding the project-level variables, where the player had got to, and which scenes they had seen.
+
+Where that document lives is decided by the shell, never by the graph: the desktop shells hand it to their main process, and the web export refuses because a page has no shared file to write. So both nodes carry a failure branch and a reason, and a graph has to be able to hear "no".
+
+### Export Progress
+
+`blueprint.game.progress.export` · Latent
+
+Writes everything this playthrough holds into the title's progress document. It takes nothing: what travels is the project's declared set, not a subset one graph picked for a document the *other* edition has to read.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | A shell that cannot write, a build with no progress key, or a disk that refused. |
+| `error` | out · data | `string` | Which of those it was. |
+
+### Import Progress
+
+`blueprint.game.progress.import` · Latent
+
+Reads the document and applies what it holds to the running game.
+
+**It does not jump.** `Scene` comes out as data and the node stops there. `Start Game` is what starts a story, and a title screen usually has something to do first — a fade, a confirmation, a chapter select. A node that jumped by itself would be a second way to start a story that skipped all of that.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `found` | out · exec | — | |
+| `missing` | out · exec | — | Nobody exported. |
+| `failed` | out · exec | — | A document that would not read. |
+| `sceneId` | out · data | `string` | Where the player had got to. Empty when the document anchors nowhere. Wire it into `Start Game`. |
+| `error` | out · data | `string` | |
+
+Three ways out, because an author answers each differently. `Missing` is the ordinary state of everybody who never exported — a fresh install, a player who went straight to the full game — and it leads to "start a new game", not to an apology; folding it into `Failed` would put an error in front of every first-time player. `Failed` is a document that would not read: written by a newer build, belonging to another title, or corrupt.
+
+## Storage
+
+### Check Storage Durability
+
+`blueprint.game.storageDurability` · Latent
+
+Whether what this build writes stays written — the one thing about a player's saves that the shell knows and the game cannot work out for itself.
+
+A packaged desktop game keeps files in a user-data directory nothing reclaims. A web export is a guest of the browser, where a site that has not been granted persistent storage may be evicted whole: saves, persistent variables and read text together. The page asks for that grant as it loads, and this is the answer it was given.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `durable` | out · exec | — | |
+| `evictable` | out · exec | — | |
+| `unknown` | out · exec | — | |
+
+Three branches, because the three lead to different words. `Evictable` is "this browser may remove saved games"; `Unknown` is a browser that will not say, and telling a player the first when the truth is the second is a promise nobody made. Nothing is decided for you — a page whose storage may be reclaimed is still a page a game can be finished on, and whether the player hears anything about it belongs to the title.

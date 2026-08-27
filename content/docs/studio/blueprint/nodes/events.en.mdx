@@ -19,8 +19,8 @@ The palette filters heads by the blueprint's owner. A head that is not listed fo
 
 | Owner | Heads offered |
 | --- | --- |
-| Global blueprint (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Close Requested`, the four keyboard heads, both preference heads |
-| Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Close Requested`, the four keyboard heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
+| Global blueprint (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads |
+| Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
 | Widget blueprint (`widgetMain`, `componentWidgetMain`) | whatever that widget type declares — see the table below |
 | Blueprint Value (`widgetValue`) | `Init` and `On Flush` |
 | Story action blueprint | `On Call` |
@@ -31,6 +31,8 @@ For a widget the owner is only half the rule: each built-in widget type declares
 | --- | --- |
 | every widget with a private blueprint | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter`, the four keyboard heads, `On Fullscreen Changed`, `On Broadcast`, `On Any Broadcast`, `Element Flush`, `Element Click` |
 | `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.dialog.sentence`, `nl.nvl.texts` | the nine mouse heads, `Focus`, `Blur`, `List Item Refresh` |
+| `nl.video`, `nl.puppet` | the nine mouse heads, `Focus`, `Blur` |
+| `nl.switch` | the nine mouse heads, `Focus`, `Blur`, `Changed`, `Turned On`, `Turned Off` |
 | `nl.list`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list` | `Scroll`, `Scroll End`, `Item Render`, `Item Click`, `Item Hover`, `Selection Changed` |
 | `nl.slider` | `Drag Start`, `Value Changed`, `Drag End` |
 | `nl.textInput` | `Value Changed`, `Submit`, `Focus`, `Blur` |
@@ -388,6 +390,35 @@ Fires on every key-up the runtime window receives.
 | `shiftKey` | out · data | `boolean` | |
 | `metaKey` | out · data | `boolean` | Meta / Command / Windows. |
 
+## Input actions
+
+### On Action
+
+`blueprint.event.head.action`
+
+Fires when the input action picked on the card is raised, however the player raised it.
+
+An action is a name the project gives to a gesture — "advance", "open the log", "dismiss" — and the bindings behind it live on the project's action vocabulary and on each Surface's answer to it, never on the graph. That is the point of the head: the author names the action, and which key or click means it stays the project's business. The card stores the action's id, so renaming the action leaves every graph pointing at it.
+
+Global and Surface graphs only. An action is panel-wide by construction, so it belongs to the two owners that speak for a whole panel: a Surface answers the actions it enables, and a global blueprint answers a gesture that means the same thing on every page. A widget saying "a click here means advance" is the arrangement the vocabulary replaced — an element that wants the raw gesture still has its own mouse heads.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `source` | out · data | `string` | Which family of input raised it: `pointer`, `key`, `gamepad`, or `touch`. |
+| `x` | out · data | `float` | Where the gesture landed, in the same coordinates the mouse heads report. |
+| `y` | out · data | `float` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Action` | One of the project's input actions. |
+
+`x` and `y` are meaningless for a key or a gamepad binding and read `0` there, which is why `source` sits beside them: it is the pin that says whether the other two mean anything. The same action legitimately wants different behaviour depending — "advance" from a click has a place on screen to answer at, and "advance" from the space bar does not.
+
+To ask whether an action is *being held* rather than react to it being raised, use `Is Action Held` in [Input](/docs/studio/blueprint/nodes/input).
+
 ## Bound element heads
 
 These two heads bind a target widget on the same Surface — the way an `Element` node does — and then listen to *that* widget instead of their own. They also count as element bindings: an Element-targeted node only appears in the palette when the graph already holds a compatible `Element`, `Element Flush` or `Element Click`, and their `element` output can be wired straight into such a node's target input.
@@ -557,6 +588,40 @@ Fires when a drag on the handle ends.
 | `then` | out · exec | — | |
 | `value` | out · data | `float` | Mapped value. |
 
+## Switch
+
+Three heads on `nl.switch`, and all three are about the player toggling it. Writing the state from a graph — `Set Checked`, `Turn On`, `Turn Off`, `Toggle` in [Switch](/docs/studio/blueprint/nodes/switch) — does not dispatch any of them, so a graph that writes the switch it also listens to does not trigger itself.
+
+One toggle raises `Changed` first and then exactly one of `Turned On` / `Turned Off`, in that order, each after the previous chain has finished. A toggle that lands on the state it was already in raises nothing.
+
+### Changed
+
+`blueprint.event.head.switchChanged`
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `checked` | out · data | `boolean` | The new state. |
+| `previousChecked` | out · data | `boolean` | |
+
+### Turned On
+
+`blueprint.event.head.switchTurnedOn`
+
+The half of `Changed` that needs no branch — for the handler that only has something to do in one direction.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Turned Off
+
+`blueprint.event.head.switchTurnedOff`
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
 ## Text input
 
 Heads on `nl.textInput`. See the [Text input nodes](/docs/studio/blueprint/nodes/text-input) for reading and writing the field.
@@ -618,7 +683,7 @@ Fires when the selected preference key changes.
 
 | Field | What |
 | --- | --- |
-| `Preference` | The key to watch: `autoForward`, `skip`, `showDialog`, `gameSpeed`, `cps`, `voiceVolume`, `voiceFadeDuration`, `voiceEndMode`, `bgmVolume`, `soundVolume`, `globalVolume`, `skipDelay`, `skipInterval`. Empty subscribes to nothing — use `On Any Preference Changed` for "any key". |
+| `Preference` | The key to watch, one of sixteen: `autoForward`, `autoForwardDelay`, `skip`, `skipping`, `skipReadText`, `showDialog`, `gameSpeed`, `cps`, `voiceVolume`, `voiceFadeDuration`, `voiceEndMode`, `bgmVolume`, `soundVolume`, `globalVolume`, `skipDelay`, `skipInterval`. Empty subscribes to nothing — use `On Any Preference Changed` for "any key". |
 
 ### On Any Preference Changed
 

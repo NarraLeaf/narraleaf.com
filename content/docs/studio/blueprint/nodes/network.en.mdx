@@ -66,7 +66,7 @@ Sends a request and waits for it to finish. Which execution pin it leaves by dep
 
 **`Response` is produced on `httpError` too.** A REST API's 404 usually carries the JSON that says what was not found, and a graph that branches there needs to be able to read it.
 
-**Headers are a JSON object**, most easily built with `Make JSON Object`. Values that are numbers or booleans are sent as their text; nested objects and arrays are dropped, since there is no header they could correctly become.
+**Headers are a JSON object**, most easily built with `Make Object`. Values that are numbers or booleans are sent as their text; nested objects and arrays are dropped, since there is no header they could correctly become.
 
 ## The Response type
 

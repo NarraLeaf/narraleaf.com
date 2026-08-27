@@ -7,12 +7,14 @@ Element 节点是控件方法的派生形态：它不作用于蓝图所属的那
 
 它们都不会自己出现在[创建浮窗](/zh/docs/studio/blueprint)里。只有当前图中已经存在一个兼容控件类型的绑定节点——`Element` 字面量，或者 [Events](/zh/docs/studio/blueprint/nodes/events) 里的 `Element Flush` / `Element Click` 事件头——对应的 Element 节点才会被列出。先放绑定节点
 
-这 116 个节点分在四页里：
+本分类共 123 个节点：本页末尾的 `Element` 引用节点，加上分在另外四页里的 122 个。
 
-- [Displayable](/zh/docs/studio/blueprint/nodes/element/displayable)——几何、透明度、Variant 和属性动画，外加每个控件都重复一遍的 `visible` / `enabled`。42 个节点
+- [Displayable](/zh/docs/studio/blueprint/nodes/element/displayable)——几何、透明度、Variant 和属性动画，外加八种控件都重复一遍的 `visible` / `enabled`。41 个节点
 - [Text](/zh/docs/studio/blueprint/nodes/element/text)——`nl.text` 的内容、排版与效果，以及 `nl.textInput` 的值。27 个节点
-- [List, Slider, Image](/zh/docs/studio/blueprint/nodes/element/content)——列表内容与选中项、滑块数值与范围、图片资源、填充模式与裁剪。31 个节点
-- [Button, Container, Frame](/zh/docs/studio/blueprint/nodes/element/widget)——按钮文本与指针、容器裁剪，以及 Frame 展示的 Page。13 个节点
+- [List, Slider, Image](/zh/docs/studio/blueprint/nodes/element/content)——列表内容、选中项、滚动位置与条目字段；滑块数值与范围；图片资源、填充模式与裁剪。40 个节点
+- [Button, Container, Switch, Frame](/zh/docs/studio/blueprint/nodes/element/widget)——按钮文本与指针、容器裁剪、Switch 的开合状态，以及 Frame 展示的 Page。14 个节点
+
+这几个数字是创建浮窗提供的数量。另有少数被取代的节点与它们写在一起、并标明已隐藏；它们不计入其中，[分类总表](/zh/docs/studio/blueprint/nodes)里也不计。
 
 ## 约定
 
