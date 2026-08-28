@@ -16,12 +16,15 @@ import {
   Mask,
   Menu,
   Nametag,
+  Pause,
   Player,
   type PlayerEventContext,
+  Push,
   Reveal,
   Scene,
   Story,
   Texts,
+  ThroughColor,
   Transform,
   useDialog,
   useDialogOverlay,
@@ -33,6 +36,7 @@ import demoClassImage from '@/assets/demo/demo-class.webp';
 import demoHallImage from '@/assets/demo/demo-hall.webp';
 import demoNarraImage from '@/assets/demo/demo-narra.webp';
 import demoRoomImage from '@/assets/demo/demo-room.webp';
+import demoWashImage from '@/assets/demo/demo-wash.webp';
 import { type Locale } from '@/lib/i18n';
 
 type GlossaryData = { term: string; body: string };
@@ -123,8 +127,26 @@ function GlossaryTerm({ children, revealed, data }: WordRenderProps<GlossaryData
   );
 }
 
-/** The point every demonstration returns to. Label names are scene-local. */
-const MENU_LABEL = 'demos';
+/**
+ * Where the tour returns to. Label names are scene-local, and every jump target is resolved when
+ * the story is built, so a name that matches no label fails the build rather than the play head.
+ */
+const TOPICS = 'topics';
+const TOPIC_TEXT = 'topic-text';
+const TOPIC_SPRITE = 'topic-sprite';
+const TOPIC_BACKGROUND = 'topic-background';
+const TOPIC_CAMERA = 'topic-camera';
+const TOPIC_FLOW = 'topic-flow';
+/**
+ * The menu of each topic, entered from the topic's own opening line. A demonstration returns here
+ * rather than to the topic label, so the opening line plays once per visit and not once per
+ * demonstration.
+ */
+const TEXT_MENU = 'text-menu';
+const SPRITE_MENU = 'sprite-menu';
+const BACKGROUND_MENU = 'background-menu';
+const CAMERA_MENU = 'camera-menu';
+const FLOW_MENU = 'flow-menu';
 
 /** The sprite's own pixel height. An image keeps its natural size in stage units, so this is the
  *  height it is drawn at before `zoom`. */
@@ -133,6 +155,8 @@ const NARRA_ZOOM = 0.62;
 /** `yalign` places the centre of the sprite, measured up from the floor of the stage. Half the
  *  drawn height therefore puts the cut edge of the half body on the floor itself. */
 const NARRA_YALIGN = (NARRA_HEIGHT * NARRA_ZOOM) / 2 / STAGE_HEIGHT;
+/** Where the sprite stands when no demonstration has moved it. */
+const NARRA_HOME = { xalign: 0.68, yalign: NARRA_YALIGN };
 
 function createDemoStory(locale: Locale) {
   const isZh = locale === 'zh';
@@ -146,7 +170,7 @@ function createDemoStory(locale: Locale) {
   const narra = new Character('Narra');
   const narraImage = new NarraImage<any>({
     src: demoNarraImage.src,
-    position: { xalign: 0.68, yalign: NARRA_YALIGN },
+    position: NARRA_HOME,
     zoom: NARRA_ZOOM,
   });
 
@@ -155,6 +179,20 @@ function createDemoStory(locale: Locale) {
   const breathe = Transform.create()
     .scaleY(1.012)
     .commit({ duration: 2400, ease: 'easeInOut' });
+
+  // Returns the sprite to where the rest of the tour expects to find it, so a demonstration that
+  // moves it does not leave the next one starting from somewhere else.
+  const restSprite = () => [
+    narraImage.clearFilter({ duration: 400 }),
+    narraImage.transform(
+      Transform.create()
+        .position(NARRA_HOME)
+        .zoom(NARRA_ZOOM)
+        .rotation(0)
+        .opacity(1)
+        .commit({ duration: 500, ease: 'easeInOut' }),
+    ),
+  ];
 
   hall.action([
     narraImage.show({ duration: 600 }),
@@ -166,89 +204,235 @@ function createDemoStory(locale: Locale) {
 
     narra.say`${isZh ? '文本框、名牌和选项菜单由工程提供的 React 组件渲染。' : 'The text box, the name tag and the option menu are React components the project supplies.'}`,
 
-    narra.say(
-      isZh
-        ? [
-            '一行文本可以同时包含',
-            c('颜色', '#7dd3fc'),
-            '、',
-            b('粗体'),
-            '、',
-            Word.emphasis('着重号', { mark: 'sesame' }),
-            '和',
-            new Word('缩放的词', { fontScale: 1.3 }),
-            '。',
-          ]
-        : [
-            'A single line carries ',
-            c('colour', '#7dd3fc'),
-            ', ',
-            b('bold'),
-            ', ',
-            Word.emphasis('emphasis marks', { mark: 'sesame' }),
-            ' and ',
-            new Word('a scaled word', { fontScale: 1.3 }),
-            '.',
-          ],
-    ),
+    Control.label(TOPICS),
+    narra.say`${isZh ? '下面五个方向，每一个是一组演示。' : 'Five topics below, each one a group of demonstrations.'}`,
 
-    narra.say(
-      isZh
-        ? [
-            '任意一个词都可以交给组件渲染。点击',
-            Word.custom('场景调用', GlossaryTerm, {
-              data: {
-                term: '场景调用',
-                body: '以 returnable 跳转到另一个场景时，当前场景保持挂起。目标场景的动作执行完毕后，故事回到跳转之后的一行。',
-              },
-            }),
-            '查看它的定义。',
-          ]
-        : [
-            'Any word can be rendered by a component. Click ',
-            Word.custom('scene call', GlossaryTerm, {
-              data: {
-                term: 'Scene call',
-                body: 'A jump made with returnable leaves the current scene suspended. When the target scene runs out of actions, the story resumes at the line after the jump.',
-              },
-            }),
-            ' to read its definition.',
-          ],
-    ),
+    Menu.prompt(isZh ? '选择一个方向。' : 'Choose a topic.')
+      .choose(isZh ? '文本框' : 'The text box', [Control.jump(TOPIC_TEXT)])
+      .choose(isZh ? '立绘' : 'The character sprite', [Control.jump(TOPIC_SPRITE)])
+      .choose(isZh ? '背景与转场' : 'Backgrounds and transitions', [Control.jump(TOPIC_BACKGROUND)])
+      .choose(isZh ? '相机' : 'The camera', [Control.jump(TOPIC_CAMERA)])
+      .choose(isZh ? '场景流程' : 'Scene flow', [Control.jump(TOPIC_FLOW)]),
 
-    // Every branch ends by jumping back here, so a visitor can watch the other demonstrations
-    // without reloading the page. The target is resolved when the story is built, so a name that
-    // does not match a label in this scene fails the build rather than the play head.
-    Control.label(MENU_LABEL),
+    Control.label(TOPIC_TEXT),
+    narra.say`${isZh ? '文本框是一个 React 组件，下面是一行文本能承载的东西。' : 'The text box is a React component, and each demonstration below is something a line can carry.'}`,
 
-    Menu.prompt(isZh ? '选择一项演示。' : 'Select a demonstration.')
-      .choose(isZh ? '镜头运动' : 'Camera movement', [
-        narra.say`${isZh ? '缩放、平移、暗角与快门都是相机属性，作用于整个舞台。' : 'Zoom, pan, vignette and shutter are camera properties applied to the whole stage.'}`,
+    Control.label(TEXT_MENU),
+
+    Menu.prompt(isZh ? '文本框。' : 'The text box.')
+      .choose(isZh ? '行内样式' : 'Inline styles', [
+        narra.say(
+          isZh
+            ? [
+                '一行文本可以同时包含',
+                c('颜色', '#7dd3fc'),
+                '、',
+                b('粗体'),
+                '、',
+                Word.emphasis('着重号', { mark: 'sesame' }),
+                '和',
+                new Word('缩放的词', { fontScale: 1.3 }),
+                '。',
+              ]
+            : [
+                'A single line carries ',
+                c('colour', '#7dd3fc'),
+                ', ',
+                b('bold'),
+                ', ',
+                Word.emphasis('emphasis marks', { mark: 'sesame' }),
+                ' and ',
+                new Word('a scaled word', { fontScale: 1.3 }),
+                '.',
+              ],
+        ),
+        narra.say`${isZh ? '样式写在词上而不是文本框上，同一个文本框显示其中任何一种。' : 'The styles belong to the words rather than to the box, and one box displays any of them.'}`,
+        Control.jump(TEXT_MENU),
+      ])
+      .choose(isZh ? '停顿' : 'Pacing', [
+        narra.say(
+          isZh
+            ? ['一行可以在中途停下来', Pause.wait(700), '，再继续。']
+            : ['A line can stop part of the way through', Pause.wait(700), ', then carry on.'],
+        ),
+        narra.say(
+          isZh
+            ? ['也可以停下来等一次点击', Pause, '，然后说完。']
+            : ['It can also wait for a click', Pause, ', and finish afterwards.'],
+        ),
+        Control.jump(TEXT_MENU),
+      ])
+      .choose(isZh ? '词条组件' : 'A word as a component', [
+        narra.say(
+          isZh
+            ? [
+                '任意一个词都可以交给组件渲染。点击',
+                Word.custom('场景调用', GlossaryTerm, {
+                  data: {
+                    term: '场景调用',
+                    body: '以 returnable 跳转到另一个场景时，当前场景保持挂起。目标场景的动作执行完毕后，故事回到跳转之后的一行。',
+                  },
+                }),
+                '查看它的定义。',
+              ]
+            : [
+                'Any word can be rendered by a component. Click ',
+                Word.custom('scene call', GlossaryTerm, {
+                  data: {
+                    term: 'Scene call',
+                    body: 'A jump made with returnable leaves the current scene suspended. When the target scene runs out of actions, the story resumes at the line after the jump.',
+                  },
+                }),
+                ' to read its definition.',
+              ],
+        ),
+        Control.jump(TEXT_MENU),
+      ])
+      .choose(isZh ? '返回上一级' : 'Back to the topics', [Control.jump(TOPICS)]),
+
+    Control.label(TOPIC_SPRITE),
+    narra.say`${isZh ? '立绘是一个元素，下面每一项都在改它的一个属性。' : 'The sprite is one element, and each demonstration below changes a property of it.'}`,
+
+    Control.label(SPRITE_MENU),
+
+    Menu.prompt(isZh ? '立绘。' : 'The character sprite.')
+      .choose(isZh ? '位置与缩放' : 'Position and scale', [
+        narra.say`${isZh ? '位置、缩放和旋转都是可以过渡的属性。' : 'Position, scale and rotation are properties a transform can animate.'}`,
+        narraImage.pos({ xalign: 0.3, yalign: NARRA_YALIGN }, 800, 'easeInOut'),
+        narraImage.zoom(NARRA_ZOOM * 1.15, 600, 'easeInOut'),
+        narraImage.rotate(-4, 400, 'easeInOut'),
+        narra.say`${isZh ? '一条动作只描述要到达的状态，中间的每一帧由引擎补出来。' : 'An action names the state to reach, and the engine fills in the frames between.'}`,
+        ...restSprite(),
+        Control.jump(SPRITE_MENU),
+      ])
+      .choose(isZh ? '进场与退场' : 'Entering and leaving', [
+        narra.say`${isZh ? '圆形收放和方向擦除都是内置的，各自带自己的参数。' : 'The circular close, the circular reveal and the directional wipe are built in, each with its own options.'}`,
+        narraImage.circleClose({ duration: 700 }),
+        narraImage.circleReveal({ duration: 700 }),
+        narraImage.wipe({ direction: 'right', duration: 700 }),
+        narra.say`${isZh ? '它们改的是立绘自己的裁剪，背景一直在。' : 'They clip the sprite alone, and the background stays where it is throughout.'}`,
+        Control.jump(SPRITE_MENU),
+      ])
+      .choose(isZh ? '滤镜' : 'Filters', [
+        narraImage.filter('grayscale(1)', { duration: 600 }),
+        narra.say`${isZh ? '滤镜作用于单个立绘，背景不受影响。' : 'A filter applies to one sprite, and leaves the background alone.'}`,
+        narraImage.filter('sepia(0.7) brightness(0.85)', { duration: 600 }),
+        narra.say`${isZh ? '换一组参数就是另一种调子。' : 'Another set of values is another grade.'}`,
+        narraImage.clearFilter({ duration: 600 }),
+        Control.jump(SPRITE_MENU),
+      ])
+      .choose(isZh ? '持续动作' : 'A looping transform', [
+        narra.say`${isZh ? '立绘一直在做一个循环的呼吸，故事从不等它。' : 'The sprite has been running a looping breath the whole time, and the story never waits for it.'}`,
+        narraImage.stopLoop(),
+        narra.say`${isZh ? '现在停了。' : 'It is stopped now.'}`,
+        narraImage.loop(breathe, { repeatType: 'mirror' }),
+        narra.say`${isZh ? '又开始了。' : 'And running again.'}`,
+        Control.jump(SPRITE_MENU),
+      ])
+      .choose(isZh ? '返回上一级' : 'Back to the topics', [Control.jump(TOPICS)]),
+
+    // The background is changed through the scene's own background image rather than through
+    // Scene.setBackground. In engine 0.39.2 setBackground hands back a chain instead of an action,
+    // and a menu branch links its statements by hand, so a branch that carries one and then keeps
+    // going ends up with an unlinked statement in the middle of it.
+    Control.label(TOPIC_BACKGROUND),
+    narra.say`${isZh ? '背景属于场景，转场决定它怎么被替换。' : 'The background belongs to the scene, and a transition decides how it is replaced.'}`,
+
+    Control.label(BACKGROUND_MENU),
+
+    Menu.prompt(isZh ? '背景与转场。' : 'Backgrounds and transitions.')
+      .choose(isZh ? '溶解' : 'Dissolve', [
+        hall.background.char(demoWashImage.src, new Dissolve({ duration: 800 })),
+        narra.say`${isZh ? '换背景不换场景，立绘留在原处。' : 'The background changes without the scene changing, and the sprite stays where it is.'}`,
+        hall.background.char(demoHallImage.src, new Dissolve({ duration: 800 })),
+        Control.jump(BACKGROUND_MENU),
+      ])
+      .choose(isZh ? '遮罩' : 'A masked reveal', [
+        hall.background.char(
+          demoWashImage.src,
+          new Reveal({ duration: 900, pattern: Mask.blinds({ slats: 10 }) }),
+        ),
+        narra.say`${isZh ? '百叶、光圈、时钟、扇形和圆点都是内置的遮罩形状。' : 'Blinds, iris, clock, fan and dots are all built-in mask shapes.'}`,
+        hall.background.char(demoHallImage.src, new Reveal({ duration: 900, pattern: Mask.clock() })),
+        Control.jump(BACKGROUND_MENU),
+      ])
+      .choose(isZh ? '透色' : 'Through a colour', [
+        hall.background.char(
+          demoWashImage.src,
+          new ThroughColor({ duration: 1400, color: '#0b1a22', holdMs: 400 }),
+        ),
+        narra.say`${isZh ? '画面先盖上一层颜色，停一会儿，再从颜色里出来。' : 'The frame is covered by a colour, held there, and uncovered again.'}`,
+        hall.background.char(
+          demoHallImage.src,
+          new ThroughColor({ duration: 1400, color: '#0b1a22', holdMs: 400 }),
+        ),
+        Control.jump(BACKGROUND_MENU),
+      ])
+      .choose(isZh ? '推移' : 'Push', [
+        hall.background.char(demoWashImage.src, new Push({ duration: 800, direction: 'left' })),
+        narra.say`${isZh ? '两张背景一进一出，像镜头横摇过去。' : 'One background slides out as the other slides in, as if the camera panned across.'}`,
+        hall.background.char(demoHallImage.src, new Push({ duration: 800, direction: 'right' })),
+        Control.jump(BACKGROUND_MENU),
+      ])
+      .choose(isZh ? '返回上一级' : 'Back to the topics', [Control.jump(TOPICS)]),
+
+    Control.label(TOPIC_CAMERA),
+    narra.say`${isZh ? '相机在场景之上，作用于其中绘制的一切。' : 'The camera sits above the scene and applies to everything drawn in it.'}`,
+
+    Control.label(CAMERA_MENU),
+
+    Menu.prompt(isZh ? '相机。' : 'The camera.')
+      .choose(isZh ? '缩放与平移' : 'Zoom and pan', [
+        narra.say`${isZh ? '相机作用于整个舞台，立绘与背景一起移动。' : 'The camera acts on the whole stage, so the sprite and the background move together.'}`,
         story.camera.zoom(1.22, 900, 'easeInOut'),
         story.camera.pan({ xalign: 0.42 }, 900, 'easeInOut'),
+        story.camera.resetCamera(700),
+        Control.jump(CAMERA_MENU),
+      ])
+      .choose(isZh ? '暗角与快门' : 'Vignette and shutter', [
         story.camera.vignette(0.68, 500),
         narra.say`${isZh ? '暗角固定在视野上，舞台在它下面移动。' : 'The vignette is fixed to the view, and the stage moves beneath it.'}`,
         story.camera.shutter(1, 170, 'easeInOut'),
         story.camera.shutter(0, 240, 'easeInOut'),
-        narra.say`${isZh ? '相机随后回到默认取景。' : 'The camera then returns to its default framing.'}`,
+        narra.say`${isZh ? '快门合上再打开，是一次眨眼的长度。' : 'The shutter closes and opens again in the length of a blink.'}`,
         story.camera.resetCamera(700),
-        Control.jump(MENU_LABEL),
+        Control.jump(CAMERA_MENU),
       ])
-      .choose(isZh ? '场景转场' : 'Scene transition', [
+      .choose(isZh ? '调色' : 'Colour grading', [
+        story.camera.filter('saturate(0.35) brightness(0.8)', { duration: 700 }),
+        narra.say`${isZh ? '滤镜也可以挂在相机上，这时它作用于全部画面。' : 'A filter can sit on the camera instead, where it applies to everything on screen.'}`,
+        story.camera.resetCamera(700),
+        Control.jump(CAMERA_MENU),
+      ])
+      .choose(isZh ? '返回上一级' : 'Back to the topics', [Control.jump(TOPICS)]),
+
+    Control.label(TOPIC_FLOW),
+    narra.say`${isZh ? '场景流程是故事在场景之间和场景内部的移动方式。' : 'Scene flow is how the story moves between scenes, and inside one.'}`,
+
+    Control.label(FLOW_MENU),
+
+    Menu.prompt(isZh ? '场景流程。' : 'Scene flow.')
+      .choose(isZh ? '场景转场' : 'A transition between scenes', [
         narra.say`${isZh ? '转场作用于整个舞台，立绘、背景与文本框都参与其中。' : 'A transition plays across the whole stage, and the sprite, the background and the text box all take part.'}`,
         hall.jumpTo(room, {
           transition: new Reveal({ duration: 900, pattern: Mask.iris() }),
           returnable: true,
         }),
         narra.say`${isZh ? '另一个场景播放期间，走廊保持原有状态。' : 'The corridor kept its state for as long as the other scene played.'}`,
-        Control.jump(MENU_LABEL),
+        Control.jump(FLOW_MENU),
       ])
-      .choose(isZh ? '场景调用' : 'Scene call', [
+      .choose(isZh ? '场景调用' : 'A scene call', [
         narra.say`${isZh ? '以 returnable 跳转会挂起当前场景，目标场景结束后继续执行。' : 'A jump made with returnable suspends this scene, and execution continues once the target scene ends.'}`,
         hall.jumpTo(aside, { transition: new Dissolve({ duration: 600 }), returnable: true }),
         narra.say`${isZh ? '执行从跳转之后的一行继续。' : 'Execution resumed at the line after the jump.'}`,
-        Control.jump(MENU_LABEL),
-    ]),
+        Control.jump(FLOW_MENU),
+      ])
+      .choose(isZh ? '标签跳转' : 'Jumping to a label', [
+        narra.say`${isZh ? '这份演示的每一次返回都是一个标签跳转。' : 'Every return in this tour is a jump to a label.'}`,
+        narra.say`${isZh ? '标签在场景内命名，目标在构建故事时解析，名字写错过不了构建。' : 'Labels are named inside a scene and resolved when the story is built, so a name that is wrong fails the build.'}`,
+        Control.jump(FLOW_MENU),
+      ])
+      .choose(isZh ? '返回上一级' : 'Back to the topics', [Control.jump(TOPICS)]),
   ]);
 
   room.action([

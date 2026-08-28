@@ -1,6 +1,6 @@
 # Demo assets — provenance and licences
 
-The embedded player on the home page draws these four files. They are the same
+The embedded player on the home page draws these five files. They are the same
 assets Studio's skeleton template ships, so the demo shows a new project as it
 actually looks rather than art made only for the website. Studio's own
 `resources/templates/skeleton/CREDITS.md` is the fuller record; this file exists
@@ -13,6 +13,7 @@ because serving them here is redistribution too.
 | `demo-hall.webp` | [OpenGameArt · Classroom 002](https://opengameart.org/content/classroom-002) (`lockers_0.jpg`) | midnight68 / MedicineStorm |
 | `demo-room.webp` | same submission (`classroom4.png`) | midnight68 / MedicineStorm |
 | `demo-class.webp` | same submission (`Classroom 002`) | midnight68 / MedicineStorm |
+| `demo-wash.webp` | [OpenGameArt · Bathroom01](https://opengameart.org/content/bathroom01) | midnight68 / MedicineStorm |
 
 Each is cropped to 16:9 and encoded to WebP, so a background fills the demo's
 1280×720 stage instead of letterboxing it. CC0 requires no attribution; the
