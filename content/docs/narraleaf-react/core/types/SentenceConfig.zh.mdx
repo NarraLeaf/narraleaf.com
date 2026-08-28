@@ -3,7 +3,6 @@ title: "SentenceConfig"
 ---
 ```ts
 type SentenceConfig = {
-    pause?: boolean | number;
     voice: Sound | null;
     character: Character | null;
     voiceId: string | number | null;
@@ -18,10 +17,6 @@ type SentenceConfig = {
 面向作者的局部配置见 [SentenceUserConfig](/zh/docs/narraleaf-react/core/types/SentenceUserConfig)
 
 `Font` 见 [Font](/zh/docs/narraleaf-react/core/types/Font)
-
-## pause
-
-句后是否停顿及停顿长短，可为 `boolean` 或时长
 
 ## voice
 

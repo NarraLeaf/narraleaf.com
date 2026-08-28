@@ -6,7 +6,6 @@ type WordConfig = {
     className: string;
     ruby: string;
     color: Color;
-    pause: boolean;
     cps?: number;
     emphasis?: WordEmphasis;
     fontScale?: number;
@@ -51,10 +50,6 @@ new Word({
     cps: 10, // 10 characters per second
 });
 ```
-
-## pause
-
-Whether the word is a pause rather than text. Set by [`Word.pause`](/docs/narraleaf-react/core/elements/character/word); a word written by hand does not set it.
 
 ## emphasis
 

@@ -6,7 +6,6 @@ type WordConfig = {
     className: string;
     ruby: string;
     color: Color;
-    pause: boolean;
     cps?: number;
     emphasis?: WordEmphasis;
     fontScale?: number;
@@ -51,10 +50,6 @@ new Word({
     cps: 10, // 10 characters per second
 });
 ```
-
-## pause
-
-这个词是不是一段停顿而非文字。由 [`Word.pause`](/zh/docs/narraleaf-react/core/elements/character/word) 置位，手写的词不会设它。
 
 ## emphasis
 

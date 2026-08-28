@@ -67,10 +67,9 @@ alice.say`It is ${currentTime}.`;
 
 ## Per-line settings
 
-Pass a second argument to control a single line. `pause: false` continues without waiting for a click; `metadata` is available to custom dialog UI through `useDialog()`.
+Pass a second argument to control a single line. `metadata` is available to custom dialog UI through `useDialog()`.
 
 ```ts
-alice.say("This line continues immediately.", { pause: false });
 alice.say("Quest started.", {
     metadata: { event: "quest-start", questId: "find-key" },
 });

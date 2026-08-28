@@ -67,10 +67,9 @@ alice.say`现在是 ${currentTime}。`;
 
 ## 单句配置
 
-`say()` 的第二个参数只影响当前一句。`pause: false` 会直接继续执行；`metadata` 可由自定义对话框中的 `useDialog()` 读取
+`say()` 的第二个参数只影响当前一句。`metadata` 可由自定义对话框中的 `useDialog()` 读取
 
 ```ts
-alice.say("这句话显示后直接继续。", { pause: false });
 alice.say("任务开始。", {
     metadata: { event: "quest-start", questId: "find-key" },
 });
