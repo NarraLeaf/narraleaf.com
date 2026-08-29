@@ -70,8 +70,12 @@ Three things now reach the people who will use the server: the address (`nlteam:
 
 ## Without Docker
 
+The package is not published yet. Build `nlteam` from a checkout:
+
 ```sh
-npm i @narraleaf/team -g
+git clone https://github.com/NarraLeaf/NarraLeaf-Team.git
+cd NarraLeaf-Team
+npm install && npm run build && npm link
 nlteam up --root /srv/team --hostname team.example.com
 ```
 

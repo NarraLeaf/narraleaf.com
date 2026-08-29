@@ -70,8 +70,12 @@ docker compose logs team
 
 ## 不使用 Docker
 
+该包尚未发布。请从检出构建 `nlteam`：
+
 ```sh
-npm i @narraleaf/team -g
+git clone https://github.com/NarraLeaf/NarraLeaf-Team.git
+cd NarraLeaf-Team
+npm install && npm run build && npm link
 nlteam up --root /srv/team --hostname team.example.com
 ```
 
