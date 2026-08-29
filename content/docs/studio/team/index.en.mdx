@@ -1,0 +1,46 @@
+---
+title: NarraLeaf Team
+description: A self-hosted server that holds the projects a team works on together.
+---
+
+NarraLeaf Team is a server an organization runs itself. It holds the projects a team works on together, issues the identity Studio signs in with, and decides who may reach each project. There is no hosted service and no account to register.
+
+Studio is complete without one. A Team server is what a team adds when more than one person works on the same project.
+
+<Callout type="warning">
+NarraLeaf Team is in early development. Real-time collaboration is not finished, and the protocol between Studio and a server can change between releases.
+</Callout>
+
+## What a server holds
+
+| Content | Description |
+| --- | --- |
+| Projects | Each project is a repository on the server. Studio lists them, creates them, and copies them to a machine. |
+| Accounts | One account per person. An operator creates them, and Studio signs in with one. |
+| Access decisions | Every access to a project is checked against the account that asked, and the outcome is recorded. |
+| Comments | Notes anchored to a scene, a row, or an asset. |
+| Presence | Who else has a project open. |
+
+The work itself lives in the repositories. A server never reads a project's document formats.
+
+## What a team gets
+
+- **One place the projects live.** An author is given one address and an account. Studio asks the server for everything else.
+- **Access that can be withdrawn.** Disabling an account, or refusing the tokens it holds, takes effect on that account's next request.
+- **A record of who reached what.** Every allowed and refused access is kept and can be read back.
+- **Comments in the project.** A note is attached to the scene or the row it is about, and travels with the project rather than with a chat log.
+
+## What it is not
+
+A Team server is not a build service, not a chat system, and not a general backend. It does not run builds, and it does not store anything about a project beyond the repository, the registry row, and the comments left on it.
+
+Access is per account, not per project. Every account on a server reaches every project on it. A project that one person must not see belongs on a second server.
+
+## Next
+
+<Cards>
+  <Card title="Deploying a server" href="/docs/studio/team/deploy" />
+  <Card title="Connecting Studio" href="/docs/studio/team/connect" />
+  <Card title="Accounts and access" href="/docs/studio/team/accounts" />
+  <Card title="What a server protects" href="/docs/studio/team/security" />
+</Cards>

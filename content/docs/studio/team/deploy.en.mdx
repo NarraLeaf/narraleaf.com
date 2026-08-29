@@ -1,0 +1,124 @@
+---
+title: Deploying a server
+description: Running a NarraLeaf Team server in a container or from npm, and the two ports it needs.
+---
+
+A NarraLeaf Team server runs on one machine and keeps everything it owns under one directory. The container image is the shorter path and carries everything it needs.
+
+## With Docker
+
+Write a `compose.yaml`. The one value to change is the name people will reach the server by.
+
+```yaml
+services:
+  team:
+    image: ghcr.io/narraleaf/team:develop
+    restart: unless-stopped
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+    ports:
+      - "41402:41402"
+      - "41337:41337/tcp"
+      - "41337:41337/udp"
+    volumes:
+      - team:/var/lib/nlteam
+volumes:
+  team:
+```
+
+<Steps>
+
+<Step>
+
+### Start the server
+
+```sh
+docker compose up -d
+```
+
+Nothing is downloaded on first start. The image carries the version-control server already unpacked.
+
+</Step>
+
+<Step>
+
+### Create the first account
+
+```sh
+docker compose exec -T team nlteam init ada < admin-password
+```
+
+This runs once. The command creates the first account, puts it in the `admin` group, and is refused from the moment the server has an account. It reads the password from a file rather than from an argument, which would appear in the process list and in the shell history.
+
+</Step>
+
+<Step>
+
+### Read the fingerprint
+
+```sh
+docker compose logs team
+```
+
+The first lines carry the server's certificate fingerprint. Each person who connects compares it once. Send it over something other than the connection they are about to trust.
+
+</Step>
+
+</Steps>
+
+Three things now reach the people who will use the server: the address (`nlteam://team.example.com:41402`), an account, and that fingerprint. Everything else is done from Studio.
+
+## Without Docker
+
+```sh
+npm i @narraleaf/team -g
+nlteam up --root /srv/team --hostname team.example.com
+```
+
+`up` installs the version-control server, configures it, starts it, and runs until it is interrupted. Run the rest in a second terminal.
+
+```sh
+nlteam trust --root /srv/team
+printf '%s' 'the password' | nlteam init ada --root /srv/team
+```
+
+Node.js 24 or newer is required, on 64-bit Linux, Windows, or Apple silicon.
+
+## Ports
+
+| Port | Reachable from an author's machine | Carries |
+| --- | --- | --- |
+| 41402 | Yes | Sign-in, and the session Studio holds |
+| 41337 | Yes, TCP and UDP | Project data |
+| 41339 | No | The version-control server's health check |
+| 41400 | No | The server's signing keys |
+
+Publish both halves of 41337. A connection that settles on QUIC uses UDP, and a deployment that opens TCP alone leaves such a client waiting.
+
+The other two listeners are bound to the loopback and are unreachable from another machine whatever a firewall allows.
+
+## A certificate you already hold
+
+An organization that holds a certificate for the name people use gives it to the server, and nobody compares a fingerprint: the issuer is already trusted on each machine.
+
+```yaml
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+      NLTEAM_TLS_CERT: /etc/nlteam/tls/fullchain.pem
+      NLTEAM_TLS_KEY: /etc/nlteam/tls/privkey.pem
+    volumes:
+      - team:/var/lib/nlteam
+      - ./tls:/etc/nlteam/tls:ro
+```
+
+Both values or neither, and the key without a passphrase. Renewal is a restart.
+
+## Backups
+
+`/var/lib/nlteam`, or the directory `--root` names, holds the accounts, the projects, the signing keys, the certificate authority, and the repository store. Back up that directory and the server is backed up.
+
+Losing it means every machine that trusted this server has to be told to trust its replacement.
+
+## Full reference
+
+The repository's [deployment documentation](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md) covers every command and every setting.

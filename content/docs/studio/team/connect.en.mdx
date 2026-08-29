@@ -1,0 +1,76 @@
+---
+title: Connecting Studio
+description: Adding a NarraLeaf Team server in Studio, trusting its certificate, and getting a project.
+---
+
+An author is given three things: the server's address, an account, and the server's certificate fingerprint. Everything else Studio asks the server for.
+
+## Adding a server
+
+<Steps>
+
+<Step>
+
+### Open Team in the launcher
+
+**Team** is one of the entries in the launcher. Servers this installation is signed in to are listed there.
+
+</Step>
+
+<Step>
+
+### Add a server
+
+**Add a server** opens the dialog. **Server address** takes the address the operator gave, in the form `nlteam://team.example.com:41402`.
+
+</Step>
+
+<Step>
+
+### Trust the certificate
+
+A server issues its own certificate unless the organization supplied one. Studio reports **The server at that address was not trusted.** and offers to trust it.
+
+Compare the fingerprint Studio shows with the one the operator sent, then accept it. Studio adds the authority to this account's trust store, and the operating system may ask for a password.
+
+</Step>
+
+<Step>
+
+### Sign in
+
+**Sign in** takes the username and password of an account on that server.
+
+</Step>
+
+</Steps>
+
+The server then appears under **Team** with its projects.
+
+## Getting a project
+
+Open the server under **Team** and the **Projects** tab lists what it holds. Each project's page carries one action:
+
+- **Get** copies the project to this machine. Studio asks where the copy goes.
+- **Open** opens a project this machine already holds. A project already on this machine is marked **On this machine**.
+
+A project taken this way keeps its connection to the server, so versions recorded in it are sent there.
+
+## Sending a project to a server
+
+A project created on this machine is sent to a server from the version rail in the workspace. A project created for a server is published as it is made, on the wizard's last step.
+
+## Signing out
+
+The **NarraLeaf Team** section of Studio's settings lists the servers this installation is signed in to and the account used for each. Removing a server there forgets its token and its authority. Projects already on this machine are untouched.
+
+## When a server does not answer
+
+| What Studio reports | What it means |
+| --- | --- |
+| This server did not answer. | The address is wrong, or 41402 is not reachable from this machine. |
+| The server at that address is not a NarraLeaf Team server. | Something answered, and it was not a Team server. |
+| This server refused the account signed in here. | The account was disabled, or its tokens were refused. Ask an operator. |
+| This server cannot be asked from this installation. | The stored token is gone. Add the server again. |
+
+A project that opens but cannot send a version is usually a server whose address is not in the token. An operator checks that with `nlteam status` on the server.

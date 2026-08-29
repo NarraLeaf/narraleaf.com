@@ -1,0 +1,124 @@
+---
+title: 部署服务器
+description: 用容器或 npm 运行一台 NarraLeaf Team 服务器，以及它需要的两个端口
+---
+
+NarraLeaf Team 服务器运行在一台机器上，它拥有的一切都保存在一个目录下。容器镜像是更短的一条路，需要的东西都已经装在里面
+
+## 使用 Docker
+
+写一个 `compose.yaml`。唯一需要改动的值是别人访问这台服务器时使用的名字
+
+```yaml
+services:
+  team:
+    image: ghcr.io/narraleaf/team:develop
+    restart: unless-stopped
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+    ports:
+      - "41402:41402"
+      - "41337:41337/tcp"
+      - "41337:41337/udp"
+    volumes:
+      - team:/var/lib/nlteam
+volumes:
+  team:
+```
+
+<Steps>
+
+<Step>
+
+### 启动服务器
+
+```sh
+docker compose up -d
+```
+
+首次启动不会下载任何东西，版本控制服务器已经解包在镜像里
+
+</Step>
+
+<Step>
+
+### 创建第一个账号
+
+```sh
+docker compose exec -T team nlteam init ada < admin-password
+```
+
+这条命令只运行一次。它创建第一个账号并把它放进 `admin` 组，此后只要服务器上已有账号就会被拒绝。口令从文件读取而不是写在参数里，写在参数里会出现在进程列表和 shell 历史中
+
+</Step>
+
+<Step>
+
+### 读取指纹
+
+```sh
+docker compose logs team
+```
+
+开头几行里有服务器证书的指纹。每个连接的人都要核对一次它。请通过即将建立的这条连接之外的渠道发送它
+
+</Step>
+
+</Steps>
+
+接下来要交给使用者的有三样：地址（`nlteam://team.example.com:41402`）、一个账号，以及那个指纹。其余的都在 Studio 里完成
+
+## 不使用 Docker
+
+```sh
+npm i @narraleaf/team -g
+nlteam up --root /srv/team --hostname team.example.com
+```
+
+`up` 会安装版本控制服务器、写好配置、启动它，并一直运行到被中断为止。其余命令在第二个终端里运行
+
+```sh
+nlteam trust --root /srv/team
+printf '%s' 'the password' | nlteam init ada --root /srv/team
+```
+
+需要 Node.js 24 或更新版本，运行在 64 位 Linux、Windows 或 Apple 芯片上
+
+## 端口
+
+| 端口 | 作者的机器能否访问 | 承载 |
+| --- | --- | --- |
+| 41402 | 能 | 登录，以及 Studio 保持的会话 |
+| 41337 | 能，TCP 与 UDP | 项目数据 |
+| 41339 | 否 | 版本控制服务器的健康检查 |
+| 41400 | 否 | 服务器的签名密钥 |
+
+41337 的两半都要发布。连接协商到 QUIC 时走 UDP，只开放 TCP 的部署会让这样的客户端一直等待
+
+另外两个监听器绑定在环回地址上，无论防火墙如何配置，其他机器都无法访问
+
+## 使用自有证书
+
+如果团队已经持有对应名字的证书，把它交给服务器，就不需要任何人核对指纹：签发者在每台机器上都已受信任
+
+```yaml
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+      NLTEAM_TLS_CERT: /etc/nlteam/tls/fullchain.pem
+      NLTEAM_TLS_KEY: /etc/nlteam/tls/privkey.pem
+    volumes:
+      - team:/var/lib/nlteam
+      - ./tls:/etc/nlteam/tls:ro
+```
+
+两个值同时给出或都不给出，且私钥不带口令。更换证书后重启即可
+
+## 备份
+
+`/var/lib/nlteam`，或者 `--root` 指定的目录，保存着账号、项目、签名密钥、证书颁发机构和仓库存储。备份这个目录就是备份了这台服务器
+
+丢失它意味着所有信任过这台服务器的机器都要重新信任它的替代者
+
+## 完整参考
+
+仓库中的[部署文档](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md)覆盖了每一条命令和每一项设置

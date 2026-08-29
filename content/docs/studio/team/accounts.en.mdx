@@ -1,0 +1,80 @@
+---
+title: Accounts and access
+description: Creating accounts on a NarraLeaf Team server, handing out access, and taking it back.
+---
+
+Every account on a NarraLeaf Team server is created by an operator. There is no registration and no invitation.
+
+## Creating an account
+
+An operator with a terminal on the server:
+
+```sh
+printf '%s' 'their password' | nlteam user create bob --root /srv/team
+```
+
+An operator from any machine they have signed in from:
+
+```sh
+nlteam login team.example.com:41402 ada < password.txt
+printf '%s' 'their password' | nlteam user create bob --server team.example.com:41402
+```
+
+What reaches the person is the server's address, the username, and the password. Studio exchanges the password for a token when they sign in.
+
+An operator who would rather not send a password sends a token instead:
+
+```sh
+nlteam token mint bob --server team.example.com:41402
+```
+
+## Operators
+
+The `admin` group is who may manage the accounts, the projects, and the settings, and add somebody else to the group. `nlteam init` puts the first account in it.
+
+```sh
+nlteam user grant-admin bob --server team.example.com:41402
+nlteam user revoke-admin bob --server team.example.com:41402
+```
+
+Membership is read on every request, so removing somebody from the group takes effect on their next one.
+
+## Taking access away
+
+Two commands, and they are not the same one.
+
+```sh
+nlteam user disable ada --server team.example.com:41402
+nlteam user revoke-tokens ada --server team.example.com:41402
+```
+
+**`disable`** stops the account. Nothing it holds works, and it cannot sign in again.
+
+**`revoke-tokens`** refuses every token already issued to the account and changes nothing else. The person signs in again and is given one that works. It is the command for a token that has been exposed.
+
+Both take effect on the account's next request rather than when its token would have expired.
+
+<Callout type="warning">
+A connection that is already transferring project data is checked by the version-control server rather than by Team, and can continue until the token it was opened with expires, which is fifteen minutes. Ending that sooner means retiring the signing key, which refuses every account's tokens.
+</Callout>
+
+## What an account reaches
+
+Every account on a server reaches every project on it. There is no per-project access to grant or remove.
+
+A project one person must not see belongs on a second server. The same rule means every account can read the username, display name, and recorded email address of every other account on the server.
+
+## Listing what is there
+
+```sh
+nlteam user list --server team.example.com:41402
+nlteam project list --server team.example.com:41402
+nlteam status --server team.example.com:41402
+nlteam audit --refused --server team.example.com:41402
+```
+
+`audit` reads the record of access decisions, newest first. `--refused` prints refusals only, and an empty listing means nothing on record was refused.
+
+## Full reference
+
+The repository's [deployment documentation](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md) covers every command.

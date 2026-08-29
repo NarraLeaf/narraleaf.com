@@ -1,0 +1,80 @@
+---
+title: 账号与访问权
+description: 在 NarraLeaf Team 服务器上创建账号、分发访问权并收回它
+---
+
+NarraLeaf Team 服务器上的每个账号都由运维创建。没有注册，也没有邀请
+
+## 创建账号
+
+运维在服务器上的终端里：
+
+```sh
+printf '%s' 'their password' | nlteam user create bob --root /srv/team
+```
+
+运维在任何一台已登录的机器上：
+
+```sh
+nlteam login team.example.com:41402 ada < password.txt
+printf '%s' 'their password' | nlteam user create bob --server team.example.com:41402
+```
+
+交给使用者的是服务器地址、用户名和口令。登录时 Studio 会用口令换取令牌
+
+不想发送口令的运维可以改为发送令牌：
+
+```sh
+nlteam token mint bob --server team.example.com:41402
+```
+
+## 运维账号
+
+`admin` 组决定谁可以管理账号、项目和设置，以及把别人加入该组。`nlteam init` 会把第一个账号放进去
+
+```sh
+nlteam user grant-admin bob --server team.example.com:41402
+nlteam user revoke-admin bob --server team.example.com:41402
+```
+
+组成员身份在每次请求时读取，因此把某人移出该组会在他的下一次请求时生效
+
+## 收回访问权
+
+两条命令，它们不是同一件事
+
+```sh
+nlteam user disable ada --server team.example.com:41402
+nlteam user revoke-tokens ada --server team.example.com:41402
+```
+
+**`disable`** 停用账号。它持有的一切都不再有效，也无法再次登录
+
+**`revoke-tokens`** 拒绝已经签发给该账号的每一个令牌，其余不变。这个人重新登录后会拿到一个可用的令牌。令牌泄露时用这一条
+
+两者都在该账号的下一次请求时生效，而不是等到令牌过期
+
+<Callout type="warning">
+已经在传输项目数据的连接由版本控制服务器核对，而不是由 Team 核对，它可以持续到打开它时使用的令牌过期，也就是十五分钟。要更早地结束它，需要退休签名密钥，而那会拒绝所有账号的令牌
+</Callout>
+
+## 一个账号能访问什么
+
+服务器上的每个账号都能访问它上面的每一个项目。没有按项目授予或收回的访问权
+
+不希望某个人看到的项目应当放在另一台服务器上。同一条规则也意味着每个账号都能读到服务器上其他账号的用户名、显示名和已登记的邮箱地址
+
+## 查看服务器上有什么
+
+```sh
+nlteam user list --server team.example.com:41402
+nlteam project list --server team.example.com:41402
+nlteam status --server team.example.com:41402
+nlteam audit --refused --server team.example.com:41402
+```
+
+`audit` 读取访问决策的记录，最新的在前。`--refused` 只打印被拒绝的记录，列表为空意味着记录中没有任何一次拒绝
+
+## 完整参考
+
+仓库中的[部署文档](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md)覆盖了每一条命令

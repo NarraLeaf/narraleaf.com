@@ -1,0 +1,45 @@
+---
+title: What a server protects
+description: What a NarraLeaf Team server protects, and the two decisions to plan a deployment around.
+---
+
+A NarraLeaf Team server holds accounts and decides who reaches which project. This page is what a deployment is planned around. The repository's [security documentation](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/security.md) carries the rest, including the accepted risks.
+
+## Two decisions to plan around
+
+**Every account on a server reaches every project on it.** There is no per-project access. A project one person must not see belongs on a second server. The way to stop somebody is to stop the account.
+
+**Any account may take any project off the list.** The repository and every version in it are untouched, and the project is recovered by recording it again under the same repository id. What is lost is the comments left on it. Read the repository id from `nlteam project list` before taking a project off the list, because nothing left on the list holds it afterwards.
+
+## What the connection rests on
+
+Everything Studio says to a server arrives on one port behind one certificate. A server issues that certificate itself unless the organization supplied one, and the fingerprint is compared once, by a person, over a channel other than the connection being trusted.
+
+After that first comparison, Studio keeps the authority it was shown and refuses a server that later presents a different one.
+
+An organization that holds a certificate for the name people use removes the comparison entirely. See [Deploying a server](/docs/studio/team/deploy).
+
+## What a token proves
+
+Studio exchanges a password for a token and presents it on every request. The server checks, each time:
+
+- The signature, against a key it publishes.
+- The issuer, the audience, and the expiry.
+- Whether the account is still there and not disabled.
+- Whether the token was issued before that account's access was revoked.
+
+A thirty-day token is therefore not thirty days in which a revoked account keeps working.
+
+## Who can do what
+
+| Holder | Reaches |
+| --- | --- |
+| An account | Every project on the server, and the comments on them |
+| An operator | The accounts, the settings, the signing keys, and the access record |
+| Whoever holds the server's directory | Everything, including the keys that issue tokens for any account |
+
+The last row is not a gap. A server is recovered from its own directory, which is the only place it can be recovered from, so that directory is what a deployment protects with the permissions of the machine it is on.
+
+## Reporting a vulnerability
+
+Report privately through [GitHub's security advisory form](https://github.com/NarraLeaf/NarraLeaf-Team/security/advisories/new). Do not open a public issue for a vulnerability.
