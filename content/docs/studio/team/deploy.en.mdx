@@ -44,29 +44,35 @@ Nothing is downloaded on first start. The image carries the version-control serv
 
 ### Create the first account
 
+Write the password to a file first, holding that password and nothing else. It must be ten characters or more.
+
 ```sh
+printf '%s' 'a password of your own' > admin-password
 docker compose exec -T team nlteam init ada < admin-password
+rm admin-password
 ```
 
-This runs once. The command creates the first account, puts it in the `admin` group, and is refused from the moment the server has an account. It reads the password from a file rather than from an argument, which would appear in the process list and in the shell history.
+`init` runs once. It creates the first account, puts it in the `admin` group, and is refused from the moment the server has an account. It reads the password from a file rather than from an argument, which would appear in the process list and in the shell history.
 
 </Step>
 
 <Step>
 
-### Read the fingerprint
+### Read the address and the fingerprint
 
 ```sh
-docker compose logs team
+docker compose exec team nlteam status
 ```
 
-The first lines carry the server's certificate fingerprint. Each person who connects compares it once. Send it over something other than the connection they are about to trust.
+The `sign in` line carries the address, and the line below it the server's certificate fingerprint. Each person who connects compares that fingerprint once, so send it over something other than the connection they are about to trust.
 
 </Step>
 
 </Steps>
 
-Three things now reach the people who will use the server: the address (`nlteam://team.example.com:41402`), an account, and that fingerprint. Everything else is done from Studio.
+Three things now reach the people who will use the server: the address, an account, and that fingerprint. Everything else is done from Studio.
+
+The address is a host and a port, written `nlteam://team.example.com:41402`. `status` prints it as an `https://` URL, which is the endpoint Studio signs in at rather than the address to hand out; Studio does not accept that spelling.
 
 ## Without Docker
 
@@ -82,8 +88,8 @@ nlteam up --root /srv/team --hostname team.example.com
 `up` installs the version-control server, configures it, starts it, and runs until it is interrupted. Run the rest in a second terminal.
 
 ```sh
-nlteam trust --root /srv/team
-printf '%s' 'the password' | nlteam init ada --root /srv/team
+printf '%s' 'a password of your own' | nlteam init ada --root /srv/team
+nlteam status --root /srv/team
 ```
 
 Node.js 24 or newer is required, on 64-bit Linux, Windows, or Apple silicon.

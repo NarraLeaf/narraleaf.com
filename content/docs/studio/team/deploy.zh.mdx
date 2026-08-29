@@ -44,29 +44,35 @@ docker compose up -d
 
 ### 创建第一个账号
 
+先把口令写进一个文件，文件里只有这个口令。它至少要有十个字符。
+
 ```sh
+printf '%s' 'a password of your own' > admin-password
 docker compose exec -T team nlteam init ada < admin-password
+rm admin-password
 ```
 
-这条命令只运行一次。它创建第一个账号并把它放进 `admin` 组，此后只要服务器上已有账号就会被拒绝。口令从文件读取而不是写在参数里，写在参数里会出现在进程列表和 shell 历史中
+`init` 只运行一次。它创建第一个账号并把它放进 `admin` 组，此后只要服务器上已有账号就会被拒绝。口令从文件读取而不是写在参数里，写在参数里会出现在进程列表和 shell 历史中
 
 </Step>
 
 <Step>
 
-### 读取指纹
+### 读取地址与指纹
 
 ```sh
-docker compose logs team
+docker compose exec team nlteam status
 ```
 
-开头几行里有服务器证书的指纹。每个连接的人都要核对一次它。请通过即将建立的这条连接之外的渠道发送它
+`sign in` 那一行是地址，它下面一行是服务器证书的指纹。每个连接的人都要核对一次这个指纹，因此请通过即将建立的这条连接之外的渠道发送它
 
 </Step>
 
 </Steps>
 
-接下来要交给使用者的有三样：地址（`nlteam://team.example.com:41402`）、一个账号，以及那个指纹。其余的都在 Studio 里完成
+接下来要交给使用者的有三样：地址、一个账号，以及那个指纹。其余的都在 Studio 里完成
+
+地址是一个主机名加端口，写作 `nlteam://team.example.com:41402`。`status` 把它印成 `https://` 开头的 URL，那是 Studio 登录用的端点而不是要发出去的地址，Studio 不接受那种写法
 
 ## 不使用 Docker
 
@@ -82,8 +88,8 @@ nlteam up --root /srv/team --hostname team.example.com
 `up` 会安装版本控制服务器、写好配置、启动它，并一直运行到被中断为止。其余命令在第二个终端里运行
 
 ```sh
-nlteam trust --root /srv/team
-printf '%s' 'the password' | nlteam init ada --root /srv/team
+printf '%s' 'a password of your own' | nlteam init ada --root /srv/team
+nlteam status --root /srv/team
 ```
 
 需要 Node.js 24 或更新版本，运行在 64 位 Linux、Windows 或 Apple 芯片上
