@@ -1,0 +1,245 @@
+---
+title: Button、Container、Switch、Frame
+description: ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、そして Frame が表示する Page——すべて接続された要素に対して
+---
+
+4つの小さなプロパティ面——Button のラベルとカーソル、Container のクリッピング、Switch のチェック状態、そして Frame が表示する Page。すべての Element ノードに共通する規則は [Element](/ja/docs/studio/blueprint/nodes/element) にあります。
+
+## Button
+
+Button ノードは `element:nl.button` ピンを取ります。Self 形態は [Button](/ja/docs/studio/blueprint/nodes/button) にあります。
+
+### Get Button Label
+
+`blueprint.element.button.getLabel` · Pure
+
+ボタンのラベルテキストを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | out · data | `string` |  |
+
+### Set Button Label
+
+`blueprint.element.button.setLabel` · Latent
+
+ボタンのラベルテキストを設定します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `label` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Set Button Pointer
+
+`blueprint.element.button.setPointer` · Latent
+
+ボタンのデフォルトカーソルを選びます。データピンはありません——カードはボタンの Appearance インスペクタと同じアイコン付きドロップダウンを備えています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+**カード上のフィールド**
+
+| フィールド | 説明 |
+| --- | --- |
+| `cursor` | `Auto`、`Default`、`Pointer`、`Text`、`Move`、`Grab`、`Grabbing`、`Crosshair`、`Help`、`Wait`、`Progress`、`Not allowed`。`Auto` は実行時に、ボタンがクリック可能かどうかに応じてクリックカーソルか通常のデフォルトカーソルへ解決されます。無効化されたボタンはどちらの場合でも `not-allowed` として描画されます。 |
+
+### Get Button Variant
+
+`blueprint.element.button.getVariant` · Pure
+
+古い id ベースの読み取り。すでにこれを含むグラフが動き続けるよう登録は残っているが、パレットには提供されません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Button Variant
+
+`blueprint.element.button.setVariant` · Latent
+
+古い id ベースの書き込みで、同様に隠されています。`variantId` ピンはなく——保存されたパラメータを読むだけで——作者側にはもうそのパラメータを埋める手段がありません。名前で Variant を選ぶ `Set Element Variant` を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+
+## Container
+
+Container ノードは `element:nl.container` ピンを取ります。Self 形態は [Container](/ja/docs/studio/blueprint/nodes/container) にあります。
+
+### Get Container Clip Content
+
+`blueprint.element.container.getClipContent` · Pure
+
+コンテナがはみ出したコンテンツをクリップするかどうかを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | out · data | `boolean` |  |
+
+### Set Container Clip Content
+
+`blueprint.element.container.setClipContent` · Latent
+
+コンテナがはみ出したコンテンツをクリップするかどうかを設定します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `clipContent` | in · data | `boolean` |  |
+
+### Get Container Variant
+
+`blueprint.element.container.getVariant` · Pure
+
+古い id ベースの読み取り。Button の対と同じ理由でパレットから隠されています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `variantId` | out · data | `string` |  |
+
+### Set Container Variant
+
+`blueprint.element.container.setVariant` · Latent
+
+古い id ベースの書き込み。パレットから隠されています。`Set Element Variant` を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+
+## Switch
+
+Switch ノードは `element:nl.switch` ピンを取ります。Self 形態は [Switch](/ja/docs/studio/blueprint/nodes/switch) にあります。Switch の `visible` / `enabled` の対は、同じファミリーの他のものと一緒に [Displayable](/ja/docs/studio/blueprint/nodes/element/displayable) にあります。
+
+これらのどれも Switch の `Changed`、`Turned On`、`Turned Off` ヘッドを発火させません——それらはプレイヤーが切り替えたときのためのものです。自分が書き込む Switch を自分でも監視しているグラフが、自分自身を発火させることはありません。
+
+### Get Switch Checked
+
+`blueprint.element.switch.getChecked` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` |  |
+
+### Set Switch Checked
+
+`blueprint.element.switch.setChecked` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | in · data | `boolean` | カード上のリテラルを受け付けます。 |
+
+### Turn Switch On
+
+`blueprint.element.switch.turnOn` · Latent
+
+`true` を渡す `Set Switch Checked` を、よくある場合が一語で読めるよう専用のカードにしたものです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Turn Switch Off
+
+`blueprint.element.switch.turnOff` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+
+### Toggle Switch
+
+`blueprint.element.switch.toggle` · Latent
+
+状態を反転させ、結果として何になったかを返します。そのため後続の分岐は2度目の読み取りを必要としません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `switch` | in · data | `element:nl.switch` |  |
+| `checked` | out · data | `boolean` | 新しい状態。 |
+
+## Frame
+
+Frame ノードは `element:nl.frame` ピンを取り、その Frame 自身のターゲット Page と params に作用します。プレイヤーを別の Page に移動させるのは別の仕事であり、[App](/ja/docs/studio/blueprint/nodes/app) の `Go Page` が担います。Self 形態は [Frame](/ja/docs/studio/blueprint/nodes/frame) にあります。
+
+### Get Frame Target Page
+
+`blueprint.element.frame.getTargetPage` · Pure
+
+ターゲット Page の surface id を読み取ります。Frame が何も表示していないときは空文字列。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `targetSurfaceId` | out · data | `string` |  |
+
+### Set Frame Page
+
+`blueprint.element.frame.setTargetPage` · Latent
+
+Frame を別の Page に切り替えます。ドロップダウンは、Frame 自身が乗っている Page と、循環してネストすることになる Page を除外します——この Element 形態では、接続された `Element` ノード自身の Surface を読むことでそれを判定するため、参照が接続されるまでリストは埋まりません。切り替え後、Frame は通常の進入・退出アニメーションを再生します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `props` | in · data | `json` | Frame の `params` に書き込まれ、埋め込まれた Page にその props として渡されます。未接続の場合は現在の `params` が保持されます——これはクリアではありません。省略可能。 |
+
+**カード上のフィールド**
+
+| フィールド | 説明 |
+| --- | --- |
+| `targetSurfaceId` | 動的な選択肢:この Frame が合法的に表示できる Page 群。空の選択肢は None とラベル付けされ、ターゲットをクリアする |
+
+### Get Frame Params
+
+`blueprint.element.frame.getParams` · Pure
+
+埋め込まれた Page に渡される params オブジェクトを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | out · data | `json` |  |
+
+### Set Frame Params
+
+`blueprint.element.frame.setParams` · Latent
+
+params オブジェクトを書き込みます。オブジェクトでない値は空のオブジェクトに正規化されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `params` | in · data | `json` |  |

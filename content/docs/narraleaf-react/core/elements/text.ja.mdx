@@ -1,0 +1,109 @@
+﻿---
+title: "テキスト"
+description: ステージ上のテキストを扱う `Text` 要素。内容、フォントサイズ、フォントカラー、トランジションを扱う
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+Text を使うと、画面にテキストを表示できます。
+
+例: 
+
+```ts
+const t1 = new Text("After that, another story happened...", {
+    position: CommonPosition.Positions.Center,
+    fontColor: "#f00",
+    fontSize: 20,
+});
+
+// turn the background to black with fade effect
+// then show a text "After that, another story happened..."
+scene2.action([
+    scene2.setBackground("#000", new Dissolve({ duration: 1000 })),
+    t1.show({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+
+    // wait for 1000 milliseconds
+    Control.sleep(1000),
+
+    // hide the text
+    t1.hide({
+        duration: 1000,
+        ease: "easeInOut",
+    }),
+]);
+```
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/2
+
+- `config: Partial<ITextUserConfig>` - [ITextUserConfig](/ja/docs/narraleaf-react/core/types/ITextUserConfig)
+
+#### オーバーロード 2/2
+
+- `text: string` - テキストの内容
+- `config?: Partial<ITextUserConfig>` - [ITextUserConfig](/ja/docs/narraleaf-react/core/types/ITextUserConfig)
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+テキストの [Layer](/ja/docs/narraleaf-react/core/elements/layer) を設定します
+
+- `layer: Layer` - 使用するレイヤー
+- 戻り値: `this`
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### setText
+
+<Steps>
+<Step>
+
+- `text: string` - テキストの内容
+</Step>
+</Steps>
+
+### setFontSize
+
+<Steps>
+<Step>
+
+```ts
+// set the font size of the text to 20 pixels with transition
+element.setFontSize(20, 1000, "easeInOut");
+```
+
+- `fontSize: number` - テキストのフォントサイズ（ピクセル単位）
+- `duration?: number` - トランジションの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - トランジションのイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### setFontColor
+
+<Steps>
+<Step>
+
+```ts
+// set the font color of the text to red with transition
+element.setFontColor("#f00", 1000, "easeInOut");
+```
+
+- `color: Color` - [Color](/ja/docs/narraleaf-react/core/types/color) を参照
+- `duration?: number` - トランジションの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - トランジションのイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>

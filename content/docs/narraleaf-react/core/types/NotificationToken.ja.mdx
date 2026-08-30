@@ -1,0 +1,15 @@
+---
+title: "NotificationToken"
+description: 通知を表示した際に返されるハンドル：`cancel()` メソッドと、通知が消費されると resolve される `promise`
+---
+```ts
+interface NotificationToken extends LiveGameEventToken {
+    promise: Promise<void>;
+}
+```
+
+`LiveGameEventToken` については、[LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken) を参照してください
+
+## promise
+
+通知が消費（終了）されたときに resolve される promise です

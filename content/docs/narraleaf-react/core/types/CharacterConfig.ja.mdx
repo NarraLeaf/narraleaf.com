@@ -1,0 +1,25 @@
+---
+title: "CharacterConfig"
+description: "キャラクター単位の設定。ネームタグの色、ダイアログアバター、キャラクターに紐づく立ち絵を含む"
+---
+```ts
+type CharacterConfig = {
+    color?: Color;
+    avatar?: DialogAvatar | false;
+    portraits: (Image | CharacterPortraitConfig)[];
+};
+```
+
+`DialogAvatar`、`CharacterPortraitConfig` などの関連する型については、[Dialog](/ja/docs/narraleaf-react/player/dialog) および `narraleaf-react` がエクスポートする型を参照してください。
+
+## color
+
+ダイアログ内のキャラクターネームタグの色です。
+
+## avatar
+
+キャラクター単位のダイアログアバターです。静的な画像ソース、**リゾルバー**関数、またはキャラクター単位のアバターを無効にする `false` のいずれかを指定できます。画面外のセリフや、表示中の紐づけ立ち絵がアバターを提供しない場合に使用されます。
+
+## portraits
+
+このキャラクターに紐づくステージ立ち絵のリストです。各要素は素の [`Image`](/ja/docs/narraleaf-react/core/elements/image)、または `{ image, avatar? }` のオブジェクトのいずれかです。後者の場合、その画像が現在表示中の立ち絵であるとき、`avatar` がダイアログアバターを上書きします。

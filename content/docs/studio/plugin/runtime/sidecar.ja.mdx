@@ -1,0 +1,203 @@
+---
+title: sidecar
+description: 作者のゲームの中にネイティブの子プロセスを同梱し、改行区切りの JSON でそれと会話する
+---
+
+sidecar とは、あなたのプラグインが**作者がビルドするゲームの中に**同梱するネイティブプログラムです。これが存在するのは、プラグインのランタイムエントリがレンダラーのコードだからです — ネイティブモジュールも、動的ライブラリも、生のソケットもありません — そして、一部の統合(プラットフォーム SDK、ハードウェアブリッジ)はそもそもそこには存在し得ません。sidecar はゲームのメインプロセスの子プロセスとして動作し、stdio 経由であなたのプラグインと会話します。
+
+これはプラグインが宣言できる中で最も重いものです。プレイヤーのマシンに到達するコードだからです。これは意図的に明示的になっています — プラットフォームごとのバイナリ、必須のダイジェスト、そして作者が名前で目にするインストール権限です。
+
+<Callout type="warn">
+Web とモバイルのビルドには **sidecar が決してありません**。ブラウザには起動する処理がなく、モバイルの実行環境は WebView です。sidecar を必要とするプラグインは、それなしでも役立つ何かへと縮退しなければならず、失敗してはいけません。[常に縮退する](#degrade-always)を参照してください。
+</Callout>
+
+## 宣言する
+
+sidecar には機能文字列がありません。`contributes.sidecars` にそれを一つ宣言すること自体が**その要求**であり、`app.game.sidecar` はそのリストが空でないときにちょうど存在します。
+
+```json
+{
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": {
+    "sidecars": [
+      {
+        "id": "yourname.plugin.bridge",
+        "kind": "executable",
+        "transport": "stdio-jsonl",
+        "autostart": "onRequest",
+        "startupTimeoutMs": 5000,
+        "shutdownTimeoutMs": 3000,
+        "restart": { "maxRetries": 2, "backoffMs": 1000 },
+        "targets": {
+          "windows-x64": {
+            "entry": "bin/windows-x64/bridge.exe",
+            "include": [
+              "bin/windows-x64/bridge.exe",
+              "dep:yourname.plugin.sdk/bin/windows-x64/sdk.dll"
+            ],
+            "sha256": {
+              "bin/windows-x64/bridge.exe": "a1b2…64 hex chars"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
+```
+
+| フィールド | 既定値 | 備考 |
+| --- | --- | --- |
+| `id` | — | 他のあらゆる contributed な識別子と同様、あなたのプラグイン id を前置しなければなりません。 |
+| `kind` | `"executable"` | `"executable"` はそのバイナリを直接起動します。`"node"` はゲーム自身の Electron 上で `.js` ファイルを Node として実行します。 |
+| `transport` | `"stdio-jsonl"` | v1 で唯一受け付けられる値です。 |
+| `autostart` | `"onGameStart"` | `"onGameStart"` はウィンドウと同時に起動します。`"onRequest"` は最初の呼び出しを待ちます。 |
+| `startupTimeoutMs` | `5000` | ハンドシェイクにかけられる時間で、これを超えると sidecar は利用不可能とみなされます。 |
+| `shutdownTimeoutMs` | `3000` | シャットダウンメッセージから `SIGTERM` までの猶予期間。 |
+| `restart` | `{ maxRetries: 3, backoffMs: 1000 }` | クラッシュ時の再起動ポリシー。 |
+| `targets` | — | 少なくとも一つのプラットフォームキー。 |
+
+`entries.runtime` を持たずに sidecar を宣言することはマニフェストのエラーです — それは、何も使えないものを承認するよう作者に求めることになるからです。
+
+### プラットフォームキー
+
+キーは `<platform>-<arch>` の形式で、アドレス可能なのはデスクトップのみです。
+
+`windows-x64` · `windows-arm64` · `macos-x64` · `macos-arm64` · `macos-universal` · `linux-x64` · `linux-arm64`
+
+(`universal` は macOS でのみ受け付けられます。)何も宣言していないプラットフォームには単に sidecar が存在しません — これはサポートされた形であり、漏れではありません。ビルドはこれを警告として報告するため、作者は出荷する前にその機能がそのターゲットにないことを知ることができます。
+
+### `include` と `sha256`
+
+`include` は、そのプラットフォーム向けに同梱されるすべてを列挙します。エントリは、パッケージ相対のパスか、`dep:<buildDependencyId>/<path>` のいずれかです。後者は、宣言済みの[ビルド時依存関係](/ja/docs/studio/plugin/build-dependencies)が生成した成果物を取り込むためのもので、自分ではミラーできない再配布可能ファイルはこうしてパックに届きます。`entry` も `include` の中に現れなければなりません。
+
+`sha256` は `include` 内のパッケージ相対のエントリすべてに対して**必須**で、小文字の十六進数で書きます。これはインストール時と、パッケージ化の時にもう一度検証されるため、改ざんされたパッケージは、別のバイナリを黙って出荷するのではなく、インストールに失敗します。`dep:` のエントリは、代わりにそのビルド時依存関係自身のダイジェストで担保されます。
+
+<Callout type="info">
+`dep:` のファイルは、`dep:<id>/` の接頭辞を取り除いた include のパスに配置されます。Windows では DLL は実行ファイルの隣で探されるため、あなたの `entry` があるのと同じディレクトリにマップしてください。
+</Callout>
+
+## ランタイムエントリから使う
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `available` | `(sidecarId: string) => boolean` |
+| `start` | `(sidecarId: string) => Promise<RuntimePluginSidecarHandle>` |
+
+`start` は冪等です — 繰り返し呼び出しても同じ稼働中のハンドルが返ります。
+
+```ts
+export default defineRuntimePlugin({
+    async setup(app) {
+        const sidecar = app.game.sidecar;
+        if (!sidecar?.available("yourname.plugin.bridge")) {
+            return; // web, mobile, or a desktop target that ships no binary
+        }
+
+        const bridge = await sidecar.start("yourname.plugin.bridge");
+        const version = await bridge.request<string>("version");
+        app.game.log("info", `bridge ${version}`);
+
+        bridge.onEvent((method, params) => { /* pushed from the sidecar */ });
+        bridge.onExit(({ code, signal }) => { /* it died; degrade */ });
+    },
+});
+```
+
+### ハンドル
+
+| メソッド | シグネチャ | 備考 |
+| --- | --- | --- |
+| `request` | `<T>(method: string, params?: unknown) => Promise<T>` | 応答を待ちます。sidecar が途中で死ぬと拒否されます。sidecar が動いていなければ起動します。 |
+| `notify` | `(method: string, params?: unknown) => void` | 送りっぱなしです。これも sidecar を起動します。その起動に失敗すると notify は破棄されます。 |
+| `onEvent` | `(listener: (method: string, params: unknown) => void) => RuntimePluginCleanup` | sidecar からの一方的なメッセージ。 |
+| `onExit` | `(listener: (info: { code: number \| null; signal: string \| null }) => void) => RuntimePluginCleanup` | プロセスが終了した。 |
+| `stop` | `() => Promise<void>` | それを停止します。クラッシュとしては数えられず、再起動もスケジュールされません。 |
+
+相関 id はホストの仕事です — あなたは `request("method", params)` を呼び出して結果を得るだけです。
+
+## ワイヤープロトコル
+
+このもう一方の端はあなたが書きます。トランスポートは **stdio 上の改行区切り JSON** です。stdout 上に一行につき一つの JSON オブジェクト、UTF-8、`\n` で終端します(末尾の `\r` は許容されるため CRLF でも動作します)。**stdout がプロトコルであり、stderr は単なるログチャネルで、決してパースされません** — 診断情報はそちらに書いてください。本番ビルドでは、警告やエラーに見える stderr の行だけが保持されます。Preview ではすべてが記録されます。
+
+一行は最大 **1 MiB** です。それより長い行は警告とともに破棄され、接続を切断することはありません。stdout 上の非 JSON の行、非オブジェクトのフレーム、未知のフレーム種別も同様に記録されスキップされます。
+
+すべてのフレームは `t` という判別フィールドを持ちます。
+
+### ホスト → sidecar(あなたの stdin 上)
+
+```json
+{"t":"hello","protocol":1,"pluginId":"yourname.plugin","sidecarId":"yourname.plugin.bridge","cwd":"…","mode":"production","game":{"name":"My Game","version":"1.0.0"}}
+{"t":"req","id":1,"method":"achievements.unlock","params":{"id":"FIRST_END"}}
+{"t":"req","method":"stats.flush"}
+{"t":"bye"}
+```
+
+- `hello` は**起動の直後に**、同期的に書き出されます。あなたの最初の命令から stdin を読み始めてください — 後になってからリーダーを取り付けて、まだそこにあると期待してはいけません。`mode` は `"preview"` または `"production"` です。
+- `id` **を持つ** `req` は応答を求めています。`id` **を持たない** `req` は通知であり、応答は不要です。送る内容が何もないとき、`params` は丸ごと省略されます。
+- `bye` はシャットダウン要求で、その後に stdin の EOF が続きます。
+
+### sidecar → ホスト(あなたの stdout 上)
+
+```json
+{"t":"ready","protocol":1,"caps":["achievements","stats"]}
+{"t":"res","id":1,"result":{"ok":true}}
+{"t":"res","id":2,"error":{"message":"Steam is not running","code":"NO_STEAM"}}
+{"t":"evt","method":"overlay.shown","params":{"achievement":"FIRST_END"}}
+```
+
+- `ready` はハンドシェイクを完了させ、`startupTimeoutMs` 以内に到着しなければなりません。`protocol` を送る場合は `1` でなければなりません。`caps` は診断のために記録されますが、ホストはそれを根拠に何も制御しません。
+- `res` は `id` によって `req` に応答します。`error` オブジェクトを持つ応答はプラグインの promise を拒否させ、そうでなければ `result` がそれを解決します。プラグインが目にするのは、sidecar 名、メソッド名、そしてあなたの `message` を名指す `Error` で、`code` があれば末尾に付加されます。
+- `evt` は確認応答のないプッシュです。sidecar がホスト*に*リクエストを送る方法はありません — 認識されるのは `res` と `evt` だけです。
+
+### ライフサイクル
+
+| タイミング | ホストが行うこと |
+| --- | --- |
+| 起動 | ただちに `hello` を書き出し、ハンドシェイクのタイマーを開始する。 |
+| `startupTimeoutMs` 以内に `ready` が届かない | ただちに `SIGKILL` し、保留中の `start()` を拒否し、再起動失敗を一回分カウントする。 |
+| プロトコルの不一致 | ハンドシェイク失敗と同じ扱い。 |
+| クラッシュまたは予期しない終了 | 保留中のリクエストが拒否され、`onExit` が発火し、再起動がスケジュールされる。 |
+| 再起動 | バックオフは `backoffMs` から倍々に増え、上限は 30 秒。1 分間 ready を保った実行があればカウンタはリセットされる。 |
+| `maxRetries` を超えた | そのプロセスの残りの生存期間中、永久に利用不可能になる。`available()` は false になり、それ以降の `start()` の呼び出しはすべて拒否される。 |
+| シャットダウン | `{"t":"bye"}`、続いて stdin EOF。`shutdownTimeoutMs` 後に `SIGTERM`。さらに二秒後に `SIGKILL`。 |
+
+<Callout type="warn">
+**stdin の EOF を「今すぐ終了せよ」として扱ってください。** アプリケーションが突然終了する際、ホストには丁寧な `bye` を送る時間がなく、プロセスを問答無用で kill します。stdin が閉じた後も動き続ける sidecar は、プレイヤーのマシン上で孤児プロセスになります。
+</Callout>
+
+### プロセス環境
+
+- **cwd** は、ゲームのユーザーデータ内にある sidecar ごとの書き込み可能なディレクトリ(`sidecars/<pluginId>/<sidecarId>/`)で、あなたのために作成済みです。これはインストールディレクトリでは*ありません*。実際のインストールではそこは読み取り専用です。書き込みが必要なランタイムファイルはここに置いてください。
+- **環境変数**はゲームのメインプロセス自身のものがそのまま渡されます。変更されるのは `ELECTRON_RUN_AS_NODE` だけで、`kind: "node"` では設定され、`kind: "executable"` では取り除かれます。それ以外は何も注入されません — すべてのコンテキストは `hello` に乗って届きます。
+- **共有ライブラリ**は実行ファイルの隣(Windows)、あるいは rpath 経由(POSIX)で読み込まれ、cwd からは読み込まれません。`entry` の隣に同梱してください。
+
+## 常に縮退する [#degrade-always]
+
+`available()` が false を返すのは、ほとんどのターゲットでは正常な場合であり、エラー経路ではありません。
+
+| ターゲット | sidecar |
+| --- | --- |
+| デスクトップビルド、アーキテクチャが宣言されている | あり |
+| デスクトップビルド、アーキテクチャが宣言されていない | なし — ビルドが作者に警告する |
+| Web エクスポート | 決してなし |
+| Android / iOS | 決してなし |
+| Preview | あり、ホストマシン自身のプラットフォームキーを使用 |
+| Dev Mode | **なし** — Dev Mode ウィンドウは子プロセスを一切ホストしない |
+
+プラグインは、それが提供する機能が sidecar なしでもローカルな答えを持つように書き、ネイティブの経路は強化として扱ってください。`available()` が false のときに例外を投げるプラグインは、作者がビルドし得る大多数のターゲットで壊れています。
+
+<Callout type="info">
+sidecar は **Dev Mode** では試すことができません — あのウィンドウはゲームの実行環境ではなく Studio のウィンドウであり、子プロセスを一切ホストしません。一つを試すには **Preview** を使ってください。Preview はホストマシン自身のプラットフォームキー向けに sidecar をパッケージ化し、出荷されたゲームが実行するのと同じ実行環境を動かします。
+</Callout>
+
+## 既知の境界
+
+これらは現時点での、現実の制約です — 仮説ではありません。
+
+- **プラグインの zip は実行ビットを運びません。** レジストリのパッケージ化も Studio の展開も、どちらもファイルモードを記録しないため、macOS と Linux では sidecar が非実行可能な状態で配置され、決して起動できません。ホストは起動の直前にこれを修復します。POSIX では所有者の実行ビットを確認し、すでに読み取りが許可されている場所にのみ実行を追加し、可視性を広げることは決してありません。`chmod` が失敗した場合、その sidecar は黙って動作しないのではなく、利用不可能としてマークされます。あなたが何かする必要はありませんが、ディスク上のモードに驚かないでください。
+- **複数のデスクトップターゲットを同時にビルドすると、sidecar は一つも出荷されません。** パッケージ化のパイプラインは現在、すべてのデスクトップターゲットを一つのステージング済みアプリケーションディレクトリから提供する一方、sidecar は `<platform>-<arch>` ごとのものです。複数のデスクトップターゲットが選択されると、ビルドは警告を出し、**どれも**パッケージ化しません — Windows の実行ファイルを `.app` の中に入れることは、それよりもっと悪いことになるからです。sidecar が重要なときは、一度に一つのデスクトップターゲットだけをビルドしてください。
+- **macOS の署名。** ネストされた実行ファイルはホストアプリケーションと一緒に署名されなければならず、そうしないと Gatekeeper は未署名のアプリよりも厳しくそれを拒否します。署名処理が実装されるまで、sidecar を含む macOS のビルドは自分自身での利用にとどめてください。
+- **sidecar はアーカイブの中にパックされません。** 実行ファイルと動的ライブラリは asar の内部からは実行できないため、その隣に展開されたまま出荷されます。封印された(暗号化された)ビルドの下でも同様に展開されたままです — sidecar は実行ファイルであり、それが保護されているふりをすることは誤解を招くだけです。
+- **プラグインはレンダラー内で互いに隔離されていません。** すべてのランタイムプラグインは、一つのレンダラープロセス内の同一オリジンの ESM であり、sidecar ホストに届くチャネルは、どのプラグインが呼び出したかを暗号学的に証明することはできません。宣言による境界は依然として成り立ちます — ホストは、あるマニフェストが宣言した sidecar しか決して起動しません — が、sidecar をそれと一つのプラグインとの間の専用チャネルとして扱ってはいけません。
+- **sidecar のコピーの失敗は、「今回の実行では sidecar なし」への縮退ではなく、Preview のコンパイル全体を失敗させます。** `dep:` の成果物の欠落やダイジェストの不一致は、Preview の起動を止めます。本番ビルドではこれは正しい振る舞いですが、Preview においては、あるべき以上に厳しいものです。

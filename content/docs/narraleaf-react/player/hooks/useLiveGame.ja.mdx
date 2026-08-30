@@ -1,0 +1,78 @@
+---
+title: "useLiveGame"
+description: ストーリーのサービス、現在のシーン、プレイヤーの設定を読み取るための LiveGame インスタンスを返す useLiveGame フック
+---
+このフックを使うと、live game オブジェクトにアクセスできます。
+
+> **注意**：このフックは [GameProvider](/ja/docs/narraleaf-react/player/game-providers) の子孫にあたるコンポーネントの内部でのみ使用できます。
+
+```typescript
+function useLiveGame(): LiveGame;
+```
+
+- LiveGame については [LiveGame](/ja/docs/narraleaf-react/core/game/live-game) を参照してください。
+
+`LiveGame` が持つプロパティは `game`、`events`、`story` の 3 つだけで、それ以外はすべてメソッドです。ストーリーが現在いるシーンは `getLastScene()` から取得し、プレイヤーの設定はそれが実行している `Game` に属します（`liveGame.game.preference`）。
+
+## 使い方
+
+```typescript
+import {useLiveGame} from "narraleaf-react";
+```
+
+```typescript
+function myComponent() {
+    const liveGame = useLiveGame();
+
+    useEffect(() => {
+        // Story services
+        const gallery = liveGame.story?.getService<Gallery>("gallery");
+
+        // The scene the story is in
+        const currentScene = liveGame.getLastScene();
+
+        // Player preferences live on the Game, not on the LiveGame
+        const cps = liveGame.game.preference.getPreference("cps");
+    }, [liveGame]);
+}
+```
+
+## よくある使い方
+
+### サービスへのアクセス
+
+```typescript
+function GalleryComponent() {
+    const liveGame = useLiveGame();
+    
+    const gallery = liveGame.story?.getService<Gallery<{timestamp: number}>>("gallery");
+    
+    if (gallery) {
+        const allItems = gallery.$getAll();
+        return (
+            <div>
+                {Object.keys(allItems).map(name => (
+                    <div key={name}>{name}</div>
+                ))}
+            </div>
+        );
+    }
+    
+    return null;
+}
+```
+
+### ゲーム状態へのアクセス
+
+```typescript
+function GameStatusComponent() {
+    const liveGame = useLiveGame();
+
+    return (
+        <div>
+            <p>現在のシーン: {liveGame.getLastScene()?.config.name}</p>
+            <p>再生中: {String(liveGame.isPlaying())}</p>
+        </div>
+    );
+}
+```

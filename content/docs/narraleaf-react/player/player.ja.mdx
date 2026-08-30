@@ -1,0 +1,141 @@
+---
+title: "Player"
+description: story、サイズ、onReady や onPreloadComplete といったライフサイクルコールバック、active フラグを含む Player コンポーネントの props
+---
+Player コンポーネントはストーリーを再生するために使います。
+
+> 注意：ゲームインスタンスを提供するために、`Player` コンポーネントは [GameProviders](/ja/docs/narraleaf-react/player/game-providers) コンポーネントで包む必要があります。
+
+抽象クラスを使ってストーリーを作成している場合は、[Core](/ja/docs/narraleaf-react/core) のドキュメントを確認してください。
+
+## 例
+
+以下は `Player` コンポーネントの基本的な使用例です。
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./my-story";
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame();
+            }}
+                width="100vw"
+                height="100vh"
+            />
+        </GameProviders>
+    );
+}
+```
+
+## Props
+
+### story
+
+> 任意
+
+再生したいストーリーオブジェクト。
+
+### width
+
+> 任意
+
+プレイヤーの幅。
+
+### height
+
+> 任意
+
+プレイヤーの高さ。
+
+### className
+
+> 任意
+
+プレイヤーのクラス名。
+
+### onReady
+
+> 任意
+
+プレイヤーの準備ができたときに呼び出されるコールバック関数です。[ScriptCtx](/ja/docs/narraleaf-react/core/types/ScriptCtx) オブジェクトを返します。
+
+`newGame()` はここで呼び出すものです。これはプリロードの完了や、最初の描画が済んだことを保証する**わけではありません**。下記の `onPreloadComplete` と `onFirstSceneReady` を参照してください。
+
+### onPreloadComplete
+
+> 任意
+
+最初のプリロードが実際に完了したときに一度だけ呼び出されます。
+
+<Callout type="warning">
+    `0.17.0` からは、これは**ゲームに入る前**に発火するようになりました。メニューがまだ画面に表示されていて、シーンがマウントされていない段階でも、ストーリーの読み込みが済み次第エントリーシーンのウォームアップが行われます。これを「ゲームの内容が画面に出ている」という意味で読んでいた場合は、代わりに `onFirstSceneReady` を使ってください。[Preloading](/ja/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on) を参照してください。
+</Callout>
+
+`{game, gameState, liveGame, storable, scene}` を受け取ります。ここでの `scene` は、マウント済みのシーンではなく*プリロード中の*シーンである場合があります。ゲームのライフサイクルにつき最大 1 回呼び出されます。
+
+```tsx
+<Player story={story} onPreloadComplete={() => setLoadingBarDone(true)} />
+```
+
+### onFirstSceneReady
+
+> 任意
+
+プリロードが完了し、最初のシーンがマウントされ、ブラウザがそれを描画するフレームを 1 回経たあとに呼び出されます。ゲームが視覚的にプレイヤーの目に映る状態になったことを示す、最も直接的な合図です。
+
+`onPreloadComplete` と同じコンテキストオブジェクトを受け取り、ゲームのライフサイクルにつき最大 1 回呼び出されます。
+
+```tsx
+<Player story={story} onFirstSceneReady={() => setLoadingOverlay(false)} />
+```
+
+### onPreloadedReady
+
+> 任意、非推奨
+
+代わりに `onPreloadComplete` を使ってください。
+
+### onEnd
+
+> 任意
+
+プレイヤーが終了したときに呼び出されます。
+
+このコールバックはストーリーが終了したときに呼び出されます。
+
+### onError
+
+> 任意
+
+ゲームがエラーに遭遇したときに呼び出されます。
+
+このコールバックはライフサイクルにつき一度しか呼び出されず、`error` と `errorInfo` の 2 つの引数を受け取ります。
+
+### children
+
+> 任意
+
+プレイヤーの子要素。
+
+プレイヤーに子要素を渡すことができます。
+
+例えば、[PageRouter API](/ja/docs/narraleaf-react/player/page-router) を使って独自のクイックメニューを作ることができます。
+
+### active
+
+> 任意、既定値：`true`
+
+プレイヤーを表示するかどうか。
+
+`active` が `false` であっても、ページは描画されます。
+
+```tsx
+const [active, setActive] = useState(false);
+
+return <Player active={active}/>
+```

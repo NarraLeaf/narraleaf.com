@@ -1,0 +1,68 @@
+---
+title: ボイス
+description: ブループリントから収録済みの台詞を再生し、ゲームに設定されている吹き替え言語を扱います
+---
+
+ゲームのボイストラックのための5つのノードです。テイクの再生、選択肢に紐づいたテイクの再生、そして現在有効な吹き替え言語の読み取りと設定です。
+
+## 規約
+
+- **5つすべてが latent です。** `event` と `macro` を宣言するため、`function` グラフに置くことも、Blueprint Value のバックエンドにすることもできません。
+- **テイクは voice id で指定します。** これはその台詞の安定したテキスト id であり、翻訳テーブルが使うのと同じキーです。
+- **言語を設定するとゲームが再起動します。** 言語切り替えが何を行うかは [Language](/ja/docs/studio/workspace/localization) を参照してください。
+
+## Play Voice
+
+`blueprint.voice.play` · Latent
+
+現在有効な吹き替え言語で、ある台詞に対して収録されたテイクを再生します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `voiceId` | in · data | `string` | その台詞の voice id です。 |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | テイクが見つかり、再生されたかどうかです。 |
+
+## Play Choice Voice
+
+`blueprint.voice.playChoice` · Latent
+
+このグラフが実行対象としている選択肢に紐づいたテイクを再生します。選択肢の行の中で使用します。どの選択肢であるかを知っているのは、その行だけだからです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `interruptOthers` | in · data | `boolean` | 省略可能、リテラル。すでに別の選択肢が話しているテイクを停止するため、リストを次々とホバーしてもボイスが重なりません。 |
+| `next` | out · exec | — | |
+| `value` | out · data | `boolean` | テイクが見つかり、再生されたかどうかです。 |
+
+## Get Voice Language
+
+`blueprint.voice.getLanguage` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `string` | 現在有効な吹き替え言語です。 |
+
+## Set Voice Language
+
+`blueprint.voice.setLanguage` · Latent
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `language` | in · data | `string` |
+| `next` | out · exec | — |
+
+## Get Available Voice Languages
+
+`blueprint.voice.getAvailableLanguages` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | out · data | `any` | このビルドに含まれる吹き替え言語を配列として返します——設定画面が一覧表示するのはこれです。 |

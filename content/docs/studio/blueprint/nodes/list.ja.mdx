@@ -1,0 +1,415 @@
+---
+title: List
+description: List ウィジェットの実行時の項目内容、選択、スクロール、および項目ごとのコンテキスト
+---
+
+List ノードは、あなたが編集しているプライベートブループリントが属する List ウィジェットの、実行時の内容・選択・スクロール位置を操作します。行の内容がゲームの実行中に決まる場合——セーブスロット、バックログ、設定メニューなど——にこれらを使います。インスペクターで一度だけ作り込むのとは違うケースです。配列やオブジェクトを渡す前に整形する作業は、引き続き [Data](/ja/docs/studio/blueprint/nodes/data) の領分です。
+
+## 規約
+
+- **List が描画するのは実行時の項目配列です。** `Set List Content` はインスタンスレベルの実行時配列を書き込みます。`Append`、`Insert`、`Remove`、`Clear`、`Refresh` は同じストアを更新します。項目は JSON セーフな形で保存されるため、JSON の往復に耐えないものは書き込む際に失われます。
+- **`itemsBinding` は単なるフォールバックです。** 実行時の項目が書き込まれていない間は、エレメントの items バインディングが読み取られます。バインディングもない場合は、インスペクターのプレビュー項目が代わりに使われます。実行時ストアへの最初の書き込みで、これは終わります。
+- **変更操作はフォールバックを昇格させます。** `Set List Content` と `Clear List` を除くすべての変更操作は、まず現在の項目を読み取ってから配列全体を書き戻します。一度も書き込まれたことのない List では、この読み取りはフォールバックから行われ、この書き込みによってそのスナップショットが実行時の項目になります——以降、バインディングは適用されなくなります。
+- **アンマウントするとインスタンスがクリアされます。** List インスタンスが完全にアンマウントされると、実行時の項目、選択、保留中のスクロール指令はすべて破棄されます。何も自動的に永続化されません。内容を変数や状態に書き出しておき、List が戻ってきたときに明示的に復元してください。
+- **読み取りは pure、変更は latent です。** `Get` ノードは `event`・`function`・`macro` のいずれのグラフでも動作します。すべての変更操作は latent であり、`event` と `macro` に限られます——function は呼び出し元に同期的に戻るため、保留中の書き込みを渡す先がありません。
+- **内容と選択の書き込みは flush をキューに入れますが、スクロールノードは入れません。** スクロールノードは、レンダラーが消費するための意図を記録するだけなので、flush 駆動の処理を再実行することは決してありません。
+- **これらは Self ノードです。** グラフを所有する list 系ウィジェット——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——に対して働き、対象ピンを取りません。別の List を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある対になった `blueprint.element.list.*` を使ってください。これらは `list` 入力を持ち、グラフに `nl.list` へのバインディングノードがある場合にのみ現れます。
+- **項目コンテキストにはテンプレートの子孫が必要です。** 3 つの `Get List Item …` ノード、`Get List Item Props`、`Get Item Field` は、List の項目テンプレート内にあるエレメントが所有するブループリントにのみ現れ、そのエレメントが現在レンダリングしている項目スコープを読み取ります。
+- **フィールド系ノードが名指すのは宣言済みのフィールドであり、JSON パスではありません。** `Get Item Field`、`Set Item Field At`、`Find Item By Field`、`Sort List By Field` は、List がその項目のために宣言しているフィールドの中から選びます。カードにはプロパティ名ではなく、フィールドの安定した id が保存されます——そのため、プロパティ名の変更やフィールドの並べ替えは、グラフに何のコストももたらしません。深い階層のパスは引き続き `Get JSON Field` の領分です。2 つの書き込みノードはフィールドが選ばれていないと実行を拒否し、2 つの読み取りノードは単に何も答えません。
+
+<Callout type="warn">
+`Clear List` は空の実行時配列を書き込みます。空の配列であっても、それは書き込まれた内容として扱われます——`itemsBinding` は戻ってこず、再び項目を書き込むまで List は空のままです。フォールバックを復元する唯一の方法は List インスタンスをアンマウントすることであり、それは選択とスクロール状態も同時に破棄します。
+</Callout>
+
+## Set List Content
+
+`blueprint.list.setItems` · Latent
+
+実行時の項目配列をまるごと置き換えます。配列でない値は拒否されるのではなく空の配列として書き込まれるため、`items` の接続を誤ると List が静かに空になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `items` | in · data | `array` | 配列でない値は空の配列として書き込まれます。 |
+
+## Append List Item
+
+`blueprint.list.appendItem` · Latent
+
+現在の項目を読み取り、末尾に 1 件追加してから、配列全体を書き戻します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Insert List Item
+
+`blueprint.list.insertItem` · Latent
+
+指定したインデックスの手前に挿入します。インデックスは `0…length` にクランプされ、数値でないインデックスは末尾にフォールバックするため、範囲外の位置を指定してもエラーにはなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | `0…length` にクランプされます。カード上にリテラル値を入力できます。 |
+| `item` | in · data | `any` | |
+
+## Remove List Item
+
+`blueprint.list.removeItem` · Latent
+
+`item` と JSON として等しい最初の項目を削除します——比較は参照ではなくシリアライズされた値によって行われるため、同じフィールドで再構築されたオブジェクトでも一致します。一致するものがない場合、配列は変更されず、実行は `next` を通って続きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Remove List Item At
+
+`blueprint.list.removeItemAt` · Latent
+
+指定したインデックスの項目を削除します。インデックスが `0…length-1` の範囲外である場合、または数値でない場合、配列は変更されず、`next` を通って続きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | カード上にリテラル値を入力できます。 |
+
+## Clear List
+
+`blueprint.list.clear` · Latent
+
+空の実行時配列を書き込みます。実行用のピンの組以外にピンを持ちません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Refresh List Items
+
+`blueprint.list.refreshItems` · Latent
+
+現在の項目を変更せずに書き戻します。これによりすべての行が再描画され、その子孫が読み取る項目コンテキストも更新されます。配列自体は変わっていないものの、項目の内容が配列の下で変化した場合——変更されたオブジェクトや、行が状態から読み取る値など——に使用します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Set Selected Index
+
+`blueprint.list.setSelectedIndex` · Latent
+
+渡されたとおりに選択インデックスを保存します。整数に切り捨てられますが、範囲にはクランプされません：現在の項目の範囲外のインデックスもそのまま保持され、`Get Selected Item` はそれに対して `null` を返します。数値でないインデックスは `-1` に解決されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | 項目の範囲にクランプされません。カード上にリテラル値を入力できます。 |
+
+## Set Selected Item
+
+`blueprint.list.setSelectedItem` · Latent
+
+`item` と JSON として等しい最初の項目を見つけ、そのインデックスを選択します。一致するものがない場合、現在の選択はそのままです——これは静かな no-op であり、エラーではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `item` | in · data | `any` | |
+
+## Scroll To Index
+
+`blueprint.list.scrollToIndex` · Latent
+
+指定した行へのスクロール要求をキューに入れます。負の値や数値でないインデックスは `0` に解決されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | `0` を下限とします。カード上にリテラル値を入力できます。 |
+
+## Scroll To Top
+
+`blueprint.list.scrollToTop` · Latent
+
+List の先頭へのスクロール要求をキューに入れます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Scroll To Bottom
+
+`blueprint.list.scrollToBottom` · Latent
+
+List の末尾へのスクロール要求をキューに入れます。`Append List Item` と組み合わせることで、ログを常に最新の行に固定しておけます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Set Visible
+
+`blueprint.list.setVisible` · Latent
+
+ウィジェットの実行時の可視性を設定します。これは作成時の `visible` プロパティであり、Displayable のレンダースイッチではありません——エレメントをマウントしたまま `display: none` の裏に隠したい場合は、[Displayable](/ja/docs/studio/blueprint/nodes/displayable) の `Set Display` を参照してください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.list.setEnabled` · Latent
+
+List の実行時のインタラクションのオン・オフを切り替えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Set Item Field At
+
+`blueprint.list.setItemFieldAt` · Latent
+
+1 行の 1 フィールドだけを書き込み、その行の残りとリストの残りには手を付けません。行はその場で編集されるのではなく書き直されます——リストはコピーとして内容を渡すため、読み取ったものを変更しても、誰かが描画しているものは何も変わりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | カード上にリテラル値を入力できます。 |
+| `value` | in · data | `any` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Field` | List のどの項目フィールドに書き込むか。必須です。 |
+
+存在しない行への書き込みは、エラーではなく静かな no-op になります：グラフが自分が渡された行にそのまま書き込むのがよくあるケースであり、その足元でリストが縮んだからといって処理の連鎖を止めるべきではありません。
+
+## Sort List By Field
+
+`blueprint.list.sortByField` · Latent
+
+実行時の項目をそのフィールドの 1 つで並べ替え、結果を書き戻します。ソートも書き込みであるため、他のすべての変更操作と同じようにフォールバックを昇格させます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Field` | どの項目フィールドで並べ替えるか。必須です。 |
+| `Direction` | `Ascending`（昇順）または `Descending`（降順）。 |
+
+## Get List Content
+
+`blueprint.list.getItems` · Pure
+
+実行時の項目配列を出力します。まだ何も書き込まれていない間は、`itemsBinding` またはプレビューのフォールバックを出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `items` | out · data | `array` | |
+
+## Get Selected Index
+
+`blueprint.list.getSelectedIndex` · Pure
+
+実行時の選択インデックスを出力します。フォールバック先はエレメントの作成時の `selectedIndex` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `index` | out · data | `integer` | |
+
+## Get Selected Item
+
+`blueprint.list.getSelectedItem` · Pure
+
+選択インデックスの位置にある項目を出力します。そのインデックスが現在の項目の範囲外である場合は `null` を出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `item` | out · data | `json` | |
+
+## Get List Length
+
+`blueprint.list.getLength` · Pure
+
+List が現在保持している行数です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `length` | out · data | `integer` | |
+
+## Get Item At
+
+`blueprint.list.getItemAt` · Pure
+
+`Get List Content` で配列全体を取り出すことなく、インデックスで 1 行だけを取得します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `index` | in · data | `integer` | カード上にリテラル値を入力できます。 |
+| `item` | out · data | `json` | インデックスが現在の項目の範囲外である場合は `null` です。 |
+
+## Find Item By Field
+
+`blueprint.list.findItemByField` · Pure
+
+行のフィールドの 1 つを手がかりに検索します——`id` が `"auto"` であるセーブスロットや、`code` が現在のロケールと一致する言語の行などです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | そのフィールドが等しくあるべき値。 |
+| `index` | out · data | `integer` | 一致するものがない場合は `-1` です。 |
+| `item` | out · data | `json` | 一致するものがない場合は `null` です。 |
+| `found` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Field` | どの項目フィールドで照合するか。 |
+
+## Get Scroll Progress
+
+`blueprint.list.getScrollProgress` · Pure
+
+List が現在どこまでスクロールされているかを `0`〜`1` で表します。
+
+`Scroll` ヘッドは、List が*動いた*ことをグラフに伝えます。これに対してこの 4 つのノードは、List が*どこに落ち着いたか*をグラフに伝えます。この違いは、List 以外の何かによって起動される処理にとって重要です——List を取り囲むページ側のホイールハンドラーには通知されず、自分から尋ねるしかありません——そして、ヘッドの答えをそのまま変数に映し取っておくやり方は、気づかないうちに古くなってしまう形です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `progress` | out · data | `float` | |
+
+## Get Scroll Offset
+
+`blueprint.list.getScrollOffset` · Pure
+
+同じ位置をピクセルで表したもので、あとどれだけ移動できるかも合わせて示します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `offset` | out · data | `float` | |
+| `maxOffset` | out · data | `float` | コンテンツがちょうど収まり、スクロールする余地がない場合は `0` です。 |
+
+## Is Scrolled To Start
+
+`blueprint.list.isScrolledToStart` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `atStart` | out · data | `boolean` | 手前側の端から 1 ピクセル以内です。コンテンツが収まっている場合は `true` です。 |
+
+## Is Scrolled To End
+
+`blueprint.list.isScrolledToEnd` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `atEnd` | out · data | `boolean` | 奥側の端から 1 ピクセル以内です。コンテンツが収まっている場合は `true` です。 |
+
+両端はいずれも「この軸で行き着ける限界」という単一の定義から判定されるため、これらと `Get Scroll Progress` が食い違うことはありません——これにより、「最新へジャンプ」ボタンは、バックログがすでに一番下にあるときに正確に自分自身を隠せます。
+
+## Get Visible
+
+`blueprint.list.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.list.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Get List Item Props
+
+`blueprint.list.getItemProps` · Pure
+
+現在の行が描画している項目を出力します：項目がオブジェクトである場合はその項目自身を、そうでない場合は `{ value: item }` を出力するため、単なる文字列の List でも読み取れるフィールドが得られます。項目コンテキストの外では `{ value: null }` を出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `props` | out · data | `json` | |
+
+<Callout type="info">
+5 つの項目コンテキストノードは、描画中の行の項目スコープを読み取ります。これらは event グラフだけでなく Blueprint Value のグラフでも動作します——これが、テンプレート内の 1 つのテキストエレメントが行ごとに異なる文字列を表示できる仕組みです。繰り返される行は互いに独立しているため、すべてのコピーが同じ元のエレメント id から生成されているにもかかわらず、それぞれのコピーが自分自身のイベントローカル変数と、自分自身が解決した Blueprint Value を保持します。
+</Callout>
+
+## Get List Item Index
+
+`blueprint.list.getItemIndex` · Pure
+
+現在の行のインデックスを出力します。項目コンテキストの外では `-1` を出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `index` | out · data | `integer` | |
+
+## Get List Item Count
+
+`blueprint.list.getItemCount` · Pure
+
+現在のレンダーパスにおける行数を出力します。項目コンテキストの外では `0` を出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `count` | out · data | `integer` | |
+
+## Get List Item Key
+
+`blueprint.list.getItemKey` · Pure
+
+その行のキーを出力します：List の `itemKeyPath` が指す値が文字列または数値である場合はその値を、そうでない場合は行のインデックスを文字列化したものを出力します。項目コンテキストの外では空文字列を出力します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `key` | out · data | `string` | |
+
+## Get Item Field
+
+`blueprint.list.getItemField` · Pure
+
+描画中の行の、宣言済みフィールドを 1 つ返します。`Get List Item Props` の絞り込み版です：項目全体を読んでキーを掘り出す代わりに、カード上でフィールドを選ぶことで、グラフはそのプロパティがたまたま何と呼ばれているかに依存しなくなります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | 形はそのフィールドに従います。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Field` | どの項目フィールドを読み取るか。 |
+
+上記の 3 つの `Get List Item …` 系の読み取りと同様に項目コンテキストを必要とし、それらと同様に Blueprint Value の中でも動作します。これが、テンプレート内の 1 つの Text エレメントが行ごとに異なる文字列を表示できる仕組みです。

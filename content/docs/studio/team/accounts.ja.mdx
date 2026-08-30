@@ -1,0 +1,80 @@
+---
+title: アカウントとアクセス
+description: NarraLeaf Team サーバーでアカウントを作成し、アクセス権を渡し、それを取り戻す
+---
+
+NarraLeaf Team サーバー上のすべてのアカウントは、運用担当者によって作成されます。登録もなければ、招待もありません。
+
+## アカウントを作成する
+
+サーバー上の端末を使う運用担当者の場合。
+
+```sh
+printf '%s' 'their password' | nlteam user create bob --root /srv/team
+```
+
+サインイン済みの、どのマシンからでも操作する運用担当者の場合。
+
+```sh
+nlteam login team.example.com:41402 ada < password.txt
+printf '%s' 'their password' | nlteam user create bob --server team.example.com:41402
+```
+
+本人に渡されるのは、サーバーのアドレス、ユーザー名、そしてパスワードです。サインインする際、Studio はそのパスワードをトークンと引き換えます。
+
+パスワードを送りたくない運用担当者は、代わりにトークンを送ります。
+
+```sh
+nlteam token mint bob --server team.example.com:41402
+```
+
+## 運用担当者
+
+`admin` グループが、アカウント、プロジェクト、設定を管理し、他の誰かをそのグループに加えることのできる人を決めます。`nlteam init` は最初のアカウントをそこに入れます。
+
+```sh
+nlteam user grant-admin bob --server team.example.com:41402
+nlteam user revoke-admin bob --server team.example.com:41402
+```
+
+メンバーシップはリクエストのたびに読み取られるため、誰かをそのグループから外すと、その人の次のリクエストで反映されます。
+
+## アクセス権を取り上げる
+
+二つのコマンドがあり、それらは同じものではありません。
+
+```sh
+nlteam user disable ada --server team.example.com:41402
+nlteam user revoke-tokens ada --server team.example.com:41402
+```
+
+**`disable`** はアカウントを停止します。それが保持していたものは何一つ機能せず、再びサインインすることもできません。
+
+**`revoke-tokens`** は、そのアカウントに既に発行されたすべてのトークンを拒否し、それ以外は何も変えません。本人は再びサインインし、機能するトークンを一つ受け取ります。これは、トークンが漏洩したときのためのコマンドです。
+
+どちらも、トークンが期限切れになるのを待つのではなく、そのアカウントの次のリクエストで有効になります。
+
+<Callout type="warning">
+既にプロジェクトのデータを転送している接続は、Team ではなくバージョン管理サーバーによって検査され、それが開かれたときに使われたトークンが期限切れになるまで、つまり十五分間は継続できます。それより早く終わらせるには、署名鍵を退役させる必要があり、それはすべてのアカウントのトークンを拒否することになります。
+</Callout>
+
+## あるアカウントが到達できるもの
+
+サーバー上のすべてのアカウントは、その上のすべてのプロジェクトに到達できます。プロジェクトごとに付与したり取り消したりできるアクセス権はありません。
+
+ある人に見せてはならないプロジェクトは、二台目のサーバーに置くべきものです。同じ規則は、すべてのアカウントが、サーバー上の他のすべてのアカウントのユーザー名、表示名、登録済みのメールアドレスを読めることも意味します。
+
+## そこにあるものを一覧表示する
+
+```sh
+nlteam user list --server team.example.com:41402
+nlteam project list --server team.example.com:41402
+nlteam status --server team.example.com:41402
+nlteam audit --refused --server team.example.com:41402
+```
+
+`audit` はアクセス判定の記録を新しい順に読み取ります。`--refused` は拒否されたものだけを表示し、一覧が空であることは、記録上どれも拒否されていないことを意味します。
+
+## 完全なリファレンス
+
+リポジトリの[デプロイ文書](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md)に、すべてのコマンドが載っています。

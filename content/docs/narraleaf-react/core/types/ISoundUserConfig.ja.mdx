@@ -1,0 +1,108 @@
+---
+title: "ISoundUserConfig"
+description: Sound のユーザー向け設定。ソース、音量、再生速度、ループ区間、所属するオーディオバスを扱う
+---
+```typescript
+type VoiceIdMap = Record<string | number, string | Sound>;
+type VoiceSrcGenerator = (id: string | number) => string | Sound;
+
+interface ISoundUserConfig {
+    /**
+     * Sound source should be a URL or a base64 string
+     */
+    src: string;
+    /**
+     * Whether the clip repeats when it reaches its end
+     * @default false
+     */
+    loop: boolean;
+    /**
+     * Initial volume, between 0 and 1
+     * @default 1
+     */
+    volume: number;
+    /**
+     * Playback rate, 0.5 to 4
+     * @default 1
+     */
+    rate: number;
+    /**
+     * Set to `true` to force HTML5 Audio.
+     * This should be used for large audio files
+     * so that you don't have to wait for the full file to be downloaded and decoded before playing.
+     * @default false
+     */
+    streaming: boolean;
+    /**
+     * Initial position in seconds - the clip's **in point**.
+     *
+     * When `loop` is set together with `endTime`, this is also where each repeat restarts from,
+     * so the two together describe a loop region rather than just a starting offset - unless
+     * `loopStart` moves the repeat's in point somewhere else.
+     * @default 0
+     */
+    seek: number;
+    /**
+     * Position in seconds where the clip ends - its **out point**.
+     * Omit to play through to the end of the file.
+     *
+     * Without `loop` the clip simply stops there. With `loop` it jumps back to `loopStart`,
+     * or to `seek` when no loop in point was given.
+     * @default undefined
+     */
+    endTime?: number;
+    /**
+     * Position in seconds the clip returns to on every repeat - the **loop in point**.
+     *
+     * Only meaningful together with `loop` and `endTime`.
+     * A value outside `[seek, endTime)` falls back to `seek`.
+     * @default undefined
+     */
+    loopStart?: number;
+    /**
+     * The audio bus this clip plays on
+     * @default SoundType.Sound
+     */
+    type: SoundBusId;
+}
+```
+
+## seek、endTime と loopStart
+
+`seek` はクリップの**入り点**——最初の再生が始まる位置です。`endTime` は**出り点**です。両方を指定すると、再生はファイルのその区間だけをカバーします。
+
+```ts
+Sound.bgm({src: "theme.mp3", seek: 4.2, endTime: 92.5});
+```
+
+`loop` がない場合、クリップは `endTime` で停止します。`loop` がある場合はクリップが繰り返され、各繰り返しがどこへ戻るかを `loopStart` が決めます。`loopStart` を省略すると、毎回 `seek` へ戻ります。これは、単独のイントロを持たないクリップの挙動です。
+
+この 2 つを分けることで、「イントロの後にループする」という定番の BGM の構成を表現できます——最初に一度だけ頭から再生し、その後は本体だけを繰り返します。
+
+```ts
+Sound.bgm({src: "theme.mp3", loop: true, seek: 0, loopStart: 12, endTime: 90});
+```
+
+繰り返しは Web Audio ノード自体のループ区間を使うため、サンプル単位で正確です。継ぎ目に隙間が生じることも、数時間にわたるセッションでずれが生じることもありません。
+
+<Callout type="info">
+    終了位置が開始位置より後ろにない区間は再生可能な内容を表さないため、再生されずに無視されます。`[seek, endTime)` の範囲外にある `loopStart` は `seek` にフォールバックします。
+
+    `streaming` のクリップにはループ区間がなく、単純な繰り返ししかないため、ループ区間はこれには適用されません。
+
+    セーブデータを復元すると、再生位置はセーブデータに記録された位置から再開されますが、ループはプレイヤーがセーブした位置ではなく、ループの入り点へ戻ります。
+</Callout>
+
+## type
+
+クリップが再生されるオーディオバス。エンジンが常に用意している 3 つのバス——`voice`、`bgm`、`sound`——のいずれか、または[`GameConfig.audioBuses`](/ja/docs/narraleaf-react/core/game/audio-buses) で宣言された任意のバス id です。
+
+```ts
+Sound.voice({src: "alice-01.mp3", type: "alice"});
+```
+
+バスが決めるのは、このクリップをどの音量コントロールが管轄するかだけです。それ以外に違いはなく——どのバス上のクリップも、同じ方法で再生、停止、フェード、シークができます。
+
+- `SoundBusId` については [SoundBusId](/ja/docs/narraleaf-react/core/types/SoundBusId) を参照してください。
+- `SoundType` については [SoundType](/ja/docs/narraleaf-react/core/types/SoundType) を参照してください。
+- バスツリーについては [Audio Buses](/ja/docs/narraleaf-react/core/game/audio-buses) を参照してください。

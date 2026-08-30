@@ -1,0 +1,108 @@
+﻿---
+title: "条件分岐"
+description: If、ElseIf、Else ブロックでストーリーを分岐させる `Condition` クラス
+---
+`Condition` を使うと、ストーリーの中に条件分岐を作成できます。
+
+```typescript
+Condition
+    .If((ctx) => {
+        return // ここに条件を記述
+    }, [
+        character1.say`the condition is true`,
+    ])
+
+    .Else([
+        character1.say`the condition is false`,
+    ])
+```
+
+多くの場合、フラグの判定や変数の値の確認を行いたくなるでしょう。これには [Persistent](/ja/docs/narraleaf-react/core/elements/persistent) を使用します。
+
+```typescript
+type PersistentData = {
+    coin: number;
+    flag: boolean;
+    hobby: string;
+};
+
+const persis = new Persistent<PersistentData>("persis", {
+    coin: 0,
+    flag: false,
+    hobby: "coding",
+});
+
+// プレイヤーが十分なコインを持っているか確認
+Condition
+    .If(persis.evaluate("coin", (coin) => coin < 50), [
+        character1.say("you don't have enough coins"),
+    ])
+
+// プレイヤーがフラグを持っているか確認
+Condition
+    .If(persis.isTrue("coin"), [
+        character1.say("you have the flag"),
+    ])
+
+// プレイヤーが趣味を持っているか確認
+Condition
+    .If(persis.equals("hobby", "coding"), [
+        character1.say("you like coding"),
+    ])
+```
+
+> **注意:** スクリプトを正しく理解するために、これらのメソッドを誤った順序で呼び出すとエラーがスローされることに注意してください。
+> 
+> 例えば、`If` より前に `ElseIf` を呼び出すことはできません。
+
+## 静的メソッド
+
+### If
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>` - チェックする条件。条件が真の場合、アクションが実行されます。詳細は [Lambda](/ja/docs/narraleaf-react/core/types/Lambda) と [LambdaHandler](/ja/docs/narraleaf-react/core/types/LambdaHandler) を参照してください。
+- `action: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+
+```typescript
+Condition.If(({ $ }) => {
+    return ($("name").get("coin") || 0) >= 10;
+}, [
+    character1.say("you have enough money")
+])
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config?: ConditionConfig` - [ConditionConfig](/ja/docs/narraleaf-react/core/types/ConditionConfig)
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### ElseIf
+
+<Steps>
+<Step>
+
+- `condition: Lambda | LambdaHandler<boolean>`
+- `action: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+</Step>
+</Steps>
+
+### Else
+
+<Steps>
+<Step>
+
+- `action: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+</Step>
+</Steps>

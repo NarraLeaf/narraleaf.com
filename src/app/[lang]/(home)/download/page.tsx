@@ -113,6 +113,42 @@ const copyByLocale = {
       allReleases: '在 GitHub 查看全部版本',
     },
   },
+  ja: {
+    title: '今日から作りはじめる',
+    description:
+      'NarraLeaf Studio をダウンロードして、いちばんいい方法であなたのビジュアルノベルを作ってください。千里の道も一歩から。',
+    panel: {
+      detecting: 'お使いの環境を確認しています…',
+      pickPlatform: 'プラットフォームを選択',
+      downloadFor: '{platform} 版をダウンロード',
+      unavailable: '現在のリリースにこのプラットフォームのビルドはありません',
+      allReleases: 'すべてのリリース',
+      source: {
+        label: 'ダウンロード元',
+        options: {
+          github: 'GitHub',
+          mirror: 'ミラー',
+        },
+      },
+    },
+    requirements: {
+      title: '動作環境',
+      columns: ['プラットフォーム', '最小バージョン', 'アーキテクチャ'],
+      rows: [
+        { platform: 'Windows', version: 'Windows 10', architecture: 'x64' },
+        { platform: 'macOS', version: 'macOS 11', architecture: 'Apple Silicon' },
+      ],
+    },
+    firstLaunch: {
+      title: '初回起動は手動で許可する必要があります',
+      body: 'Studio はコード署名されていません。Windows では「詳細情報 → 実行」を選びます。macOS では「システム設定 → プライバシーとセキュリティ」で「このまま開く」を選びます。',
+    },
+    links: {
+      installGuide: 'インストールガイド',
+      gettingStarted: 'プロジェクトを始める',
+      allReleases: 'GitHub ですべてのリリースを見る',
+    },
+  },
 } satisfies Record<Locale, DownloadPageCopy>;
 
 /**

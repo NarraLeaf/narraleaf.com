@@ -1,0 +1,47 @@
+---
+title: "ソリューション"
+description: UI、ルーティング、セーブ、通知、ギャラリー、移行のための実装パターン一式
+---
+
+ソリューションはコアのストーリー API と React UI を組み合わせます。各ページは動作するパターンから始め、どこを拡張すればよいかを示します。
+
+## プレイヤー UI
+
+<Cards>
+    <Card title="カスタムダイアログ" description="ADV 対話のレイアウト、テキストの初期値、モーションを差し替えます。" href="/ja/docs/narraleaf-react/solutions/custom-dialog" />
+    <Card title="ダイアログアバター" description="対話の隣にキャラクターの立ち絵アイコンを解決して表示します。" href="/ja/docs/narraleaf-react/solutions/dialog-avatar" />
+    <Card title="カスタム NVL ダイアログ" description="NVL コンテナ全体、または行レンダラーだけを差し替えます。" href="/ja/docs/narraleaf-react/solutions/custom-nvl-dialog" />
+    <Card title="カスタムメニュー" description="選択肢のスタイル、無効状態、キーボードショートカットを設定します。" href="/ja/docs/narraleaf-react/solutions/custom-menu" />
+    <Card title="カスタム通知" description="時限表示と常駐表示のゲーム内通知を描画します。" href="/ja/docs/narraleaf-react/solutions/custom-notification" />
+    <Card title="カスタムフォント" description="フォントを読み込み、対話とメニューの既定値に適用します。" href="/ja/docs/narraleaf-react/solutions/font" />
+    <Card title="カスタムワード" description="単語を独自のコンポーネントで描画し、そこからポップアップを開きます。" href="/ja/docs/narraleaf-react/solutions/custom-word" />
+</Cards>
+
+## ページとゲーム機能
+
+<Cards>
+    <Card title="クイックメニュー" description="undo、オート、セーブ、ロード、設定の各操作を追加します。" href="/ja/docs/narraleaf-react/solutions/quick-menu" />
+    <Card title="ページオーバーレイ" description="ページルーターで設定・セーブ・ギャラリーのオーバーレイを構築します。" href="/ja/docs/narraleaf-react/solutions/page-overlay-settings" />
+    <Card title="localStorage セーブ" description="複数スロット、クイックセーブ、クイックロードを実装します。" href="/ja/docs/narraleaf-react/solutions/save-system-localstorage" />
+    <Card title="永続ギャラリー" description="Service を基盤に、恒久的なアンロックを持つギャラリーを構築します。" href="/ja/docs/narraleaf-react/solutions/gallery-service-localstorage" />
+    <Card title="Ren'Py からの移行" description="ラベル、立ち絵、メニュー、変数、スクリーンを対応付けます。" href="/ja/docs/narraleaf-react/solutions/from-renpy" />
+</Cards>
+
+## よくある質問
+
+### Game はグローバルなシングルトンですか
+
+いいえ。`useGame()` は、最も近い `GameProviders` が保持する `Game` インスタンスを返します。同じインスタンスを複数の消費者に渡せば状態が共有され、別々の Provider は別々のゲームを持つことができます。
+
+```tsx
+const game = useGame();
+const liveGame = game.getLiveGame();
+```
+
+### NarraLeaf にはセーブスロットが内蔵されていますか
+
+NarraLeaf は `liveGame.serialize()` と `liveGame.deserialize()` を通じて実行時の状態をシリアライズおよび復元します。localStorage、IndexedDB、ファイル、サーバーのどれを使うかはアプリケーション側が選び、スロット UI も自分で用意します。[localStorage セーブ](/ja/docs/narraleaf-react/solutions/save-system-localstorage) を参照してください。
+
+### 独自の UI はどこに置きますか
+
+対話、メニュー、NVL、通知の各スロットには `Game` の設定を使います。設定、履歴、ギャラリー、セーブの各ページは `Page` と `Layout` を使って `Player` の内側に置きます。

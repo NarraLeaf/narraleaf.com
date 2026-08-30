@@ -1,0 +1,116 @@
+---
+title: "カスタム通知"
+description: デフォルトの Notification コンポーネントを、Game 経由で登録し liveGame.notify で発火する独自レンダラーに置き換える
+---
+## 何を置き換えるか
+
+通知（Notification）は、「保存しました」「解除しました」のような短いメッセージをゲーム内に表示します。デフォルトの [Notification](/ja/docs/narraleaf-react/player/notification) コンポーネントは、[game.configure](/ja/docs/narraleaf-react/core/game/game) の `notification` オプション経由で置き換えられるため、見た目やレイアウトをカスタマイズできます。
+
+通知の発火には [liveGame.notify](/ja/docs/narraleaf-react/core/game/live-game) を使用します。カスタムコンポーネントは `notifications` 配列（[INotificationsProps](/ja/docs/narraleaf-react/player/notification)）を受け取り、各項目を描画します。
+
+## 1. カスタム Notification コンポーネントを作成する
+
+カスタムコンポーネントは、[INotificationsProps](/ja/docs/narraleaf-react/player/notification) 型の `{ notifications }` を受け取ります。各通知は `id` と `message` を持ちます。
+
+```tsx
+import type { INotificationsProps } from "narraleaf-react";
+
+function CustomNotification({ notifications }: INotificationsProps) {
+  return (
+    <div className="absolute top-4 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none">
+      {notifications.map(({ id, message }) => (
+        <div
+          key={id}
+          className="bg-black/70 text-white px-4 py-2 rounded-lg shadow-lg text-sm"
+        >
+          {message}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+## 2. Game に登録する
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ notification: CustomNotification });
+
+function App() {
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
+}
+```
+
+## 3. 通知を発火する
+
+[LiveGame](/ja/docs/narraleaf-react/core/game/live-game) にアクセスできる場所であれば、どこからでも `notify` を呼び出せます。
+
+```tsx
+const liveGame = game.getLiveGame();
+
+// 通知を表示し、デフォルトの 3000ms 後に自動的に消える
+liveGame.notify("保存しました");
+
+// ミリ秒単位で表示時間を指定
+liveGame.notify("実績を解除しました", 5000);
+
+// duration: null - 自動では消えない（手動で削除するまで残る）
+const notice = liveGame.notify("重要な通知", null);
+
+// 常駐通知を後から削除する
+notice.cancel();
+```
+
+`notify()` は `cancel()` と `promise` を持つ `NotificationToken` を返します。通知が消えると promise が決着します。
+
+## 4. アニメーション付きの例
+
+Motion でフェードイン・フェードアウトを実装します。
+
+```tsx
+import { motion, AnimatePresence } from "motion/react";
+import type { INotificationsProps } from "narraleaf-react";
+
+function AnimatedNotification({ notifications }: INotificationsProps) {
+  return (
+    <div className="absolute top-4 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none">
+      <AnimatePresence>
+        {notifications.map(({ id, message }) => (
+          <motion.div
+            key={id}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="bg-amber-500/90 text-black px-4 py-2 rounded-lg"
+          >
+            {message}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+```
+
+## 5. 通知のデータ構造
+
+```ts
+type Notification = {
+  id: string;    // React key 用の一意な id
+  message: string;
+  // duration は内部的な自動消去処理にのみ使われる
+};
+```
+
+## 関連項目
+
+- [Notification](/ja/docs/narraleaf-react/player/notification) - Notification コンポーネントの API
+- [liveGame.notify](/ja/docs/narraleaf-react/core/game/live-game) - 通知を発火する
+- [game.configure](/ja/docs/narraleaf-react/core/game/game) - Game の設定

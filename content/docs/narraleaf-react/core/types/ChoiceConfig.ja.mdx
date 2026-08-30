@@ -1,0 +1,33 @@
+---
+title: "ChoiceConfig"
+description: "メニュー選択肢を無効化・非表示にするかどうかを制御する `disabled` と `hidden` の `Lambda` 条件"
+---
+```ts
+type ChoiceConfig = {
+    disabled?: Lambda<boolean>;
+    hidden?: Lambda<boolean>;
+};
+```
+
+メニュー選択肢の設定オプションです。
+
+## プロパティ
+
+- `disabled?: Lambda<boolean>` - 選択肢を無効化する条件
+- `hidden?: Lambda<boolean>` - 選択肢を非表示にする条件
+
+## 例
+
+```ts
+Menu.prompt("どうしよう？")
+    .choose({
+        prompt: "左に行く",
+        action: [character.say("左に行った")],
+        config: {
+            disabled: persis.isTrue("hasLeft"),
+            hidden: persis.isFalse("canGoLeft")
+        }
+    })
+```
+
+`Lambda` の詳細については、[Lambda](/ja/docs/narraleaf-react/core/types/Lambda) を参照してください。

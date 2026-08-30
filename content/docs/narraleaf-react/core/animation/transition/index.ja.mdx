@@ -1,0 +1,56 @@
+---
+title: "トランジション"
+description: トランジションエンジンとマスクパターンがどのように組み合わさって、スプライト、背景、シーンジャンプの切り替えをアニメーションさせるか。組み込みのトランジションすべてへのリンク付き
+---
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+NarraLeaf-Reactでは、トランジションは舞台上の変化をアニメーションさせます。キャラクターの立ち絵の切り替え、背景の変更、シーンジャンプなどです。
+
+立ち絵や背景のトランジションは、置き換えられる画像そのものの上で再生されます。[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)のトランジションは、舞台全体で再生され、その間は両方のシーンが同時に画面上に存在します。どちらも同じトランジションを使用します。
+
+## エンジンとパターン
+
+トランジションAPIは、*変化がどう再生されるか*と*変化がどんな形を取るか*を分離しています。
+
+- **エンジン**はトランジションのクラスです。`new`でインスタンス化し、どのエンジンも1つのオプションオブジェクトを受け取ります。`new Dissolve({ duration: 500 })`
+- **パターン**は幾何形状です。[Mask](/ja/docs/narraleaf-react/core/animation/transition/mask)の静的ファクトリーで構築し、マスク駆動のエンジンの`pattern`オプションに渡します。パターンは単なる値であり、`new`でインスタンス化することはありません。
+
+したがって、トランジションは「エンジン(アニメーション)」のように読めます。エンジンがピクセルの変化のしかたを決め、パターンがそのエンジンが再生するアニメーションになります。
+
+```tsx
+import { Reveal, ThroughColor, Mask } from "narraleaf-react";
+
+// 時計の掃引でそのまま次の画像を見せる
+image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
+
+// 同じ形状だが、黒のホールドを経由する
+image.char("image1.jpg", new ThroughColor({ duration: 1800, pattern: Mask.clock() }));
+```
+
+## 例
+
+```tsx
+import { Dissolve } from "narraleaf-react";
+
+image.char("image1.jpg", new Dissolve({ duration: 3000, easing: "linear" }));
+```
+
+## 組み込みのトランジション
+
+### 画像のトランジション
+
+- [Dissolve](/ja/docs/narraleaf-react/core/animation/transition/dissolve) - 2つの画像をクロスフェードする
+- [Fade In](/ja/docs/narraleaf-react/core/animation/transition/fade-in) - 次の画像をフェードインさせる。ピクセルオフセットからの移動を伴わせることもできる
+- [Blur Dissolve](/ja/docs/narraleaf-react/core/animation/transition/blur-dissolve) - ぼかしを経由してクロスフェードする
+- [Push](/ja/docs/narraleaf-react/core/animation/transition/push) - 次の画像をスライドインさせながら、現在の画像をスライドアウトさせる
+- [Darkness](/ja/docs/narraleaf-react/core/animation/transition/darkness) - 次の画像を暗闇から立ち上げる、または暗闇へ落とし込む
+- [Reveal](/ja/docs/narraleaf-react/core/animation/transition/reveal) - 任意のマスクパターンでそのまま次の画像を見せる
+- [Rule Reveal](/ja/docs/narraleaf-react/core/animation/transition/rule-reveal) - グレースケールのルール画像が指定する順序で次の画像を見せる
+- [Through Color](/ja/docs/narraleaf-react/core/animation/transition/through-color) - 色で覆い、保持したのち、次の画像で覆いを外す
+- [Exposure](/ja/docs/narraleaf-react/core/animation/transition/exposure) - 段階的に画面を白へ焼き切り、次の画像を戻す
+
+### マスクパターン
+
+- [Mask](/ja/docs/narraleaf-react/core/animation/transition/mask) - RevealとThrough Colorが共有するパターンの語彙。ワイプ、観音開き、アイリス、時計、扇、ブラインド、ドット、さらに`Mask.invert`と手書きのカスタムパターン

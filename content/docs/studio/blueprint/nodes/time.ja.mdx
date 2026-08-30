@@ -1,0 +1,298 @@
+---
+title: 時間
+description: 時刻を読み取り、日付を扱い、ある瞬間をテキストとして整形します
+---
+
+現在時刻の読み取りと日付操作のための15個の pure ノードです。`Now` は現在時刻を読み取ります。`Make Time` と `Get Time Parts` は、ある瞬間とそのカレンダー上の各項目とを相互に変換します。`Add Time` と `Time Difference` は、各月の長さを考慮した演算を行います。4つの整形ノードは、ある瞬間をテキストに変換します。
+
+よくある用途はセーブ画面です。あるスロットが書き込まれた時刻を表示するには、[`Get Save Time`](/ja/docs/studio/blueprint/nodes/game#get-save-time) をこのページの整形ノードのいずれかに接続します。
+
+## 規約
+
+- **このページのすべてのノードは `Pure` です。** いずれも exec ピンを持ちません。`event`、`function`、`macro` グラフのいずれでも合法であり、[Blueprint Value](/ja/docs/studio/blueprint) の内部でも使用できます。セーブスロットのラベルは Blueprint Value です。
+- **ある瞬間は1つの数値です。1970年1月1日 UTC からのミリ秒数を、`float` ピンで表します。** これは `Get Save Time` と `Get Latest Auto Save` が生成する単位であるため、セーブのタイムスタンプはこのページのどのノードにもそのまま接続できます。
+- **時刻を比較するノードはありません。** より遅い瞬間ほど大きな数値になるため、[Math](/ja/docs/studio/blueprint/nodes/math) の `<`、`>`、`Min`、`Max` だけで2つの瞬間の順序を判定できます。
+- **カレンダーはプレイヤーのローカルのものです。** `Make Time`、`Get Time Parts`、`Add Time`、`Time Difference`、`Start Of Day`、`Is Same Day`、`Format Time` はすべてローカル時刻を読みます。`To ISO String` は例外で、UTC を出力します。
+- **何もキャッシュされません。** ノードは読み取られるたびに再実行されるため、`Now` はそれを読む各エッジに対して異なる値を返します。
+- **有効な数値でないピンは `0`、すなわち1970年1月1日として扱われます。** `Format Time` はこの日付をそのまま出力し、何の警告も出しません。整形結果が1970年になっている場合は、入力が届いていないことを意味します。
+
+## Now
+
+`blueprint.time.now` · Pure
+
+現在時刻です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | out · data | `float` | |
+
+## Make Time
+
+`blueprint.time.make` · Pure
+
+ローカルのカレンダー項目から1つの瞬間を組み立てます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `year` | in · data | `integer` | カード上での直接入力に対応します。`50` は西暦50年を意味し、1950年ではありません。 |
+| `month` | in · data | `integer` | 1–12。カード上での直接入力に対応します。 |
+| `day` | in · data | `integer` | 1–31。カード上での直接入力に対応します。 |
+| `hour` | in · data | `integer` | 0–23。カード上での直接入力に対応します。 |
+| `minute` | in · data | `integer` | 0–59。カード上での直接入力に対応します。 |
+| `second` | in · data | `integer` | 0–59。カード上での直接入力に対応します。 |
+| `millisecond` | in · data | `integer` | 0–999。カード上での直接入力に対応します。 |
+| `timestamp` | out · data | `float` | |
+
+範囲外の項目は次の項目へ繰り上がります。`month` に `13` を指定すると翌年の1月になります。`day` に `0` を指定すると前月の最終日になり、これを使えばある月の月末に到達できます。
+
+## Get Time Parts
+
+`blueprint.time.parts` · Pure
+
+ある瞬間をローカルのカレンダー項目に分解します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `year` | out · data | `integer` | |
+| `month` | out · data | `integer` | 1–12。 |
+| `day` | out · data | `integer` | 1–31。 |
+| `hour` | out · data | `integer` | 0–23。 |
+| `minute` | out · data | `integer` | 0–59。 |
+| `second` | out · data | `integer` | 0–59。 |
+| `millisecond` | out · data | `integer` | 0–999。 |
+| `weekday` | out · data | `integer` | 0 が日曜日、6 が土曜日です。 |
+| `dayOfYear` | out · data | `integer` | 1月1日が `1` です。 |
+
+## Format Time
+
+`blueprint.time.format` · Pure
+
+パターンを使ってある瞬間をテキストとして描画します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `pattern` | in · data | `string` | カード上での直接入力に対応します。空欄の場合は `YYYY-MM-DD HH:mm` として扱われます。 |
+| `result` | out · data | `string` | |
+
+| トークン | 出力 | 例 |
+| --- | --- | --- |
+| `YYYY` | 4桁の年 | `2026` |
+| `YY` | 2桁の年 | `26` |
+| `MM` / `M` | 月、ゼロ埋めあり／なし | `08` / `8` |
+| `DD` / `D` | 日、ゼロ埋めあり／なし | `04` / `4` |
+| `HH` / `H` | 時、24時間制、ゼロ埋めあり／なし | `15` / `15` |
+| `hh` / `h` | 時、12時間制、ゼロ埋めあり／なし | `03` / `3` |
+| `mm` / `m` | 分、ゼロ埋めあり／なし | `30` / `30` |
+| `ss` / `s` | 秒、ゼロ埋めあり／なし | `05` / `5` |
+| `SSS` | ミリ秒 | `007` |
+| `A` / `a` | 午前・午後 | `PM` / `pm` |
+
+トークンでないものはそのまま出力されます。単一引用符で囲まれたテキストはトークンとして走査されずそのまま出力されるため、トークンと同じ文字であってもそのまま印字できます。`'Day' D` は `Day 14` になります。単一引用符が連続する場合は、引用符1つとして出力されます。
+
+## Format Time Localized
+
+`blueprint.time.formatLocalized` · Pure
+
+ある瞬間を、指定した言語の慣習に従って描画します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `locale` | in · data | `string` | カード上での直接入力に対応します。`en-US` や `zh-CN` のような BCP 47 タグです。空の場合はプレイヤーのシステム言語を意味します。 |
+| `result` | out · data | `string` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Date Style` | `None`、`Short`、`Medium`、`Long`、`Full` のいずれかです。既定は `Medium` です。 |
+| `Time Style` | 同じ5種類です。既定は `None` です。 |
+
+両方のスタイルを `None` にすると、結果は空になります。システムが認識しないタグは、プレイヤーの言語にフォールバックします。
+
+<Callout type="info">
+このノードはゲームの現在の言語を読み取りません。[`Get Current Language`](/ja/docs/studio/blueprint/nodes/localization#get-current-language) を `locale` に接続すると、日付がプレイヤーの選択した言語に追従するようになります。
+</Callout>
+
+## Format Relative Time
+
+`blueprint.time.formatRelative` · Pure
+
+2つの瞬間の間隔を言葉で表します。`5 minutes ago`、`in 2 days` のようになります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `from` | in · data | `float` | カード上での直接入力に対応します。基準点で、通常は `Now` を接続します。 |
+| `to` | in · data | `float` | カード上での直接入力に対応します。表現の対象となる瞬間です。 |
+| `locale` | in · data | `string` | カード上での直接入力に対応します。`Format Time Localized` と同様です。 |
+| `result` | out · data | `string` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Wording` | `Auto` はその言語が `yesterday` のような語を使うことを許します。`Always Numeric` は常に数で数えます。既定は `Auto` です。 |
+
+単位は間隔の大きさに応じて決まります。1分未満は秒、その後は分、時、日、月、年の順です。
+
+## Format Duration
+
+`blueprint.time.formatDuration` · Pure
+
+時間の長さを時計のような表示として描画します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `milliseconds` | in · data | `float` | カード上での直接入力に対応します。 |
+| `result` | out · data | `string` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Layout` | `Auto` は時間がある場合にのみ時間を表示します（`1:05`、`2:03:04`）。`Hours Minutes Seconds` は常に表示します（`00:01:05`）。`Minutes Seconds` は決して表示しません（`01:05`）。既定は `Auto` です。 |
+
+時間は日への繰り上げをせず、そのまま積み上がり続けます。30時間のプレイ時間は `30:00:00` と表示されます。
+
+出力は数字と区切り記号のみです。`1 h 20 min` のような言い回しには翻訳が必要になるため、`Get Duration Parts` と [`Format Text`](/ja/docs/studio/blueprint/nodes/localization#format-text) から組み立ててください。
+
+## Get Duration Parts
+
+`blueprint.time.durationParts` · Pure
+
+時間の長さを各単位に分解します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `milliseconds` | in · data | `float` | カード上での直接入力に対応します。 |
+| `days` | out · data | `integer` | |
+| `hours` | out · data | `integer` | 0–23。 |
+| `minutes` | out · data | `integer` | 0–59。 |
+| `seconds` | out · data | `integer` | 0–59。 |
+| `remainingMilliseconds` | out · data | `integer` | 0–999。 |
+| `totalHours` | out · data | `integer` | 全体の長さを時間に換算した値です。 |
+| `totalMinutes` | out · data | `integer` | 全体の長さを分に換算した値です。 |
+| `totalSeconds` | out · data | `integer` | 全体の長さを秒に換算した値です。 |
+| `negative` | out · data | `boolean` | |
+
+すべての数値は絶対値です。符号は `negative` が示します。
+
+## Add Time
+
+`blueprint.time.add` · Pure
+
+ある瞬間を前または後ろに移動させます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `amount` | in · data | `float` | カード上での直接入力に対応します。負の値は後ろへ移動します。 |
+| `result` | out · data | `float` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Unit` | `Milliseconds`、`Seconds`、`Minutes`、`Hours`、`Days`、`Weeks`、`Months`、`Years` のいずれかです。既定は `Seconds` です。 |
+
+`Months` と `Years` はカレンダーに沿って計算され、対象の月の末日で止まります。1月31日に1か月を加えると2月28日、うるう年では29日になります。
+
+## Time Difference
+
+`blueprint.time.difference` · Pure
+
+`to` から `from` を引いた値を、指定した単位で表します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `from` | in · data | `float` | カード上での直接入力に対応します。 |
+| `to` | in · data | `float` | カード上での直接入力に対応します。 |
+| `difference` | out · data | `float` | `to` が `from` より前の場合は負になります。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Unit` | `Add Time` と同様です。既定は `Seconds` です。 |
+
+固定長の単位は小数を保持します。90分を時間で表すと `1.5` になるため、整数が必要な場合は `Floor` を通してください。`Months` と `Years` は完了したカレンダー上の単位だけを数えるため、1か月に1日足りない間隔は `0` になります。
+
+## Parse Time
+
+`blueprint.time.parse` · Pure
+
+書かれた日付を読み取り、瞬間に戻します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上での直接入力に対応します。 |
+| `timestamp` | out · data | `float` | テキストを読み取れなかった場合は `0` です。 |
+| `ok` | out · data | `boolean` | |
+
+書式は ISO 8601 を使用してください。`2026-08-14` のように時刻を含まない日付は、ローカルの午前0時として読み取られます。
+
+<Callout type="warn">
+`ok` を確認してください。解析に失敗すると `0` が生成されますが、`0` は1970年の有効な瞬間でもあります。
+</Callout>
+
+## To ISO String
+
+`blueprint.time.toIsoString` · Pure
+
+ある瞬間を **UTC** の ISO 8601 文字列として書き出します。例: `2026-08-14T07:30:00.000Z`。セーブのメタデータや永続変数に時刻を格納する際に使用します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `result` | out · data | `string` | |
+
+`Parse Time` はこれを同じ瞬間として読み戻します。
+
+## Is Same Day
+
+`blueprint.time.isSameDay` · Pure
+
+2つの瞬間が同じローカルのカレンダー日に属するかどうかです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `float` | カード上での直接入力に対応します。 |
+| `b` | in · data | `float` | カード上での直接入力に対応します。 |
+| `result` | out · data | `boolean` | |
+
+比較の対象はカレンダー上の日です。23:59 と翌朝の 00:30 は30分しか離れていませんが、異なる日に属します。
+
+## Start Of Day
+
+`blueprint.time.startOfDay` · Pure
+
+ある瞬間が属する日の、ローカルの午前0時です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。 |
+| `result` | out · data | `float` | |
+
+## Get Time Zone
+
+`blueprint.time.zoneOffset` · Pure
+
+ゲームが実行されているタイムゾーンです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `timestamp` | in · data | `float` | カード上での直接入力に対応します。問い合わせ対象の瞬間です——サマータイムにより、同じタイムゾーンでも年内で異なるオフセットになることがあります。 |
+| `offsetMinutes` | out · data | `float` | UTC より進んでいる分数です。UTC+8 の場合は `480` です。 |
+| `name` | out · data | `string` | `Asia/Shanghai` のような IANA 名です。システムが報告しない場合は空文字列です。 |
+
+## セーブの書き込み時刻を表示する
+
+スロットのラベルは Blueprint Value であり、瞬間は [`Get Save Time`](/ja/docs/studio/blueprint/nodes/game#get-save-time) が提供します。
+
+- **絶対的な日付** —— `Get Save Time` → `savedAt` → `Format Time`、またはプレイヤーの言語に追従させるなら `Format Time Localized` です。
+- **相対的な日付** —— `Now` を `from` に、`savedAt` を `to` に接続し、`Format Relative Time` に渡します。
+- **日単位でのグルーピング** —— セーブの `Start Of Day` と `Now` の `Start Of Day` を比較するか、`Is Same Day` を使用します。
+
+空のスロットは `Get Save Time` の `exists` ピンで判定してください。セーブがない場合、`savedAt` は `0` になりますが、`0` は有効な瞬間でもあります。

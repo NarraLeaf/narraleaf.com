@@ -1,0 +1,118 @@
+---
+title: "WordConfig"
+description: "`Word` の設定：ルビ、色、表示速度、圏点、相対的なフォント倍率、カスタムレンダリング"
+---
+```typescript
+type WordConfig = {
+    className: string;
+    ruby: string;
+    color: Color;
+    cps?: number;
+    emphasis?: WordEmphasis;
+    fontScale?: number;
+    render?: WordRenderer;
+    data?: unknown;
+} & Font;
+```
+
+Color については [Color](/ja/docs/narraleaf-react/core/types/color) を参照してください。
+Font については [Font](/ja/docs/narraleaf-react/core/types/Font) を参照してください。
+
+## ruby
+
+`ruby` プロパティはルビを表示するために使用します。漢字の読み方を示すのに便利です。
+
+## className
+
+`className` プロパティは、この単語のクラス名を設定するために使用します。
+
+```typescript
+new Word({
+    className: 'bold',
+});
+```
+
+## color
+
+`color` プロパティは、この単語の色を設定するために使用します。
+
+```typescript
+new Word({
+    color: 'red',
+});
+```
+
+## cps
+
+`cps` プロパティは単語の表示速度を設定するために使用します。このプロパティを使うと、単語ごとに異なる速度を設定できます。
+
+```typescript
+new Word({
+    cps: 10, // 10 characters per second
+});
+```
+
+## emphasis
+
+> `0.37.0` から利用可能
+
+この単語の文字の脇に描かれる強調記号です。文字ごとにその脇へ小さな記号を添えるもので、ラテン文字であれば斜体にするところを、東アジアの文章で強調する際の組版上の方法です（日本語では傍点・圏点、中国語では着重号と呼ばれます）。記号は文字が表示されるのに合わせて付いていくため、半分しか表示されていない単語には記号も半分しか付きません。
+
+```typescript
+type WordEmphasis = {
+    mark?: "dot" | "circle" | "sesame" | "triangle";  // デフォルトは "dot"
+    fill?: "filled" | "open";                          // デフォルトは "filled"
+    position?: "over" | "under";                       // デフォルトは "over"
+};
+```
+
+`position` は書字方向を基準に解釈されます。横書きでは `over` が行の上、`under` が行の下になります。縦書きでは両方とも慣例どおり字列の右側に配置されます。
+
+```typescript
+new Word("エーテル密度", {emphasis: {mark: "sesame"}});
+```
+
+この項目は [`Word.emphasis`](/ja/docs/narraleaf-react/core/elements/character/word) が設定します。
+
+## fontScale
+
+> `0.37.0` から利用可能
+
+この単語の大きさを、行全体に対する比率で指定します —— `1.25` なら4分の1大きく、`0.8` なら5分の1小さくなります。絶対値ではなく相対値なので、行がどんな大きさに設定されても、[テキストの自動縮小](/ja/docs/narraleaf-react/player/dialog)によって行が枠に収まるよう縮められている場合も含め、単語は行の中での重みを保ちます。
+
+`fontSize` が設定されている場合は無視されます。これは単語を絶対的な大きさに固定するためです。
+
+```typescript
+new Word("静か", {fontScale: 0.8});
+```
+
+## render
+
+> `0.27.0` から利用可能
+
+この単語の表示済み文字を描画するコンポーネントです。
+
+```typescript
+type WordRenderer<T = any> = string | React.ComponentType<WordRenderProps<T>>;
+```
+
+コードから直接渡す場合はコンポーネントを渡します。単語がデータ由来で関数を保持できない場合は id を渡します。単語を描画する際にその id は[レンダラーレジストリ](/ja/docs/narraleaf-react/core/elements/character/word#renderer-registry)に照らして解決され、どの id にも対応するものがない場合はプレーンテキストとして描画されます。
+
+```tsx
+new Word("エーテル密度", {render: GlossaryTerm});
+new Word("エーテル密度", {render: "glossary"});
+```
+
+[`Word.custom`](/ja/docs/narraleaf-react/core/elements/character/word#custom) がこの項目を設定します。詳細は[カスタムレンダリング](/ja/docs/narraleaf-react/core/elements/character/word#custom-rendering)を参照してください。
+
+`render` は、`className` と同様に、動的な単語が返すプレーンな文字列にも伝播します。ネストされた `Word` には継承されず、そちらは自分自身で宣言したレンダラーを保持します。
+
+## data
+
+> `0.27.0` から利用可能
+
+`render` に `data` として渡されるペイロードです。マージやクローンは一切行われず、コンポーネントはここで渡された値そのものを受け取ります。
+
+```tsx
+new Word("エーテル密度", {render: "glossary", data: {entry: "aether"}});
+```

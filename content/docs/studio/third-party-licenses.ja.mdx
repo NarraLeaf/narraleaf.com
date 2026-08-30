@@ -1,0 +1,35 @@
+---
+title: サードパーティライセンス
+description: NarraLeaf Studio がアプリケーションと共に配布するサードパーティ製ソフトウェアと、それらが従うライセンス
+---
+
+NarraLeaf Studio のインストーラーには、アプリケーション本体とともに少量のサードパーティ製ソフトウェアが含まれています。このページでは、それが何であるか、どのような条件で配布されているかを記録します。
+
+## FFmpeg
+
+Studio には `ffmpeg` と `ffprobe` の実行ファイルが同梱されており、メディア形式の検出と、インポートしたファイルをエンジンが再生できる形式へ変換するために使用されます。これらは独立したプログラムとして同梱され、別プロセスとして実行されます。FFmpeg のいかなる部分も Studio にリンクされていません。
+
+FFmpeg は LGPL の下で配布されています。バージョンはプラットフォームごとに異なり、各ビルドは対応するライセンス全文をバイナリと並べて `resources/ffmpeg/` に同梱します。
+
+| プラットフォーム | ビルド | ライセンス |
+| --- | --- | --- |
+| Windows | 固定した [BtbN/FFmpeg-Builds](https://github.com/BtbN/FFmpeg-Builds) のリリースからのビルド済みバイナリ | [LGPL v3 以降](https://www.gnu.org/licenses/lgpl-3.0.html) |
+| macOS | 固定した上流ソースからのコンパイル | [LGPL v2.1 以降](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) |
+
+どちらのビルドにも GPL コンポーネントや non-free コンポーネントは含まれていません。
+
+### 同梱ライブラリ
+
+| コンポーネント | ライセンス | 用途 |
+| --- | --- | --- |
+| libvpx | [BSD-3-Clause](https://github.com/webmproject/libvpx/blob/main/LICENSE)、および[追加の特許許諾](https://github.com/webmproject/libvpx/blob/main/PATENTS) | VP9 動画 |
+| libvorbis | [BSD-3-Clause](https://github.com/xiph/vorbis/blob/master/COPYING) | Vorbis 音声 |
+| libogg | [BSD-3-Clause](https://github.com/xiph/ogg/blob/master/COPYING) | Ogg コンテナ |
+
+### 対応するソースコード
+
+FFmpeg のソースコードは [FFmpeg project](https://www.ffmpeg.org/download.html) から入手できます。ライセンスの詳細は [legal ページ](https://www.ffmpeg.org/legal.html) に完全に記載されています。
+
+macOS 版は FFmpeg 8.1.2 と上記のライブラリからコンパイルされています。固定したバージョンと完全な configure 行を含むビルドスクリプトは、[NarraLeaf Studio リポジトリ](https://github.com/NarraLeaf/NarraLeaf-Studio) の `project/build/build-ffmpeg-macos.sh` にあります。Windows 版はバージョン `n8.1.2-34-g9b6c8969e0` で、[`autobuild-2026-07-31-14-10`](https://github.com/BtbN/FFmpeg-Builds/releases/tag/autobuild-2026-07-31-14-10) のリリースに由来します。
+
+いずれかのビルドについて完全な対応ソースコードを要求するには、[NarraLeaf Studio リポジトリ](https://github.com/NarraLeaf/NarraLeaf-Studio) で issue を開いてください。

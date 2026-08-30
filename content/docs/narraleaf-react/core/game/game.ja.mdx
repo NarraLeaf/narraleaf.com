@@ -1,0 +1,304 @@
+---
+title: "ゲーム"
+description: Game クラスのプリファレンス、オーディオバス、キーマッププロパティ、プラグイン登録、設定、ライフサイクルイベント
+---
+Game はゲーム自体を表すメインクラスです。ゲームのすべての設定と
+[LiveGame](/ja/docs/narraleaf-react/core/game/live-game) を保持します。
+
+`Game` は、それを所有する [GameProvider](/ja/docs/narraleaf-react/player/game-providers) に属します。
+provider が 1 つ構築すると、別の provider はそれぞれ別の game を持ちます。自分がいる場所の game には
+`useGame()` フックで到達できます。
+
+## 公開プロパティ
+
+### preference
+
+<Steps>
+<Step>
+
+[Preference](/ja/docs/narraleaf-react/core/game/preference/preference) インスタンス
+
+- `Preference<GamePreference>` - 参照: [GamePreference](/ja/docs/narraleaf-react/core/types/GamePreference)
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+</Step>
+</Steps>
+
+### audioBuses
+
+<Steps>
+<Step>
+
+オーディオバスミキサーです。`GameConfig.audioBuses` で宣言されたツリーと、プレイヤーがそれに対して
+行った操作を保持します。`new Game(...)` の後ならいつでも、オーディオコンテキストが解放される前、
+プレイヤーがマウントされる前であっても利用できます。
+
+- `AudioBusMixer` - 参照: [オーディオバス](/ja/docs/narraleaf-react/core/game/audio-buses)
+
+```typescript
+game.audioBuses.setVolume("alice", 0.5);
+localStorage.setItem("mixer", JSON.stringify(game.audioBuses.getVolumes()));
+```
+</Step>
+</Steps>
+
+### keyMap
+
+<Steps>
+<Step>
+
+ゲームのキーバインド管理を行う KeyMap インスタンス
+
+- `KeyMap` - 参照: [KeyMap](/ja/docs/narraleaf-react/core/game/key-map)
+
+```typescript
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, "Control");
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### getLiveGame
+
+<Steps>
+<Step>
+
+- 返り値: `LiveGame` - [LiveGame](/ja/docs/narraleaf-react/core/game/live-game) インスタンス
+</Step>
+</Steps>
+
+### configure
+
+<Steps>
+<Step>
+
+ゲームに新しい設定を割り当てます。
+
+> **注意：** このメソッドはゲームが初期化される前に使うことを想定しています。
+>
+> ゲームの初期化後に呼び出しても反映されないか、すぐには反映されません。
+> [Preference](/ja/docs/narraleaf-react/core/game/preference/preference) の設定はすぐに反映されます。
+
+```typescript
+const game = useGame();
+
+useEffect(() => {
+    game.configure({
+        ratioUpdateInterval: 0, // update the player size immediately
+
+        /* cursor */
+        cursor: "cursor.jpeg",
+        cursorHeight: 60,
+        cursorWidth: 60,
+    });
+}, []);
+```
+</Step>
+</Steps>
+
+### use
+
+<Steps>
+<Step>
+
+ゲームにプラグインを登録します。
+
+> **注意**: 同じ名前を持つプラグインは登録されません。
+>
+> 名前は `namespace` と `name` から構成することを推奨します。
+> 例: `"@Namespace/PluginName"`、`"@Author/PluginName"`、`"PluginName"`
+
+```typescript
+game.use({
+    ... /** plugin register config */
+});
+```
+
+- `plugin: IGamePluginRegistry` - プラグイン登録の設定。参照: [Plugin](/ja/docs/narraleaf-react/core/plugin)
+</Step>
+</Steps>
+
+### dispose
+
+<Steps>
+<Step>
+
+ゲームを破棄し、すべてのリソースを解放します。
+
+> **注意**: この操作は取り消せません。
+
+```typescript
+game.dispose();
+```
+</Step>
+</Steps>
+
+### configureAndFreeze
+
+<Steps>
+<Step>
+
+ゲームを設定し、特定のフィールドを凍結してそれ以上の変更を防ぎます。
+
+> **警告**: NarraLeaf エンジンまたはプラグイン環境を使わずにこのメソッドを使うことは推奨されません。
+
+```typescript
+game.configureAndFreeze({
+    ratioUpdateInterval: 0,
+    cursor: "cursor.jpeg"
+});
+```
+
+- `config: DeepPartial<GameConfig>` - 適用して凍結するゲーム設定
+</Step>
+</Steps>
+
+### freeze
+
+<Steps>
+<Step>
+
+特定の設定フィールドを凍結し、それ以上の変更を防ぎます。
+
+> **警告**: NarraLeaf エンジンまたはプラグイン環境を使わずにこのメソッドを使うことは推奨されません。
+
+```typescript
+game.freeze(["ratioUpdateInterval", "cursor"]);
+```
+
+- `fields: (StringKeyOf<GameConfig>)[]` - 凍結する設定フィールド名の配列
+</Step>
+</Steps>
+
+## ライフサイクルイベント
+
+ゲームの起動過程には、監視できる時点が 2 つあります。それぞれはゲームのライフサイクル内で最大 1 回だけ
+発火し、すべてのリスナーは同じコンテキストオブジェクト `{game, gameState, liveGame, storable, scene}` を
+受け取ります。`scene` は `null` になることがあります。
+
+<Callout type="warning">
+    **`preloadComplete` は `0.17.0` で発火位置が変わりました。** 現在はゲームに入る**前**、つまりメニューが
+    まだ画面に表示されている可能性がある段階で発火します。`newGame()` がシーンをマウントした後ではありません。
+    読み込みステップの制御にはこれを使い、「ゲームの内容が画面上にある」ことには `firstSceneReady` を
+    使ってください。参照: [プリロード](/ja/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on)。
+</Callout>
+
+### onPreloadComplete
+
+<Steps>
+<Step>
+
+初回のプリロードパスが完了したことを監視します。`0.17.0` 以降、これはゲームに入る前に発火します。
+
+```typescript
+const token = game.onPreloadComplete(({scene}) => {
+    setLoadingBarDone(true);
+});
+
+token.cancel();
+```
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- 返り値: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### oncePreloadComplete
+
+<Steps>
+<Step>
+
+同上ですが、最初の呼び出し後に自動的に取り除かれます。
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- 返り値: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### whenPreloadComplete
+
+<Steps>
+<Step>
+
+初回のプリロードパスが完了したときに resolve します。すでに完了していれば即座に resolve するため、
+リスナーの登録が遅れる可能性がある場合に安全な形式です。
+
+```typescript
+const {scene} = await game.whenPreloadComplete();
+```
+
+- 返り値: `Promise<GameLifecycleEventContext>`
+</Step>
+</Steps>
+
+### isPreloadComplete
+
+<Steps>
+<Step>
+
+初回のプリロードパスが完了しているかどうかです。
+
+- 返り値: `boolean`
+</Step>
+</Steps>
+
+### onFirstSceneReady
+
+<Steps>
+<Step>
+
+最初のシーンが完全に準備できたことを監視します。プリロードパスが終わり、最初のシーンコンポーネントが
+マウントされ、**さらに**ブラウザがそれを描画するフレームを 1 回消化した状態です。これはゲームが視覚的に
+プレイヤーへ見せられる状態になったことを示す、最も直接的な信号です。
+
+```typescript
+const token = game.onFirstSceneReady(() => hideLoadingOverlay());
+
+token.cancel();
+```
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- 返り値: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### onceFirstSceneReady
+
+<Steps>
+<Step>
+
+同上ですが、最初の呼び出し後に自動的に取り除かれます。
+
+- `fc: (ctx: GameLifecycleEventContext) => void`
+- 返り値: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### whenFirstSceneReady
+
+<Steps>
+<Step>
+
+最初のシーンが完全に準備できたときに resolve します。すでに準備できていれば即座に resolve します。
+
+```typescript
+await game.whenFirstSceneReady();
+```
+
+- 返り値: `Promise<GameLifecycleEventContext>`
+</Step>
+</Steps>
+
+### isFirstSceneReady
+
+<Steps>
+<Step>
+
+最初のシーンが完全に準備できているかどうかです。
+
+- 返り値: `boolean`
+</Step>
+</Steps>

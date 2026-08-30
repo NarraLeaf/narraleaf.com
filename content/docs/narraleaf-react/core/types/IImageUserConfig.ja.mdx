@@ -1,0 +1,51 @@
+---
+title: "IImageUserConfig"
+description: Image 要素のユーザー向け設定。ソース、レイヤー、自動フィット、暗さ、初期化の挙動を扱う
+---
+```typescript
+interface IImageUserConfig<
+    Tag extends TagGroupDefinition | null = TagGroupDefinition | null,
+    Layers extends LayerGroupDefinition = LayerGroupDefinition,
+>
+    extends CommonDisplayableConfig {
+    /**
+     * The name of the image, only for debugging purposes
+     */
+    name: string;
+    /**
+     * If set to false, the image won't be initialized unless you call `init` method
+     * @default true
+     */
+    autoInit: boolean;
+    /**
+     * Image Src, see [Image](../elements/image) for more information
+     */
+    src: ImageSrcType<Tag> | LayeredDefinition<Layers>;
+    /**
+     * Auto resize image's width to fit the screen
+     * @default false
+     */
+    autoFit: boolean;
+    /**
+     * layer of the image
+     */
+    layer?: Layer;
+    /**
+     * Darkness of the image, between 0 and 1
+     * @default 0
+     */
+    darkness?: number;
+}
+type TagDefinition<T extends TagGroupDefinition | null> =
+    T extends TagGroupDefinition ? TagDefinitionObject<T> : never;
+type TagDefinitionObject<T extends TagGroupDefinition> = {
+    groups: T;
+    defaults: SelectElementFromEach<T>;
+    resolve: TagSrcResolver<T>;
+};
+
+type ImageSrcType<T extends TagGroupDefinition | null = TagGroupDefinition | null> =
+    T extends TagGroupDefinition ? TagDefinition<T> : (Color | ImageSrc);
+```
+
+CommonDisplayableConfig については [CommonDisplayableConfig](/ja/docs/narraleaf-react/core/types/CommonDisplayableConfig) を参照してください。

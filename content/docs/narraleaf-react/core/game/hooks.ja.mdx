@@ -1,0 +1,132 @@
+---
+title: "フック"
+description: 初期化、画像プリロード、セーブ復元の各時点でカスタムロジックを差し込むためのゲームフック
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+フックは、ゲームにカスタムロジックを差し込むための仕組みです。プラグインの作成に役立ちます。
+
+```typescript
+game.hooks.hook("init", () => {
+    console.log("Game initialized");
+});
+```
+
+## 公開メソッド
+
+### hook
+
+<Steps>
+<Step>
+
+ゲームにフックを追加します。
+
+```typescript
+const token = game.hooks.hook("init", () => {
+    console.log("Game initialized");
+});
+
+return function cleanup() {
+    token.cancel();
+}
+```
+
+- `key: Hooks` - フックのキー。キーの一覧は[フック一覧](#フック一覧)セクションを参照してください。
+- `hook: (...value: T[K]) => VoidFunction | void` - クリーンアップ関数を返すコールバック関数
+- 返り値: `LiveGameEventToken` - 参照: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### unhook
+
+<Steps>
+<Step>
+
+ゲームからフックを取り除きます。
+
+```typescript
+const listener = function () { /* ... */ };
+
+game.hooks.hook("init", listener); // フックを追加する
+
+game.hooks.unhook("init", listener); // フックを取り除く
+```
+
+- `key: Hooks` - フックのキー。キーの一覧は[フック一覧](#フック一覧)セクションを参照してください。
+- `listener: (...value: T[K]) => VoidFunction | void` - フックに追加されていたリスナー関数
+</Step>
+</Steps>
+
+## フック一覧
+
+### init
+
+<Steps>
+<Step>
+
+このフックは、ゲームが初期化されたとき、かつプレイヤーが描画される前に呼び出されます。
+
+```typescript
+game.hooks.hook("init", () => {
+    console.log("let's do something cool here");
+});
+```
+</Step>
+</Steps>
+
+### preloadImage
+
+<Steps>
+<Step>
+
+このフックは画像のプリロード時に呼び出されます。画像に対するプロキシロジックを作るのに便利です。
+
+- `src: string` - 画像のソース
+- `set: (src: string, options?: RequestInit) => void` - 画像のソースを設定する関数
+
+```typescript
+game.hooks.hook("preloadImage", (src, set) => {
+    const newSrc = `https://example.com/proxy?url=${src}`;
+    set(newSrc, {
+        credentials: "include",
+    });
+});
+```
+</Step>
+</Steps>
+
+### beforeRestore
+
+<Steps>
+<Step>
+
+このフックは、ゲームの状態をデシリアライズする前に呼び出されます。
+
+```typescript
+game.hooks.hook("beforeRestore", () => {
+    console.log("Preparing to restore game state");
+});
+```
+</Step>
+</Steps>
+
+### afterRestore
+
+<Steps>
+<Step>
+
+このフックは、ゲームの状態をデシリアライズした後に呼び出されます。
+
+```typescript
+game.hooks.hook("afterRestore", () => {
+    console.log("Game state restored successfully");
+});
+```
+</Step>
+</Steps>

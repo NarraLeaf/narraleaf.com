@@ -3,7 +3,7 @@ import { defineI18nUI } from 'fumadocs-ui/i18n';
 
 export const i18n = defineI18n({
   defaultLanguage: 'en',
-  languages: ['en', 'zh'],
+  languages: ['en', 'zh', 'ja'],
   hideLocale: 'default-locale',
   parser: 'dot',
 });
@@ -39,6 +39,19 @@ export const i18nUI = defineI18nUI(i18n, {
     previousPage: '上一页',
     chooseTheme: '主题',
     editOnGithub: '在 GitHub 上编辑',
+  },
+  ja: {
+    displayName: '日本語',
+    search: 'ドキュメントを検索',
+    searchNoResult: '結果が見つかりません',
+    toc: 'このページの目次',
+    tocNoHeadings: '見出しがありません',
+    lastUpdate: '最終更新',
+    chooseLanguage: '言語を選択',
+    nextPage: '次のページ',
+    previousPage: '前のページ',
+    chooseTheme: 'テーマ',
+    editOnGithub: 'GitHub で編集',
   },
 });
 

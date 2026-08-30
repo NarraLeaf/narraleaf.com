@@ -1,0 +1,38 @@
+---
+title: "Info"
+description: 解決された NarraLeaf プロジェクトの設定とルートツリーを確認する
+---
+
+`narraleaf info` は現在のプロジェクトの診断情報を出力します。
+
+```bash
+narraleaf info
+```
+
+## 出力
+
+このコマンドは次を出力します。
+
+- プラットフォーム情報
+- CLI アプリの設定
+- マージ後の NarraLeaf プロジェクト設定
+- renderer プロジェクトのルート
+- 解決されたプロジェクトの `node_modules`
+- スキャンされた renderer のルートツリー
+
+## 使いどころ
+
+次のような場合に `info` を使います。
+
+- `narraleaf dev` が必要なファイルを見つけられない場合。
+- ページが想定した場所に表示されない場合。
+- 解決された `renderer.baseDir` を確認したい場合。
+- slug、layout、index、error ページの検出結果を確認したい場合。
+
+## デバッグモード
+
+`--debug` を付けると、デバッグレベルの CLI 出力が確認できます。
+
+```bash
+narraleaf --debug info
+```

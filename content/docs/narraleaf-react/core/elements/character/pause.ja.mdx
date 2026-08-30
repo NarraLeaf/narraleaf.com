@@ -1,0 +1,64 @@
+﻿---
+title: "Pause"
+description: 台詞の中で、時間指定またはクリックで続行するポーズを作るための`Pause`トークン
+---
+Pauseを使うと、台詞の中にポーズを作ることができます。
+
+```ts
+new Character("character 1")
+    .say([
+        "つまり、こういうこと...",
+        Pause.wait(1000),
+        "私にもできる？"
+    ])
+```
+
+または、ユーザーがクリックして続行する必要があるポーズです。
+
+```ts
+new Character("character 1")
+    .say([
+        "私はこう言った：",
+        Pause,
+        "できる、って！"
+    ])
+```
+
+次の2つは同じです。
+
+```ts
+new Pause({duration: 1000});
+// または
+Pause.wait(1000);
+```
+
+そして、次の2つも同じです。
+
+```ts
+new Pause();
+// または
+Pause;
+```
+
+## 静的メソッド
+
+### wait
+
+<Steps>
+<Step>
+
+- `duration: number` - ポーズの持続時間（ミリ秒）
+- 戻り値：`Pause`
+</Step>
+</Steps>
+
+## パブリックメソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config?: Partial<PauseConfig>` - [PauseConfig](/ja/docs/narraleaf-react/core/types/PauseConfig)
+</Step>
+</Steps>

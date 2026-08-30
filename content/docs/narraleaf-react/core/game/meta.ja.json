@@ -1,0 +1,14 @@
+{
+  "title": "ゲーム",
+  "pages": [
+    "game",
+    "game-state",
+    "live-game",
+    "storable",
+    "preference",
+    "audio-buses",
+    "key-map",
+    "hooks",
+    "preload"
+  ]
+}

@@ -1,0 +1,21 @@
+---
+title: "RichImageUserConfig"
+description: リッチ `Image` の設定：通常の `src`、またはタグ定義と組み合わせたタグベースの `src` リゾルバ
+---
+```typescript
+type TagGroupDefinition = string[][];
+type TagSrcResolver<T extends TagGroupDefinition> = (...tags: SelectElementFromEach<T>) => string;
+type RichImageUserConfig<T extends TagGroupDefinition | null> = ImageConfig & {} & (T extends null ? {
+    src: string | StaticImageData;
+    tag?: never;
+} : T extends TagGroupDefinition ? {
+    src: TagSrcResolver<T>;
+    tag: TagDefinitions<T>;
+} : never);
+```
+
+リッチ画像の設定です。
+
+タグベースの画像を使う場合は、タグ定義とタグソースリゾルバを提供する必要があります。
+
+ImageConfig については、[ImageConfig](/ja/docs/narraleaf-react/core/types/ImageConfig) を参照してください。

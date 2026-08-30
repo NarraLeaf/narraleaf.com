@@ -1,0 +1,186 @@
+---
+title: "ビジュアルエフェクト (Vfx)"
+description: 雨、雪、花びらなどの全画面ループ動画オーバーレイを扱う `Vfx` 要素。プリロード、フェード、再生速度の制御に対応
+---
+
+<Callout type="info">
+    `0.16.0` から利用可能です。
+</Callout>
+
+Vfx は、パーティクルや環境エフェクト（舞い散る花びら、光の塵、雨、雪、霧、光のフレア）のために、**ループ動画を全画面のステージオーバーレイとして**再生します。canvas や WebGL は使用しません。
+
+オーバーレイはシーンや再生中の [Video](/ja/docs/narraleaf-react/core/elements/video) の上に、ステージカメラの境界の内側でレンダリングされます。[Camera](/ja/docs/narraleaf-react/core/elements/camera) のパン・ズーム・シェイクは、ダイアログ UI を固定したまま、天候エフェクトをショットと一緒に動かします。
+
+```ts
+import {Vfx} from "narraleaf-react";
+
+// 真の alpha 素材: どの背景でも色を忠実に再現する（暗い縁を持つ花びらなど）
+const petals = new Vfx({src: "/fx/petals-alpha.webm"});
+
+// 黒背景の発光素材 + screen ブレンド: ファイルが小さく、ハードウェアデコード可能
+const dust = new Vfx({src: "/fx/dust-black.webm", blendMode: "screen", opacity: 0.9});
+
+scene.action([
+    petals.preload(),               // ここで読み込む。まだ画面には何も表示されない
+    dust.preload(),
+    character`The wind is picking up.`,
+    petals.show({duration: 800}),   // フェードイン。アクションはフェードの完了を待つ
+    dust.show({opacity: 0.4}),      // 今回の表示のみ
+    character`The petals are falling...`,
+    petals.setPlaybackRate(0.5),    // ゆっくり漂う
+    dust.pause(),                   // 現在のフレームで停止
+    dust.resume(),
+    petals.hide({duration: 1200}),  // フェードアウトして再生を停止
+]);
+```
+
+## アセットのルート
+
+[`blendMode`](/ja/docs/narraleaf-react/core/types/VfxConfig) を通じて、互いに補完し合う2つのアセットルートがサポートされています:
+
+| Route | Material | `blendMode` | Trade-off |
+|---|---|---|---|
+| **True alpha** | VP9 `yuva420p` alpha WebM | `"normal"`（デフォルト） | どんな背景でも色を忠実に再現。ファイルサイズは大きく、alpha デコードはソフトウェア処理 |
+| **Black-background glow** | VP9 `yuv420p`、黒背景にエフェクトを描画 | `"screen"` | サイズは 5〜10 分の1、ハードウェアデコード可能。加算合成は暗いピクセルを白飛びさせるため、純粋に発光する効果に限られる |
+
+<Callout type="info">
+    **`0.31.4` 以降、`"normal"` 以外の `blendMode` が実際に効くようになりました。** それより前は、指定された値に
+    関わらずすべてのオーバーレイが `"normal"` として合成されていたため、黒背景素材は光を加算する代わりに、不透明な
+    矩形でシーンを覆ってしまっていました。コンストラクターに変更はなく、`"normal"` の挙動はこれまで通りです。
+</Callout>
+
+```bash
+# 真の alpha ルート
+ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 34 fx-alpha.webm
+
+# 黒背景ルート
+ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-black.webm
+```
+
+<Callout type="warning">
+    暗い、または不透明なピクセルを含む素材は alpha ルートに置いてください。ループ素材は、ループが途切れないように
+    開始フレームと終了フレームを同じにしてください。
+</Callout>
+
+## 動作
+
+- プレイヤーがスキップした場合、`show`/`hide` のフェードは**即座に完了**します。読み込みに失敗したソースはエラーを記録したうえで即座に完了するため、壊れたアセットがストーリーをブロックすることはありません。
+- ステージ上のオーバーレイはセーブ・ロードの対象になり、フェードなしで再表示されます。再生中であれば再生中のまま、一時停止していれば停止したまま復元されます。`0.33.0` 以降はプリロード済みのオーバーレイも対象になり、非表示の状態で復元されます。`0.16.0` より前に作成されたセーブも問題なく読み込めます。
+- ストーリーにもう存在しないオーバーレイを指すセーブは、そのオーバーレイなしで読み込まれ、警告が記録されます。
+- アンドゥは、オーバーレイの以前の表示状態を復元します。
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config: Partial<VfxConfig> & {src: string}` - [VfxConfig](/ja/docs/narraleaf-react/core/types/VfxConfig)
+
+```ts
+const rain = new Vfx({src: "/fx/rain-black.webm", blendMode: "screen"});
+```
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### preload
+
+<Callout type="info">
+    `0.33.0` から利用可能です。
+</Callout>
+
+<Steps>
+<Step>
+
+オーバーレイを表示しないままステージに配置します。クリップの読み込みが始まり、このアクションは即座に完了します。
+
+オーバーレイを表示する数行前に使用します。`show` は最初のフレームを待つため、プリロード済みのオーバーレイは即座に表示されます。すでにステージ上にあるオーバーレイに対して呼び出しても、何も起こりません。
+
+```ts
+scene.action([
+    rain.preload(),
+    character`The sky has been grey all afternoon.`,
+    rain.show({duration: 800}),
+]);
+```
+</Step>
+</Steps>
+
+### show
+
+<Steps>
+<Step>
+
+- `options?: VfxFadeOptions` - [VfxFadeOptions](/ja/docs/narraleaf-react/core/types/VfxFadeOptions)
+
+オーバーレイをステージに追加し、最初のフレームを待ってからフェードインさせ、ループ再生を開始します。このアクションはフェードインの完了を待ちます。すでに表示されているオーバーレイに対して呼び出しても冪等です（現在の不透明度からフェードインが再度適用されます）。
+
+`0.33.0` 以降、`options.opacity` と `options.rate` は今回の表示にのみ適用され、指定しなければ設定値にフォールバックします。そのため、値を上書きした呼び出しのあとに素の `show()` を呼べば、通常の状態に戻ります。どちらも永続化されません。セーブを読み込んだ場合は、設定された不透明度と速度で再生されます。
+
+```ts
+petals.show({duration: 800, easing: "easeOut"});
+petals.show({opacity: 0.35, rate: 2});   // 今回だけ薄く、速く
+```
+</Step>
+</Steps>
+
+### hide
+
+<Steps>
+<Step>
+
+- `options?: VfxFadeOptions` - [VfxFadeOptions](/ja/docs/narraleaf-react/core/types/VfxFadeOptions)
+
+オーバーレイをフェードアウトさせ、再生を停止します。このアクションはフェードアウトの完了を待ちます。オーバーレイが表示されていない状態で呼び出しても何もしません。
+
+`0.33.0` 以降、オーバーレイは非表示・停止した状態でステージに残り続け、その後の `show` は最初からではなく停止したフレームから再開します。ステージがクリアされるのは、新しいゲームを開始したときかロードしたときだけです。
+
+```ts
+petals.hide({duration: 1200});
+```
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+オーバーレイを現在のフレームで停止します。
+
+```ts
+dust.pause();
+```
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+現在のフレームから再生を続けます。
+
+```ts
+dust.resume();
+```
+</Step>
+</Steps>
+
+### setPlaybackRate
+
+<Steps>
+<Step>
+
+- `rate: number` - 再生速度（例: ゆっくり漂わせる場合は `0.5`）
+
+再生速度を調整します。実行時の速度変更は永続化されません。セーブしたゲームを読み込むと、速度は `config.playbackRate` に戻ります。
+
+```ts
+petals.setPlaybackRate(0.5);
+```
+</Step>
+</Steps>

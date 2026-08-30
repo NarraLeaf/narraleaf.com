@@ -1,0 +1,152 @@
+---
+title: "カスタムメニュー（ゲーム内選択肢）"
+description: GameMenu と Item でゲーム内選択肢メニューを置き換え、Item の bindKey プロップでキーボードショートカットを設定する
+---
+## 何を置き換えるか
+
+ゲーム内メニュー（Menu）は、ストーリー中に選択肢の分岐を表示します。プレイヤーがクリックまたはキーボードショートカットで選択すると、対応するアクションが実行されます。デフォルトの [Menu](/ja/docs/narraleaf-react/player/menu) コンポーネントは、[game.configure](/ja/docs/narraleaf-react/core/game/game) の `menu` オプション経由で置き換えられるため、選択肢の見た目やレイアウトをカスタマイズできます。
+
+選択肢のコンテナには [GameMenu](/ja/docs/narraleaf-react/player/menu) を、各選択肢には [Item](/ja/docs/narraleaf-react/player/menu) を使用します。`Item.bindKey` でキーボードショートカットを追加できます。
+
+## 1. カスタムメニューコンポーネントを作成する
+
+カスタムメニューコンポーネントは `items`（選択肢インデックスの配列）を受け取り、コンテナには [GameMenu](/ja/docs/narraleaf-react/player/menu) を、各選択肢の描画には [Item](/ja/docs/narraleaf-react/player/menu) を使用します。`Item` はコンテキストからテキストとクリックハンドラーを自動的に取得します。
+
+```tsx
+import { GameMenu, Item } from "narraleaf-react";
+
+function CustomMenu({ items }: { items: number[] }) {
+  return (
+    <GameMenu
+      className="absolute flex flex-col items-center justify-center min-w-full w-full h-full bg-black/50"
+      // GameMenu: コンテナ。アスペクト比のスケーリングを担当
+    >
+      {items.map((index) => (
+        <Item
+          key={index}
+          className="bg-white/90 px-6 py-3 rounded-lg mt-3 w-64 text-center hover:bg-white transition-colors"
+          defaultColor="black"
+          // Item: 選択肢を 1 件描画する。インデックスは items 配列から受け取る
+        />
+      ))}
+    </GameMenu>
+  );
+}
+
+```
+
+## 2. キーボードショートカットを割り当てる
+
+`Item` は `bindKey` プロップに対応しており、対応するキーを押すとその選択肢が選ばれます。使用できるキー文字列は [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) を参照してください。
+
+```tsx
+function CustomMenu({ items }: { items: number[] }) {
+  return (
+    <GameMenu className="absolute flex flex-col items-center justify-center min-w-full w-full h-full">
+      {items.map((index) => (
+        <Item
+          key={index}
+          className="bg-white p-2 mt-2 w-1/2"
+          defaultColor="black"
+          bindKey={String(index + 1)}
+          // bindKey: "1"、"2"、"3" など。対応するキーを押すとこの項目を選択
+        />
+      ))}
+    </GameMenu>
+  );
+}
+```
+
+## 3. 完全な例（[narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton) より）
+
+この例では、外側のコンテナに `pointer-events-none` を指定してオーバーレイがクリックを妨げないようにし、内側のラッパーに `pointer-events-auto` を指定してメニュー領域だけを操作可能にしています。さらに `clipPath` で平行四辺形のボタン形状を作り、`drop-shadow` とホバー効果を組み合わせています。
+
+```tsx
+import { GameMenu, Item } from "narraleaf-react";
+
+function CustomMenu({ items }: { items: number[] }) {
+  return (
+    <GameMenu
+      className="absolute inset-0 flex items-center justify-center w-full h-full pointer-events-none"
+      // pointer-events-none: メニュー領域外のクリックを妨げない
+    >
+      <div className="relative w-full max-w-5xl pointer-events-auto px-4 md:px-8">
+        {/* pointer-events-auto: メニューのボックスだけが操作可能 */}
+        <div className="px-10 py-8 space-y-4">
+          {items.map((index) => (
+            <Item
+              key={index}
+              className="block md:w-3/4 lg:w-2/3 mx-auto text-center py-3 px-6
+                hover:bg-white/10 transition-all duration-300 transform hover:-translate-y-1
+                hover:[filter:drop-shadow(8px_8px_0_rgba(0,0,0,0.8))] disabled:opacity-50 disabled:cursor-not-allowed"
+              defaultColor="white"
+              fontSize={18}
+              fontWeight={700}
+              style={{
+                backgroundColor: "rgba(64,168,197,0.9)",
+                clipPath: "polygon(0 0,100% 0,97% 100%,3% 100%)",  // 平行四辺形の形状
+                filter: "drop-shadow(4px 4px 0 rgba(0,0,0,0.6))",
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </GameMenu>
+  );
+}
+```
+
+メニューの選択肢テキストは、カスタムメニューコンポーネント側で制御します。`Item` に `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold` を渡すか、CSS からテキストを継承させます。
+
+## 4. 横方向レイアウトの例
+
+```tsx
+function HorizontalMenu({ items }: { items: number[] }) {
+  return (
+    <GameMenu className="absolute flex flex-row items-center justify-center gap-4 bottom-20 left-0 right-0">
+      {items.map((index) => (
+        <Item
+          key={index}
+          className="bg-amber-500/80 px-4 py-2 rounded hover:bg-amber-400"
+          defaultColor="black"
+        />
+      ))}
+    </GameMenu>
+  );
+}
+```
+
+## 5. スクリプトで選択肢を定義する
+
+選択肢は [Menu](/ja/docs/narraleaf-react/core/elements/menu) 要素の `choose` で定義し、`hideIf` や `disableIf` などの条件指定にも対応しています。
+
+```ts
+// ストーリースクリプト内で
+Menu.prompt("どうしますか？")
+  .choose("左へ行く", [character.say("左へ行った")])
+  .choose("右へ行く", [character.say("右へ行った")])
+  .choose("その場にとどまる", [character.say("待つことにする")])
+    .hideIf(persis.isTrue("alreadyMoved"));  // 条件が true のときは非表示にする
+```
+
+## 6. Game に登録する
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ menu: CustomMenu });
+
+function App() {
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
+}
+```
+
+## 関連項目
+
+- [Menu](/ja/docs/narraleaf-react/player/menu) - Menu コンポーネントの API
+- [Menu 要素](/ja/docs/narraleaf-react/core/elements/menu) - スクリプトでの Menu の使い方
+- [game.configure](/ja/docs/narraleaf-react/core/game/game) - Game の設定

@@ -1,0 +1,13 @@
+{
+  "title": "ランタイム API",
+  "pages": [
+    "index",
+    "store",
+    "events",
+    "state",
+    "saves",
+    "overlay",
+    "assets-locale",
+    "sidecar"
+  ]
+}

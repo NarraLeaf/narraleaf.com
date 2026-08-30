@@ -1,0 +1,86 @@
+---
+title: "カスタムフォント"
+description: カスタムフォントを読み込んで Player の境界に適用し、Texts と Item で対話・選択肢テキストの既定値を設定する
+---
+
+フォントには 2 つの層があります。通常のプレイヤー UI は CSS を継承し、対話と選択肢のテキストは `Texts` と `Item` から個別に既定値を受け取ることもできます。
+
+## 1. フォントを読み込む
+
+Web 配信には WOFF2 を優先し、システムフォントへのフォールバックも残しておきます。
+
+```css
+@font-face {
+    font-family: "GameText";
+    src: url("/fonts/game-text.woff2") format("woff2");
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+.game-player {
+    font-family: "GameText", system-ui, sans-serif;
+}
+```
+
+Next.js では `next/font/local` も良い選択肢です。生成された class を同じ Player の境界に適用します。
+
+## 2. プレイヤーに適用する
+
+```tsx
+<GameProviders>
+    <Player
+        story={story}
+        className="game-player"
+        onReady={({ liveGame }) => liveGame.newGame()}
+    />
+</GameProviders>
+```
+
+これでページ、ボタン、`font-family` を継承する UI がすべてカバーされます。
+
+## 3. 対話の既定値を設定する
+
+NarraLeaf 0.10 以降、対話のフォント既定値はコンポーネントの props になっており、`GameConfig` の一部ではなくなりました。
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+export function GameDialog() {
+    return (
+        <Dialog className="game-player rounded-xl bg-black/75 p-6">
+            <Nametag color="#fbbf24" />
+            <Texts
+                defaultColor="white"
+                fontFamily="GameText, system-ui, sans-serif"
+                fontSize={22}
+                fontWeight={400}
+                fontWeightBold={700}
+            />
+        </Dialog>
+    );
+}
+```
+
+Sentence と Word のスタイルは、引き続きこれらの既定値より優先されます。
+
+## 4. 選択肢の既定値を設定する
+
+カスタムメニューでは、各 `Item` にタイポグラフィを設定します。
+
+```tsx
+<Item
+    defaultColor="white"
+    fontFamily="GameText, system-ui, sans-serif"
+    fontSize={20}
+    fontWeight={400}
+    fontWeightBold={700}
+/>
+```
+
+## 確認事項
+
+- フォントの URL が 200 を返し、CORS でブロックされていないことを確認します。
+- 通常のウェイトと太字のウェイトを確認します。不足しているウェイトはブラウザが合成します。
+- 読み込み中にテキストが見えないままにならないよう、`font-display: swap` を残しておきます。
+- ゲームが中国語・日本語・韓国語を使う場合は、それらの字体をフォントがカバーしているか確認します。ラテン文字専用のフォントは、文字ごとに黙って代替フォントへフォールバックします。

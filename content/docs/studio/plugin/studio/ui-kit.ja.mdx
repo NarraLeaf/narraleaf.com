@@ -1,0 +1,60 @@
+---
+title: ui kit
+description: Studio 自身の React コンポーネントで、パネルをエディターのテーマに合わせる
+---
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+`ui` は Studio のコンポーネントライブラリです。これを使ってパネルやエディタータブを組み立てると、自前のスタイルを持たなくても、エディターのテーマ、間隔、明暗の扱いを継承します。各コンポーネントの props の型も併せてエクスポートされています(`ButtonProps`、`SelectProps`、`ModalProps`、`SwitchProps` など)。
+
+## コンポーネント
+
+| グループ | メンバー |
+| --- | --- |
+| 入力 | `Button`、`IconButton`、`Input`、`TextArea`、`SearchInput`、`InputGroup`、`Select`、`Combobox`、`SelectGroup`、`Switch` |
+| モーダル | `Modal`、`ConfirmModal`、`AlertModal`、`ModalHeader`、`ModalBody`、`ModalFooter` |
+| メニュー | `ContextMenu`、`ContextMenuSeparator`、`useContextMenu` |
+| プログレス | `Progress`、`ProgressIndeterminate`、`ProgressCircle` |
+| 開閉 | `Accordion`、`AccordionItem`、`NestedAccordion` |
+| カード | `Card`、`CardHeader`、`CardTitle`、`CardDescription`、`CardContent`、`CardFooter`、`InteractiveCard` |
+| アセット | `AssetSelector` |
+
+## パネルレイアウトプリミティブ
+
+`ui.Panel.*` は、パネルに標準的な構造を与えるレイアウト部品です。
+
+| プリミティブ | 役割 |
+| --- | --- |
+| `Panel.Root` | パネルのコンテナ(既定でパディングあり)。 |
+| `Panel.Header` | タイトル、説明、ヘッダーアクション。 |
+| `Panel.Toolbar` | 一列に並んだコントロール。 |
+| `Panel.Section` | タイトル付きのセクション。 |
+| `Panel.Row` | ラベル / 説明 / コントロールの行。 |
+| `Panel.EmptyState` | 中央揃えの空状態プレースホルダー。 |
+
+```tsx
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "Hello",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: () => (
+        <ui.Panel.Root>
+            <ui.Panel.Header title="Hello" description="A plugin panel." />
+            <ui.Panel.Section title="Actions">
+                <ui.Button variant="primary" onClick={() => app.services.ui.notifications.success("Hi")}>
+                    Say hi
+                </ui.Button>
+            </ui.Panel.Section>
+        </ui.Panel.Root>
+    ),
+});
+```
+
+<Callout type="info">
+`react` と `react-dom` はホストが import map を通じて提供します。バンドラーでこれらを(`narraleaf-studio/plugin` と併せて)external としてマークしてください。さもないと 2 つ目の React インスタンスをバンドルしてしまい、プラグインは読み込みに失敗します。テンプレートのビルド設定はすでにこれを済ませています。
+</Callout>

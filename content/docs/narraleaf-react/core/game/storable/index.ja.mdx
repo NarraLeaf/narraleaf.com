@@ -1,0 +1,254 @@
+---
+title: "Storable"
+description: 名前空間ごとにゲームデータを保存し、読み書きし、セーブをまたいだ変化を監視する Storable のメソッド
+---
+Storable を使うと、ゲームの状態にデータを保存できます。Storable に保存されたデータは、現在のゲーム
+状態と一緒に保存・読み込みされます。
+
+> データを操作するアクションを作りたい場合は、[Persistent](/ja/docs/narraleaf-react/core/elements/persistent)
+> という抽象を使えます。
+
+Storable に保存されるデータは名前空間ごとに分かれています。異なる名前空間であれば、同じキーを
+使うことができます。
+例えば、プレイヤー1 の名前を `player1` 名前空間に、プレイヤー2 の名前を `player2` 名前空間に
+それぞれ保存できます。
+
+名前空間 `game` はすでに定義済みでデータを保存できます。新しい [Namespace](/ja/docs/narraleaf-react/core/game/storable/namespace)
+をインスタンス化することで、自分の名前空間を追加できます。
+
+例えば、新しい `player1` 名前空間を作り、そこにプレイヤー1 の名前を保存してみます。
+
+```typescript
+type Player1Content = {
+    name: string;
+};
+
+const storable = game.getLiveGame().getStorable();
+
+// 名前空間を初期化して登録する
+const player1namespace = Storable.createNamespace<Player1Content>("player1", {
+    name: "default name",
+});
+
+storable.addNamespace(player1namespace);
+
+// 名前空間にデータを設定する
+const namespace = storable.getNamespace<Player1Content>('player1');
+namespace.set('name', 'John Doe');
+
+// 名前空間からデータを取得する
+const name = namespace.get('name');
+console.log(name); // John Doe
+```
+
+## 静的メソッド
+
+### createNamespace\<T extends NameSpaceContent\<keyof T\>\>
+
+<Steps>
+<Step>
+
+新しい名前空間を作成します。
+
+- `name: string` - 名前空間の可読名
+- `initContent: T` - 名前空間の初期内容
+- `key?: string` - 名前空間のキー。デフォルトは name
+- 返り値: `Namespace<T>`
+</Step>
+</Steps>
+
+## 公開プロパティ
+
+### events
+
+- `EventDispatcher<StorableEvents>` - すべてのストアイベントが経由するディスパッチャー。
+  `event:storable.change` は [StorableChange](/ja/docs/narraleaf-react/core/types/StorableChange) を
+  携え、`event:storable.restore` は [StorableRestore](/ja/docs/narraleaf-react/core/types/StorableRestore)
+  を携えます。名前空間とキーでフィルタリングしてくれる [onChange](#onchange) の使用を優先してください。
+  参照: [保存された値を監視する](/ja/docs/narraleaf-react/core/game/storable/events)。
+
+## 公開メソッド
+
+### addNamespace\<T extends NameSpaceContent\<keyof T\>\>
+
+<Steps>
+<Step>
+
+- `namespace: Namespace<T>`
+- 返り値: `this`
+</Step>
+</Steps>
+
+### getNamespace\<T extends NameSpaceContent\<keyof T\> = any\>
+
+<Steps>
+<Step>
+
+- `key: string` - 名前空間のキー
+- 返り値: `Namespace<T>`
+</Step>
+</Steps>
+
+### setNamespace\<T extends NameSpaceContent\<keyof T\> = any\>
+
+<Steps>
+<Step>
+
+- `key: string` - 名前空間のキー
+- `namespace: Namespace<T>`
+- 返り値: `this`
+</Step>
+</Steps>
+
+### getNamespaces
+
+<Steps>
+<Step>
+
+- 返り値: `{ [key: string]: Namespace<any>; }`
+</Step>
+</Steps>
+
+### hasNamespace
+
+<Steps>
+<Step>
+
+- `key: string`
+- 返り値: `boolean`
+</Step>
+</Steps>
+
+### removeNamespace
+
+<Steps>
+<Step>
+
+- `key: string`
+- 返り値: `this`
+</Step>
+</Steps>
+
+### keys
+
+<Steps>
+<Step>
+
+- 返り値: `string[]`
+</Step>
+</Steps>
+
+### values
+
+<Steps>
+<Step>
+
+- 返り値: `Namespace<any>[]`
+</Step>
+</Steps>
+
+### entries
+
+<Steps>
+<Step>
+
+- 返り値: `[string, Namespace<any>][]`
+</Step>
+</Steps>
+
+### onChange
+
+<Callout type="info">
+    `0.19.0` 以降で利用可能です。
+</Callout>
+
+保存された値の変化を監視します。
+
+リスナーは新しい値が読み取れるようになった後、かつ値が実際に動いたときにのみ実行されます。すでに
+そこにある値と等しい値を書き込んでも何も報告されません。等価性の判定は構造的なものなので、同じ内容の
+オブジェクトを作り直すことも何もしないのと同じです。**セーブの読み込みは変化を報告しません**。
+参照: [onRestore](#onrestore)。
+
+購読は、それが監視している名前空間よりも長生きします。`newGame()` とセーブの読み込みはどちらも
+すべての名前空間をゼロから再構築しますが、ここに登録したリスナーはそれを生き延びます。全体の説明は
+[保存された値を監視する](/ja/docs/narraleaf-react/core/game/storable/events)を参照してください。
+
+<Steps>
+<Step>
+
+#### オーバーロード 1 / 3
+
+登録済みのあらゆる名前空間における、あらゆる変化。
+
+```typescript
+storable.onChange(({namespace, key, previous, next}) => {
+    console.log(`${namespace}.${key}: ${previous} -> ${next}`);
+});
+```
+
+- `listener: (change: StorableChange) => void` - 参照: [StorableChange](/ja/docs/narraleaf-react/core/types/StorableChange)
+- 返り値: `EventToken` - `cancel()` を呼ぶとリスナーを取り除くトークン
+
+#### オーバーロード 2 / 3
+
+1 つの名前空間における変化。
+
+```typescript
+storable.onChange("persistent:player", ({key, next}) => {...});
+```
+
+- `namespace: string` - 名前空間のキー。例えば `new Persistent("player", ...)` に対する
+  `"persistent:player"`
+- `listener: (change: StorableChange) => void`
+- 返り値: `EventToken`
+
+#### オーバーロード 3 / 3
+
+1 つのキーへの変化。
+
+```typescript
+const token = storable.onChange("persistent:player", "gold", ({next}) => {
+    if (next === 100) achievements.unlock("rich");
+});
+
+token.cancel();
+```
+
+- `namespace: string` - 名前空間のキー
+- `key: string` - その名前空間内のキー
+- `listener: (change: StorableChange) => void`
+- 返り値: `EventToken`
+</Step>
+</Steps>
+
+### onRestore
+
+<Callout type="info">
+    `0.19.0` 以降で利用可能です。
+</Callout>
+
+ストアが丸ごと置き換えられること —— セーブの読み込み、または名前空間をスナップショットへ巻き戻す
+こと —— を監視します。一括適用ごとに一度だけ発火し、それが暗に示す変化ではなく、関係する名前空間を
+列挙します。
+
+これが発火したら、ストアから導出しているものは何であれ読み直してください。
+
+<Steps>
+<Step>
+
+```typescript
+storable.onRestore(({namespaces}) => {
+    if (namespaces.includes("persistent:player")) rereadPlayerView();
+});
+```
+
+- `listener: (restore: StorableRestore) => void` - 参照: [StorableRestore](/ja/docs/narraleaf-react/core/types/StorableRestore)
+- 返り値: `EventToken` - `cancel()` を呼ぶとリスナーを取り除くトークン
+</Step>
+</Steps>
+
+<Callout type="warning">
+    セーブの読み込みをまたいで値を監視するには、**両方の**信号が必要です。`onChange` は読み込み中は
+    意図的に沈黙するため、読み込んだセーブが*届いた*時点ですでに目的の値になっている場合にも発火する
+    必要があるリスナーは、`onRestore` でそれを再確認しなければなりません。
+</Callout>

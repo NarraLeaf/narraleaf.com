@@ -1,0 +1,79 @@
+---
+title: "対話を表示する"
+description: say() によるキャラクターの対話とナレーション、Word・b・i・c ヘルパーによる文字の装飾
+---
+
+[Character](/ja/docs/narraleaf-react/core/elements/character) を作成し、その `say()` アクションをシーンに配置します。
+
+```ts
+import { Character, Scene } from "narraleaf-react";
+
+const alice = new Character("アリス", { color: "#f59e0b" });
+const opening = new Scene("opening").action([
+    alice.say("こんにちは。"),
+    alice.say("よく眠れた?"),
+]);
+```
+
+ナレーションには、エクスポートされている `Narrator` を使うか、名前を `null` にしたキャラクターを作成します。
+
+```ts
+import { Narrator } from "narraleaf-react";
+
+opening.action([
+    Narrator.say("雨が窓を叩いている。"),
+]);
+```
+
+<Callout type="warning">
+    上の例は説明のためのものです。実際のコードでは、すべてのアクションを一つの `opening.action([...])` 呼び出しにまとめてください。
+</Callout>
+
+## 文字の装飾
+
+テンプレート文字列には [Word](/ja/docs/narraleaf-react/core/elements/character/word) の値を渡せます。
+
+```ts
+import { Word } from "narraleaf-react";
+
+alice.say`${Word.bold("赤い鍵")}を取って、${Word.color("青い鍵", "#60a5fa")}じゃなくて。`;
+```
+
+短縮ヘルパーの `b`、`i`、`c` は、それぞれ太字・斜体・色付きの文字を作成します。
+
+```ts
+import { b, c, i } from "narraleaf-react";
+
+alice.say(["これは", b("重要"), "だ。"]);
+alice.say([i("静かに"), "ドアを閉めた。"]);
+alice.say(["警告：", c("体力低下", "#ef4444")]);
+```
+
+`Word.custom` はさらに踏み込んで、自作のコンポーネントで単語を描画できます。用語集の項目や百科事典へのリンクなどに使えます。詳しくは [Custom Word](/ja/docs/narraleaf-react/solutions/custom-word) を参照してください。
+
+## 動的なテキスト
+
+`Word` は、行が表示されるタイミングでゲームデータを評価できます。保存された値には [Persistent.get()](/ja/docs/narraleaf-react/basic/store-data) を使い、独自のロジックには関数を渡します。
+
+```ts
+import { Word } from "narraleaf-react";
+
+const currentTime = new Word(
+    () => new Date().toLocaleTimeString(),
+    { color: "#f87171" },
+);
+
+alice.say`現在は${currentTime}です。`;
+```
+
+## 行ごとの設定
+
+第二引数を渡すと、その一行だけを制御できます。`metadata` は、カスタムの対話 UI から `useDialog()` を通じて参照できます。
+
+```ts
+alice.say("クエストを開始した。", {
+    metadata: { event: "quest-start", questId: "find-key" },
+});
+```
+
+一時停止、ボイス、メタデータ、色、フォントのオプションについては [Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence) を参照してください。

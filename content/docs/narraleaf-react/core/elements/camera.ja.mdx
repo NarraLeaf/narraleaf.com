@@ -1,0 +1,220 @@
+---
+title: "カメラ"
+description: ステージ全体をパン・ズーム・カラーグレーディングする `Camera` 要素。シャッター、ビネット、レンズ効果も含む
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+カメラは**ステージ全体を一つの単位として**変換します。すべての [Scene](/ja/docs/narraleaf-react/core/elements/scene) と、その背景・スプライト、再生中の [Video](/ja/docs/narraleaf-react/core/elements/video) が一緒に動きます。ダイアログボックス、メニュー、NVL レイヤーは固定されたままです。
+
+すべての [Story](/ja/docs/narraleaf-react/core/elements/story) はカメラをちょうど一つ持ち、`story.camera` としてアクセスできます。カメラのアクションは、他の要素のアクションと同じように記述します。
+
+```ts
+import { Story, Scene, Character } from "narraleaf-react";
+
+const story = new Story("entry");
+const scene = new Scene("scene 1");
+const aria = new Character("Aria");
+
+scene.action([
+    story.camera.zoom(2, 800, "easeInOut"),   // ステージ全体をズームイン
+    story.camera.pan({ xalign: 0.3 }, 800),   // 視界をスライドさせる
+    story.camera.rotate(3, 400),              // 傾ける
+    story.camera.darken(0.6, 500),            // ステージを暗くする
+    aria.say`It's getting dark...`,
+    story.camera.resetCamera(600),            // ニュートラルなポーズに戻す
+]);
+```
+
+<Callout type="info">
+    カメラは画像やレイヤーと同じ [Transform](/ja/docs/narraleaf-react/core/animation/transform) パイプラインを再利用しているため、
+    [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) が持つチェーン可能な変換メソッドをすべて継承しています:
+    `pos`、`zoom`、`scale`、`rotate`、`opacity`、`transform`、`filter`、`effect` など。これらはすべてステージ全体に適用されます。
+</Callout>
+
+## カメラへのアクセス
+
+<Steps>
+<Step>
+
+`story.camera` は常に存在する単一のカメラです。ストーリーごとにちょうど一つ存在し、そのポーズはシーンが切り替わっても保持され、他の要素と同様にセーブ・ロードの対象にもなります。
+
+```ts
+scene.action([
+    story.camera.zoom(1.5, 600),
+    story.camera.darken(0.4, 400),
+]);
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### pan
+
+<Steps>
+<Step>
+
+指定した[位置](/ja/docs/narraleaf-react/core/animation/transform/properties)がビューの中心に来るようにカメラをパンします。これは継承した `pos` メソッドに、カメラ向けの名前を付けたエイリアスです。
+
+```ts
+story.camera.pan({ xalign: 0.3 }, 800, "easeInOut");
+```
+</Step>
+</Steps>
+
+### darken
+
+<Steps>
+<Step>
+
+ステージ全体を暗くします。`darkness` は `0`（通常）から `1`（真っ黒）までの値です。内部的にはカメラの CSS `filter` を `brightness(1 - darkness)` に設定しており、[`Image.darken`](/ja/docs/narraleaf-react/core/elements/image) と同じ仕組みです。
+
+```ts
+story.camera.darken(0.6, 500, "easeInOut");
+```
+
+<Callout type="warning">
+    darken は単一の CSS `filter` チャンネルを共有しているため、他のフィルターを上書きし、また上書きされます。
+    `blur` など他のフィルターと組み合わせるには、`camera.filter("blur(4px) brightness(0.4)")` のように完全な文字列を自分で書いてください。
+</Callout>
+</Step>
+</Steps>
+
+### shutter
+
+<Steps>
+<Step>
+
+> `0.31.0` から利用可能
+
+シャッターを閉じたり開いたりします。画面の中央で合わさる2枚の羽根です。
+
+`1` が完全に閉じた状態、`0` が完全に開いた状態で、その間の値は部分的な遮蔽になります。そのため小さな値を維持し続けるとまばたきではなくレターボックスになり、`0.12` 程度が映画的なマットに相当します。まばたきは、この値を `1` まで動かしてから戻す操作です。まばたきのタイミングはストーリー側が決めるものなので、エンジンは名前付きの定型処理ではなくこのチャンネル自体を提供しています。
+
+- `shutter: number` - `0`（開）から `1`（閉）までの遮蔽度。範囲外の値はクランプされます
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.shutter(1, 180, "easeInOut"),
+    story.camera.shutter(0, 220, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### vignette
+
+<Steps>
+<Step>
+
+> `0.31.0` から利用可能
+
+画面の四隅を暗くします。
+
+画像全体にかかるフィルターである [darken](#darken) とは異なり、これは**ビュー**の上に重ねられる板です。カメラと一緒には動かないため、その下のステージがズームやパン、回転をしていてもビネット自体は静止したままです。減衰の度合いは [lens](#lens) で調整します。
+
+- `vignette: number` - `0`（なし）から `1` までの強度。範囲外の値はクランプされます
+- `duration?: number`
+- `easing?: EasingDefinition`
+
+```typescript
+scene.action([
+    story.camera.vignette(0.72, 300, "easeInOut"),
+    narrator.say`Everything narrowed to the middle of the room.`,
+    story.camera.vignette(0, 300, "easeInOut"),
+]);
+```
+</Step>
+</Steps>
+
+### lens
+
+<Steps>
+<Step>
+
+> `0.31.0` から利用可能
+
+レンズの各チャンネルを一度に設定します — 2つの強度と、それらを描画する際の色や減衰の形状です。
+
+形状に関するフィールドは、対応する強度が次に `0` を超えたタイミングで反映されます。そのため通常は、効果をフェードインさせる前にカット的に設定しておきます。
+
+```typescript
+type CameraLensProps = {
+    shutter?: number;        // 0 で開、1 で閉。デフォルトは 0
+    shutterColor?: string;   // デフォルトは "#000"
+    vignette?: number;       // 0 でなし、1 で端が完全に不透明。デフォルトは 0
+    vignetteColor?: string;  // デフォルトは "#000"
+    vignetteInner?: string;  // ビネットが始まる半径。デフォルトは "44%"
+    vignetteOuter?: string;  // 最大強度に達する半径。デフォルトは "78%"
+};
+```
+
+- `lens: CameraLensProps`
+- `options?: VisualEffectOptions`
+
+```typescript
+scene.action([
+    story.camera.lens({vignetteColor: "#1a0b2e", vignetteInner: "20%", vignetteOuter: "95%"}),
+    story.camera.vignette(0.9, 400),
+]);
+```
+</Step>
+</Steps>
+
+### resetCamera
+
+<Steps>
+<Step>
+
+カメラをニュートラルなポーズに戻します: 中央に配置、ズーム `1`、回転なし、完全不透明、フィルターなし（これにより `darken` もクリアされます）。
+
+```ts
+story.camera.resetCamera(600, "easeInOut");
+```
+
+フィルターは最初のフレームでクリアされ、ポーズは指定した時間をかけてイージングします。
+
+グレードを置き換える場合は時間を指定しないでください。あるフィルターチェーンから別のチェーンへイージングすると、ステージはその間の色を経由することになります。
+
+<Callout type="warning">
+    **`0.26.0` でリネームされました。以前は `camera.reset` という名前でした。** すべての要素は内部的な `reset()` を
+    持っています — これは新しいゲームの開始時やセーブのロード時にエンジンがキャスト全体に対して実行するライフサイクルフックです。
+    カメラはこの名前を、この作成用ヘルパーメソッドに使ってしまっていたため、`newGame()` はカメラのポーズを一度も復元できず、
+    パンやズームを行ったストーリーは、その構図を次のプレイに持ち越してしまっていました。
+
+    スクリプト内の `camera.reset(...)` はすべてリネームしてください。カメラで `reset()` を呼び出すと、今はライフサイクルフックの
+    方に届きます。設定されたポーズに即座に復元し、アニメーションは行わず、チェーン可能なアクションではなくカメラ自体を返します。
+</Callout>
+</Step>
+</Steps>
+
+## 継承した変換メソッド
+
+カメラは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) であるため、その変換機能のすべてがステージ全体を動かします:
+
+- `zoom(factor, duration?, easing?)` — 均等にズームイン・ズームアウトします。
+- `scale(scaleX, scaleY, duration?, easing?)` — 不均等なスケーリングを行います。
+- `rotate(deg, duration?, easing?)` — ビューを回転させます。
+- `pos(position, duration?, easing?)` — パンします（[`pan`](#pan) を参照）。
+- `opacity(value, duration?, easing?)` — ステージ全体をフェードさせます。
+- `filter(css, options?)` / `effect(...)` — ステージをカラーグレーディングします（例: `"contrast(1.2) saturate(1.3)"`）。
+- `transform(new Transform(...))` — 複数ステップからなる [Transform](/ja/docs/narraleaf-react/core/animation/transform) シーケンス全体を実行します。
+
+## 初期ポーズの設定
+
+ストーリーごとにカメラはちょうど一つです。開始時のポーズを設定したい場合にのみ、自分でカメラを渡します:
+
+```ts
+import { Story, Camera } from "narraleaf-react";
+
+const story = new Story("entry", {
+    camera: new Camera({ zoom: 1.2 }),
+});
+```
+
+<Callout type="info">
+    カメラが動かすのは視覚的なステージのみです。ダイアログボックス、メニュー、NVL レイヤーはその外側でレンダリングされ、
+    意図的に影響を受けません。そのため、カメラが動いている間もテキストは読みやすいままです。
+</Callout>

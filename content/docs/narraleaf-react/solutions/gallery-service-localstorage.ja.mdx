@@ -1,0 +1,250 @@
+---
+title: "永続ギャラリー（Service + localStorage）"
+description: 通常のセーブスロットとは独立して CG のアンロック状態を localStorage に保存する Gallery Service
+---
+このバージョンでは、アンロック状態を通常のゲームセーブの外側に保持します。新しいゲームを始めても、古いスロットを読み込んでも、CG はアンロックされたままです。アンロック状態を各セーブに追従させたい場合は、`narraleaf-react` の組み込み `Gallery` を使用してください。登録済みの Service のデータは、もともと `SavedGame` に含まれます。
+
+## パート 1: Gallery の完全なソースコード
+
+この実装には、action のトリガー、localStorage への永続化、コンストラクタ時点での読み込みが含まれます。
+
+```tsx
+// lib/gallery.ts
+import { Service } from "narraleaf-react";
+import type { LambdaHandler, ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
+
+export type GalleryMetadata = {
+  url: string;
+  title: string;
+  unlockedAt: number;
+};
+
+type GalleryActions = {
+  add: [name: string, metadata: GalleryMetadata | ((ctx: ScriptCtx) => GalleryMetadata)];
+  remove: [name: string];
+  clear: [];
+};
+
+type GalleryStorage = {
+  unlocked: Record<string, GalleryMetadata>;
+};
+
+type GalleryOptions = {
+  storageKey?: string;
+  autoSave?: boolean;
+};
+
+export class GalleryService extends Service<GalleryActions, null> {
+  private unlocked: Record<string, GalleryMetadata> = {};
+  private readonly storageKey: string;
+  private readonly autoSave: boolean;
+
+  constructor(options: GalleryOptions = {}) {
+    super();
+    this.storageKey = options.storageKey ?? "game-gallery";
+    this.autoSave = options.autoSave ?? true;
+    this.loadFromStorage();
+    this.setupActions();
+  }
+
+  // null を返すことで、この Service は SavedGame に含まれなくなる。
+  // 永続的なアンロック状態は localStorage だけを正とする。
+  serialize(): null {
+    return null;
+  }
+
+  // Service のストレージ契約上必要なメソッド。SavedGame からのデータ復元は行わない。
+  deserialize(_data: null): void {}
+
+  public add(name: string, metadata: GalleryMetadata | ((ctx: ScriptCtx) => GalleryMetadata)) {
+    return this.trigger("add", name, metadata);
+  }
+
+  public remove(name: string) {
+    return this.trigger("remove", name);
+  }
+
+  public clear() {
+    return this.trigger("clear");
+  }
+
+  public has(name: string): LambdaHandler<boolean> {
+    return () => this.unlocked[name] !== undefined;
+  }
+
+  public $add(name: string, metadata: GalleryMetadata) {
+    this.unlocked[name] = metadata;
+    this.saveToStorage();
+  }
+
+  public $remove(name: string) {
+    delete this.unlocked[name];
+    this.saveToStorage();
+  }
+
+  public $clear() {
+    this.unlocked = {};
+    this.saveToStorage();
+  }
+
+  public $get(name: string): GalleryMetadata | undefined {
+    return this.unlocked[name];
+  }
+
+  public $set(name: string, metadata: GalleryMetadata) {
+    this.unlocked[name] = metadata;
+    this.saveToStorage();
+  }
+
+  public $getAll(): Record<string, GalleryMetadata> {
+    return this.unlocked;
+  }
+
+  public $has(name: string): boolean {
+    return this.unlocked[name] !== undefined;
+  }
+
+  private setupActions() {
+    this.on("add", (ctx: ServiceHandlerCtx, name, metadata) => {
+      const parsed = typeof metadata === "function" ? metadata(ctx) : metadata;
+      this.unlocked[name] = parsed;
+      this.saveToStorage();
+    });
+    this.on("remove", (_ctx: ServiceHandlerCtx, name) => {
+      delete this.unlocked[name];
+      this.saveToStorage();
+    });
+    this.on("clear", (_ctx: ServiceHandlerCtx) => {
+      this.$clear();
+    });
+  }
+
+  private loadFromStorage() {
+    if (typeof localStorage === "undefined") return;
+    const raw = localStorage.getItem(this.storageKey);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as GalleryStorage;
+      this.unlocked = parsed.unlocked ?? {};
+    } catch {}
+  }
+
+  private saveToStorage() {
+    if (!this.autoSave) return;
+    if (typeof localStorage === "undefined") return;
+    const data = this.serialize();
+    if (data) {
+      localStorage.setItem(this.storageKey, JSON.stringify(data));
+    }
+  }
+}
+```
+
+サービスを登録する。
+
+```tsx
+// lib/story.ts
+import { Story, Scene, Character, Condition } from "narraleaf-react";
+import { GalleryService } from "@/lib/gallery";
+
+const story = new Story("my-story");
+const gallery = new GalleryService();
+const narrator = new Character(null);
+const scene = new Scene("start");
+
+// カスタムサービスを登録
+story.registerService("gallery", gallery);
+story.entry(scene);
+```
+
+## パート 2: 実用例とシナリオ
+
+### 1) ストーリー内で CG をアンロックする
+
+```tsx
+scene.action([
+  narrator.say("美しい夕焼けを見つけた。"),
+  gallery.add("cg_sunset", {
+    url: "/images/cg/sunset.png",
+    title: "夕焼け",
+    unlockedAt: Date.now(),
+  }),
+  narrator.say("図鑑に追加された。"),
+]);
+```
+
+### 2) 条件分岐（すでにアンロック済みの場合は別の台詞を表示する）
+
+```tsx
+scene.action([
+  Condition.If(gallery.has("cg_sunset"), [
+    narrator.say("この夕焼けはもう見たことがある。"),
+  ]).Else([
+    narrator.say("美しい夕焼けを見つけた。"),
+    gallery.add("cg_sunset", {
+      url: "/images/cg/sunset.png",
+      title: "夕焼け",
+      unlockedAt: Date.now(),
+    }),
+  ]),
+]);
+```
+
+### 3) ギャラリーページの表示（オーバーレイでの利用例）
+
+```tsx
+// components/GalleryPage.tsx
+import { useLiveGame } from "narraleaf-react";
+import type { GalleryService } from "@/lib/gallery";
+
+export function GalleryPage() {
+  const liveGame = useLiveGame();
+  const gallery = liveGame.story?.getService<GalleryService>("gallery");
+  if (!gallery) return null;
+
+  const items = gallery.$getAll();
+  return (
+    <div className="grid grid-cols-3 gap-4 p-4">
+      {Object.entries(items).map(([name, meta]) => (
+        <div key={name} className="border rounded overflow-hidden">
+          <img
+            src={meta.url}
+            alt={meta.title}
+            className="w-full aspect-video object-cover"
+          />
+          <p className="p-2 text-sm">{meta.title}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### 4) ゲームセーブから独立した永続化
+
+localStorage 層はセーブシステムとは分離しています。`serialize()` が `null` を返すため、古いスロットを読み込んでもギャラリーが巻き戻ることはありません。
+
+## パート 3: API
+
+| メソッド | 説明 |
+|--------|-------------|
+| `add(name, metadata)` | `scene.action` 内でアンロックする。オブジェクトまたは `(ctx) => metadata` を受け取る |
+| `remove(name)` | `scene.action` 内で削除する |
+| `clear()` | `scene.action` 内ですべてクリアする |
+| `has(name)` | [Condition](/ja/docs/narraleaf-react/core/elements/condition) 向けに `LambdaHandler<boolean>` を返す |
+| `$add(name, metadata)` | 即座に追加して永続化する |
+| `$remove(name)` | 即座に削除して永続化する |
+| `$clear()` | 即座にすべてクリアして永続化する |
+| `$get(name)` | 1 件分のメタデータを取得する |
+| `$set(name, metadata)` | メタデータを設定して永続化する |
+| `$getAll()` | すべての項目を取得する |
+| `$has(name)` | アンロック済みかどうかを確認する |
+| `serialize()` | `null` を返す。アンロック状態は localStorage にのみ保存される |
+
+## 関連項目
+
+- [Service](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) - Service ハンドラーのコンテキスト
+- [Story.registerService](/ja/docs/narraleaf-react/core/elements/story) - Service の登録
+- [Condition](/ja/docs/narraleaf-react/core/elements/condition) - 条件分岐
+- [ページオーバーレイ](/ja/docs/narraleaf-react/solutions/page-overlay-settings) - オーバーレイページとルーティング
+- [組み込み Gallery](/ja/docs/narraleaf-react/core/elements/built-in/gallery) - 各ゲームセーブに追従するギャラリーの状態

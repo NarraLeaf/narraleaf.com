@@ -1,0 +1,15 @@
+---
+title: "ImageSrc"
+description: 画像のソースとして受け付けられる、URL 文字列またはローダーが生成する StaticImageData オブジェクトの合併型
+---
+```typescript
+export type ImageSrc = string | StaticImageData;
+```
+
+StaticImageData は、画像ローダーによって生成される src です。
+
+```typescript
+import img1 from 'path/to/image1.png';
+
+const src: StaticImageData = img1;
+```

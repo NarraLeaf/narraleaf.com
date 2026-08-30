@@ -1,0 +1,104 @@
+---
+title: "App"
+description: ライフサイクル、パス、hooks、ストレージのために NarraLeaf の主プロセス App ホストを使う
+---
+
+`App` は NarraLeaf の主プロセスホストです。通常は `new AppConfig(...).create()` から取得します。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+```
+
+## ライフサイクル
+
+ウィンドウを起動する前に `onReady` を使います。
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+    });
+
+    win.setTitle("My Visual Novel");
+});
+```
+
+`launchApp()` は最初の `AppWindow` を作成します。app がまだ初期化されていない場合や、メインウィンドウがすでに存在する場合は例外を投げます。
+
+## Hooks
+
+`App` は、NarraLeaf のライフサイクルイベント用に軽量な hook バスを持っています。現在の公開パッケージのエントリでは hook イベントの enum がエクスポートされていないため、アプリの起動コードでは `onReady` を優先してください。
+
+```ts
+app.onReady(() => {
+    app.logger.info("NarraLeaf is ready");
+});
+```
+
+内部の hook バスは次のイベント名を使います。
+
+- `AfterReady`
+- `AfterMainWindowClose`
+- `OnTerminate`
+
+> **Note:** `HookEvents` が安定版のエントリポイントからエクスポートされるまでは、`app.hook`、`app.onceHook`、`app.unhook`、`app.emitHook` は高度なランタイム hooks として扱ってください。
+
+## パス
+
+`App` は、開発時とパッケージ化されたアプリの両方についてランタイムのパスを解決します。
+
+- `getEntryFile()`：renderer の HTML ファイルパス、または開発用 HTTP URL。
+- `getPreloadScript()`：preload バンドルのパス。
+- `getPublicDir()`：public アセットのディレクトリ。
+- `getRendererBuildDir()`：renderer のビルドディレクトリ。
+- `getAppPath()`：NarraLeaf のビルドルート。
+- `getUserDataDir()`：Electron の `userData` パス。
+
+```ts
+app.onReady(() => {
+    app.logger.info("public dir", app.getPublicDir());
+});
+```
+
+## セーブデータ
+
+主プロセスは、renderer の hooks が使うセーブ操作を公開します。
+
+```ts
+await app.saveGameData(savedGame, SaveType.Save, "slot-1");
+const data = await app.readGameData("slot-1");
+const saves = await app.listGameData();
+await app.deleteGameData("slot-1");
+```
+
+セーブ id は安全な storage key である必要があります。文字、数字、`_`、`-`、`.` を含められますが、パス区切り文字や `..` を含めることはできません。
+
+```ts
+import { assertSafeStorageKey } from "narraleaf";
+
+assertSafeStorageKey("slot-1", "Save id");
+```
+
+## JSON Stores
+
+app データディレクトリ以下の小さな主プロセス側 JSON ドキュメントには `createJsonStore` を使います。
+
+```ts
+const settings = app.createJsonStore<{ volume?: number }>("settings");
+
+await settings.write({ volume: 0.8 });
+const data = await settings.read();
+```
+
+`createExposedJsonStore` と `exposeJsonStore` は互換性のために存在しますが、非推奨です。renderer 向けの機能には、明示的な main イベントを使うことを推奨します。
+
+## Crash と Quit
+
+```ts
+app.quit();
+app.crash("Unexpected state", { disableRecovery: true });
+```
+
+`crash()` はクラッシュのメタデータを記録し、crash manager に処理を委ねます。`quit()` は通常の Electron の終了処理を行います。

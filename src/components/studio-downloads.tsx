@@ -14,6 +14,12 @@ const TEXT = {
     unavailable: '全部版本',
     allReleases: '全部版本',
   },
+  ja: {
+    download: 'ダウンロード',
+    mirror: 'ミラーからダウンロード',
+    unavailable: 'すべてのリリース',
+    allReleases: 'すべてのリリース',
+  },
 } satisfies Record<Locale, Record<string, string>>;
 
 /**

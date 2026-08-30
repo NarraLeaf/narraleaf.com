@@ -1,0 +1,38 @@
+---
+title: "MenuChoice"
+description: "`Menu.choose` で追加される1つの選択肢：プロンプト、アクションリスト、そして無効化・非表示を制御する lambda"
+---
+```ts
+type MenuChoice = {
+    action: ActionStatements;
+    prompt: SentencePrompt | Sentence;
+    config?: {
+        disabled?: Lambda<boolean> | LambdaHandler<boolean>;
+        hidden?: Lambda<boolean> | LambdaHandler<boolean>;
+    };
+};
+```
+
+例：
+
+```ts
+Menu.prompt("What should I do?")
+    /**
+     * option: "Go left"
+     * action: say "I went left" and jump to scene2
+     */
+    .choose("Go left", [
+        character1.say("I went left"),
+        scene1.jumpTo(scene2)
+    ])
+    
+    /**
+     * option: "Go right" with red color
+     * action: say "I went right"
+     */
+    .choose(Sentence([ "Go", new Word("right", {color: "#ff0000"}) ]), [
+        character1.say("I went right")
+    ])
+```
+
+`ActionStatements` の詳細については、[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照してください。

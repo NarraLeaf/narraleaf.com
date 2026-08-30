@@ -1,0 +1,15 @@
+---
+title: "StorableRestore"
+description: "セーブの読み込みや名前空間の巻き戻し時に `Storable.onRestore` が報告するイベントで、一括で置き換えられたすべての名前空間を列挙する"
+---
+値の一括適用です。セーブの読み込み、または名前空間をスナップショットまで巻き戻す場合に発生します。本来であれば伴うはずのキーごとの [StorableChange](/ja/docs/narraleaf-react/core/types/StorableChange) イベントの**代わりに**、[Storable.onRestore](/ja/docs/narraleaf-react/core/game/storable#onrestore) によって報告されます。
+
+```typescript
+type StorableRestore = {
+    namespaces: string[];
+};
+```
+
+- `namespaces` - 内容が置き換えられた名前空間のキーです。
+
+セーブは知っているすべての名前空間のすべてのキーを保持しているため、読み込みをキーごとに報告すると、プレイヤーが実際には経験していない履歴を語ることになります。このイベントが発生したら、store から導出しているものはすべて読み直してください。詳細は[保存値の監視](/ja/docs/narraleaf-react/core/game/storable/events)を参照してください。

@@ -1,0 +1,34 @@
+---
+title: "ISceneUserConfig"
+description: Scene のユーザー向け設定。背景、背景音楽、ボイスマップ、レイヤーを扱う
+---
+```typescript
+interface ISceneUserConfig {
+    /**
+     * Background music
+     */
+    backgroundMusic: Sound | null;
+    /**
+     * Background music fade duration, in milliseconds
+     */
+    backgroundMusicFade: number;
+    /**
+     * Voice map or a function that returns the voice URL
+     */
+    voices?: VoiceIdMap | VoiceSrcGenerator;
+    /**
+     * Background src, can be a {@link Color} or an {@link Image}
+     */
+    background: ImageSrc | Color;
+    /**
+     * An array of {@link Layer}s
+     */
+    layers: Layer[];
+}
+```
+
+- Sound については [Sound](/ja/docs/narraleaf-react/core/elements/sound) を参照してください。
+- VoiceIdMap と VoiceSrcGenerator については [ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照してください。
+- ImageSrc については [ImageSrc](/ja/docs/narraleaf-react/core/types/ImageSrc) を参照してください。
+- Color については [Color](/ja/docs/narraleaf-react/core/types/color) を参照してください。
+- Layer については [Layer](/ja/docs/narraleaf-react/core/elements/layer) を参照してください。

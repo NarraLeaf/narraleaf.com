@@ -1,0 +1,58 @@
+---
+title: "Page"
+description: Layout の内部で単一のルートの内容を描画し、その既定のハンドラにもなり得る Page コンポーネント
+---
+`Page` は、`Layout` の内部で 1 つのページの内容を描画します。**旧来の `id` prop ではなく** `name` prop によって識別されます。
+
+```tsx
+import { Page } from "narraleaf-react";
+```
+
+## 基本的な使い方
+
+```tsx
+// Default page for its parent Layout (name = null)
+<Page name={null}>
+  <Home />
+</Page>
+
+// Explicit page name
+<Page name="detail">
+  <Detail />
+</Page>
+```
+
+`name` が `null`（または省略）の場合、そのページは親の `Layout` の**既定のハンドラ**になります。レイアウトがマッチし、同じレイアウト内の他のどのページもマッチしないときに描画されます。
+
+## Props
+
+| Prop | 型 | 説明 |
+| ---- | ---- | ----------- |
+| `name?` | `string \| null` | ページの相対パスのセグメント。`null` / `undefined` にすると、このページが既定のハンドラになります。 |
+| `children` | `React.ReactNode` | ページの内容 |
+
+> このコンポーネントは、旧来の `id`、`className`、`style` の各 prop をもう受け付けません。Motion props はフレームワークが内部で渡します。
+
+## ネストのルール
+
+1. `Page` の内部に `Layout` をネストすることは**できません**。
+2. `Page` の内部に別の `Page` を直接ネストすることはできません。
+3. より深いディレクトリ構造を作るには `Layout` コンポーネントを使います。
+
+## Layout と組み合わせた例
+
+```tsx
+import { Layout, Page } from "narraleaf-react";
+
+<Layout name="user">
+  {/* /user */}
+  <Page name={null}>
+    <UserHome />
+  </Page>
+
+  {/* /user/profile */}
+  <Page name="profile">
+    <UserProfile />
+  </Page>
+</Layout>
+```

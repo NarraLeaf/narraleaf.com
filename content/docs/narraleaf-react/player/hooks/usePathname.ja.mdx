@@ -1,0 +1,21 @@
+---
+title: "usePathname"
+description: 現在の LayoutRouter のパス名を返し、ナビゲーションのたびに更新される usePathname フック
+---
+`LayoutRouter` の現在のパス名（クエリを含まない）を返し、ルートが変化すると自動的に更新されます。
+
+```tsx
+import { usePathname } from "narraleaf-react";
+
+const pathname = usePathname(); // e.g. "/user/profile"
+```
+
+## 定義
+
+```typescript
+declare function usePathname(): string;
+```
+
+このフックは内部で `router.onChange` を購読しているため、ナビゲーションが発生するたびにコンポーネントが再描画されます。
+
+関連項目：[`useParams`](/ja/docs/narraleaf-react/player/hooks/useParams) • [`useQueryParams`](/ja/docs/narraleaf-react/player/hooks/useQueryParams)

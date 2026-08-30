@@ -1,0 +1,137 @@
+---
+title: "Quick Start"
+description: NarraLeaf ではじめてのデスクトップ版ビジュアルノベルを作成する
+---
+
+NarraLeaf は、主プロセスのアプリホスト、生成される renderer のエントリ、NarraLeaf-React のストーリーを組み合わせます。このガイドでは、CLI が想定する最小構成のプロジェクトを作成します。
+
+## プロジェクトを作成する
+
+<Steps>
+<Step>
+
+### プロジェクトを初期化する
+
+CLI の init コマンドを実行します。
+
+```bash
+narraleaf init my-visual-novel
+cd my-visual-novel
+```
+
+`init` は最新の NarraLeaf skeleton パッケージに処理を委譲し、プロジェクトファイルを作成します。
+</Step>
+<Step>
+
+### 開発サーバーを起動する
+
+ローカル開発用のコマンドを実行します。
+
+```bash
+narraleaf dev
+```
+
+`dev` コマンドは主プロセスと renderer プロセスを監視し、Electron を起動し、ページファイルが変更されると renderer に再読み込みを要求します。
+</Step>
+</Steps>
+
+## 最小限のプロジェクトファイル
+
+手動でプロジェクトを組み立てる場合、NarraLeaf は次の構成を想定します。
+
+<Files>
+    <Folder name="my-visual-novel" defaultOpen>
+        <File name="package.json" />
+        <File name="narraleaf.config.js" />
+        <Folder name="main">
+            <File name="index.ts" />
+        </Folder>
+        <Folder name="renderer" defaultOpen>
+            <File name="App.tsx" />
+            <Folder name="pages">
+                <File name="index.tsx" />
+            </Folder>
+            <Folder name="public" />
+        </Folder>
+        <Folder name="assets" />
+    </Folder>
+</Files>
+
+## 主プロセス
+
+`AppConfig` から Electron のアプリホストを作成し、NarraLeaf の準備が整ったあとにメインウィンドウを起動します。
+
+```ts title="main/index.ts"
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig({
+    appErrorHandling: "restart",
+}).create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
+
+## Renderer アプリ
+
+renderer アプリは `metadata.story` とシェルコンポーネントをエクスポートします。シェルは生成されたページを `children` として受け取ります。
+
+```tsx title="renderer/App.tsx"
+import type { ReactNode } from "react";
+import { Character, Scene, Story } from "narraleaf-react";
+
+const story = new Story("はじめての NarraLeaf ストーリー");
+const opening = new Scene("opening", {
+    background: "#20232a",
+});
+
+const narrator = new Character("ナレーター");
+opening.action([
+    narrator.say("NarraLeaf へようこそ。"),
+]);
+
+story.entry(opening);
+
+export const metadata = {
+    story,
+};
+
+export default function App({ children }: { children: ReactNode }) {
+    return <main>{children}</main>;
+}
+```
+
+## ホームページ
+
+`narraleaf/renderer` の renderer 用 hooks を使って、アプリケーションシェルにアクセスします。
+
+```tsx title="renderer/pages/index.tsx"
+import { useApp, useGamePlayback } from "narraleaf/renderer";
+
+export default function HomePage() {
+    const app = useApp();
+    const { isPlaying } = useGamePlayback();
+
+    return (
+        <button onClick={() => void app.newGame()}>
+            {isPlaying ? "Restart" : "Start"}
+        </button>
+    );
+}
+```
+
+## 次のステップ
+
+<Cards>
+    <Card
+        title="Project Config"
+        description="パス、ビルドターゲット、開発用ポート、リソースを設定する"
+        href="/ja/docs/narraleaf/library/project-config"
+    />
+    <Card
+        title="Renderer"
+        description="renderer の hooks とページルーティングのモデルを学ぶ"
+        href="/ja/docs/narraleaf/library/renderer"
+    />
+</Cards>

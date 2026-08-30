@@ -1,0 +1,318 @@
+---
+title: "GameConfig"
+description: プレイヤーの寸法、プリロード、オーディオバス、スキップの挙動、置き換え可能な UI コンポーネントなど、new Game() に渡す設定一式
+---
+```typescript
+type GameConfig = {
+    /**
+     * ゲームのコンテナ要素の id
+     * @default "__narraleaf_content"
+     */
+    contentContainerId: string;
+    /**
+     * ゲームのアスペクト比
+     * 例: 16/9, 4/3, 1/1
+     * @default 16/9
+     */
+    aspectRatio: number;
+    /**
+     * プレイヤーの最小幅（ピクセル）
+     * @default 800
+     */
+    minWidth: number;
+    /**
+     * プレイヤーの最小高さ（ピクセル）
+     * @default 450
+     */
+    minHeight: number;
+    /**
+     * プレイヤーの基準幅（ピクセル）。画像のスケールはこの値を基準に計算されます
+     *
+     * 16/9 の場合、推奨値は 1920 です
+     * @default 1920
+     */
+    width: number;
+    /**
+     * プレイヤーの基準高さ（ピクセル）。画像のスケールはこの値を基準に計算されます
+     *
+     * 16/9 の場合、推奨値は 1080 です
+     * @default 1080
+     */
+    height: number;
+    /**
+     * true の場合、ゲームはプレイヤー要素ではなくウィンドウのイベントを監視します
+     * 
+     * これを使うと、プレイヤーがフォーカスされていなくてもキーボードイベントを監視できるようになり
+     * スキップ操作時のユーザー体験が向上します
+     * @default true
+     */
+    useWindowListener: boolean;
+    /**
+     * アスペクト比を更新する際のデバウンス間隔（ミリ秒）
+     *
+     * 0 に設定すると、リサイズのたびに即座に比率を更新します
+     * @default 50
+     */
+    ratioUpdateInterval: number;
+    /**
+     * ゲームが画像をプリロードする際、各プリロードタスクの間に置かれる遅延時間
+     *
+     * 1 つのプリロードタスクには {@link GameConfig.preloadConcurrency} 枚の画像が含まれることがあります
+     * @default 100
+     */
+    preloadDelay: number;
+    /**
+     * 同時にプリロードする画像の最大数
+     * @default 5
+     */
+    preloadConcurrency: number;
+    /**
+     * ゲームを表示する前に画像の読み込みを待つ
+     * @default true
+     */
+    waitForPreload: boolean;
+    /**
+     * シーン内で読み込まれる可能性のあるすべての画像をプリロードする
+     *
+     * 有効にするとパフォーマンスに影響する場合がありますが、ユーザー体験は向上します
+     * @default true
+     */
+    preloadAllImages: boolean;
+    /**
+     * シーンが切り替わる際にキャッシュを強制的にクリアする
+     * @default false
+     */
+    forceClearCache: boolean;
+    /**
+     * 先読みしてプリロードする対象となるアクションの数
+     * @default 10
+     */
+    maxPreloadActions: number;
+    /**
+     * オーディオバスツリー。ホストが起動時に宣言します
+     *
+     * バスはゲインノードであり、そこにルーティングされた音声はすべてそこを通過します。バスは入れ子にでき、
+     * あるバスのゲインはその配下すべてにカスケードします。ここでの `volume` は**作者によるミックス上の位置**
+     * であり、プレイヤーのスライダーではありません。
+     *
+     * `bgm`、`sound`、`voice` はここに現れるかどうかにかかわらず常に存在します。
+     * オーディオサブシステムの起動時に一度だけ読み込まれます
+     * @default []
+     * @example
+     * ```ts
+     * new Game({
+     *     audioBuses: [
+     *         {id: "cast", parentId: "voice"},
+     *         {id: "alice", parentId: "cast", volume: 0.8},
+     *     ],
+     * });
+     * ```
+     */
+    audioBuses: AudioBusDeclaration[];
+    /**
+     * カーソル画像の src。null の場合、ゲームはデフォルトのカーソルを表示します
+     * @default null
+     */
+    cursor: string | null;
+    /**
+     * カーソルの幅（ピクセル）
+     * @default 30
+     */
+    cursorWidth: number;
+    /**
+     * カーソルの高さ（ピクセル）
+     * @default 30
+     */
+    cursorHeight: number;
+    /**
+     * プレイヤーコンポーネント上にはみ出したコンテンツを表示する
+     * @default false
+     */
+    showOverflow: boolean;
+    /**
+     * ページルーターの最大履歴数
+     * @default 10
+     */
+    maxRouterHistory: number;
+    /**
+     * スクリーンショットの品質。0 から 1 の間
+     * @default 1
+     */
+    screenshotQuality: number;
+    /**
+     * true の場合、ゲームはダイアログを画面に合わせて縮小します
+     *
+     * 有効にするとテキストは小さく表示されます
+     * @default true
+     */
+    useAspectScale: boolean;
+    /**
+     * ゲームが次の文へ自動的に進むまでの遅延時間（ミリ秒）
+     *
+     * 「その行の終わり」から計測されます。テキストの表示が完了し、かつその行のボイス（ある場合）の再生も
+     * 終わっている状態です。したがってボイス付きの行はクリップの再生が終わるのを待ってから、この遅延を待ちます。
+     *
+     * プレイヤー設定の "autoForward" が有効な場合にのみ機能します
+     * @default 3000
+     */
+    autoForwardDelay: number;
+    /**
+     * 自動前進が有効な場合のデフォルトの一時停止時間（ミリ秒）
+     * 
+     * 自動前進が有効なとき、独自の時間を指定していない Pause はすべてこの値を使用します
+     * @default 1000
+     */
+    autoForwardDefaultPause: number;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すと画像の変形をスキップします
+     * @default true
+     */
+    allowSkipImageTransform: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すと画像の遷移をスキップします
+     * @default true
+     */
+    allowSkipImageTransition: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すと背景の変形をスキップします
+     * @default true
+     */
+    allowSkipBackgroundTransform: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すと Scene.jumpTo によってシーン間で
+     * 再生される遷移をスキップします
+     * @default true
+     */
+    allowSkipSceneTransition: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すとテキストの変形をスキップします
+     * @default true
+     */
+    allowSkipTextTransform: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すとテキストの遷移をスキップします
+     * @default true
+     */
+    allowSkipTextTransition: boolean;
+    /**
+     * true の場合、アニメーションが子要素に伝播します
+     * 
+     * この動作は [motion](https://motion.dev) によって制御されます: `When true, exit animations will be propagated to nested AnimatePresence components.`
+     * @default false
+     */
+    animationPropagate: boolean;
+    /**
+     * ダイアログの基準幅（ピクセル）
+     *
+     * 16/9 の場合、推奨値は 1920 です
+     * @default 1920
+     */
+    dialogWidth: number;
+    /**
+     * ダイアログの基準高さ（ピクセル）
+     *
+     * 16/9 の場合、推奨値は 1080 * 0.2（画面高さの 20%）です
+     * @default 1080 * 0.2
+     */
+    dialogHeight: number;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すとレイヤーの変形をスキップします
+     * @default true
+     */
+    allowSkipLayersTransform: boolean;
+    /**
+     * true の場合、[GameConfig.player.skipKey] を押すと動画の変形をスキップします
+     *
+     * これは「再生」アクションのみをスキップします
+     *
+     * @default false
+     */
+    allowSkipVideo: boolean;
+    /**
+     * 通知に使用するコンポーネント
+     * @default DefaultNotification
+     */
+    notification: NotificationComponent;
+    /**
+     * メニューに使用するコンポーネント
+     * @default DefaultMenu
+     */
+    menu: MenuComponent;
+    /**
+     * せりふに使用するコンポーネント
+     * @default DefaultSay
+     */
+    dialog: SayComponent;
+    /**
+     * NVL モードのダイアログに使用するコンポーネント
+     * @default DefaultNvlContainer
+     */
+    nvlDialog: NvlDialogComponent;
+    /**
+     * エラー発生時に呼び出される関数
+     * @default () => {}
+     */
+    onError: (error: Error) => void;
+    app: {
+        debug: boolean;
+        /**
+         * ロガーのログレベル
+         * すべてのログを有効にする場合は true に設定します
+         */
+        logger: {
+            log: boolean;
+            info: boolean;
+            warn: boolean;
+            error: boolean;
+            debug: boolean;
+            trace: boolean;
+            verbose: boolean;
+        } | boolean;
+        /**
+         * true の場合、要素にカーソルを合わせるとゲームがインスペクターを表示します
+         */
+        inspector: boolean;
+        /**
+         * {@link GameStateGuard} の設定
+         */
+        guard: GuardConfig;
+    };
+    /**
+     * ゲーム全体のテキスト自動縮小を無効にします。
+     *
+     * せりふのテキストは、表示されるタイミングでサイズを詰めることでボックス内に収まっています。これを
+     * 有効にすると、各行は書かれたときのサイズのまま保持され、ボックスより長い行ははみ出します
+     * @default false
+     */
+    disableTextScaling: boolean;
+    /**
+     * デフォルトのステージを上書きします
+     * @default null
+     */
+    stage: React.ReactNode | null;
+    /**
+     * スタックモデルがループできる最大回数
+     * @default 1000
+     */
+    maxStackModelLoop: number;
+    /**
+     * アクション履歴に保存するアクションの最大数
+     * @default 100
+     */
+    maxActionHistory: number;
+    /**
+     * 戻り可能なジャンプの連鎖が同時に一時停止しておけるシーンの数。
+     *
+     * 戻り可能なジャンプは呼び出し元のシーンをマウントしたまま残すため、連鎖全体を通じて、チェーン上の
+     * 各シーンがレイヤーやスプライトごと舞台に留まり続けます。これはその連鎖に対する上限であり、これを
+     * 超える呼び出しはストーリー側でエラーを送出します。
+     *
+     * これは再帰を防ぐための仕組みではありません。すでに呼び出しスタックにあるシーンを再度呼び出すこと
+     * 自体ができないため、再帰は元々起こり得ません。
+     * @default 8
+     */
+    maxSceneCallDepth: number;
+};
+```
+
+- `AudioBusDeclaration` については [AudioBusDeclaration](/ja/docs/narraleaf-react/core/types/AudioBusDeclaration) と [Audio Buses](/ja/docs/narraleaf-react/core/game/audio-buses) を参照してください。

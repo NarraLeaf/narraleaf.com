@@ -1,0 +1,108 @@
+---
+title: "カスタム NVL ダイアログ"
+description: 完全に独自の NvlContainer で、あるいは renderDialogItem を上書きした DefaultNvlContainer で、NVL モードの対話をカスタマイズする
+---
+## カスタマイズの度合いを選ぶ
+
+NVL（Novel）モードは、複数の対話エントリをスクロール可能なリストとして表示し、小説風のナレーションに向いています。デフォルトの [NvlContainer](/ja/docs/narraleaf-react/player/nvl-container) は、[game.configure](/ja/docs/narraleaf-react/core/game/game) の `nvlDialog` オプション経由で置き換えられるため、NVL 対話の見た目を完全にカスタマイズできます。
+
+有用な選択肢は 2 段階あります。コンテナ全体を `NvlContainer` で置き換えるか、`DefaultNvlContainer` を残したまま `renderDialogItem` だけを変更するかです。
+
+## 1. 完全にカスタムな NVL コンテナ
+
+外側のラッパーに [NvlContainer](/ja/docs/narraleaf-react/player/nvl-container) を使い、`dialogs` 配列を受け取って、各対話を自分で描画します。`INvlContainerProps` には `dialogs` と、任意の `renderDialogItem` が含まれます。
+
+```tsx
+import {
+  NvlContainer,
+  Nametag,
+  Texts,
+  type INvlContainerProps,
+} from "narraleaf-react";
+
+function CustomNvlContainer({ dialogs = [] }: INvlContainerProps) {
+  return (
+    <NvlContainer className="bg-black/80 text-white p-16">
+      {/* NvlContainer: 表示可否、トランジション、アスペクト比のスケーリングを担当 */}
+      {dialogs.map((d) => (
+        <div key={d.entry.id} className="space-y-2 mb-4">
+          {/* d.entry: character や sentence などを含む NvlDialogEntry */}
+          {d.entry.character && (
+            <Nametag entry={d.entry} className="text-amber-400 font-bold" />
+          )}
+          <Texts
+            entry={d.entry}
+            gameState={d.gameState}
+            words={d.words}
+            useTypeEffect={d.useTypeEffect}
+            isActive={d.isActive}
+          />
+        </div>
+      ))}
+    </NvlContainer>
+  );
+}
+
+```
+
+## 2. renderDialogItem で 1 件ごとにカスタマイズする
+
+各対話の表示（枠線や不透明度など）だけを調整したい場合は、[DefaultNvlContainer](/ja/docs/narraleaf-react/player/nvl-container) を使い続けたまま、`renderDialogItem` を渡してレイアウトをカスタマイズします。
+
+```tsx
+import {
+  DefaultNvlContainer,
+  useGame,
+  type INvlContainerProps,
+} from "narraleaf-react";
+
+function CustomNvlWithRenderer({ dialogs, renderDialogItem }: INvlContainerProps) {
+  return (
+    <DefaultNvlContainer
+      dialogs={dialogs}
+      renderDialogItem={({ entry, index, isActive, nametag, texts }) => (
+        // nametag, texts: DefaultNvlContainer が事前に描画済み
+        <div className={`mb-4 ${isActive ? "opacity-100" : "opacity-60"}`}>
+          {nametag}
+          <div className="border-l-4 border-blue-500 pl-2">{texts}</div>
+        </div>
+      )}
+    />
+  );
+}
+```
+
+## 3. renderDialogItem のパラメータ
+
+`renderDialogItem` は `NvlDialogItemRenderProps` を受け取ります。
+
+| パラメータ | 型 | 説明 |
+|-------|------|-------------|
+| `entry` | `NvlDialogEntry` | 対話エントリ（キャラクター、文章など） |
+| `index` | `number` | リスト内のインデックス |
+| `isActive` | `boolean` | 現在アクティブ（タイプ中）の対話かどうか |
+| `nametag` | `React.ReactNode` | 事前に描画されたキャラクター名（キャラクターがいない場合は null） |
+| `texts` | `React.ReactNode` | 事前に描画されたテキスト内容 |
+
+## 4. Game に登録する
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ nvlDialog: CustomNvlContainer });
+
+function App() {
+  return (
+    <GameProviders game={game}>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+    </GameProviders>
+  );
+}
+```
+
+行のレイアウトだけを変更したい場合は、代わりに `CustomNvlWithRenderer` を使用します。
+
+## 関連項目
+
+- [NvlContainer](/ja/docs/narraleaf-react/player/nvl-container) - NVL コンテナの API
+- [game.configure](/ja/docs/narraleaf-react/core/game/game) - Game の設定

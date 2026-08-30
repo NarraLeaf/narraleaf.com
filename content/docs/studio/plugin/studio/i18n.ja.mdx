@@ -1,0 +1,40 @@
+---
+title: i18n
+description: エディターの言語を読み取り、それに合わせて自分の文字列をローカライズする
+---
+
+`app.services.i18n` は**エディターの** UI 言語への読み取り専用アクセスで、プラグインが自分のパネルを翻訳し、リアルタイムの言語切り替えに反応できるようにします。これはエディターの言語であり、ゲームのプレイヤー向け言語ではありません――後者については、runtime エントリーが `locale` 能力のもとで [`app.game.locale`](/ja/docs/studio/plugin/runtime/assets-locale) を読み取ります。
+
+## メンバー
+
+| メンバー | シグネチャ | 備考 |
+| --- | --- | --- |
+| `locale` | `string` | エディターの現在有効なロケールコード。 |
+| `onLocaleChange` | `(fn: (locale: string) => void) => PluginCleanup` | 言語切り替え時に新しいロケールとともに発火します。クリーンアップを返します。 |
+| `createTranslator` | `(bundle: PluginMessageBundle) => PluginTranslator` | あなた自身のメッセージテーブルに基づく翻訳器。 |
+| `formatNumber` | `(value: number, options?: Intl.NumberFormatOptions) => string` | エディターロケールに連動します。 |
+| `formatDate` | `(value: Date \| number, options?: Intl.DateTimeFormatOptions) => string` | エディターロケールに連動します。 |
+| `formatList` | `(items: string[], options?: Intl.ListFormatOptions) => string` | エディターロケールに連動します。 |
+
+## 自分の文字列を翻訳する
+
+```ts
+type PluginMessageBundle = {
+    messages: Record<string, Record<string, string>>; // locale -> (key -> string)
+    fallbackLocale?: string;                           // 既定では最初のテーブル
+};
+
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi {name}" }, zh: { hi: "你好 {name}" } },
+    fallbackLocale: "en",
+});
+
+i18n.t("hi", { name: "Ada" }); // エディターのロケールに追従する
+i18n.locale;                   // 現在のロケール、実時間で読み取る
+```
+
+`t(key, params?)` は、現在のロケールのテーブル、次にフォールバックのテーブルの順に解決を試み、最後にそのキー自体を返します。`{placeholder}` トークンは `params` から埋められます。翻訳器のインスタンスは 1 つで十分です――`.locale` と `t()` は呼び出し時点の現在のロケールを読み取ります。言語が切り替わったときに自分の UI を再描画するには、`onLocaleChange` を購読してください。
+
+<Callout type="info">
+**Studio 自体**を翻訳する――言語を追加する、あるいはある言語の欠落を補う――には、代わりに `contributes.locales` を通じて言語パックを提供してください。それには `i18n` の呼び出しは不要です。[プラグインを作る](/ja/docs/studio/plugin/create-first-plugin)を参照してください。
+</Callout>

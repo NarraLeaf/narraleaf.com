@@ -1,0 +1,164 @@
+---
+title: "ダイアログアバターチュートリアル"
+description: キャラクターレベルのアバターと Avatar コンポーネントで、ADV 対話テキストの横にキャラクターの肖像を表示する
+---
+[`Avatar`](/ja/docs/narraleaf-react/player/dialog) を使うと、ADV 対話のテキストの横に**小さな肖像**を表示できます。手順は 2 つです。
+
+1. **[`Character`](/ja/docs/narraleaf-react/core/elements/character) にどの画像を使うか指定する**か、表情ごとの肖像にしたい場合は舞台の [`Image`](/ja/docs/narraleaf-react/core/elements/image) を紐付けます。
+2. **自作の [`Dialog`](/ja/docs/narraleaf-react/player/dialog) の中に `<Avatar />` を描画する**。
+
+解決の優先順位、リゾルバー、型については、[Dialog](/ja/docs/narraleaf-react/player/dialog) のリファレンスと [`useAvatar`](/ja/docs/narraleaf-react/player/hooks/useAvatar) を参照してください。
+
+## 1. キャラクターレベルのアバターを設定する
+
+そのキャラクターが話すたびに使われる 1 枚の画像です。舞台に立ち絵がない**画面外**のセリフでも表示されます。
+
+```ts
+import { Character } from "narraleaf-react";
+
+const alice = new Character("Alice", {
+    avatar: "/characters/alice/avatar.png",
+});
+
+alice.say("プレイヤーは、テキストの隣に私の肖像を目にすることになります。");
+```
+
+チェーン形式:
+
+```ts
+const bob = new Character("Bob").setAvatar("/characters/bob/avatar.png");
+```
+
+アバターには名前付きのキャラクターが必要です。**ナレーター**の行（`new Character(null)`）にはアバターは表示されません。
+
+## 2. ダイアログ UI に `Avatar` を追加する
+
+[`Avatar`](/ja/docs/narraleaf-react/player/dialog) は**現在の文**に対応する画像を解決し、`<img>` を描画します。アバターがない場合は**何も描画しない**ため、レイアウトに空の穴が残ることはありません。
+
+組み込みのダイアログと同じレイアウトで、[`Nametag`](/ja/docs/narraleaf-react/player/dialog) と [`Texts`](/ja/docs/narraleaf-react/player/dialog) の隣に配置します。
+
+```tsx
+import {
+    Avatar,
+    Dialog,
+    Nametag,
+    Texts,
+} from "narraleaf-react";
+
+export function GameDialog() {
+    return (
+        <Dialog className="bg-black/75 rounded-xl px-5 py-4 text-white">
+            <div
+                className="flex items-start gap-4"
+                style={{ width: "100%", minHeight: 96 }}
+            >
+                <Avatar
+                    className="shrink-0 rounded-lg border border-white/20"
+                    style={{ width: 88, height: 88 }}
+                />
+                <div className="min-w-0 flex-1 flex flex-col gap-1">
+                    <Nametag className="text-base font-semibold" />
+                    <Texts className="text-sm leading-relaxed" />
+                </div>
+            </div>
+        </Dialog>
+    );
+}
+```
+
+`style` を指定しない場合の既定サイズは 96×96 です。`className` や `style` で上書きできます。
+
+### 任意: `useAvatar` によるレスポンシブレイアウト
+
+**アバターがないときにテキスト列を広げたい**場合は、[`useAvatar`](/ja/docs/narraleaf-react/player/hooks/useAvatar) から表示状態を読み取ります。
+
+```tsx
+import {
+    Avatar,
+    Dialog,
+    Nametag,
+    Texts,
+    useAvatar,
+} from "narraleaf-react";
+
+export function GameDialog() {
+    const { visible } = useAvatar();
+
+    return (
+        <Dialog className="bg-black/75 rounded-xl px-5 py-4">
+            <div
+                className="grid gap-4 items-start text-white"
+                style={{
+                    gridTemplateColumns: visible ? "96px minmax(0,1fr)" : "minmax(0,1fr)",
+                }}
+            >
+                {visible && <Avatar />}
+                <div>
+                    <Nametag />
+                    <Texts />
+                </div>
+            </div>
+        </Dialog>
+    );
+}
+```
+
+## 3. ダイアログコンポーネントを登録する
+
+[`Game`](/ja/docs/narraleaf-react/core/game/game) を作成する際にコンポーネントを指定し、同じインスタンスを `GameProviders` に渡します。
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+import { GameDialog } from "./GameDialog";
+
+const game = new Game({ dialog: GameDialog });
+
+export function GameView() {
+    return (
+        <GameProviders game={game}>
+            <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+        </GameProviders>
+    );
+}
+```
+
+## 4. 行単位・立ち絵単位のルール
+
+### 特定の行だけ肖像を出さない
+
+```ts
+alice.say("この行ではアバターを表示しません。", { avatar: false });
+```
+
+### 任意: 舞台上の立ち絵に応じて肖像を変える
+
+舞台上の `Image` にそのスプライトが表示されている間だけ使う**別の**ダイアログアバターを結び付けます。詳しくは Character ページの [`addPortrait`](/ja/docs/narraleaf-react/core/elements/character) を参照してください。
+
+```ts
+const body = new Image({
+    name: "alice-body",
+    src: "/characters/alice/body-normal.png",
+});
+
+const alice = new Character("Alice", {
+    avatar: "/characters/alice/avatar-default.png", // body が非表示のとき
+    portraits: [{ image: body, avatar: "/characters/alice/avatar-smile.png" }],
+});
+
+scene.action([
+    alice.say("画面外 → デフォルトアバター"),
+    body.show(/* ... */),
+    alice.say("登場中 → 笑顔のアバター"),
+]);
+```
+
+## まとめ
+
+| 目的 | 手順 |
+|------|-------------|
+| 名前付きキャラクターの顔写真を表示する | `Character` の `avatar` オプション、または `.setAvatar(...)` |
+| 画面に描画する | `<Dialog>...</Dialog>` の中に `<Avatar />` を配置する |
+| 独自のダイアログを使う | [`game.configure({ dialog: YourDialog })`](/ja/docs/narraleaf-react/core/game/game) |
+| 行ごとの例外 | `{ avatar: false }`、`{ avatar: "/other.png" }`、またはリゾルバー（[Dialog](/ja/docs/narraleaf-react/player/dialog) を参照） |
+
+複数の肖像を同時に表示する方法やタグリゾルバーについては、[Dialog](/ja/docs/narraleaf-react/player/dialog) ページを参照してください。

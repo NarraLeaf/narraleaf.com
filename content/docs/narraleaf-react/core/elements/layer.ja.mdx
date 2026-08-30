@@ -1,0 +1,75 @@
+﻿---
+title: "レイヤー"
+description: 表示可能要素をグループ化し、重なり順と共有トランスフォームを制御する `Layer` クラス
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+`Layer` クラスを使用することで、表示可能要素のレイヤーを管理できます。
+
+## 使い方
+
+```typescript
+import {Layer} from "narraleaf-react";
+```
+
+```typescript
+const layer = new Layer("layer name", {
+    zIndex: 1
+});
+
+const scene = new Scene("scene with layers", {
+    layers: [layer] // レイヤーをシーンに登録する
+});
+
+const image = new Image({ /* ... */}).useLayer(layer); // 画像をレイヤーにリンクする
+```
+
+```typescript
+layer.opacity(0.5, 1000, "linear"); // レイヤーの不透明度を変更する。レイヤーにリンクされたすべての要素が影響を受ける
+```
+
+<Callout type="info">
+    **`0.26.0` 以降、レイヤーは自身のポーズを、それを宣言したシーンの外まで持ち出さなくなりました。**
+    シーンを離れると、そのシーンがステージに配置したレイヤーは、そこに乗っている表示可能要素だけでなく、レイヤー自体も設定した
+    z-index とポーズに戻るようになりました。`newGame()` でも同様です。これより前は、横にずらしたりフェードアウトしたりしたレイヤーは、
+    以降のすべてのシーンでその状態のまま残っていました。ストーリーの
+    [カメラ](/ja/docs/narraleaf-react/core/elements/camera) はこの対象から意図的に除外されています。ストーリーが持つカメラは常に一つであり、
+    シーンが切り替わってもステージを映し続けるためです。
+</Callout>
+
+## チェーン可能なメソッド
+
+### setZIndex
+
+<Steps>
+<Step>
+
+レイヤーの z-index を設定します。z-index が高いほど、そのレイヤーは他のレイヤーより手前に表示されます。
+
+- `zIndex: number` - レイヤーの z-index
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name?: string` - レイヤーの名前
+- `config?: Partial<ILayerUserConfig>` - レイヤーの設定。[ILayerUserConfig](/ja/docs/narraleaf-react/core/types/ILayerUserConfig) を参照
+</Step>
+</Steps>
+
+### include
+
+<Steps>
+<Step>
+
+表示可能要素をレイヤーに含めます。
+
+- `elements: (Image | Text)[] | Image | Text` - 含める表示可能要素。例: [Image](/ja/docs/narraleaf-react/core/elements/image)、[Text](/ja/docs/narraleaf-react/core/elements/text)
+- 戻り値: `this`
+</Step>
+</Steps>

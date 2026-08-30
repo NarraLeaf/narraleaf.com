@@ -1,0 +1,88 @@
+---
+title: "データを保存する"
+description: シーンの切り替えやセーブをまたいで保持される Persistent の値、その作成・読み書きの方法、許可される値の型
+---
+
+シーンの切り替えをまたいで保持し、セーブデータにも含める必要がある値には [Persistent](/ja/docs/narraleaf-react/core/elements/persistent) を使用します。`story.createPersistent()` は、名前空間の作成と登録を一度に行います。
+
+```ts
+import { Story } from "narraleaf-react";
+
+const story = new Story("my-story");
+
+const player = story.createPersistent("player", {
+    name: "Alex",
+    coins: 0,
+    hasKey: false,
+    startedAt: new Date(),
+});
+```
+
+`Persistent` を自分で構築した場合は、ストーリーが実行される前に登録してください。
+
+```ts
+import { Persistent } from "narraleaf-react";
+
+const player = new Persistent("player", { coins: 0 });
+story.registerPersistent(player);
+```
+
+## 値を変更・表示する
+
+`set()` と `assign()` はストーリーのアクションを作成します。`get()` は、その行が表示されるときに最新の値を読み取る動的な Word を作成します。
+
+```ts
+scene.action([
+    player.set("coins", 50),
+    player.set("coins", (coins) => coins + 10),
+    player.assign({ hasKey: true }),
+    alice.say`${player.get("coins")} 枚のコインを持っている。`,
+]);
+```
+
+条件の中では `equals`、`isTrue`、`isFalse`、`evaluate` を使用します。
+
+```ts
+Condition.If(player.evaluate("coins", (coins) => coins >= 50), [
+    alice.say("コインは足りているよ。"),
+]);
+```
+
+保存できる値は、文字列、数値、真偽値、プレーンオブジェクト、配列、`null`、`undefined`、`Date` です。クラスのインスタンス、関数、DOM ノード、循環参照を持つオブジェクトは保存しないでください。
+
+## 現在のゲームを保存する
+
+`serialize()` は `SavedGame` オブジェクトを返します。Persistent の名前空間だけでなく、オブジェクト全体を保存してください。
+
+```tsx
+import { useLiveGame } from "narraleaf-react";
+
+function SaveButton() {
+    const liveGame = useLiveGame();
+
+    function save() {
+        const data = liveGame.serialize();
+        localStorage.setItem("save-slot-1", JSON.stringify(data));
+    }
+
+    return <button onClick={save}>保存</button>;
+}
+```
+
+## セーブデータを読み込む
+
+保存したオブジェクトをパースし、`deserialize()` に渡します。読み込むと、現在のランタイムの状態は置き換えられます。
+
+```tsx
+import type { SavedGame } from "narraleaf-react";
+
+function load() {
+    const raw = localStorage.getItem("save-slot-1");
+    if (!raw) return;
+
+    const data = JSON.parse(raw) as SavedGame;
+    liveGame.deserialize(data);
+}
+```
+
+本番環境では localStorage やネットワーク経由のデータを信頼できない入力として扱ってください。形状を検証し、パースエラーや互換性エラーを捕捉します。完全な例は [localStorage を使ったセーブシステム](/ja/docs/narraleaf-react/solutions/save-system-localstorage)を参照してください。

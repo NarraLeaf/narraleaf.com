@@ -1,0 +1,21 @@
+---
+title: "VfxFadeOptions"
+description: "`Vfx` オーバーレイの表示・非表示時のフェードオプション：時間、イージング、目標不透明度、再生速度"
+---
+```typescript
+type VfxFadeOptions = {
+    duration?: number;
+    easing?: TransformDefinitions.EasingDefinition;
+    opacity?: number;
+    rate?: number;
+};
+```
+
+- `duration` — フェードの長さ（ミリ秒）です。デフォルトは `0`（即時）。
+
+- `easing` — [EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)。ベジェ配列は CSS の `cubic-bezier` にそのまま対応します。名前付きイージングの `linear`、`easeIn`、`easeOut`、`easeInOut` はそれぞれ対応する CSS イージングにマッピングされ、それ以外は CSS の `ease` にフォールバックします。
+
+- `opacity` - この表示にのみ適用される、フェードインの到達不透明度です。デフォルトは `config.opacity`。`show` でのみ読まれ、`hide` は常に 0 までフェードします。`0.33.0` から。
+- `rate` - この表示にのみ適用される再生速度です。デフォルトは `config.playbackRate`。保存はされません。読み込んだセーブは設定済みの速度で再生されます。`0.33.0` から。
+
+詳細は [Vfx](/ja/docs/narraleaf-react/core/elements/vfx) を参照してください。

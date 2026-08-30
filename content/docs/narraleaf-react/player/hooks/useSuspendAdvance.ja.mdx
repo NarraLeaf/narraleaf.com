@@ -1,0 +1,49 @@
+---
+title: "useSuspendAdvance"
+description: ポップアップやオーバーレイが開いている間、現在の対話行を保持する useSuspendAdvance フック
+---
+自分の要素が開いている間、現在の行を保持します。保持が出ている間は、ステージへのクリック、進行キー、スキップキーがダイアログに届かなくなります。`0.27.0` から利用可能です。
+
+```typescript
+function useSuspendAdvance(active: boolean): void;
+```
+
+行の上に描画されるポップアップは、その下で行が進行するのを止めなければなりません。そうしなければ、ポップアップを閉じるためのそのキー入力がそのまま次の行へのスキップになってしまいます。
+
+## 使い方
+
+```tsx
+import { useSuspendAdvance, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    const [open, setOpen] = useState(false);
+
+    useSuspendAdvance(open);
+
+    return (
+        <span onClick={() => revealed && setOpen(value => !value)}>
+            {children}
+            {open && <Definition entry={data.entry} />}
+        </span>
+    );
+}
+```
+
+- `active: boolean` - 今この瞬間に行を保持するかどうか。
+- 戻り値は `void` です。
+
+## 挙動
+
+- `active` が `true` になると保持を取得し、`false` になるかコンポーネントがアンマウントされると解放されます。消えたポップアップがゲームを詰まらせることはありません。
+- 保持は入れ子にできます。同時に複数出ていてもよく、最後の 1 つが解放されると行が再開します。
+- 保持されるのは進行のみです。タイプライター表示、進行中のトランジション、音声は影響を受けません。
+
+## React の外側から
+
+[`GameState.suspendAdvance`](/ja/docs/narraleaf-react/core/game/game-state#suspendadvance) も同じことを行い、解放処理を関数として返します。
+
+```typescript
+const release = gameState.suspendAdvance();
+// ...
+release();
+```

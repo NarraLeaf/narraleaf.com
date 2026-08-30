@@ -1,0 +1,104 @@
+---
+title: "Save System"
+description: renderer のセーブ用 hooks、クイックセーブ、現在のスナップショット、セーブのメタデータを使う
+---
+
+renderer のセーブ用 helpers は preload ブリッジを呼び出し、そこから主プロセスのセーブストレージへとルーティングされます。
+
+```tsx
+import {
+    readGame,
+    useCurrentSaved,
+    useSaveAction,
+    useSavedGames,
+} from "narraleaf/renderer";
+```
+
+## セーブ操作
+
+`useSaveAction()` は、実行中のゲームに対する命令的な helpers を返します。
+
+```tsx
+import { useSaveAction } from "narraleaf/renderer";
+
+export function SaveButton() {
+    const { save, quickSave } = useSaveAction();
+
+    return (
+        <>
+            <button onClick={() => void save("slot-1")}>Save</button>
+            <button onClick={() => void quickSave()}>Quick Save</button>
+        </>
+    );
+}
+```
+
+戻り値の形:
+
+- `save(id)`：実行中のゲームをシリアライズし、通常のセーブとして保存します。
+- `read(id)`：1 つのセーブスロットを読み込み、シリアライズされたゲーム、または `null` を返します。
+- `quickSave()`：NarraLeaf のクイックセーブ id を使って現在のゲームを保存します。
+- `quickRead()`：クイックセーブを読み込みます。
+
+`save`、`quickSave`、およびブリッジの失敗は、いずれも例外を投げます。
+
+## 現在のスナップショット
+
+コンポーネントが現在のシリアライズされたゲームのスナップショットを必要とする場合は、`useCurrentSaved()` を使います。
+
+```tsx
+const current = useCurrentSaved();
+```
+
+コールバックが再レンダリングを起こさずに最新のスナップショットを必要とする場合は、`useCurrentSavedRef()` を使います。
+
+```tsx
+const currentRef = useCurrentSavedRef();
+```
+
+どちらの helpers も、実行中の NarraLeaf-React の `LiveGame` をシリアライズします。
+
+## セーブの一覧
+
+`useSavedGames()` はセーブのメタデータを読み込み、シリアライズされた `refetch()` を提供します。
+
+```tsx
+import { useSavedGames } from "narraleaf/renderer";
+
+export function SaveList() {
+    const { results, isLoading, error, refetch } = useSavedGames();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <button onClick={() => void refetch()}>Retry</button>;
+
+    return (
+        <ul>
+            {results.map((save) => (
+                <li key={save.id}>{save.id}</li>
+            ))}
+        </ul>
+    );
+}
+```
+
+## hook を使わずに読み込む
+
+React の hooks の外では `readGame(id)` を使います。
+
+```ts
+const savedGame = await readGame("slot-1");
+```
+
+ブリッジが失敗すると例外を投げ、セーブが存在しない場合やゲームの内容を含まない場合は `null` を返します。
+
+## セーブ id の規則
+
+セーブ id は主プロセスで検証されます。次を満たす必要があります。
+
+- 空でない文字列であること
+- 最大 `200` 文字であること
+- 単一のパスセグメントであること
+- `..` を含まないこと
+- `^[a-zA-Z0-9_.-]+$` に一致すること
+
+> **Note:** 主プロセスにはより低レベルのセーブ削除機能がありますが、現在の renderer の公開 API には delete 用の helper は公開されていません。今すぐ削除 UI が必要な場合は、カスタムの main event を使ってください。

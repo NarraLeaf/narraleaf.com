@@ -1,0 +1,198 @@
+---
+title: "画像を表示する"
+description: Image 要素の構築、ステージ上での表示と非表示、トランジションによる不透明度のアニメーション
+---
+画像を表示するには、[Image](/ja/docs/narraleaf-react/core/elements/image) 要素を使用します。
+
+## Image を定義する
+
+[IImageUserConfig](/ja/docs/narraleaf-react/core/types/IImageUserConfig) オブジェクトを渡すことで画像を構築できます。
+
+```ts
+import { Image } from "narraleaf-react";
+```
+
+```typescript
+const character1Happy = new Image({
+    src: "https://YOUR_IMAGE_URL",
+    zoom: 0.5, // 画像の拡大率
+    position: {
+        yalign: 0.3, // 画像の垂直方向の配置
+        xalign: 0.5, // 画像の水平方向の配置
+    },
+});
+```
+
+この画像は画面中央に拡大率 0.5 で配置されますが、`show()` アクションが実行されるまでは非表示のままです。
+
+## 画像を表示する
+
+シーンにアクションを追加することで画像を表示できます。
+
+```typescript
+scene1.action([
+    character1Happy.show(),
+]);
+```
+
+画像は即座に画面に表示されます。
+
+表示時に不透明度をアニメーションさせることもできます。
+
+```typescript
+scene1.action([
+    character1Happy.show({
+        ease: "easeInOut",
+        duration: 1000,
+    }),
+]);
+```
+
+## 画像を非表示にする
+
+シーンにアクションを追加することで画像を非表示にできます。
+
+```typescript
+scene1.action([
+    character1Happy.hide(),
+]);
+```
+
+画像は即座に画面から非表示になります。
+
+非表示にする際も同じオプションが使えます。
+
+```typescript
+scene1.action([
+    character1Happy.hide({
+        ease: "easeInOut",
+        duration: 1000,
+    }),
+]);
+```
+
+## 画像を変更する
+
+### Src ベースの画像
+
+画像のソースを更新することで、画像を変更できます。
+
+```typescript
+scene1.action([
+    character1Happy.char("https://NEW_IMAGE_URL"),
+]);
+```
+
+または、[トランジション](/ja/docs/narraleaf-react/core/animation/transition)を使って変更します。
+
+```typescript
+import {Dissolve} from "narraleaf-react";
+```
+
+```typescript
+scene1.action([
+    character1Happy.char("https://NEW_IMAGE_URL", new Dissolve({ duration: 300 })),
+]);
+```
+
+### タグベースの画像
+
+すべての見た目があらかじめ合成済みのファイルである場合は、タグのグループを使用します。
+
+> 注意：タグベースの画像は、タグを指定することで画像の見た目を変更できる機能です。
+>
+> タグベースの画像設定と通常の画像設定を混在させることはできません。
+> 通常の画像設定では、`src` プロパティは文字列です。
+
+```typescript
+import {Image} from "narraleaf-react";
+```
+
+```typescript
+const image = new Image({
+    src: {
+        groups: [
+            ["happy", "sad", "angry"], // グループ1
+            ["shirt", "jacket", "t-shirt"], // グループ2
+            ["trousers", "skirt", "shorts"], // グループ3
+        ],
+        defaults: ["happy", "shirt", "trousers"], // デフォルトの見た目
+        resolve: (emotion, top, bottom) => `https://your/image/src/${emotion}_${top}_${bottom}.png`,
+    } as const,
+});
+// デフォルトの画像は `https://your/image/src/happy_shirt_trousers.png` になります
+
+scene1.action([
+    image.show(),
+    image.char(["angry", "shorts"], new Dissolve({ duration: 1000 })), // 画像を `https://your/image/src/angry_shirt_shorts.png` に変更します
+]);
+```
+
+### レイヤー画像
+
+素材がパーツごとに 1 ファイルとして書き出されている場合は `layers` を使用します。NarraLeaf は各パーツを下から上へ積み重ねます。3 種類の表情、3 種類のトップス、3 種類のボトムスであれば、27 通りの合成済み組み合わせではなく 9 ファイルで済みます。
+
+```typescript
+const image = new Image({
+    src: {
+        // 下から上へ
+        layers: [
+            "body.png",
+            {trousers: "trousers.png", skirt: "skirt.png", shorts: "shorts.png"},
+            {shirt: "shirt.png", jacket: "jacket.png", tshirt: "t-shirt.png"},
+            {happy: "happy.png", sad: "sad.png", angry: "angry.png"},
+            {noHat: null, hat: "hat.png"},
+            (tags) => tags.has("sad") ? "tears.png" : null,
+        ],
+        defaults: ["trousers", "shirt", "happy", "noHat"],
+    },
+});
+
+scene1.action([
+    image.show(),
+    image.char(["angry", "shorts", "hat"], new Dissolve({ duration: 1000 })),
+]);
+```
+
+各タグは、それぞれ対応するバリアントレイヤーのみを変更します。他のアクティブなタグは変わりません。タグは定義から推論されるため、TypeScript がスペルミスを検出します。
+
+固定のソースとバリアントのソースは自動的にプリロードされます。関数レイヤーはプリローダーから見て不透明なので、返却されうるすべての URL を登録してください。
+
+```ts
+scene1.preloadImage("tears.png");
+```
+
+`null` レイヤー、関数レイヤー、装着物、マスク、プリロードのルールについては [Image](/ja/docs/narraleaf-react/core/elements/image) を参照してください。
+
+## 画像をアニメーションさせる
+
+[Transform](/ja/docs/narraleaf-react/core/animation/transform) を使って画像をアニメーションさせることができます。
+
+```ts
+import { Transform } from "narraleaf-react";
+```
+
+```typescript
+// 画像を画面の右側へ移動する
+scene1.action([
+    character1Happy.transform(
+        Transform.create()
+            .position("right")
+            .commit({ duration: 120, ease: "easeOut" })
+    ),
+]);
+
+// または
+
+scene1.action([
+    character1Happy.transform(Transform.right(120, "easeOut")),
+]);
+```
+
+画像は 120 ミリ秒かけて、イーズアウトのカーブで右側へ移動します。
+
+## その他の画像トランジション
+
+NarraLeaf 0.30 には `Dissolve`、`FadeIn`、`BlurDissolve`、`Push`、`Darkness`、`Reveal`、`RuleReveal`、`ThroughColor`、`Exposure` の各エンジンに加えて、`Reveal` と `ThroughColor` がアニメーションさせる `Mask` パターンの語彙（ワイプ、観音開き、アイリス、時計、扇、ブラインド、ドット）が含まれています。すべての画像トランジションは、通常の画像・タグベースの画像・レイヤー画像のいずれとも組み合わせて使用できます。
+
+Transform について詳しくは、[Transform](/ja/docs/narraleaf-react/core/animation/transform) のドキュメントを参照してください。

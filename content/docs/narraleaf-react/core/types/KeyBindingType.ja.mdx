@@ -1,0 +1,55 @@
+﻿---
+title: "KeyBindingType"
+description: KeyMap が使う 2 つの組み込みキーボードアクション識別子。行を進める skipAction と、現在のアクションをスキップする nextAction
+---
+`KeyBindingType` は、ゲームの `KeyMap` が使用する組み込みのキーボードバインディングアクション識別子を表す列挙型です。
+
+```typescript
+enum KeyBindingType {
+    skipAction = "skipAction",
+    nextAction = "nextAction",
+}
+```
+
+## メンバー
+
+### skipAction
+
+<Steps>
+<Step>
+
+バインドされたキーのいずれかを押すと、ゲームは**次の文**へ進みます。
+
+- **既定のバインディング**: `[" "]`（スペースキー）
+
+<Callout type="info">
+    **`0.26.0` 以降、ステージのクリックはこのキーを 1 回押すのと同じ動作をします。**打字中の行を完了させ、打ち終わった行を先へ進めます。それ以前は、ADV ダイアログを進められるのはこのキーだけでした——クリックは認識されてイベントとして発火するものの、何も反応しなかったため、クリックで読むタイプのゲームはまったく進まないという状態でした。NVL ダイアログは、以前から両方をリッスンしていました。
+
+    キーを押し続けると、そのままシーンを最後まで強制的に進めます。クリックはそうなりません。クリックしたプレイヤーが求めているのは 1 行だけであって、シーンの残り全部ではないからです。
+</Callout>
+</Step>
+</Steps>
+
+### nextAction
+
+<Steps>
+<Step>
+
+バインドされたキーのいずれかを押すと、ゲームは**現在のアクションをスキップ**します。
+
+- **既定のバインディング**: `["Control"]`
+</Step>
+</Steps>
+
+## 例
+
+```typescript
+// スキップアクションのキーを F3 に変更する
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, "F3");
+// Control と F3 の両方を skipAction にバインドする
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, ["Control", "F3"]);
+// バインディングを削除する
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, null);
+```
+
+参照: [KeyBindingValue](/ja/docs/narraleaf-react/core/types/KeyBindingValue)、[KeyMap](/ja/docs/narraleaf-react/core/game/key-map)

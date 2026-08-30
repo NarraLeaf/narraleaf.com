@@ -1,0 +1,772 @@
+---
+title: イベント
+description: event グラフを開始するイベント Head、それぞれが運ぶ payload、そしてブループリント間でメッセージをやり取りする Broadcast ノード
+---
+
+イベント Head は`event`グラフが始まる場所です。実行入力を持ちません——ランタイムはこの Head からグラフに進入し、実行チェーンは`then`から始まります。このページの残りはすべてそこから派生します——Head のデータ出力はそのイベントの payload であり、そもそもどの Head が提供されるかは、ブループリントがどこに置かれているかによって決まります。
+
+## 規約
+
+- **Head には実行入力がありません。** 配線できるものは何もありません。1つのグラフに複数の Head を置くことができ、それぞれが自分のイベントが届いたときに自分のチェーンを実行します。
+- **データ出力は payload です。** `then`以外の出力ピンはすべて、ピン id をキーとしてランタイムイベント payload の1つのフィールドを読み取ります。ディスパッチが設定しなかったフィールドは`null`として読み取られます——`0`でも`""`でもありません。
+- **座標はデザイン座標です。** 要素のマウス Head は、その要素自身のローカルなデザイン空間を報告します。Surface ブループリントに置かれた`Mouse Click`と`Right Click`は、代わりにその[Surface](/ja/docs/studio/blueprint/surfaces)のデザイン空間を報告します。
+- **グラフの種類。** このページのノードはすべて`event`専用です。例外は`Send Broadcast`と`Get Listener Count`で、これらは`macro`グラフでも実行できます。Blueprint Value グラフが受け付ける Head はちょうど2つ——`Init`と`On Flush`です。
+- **無効な要素は沈黙します。** 無効化されている、またはテキスト編集状態にあるウィジェットは、自身の操作系 Head をまったくディスパッチしません。
+
+## Head が提供される場所
+
+パレットは、ブループリントのオーナーによって Head を絞り込みます。自分のオーナーの欄に載っていない Head は、設定の裏に隠れているのではありません——そこには存在しないのです。
+
+| オーナー | 提供される Head |
+| --- | --- |
+| グローバルブループリント（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head |
+| Surface ブループリント（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head、2つの broadcast Head、`Element Flush`、`Element Click` |
+| ウィジェットブループリント（`widgetMain`、`componentWidgetMain`） | そのウィジェット型が宣言する内容による——下表を参照 |
+| Blueprint Value（`widgetValue`） | `Init`と`On Flush` |
+| Story action ブループリント | `On Call` |
+
+ウィジェットの場合、オーナーはルールの半分にすぎません——組み込みの各ウィジェット型は一連のイベント機能を宣言しており、Head はそのウィジェット自身の機能一覧に載っている場合にのみ現れます。`nl.list`に`Mouse Enter`がなく、`nl.container`に`Item Click`がないのはそのためです。
+
+| ウィジェット型 | Head |
+| --- | --- |
+| 私有ブループリントを持つすべてのウィジェット | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、4つのキーボード Head、`On Fullscreen Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
+| `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 9つのマウス Head、`Focus`、`Blur`、`List Item Refresh` |
+| `nl.video`、`nl.puppet` | 9つのマウス Head、`Focus`、`Blur` |
+| `nl.switch` | 9つのマウス Head、`Focus`、`Blur`、`Changed`、`Turned On`、`Turned Off` |
+| `nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list` | `Scroll`、`Scroll End`、`Item Render`、`Item Click`、`Item Hover`、`Selection Changed` |
+| `nl.slider` | `Drag Start`、`Value Changed`、`Drag End` |
+| `nl.textInput` | `Value Changed`、`Submit`、`Focus`、`Blur` |
+| `nl.frame` | `Page Event` |
+
+ウィジェットブループリントの内部には、さらに2つの絞り込みが適用されます。`List Item Refresh`は、その要素が実際に List の item テンプレートの内部にある場合にのみ提供されます。また、特定のイベントに紐づけて作成されたイベントレイヤーは、そのイベントの Head だけを提供します。Event フィールドを`-`のままにして作成したレイヤーは未紐づけであり、そのウィジェット型が許すものすべてを提供します。
+
+## イベントのバブリング
+
+要素イベントは、ランタイムが対象とした要素上で発火し、そこで止まります——祖先へ昇っていくことはなく、親が子のイベントを黙って引き継ぐこともありません。
+
+それをかつて制御していた2つのノード、`Continue Event Bubble`と`Stop Event Bubble`は削除されました。それらが確実に使われていた唯一の用途——ウィンドウを閉じる処理を保留すること——は、現在では App カテゴリの[`Keep Window Open`](/ja/docs/studio/blueprint/nodes/app)が担っており、それ以外のことは何もしません。
+
+<Callout type="warn">
+フォーカスがテキスト入力要素にある間、ウィンドウレベルのキーボードディスパッチは完全にスキップされます——グローバルおよび Surface の`On Key Down` / `Any Key Down`は実行されないため、名前を入力している最中に Space でダイアログを進めたり、Escape でメニューを開いたりすることはできません。フォーカスされているウィジェット自身のキーボード Head は引き続き発火します——これらはウィンドウリスナーではなく DOM のバブリングを通じて届くためです。
+</Callout>
+
+## アプリケーションのライフサイクル
+
+グローバルブループリントのエントリポイントに加えて、Surface とウィジェットにも届く2つのウィンドウイベント。
+
+### App Boot
+
+`blueprint.event.head.appBoot`
+
+App Boot（アプリケーション起動）は、UI ランタイムが起動を完了し、実行可能なグローバルブループリントを保持した時点で一度だけ発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### On Game Ready
+
+`blueprint.event.head.gameReady`
+
+On Game Ready（ゲーム準備完了時）は、受理された NarraLeaf セッションごとに一度発火します——この時点で`LiveGame`オブジェクトは存在し Studio ランタイムに保持されていますが、`liveGame.newGame()`はまだ最初のシーンを開始していません。
+
+ランタイムは、Surface システムが立ち上がる*前*の起動ステップとして NarraLeaf 環境を初期化します。Story ライブラリの既定ストーリーの入口シーンをコンパイルしたものに Player をマウントします。そのため、プレイヤーがまだメインメニューにいる間に`LiveGame`は存在し、そのシーンのアセットのプリヒートが始まっています。実際にゲームへ入るのは`Start Game`またはロードが行われたときだけであり、同じ初期化済みの`LiveGame`を再利用します——`Start Game`がすでにプリヒート済みの既定シーンを対象にしている場合、突入は瞬時であり、この Head は再び**発火しません**。別のシーンを対象とした`Start Game`のみが環境を再マウントし、2回目の発火を起こします。既定ストーリーが設定されていない場合は空の環境がマウントされ、それでも起動時にこの Head は発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+<Callout type="info">
+NarraLeaf の preference の初期化はここで行います——`Set Auto Forward`、`Set Game Speed`、`Set Voice Volume`、`Set Sentence Speed`——プレイヤーがゲームに入る前にそれらが整うようにするためです。`App Boot`ではありません——名前とは裏腹に、それが最初に実行されるわけではなく（`On Game Ready`のほうが先に発火します）、live game が存在する保証もないからです。
+</Callout>
+
+### On Fullscreen Changed
+
+`blueprint.event.head.fullscreenChanged`
+
+On Fullscreen Changed（フルスクリーン状態変更時）は、ゲームの外で行われた変更も含め、アプリケーションウィンドウがフルスクリーンに入る、またはそこから抜けるときに発火します。これは環境全体に関わるウィンドウイベントであるため、ディスパッチは扇状に広がります——まずグローバルブループリント、次に現在アクティブな Surface ブループリント、最後にその Surface 上でこの Head を宣言しているすべてのウィジェットブループリントの順です。設定コントロールが Page を所有していなくてもウィンドウの状態を追跡できるのはこのためです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `isFullscreen` | out · data | `boolean` | 変更後の状態。 |
+
+### On Window Close Requested
+
+`blueprint.event.head.windowCloseRequested`
+
+On Window Close Requested（ウィンドウ閉じる要求時）は、プレイヤーがウィンドウを閉じようとしたときに発火します。メインプロセスは、グローバルブループリントが実行され、続いて Surface ブループリントが実行される間、この「閉じる」を保留します。どちらかの中に`Keep Window Open`があればその閉じる動作はキャンセルされ、なければウィンドウはそのまま閉じます。Dev Mode ではこれは Dev Mode のウィンドウを対象とし、プレビューと本番ではゲームウィンドウを対象とします。
+
+グローバルと Surface のブループリントでのみ利用できます。キャンセルはディスパッチが共有するイベントコントロールを通じて伝わりますが、ウィジェットのディスパッチ経路はそれを通しません——キーボード Head が Surface で止まるのと同じ理由です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## Surface のライフサイクルと遷移
+
+`Surface Init`と`Surface Unmount`は Surface ブループリントに属します。2つの遷移 Head は要素の私有ブループリントでも機能しますが、その要素はその瞬間にマウントされていて生存している場合にのみそれらを受け取ります。
+
+### Surface Init
+
+`blueprint.event.head.surfaceInit`
+
+Surface Init（Surface 初期化）は、Page または Game UI の Surface が現在のランタイムスコープに初めて進入したときに発火します。トップレベルの Surface は自身の id をスコープとして使います。Page コンポーネントを通じて埋め込まれた子 Page は独自の`runtimeScopeId`を持つため、2つの Page コンポーネントから参照される同一の Page は互いに分離されたままになります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Surface Unmount
+
+`blueprint.event.head.surfaceUnmount`
+
+Surface Unmount（Surface アンマウント）は、Page または Game UI の Surface が現在のランタイムスコープを離れる、置き換えられる、またはそれを埋め込んでいる Page コンポーネントインスタンスがアンマウントされたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Before Surface Exit
+
+`blueprint.event.head.beforeSurfaceExit`
+
+Before Surface Exit（Surface 退場前）は、現在の Page——または埋め込まれた子 Page——が退場アニメーションを開始する直前に発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### After Surface Enter
+
+`blueprint.event.head.afterSurfaceEnter`
+
+After Surface Enter（Surface 入場後）は、現在の Page が入場アニメーションを終えたあとに発火します。アニメーションがない場合、またはモーション低減が有効な場合は、プリペイントが完了し Surface が安定した表示に落ち着いた時点で発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## 要素のライフサイクル
+
+### Init
+
+`blueprint.event.head.init`
+
+Init（初期化）は、私有ブループリントをサポートする要素が最初の描画を終えてマウントされたときに一度だけ発火します。これはレンダリング前のフックではありません。Surface や要素を再マウントさせる Dev Mode のバンドルリビジョンは、これを再度発火させます。Blueprint Value では、これは最初の評価エントリです。それ以降の評価は、隠れた Element プロパティの依存関係、または明示的な`On Flush`から発生します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Unmount
+
+`blueprint.event.head.unmount`
+
+Unmount（アンマウント）は、要素がランタイムの要素ツリーから離脱したときに発火します——Surface が閉じられる、または置き換えられる、Frame が子 Page を切り替える、List の item インスタンスが削除される、あるいは可視性によって要素の描画自体が止まる場合です。ランタイムの`display: none`は要素を非表示にするだけでマウントは維持するため、これは発火しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### On Flush
+
+`blueprint.event.head.flush`
+
+On Flush（フラッシュ時）は、このブループリント自身の要素が、ブループリントの Host API を通じて明示的にプロパティを変更され、その変更が再描画を引き起こしたときに発火します。レンダラーが計算する自動的な CSS 状態スタイリング——hover や focus のバリアント——ではこれは発火しません。Blueprint Value では、これは明示的な再評価エントリを兼ねます——既定の Dialog Nametag は、Dialog が再マウントされることなく、この Head を通じて対話の進行に合わせて更新されます。
+
+Flush はコミット後にまとめて行われる通知です。ランタイムは1つの要素に対する flush を1フレームごとにまとめます。flush ハンドラがその要素へ再度書き込むと、その新しい flush は*次の*フレームのバッチに入ります——同期的な再入はありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | flush された要素。 |
+
+## ポインタ
+
+displayable なウィジェットで利用できます。`Mouse Click`と`Right Click`は、Surface ブループリントでも追加で利用でき、そこでは「この Surface 内のどこでも」を意味します。Surface の遷移中、マウスおよびクリック系のイベントは、Surface が操作可能になるまでディスパッチを待ちます。
+
+### Mouse Click
+
+`blueprint.event.head.mouseClick`
+
+Mouse Click（マウスクリック）は、要素上でクリックが完了したときに発火します。Surface ブループリント上では、Surface 内の任意のクリックを意味し、Surface のデザイン座標を報告します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Double Click
+
+`blueprint.event.head.mouseDoubleClick`
+
+Mouse Double Click（マウスダブルクリック）は、要素上でダブルクリックが完了したときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Down
+
+`blueprint.event.head.mouseDown`
+
+Mouse Down（マウスボタン押下）は、要素上でマウスボタンが押されたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `button` | out · data | `integer` | マウスボタンの番号。 |
+
+### Mouse Up
+
+`blueprint.event.head.mouseUp`
+
+Mouse Up（マウスボタン解放）は、要素上でマウスボタンが離されたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `button` | out · data | `integer` | マウスボタンの番号。 |
+
+### Mouse Enter
+
+`blueprint.event.head.mouseEnter`
+
+Mouse Enter（マウス進入）は、ポインタが要素の領域に入ったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Leave
+
+`blueprint.event.head.mouseLeave`
+
+Mouse Leave（マウス退出）は、ポインタが要素の領域から出たときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Move
+
+`blueprint.event.head.mouseMove`
+
+Mouse Move（マウス移動）は、ポインタが要素の上を移動する間発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Mouse Wheel
+
+`blueprint.event.head.mouseWheel`
+
+Mouse Wheel（マウスホイール）は、要素の上でホイールがスクロールされたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `deltaX` | out · data | `float` | 水平方向のスクロール量。 |
+| `deltaY` | out · data | `float` | 垂直方向のスクロール量。 |
+
+### Right Click
+
+`blueprint.event.head.rightClick`
+
+Right Click（右クリック）は、要素のコンテキストメニューイベントで発火します。Surface ブループリント上では、Surface 内の任意の右クリックを意味し、Surface のデザイン座標で報告します。イベントが正常にディスパッチされると、既定のコンテキストメニューは抑制されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+## フォーカス
+
+### Focus
+
+`blueprint.event.head.focus`
+
+Focus（フォーカス）は、要素がキーボード、マウス、またはゲームパッドのフォーカスを得たときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Blur
+
+`blueprint.event.head.blur`
+
+Blur（フォーカス喪失）は、要素がフォーカスを失ったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## キーボード
+
+キーボードイベントは、要素のフォーカスからではなく、ウィンドウレベルのリスナーからディスパッチされます。グローバルブループリント、アクティブな Surface ブループリント、そしてその Head を持つマウント済みのすべてのウィジェットは、同じウィンドウイベントを受け取り、それぞれが自分のチェーンを実行します。ウィジェットのキーボードリスナーは、ウィジェットがマウントされたときに登録され、アンマウントされたときに解除されます。
+
+Surface がプリペイントを終えると、Page の入退場アニメーション中もキーイベントは届き続けます。遷移中にそれらを抑制するには、グラフの中で Page カテゴリの`Is Surface Entering`、`Is Surface Exiting`、`Is Surface Transitioning`により分岐してください。
+
+1つの割り当てだけが欲しいときはフィルタ済みの組を選び、キーそのものが欲しいときは`Any Key`の組を選びます——`On Key Down` / `On Key Up`はカード上で設定した割り当てに一致し、payload を持ちません。一方`Any Key Down` / `Any Key Up`はあらゆるキーで発火し、`key`と修飾キーのフラグ群を渡します。
+
+### On Key Down
+
+`blueprint.event.head.keyDown`
+
+On Key Down（キー押下時）は、ランタイムウィンドウが一致するキー押下を受け取ったときに発火します。どの要素もフォーカスを持っている必要はありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Key` | キーの割り当て。カードは現在の割り当てを表示します。クリックするとボタンの上にキャプチャ用のポップオーバーが開き、任意のキーを押すと割り当てられます。`Ctrl` / `Alt` / `Shift` / `Meta`の組み合わせにも対応しています。単一のキーは`KeyboardEvent.key`と大文字小文字を区別せずに一致します。修飾キーを含む割り当ては、修飾キーの状態も一致する必要があります。空の割り当ては決して発火しません——「任意のキー」には`Any Key Down`を使います。 |
+
+### On Key Up
+
+`blueprint.event.head.keyUp`
+
+On Key Up（キー解放時）は、ランタイムウィンドウが一致するキー解放を受け取ったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Key` | `On Key Down`と同じ割り当てコントロール。空の割り当ては決して発火しません——「任意のキー」には`Any Key Up`を使います。 |
+
+### Any Key Down
+
+`blueprint.event.head.anyKeyDown`
+
+Any Key Down（任意キー押下）は、ランタイムウィンドウが受け取るすべてのキー押下で発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | キーの意味的な値。`KeyboardEvent.key`に一致します。 |
+| `altKey` | out · data | `boolean` | |
+| `ctrlKey` | out · data | `boolean` | |
+| `shiftKey` | out · data | `boolean` | |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows。 |
+
+### Any Key Up
+
+`blueprint.event.head.anyKeyUp`
+
+Any Key Up（任意キー解放）は、ランタイムウィンドウが受け取るすべてのキー解放で発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | キーの意味的な値。`KeyboardEvent.key`に一致します。 |
+| `altKey` | out · data | `boolean` | |
+| `ctrlKey` | out · data | `boolean` | |
+| `shiftKey` | out · data | `boolean` | |
+| `metaKey` | out · data | `boolean` | Meta / Command / Windows。 |
+
+## 入力アクション
+
+### On Action
+
+`blueprint.event.head.action`
+
+On Action（アクション発生時）は、カード上で選択した入力アクションが、プレイヤーがどのように発生させたかにかかわらず発生したときに発火します。
+
+アクションとは、プロジェクトがあるジェスチャーに与える名前です——「進める」「ログを開く」「閉じる」など——その裏にある割り当ては、プロジェクトのアクション語彙と、各 Surface によるそれへの応答の中にあり、グラフの中には決してありません。それがこの Head の要点です——作者はアクションを名前で選び、どのキーやクリックがそれを意味するかはプロジェクトの側の問題であり続けます。カードにはアクションの id が保存されるため、アクションの名前を変えても、それを指すすべてのグラフはそのまま指し続けます。
+
+グローバルと Surface のグラフでのみ利用できます。アクションはその構造上パネル全体にまたがるものであり、パネル全体を代弁できる2つのオーナー——それを有効にした Surface と、すべてのページで同じ意味を持つジェスチャーに答えるグローバルブループリント——にのみ属します。「ここでのクリックは進めるを意味する」とウィジェットが言うのは、この語彙が置き換えた仕組みです——生のジェスチャーが欲しい要素には、依然として自身のマウス Head があります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `source` | out · data | `string` | どの系統の入力がそれを発生させたか。`pointer`、`key`、`gamepad`、`touch`のいずれか。 |
+| `x` | out · data | `float` | ジェスチャーが着地した位置。マウス Head が報告するのと同じ座標系。 |
+| `y` | out · data | `float` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Action` | プロジェクトの入力アクションのいずれか。 |
+
+`x`と`y`は、キーやゲームパッドの割り当てでは意味を持たず、そこでは`0`として読み取られます。`source`がそれらのすぐ隣にあるのはそのためです——他の2つに意味があるかどうかを教えるピンなのです。同じアクションであっても、状況次第で正当に異なる振る舞いを求めることがあります——クリックによる「進める」には画面上に応答すべき場所がありますが、スペースキーによる「進める」にはそれがありません。
+
+アクションが発生したことに反応するのではなく、それが*押され続けているか*を尋ねるには、[Input](/ja/docs/studio/blueprint/nodes/input)の`Is Action Held`を使ってください。
+
+## 紐づけ要素の Head
+
+この2つの Head は、`Element`ノードと同じように、同じ Surface 上の対象ウィジェットを紐づけ、その後は自分自身ではなく*その*ウィジェットを監視します。これらは要素の紐づけとしてもカウントされます——Element を対象とするノードは、グラフがすでに互換性のある`Element`、`Element Flush`、`Element Click`を持っている場合にのみパレットに現れ、これらの`element`出力はそうしたノードの対象入力へそのまま配線できます。
+
+### Element Flush
+
+`blueprint.event.head.elementFlush`
+
+Element Flush（要素フラッシュ）は、紐づけた対象の flush を監視します。対象が Host API を通じて明示的にプロパティを変更され再描画されると、この Head が現在のブループリントで実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | flush された、紐づけ先の要素。 |
+
+### Element Click
+
+`blueprint.event.head.elementClick`
+
+Element Click（要素クリック）は、紐づけた対象自身の`mouseClick`を監視します。対象への実際のクリックがこの Head を実行させます——クリックスルーにも親のバブリングにも依存しません。既定の Dialog テンプレートは、これを使って進行ロジックを1か所に集約しています——Dialog Content ブループリントは自身の`Mouse Click`を受け取りつつ、全画面透明の Dialog Interaction Layer、可視の Dialog Panel、既定のコンテンツの子要素を`Element Click`でさらに紐づけ、それらすべてを単一の Game の`Next`に配線しています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `element` | out · data | `element` | クリックされた、紐づけ先の要素。 |
+| `x` | out · data | `float` | 対象要素のローカルなデザイン座標系。 |
+| `y` | out · data | `float` | 対象要素のローカルなデザイン座標系。 |
+| `button` | out · data | `integer` | マウスボタンの番号。 |
+
+## List
+
+list 系ウィジェット——`nl.list`と、Game UI のラッパーである`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——にある Head。ランタイムのコンテンツの読み書きについては[List ノード](/ja/docs/studio/blueprint/nodes/list)を参照してください。`List Item Refresh`は例外です——これはリスト自体ではなく、item テンプレート*内部*の要素の私有ブループリント上で発火します。
+
+### Item Render
+
+`blueprint.event.head.itemRender`
+
+Item Render（項目描画）は、List がバインドされたデータ、プレビューデータ、またはプレビュー件数のいずれかから、1つの item インスタンスを描画するときに発火します。payload はその item のスコープから来る。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | この回で描画された項目数。 |
+| `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
+| `item` | out · data | `json` | その項目のデータ。 |
+
+### Item Click
+
+`blueprint.event.head.itemClick`
+
+Item Click（項目クリック）は、item のコンテナがクリックされたときに発火します。item テンプレート内の子要素へのクリックも、その項目に帰属します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | この回で描画された項目数。 |
+| `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
+| `item` | out · data | `json` | その項目のデータ。 |
+
+### Item Hover
+
+`blueprint.event.head.itemHover`
+
+Item Hover（項目ホバー）は、ポインタが item のコンテナに入ったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | この回で描画された項目数。 |
+| `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
+| `item` | out · data | `json` | その項目のデータ。 |
+
+### Selection Changed
+
+`blueprint.event.head.selectionChanged`
+
+Selection Changed（選択変更）は、項目のクリックによってランタイムの選択インデックスが動いたときに発火します。List は`selectedIndex`プロパティから選択状態を初期化します。1つのランタイムインスタンス内で、すでに選択済みの項目を再度クリックしても発火しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `index` | out · data | `integer` | 新しく選択された項目。 |
+| `previousIndex` | out · data | `integer` | 何も選択されていなかった場合は`-1`。 |
+| `count` | out · data | `integer` | この回で描画された項目数。 |
+| `key` | out · data | `string` | 新しく選択された項目のキー。 |
+| `item` | out · data | `json` | 新しく選択された項目のデータ。 |
+
+### Scroll
+
+`blueprint.event.head.scroll`
+
+Scroll（スクロール）は、List のスクロールコンテナがスクロールする間発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `offset` | out · data | `float` | 現在のスクロール位置。 |
+| `maxOffset` | out · data | `float` | 最大スクロール位置。 |
+| `progress` | out · data | `float` | 通常は`0`から`1`。 |
+
+### Scroll End
+
+`blueprint.event.head.scrollEnd`
+
+Scroll End（スクロール終端）は、スクロールコンテナが他の位置から終端に到達したときに発火します。すでに終端に留まっている間に発生する追加のスクロールイベントでは再発火しません。終端を離れてから戻ると、再び発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `offset` | out · data | `float` | 現在のスクロール位置。 |
+| `maxOffset` | out · data | `float` | 最大スクロール位置。 |
+| `progress` | out · data | `float` | 通常は`0`から`1`。 |
+
+### List Item Refresh
+
+`blueprint.event.head.listItemRefresh`
+
+List Item Refresh（リスト項目更新）は、`nl.list`がその item を描画または更新するたびに、item テンプレート配下の要素の私有ブループリントへディスパッチされます。テンプレートの子がこれによって現在の item のデータを読み取ります。繰り返される item インスタンスはそれぞれ独自の instance key と item scope を持つため、要素 id を共有する2つの項目がローカル変数を共有することはありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `props` | out · data | `json` | item がオブジェクトである場合はその item 自身、それ以外の場合は`{ value: item }`。 |
+| `item` | out · data | `json` | その項目のデータ。 |
+| `index` | out · data | `integer` | |
+| `count` | out · data | `integer` | この回で描画された項目数。 |
+| `key` | out · data | `string` | |
+
+## Slider
+
+`nl.slider`にある Head。ここでのすべての値はマップ済みの値であり、`props.value`および[Slider ノード](/ja/docs/studio/blueprint/nodes/slider)と一致します——0から1の正規化された値は専用の読み取りノードからのみ得られます。
+
+### Drag Start
+
+`blueprint.event.head.sliderDragStart`
+
+Drag Start（ドラッグ開始）は、ハンドルのドラッグが始まったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | マップ済みの値。 |
+
+### Value Changed
+
+`blueprint.event.head.sliderValueChanged`
+
+Value Changed（値変更）は、ランタイムの値が変化したときに発火します。ディスパッチはアニメーションフレームごとに1回へまとめられ、1つのチェーンがまだ実行中である間のさらなる変化は、1回の保留中ディスパッチへ収束します——そのためドラッグはピクセルごとに1回発火するようなことはなく、`previousValue`はまとめられたすべての変化にまたがります。`Set Slider Value`で値を書き込んでも、この Head はディスパッチされません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | マップ済みの値。 |
+| `previousValue` | out · data | `float` | マップ済みの値。 |
+
+### Drag End
+
+`blueprint.event.head.sliderDragEnd`
+
+Drag End（ドラッグ終了）は、ハンドルのドラッグが終わったときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `float` | マップ済みの値。 |
+
+## Switch
+
+`nl.switch`にある3つの Head は、いずれもプレイヤーがそれを切り替えることに関するものです。グラフから状態を書き込むこと——[Switch](/ja/docs/studio/blueprint/nodes/switch)の`Set Checked`、`Turn On`、`Turn Off`、`Toggle`——はこれらのいずれもディスパッチしません。そのため、自分が監視しているスイッチに書き込むグラフが、自分自身を発火させることはありません。
+
+1回の切り替えは、まず`Changed`を発生させ、続いて`Turned On` / `Turned Off`のどちらか一方をちょうど1回、この順序で発生させます。それぞれは前のチェーンが終わってから発生します。すでにその状態であった場合の切り替えは、何も発生させません。
+
+### Changed
+
+`blueprint.event.head.switchChanged`
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `checked` | out · data | `boolean` | 新しい状態。 |
+| `previousChecked` | out · data | `boolean` | |
+
+### Turned On
+
+`blueprint.event.head.switchTurnedOn`
+
+Turned On（オンになった）は、分岐を必要としない`Changed`の半分です——片方向にしかやることがないハンドラのためのものです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+### Turned Off
+
+`blueprint.event.head.switchTurnedOff`
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+## Text input
+
+`nl.textInput`にある Head。フィールドの読み書きについては[Text input ノード](/ja/docs/studio/blueprint/nodes/text-input)を参照してください。
+
+### Value Changed
+
+`blueprint.event.head.textInputValueChanged`
+
+Value Changed（値変更）は、フィールドの値が変化するときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `string` | |
+| `previousValue` | out · data | `string` | |
+
+### Submit
+
+`blueprint.event.head.textInputSubmit`
+
+Submit（送信）は、フィールド内で`Enter`が押されたときに発火します。これは意図的に伝播を止めません。そのため、同じフィールド上で`Enter`に割り当てられたウィジェットの`On Key Down`は、`Submit`と並行して発火し続けます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `string` | 送信時点の値。 |
+
+## Page
+
+### Page Event
+
+`blueprint.event.head.pageEvent`
+
+Page Event（ページイベント）は、その Page コンポーネントに埋め込まれた子 Page が`Emit Page Event`を呼び出したときに、親の`nl.frame`の私有ブループリント内で発火します。これを提供するウィジェットは`nl.frame`のみです。送信側は[App ノード](/ja/docs/studio/blueprint/nodes/app)にあります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `event` | out · data | `string` | 子 Page が発行したイベント名。 |
+| `data` | out · data | `json` | 子 Page が発行したイベントデータ。 |
+
+## Game preferences
+
+両方の Head は、アクティブな`LiveGame`の preference ディスパッチャを購読するため、グローバルブループリントとアクティブな Surface ブループリントでのみ提供されます。live game が実行されていない間は購読が存在せず、何も発火しません。`On Game Ready`のあと、ランタイムは新しい`LiveGame`上で再購読します。`Set BGM Volume`のような preference の setter も、NarraLeaf 自身の内部的な書き込みも、どちらもこれらの Head を発火させます。同一の値を書き込んでも重複排除される保証はありません——そのため、あるプレファレンスを監視しているグラフから、そのプレファレンスに書き込んではなりません。それは自己発火するループを作ってしまいます。getter と setter については[Game ノード](/ja/docs/studio/blueprint/nodes/game)を参照してください。
+
+### On Preference Changed
+
+`blueprint.event.head.preferenceChanged`
+
+On Preference Changed（プレファレンス変更時）は、選択したプレファレンスキーが変化したときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `value` | out · data | `json` | 新しい値。ピンの型は汎用の`json`です。実行時の型は選択したキーに従います——`autoForward` / `skip` / `showDialog`は`boolean`、`voiceEndMode`は`string`、それ以外は`number`。`Set Slider Value`のような型付き入力へ渡す前に、`To Float`または`To Boolean`で変換してください。 |
+| `previousValue` | out · data | `json` | ランタイムがキャッシュしている変更前の値。`value`と同じ型。このセッションにそのキーの以前のスナップショットがない場合は`null`。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Preference` | 監視するキー。16個のうちの1つ——`autoForward`、`autoForwardDelay`、`skip`、`skipping`、`skipReadText`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval`。空欄は何も購読しません——「任意のキー」には`On Any Preference Changed`を使います。 |
+
+### On Any Preference Changed
+
+`blueprint.event.head.anyPreferenceChanged`
+
+On Any Preference Changed（任意のプレファレンス変更時）は、いずれかのプレファレンスキーが変化したときに発火します。設定を一括で扱う場合に使います——設定一式を永続化する、あるいは設定パネル全体を1回で更新するなど。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `key` | out · data | `string` | 変化した正規のキー名。例：`bgmVolume`。 |
+| `value` | out · data | `json` | 新しい値。実行時の型は`key`に従います。 |
+| `previousValue` | out · data | `json` | `value`と同じ型。以前のスナップショットがない場合は`null`。 |
+
+## Broadcast
+
+Broadcast は、アクティブな Surface 上のブループリント間で、名前付きのメッセージをやり取りします——Surface 自身のブループリントに加え、その上のすべてのウィジェットブループリントです。これはグローバルブループリントには届かず、Surface を越えることもありません。送信者自身も監視していれば、自分自身のブロードキャストを受け取ります。対象はマウント済みの React ツリーではなく、ドキュメントから解決されます。4つのノードはすべて、Surface とウィジェットのブループリントでのみ提供されます。
+
+### On Broadcast
+
+`blueprint.event.head.onBroadcast`
+
+On Broadcast（ブロードキャスト受信時）は、設定した名前のブロードキャストが届いたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `data` | out · data | `json` | ブロードキャストの payload。 |
+| `sender` | out · data | `string` | 送信者の要素 id。存在しない場合は空文字列。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Event` | 監視するブロードキャスト名。前後の空白を除去したうえで、完全一致で照合します。 |
+
+### On Any Broadcast
+
+`blueprint.event.head.onAnyBroadcast`
+
+On Any Broadcast（任意のブロードキャスト受信時）は、このブループリントが受け取るあらゆるブロードキャストで、その名前にかかわらず発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `event` | out · data | `string` | ブロードキャスト名。 |
+| `data` | out · data | `json` | ブロードキャストの payload。 |
+| `sender` | out · data | `string` | 送信者の要素 id。存在しない場合は空文字列。 |
+
+### Send Broadcast
+
+`blueprint.broadcast.send` · Latent
+
+Send Broadcast（ブロードキャストの送信）は、実行中の UI にブロードキャストを送信し、すべてのリスナーのチェーンが実行し終えたあとに`next`から続行します。空、または空白のみのイベント名は、静かな no-op ではなく実行エラーになります。送信者 id は、実行中のブループリントの要素から埋められます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `event` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `data` | in · data | `json` | |
+
+### Get Listener Count
+
+`blueprint.broadcast.getListenerCount` · Pure
+
+Get Listener Count（リスナー数の取得）は、この Surface 上で、あるブロードキャスト名に対して現在登録されているリスナーの数を返します。
+
+この数はブループリントではなく*Head*の数です——一致する Head を2つ持つグラフは2回カウントされ、`On Any Broadcast`はすべての名前に対してカウントされます。Head はドキュメントから数えられるため、現在マウントされていない要素もカウントに含まれます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `event` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `count` | out · data | `integer` | |
+
+## Story actions
+
+### On Call
+
+`blueprint.event.head.onCall`
+
+On Call（呼び出し時）は、Story Action Blueprint——ストーリーアクションに1対1で紐づくブループリント——の唯一のエントリポイントです。他のどこにも提供されません。Story action のグラフは NarraLeaf の`Script`アクションへコンパイルされ、ストーリーコンパイラを通じて実行されます。UI のイベントディスパッチを通じて実行されることは決してなく、それがこのオーナーにこのページの UI 系 Head が一切現れない理由です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |

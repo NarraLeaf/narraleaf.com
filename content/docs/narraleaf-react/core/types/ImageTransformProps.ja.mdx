@@ -1,0 +1,49 @@
+---
+title: "ImageTransformProps"
+description: 画像の変換がその間をアニメーションする、不透明度・スケール・回転・位置の各プロパティ
+---
+```ts
+type ImageTransformProps = {
+    opacity: number;
+    scale: number;
+    rotation: number;
+    display: boolean;
+} & {
+    position: RawPosition | IPosition;
+};
+```
+
+## opacity
+
+画像の不透明度です。値は 0 から 1 の間である必要があります。
+
+## scale
+
+画像の拡大率です。値は 0 より大きい必要があります。
+
+## rotation
+
+画像の回転角度です。単位は度です。
+
+## display
+
+このプロパティは使用しないでください。
+
+## position
+
+画像の位置です。[IPosition](/ja/docs/narraleaf-react/core/types/IPosition) を参照してください。
+
+> **注意:** ショートカットとして生の位置オブジェクトを使用できるため、新たに IPosition のインスタンスを作成する必要はありません。
+> ```ts
+> image.transform(new Transform<TransformDefinitions.ImageTransformProps>([
+>     {
+>         props: {
+>             position: {
+>                 x: 100,
+>                 y: 100
+>             }
+>         },
+>         options: {}
+>     }
+> ], {}));
+> ```

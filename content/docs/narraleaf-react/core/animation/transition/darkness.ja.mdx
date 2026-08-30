@@ -1,0 +1,35 @@
+---
+title: "Darkness"
+description: 設定可能な暗さのレベルを通して画像をフェードさせるトランジション。黒から立ち上げたり、黒へ暗く落としたりする
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+次の画像を一度に入れ替え、その暗さを一方のレベルから他方のレベルへアニメーションさせます。暗さ`0`は画像を変化させず、`1`は完全な黒です。そのため`from: 1, to: 0`は新しい画像を黒から立ち上げ、`from: 0, to: 1`は黒へ暗く落とします。
+
+これが[`image.darken`](/ja/docs/narraleaf-react/core/elements/image)を支えている仕組みです。画像をその場で暗くすることは、現在の暗さから新しい暗さへのトランジションにほかなりません。`Darkness`は、他の画像トランジションが再生されるあらゆる場所で再生できます。
+
+## 使い方
+
+```tsx
+import { Darkness } from "narraleaf-react";
+
+// 次の画像を黒から立ち上げる
+scene.jumpTo(next, new Darkness({ from: 1, to: 0, duration: 800 }));
+
+// 黒へ暗く落とす
+scene.jumpTo(next, new Darkness({ from: 0, to: 1, duration: 600, easing: "easeIn" }));
+
+// 背景とスプライトは同じトランジションを使う
+scene.setBackground("/backgrounds/room-night.webp", new Darkness({ from: 1, to: 0, duration: 1000 }));
+image.char("image1.jpg", new Darkness({ from: 0, to: 0.6, duration: 400 }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: DarknessOptions`
+  - `from: number` - 画像が開始する暗さ。指定できる範囲は`0`–`1`
+  - `to: number` - 画像が終了する暗さ。指定できる範囲は`0`–`1`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

@@ -1,0 +1,12 @@
+{
+  "title": "Renderer",
+  "description": "レンダラーランタイム、アプリ用フック、セーブ API、メインプロセスイベント、ページルーティング。",
+  "pages": [
+    "index",
+    "render",
+    "app-state",
+    "save-system",
+    "main-events",
+    "page-router"
+  ]
+}

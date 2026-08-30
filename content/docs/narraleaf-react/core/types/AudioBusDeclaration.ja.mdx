@@ -1,0 +1,67 @@
+---
+title: "AudioBusDeclaration"
+description: "`GameConfig.audioBuses` の1エントリが持つ id、親バス、作者側のミックス音量"
+---
+```ts
+type AudioBusDeclaration = {
+    /**
+     * Stable, unique across the whole tree, and the string a Sound's `type` names.
+     * Two buses may not share an id even under different parents.
+     */
+    id: string;
+    /**
+     * The bus this one feeds into, or `null`/omitted for the master output.
+     */
+    parentId?: string | null;
+    /**
+     * The author's mix position for this bus, 0..1.
+     * @default 1
+     */
+    volume?: number;
+};
+```
+
+ホストが [`GameConfig.audioBuses`](/ja/docs/narraleaf-react/core/game/audio-buses) で宣言する1つのバスです。
+必須なのは `id` のみです。
+
+```ts
+new Game({
+    audioBuses: [
+        {id: "ambience", parentId: "bgm", volume: 0.6},
+        {id: "cast", parentId: "voice"},
+        {id: "alice", parentId: "cast"},
+    ],
+});
+```
+
+## volume
+
+**作者がミックス上で設定する位置**であり、クリップが実際に再生される音量でも、プレイヤーのスライダーでもありません。「SFX をミックスの中で 40% 下げている」は `volume: 0.6` に相当します。
+
+プレイヤー側の操作は*別の*数値で、この値の上に乗算され、デフォルトは 1 です。そのため、何も変更していないプレイヤーには作者が作ったミックスがそのまま聞こえ、
+スライダーを最大まで上げたプレイヤーも、フルゲインのバスではなく作者の意図した音量を得ます。
+参照: [音声バス](/ja/docs/narraleaf-react/core/game/audio-buses)
+
+## AudioBusNode
+
+バスツリーが解決された後の1つのバスであり、`game.audioBuses.getTree().getNodes()` が返すのはこれです。
+
+```ts
+type AudioBusNode = {
+    id: string;
+    parentId: string | null;
+    /**
+     * The author's mix position, straight off the declaration.
+     * Fixed for the life of the game.
+     */
+    volume: number;
+    /**
+     * 1 for a bus directly under the master output.
+     */
+    depth: number;
+};
+```
+
+<Callout type="info">
+    `0.23.0` で追加
+</Callout>

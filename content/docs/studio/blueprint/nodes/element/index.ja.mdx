@@ -1,0 +1,46 @@
+---
+title: Element
+description: すべてのウィジェットメソッドの派生形態——Element ノードが Self ノードとどう違うか、パレットがいつそれを提供するか、そして接続を担う3つのノード
+---
+
+Element ノードは、ウィジェットメソッドの派生形態です——ブループリントを所有するウィジェットに作用する代わりに、あなたが明示的に指定して接続した要素に作用します。同じメソッドの Self 形態はターゲットピンを取らず、自分自身のウィジェットのカテゴリにとどまります。このカテゴリには、どのウィジェット由来であっても、ターゲットを取るすべての形態が集まります。グラフが自分自身以外の何かに触れなければならない瞬間に、これに手を伸ばすことになります——テキストフィールドをクリアするボタン、3つの兄弟画像をレイアウトする `Init` グラフなど。
+
+これらはどれも単独では[パレット](/ja/docs/studio/blueprint)に現れません。Element ノードは、グラフがすでに互換のあるウィジェット型に対するバインディングノード——`Element` リテラル、または[Events](/ja/docs/studio/blueprint/nodes/events)の `Element Flush` / `Element Click` イベントヘッドのいずれか——を持っているときにのみ提供されます。先にバインディングを置いてください。
+
+このカテゴリは123個のノードから成ります——このページの末尾にある `Element` 参照ノードと、他の4ページに分かれた122個です。
+
+- [Displayable](/ja/docs/studio/blueprint/nodes/element/displayable)——ジオメトリ、不透明度、Variant とプロパティアニメーション、加えて8種類のウィジェットが繰り返し持つ `visible` / `enabled` の対。41個のノード。
+- [Text](/ja/docs/studio/blueprint/nodes/element/text)——`nl.text` の内容、タイポグラフィ、エフェクト、そして `nl.textInput` の値。27個のノード。
+- [List, Slider, Image](/ja/docs/studio/blueprint/nodes/element/content)——リストの項目、選択、スクロール位置と項目フィールド。スライダーの値と範囲。画像のアセット、フィットモード、クロップ。40個のノード。
+- [Button, Container, Switch, Frame](/ja/docs/studio/blueprint/nodes/element/widget)——ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、そして Frame が表示する Page。14個のノード。
+
+この数字はパレットが提供するものです。少数の代替されたノードがそれらと一緒に文書化され、隠しとしてマークされています——それらはここでも[カテゴリ一覧表](/ja/docs/studio/blueprint/nodes)でもカウントされていません。
+
+## 共通の規則
+
+これらは、このページと上の4ページのすべての Element ノードに当てはまります。
+
+- **ターゲットはデータピンで届きます。** Displayable、Text、Button、Container、Image、Frame の各ノードはそれを `element` と呼びます。List ノードは `list`、Slider ノードは `slider`、Text Input ノードは `textInput` を使います。その `valueType` は Displayable 系では裸の `element`、それ以外では `element:<widgetType>` です——これが Slider を Text ノードに流し込めないようにしている仕組みです。
+- **パレットの項目はノードの種類ごとに1つで、要素ごとには決して増えません。** グラフが互換のあるバインディングをちょうど1つ持っていれば、ノードを置くだけでターゲットピンが自動的にそれへ接続されます。2つ以上あるときはピンは空のままになり、自分で選びます。
+- **同じ Surface に限ります。** `Element` リテラルは、自分自身の Surface 上の要素しか指定できません。ランタイムも実行時に改めて確認し、実行中のオーナーと Surface が異なる参照は拒否されます。[Surfaces](/ja/docs/studio/blueprint/surfaces)を参照してください。
+- **読み取りノードは `Pure`、書き込みノードは `Latent` です。** 読み取りノードは `event`、`function`、`macro` のいずれのグラフでも合法であり、Blueprint Value の裏側にもなれます。書き込みノードは `event` と `macro` でのみ合法です——ホストを待機するためです。
+- **書き込みはランタイムの patch レイヤーに反映されます**——記述済みの UI ドキュメントにではありません。実際に値を変える書き込みは、ターゲット要素に対する flush をキューに入れますが、すでにある値をそのまま書き込んでもキューには入らず、読み取りやスクロール要求も同様です。
+- **Blueprint Value の内部では、読み取りは自分が何を読んだかを記録します。** そのバインディングは、毎回の flush ごとにではなく、実際に触れた要素プロパティのいずれかが変化したときに再評価されます。
+
+<Callout type="warn">
+未接続、別の Surface を指している、または誤ったウィジェット型を持つターゲットピンは、両側で同じようには失敗しません。読み取りノードは `undefined` を返し、グラフは何事もなかったかのように続きます。書き込みノードはブループリント実行エラーを投げます。Element の読み取りノードの下流で値が空になっているときは、プロパティより先に参照を疑ってください。
+</Callout>
+
+## リファレンス
+
+ウィジェットのプロパティではなく、接続そのものについてのただ1つのノードです。
+
+### Element
+
+`blueprint.element.ref` · Pure
+
+他のすべての Element ノードが待っているバインディングです。カードをクリックすると、Studio は同じ Surface の UI エディタに切り替わります。ルートでない要素を選んで確定すると、ノードは `surfaceId`、`elementId`、`elementType` を保存してからブループリントに戻します。1つの `Element` ノードは、好きなだけ多くの読み取りノードと書き込みノードへ分岐させられます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | out · data | `element` | 未バインド時は `element`、バインド後は `element:<widgetType>`——Text 要素なら `element:nl.text`。この型付きの形態こそ、Text や Slider ノードが受け付けるものである |

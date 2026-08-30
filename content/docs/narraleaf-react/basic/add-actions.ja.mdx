@@ -1,0 +1,50 @@
+---
+title: "アクションを追加する"
+description: 順序付けられたアクションのリストを scene.action() に渡す方法、通常の文字列によるナレーション行、現在のシーンをローカルに参照するコールバック形式
+---
+
+シーンは上から下へ順にアクションを実行します。完全なアクションリストを一度だけ `scene.action()` に渡してください。
+
+```ts
+import { Character, Scene } from "narraleaf-react";
+
+const kitchen = new Scene("kitchen", {
+    background: "/backgrounds/kitchen.webp",
+});
+const street = new Scene("street", {
+    background: "/backgrounds/street.webp",
+});
+const alice = new Character("アリス");
+
+kitchen.action([
+    alice.say("朝食ができたよ。"),
+    kitchen.jumpTo(street),
+]);
+```
+
+ストーリー要素のメソッドの多くはアクションを返します。代表的な例が `character.say()`、`image.show()`、`sound.play()`、`scene.jumpTo()` です。普通の文字列もそのまま受け付けられ、ナレーション行として表示されます。
+
+```ts
+kitchen.action([
+    "部屋は静かだった。",
+    alice.say("行こう。"),
+]);
+```
+
+現在のシーンを短いローカル名で参照したい場合は、コールバック形式を使います。
+
+```ts
+import { Control } from "narraleaf-react";
+
+const room = new Scene("room").action((scene) => [
+    scene.setBackground("/backgrounds/room-night.webp"),
+    Control.sleep(500),
+    scene.jumpTo(street),
+]);
+```
+
+<Callout type="warning">
+    同じシーンに対して `action()` を二度以上呼び出さないでください。`jumpTo()` の後にあるアクションには到達できず、実行されません。
+</Callout>
+
+受け付けられるすべてのステートメント型については、[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照してください。

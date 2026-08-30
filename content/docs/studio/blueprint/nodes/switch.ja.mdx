@@ -1,0 +1,95 @@
+---
+title: スイッチ
+description: Switch ウィジェットのチェック状態と、すべてのウィジェットが持つ有効・可視の2つのフラグです
+---
+
+`nl.switch` 要素のための9つのノードです。インターフェースが必要とするあらゆる形でのチェック状態に加え、有効・可視のペアが含まれます。
+
+## 規約
+
+- **ウィジェットのブループリント専用で、しかも Switch 上でのみ使用できます。** これらは `nl.switch` にスコープされているため、そのウィジェット自身のブループリントにのみ提供され、他では提供されません。別のグラフから Switch にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) の対応バージョンを使用してください。
+- **3つの読み取りノードは pure です**。そのため `function` グラフに置くことも、Blueprint Value のバックエンドにすることもできます。6つの書き込みノードは latent です。
+
+## Get Checked
+
+`blueprint.switch.getChecked` · Pure
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `checked` | out · data | `boolean` |
+
+## Set Checked
+
+`blueprint.switch.setChecked` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `checked` | in · data | `boolean` | リテラル。 |
+| `next` | out · exec | — | |
+
+## Turn On
+
+`blueprint.switch.turnOn` · Latent
+
+`true` を渡す `Set Checked` を、よくある使い方が一語で読み取れるように独立したカードにしたものです。
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Turn Off
+
+`blueprint.switch.turnOff` · Latent
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `next` | out · exec | — |
+
+## Toggle
+
+`blueprint.switch.toggle` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `checked` | out · data | `boolean` | 切り替わった後の状態です。 |
+
+## Get Enabled
+
+`blueprint.switch.getEnabled` · Pure
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `enabled` | out · data | `boolean` |
+
+## Set Enabled
+
+`blueprint.switch.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `enabled` | in · data | `boolean` | |
+| `next` | out · exec | — | |
+
+## Get Visible
+
+`blueprint.switch.getVisible` · Pure
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `visible` | out · data | `boolean` |
+
+## Set Visible
+
+`blueprint.switch.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `visible` | in · data | `boolean` | |
+| `next` | out · exec | — | |

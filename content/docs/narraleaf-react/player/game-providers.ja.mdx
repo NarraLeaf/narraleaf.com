@@ -1,0 +1,55 @@
+---
+title: "GameProviders"
+description: Player などのコンポーネントに Game インスタンスを供給する GameProviders コンポーネント。既存インスタンスを再利用するための game prop を含む
+---
+GameProviders コンポーネントは、各コンポーネントに Game インスタンスを提供するために使います。
+
+`Player` コンポーネントは `GameProviders` コンポーネントで包む必要があります。
+
+## 使い方
+
+NarraLeaf-React ライブラリから `GameProviders` コンポーネントをインポートします。
+
+```tsx
+import { GameProviders } from "narraleaf-react";
+```
+
+`Player` コンポーネントを `GameProviders` コンポーネントで包みます。
+
+```tsx
+<GameProviders>
+    <Player ... />
+</GameProviders>
+```
+
+### 定義済みの Game インスタンスを使う
+
+すでに定義済みの Game インスタンスを使いたい場合は、`GameProviders` コンポーネントに `game` prop を渡します。
+
+```tsx
+"use client";
+
+import { Game, GameProviders, Player } from "narraleaf-react";
+import { useState } from "react";
+
+export default function Page() {
+    // pass your game config here
+    const [game] = useState(new Game({}));
+
+    return (
+        <GameProviders game={game}>
+            <Player ... />
+        </GameProviders>
+    );
+}
+```
+
+## Props
+
+### game
+
+使いたい [Game](/ja/docs/narraleaf-react/core/game/game) インスタンス。
+
+### children
+
+`GameProviders` コンポーネントで包みたい子コンポーネント。

@@ -1,0 +1,29 @@
+---
+title: "TransformDefinitions.CommonTransformProps"
+description: "すべてのトランスフォーム定義に共通する、持続時間、イージング、遅延、同期のオプション"
+---
+```typescript
+type CommonTransformProps = {
+    duration: number;
+    ease: EasingDefinition;
+    delay: number;
+} & {
+    sync: boolean;
+};
+```
+
+## duration
+
+トランスフォームの持続時間で、単位はミリ秒です。
+
+## ease
+
+トランスフォームのイージング関数です。[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照してください。
+
+## delay
+
+トランスフォームの遅延時間で、単位はミリ秒です。
+
+## sync
+
+`true` の場合、現在のステップが完了してから次のステップが実行されます。

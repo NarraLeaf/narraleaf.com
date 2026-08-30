@@ -1,0 +1,71 @@
+---
+title: "ボイス"
+description: 対話の行に直接ボイスクリップを添付する方法、シーンのボイスマップを介した ID による参照、リゾルバー関数による参照
+---
+
+行の `voice` オプションに、URL または `Sound.voice()` のインスタンスを渡します。
+
+```ts
+alice.say("おはよう。", {
+    voice: "/voice/alice/good-morning.ogg",
+});
+```
+
+```ts
+import { Sound } from "narraleaf-react";
+
+const greeting = Sound.voice({
+    src: "/voice/alice/good-morning.ogg",
+    volume: 0.9,
+});
+
+alice.say("おはよう。", { voice: greeting });
+```
+
+## ボイス ID
+
+規模の大きいスクリプトでは、シーンにボイスマップまたはリゾルバーを定義し、ID でクリップを参照します。こうすることで、対話の行からファイルパスを排除できます。
+
+```ts
+const room = new Scene("room", {
+    voices: {
+        "alice-001": "/voice/alice/001.ogg",
+        "alice-002": Sound.voice("/voice/alice/002.ogg"),
+    },
+});
+
+room.action([
+    alice.say("おはよう。", { voiceId: "alice-001" }),
+    alice.say("朝食ができたよ。", { voiceId: "alice-002" }),
+]);
+```
+
+ID が安定したファイル命名規則に従っている場合は、リゾルバーが便利です。
+
+```ts
+const room = new Scene("room", {
+    voices: (id) => `/voice/${id}.ogg`,
+});
+```
+
+## キャラクターごとの音量
+
+`voiceVolume` は出演者全体を一度に管理します。キャラクターごとに個別の操作をプレイヤーに提供するには、`voice` の下にそれぞれのバスを宣言し、そこにクリップを配置します。
+
+```ts
+const game = new Game({
+    audioBuses: [
+        {id: "alice", parentId: "voice"},
+        {id: "bob", parentId: "voice"},
+    ],
+});
+
+alice.say("おはよう。", {
+    voice: Sound.voice({src: "/voice/alice/001.ogg", type: "alice"}),
+});
+```
+
+その後、`game.audioBuses.setVolume("alice", 0.5)` は、すでに再生中のクリップにも適用されます。詳しくは
+[オーディオバス](/ja/docs/narraleaf-react/core/game/audio-buses)を参照してください。
+
+プレイヤー側から見えるボイスの挙動は、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode` で制御します。[環境設定を管理する](/ja/docs/narraleaf-react/basic/manage-preferences)を参照してください。

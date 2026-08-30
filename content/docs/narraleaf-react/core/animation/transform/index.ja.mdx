@@ -1,0 +1,97 @@
+---
+title: "Transform"
+description: 位置、拡大縮小、回転、不透明度、視覚効果をアニメーションさせるTransformクラス。呼び出しをcommit()のステップへ連結して構築する
+---
+`Transform`は、表示可能な要素が画面上でどう変化するかを表します。どこへ移動するか、どう拡大縮小するか、どう回転するか、どれだけ見えているか、どの視覚効果を適用するかです。
+
+アニメーションが複数のステップからなる場合、または同じアニメーションを複数の場所で再利用したい場合に使用します。
+
+```typescript
+import { Transform } from "narraleaf-react";
+
+const bounce = Transform.create()
+    .position({ yoffset: -10 })
+    .commit({ duration: 120, ease: "easeOut" })
+    .position({ yoffset: 0 })
+    .commit({ duration: 100, ease: "easeOut" })
+    .repeat(2);
+
+scene.action([
+    characterImage.transform(bounce),
+]);
+```
+
+## ページ
+
+<Cards>
+    <Card
+        title="クイックレシピ"
+        description="そのままコピーできる移動、フェード、タイムライン、フラッシュの例"
+        href="/ja/docs/narraleaf-react/core/animation/transform/quick-recipes"
+    />
+    <Card
+        title="シーケンス"
+        description="commit()、コンストラクタシーケンス、repeat()、copy()の使い方"
+        href="/ja/docs/narraleaf-react/core/animation/transform/sequences"
+    />
+    <Card
+        title="プロパティ"
+        description="位置、拡大縮小、ズーム、回転、不透明度、文字色のメソッド"
+        href="/ja/docs/narraleaf-react/core/animation/transform/properties"
+    />
+    <Card
+        title="視覚効果"
+        description="マスク、クリップパス、フィルター、背景フィルター、ブレンドモードのメソッド"
+        href="/ja/docs/narraleaf-react/core/animation/transform/visual-effects"
+    />
+</Cards>
+
+## `commit()`による変化のグループ化
+
+<Steps>
+<Step>
+
+### プロパティを追加する
+
+同時に変化させたいプロパティを、すべて`commit()`の前に呼び出します。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+```
+</Step>
+<Step>
+
+### 一度でコミットする
+
+1回の`commit()`で、それまでのプロパティ呼び出しが1つのアニメーションステップにまとまります。この例では、位置、ズーム、不透明度が同時に変化します。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+```
+</Step>
+<Step>
+
+### 続ける
+
+`commit()`より後のプロパティ呼び出しは、次のステップに属します。
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.35 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" })
+    .position({ xalign: 0.65 })
+    .opacity(0.8)
+    .commit({ duration: 300, ease: "easeInOut" })
+```
+</Step>
+</Steps>
+
+プロパティ型の一覧については、[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions)を参照してください。

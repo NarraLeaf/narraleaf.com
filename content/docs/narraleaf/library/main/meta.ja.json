@@ -1,0 +1,10 @@
+{
+  "title": "Main",
+  "description": "NarraLeaf アプリケーションの Electron メインプロセスランタイム API。",
+  "pages": [
+    "index",
+    "app-config",
+    "app",
+    "window"
+  ]
+}

@@ -1,0 +1,130 @@
+---
+title: "LambdaHandler"
+description: "`(ctx: LambdaCtx) => T` という関数シグネチャで、条件・メニュー選択肢の開閉条件など、コンテキストに依存する値の算出に使われます"
+---
+```typescript
+type LambdaHandler<T = any> = (ctx: LambdaCtx) => T;
+```
+
+`LambdaHandler` は、`LambdaCtx` コンテキストオブジェクトを引数として受け取り、指定した型 `T` の値を返す関数です。ゲーム状態やプレイヤーデータなどの実行時情報にアクセスできる、動的でコンテキストを意識したロジックを組み立てるための、NarraLeaf における中心的な概念です。
+
+## 概要
+
+`LambdaHandler` は、現在のゲーム状態に基づく動的な挙動を提供するために NarraLeaf 全体で使われています。次のような関数を書くことができます。
+
+- プレイヤーデータとゲーム状態にアクセスする
+- 現在のコンテキストに基づいて計算を行う
+- 実行時の状態に応答する条件分岐を作成する
+- ゲームの進行に応じて動的なコンテンツを生成する
+
+## 基本的な使い方
+
+### 条件式での利用
+
+```ts
+// シンプルな真偽値条件
+Condition.If(
+    (ctx) => ctx.$("player").get("coin") >= 10,
+    [/* プレイヤーが10コイン以上持っている場合のアクション */]
+)
+
+// 複数のチェックを含む複雑な条件
+Condition.If(
+    (ctx) => {
+        const player = ctx.$("player");
+        const hasKey = player.get("key") === true;
+        const hasEnoughCoins = player.get("coin") >= 50;
+        return hasKey && hasEnoughCoins;
+    },
+    [/* 両方の条件を満たす場合のアクション */]
+)
+```
+
+### メニュー選択肢での利用
+
+```ts
+// 動的なメニュー選択肢の表示切り替え
+menu.choose("店に行く", [/* アクション */])
+    .hideIf((ctx) => ctx.$("player").get("shop_unlocked") !== true);
+
+// 動的なメニュー選択肢の状態
+menu.choose("アイテムを買う", [/* アクション */])
+    .disableIf((ctx) => ctx.$("player").get("coin") < 100);
+```
+
+### 永続データの比較での利用
+
+```ts
+// 動的な値との比較
+persis.equals("player_id", (ctx) => ctx.storable.getNamespace("player").get("player_id"));
+```
+
+## コンテキストオブジェクト (LambdaCtx)
+
+`ctx` パラメータは、現在のゲームコンテキストへのアクセスを提供します。
+
+```typescript
+interface LambdaCtx extends ScriptCtx {
+    gameState: GameState;    // 現在のゲーム状態
+    game: Game;              // ゲームインスタンス
+    liveGame: LiveGame;      // ライブゲームセッション
+    storable: Storable;      // データストレージシステム
+    $: NamespaceGetter;      // 名前空間アクセサ関数
+}
+```
+
+### データへのアクセス
+
+```ts
+// プレイヤーデータへのアクセス
+(ctx) => ctx.$("player").get("health")
+
+// ゲーム状態へのアクセス
+(ctx) => ctx.gameState.currentScene?.id
+
+// 保存データへのアクセス
+(ctx) => ctx.storable.getNamespace("inventory").get("items")
+
+// ライブゲームデータへのアクセス
+(ctx) => ctx.liveGame.getCurrentTime()
+```
+
+## 高度な例
+
+### 複雑な条件ロジック
+
+```ts
+// 複数条件のチェック
+const canEnterDungeon = (ctx) => {
+    const player = ctx.$("player");
+    const inventory = ctx.$("inventory");
+    
+    const hasKey = inventory.get("dungeon_key") === true;
+    const hasWeapon = inventory.get("weapon") !== null;
+    const hasEnoughHealth = player.get("health") >= 50;
+    
+    return hasKey && hasWeapon && hasEnoughHealth;
+};
+
+Condition.If(canEnterDungeon, [
+    // ダンジョンへの入場を許可
+]);
+```
+
+## 型安全性
+
+`LambdaHandler` は完全な TypeScript 型推論をサポートします。
+
+```ts
+// 明示的に型指定されたハンドラ
+const getPlayerName: LambdaHandler<string> = (ctx) => {
+    return ctx.$("player").get("name") || "不明なプレイヤー";
+};
+
+// 型安全なデータアクセス
+const getPlayerLevel: LambdaHandler<number> = (ctx) => {
+    return ctx.$("player").get("level") || 1;
+};
+```
+
+コンテキストオブジェクトの詳細については、[LambdaCtx](/ja/docs/narraleaf-react/core/types/LambdaCtx) と [ScriptCtx](/ja/docs/narraleaf-react/core/types/ScriptCtx) を参照してください。

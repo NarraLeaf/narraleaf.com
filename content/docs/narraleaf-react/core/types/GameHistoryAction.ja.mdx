@@ -1,0 +1,16 @@
+---
+title: "GameHistoryAction"
+description: 履歴の 1 件のエントリに記録される token、元になったアクション本体、保留中かどうかのフラグ
+---
+```typescript
+type GameHistoryAction = {
+    token: string;
+    action: Action;
+    isPending?: boolean;
+};
+```
+
+`GameHistoryAction` 型は、ゲーム履歴内の 1 つのアクションを表します。次を含みます。
+- `token`: アクションの一意な識別子
+- `action`: 実際に実行されたアクション
+- `isPending`: アクションが保留中かどうか。たとえば、メニューが表示されてもユーザーがまだ選択していない間、そのアクションは保留中の状態になります

@@ -1,0 +1,25 @@
+---
+title: storage
+description: プロジェクトにスコープされた、プラグインごとの JSON ストレージ
+---
+
+`app.services.storage` は、あなたのプラグインに専有され、現在のプロジェクトにスコープされた小さな JSON ストアです。エディター側のプラグインの状態――設定、キャッシュした検索結果、パネルの状態――に使ってください。
+
+## メソッド
+
+| メソッド | シグネチャ | 備考 |
+| --- | --- | --- |
+| `readJson` | `<T>(namespace: string) => Promise<T \| null>` | `namespace` の下に保存されたオブジェクトを読み取ります。まだ何も保存されていない場合は `null` に解決されます。 |
+| `writeJson` | `<T>(namespace: string, data: T) => Promise<void>` | `namespace` の下に保存されたオブジェクトを置き換えます。 |
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// data is null until the first write
+```
+
+`namespace` は、あなたのプラグイン自身のストア内のキーです――そのストアはすでにプラグインに専有されているため、プラグイン id を前置する必要はありません。値は JSON です。
+
+<Callout type="info">
+これはエディター側の状態であり、ワークスペースが開いている間だけ利用できます。ゲームの永続化ではありません――runtime エントリーは `store` 能力のもとで、[`app.game.store`](/ja/docs/studio/plugin/runtime/store) を通じて永続的なゲーム側の状態を読み書きします。ここで作成したデータをゲームが読み取れるように公開するには、その名前空間を[`contributes.runtimeData`](/ja/docs/studio/plugin/manifest#runtimedata)に列挙し、`app.game.data.readJson` で読み取ってください。
+</Callout>

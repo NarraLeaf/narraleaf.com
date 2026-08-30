@@ -1,0 +1,150 @@
+﻿---
+title: "動画"
+description: 全画面での動画再生を行う `Video` 要素。プリロード、表示・非表示、再生制御、シークを扱う
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+Video は動画を再生できる要素です。
+
+動画はプレイヤー全体のサイズで表示されます。 
+
+```typescript
+const video = new Video({
+    src: "https://example.com/video.mp4",
+    muted: true,
+});
+
+scene.action([
+    video
+        .show()
+        .play()
+        .hide(),
+]);
+```
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config: Partial<VideoConfig>` - [VideoConfig](/ja/docs/narraleaf-react/core/types/VideoConfig)
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### preload
+
+<Callout type="info">
+    `0.33.0` から利用可能です。
+</Callout>
+
+<Steps>
+<Step>
+
+動画要素を表示しないままステージに配置し、バッファリングを開始させます。このアクションは即座に完了し、すでにステージ上にある動画に対しては何も行いません。
+
+動画を表示または再生する数行前に使用することで、必要になった時点で最初のフレームを準備しておけます。
+
+```typescript
+video.preload();
+```
+</Step>
+</Steps>
+
+### show
+
+<Steps>
+<Step>
+
+動画を表示します。
+
+```typescript
+video.show();
+```
+</Step>
+</Steps>
+
+### hide
+
+<Steps>
+<Step>
+
+動画を非表示にします。
+</Step>
+</Steps>
+
+### play
+
+<Steps>
+<Step>
+
+動画を再生し、終了するまで待機します。
+
+```typescript
+video.play();
+```
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+動画を一時停止し、現在の再生位置を保持します。
+
+```typescript
+video.pause();
+```
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+現在の位置から再生を再開します。`play` とは異なり、動画の終了を待ちません。
+
+```typescript
+video.resume();
+```
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+動画を停止します: 一時停止したうえで、保留中の `play()` を終了させ、ストーリーの進行を継続させます。
+
+```typescript
+video.stop();
+```
+</Step>
+</Steps>
+
+### seek
+
+<Steps>
+<Step>
+
+- `time: number` - シーク先の時間（秒）
+
+指定した時間にシークします。
+
+```typescript
+video.seek(3);
+```
+</Step>
+</Steps>

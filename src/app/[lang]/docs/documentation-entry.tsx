@@ -1,4 +1,4 @@
-import { getPageImage, getPageMarkdownUrl, source } from '@/lib/source';
+import { getPageImage, getPageMarkdownUrl, source, translatedLocales } from '@/lib/source';
 import {
   DocsBody,
   DocsDescription,
@@ -50,7 +50,7 @@ function pagePath(slugs: string[]): string {
 
 /** The languages this page exists in, so no alternate is published for a missing one. */
 function availableLocales(slugs: string[]): Locale[] {
-  return i18n.languages.filter((locale) => source.getPage(slugs, locale) !== undefined);
+  return translatedLocales(source, slugs);
 }
 
 function pageTitle(segment: DocsProductSegment, title: string): string {

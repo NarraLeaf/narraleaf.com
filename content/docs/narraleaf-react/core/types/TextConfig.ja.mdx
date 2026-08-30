@@ -1,0 +1,62 @@
+---
+title: "TextConfig"
+description: "`Text` 要素の非推奨の設定：配置、フォントサイズ、色、表示テキストで、`ITextUserConfig` に置き換えられている"
+---
+<Callout type="warning">
+    非推奨のインターフェースです。代わりに [ITextUserConfig](/ja/docs/narraleaf-react/core/types/ITextUserConfig) を使用してください。
+</Callout>
+
+```typescript
+type TextConfig = {
+    alignX: "left" | "center" | "right";
+    alignY: "top" | "center" | "bottom";
+    className?: string;
+    fontSize: number;
+    fontColor: color;
+    display: boolean;
+    text: string;
+} & CommonDisplayable;
+```
+
+CommonDisplayable については [CommonDisplayableConfig](/ja/docs/narraleaf-react/core/types/CommonDisplayableConfig) を参照してください。
+color については [color](/ja/docs/narraleaf-react/core/types/color) を参照してください。
+
+## alignX
+
+- Type: `"left" | "center" | "right"`
+
+テキストの水平方向の配置です。
+
+## alignY
+
+- Type: `"top" | "center" | "bottom"`
+
+テキストの垂直方向の配置です。
+
+## className
+
+- Type: `string`
+
+テキストのクラス名です。
+
+## fontSize
+
+- Type: `number`
+
+テキストのフォントサイズです。
+
+## fontColor
+
+- Type: [color](/ja/docs/narraleaf-react/core/types/color)
+
+テキストのフォント色です。
+
+## display
+
+このフィールドは使用しないでください
+
+## text
+
+- Type: `string`
+
+初期のテキスト内容です。

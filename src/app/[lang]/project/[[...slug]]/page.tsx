@@ -3,6 +3,7 @@ import {
   getProjectPageImage,
   getProjectPageMarkdownUrl,
   projectSource,
+  translatedLocales,
 } from '@/lib/source';
 import {
   DocsBody,
@@ -41,9 +42,7 @@ function projectPath(slug?: string[]): string {
 
 /** The languages a project page is written in, so no dead alternate is published. */
 function availableLocales(slug?: string[]): Locale[] {
-  return i18n.languages.filter(
-    (locale) => projectSource.getPage(projectSlugs(slug), locale) !== undefined,
-  );
+  return translatedLocales(projectSource, projectSlugs(slug));
 }
 
 export default async function Page(props: ProjectPageProps) {

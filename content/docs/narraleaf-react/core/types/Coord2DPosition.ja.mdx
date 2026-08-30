@@ -1,0 +1,12 @@
+---
+title: "Coord2DPosition"
+description: "絶対値またはパーセンテージの x、y 座標にピクセルオフセットを加えて配置する IPosition のバリアント"
+---
+```typescript
+type Coord2DPosition = {
+    x: number | `${"-" | ""}${number}%`;
+    y: number | `${"-" | ""}${number}%`;
+} & OffsetPosition;
+```
+
+OffsetPosition については、[OffsetPosition](/ja/docs/narraleaf-react/core/types/OffsetPosition) を参照してください。

@@ -1,0 +1,15 @@
+{
+  "title": "Transition",
+  "pages": [
+    "dissolve",
+    "fade-in",
+    "blur-dissolve",
+    "push",
+    "darkness",
+    "reveal",
+    "rule-reveal",
+    "through-color",
+    "exposure",
+    "mask"
+  ]
+}

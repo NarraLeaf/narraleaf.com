@@ -1,0 +1,21 @@
+---
+title: "GameHistory"
+description: 完全な 1 件のバックログエントリ。アクションと、そこに記録された GameElementHistory 要素、その行までゲームを復元するための状態スナップショット
+---
+```typescript
+export type GameHistory = GameHistoryAction & {
+    element: GameElementHistory;
+    snapshot?: SerializedGameState | null;
+};
+```
+
+`GameHistory` 型は、アクションの情報と、それによって影響を受けた具体的なゲーム要素の両方を組み合わせた、完全な履歴エントリを表します。[GameHistoryAction](/ja/docs/narraleaf-react/core/types/GameHistoryAction) を拡張し、次を追加します。
+
+- `element`: この履歴エントリの一部であった具体的なゲーム要素（`"say"` または `"menu"` 要素）。[GameElementHistory](/ja/docs/narraleaf-react/core/types/GameElementHistory) を参照
+- `snapshot`: この行の時点でのゲーム状態を自己完結的に保持するスナップショット。[undo](/ja/docs/narraleaf-react/core/game/live-game#undo)、[redo](/ja/docs/narraleaf-react/core/game/live-game#redo)、[restoreToHistory](/ja/docs/narraleaf-react/core/game/live-game#restoretohistory) がこの行へ移動する際に復元するのはこの値です。バックログが増えるたびに自動的に生成され、セーブデータとともに永続化されるため、自分で組み立てる必要はありません
+
+[GameHistoryAction](/ja/docs/narraleaf-react/core/types/GameHistoryAction) から継承する `token` は、行を一意に識別する名前です。`restoreToHistory` が受け取るのはこの値であり、`0.26.0` 以降は、セーブや巻き戻しをまたいでも同じ行を指し続けるため、バックログ UI はこれを保持しておけます。
+
+詳細は以下を参照してください。
+- [GameHistoryAction](/ja/docs/narraleaf-react/core/types/GameHistoryAction)
+- [GameElementHistory](/ja/docs/narraleaf-react/core/types/GameElementHistory)

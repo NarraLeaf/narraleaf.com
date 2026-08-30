@@ -1,0 +1,13 @@
+---
+title: "StorableData"
+description: "名前空間の内容がメモリ上で取る形式で、`Namespace` を通じて読み書きされる型"
+---
+```typescript
+type StorableData<K extends string = string> = {
+    [key in K]: number | boolean | string | StorableData | StorableData[] | undefined | null | Date;
+};
+```
+
+これは名前空間の内容がメモリ上で取る形です —— つまり [Namespace](/ja/docs/narraleaf-react/core/game/storable/namespace) を通じて読み書きする形です。
+
+これはセーブが持つ形ではありません。セーブされたゲームでは、`Date` が JSON を生き延びられるように各値がその型でタグ付けされます。詳細は [SerializedNamespaceData](/ja/docs/narraleaf-react/core/types/SerializedNamespaceData) を参照してください。

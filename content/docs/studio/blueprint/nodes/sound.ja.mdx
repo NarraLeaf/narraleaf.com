@@ -1,0 +1,100 @@
+---
+title: サウンド
+description: ブループリントからクリップを再生し、以後のすべてのノードがそれに再びアクセスするために使うハンドルです
+---
+
+**インターフェース**が鳴らす音のための7つのノードです。ボタンのクリック音、ホバー時のティック音、Page が開いている間鳴らすアンビエンスなどが該当します。ストーリーが再生する音楽や効果音はストーリーに属し、そちらでは `/bgm` 行や `/sound` 行として記述します。
+
+## 規約
+
+- **7つすべてが latent です。** `event` と `macro` を宣言するため、`function` グラフに置くことも、Blueprint Value のバックエンドにすることもできません。
+- **`Play Sound` がハンドルを返し、残りの6つはそれを受け取ります。** ハンドルが指すのは**この一回の再生**であり、アセットそのものではありません——同じクリップを2回再生すれば、それぞれ独立に停止・シーク・フェードできる2つのハンドルになります。
+- **クリップはカード上で選びます。** `Audio Clip` がアセットを、`Track` がその再生先の音声トラックを選び、これによりプレイヤーがそのトラックに設定した音量が適用されます。`Asset Id` ピンは、再生するクリップを実行時に決める場合のためのものです。
+
+## Play Sound
+
+`blueprint.sound.play` · Latent
+
+クリップを再生開始し、以後それにアクセスするためのハンドルを返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `assetId` | in · data | `string` | 省略可能。カードの `Audio Clip` を上書きします。実行時に決めるクリップに使います。 |
+| `loop` | in · data | `boolean` | 省略可能、リテラル。 |
+| `volume` | in · data | `float` | 省略可能、リテラル。 |
+| `fadeIn` | in · data | `float` | 省略可能、リテラル。単位は秒です。 |
+| `next` | out · exec | — | |
+| `handle` | out · data | `SoundHandle` | この分類の他のすべてのノードが受け取るものです。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Audio Clip` | 再生するオーディオアセットです。 |
+| `Track` | 再生先のプロジェクトの音声トラックです。これにより、プレイヤーがそのトラックに設定した音量が適用されます。 |
+
+## Stop Sound
+
+`blueprint.sound.stop` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | 省略可能。 |
+| `fade` | in · data | `float` | 省略可能、リテラル。単位は秒です。 |
+| `next` | out · exec | — | |
+
+## Pause Sound
+
+`blueprint.sound.pause` · Latent
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+
+## Resume Sound
+
+`blueprint.sound.resume` · Latent
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+
+## Seek Sound
+
+`blueprint.sound.seek` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `time` | in · data | `float` | リテラル。クリップの先頭からの秒数です。 |
+| `next` | out · exec | — | |
+
+## Set Sound Volume
+
+`blueprint.sound.setVolume` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `handle` | in · data | `SoundHandle` | |
+| `volume` | in · data | `float` | 省略可能、リテラル。 |
+| `fade` | in · data | `float` | 省略可能、リテラル。単位は秒です——1本の音楽を切るのではなく台詞の下にダッキングさせたいときに使うのがこれです。 |
+| `next` | out · exec | — | |
+
+## Is Sound Playing
+
+`blueprint.sound.isPlaying` · Latent
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `in` | in · exec | — |
+| `handle` | in · data | `SoundHandle` |
+| `next` | out · exec | — |
+| `isPlaying` | out · data | `boolean` |

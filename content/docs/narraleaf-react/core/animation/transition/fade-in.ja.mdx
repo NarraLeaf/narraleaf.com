@@ -1,0 +1,28 @@
+---
+title: "FadeIn"
+description: 次の画像をフェードインさせるトランジション。任意でピクセルオフセットから移動させることもできる
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+現在の画像から次の画像へフェードインします。
+次の画像はフェードインし、任意でピクセルオフセットから移動してくることもできます。
+
+## 使い方
+
+```tsx
+import { FadeIn } from "narraleaf-react";
+
+image.char("image1.jpg", new FadeIn({ duration: 3000 }));
+
+// 50ピクセル離れた位置から漂うようにフェードインする
+image.char("image1.jpg", new FadeIn({ duration: 600, offset: [50, 50] }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: FadeInOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `offset?: [xOffset: number, yOffset: number]` - 次の画像が移動してくる際のピクセルオフセット。デフォルトは`[0, 0]`。例えば`[50, 50]`は、（ストーリーの座標原点に従って）右に50ピクセル、上に50ピクセルの位置から画像を開始します。
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

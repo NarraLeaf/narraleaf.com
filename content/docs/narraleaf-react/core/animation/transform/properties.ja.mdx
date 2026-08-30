@@ -1,0 +1,116 @@
+---
+title: "プロパティ"
+description: 位置、拡大縮小、ズーム、回転、不透明度、文字色を扱うTransformメソッド
+---
+一緒にアニメーションさせたい複数のプロパティ呼び出しは、1つの`commit()`の前にまとめます。
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5 })
+    .zoom(1)
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+```
+
+この例では、位置、ズーム、不透明度が同じ`duration`と`ease`を共有します。
+
+## 位置
+
+### position
+
+位置を設定します。
+
+- `position: TransformDefinitions.Types["position"]` - 位置の値
+- 戻り値は`this`
+
+```typescript
+Transform.create()
+    .position({ xalign: 0.5, yalign: 1 })
+    .commit({ duration: 300 });
+```
+
+## 拡大縮小とズーム
+
+### scale
+
+両軸の拡大縮小を設定します。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X軸の拡大縮小。負の値を指定すると、要素をX軸方向に反転します
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y軸の拡大縮小。負の値を指定すると、要素をY軸方向に反転します
+- 戻り値は`this`
+
+### scaleX
+
+X軸の拡大縮小を設定します。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X軸の拡大縮小
+- 戻り値は`this`
+
+### scaleY
+
+Y軸の拡大縮小を設定します。
+
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y軸の拡大縮小
+- 戻り値は`this`
+
+### scaleXY
+
+X軸とY軸の拡大縮小を設定します。
+
+- `scaleX: TransformDefinitions.Types["scaleX"]` - X軸の拡大縮小
+- `scaleY: TransformDefinitions.Types["scaleY"]` - Y軸の拡大縮小
+- 戻り値は`this`
+
+### zoom
+
+ズームを設定します。通常の画像の拡大縮小にはこちらを使用します。
+
+- `zoom: TransformDefinitions.Types["zoom"]` - ズームレベル
+- 戻り値は`this`
+
+```typescript
+Transform.create()
+    .zoom(1.15)
+    .commit({ duration: 240, ease: "easeOut" });
+```
+
+## 回転
+
+### rotation
+
+回転を設定します。
+
+- `rotation: TransformDefinitions.Types["rotation"]` - 回転の値
+- 戻り値は`this`
+
+```typescript
+Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180 })
+    .rotation(0)
+    .commit({ duration: 180 });
+```
+
+## 不透明度
+
+### opacity
+
+不透明度を設定します。
+
+- `opacity: TransformDefinitions.Types["opacity"]` - 不透明度の値
+- 戻り値は`this`
+
+```typescript
+Transform.create()
+    .opacity(0)
+    .commit({ duration: 200 });
+```
+
+## テキスト
+
+### fontColor
+
+文字色を設定します。
+
+- `fontColor: TransformDefinitions.Types["fontColor"]` - 文字色の値
+- 戻り値は`this`

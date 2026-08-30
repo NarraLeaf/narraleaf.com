@@ -1,0 +1,10 @@
+{
+  "title": "モデルランタイム",
+  "description": "Live2D と Spine のキャラクター：描画ランタイムとは何か、なぜ自分で用意するのか、どうインストールするのか。",
+  "pages": [
+    "index",
+    "live2d",
+    "spine",
+    "custom"
+  ]
+}

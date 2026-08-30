@@ -1,0 +1,24 @@
+{
+  "title": "要素",
+  "pages": [
+    "scene",
+    "character",
+    "image",
+    "sound",
+    "menu",
+    "script",
+    "condition",
+    "control",
+    "text",
+    "persistent",
+    "story",
+    "displayable",
+    "layer",
+    "camera",
+    "service",
+    "video",
+    "vfx",
+    "puppet",
+    "built-in"
+  ]
+}

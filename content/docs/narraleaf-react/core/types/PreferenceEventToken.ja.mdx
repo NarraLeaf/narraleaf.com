@@ -1,0 +1,9 @@
+---
+title: "PreferenceEventToken"
+description: "`Preference` の変更リスナーが返すハンドルで、監視を止めるための `cancel()` を公開します"
+---
+```typescript
+type PreferenceEventToken = {
+    cancel: () => void;
+};
+```

@@ -1,0 +1,78 @@
+---
+title: "Build"
+description: NarraLeaf デスクトップアプリをビルドしてパッケージ化する
+---
+
+`narraleaf build` は本番ビルド出力を作成し、アプリをパッケージ化します。
+
+```bash
+narraleaf build
+```
+
+## ビルドの手順
+
+このコマンドは 3 つの段階で実行されます。
+
+<Steps>
+<Step>
+
+### renderer をビルドする
+
+CLI は `renderer/pages` をスキャンし、一時的な renderer のエントリを作成し、React の出力をバンドルして、設定された `temp` ディレクトリ以下に renderer のファイルを書き出します。
+</Step>
+<Step>
+
+### main をビルドする
+
+CLI は Electron の main 用に設定された `main` エントリをバンドルし、NarraLeaf の preload バンドルをコピーします。
+</Step>
+<Step>
+
+### app をパッケージ化する
+
+CLI は生成されたファイル、public アセット、resources、licenses、設定された targets を渡して Electron Builder を呼び出します。
+</Step>
+</Steps>
+
+## 出力
+
+パッケージ化されたアプリは `build.dist`（デフォルトは `dist`）に書き出されます。
+
+```js title="narraleaf.config.js"
+module.exports = {
+    build: {
+        dist: "dist",
+        productName: "My Visual Novel",
+    },
+};
+```
+
+## 高速パッケージング
+
+`build.dev` を `true` に設定すると、圧縮を高速化した開発向けのパッケージングになります。
+
+```js
+module.exports = {
+    build: {
+        dev: true,
+    },
+};
+```
+
+## Targets
+
+`narraleaf/config` の `BuildTarget` ヘルパーで targets を設定します。
+
+```js
+const { BuildTarget, WindowsBuildTarget } = require("narraleaf/config");
+
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+        }),
+    },
+};
+```
+
+プラットフォームごとの例は [ビルドターゲット](/ja/docs/narraleaf/library/build-targets) を参照してください。

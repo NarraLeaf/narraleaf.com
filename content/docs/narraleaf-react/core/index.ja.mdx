@@ -1,0 +1,320 @@
+---
+title: "NarraLeaf-React コア"
+description: 要素、アニメーション、Game クラスを含む NarraLeaf-React のコアとなる概念、およびシーン・要素・アクションがどのようにストーリーを組み立てるか
+---
+コアは NarraLeaf-React の主要な機能です。React でビジュアルノベルを作るための基本的な構成要素を
+提供します。
+
+まだ [クイックスタート](/ja/docs/narraleaf-react/quick-start) を読んでいなければ、先にそちらを読む
+ことをおすすめします。NarraLeaf-React の基本的な概念を理解する助けになります。
+
+`Player`、`GameProviders`、`Stage` といったコンポーネントを探しているなら、それらは
+[プレイヤー](/ja/docs/narraleaf-react/player) セクションにあります。
+
+## コア
+
+コアは NarraLeaf-React の主要な機能です。その抽象クラスを使ってストーリーを作成できます。
+3 つの部分から成ります。
+
+[要素](/ja/docs/narraleaf-react/core/elements)は NarraLeaf-React の基本的な構成要素であり、
+ストーリー内でアクションを生み出すために使われます。
+[アニメーション](/ja/docs/narraleaf-react/core/animation)は要素の複雑なアニメーションを作るために
+使われます。
+[ゲーム](/ja/docs/narraleaf-react/core/game)はゲームの現在の状態を表すメインクラスです。例えば、
+[LiveGame](/ja/docs/narraleaf-react/core/game/live-game) を使ってゲームの保存や読み込みができます。
+
+## コアの概念
+
+始める前に、NarraLeaf-React のいくつかのコアな概念を理解しておきましょう。
+
+NarraLeaf は**シーン**、**要素**、**アクション**という概念に基づいています。
+
+シーンはアクションを含み、アクションは要素によって生成されます。
+
+例えば:
+
+```typescript
+import {Scene, Character} from "narraleaf-react";
+
+const scene1 = new Scene("scene-1-wake-up");
+const character1 = new Character("John Smith");
+const character2 = new Character("Alice");
+
+scene1.action([
+    character1
+        .say("Hello, World!")
+        .say("Good morning!"),
+    character2
+        .say("Hi, John!")
+        .say("How are you?")
+]);
+```
+
+この例では、2 人のキャラクターがいる 1 つのシーンがあります。
+1 人目のキャラクターは「Hello, World!」と「Good morning!」を話し、
+2 人目のキャラクターは「Hi, John!」と「How are you?」を話します。
+
+この 2 人のキャラクターは要素であり、シーンはシーンであり、これらの台詞がアクションです。
+
+前述のコードは、次のようなアクションを出力します。
+
+1. シーン `scene-1-wake-up` を初期化する。
+2. キャラクター `John Smith` が「Hello, World!」と言う。
+3. キャラクター `John Smith` が「Good morning!」と言う。
+4. キャラクター `Alice` が「Hi, John!」と言う。
+5. キャラクター `Alice` が「How are you?」と言う。
+
+### シーン
+
+**シーン**は、順番に実行される**アクション**の集まりです。**シーン**を使って、会話、選択肢、
+カットシーンを作ることができます。
+
+例えば、背景、時間、進行といった観点で整理した会話を**シーン**として表現できます。
+
+基本的なストーリーには、次のような**シーン**が含まれるかもしれません。
+1. `scene-1-wake-up`: 主人公が朝目を覚ます。
+2. `scene-2-go-to-school`: 主人公が学校へ行く。
+3. `scene-3-meet-friend`: 主人公が友人に会う。
+
+複数の背景を使う 1 つのシーンも可能です。
+
+### 要素
+
+**要素**はストーリーの基本単位です。キャラクター、画像、サウンドのいずれかになり得ます。
+
+例えば、`Character` を使ってストーリー中のキャラクターを表現できます。これはダイアログを表示できます。
+また、`Image` を使ってストーリー中の画像を表現できます。これはキャラクターを表示できます。
+> **注意**: `Character` はダイアログのみを表示し、`Image` は画像のみを表示します。両者は分離されて
+> います。
+
+以下のツリーは、それらの関係を示しています。
+
+<Files>
+    <Folder name="Story（ストーリー）" defaultOpen>
+        <File name="Scene（シーン）" />
+        <Folder name="Character（キャラクター）" defaultOpen>
+            <File name="Sentence（文）" />
+            <File name="Word（単語）" />
+        </Folder>
+        <File name="Image（画像）" />
+        <File name="Sound（サウンド）" />
+        <File name="Menu（メニュー）" />
+        <File name="Script（スクリプト）" />
+        <File name="Condition（条件）" />
+        <File name="Control（制御）" />
+        <File name="Text（テキスト）" />
+    </Folder>
+    <Folder name="Animation（アニメーション）" defaultOpen>
+        <File name="Transform（トランスフォーム）" />
+        <File name="Transition（トランジション）" />
+    </Folder>
+</Files>
+
+ご覧のとおり、これらが NarraLeaf-React の基本的な要素です。
+次のセクションでは、これらの要素を使ってストーリーを作成します。
+
+### アクション
+
+**アクション**は NarraLeaf-React において最も重要な概念です。
+
+要素に対して呼び出すすべてのメソッドは**アクション**です。アクションは、ダイアログを表示する、
+サウンドを再生する、背景を変更するといった何かを行うことができます。NarraLeaf-React は**アクション**
+しか理解できません。
+
+例えば、`character.say` を使ってダイアログを表示できます。
+
+```typescript
+import {Character} from "narraleaf-react";
+
+const character1 = new Character("John Smith");
+character1.say("Hello, World!"); // これはアクションです
+```
+
+一部の要素はアクションを受け取ることができます。例えば `Scene` です。
+シーンはアクションを順番に実行します。
+
+```typescript
+import {Scene, Character} from "narraleaf-react";
+
+const scene1 = new Scene("scene-1-wake-up");
+const character1 = new Character("John Smith");
+const character2 = new Character("Alice");
+
+scene1.action([
+    character1
+        .say("Hello, World!")
+        .say("Good morning!"),
+    character2
+        .say("Hi, John!")
+        .say("How are you?")
+]);
+```
+
+最後に、ストーリーを使ってシーンをまとめることができます。
+
+```typescript
+import {Story} from "narraleaf-react";
+
+/*
+...your scenes
+*/
+
+const story = new Story();
+story.entry(scene1);
+
+export default story;
+```
+
+React アプリに `Player` コンポーネントを配置するときは、ストーリーをインポートして `Player`
+コンポーネントへ渡します。これについては後ほど説明します。
+
+## ストーリーを作成する
+
+### ストーリーを構築する
+
+ストーリーは NarraLeaf-React における最も大きな概念です。TypeScript ファイルの中でストーリーを
+定義してエクスポートできます。
+
+```ts
+import {Story,Scene} from "narraleaf-react";
+
+const story = new Story("My First NarraLeaf Story"); // 人間が読める名前
+```
+
+その後、ストーリーにエントリポイントを追加できます。
+
+```ts
+const scene1 = new Scene("scene1", {});
+
+story.entry(scene1);
+```
+
+最後に、ストーリーをエクスポートして React アプリで使用できます。
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./scene1"; // your story
+
+export default function App() {
+    return (
+        <GameProviders>
+
+            <Player 
+                story={story} // your story
+            />
+
+        </GameProviders>
+    );
+}
+```
+
+### アクションを追加する
+
+画面に何かを表示するには、ストーリーにアクションを追加する必要があります。
+
+基本となるアクションのコンテナは `Scene` です。次のようにシーンを作成できます。
+
+```ts
+const scene1 = new Scene("Scene 1");
+```
+
+そして、シーンにアクションを追加します。
+
+```ts
+const character1 = new Character("Character 1");
+
+scene1.action([
+    character1
+        .say("Hello World!")
+        .say("Good morning!"),
+]);
+```
+
+あなたのストーリーはアクションを順番に実行します。画面に「Hello World!」と「Good morning!」という
+ダイアログが表示されます。
+
+`要素` についての詳細は[要素](/ja/docs/narraleaf-react/core/elements)セクションを参照してください。
+
+### 例
+
+完全なストーリーの例を示します。
+
+<Tabs items={['src/story.ts', 'src/page.tsx']}><Tab value="src/story.ts">
+        ```ts
+        import {
+            Story,
+            Scene,
+            Character,
+        } from "narraleaf-react";
+
+        // ストーリーを作成する
+        const story = new Story("My Story");
+        const scene1 = new Scene("Scene 1", {
+            background: {
+                url: "https://via.placeholder.com/1920x1080"
+            },
+        });
+
+        // キャラクターを定義する
+        const character1 = new Character("Character 1");
+        const character2 = new Character("Character 2");
+
+        // シーンにアクションを追加する
+        scene1.action([
+            character1
+                .say("Hello World!")
+                .say("Welcome to NarraLeaf!")
+                .say("This is a Visual Novel framework for React.")
+                .say("I hope you enjoy it!"),
+
+            character2
+                .say("Start your story by editing this file.")
+                .say("We have a lot of features for you."),
+        ]);
+
+        // シーンをストーリーに追加する
+        story.entry(scene1);
+
+        export { story };
+        ```
+</Tab>
+<Tab value="src/page.tsx">
+        ```tsx
+        "use client";
+
+        import { Game, GameProviders, Player } from "narraleaf-react";
+        import { useState } from "react";
+        import { story } from "./story";
+
+        export default function App() {
+            return (
+                <GameProviders game={game}>
+                    <Player 
+                        // ストーリーを Player コンポーネントへ渡す
+                        story={story} 
+                        onReady={({game}) => {
+                            // Player が準備できたらゲームを開始する
+                            game.getLiveGame().newGame();
+                        }} 
+                        height={"100vh"} 
+                    />
+                </GameProviders>
+            );
+        }
+        ```
+</Tab></Tabs>
+
+## 次のステップ
+
+NarraLeaf-React で複雑なストーリーを作り始めましょう。より複雑なアクションの作り方を学ぶために、
+要素についてさらに読んでみてください。
+
+<Cards>
+    <Card
+        title="Elements"
+        description="NarraLeaf-React でより複雑なアクションを作る方法を学びます。"
+        href="/ja/docs/narraleaf-react/core/elements"
+    />
+</Cards>

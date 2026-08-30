@@ -1,0 +1,76 @@
+---
+title: "Menu"
+description: ゲーム内の選択肢メニューを描画する GameMenu と Item のコンポーネント。項目ごとのキーバインドとテキストのスタイルを含む
+---
+Menu コンポーネントはメニューのコンテナを描画し、`Item` はメニューの項目を描画します。
+
+## 例
+
+1. コンポーネントをインポートする
+
+```tsx
+import { useState } from "react";
+import { GameMenu, Item, useGame } from "narraleaf-react";
+```
+
+2. コンポーネントを組み込む
+
+```tsx
+function DefaultMenu({items}: { items: number[] }) {
+    return (
+        <GameMenu
+            className="absolute flex flex-col items-center justify-center min-w-full w-full h-full"
+        >
+            {items.map((index) => (
+                <Item
+                    key={index}
+                    className="bg-white p-2 mt-2 w-1/2"
+                    defaultColor="black"
+                />
+            ))}
+        </GameMenu>
+    );
+}
+```
+
+3. ゲームを設定する
+
+```tsx
+function App() {
+    const game = useGame();
+
+    useEffect(() => {
+        game.configure({
+            menu: DefaultMenu,
+        });
+    }, []);
+
+    return /* ... */
+}
+```
+
+## コンポーネント
+
+### GameMenu
+
+GameMenu コンポーネントはメニューのコンテナを描画します。子要素は `Item` コンポーネントです。
+
+- `children?: React.ReactNode` - メニューコンテナの子要素。
+- `...props: React.HTMLAttributes<HTMLDivElement>` - メニューコンテナの props。
+
+### Item
+
+Item コンポーネントはメニュー項目を描画します。`GameMenu` コンポーネントの子要素です。
+
+エクスポートされる prop の型：`ItemProps`。
+
+- `className?: string` - メニュー項目のクラス名。
+- `style?: React.CSSProperties` - メニュー項目のスタイル。
+- `bindKey?: string` - この項目に対するキーバインド。詳細は [Key_Values](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values) を参照してください。このキーが押されると、その項目が選択され、対応する処理が実行されます。
+- `defaultColor?: Color` - 選択肢テキストのフォールバックの色。省略した場合、テキストは CSS から継承できます。
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]`
+- `fontFamily?: React.CSSProperties["fontFamily"]`
+
+`Item` はダイアログのテキストと同じテキストレンダラーを使ってラベルを描画します。選択肢に対する `Sentence` や `Word` のスタイル指定は、これらのコンポーネントの既定値より優先されます。

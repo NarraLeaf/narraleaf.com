@@ -1,0 +1,39 @@
+---
+title: "useVoiceState"
+description: センテンスの自動再生ボイスと手動での再生の状態を追跡する useVoiceState フック
+---
+現在のセンテンスにおけるボイス再生の状態を追跡します。自動的に再生されるボイスと、手動での再生の両方を含みます。
+
+> **注意**：このフックはダイアログレイヤーの内部で実行する必要があります（例えば、`character.say` や `Menu` の描画中にレンダリングされるコンポーネントの内部）。
+
+```typescript
+function useVoiceState(): VoiceState;
+```
+
+## 使い方
+
+```typescript
+import {useVoiceState} from "narraleaf-react";
+
+function VoiceControls() {
+    const {done, voice, playVoice, getVoiceSrc} = useVoiceState();
+
+    return (
+        <div>
+            <button onClick={() => playVoice()}>
+                {done ? "ボイスを再生し直す" : "ボイス再生中"}
+            </button>
+            {voice && <p>ソース: {getVoiceSrc() ?? "不明"}</p>}
+        </div>
+    );
+}
+```
+
+## VoiceState
+
+- `done: boolean` — 現在のセンテンスが管理する自動再生ボイスと、手動での再生の両方が完了しているとき `true` になります。
+- `voice: Sound | null` — 現在のセンテンスから解決されたボイスのサウンドインスタンス。センテンスがボイスを再生しない場合は null です。
+- `playVoice(voice?: Sound | string | URL | null): Promise<SoundToken | null>` — ボイスを手動で再生します。文字列や URL を渡すと自動的に `Sound` インスタンスが作られ、`null` を渡すと手動再生を停止します。この Promise は [`LiveGame.playSound`](/ja/docs/narraleaf-react/core/game/live-game) が返す `SoundToken` に解決されるため、`ended` や `stop` イベントを購読できます。
+- `getVoice: () => Sound | null` — 現在のボイスインスタンスを取得する簡易アクセサ。
+- `getVoiceId: () => string | number | null` — センテンスの設定で定義されているボイス識別子があれば返します。
+- `getVoiceSrc: () => string | null` — 現在のボイスサウンドのソース URL があれば返します。

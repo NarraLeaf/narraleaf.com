@@ -1,0 +1,155 @@
+---
+title: "ページオーバーレイの追加（設定ページ）"
+description: Layout、Page、useRouter を使い、ゲームの進行を中断せずに舞台の上に表示する設定オーバーレイを構築する
+---
+## ルート構造
+
+ページオーバーレイとは、ゲームの進行を中断することなく、メイン画面の上に重ねて表示する UI（設定、セーブ／ロード、ギャラリーなど）です。[Layout](/ja/docs/narraleaf-react/player/page-router/layout) と [Page](/ja/docs/narraleaf-react/player/page-router/page) でルート構造を定義し、[useRouter](/ja/docs/narraleaf-react/player/hooks/useRouter) でナビゲーションを行うことで、設定ページのようなオーバーレイを実装できます。
+
+この例では、[クイックメニュー](/ja/docs/narraleaf-react/solutions/quick-menu)から開く設定オーバーレイを扱います。
+
+## 1. Layout と Page の構造を定義する
+
+`general` や `audio` といった子ページを持つ `settings` レイアウトを定義します。`Player` はすでにルートレイアウトを作成しているため、`Page` と `Layout` はその内側に直接配置します。`Page name={null}` は、親レイアウトの既定ページです。
+
+```tsx
+import { GameProviders, Layout, Page, Player } from "narraleaf-react";
+
+function AppLayout() {
+  return (
+    <GameProviders>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
+        {/* 既定のページ（ゲーム舞台） - パス: / */}
+        <Page name={null}>
+          <GameStage />
+        </Page>
+
+        {/* 設定オーバーレイ - パス: /settings, /settings/general など */}
+        <Layout name="settings">
+          <Page name={null}>
+            <SettingsHome />
+            {/* /settings - 設定の入口、または既定のタブ */}
+          </Page>
+          <Page name="general">
+            <SettingsGeneral />
+            {/* /settings/general - 一般設定 */}
+          </Page>
+          <Page name="audio">
+            <SettingsAudio />
+            {/* /settings/audio - 音声設定 */}
+          </Page>
+        </Layout>
+      </Player>
+    </GameProviders>
+  );
+}
+```
+
+`RootLayout` を自分で追加しないでください。`Player` の内側にもう一つルートレイアウトをネストすると、ルートの境界が誤ったものになります。
+
+## 2. 設定ページコンポーネントを実装する
+
+設定ページは、半透明の背景と中央のパネルを持つオーバーレイとして機能します。背景または閉じるボタンをクリックするとゲームに戻ります。
+
+```tsx
+import { useRouter } from "narraleaf-react";
+
+function SettingsGeneral() {
+  const router = useRouter();
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={() => router.back()}
+      // オーバーレイをクリックすると閉じる
+    >
+      <div
+        className="bg-gray-900 rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+        // パネルをクリックしたときは閉じない
+      >
+        <h2 className="text-xl font-bold mb-4">一般設定</h2>
+        {/* 設定フォームの内容 */}
+        <button
+          className="mt-4 px-4 py-2 bg-amber-500 rounded"
+          onClick={() => router.back()}
+        >
+          戻る
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+## 3. クイックメニューから設定を開く
+
+[クイックメニュー](/ja/docs/narraleaf-react/solutions/quick-menu) の中で `router.navigate("/settings")` を呼び出し、設定オーバーレイを開きます。
+
+```tsx
+import { useRouter } from "narraleaf-react";
+
+function QuickMenu() {
+  const router = useRouter();
+
+  const openSettings = () => router.navigate("/settings");
+  // 設定オーバーレイへ遷移
+
+  return (
+    <div className="fixed bottom-5 left-0 right-0 flex justify-center">
+      <button onClick={openSettings}>設定</button>
+    </div>
+  );
+}
+```
+
+## 4. Router API クイックリファレンス
+
+| メソッド | 説明 |
+|--------|-------------|
+| `router.navigate(path)` | 指定したパスへ遷移する。例: `"/settings/general"` |
+| `router.back()` | 1 つ前に戻る |
+| `router.forward()` | 1 つ先に進む |
+| `router.clear().navigate(path)` | 履歴をクリアしてから遷移する（例: メイン画面に戻る） |
+| `router.getCurrentPath()` | 現在のパスを取得する |
+| `router.replace(path)` | 現在の履歴エントリを置き換える |
+| `router.canGoBack()` | `back()` で戻れるかどうかを確認する |
+
+## 5. 登場・退場アニメーションを追加する
+
+ページの内容を Motion の `motion.div` でラップします。[LayoutRouter](/ja/docs/narraleaf-react/player/page-router) は、退場するページのアニメーションが終わるまでそのページをマウントしたままにします。
+
+```tsx
+import { motion } from "motion/react";
+
+function SettingsGeneral() {
+  const router = useRouter();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={() => router.back()}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="bg-gray-900 rounded-lg p-6 w-96"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* ... */}
+      </motion.div>
+    </motion.div>
+  );
+}
+```
+
+## 関連項目
+
+- [Layout](/ja/docs/narraleaf-react/player/page-router/layout) - Layout コンポーネント
+- [Page](/ja/docs/narraleaf-react/player/page-router/page) - Page コンポーネント
+- [useRouter](/ja/docs/narraleaf-react/player/hooks/useRouter) - Router フック
+- [クイックメニュー](/ja/docs/narraleaf-react/solutions/quick-menu) - クイックメニューの実装

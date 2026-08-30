@@ -1,0 +1,100 @@
+---
+title: "ビルドターゲット"
+description: narraleaf/config を通じて Windows、macOS、Linux のパッケージングターゲットを設定する
+---
+
+ビルドターゲットは Electron Builder のターゲット設定を型付けしたラッパーです。`narraleaf/config` からインポートします。
+
+```js
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+    MacBuildTarget,
+    LinuxBuildTarget,
+} = require("narraleaf/config");
+```
+
+## Windows
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+            icon: "assets/icon.ico",
+        }),
+    },
+};
+```
+
+一般的な Windows ターゲットには `nsis`、`portable`、`msi`、`appx`、`zip`、`dir` があります。
+
+## macOS
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Mac({
+            target: MacBuildTarget.dmg,
+            arch: ArchType.arm64,
+            icon: "assets/icon.icns",
+        }),
+    },
+};
+```
+
+一般的な macOS ターゲットには `dmg`、`pkg`、`zip`、`mas`、`mas-dev`、`dir` があります。
+
+## Linux
+
+```js
+module.exports = {
+    build: {
+        targets: BuildTarget.Linux({
+            target: LinuxBuildTarget.AppImage,
+            arch: ArchType.x64,
+            icon: "assets/icon.png",
+            category: "Game",
+        }),
+    },
+};
+```
+
+一般的な Linux ターゲットには `AppImage`、`deb`、`rpm`、`snap`、`tar.gz`、`zip`、`dir` があります。
+
+## 複数ターゲット
+
+複数のターゲットをビルドする場合は配列を渡します。
+
+```js
+module.exports = {
+    build: {
+        targets: [
+            BuildTarget.Windows({
+                target: WindowsBuildTarget.nsis,
+                arch: ArchType.x64,
+            }),
+            BuildTarget.Linux({
+                target: LinuxBuildTarget.AppImage,
+                arch: ArchType.x64,
+            }),
+        ],
+    },
+};
+```
+
+NarraLeaf は Electron Builder に渡す前に、同一のターゲットとアーキテクチャの組み合わせを重複排除します。
+
+## アーキテクチャ
+
+`ArchType` には次が含まれます。
+
+- `x64`
+- `ia32`
+- `armv7l`
+- `arm64`
+- `universal`
+
+> **ヒント：** アイコン形式はプラットフォームごとに使い分けてください。Windows は `.ico`、macOS は `.icns`、Linux は `.png` です。

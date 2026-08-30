@@ -1,0 +1,260 @@
+﻿---
+title: "サービス"
+description: 複数のシーンにまたがって共有される、カスタムかつストーリーに登録されたロジックのための `Service` 抽象クラス。アクション、シリアライズ、非同期処理を扱う
+---
+Service は、複数のシーンにまたがって共有できるカスタムアクション、振る舞い、その他任意のカスタムロジックを作成するための特別な抽象クラスです。
+
+使用するには、これを継承し、抽象メソッドをすべて実装する必要があります。
+
+```typescript
+import {Service} from "narraleaf-react";
+```
+
+## 例
+
+シンプルなギャラリーサービスを実装するカスタムサービスの例を示します。
+
+```typescript
+type GalleryActions = {
+    "add": [name: string]
+};
+
+class Gallery extends Service<GalleryActions> {
+    // カスタムデータ
+    unlocked: string[] = [];
+
+    constructor() {
+        super();
+
+        // アクションハンドラーを登録する
+        this.on("add", (ctx: ServiceHandlerCtx, name: string) => {
+            console.log("Adding", name);
+            this.unlocked.push(name);
+        })
+    }
+
+    /* serialize と deserialize メソッドを実装する */
+    serialize(): Record<string, any> | null {
+        return {
+            unlocked: this.unlocked
+        };
+    }
+    deserialize(data: Record<string, any>): void {
+        this.unlocked = data.unlocked;
+    }
+
+    /* カスタムサービスロジック */
+    add(name: string) {
+        // アクションをトリガーする
+        return this.trigger("add", name);
+    }
+}
+```
+
+このサービスは、ゲーム内で次のように使用できます:
+
+```typescript
+const gallery = new Gallery();
+
+myScene.action([
+    gallery
+        .add("image1")
+        .add("image2")
+        .add("image3"),
+]);
+
+```
+
+## カスタムサービスの作成
+
+### サービスの実装
+
+サービスを実装するには、`Service` クラスを継承し、抽象メソッドを実装する必要があります。
+
+```typescript
+class MyCustomService extends Service {
+    /**
+     * サービスをデータにシリアライズする
+     *
+     * **注:** データは JSON にシリアライズ可能でなければならない。保存するものがない場合は null を返す
+     */
+    serialize(): Record<string, any> | null {
+        return null;
+    }
+
+    /**
+     * サービスにデータを読み込む
+     * @param data toData からエクスポートされたデータ
+     */
+    deserialize(data: Record<string, any>): void {
+    }
+}
+```
+
+### アクションの登録
+
+アクションを登録するには、`on` メソッドを使用します。  
+登録はすべてコンストラクター内で行う必要があります。
+
+```typescript
+class MyCustomService extends Service {
+    constructor() {
+        super();
+
+        this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
+            // カスタムロジック
+        });
+    }
+}
+```
+
+ServiceHandlerCtx については、[ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照してください。
+
+型チェックを有効にするには、アクションの型を定義できます。
+
+```typescript
+type MyCustomActions = {
+    "myAction": [arg0: string, arg1: number]
+};
+
+class MyCustomService extends Service<MyCustomActions> {
+    constructor() {
+        super();
+
+        this.on("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
+            // カスタムロジック
+        });
+    }
+}
+```
+
+### 非同期アクション
+
+非同期処理を行う必要がある場合は、Promise を返すことができます。  
+ただし、将来的な利用に備えて、そのアクションを中止可能にしておくべきです。
+
+このサービスがまだ実行中のときにプレイヤーが _アンドゥ_ を行うと、ゲームエンジンは現在のアクションコンテキストに登録されているすべての `onAbort` コールバックを自動的に呼び出します。実行中のタスク（ネットワークリクエスト、タイマー、アニメーションなど）を中止し、それまでに生じた副作用をロールバックするのは**スクリプト側の責任**です。そうしておくことで、アンドゥ後に同じアクションが再び実行されたときに、まったく同じ結果になることが保証されます。
+
+```typescript
+this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    const promise = fetch("https://example.com", { signal }); // 何らかの非同期処理
+
+    ctx.onAbort(() => {
+        abortController.abort(); // 非同期処理を中止する
+    });
+
+    return promise; // promise を返すと、ゲームはその解決を待つ
+});
+```
+
+### アクションのトリガー
+
+アクションをトリガーするには、`trigger` メソッドを使用します。
+
+```typescript
+const service = new MyCustomService();
+
+scene.action([
+    service.trigger("myAction", "foo", 123)
+]);
+```
+
+あるいは、アクションをメソッドの中にラップすることもできます。
+
+```typescript
+class MyCustomService extends Service<MyCustomActions> {
+    myAction(arg0: string, arg1: number) {
+        return this.trigger("myAction", arg0, arg1);
+    }
+}
+
+const service = new MyCustomService();
+
+scene.action([
+    service.myAction("foo", 123),
+
+    service
+        .myAction("foo", 123)  // アクションはラップされ、チェーン可能になる
+        .myAction("bar", 456), // チェーンの挙動はゲームが自動的に管理する
+]);
+```
+
+### サービスへのアクセス
+
+サービスを作成した後は、ゲーム内にそれを登録する必要があります。
+
+```typescript
+const story = new Story(/* ... */);
+story.registerService("gallery", gallery);
+```
+
+そして、ctx を使ってサービスにアクセスできます。
+
+```tsx
+// 例: コンポーネント内
+const game = useGame();
+const liveGame = game.getLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery>("gallery");
+
+return (
+    {gallery && gallery.unlocked.map((name) => (
+        <div key={name}>{name}</div>
+    ))}
+);
+```
+
+## 公開メソッド
+
+### on\<K extends StringKeyOf\<Content\>\>
+
+<Steps>
+<Step>
+
+アクションハンドラーを登録します。
+
+```typescript
+type MyCustomActions = {
+    "myAction": [arg0: string, arg1: number]
+};
+
+class MyCustomService extends Service<MyCustomActions> {
+    constructor() {
+        super();
+
+        this.on<"myAction">("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
+            // カスタムロジック
+        });
+    }
+}
+```
+
+- `key: K` - アクションキー
+- `handler: ServiceHandler<Content[K]>` - ServiceHandler については [ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照
+- 戻り値: `this`
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### trigger\<K extends StringKeyOf\<Content\>\>
+
+<Steps>
+<Step>
+
+アクションをトリガーします。
+
+```typescript
+const service = new MyCustomService();
+
+scene.action([
+    service.trigger<"myAction">("myAction", "foo", 123)
+]);
+```
+
+- `key: K` - アクションキー
+- `...args: Content[K]` - アクションの引数
+</Step>
+</Steps>

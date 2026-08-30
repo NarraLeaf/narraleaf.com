@@ -1,0 +1,56 @@
+---
+title: CLI
+description: スキャフォールディング、ローカル開発、ビルド、プロジェクト検査のための NarraLeaf コマンドラインツール
+---
+
+**CLI** パッケージは、NarraLeaf デスクトッププロジェクトが使用する `narraleaf` コマンドを提供します。
+
+```bash
+narraleaf init my-visual-novel
+cd my-visual-novel
+narraleaf dev
+```
+
+## コマンド
+
+<Cards>
+    <Card
+        title="Commands"
+        description="現在の CLI コマンドの早見表"
+        href="/ja/docs/narraleaf/library/cli/commands"
+    />
+    <Card
+        title="Init"
+        description="NarraLeaf skeleton パッケージ経由でプロジェクトを作成する"
+        href="/ja/docs/narraleaf/library/cli/init"
+    />
+    <Card
+        title="Dev"
+        description="main と renderer のソースを監視し、Electron を起動して開発中に再読み込みする"
+        href="/ja/docs/narraleaf/library/cli/dev"
+    />
+    <Card
+        title="Build"
+        description="renderer と main プロセスの出力をバンドルし、Electron Builder でアプリをパッケージ化する"
+        href="/ja/docs/narraleaf/library/cli/build"
+    />
+    <Card
+        title="Info"
+        description="プラットフォーム、設定、renderer プロジェクト、ルートスキャンの情報を出力する"
+        href="/ja/docs/narraleaf/library/cli/info"
+    />
+</Cards>
+
+## CLI が読み取るもの
+
+各プロジェクトコマンドはカレントディレクトリから実行され、次のものが存在することを前提とします。
+
+- `package.json`
+- `narraleaf.config.js`
+- 設定された main のエントリ
+- 設定された renderer ディレクトリ
+- `renderer/App.tsx` または `renderer/App.jsx`
+- `renderer/pages`
+- `renderer/public`
+
+設定の全体像は [プロジェクト設定](/ja/docs/narraleaf/library/project-config) を参照してください。

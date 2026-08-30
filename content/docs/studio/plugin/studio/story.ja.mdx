@@ -1,0 +1,51 @@
+---
+title: story
+description: ストーリーブロックを挿入する、シーンエディターのパレットアクション
+---
+
+`app.services.story.actions` は、シーンエディターの挿入パレットに、Plugin カテゴリの下でアクションを登録します。各アクションはストーリーブロックを組み立てて挿入します。そのブロックは標準のストーリーブロックであり、挿入後にドキュメントがあなたのプラグインに依存することはありません。
+
+## プロジェクトのストーリーを読み取る
+
+`app.services.story` は、作者にストーリー上のある位置を指し示させる必要のあるプラグインパネル――どのシーンを再生するかを名指しする回想エントリーや、どこで解除されるかを名指しする実績――のために、読み取り専用のカタログも備えています。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `listStories` | `() => PluginStoryEntry[]` ――`{ id, name }`。ストーリー一覧はすでにメモリ上にあるため、これは同期的です。 |
+| `listScenes` | `(storyId: string) => Promise<PluginSceneEntry[]>` ――`{ id, name, storyId }`。作者自身のドキュメントの順序どおりです。ストーリードキュメントが必要になるため、読み込みを待ちます。 |
+
+読み取り専用であるのは意図的なものです。ストーリーの作成と編集は、あくまで Studio が担います。
+
+## `actions` 上のメソッド
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `register` | `(registration: StoryPluginActionRegistration) => PluginCleanup` |
+| `registerMany` | `(registrations: StoryPluginActionRegistration[]) => PluginCleanup` |
+
+## StoryPluginActionRegistration
+
+```ts
+type StoryPluginActionRegistration = {
+    id: string;                 // あなたのプラグイン id を前置する
+    label: string;
+    detail?: string;            // パレット内の副次的な行
+    group?: string;
+    createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+};
+```
+
+`createBlock` は `generateId()` を受け取ります――ブロックが必要とする任意の id にはこれを使ってください――また、パレットに保留中のテキストがある場合には `initialText` を受け取ります。`StoryBlock` を返してください。
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: ({ generateId }) => ({
+        id: generateId(),
+        // ... 標準のストーリーブロック
+    }),
+});
+```
+
+`StoryBlock`、`StoryBlockId`、`StoryBlockKind` は `narraleaf-studio/plugin` からエクスポートされています。

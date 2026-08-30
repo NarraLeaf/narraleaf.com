@@ -1,0 +1,55 @@
+---
+title: "条件分岐"
+description: Condition を使って実行時にアクションリストを分岐させる方法。単一の If/Else から、連なる ElseIf 分岐や複数の値を見る判定まで
+---
+
+[Condition](/ja/docs/narraleaf-react/core/elements/condition) を使うと、実行時にアクションリストを選択できます。
+
+```ts
+import { Condition } from "narraleaf-react";
+
+scene.action([
+    Condition.If(player.equals("favoriteTea", "green"), [
+        alice.say("緑茶を淹れたよ。"),
+    ]).Else([
+        alice.say("コーヒーを淹れたよ。"),
+    ]),
+]);
+```
+
+条件は、1 つの `If`、任意の数の `ElseIf` 分岐、そして 1 つの最終的な `Else` を持てます。
+
+```ts
+scene.action([
+    Condition.If(player.evaluate("coins", (coins) => coins >= 100), [
+        alice.say("その希少な本を買えるよ。"),
+    ])
+        .ElseIf(player.evaluate("coins", (coins) => coins >= 20), [
+            alice.say("その地図なら買えるよ。"),
+        ])
+        .Else([
+            alice.say("もっとコインが貯まったらまた来て。"),
+        ]),
+]);
+```
+
+## 複数の値を読み取る
+
+条件が複数の値に依存する場合は、関数を渡します。コンテキストは、登録済みの名前空間を読み取るための `$()` を提供します。
+
+```ts
+scene.action([
+    Condition.If(({ $ }) => {
+        const state = $("persistent:player");
+        return state.get("hasKey") && state.get("coins") >= 10;
+    }, [
+        alice.say("門が開いた。"),
+    ]),
+]);
+```
+
+単一のフィールドだけを見る場合は、`equals`、`isTrue`、`isFalse`、`evaluate` を使うほうが簡潔で、値の型も保たれます。
+
+<Callout type="warning">
+    分岐の順序は固定です。`ElseIf()` は `If()` の後に、`Else()` は最後に呼び出してください。`Else()` の後にさらに分岐を追加するとエラーが発生します。
+</Callout>

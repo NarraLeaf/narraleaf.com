@@ -1,0 +1,114 @@
+---
+title: Frame
+description: Frame がどの Page を表示するか、そしてその Page に渡す params
+---
+
+`nl.frame` の Self ノードです。Frame はある Page 上の矩形領域で、その内部に別の Page を描画します。そのため、これらのノードは実行中のグラフがプレイヤーの現在の Page を離れることなく画面の中身を切り替える手段になります——タブ切り替え、設定パネル、ルーターなどです。各ノードは自分が属するブループリントの Frame に対して働き、`Element` 入力を取らず、その Frame 自身のブループリントにのみ現れます。別の Frame を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある対応するノードを使ってください。
+
+## 規約
+
+- **読み取りは pure、書き込みは latent です。** このページの `Get` ノードはすべて `Pure` で、`event`・`function`・`macro` のいずれのグラフでも使えます。`Set` ノードはすべて `Latent` で、`event` と `macro` でのみ使えます——書き込みはホストを経由して非同期に解決され、`function` グラフは呼び出し元に同期的に戻るため、保留中の結果を置く場所がありません。
+- **Frame が持つのは 2 つだけです：対象の Page と `params` オブジェクトです。** 対象は Page でなければなりません。カードのドロップダウンには Page だけが並び、この Frame が置かれている Page と、入れ子になって自分に戻ってきてしまう Page は除外されます。Page とは何か、ゲーム UI の Surface とどう違うかは [Surface と Page](/ja/docs/studio/blueprint/surfaces) を参照してください。
+- **`params` は組み込まれた Page の Page props です。** Frame の内側の Page は [App](/ja/docs/studio/blueprint/nodes/app) の `Get Page Props` でオブジェクト全体を読み取り、存在しないフィールドには `null` が返ります。Page 側は `Emit Page Event` で応答でき、それはこの Frame の [Events](/ja/docs/studio/blueprint/nodes/events) にある `Page Event` ヘッドに届きます。
+- **何も変えない書き込みは何もしません。** 2 つの書き込みノードはいずれも、渡された対象と params を現在の値と比較します（params は JSON としての等価性で比較されます）。両方が一致していれば早期に処理を終えます。再実行しても Page が再マウントされることはなく、入場アニメーションが再生されることもありません。
+- **これらのノードはいずれも Blueprint Value の中では動作しません。** `Get` ノードは pure ですが、Blueprint Value は `widgetValue` オーナー上で評価され、このページのすべてのノードは Frame のメインブループリントにスコープされています。Blueprint Value の中からこの Frame を読み取るには、それを指す `Element` リテラルを置き、Element カテゴリーの読み取りノードを使ってください。
+
+## Set Frame Page
+
+`blueprint.frameWidget.setTargetPage` · Latent
+
+この Frame が表示する Page を切り替えます。同じ書き込みの中で params を差し替えることもできます。切り替えは Frame の Page アニメーション——Frame 自身の設定、あるいは Frame が継承するよう設定されている場合は対象 Page の設定——を通して行われます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `props` | in · data | `json` | 省略可能です。接続しなければ現在の params を維持します。オブジェクトでない結果は `{}` として保存されます。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `targetSurfaceId` | 表示する Page。空の選択肢 `None` を選ぶと Frame をクリアします。 |
+
+<Callout type="warn">
+カード上の Page 選択は、変更したときだけでなく実行のたびに書き込まれます。`Page props` だけを接続していても、`Set Frame Page` が `None` のままであれば Frame はクリアされます。対象を変えずに props だけを変更したい場合は `Set Params` を使ってください。
+</Callout>
+
+## Get Target Page
+
+`blueprint.frameWidget.getTargetPage` · Pure
+
+Frame が現在表示している Page の id を読み取ります。これはドキュメントに保存されている Surface id であり、エディター上に表示される名前ではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `targetSurfaceId` | out · data | `string` | Frame が Page を何も表示していない間は空になります。 |
+
+## Set Params
+
+`blueprint.frameWidget.setParams` · Latent
+
+組み込まれた Page に渡す params オブジェクトを置き換えます。これはマージではなく置き換えです。特定のフィールドだけを変えたい場合は、先に `Get Params` で現在の値を読み取ってからオブジェクト全体を組み立ててください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `params` | in · data | `json` | 配列や `null` を含め、通常のオブジェクトでないものはすべて `{}` として保存されます。 |
+
+このピンはカード上にリテラル値を持たず、現在の値へのフォールバックもありません。何も接続せずにこのノードを実行すると `{}` が書き込まれ、params は消去されます。
+
+## Get Params
+
+`blueprint.frameWidget.getParams` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `params` | out · data | `json` | 常にオブジェクトです。Frame に params がない場合は `{}` になります。 |
+
+<Callout type="info">
+`props.params` は Blueprint Value で駆動できるプロパティの一つです。これに束縛された Blueprint Value は JSON オブジェクトを返さなければなりません——配列、`null`、数値を含むそれ以外の結果は、Page に渡される前に `{}` へ正規化されます。バインディングが有効な間、その結果はレンダリング時にのみ保存済みの params を上書きします。`Set Params` と `Set Frame Page` の `Page props` は依然として保存された値を書き込み、`Get Params` も依然としてその値を返すため、これらの書き込みが Page に届くことはありません。
+</Callout>
+
+## Set Enabled
+
+`blueprint.frame.setEnabled` · Latent
+
+`false` にすると、この Frame のインタラクションが無効になります。Frame 自体はレンダリングされたままレイアウトも保持され、内側の Page も同様です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+ここでの真偽値はカード上にリテラルを持たず、現在の値にフォールバックします。何も接続していない場合、または `null` に解決される接続の場合、プロパティはそのまま変更されません。接続された値が真偽値でない場合、文字列 `"true"` または `"1"` であるときのみ true として扱われます。
+
+## Get Enabled
+
+`blueprint.frame.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.frame.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+`visible` を false にすると、この Frame と内側の Page 全体がランタイムの要素ツリーから取り除かれます——CSS で隠すのとは違います。組み込まれた Page はアンマウントされ、その中のすべてのブループリントが停止し、Frame が戻ってくると `Init` が再び実行されます。非表示になった Frame は自分自身を再表示できません。どこか別の場所から `Set Element Visible` を呼び出す必要があります。非表示にしつつマウントは維持したい場合は、[Displayable](/ja/docs/studio/blueprint/nodes/displayable) の `Set Display` を使ってください。
+
+## Get Visible
+
+`blueprint.frame.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |

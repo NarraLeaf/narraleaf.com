@@ -1,0 +1,243 @@
+﻿---
+title: "Character"
+description: 対話を扱う`Character`クラス。Sentence、命名、ダイアログボックスのアバターと立ち絵の紐付けを扱う
+---
+<Cards>
+    <Card
+        title="Sentence"
+        href="/ja/docs/narraleaf-react/core/elements/character/sentence"
+    />
+    <Card
+        title="Word"
+        href="/ja/docs/narraleaf-react/core/elements/character/word"
+    />
+    <Card
+        title="Pause"
+        href="/ja/docs/narraleaf-react/core/elements/character/pause"
+    />
+    <Card
+        title="TextEvent"
+        href="/ja/docs/narraleaf-react/core/elements/character/text-event"
+    />
+</Cards>
+
+Characterはキャラクターの台詞を制御します。
+
+**注意：** `Character`自体は舞台上のスプライトのレイアウトを制御しません。舞台上の表示要素には[Image](/ja/docs/narraleaf-react/core/elements/image)を使用してください。**ダイアログボックスのアバター**（ADVテキストの隣に表示する小さな立ち絵）については、`avatar`／`portraits`を設定し、[`Avatar`](/ja/docs/narraleaf-react/player/dialog)をレンダリングしてください。詳しくは[Dialog](/ja/docs/narraleaf-react/player/dialog)を参照してください。
+
+## パブリックメソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string | null` - `null`の場合はナレーターになります。ナレーターはダイアログボックスに名前を表示しません。
+- `config?: DeepPartial<CharacterConfig>` - [CharacterConfig](/ja/docs/narraleaf-react/core/types/CharacterConfig)
+</Step>
+</Steps>
+
+### [[Callable]]
+
+<Steps>
+<Step>
+
+`character.say`はタグ関数として使用できます。
+
+```typescript
+character`Hello, ${Word.color("Alice", "#f00")}!`, // "Alice"を赤色にした "Hello, Alice" を出力する
+
+// は次と等価
+
+character.say`Hello, ${Word.color("Alice", "#f00")}!`
+```
+
+> **注意：** この短縮記法は、Webpackなどの一部のパッケージングツールではチェーンできません。
+>
+> ```typescript
+> scene.action([
+>     character`sentence 1` `sentence 2`, // これはエラーになる
+> ]);
+> ```
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### say
+
+<Steps>
+<Step>
+
+#### オーバーロード1/4
+
+1つの文を発言する。
+
+```typescript
+character
+    .say("Good morning!")
+    .say("How are you?")
+```
+
+- `content: string` - 文の内容
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/ja/docs/narraleaf-react/core/types/SentenceUserConfig)
+
+#### オーバーロード2/4
+
+カスタムのSentenceオブジェクトを使用する。
+
+```typescript
+character.say(
+    new Sentence(character, [
+        "Good morning, I am ",
+        new Word("Alice", {color: "#f00"}), // 一部の単語には色を付けられる
+    ])
+) // "Alice"を赤色にした "Good morning, I am Alice" を出力する
+```
+
+> **注意：** 台詞の名前はSentenceの名前と同じになります。
+
+- `content: Sentence` - [Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence)を参照
+
+#### オーバーロード3/4
+
+文字列とWordオブジェクトが混在する内容を使用する。
+
+```typescript
+character.say([
+    "Hello, ",
+    new Word("Alice", {color: "#f00"}), // 一部の単語には色を付けられる
+]) // "Alice"を赤色にした "Hello, Alice" を出力する
+```
+
+- `content: SentencePrompt` - [SentencePrompt](/ja/docs/narraleaf-react/core/types/SentencePrompt)を参照
+- `config?: SentenceUserConfig` - [SentenceUserConfig](/ja/docs/narraleaf-react/core/types/SentenceUserConfig)
+
+#### オーバーロード4/4
+
+SentencePromptの短縮記法を使用する。
+
+```typescript
+character.say`Hello, ${Word.color("Alice", "#f00")}!` // "Alice"を赤色にした "Hello, Alice" を出力する
+```
+
+- `texts: TemplateStringsArray` - テンプレート文字列の配列
+- `...words: SingleWord[]` - [SingleWord](/ja/docs/narraleaf-react/core/types/SentencePrompt)
+</Step>
+</Steps>
+
+### setName
+
+<Steps>
+<Step>
+
+キャラクターの名前を設定する。
+
+```typescript
+character
+    .setName("Alice (angry)")
+    .say("What do you want?")
+```
+
+- `name: string` - キャラクターの名前
+
+<Callout type="info">
+    **`0.26.0`以降、名前の変更はセーブデータに保持されます。** それ以前は`Character`が自身の状態を一切シリアライズしなかったため、名前の変更を記録したセーブは存在しませんでした。「???」と表示される話者が明かされた後にセーブしたプレイヤーは、ダイアログボックスでもバックログでも「???」のまま戻ってきていました。新しくゲームを開始した場合も、セーブをロードした場合も、今は前回のプレイが残したものではなく、作者が指定した名前が返るようになりました。
+
+    以前のバージョンで書き出されたセーブにはキャラクターのエントリが含まれませんが、問題なくロードでき、作者が指定した名前がそのまま残ります。キャラクターが今やセーブのエントリを占めるようになり、自動生成される要素idはアクションツリー上の位置を表すものであって同一性を表すものではないため、セーブを復元するアプリケーションは、
+    [`DevTools.setElementStaticId`](/ja/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid)を通じて自分のキャストに名前を付けるべきです。
+</Callout>
+</Step>
+</Steps>
+
+### setAvatar
+
+<Steps>
+<Step>
+
+**キャラクターレベル**のダイアログアバター（画面外の台詞や、可視の紐付け立ち絵が該当しない場合のフォールバックとして使われる）を設定または解除する。
+
+```typescript
+const alice = new Character("Alice")
+    .setAvatar("/assets/alice/avatar-default.png");
+
+alice.setAvatar(false); // キャラクターレベルのアバターを無効化する
+```
+
+- `avatar: DialogAvatar | false | null` — 画像ソース、リゾルバー、無効化する`false`、または解除する`null`
+
+解決の意味と優先順位については[Dialog](/ja/docs/narraleaf-react/player/dialog)を参照してください。
+</Step>
+</Steps>
+
+### addPortrait
+
+<Steps>
+<Step>
+
+舞台上の[`Image`](/ja/docs/narraleaf-react/core/elements/image)をこのキャラクターに紐付け、任意で**立ち絵レベル**のダイアログアバター（文字列またはリゾルバー）を指定する。
+
+```typescript
+alice.addPortrait(aliceBody, {
+    avatar: "/assets/alice/avatar-normal.png",
+});
+```
+
+- `image: Image` — 舞台上の立ち絵画像
+- `config?: { avatar?: DialogAvatar }` — この紐付けに対する任意のアバターの上書き
+</Step>
+</Steps>
+
+### setPortraits
+
+<Steps>
+<Step>
+
+立ち絵のリスト全体を置き換える（`Image`と`{ image, avatar }`が混在してもよい）。
+
+```typescript
+alice.setPortraits([
+    { image: aliceBody, avatar: "/assets/alice/avatar-a.png" },
+    bobPortraitImage,
+]);
+```
+
+- `portraits: (Image | CharacterPortraitConfig)[]` — [CharacterConfig](/ja/docs/narraleaf-react/core/types/CharacterConfig)を参照
+</Step>
+</Steps>
+
+### apply
+
+<Steps>
+<Step>
+
+これは`say`の特殊なエイリアスです。タグをそのまま`say`メソッドへ渡します。
+
+> **注意**：Webpackなどの一部のパッケージングツールを使う場合、このメソッドを次のようにチェーンすることはできません。
+> 
+> ```typescript
+> scene.action([
+>     character`sentence 1` `sentence 2`,
+> ]);
+> ```
+> 
+> ですが、その後に他のメソッドをチェーンすることはできます。
+> 
+> ```typescript
+> scene.action([
+>     character`sentence 1`.setName("Alice"),
+> ]);
+> ```
+
+このメソッドは、キャラクターが1文だけ発言する場合にコードを短くします。
+
+```typescript
+scene.action([
+    character`Hello, ${Word.color("Alice", "#f00")}!`,
+]);
+```
+
+- `texts: TemplateStringsArray` - テンプレート文字列の配列
+- `...words: SingleWord[]` - [SingleWord](/ja/docs/narraleaf-react/core/types/SentencePrompt)
+</Step>
+</Steps>

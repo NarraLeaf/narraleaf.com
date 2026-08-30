@@ -1,0 +1,56 @@
+---
+title: privileged
+description: ファイルシステム、権限、bash――マニフェストの権限によって制御される特権的な能力
+---
+
+`app.privileged` は、厳選されたサービスを越えて実際のマシンに到達します。ファイルシステム、権限リクエストのフロー、そしてシェルです。これは制御されています――マニフェストが対応する権限を宣言し、かつユーザーがインストール時にそれを許可した場合にのみ、呼び出しが機能します。ここではすべてが Studio 自身のアクセス権で実行されます。サンドボックスはありません。
+
+すべてのメソッドは `RequestStatus<…>` というラッパーに解決されます。値が存在すると決めてかからず、そのペイロードを使う前にリクエストが成功したかどうかを確認してください。
+
+## マニフェストの権限
+
+プラグインが必要とするものをマニフェストの `permissions` 配列に宣言します。各項目は次のいずれかです。
+
+```ts
+{ kind: "filesystem"; path: string; mode: "read" | "write" | "readwrite"; recursive: boolean }
+{ kind: "api"; capability: string }
+```
+
+Studio はインストール時に、宣言されたすべてを列挙したプロンプトを表示します。`permissions` が空の配列であることは、プラグインが厳選されたサーフェスにのみとどまることを意味します。
+
+## fs
+
+`filesystem` 権限によって制御されるファイルシステムアクセスです。
+
+- **ダイアログ**――`selectFile(filters, multiple)`、`selectSaveFile(defaultFileName, filters)`。
+- **読み取り / 書き込み**――`requestRead(path, encoding)`、`requestReadRaw(path)`、`requestWrite(path, encoding)`、`requestWriteRaw(path)`、`ensureRegularFile(path, data, encoding?)`、`writeFileNoFollow(path, data, encoding?)`、`recoverCorruptedJsonFile(path, replacement, encoding?)`。
+- **検査**――`stat(path)`、`list(path)`、`details(path)`、`hash(path)`、`isFileExists(path)`、`isDirExists(path)`、`isFile(path)`、`isDir(path)`。
+- **変更**――`createDir(path)`、`deleteFile(path)`、`deleteDir(path)`、`rename(oldPath, newName, isDir)`、`copyFile(src, dest)`、`copyDir(src, dest)`、`moveFile(src, dest)`、`moveDir(src, dest)`。
+
+```ts
+const res = await app.privileged.fs.requestRead("/path/to/file.txt", "utf-8");
+if (res.status === "success") {
+    // res.data holds the read result
+}
+```
+
+## permissions
+
+実行時にさらなるアクセスを要求したり、プラグインの許可を取り消したりします。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `request` | `(request: PluginPermissionRequest) => Promise<RequestStatus<PluginPermissionPromptResult>>` |
+| `revokePlugin` | `(pluginId: string) => Promise<RequestStatus<void>>` |
+
+## bash
+
+`api` 能力権限によって制御される、シェルコマンドの実行です。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `execute` | `(command: string, cwd?: string) => Promise<RequestStatus<PrivilegedBashExecuteResult>>` |
+
+<Callout type="warn">
+`fs` と `bash` こそが、Studio がプラグインはサンドボックス化されていないと警告する理由です。仕事を果たせる最も狭い権限を要求してください――広範なものより特定の `filesystem` パスを――そして、他に手段がない場合にのみ `bash` に手を伸ばしてください。
+</Callout>

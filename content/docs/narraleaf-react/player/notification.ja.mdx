@@ -1,0 +1,73 @@
+---
+title: "Notification"
+description: ゲーム内の通知メッセージを描画するための Notifications コンポーネントと Notification のデータ形式
+---
+Notification コンポーネントは通知ボックスを描画し、通知ボックスをカスタマイズするためのインターフェースを提供します。
+
+## Notification
+
+通知は次のように定義されます。
+
+```typescript
+type Notification = {
+    message: string;
+    id: string;
+}
+```
+
+## 例
+
+1. コンポーネントをインポートする
+
+```tsx
+import { useState } from "react";
+import { INotificationsProps, useGame } from "narraleaf-react";
+```
+
+2. コンポーネントを組み込む
+
+```tsx
+function GameNotification({ notifications }: { notifications: Notification[] }) {
+    return (
+        <Notifications
+            className="absolute top-0 left-0 w-full h-full"
+        >
+            {notifications.map(({id, message}) =>
+                <div
+                    key={id}
+                    className="absolute top-0 left-0 w-[100px] h-[80px]"
+                >
+                    <span className="text-white text-2xl font-bold">
+                        {message}
+                    </span>
+                </div>
+            )}
+        </Notifications>
+    );
+}
+```
+
+3. ゲームを設定する
+
+```tsx
+function App() {
+    const game = useGame();
+
+    useEffect(() => {
+        game.configure({
+            notification: GameNotification,
+        });
+    }, []);
+
+    return /* ... */
+}
+```
+
+## コンポーネント
+
+### Notifications
+
+Notifications コンポーネントは通知ボックスを描画します。
+
+- `children: React.ReactNode` - 通知ボックスの子要素。
+- `...props: React.HTMLAttributes<HTMLDivElement>` - 通知ボックスの props。

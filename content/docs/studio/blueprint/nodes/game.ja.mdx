@@ -1,0 +1,1269 @@
+---
+title: ゲーム
+description: 実行中のゲームを操作するノード——開始と終了、ダイアログの進行、プレイヤーの環境設定の読み書き、セーブと履歴の管理
+---
+
+Game 分類は、ブループリントと実行中のストーリーをつなぐ接合部です。ここにあるものはすべて、稼働中の NarraLeaf ランタイムと話します：プレイそのもの、画面上のダイアログ、プレイヤーの環境設定、プロジェクトのローカルセーブ、そしてダイアログの履歴です。タイトル画面、設定画面、セーブ/ロードのグリッド、バックログは、いずれもこのページのノードから組み立てられます。
+
+<Callout type="warn">
+ここにあるすべてのノードは、実行中のゲームを必要とします。エディターのキャンバスにはそれがありません——そこに置かれた Game ノードは `Host API unavailable (use Dev Mode)` で失敗し、それを読む Blueprint Value は空としてプレビューされます。すべて Dev Mode で確認してください。
+</Callout>
+
+## 規約
+
+- **ほぼ pure か latent のどちらかです。** 41 個の取得系ノードは `Pure` で、`event`・`function`・`macro` のいずれのグラフにも現れ、Blueprint Value を支えることができます。47 個は `Latent` で、そのため `event` と `macro` に限られます——latent ノードは `function` の中に保留中の結果を渡す場所がありません。89 個目にあたる `Clear Visited` は例外です：副作用はありますが同期的であるため、latent ではないのに latent ノードと同じく `event` と `macro` に属します。
+- **ホスト API を使えることと、プレイ中であることは別です。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`、`Get Latest Auto Save` はプロジェクトのセーブストアを読み取るもので、ゲームが実行されていなくても、プレイとプレイの間で機能します。エンディング、訪問済み、DLC、ビルドバリアントの読み取りノードも同様です——エンディングギャラリーは、まだゲームが存在しないタイトル画面から開かれます。一方、稼働中のゲームをシリアライズ・デシリアライズ・操作するものはすべて実行中のゲームを必要とし、それがなければ失敗します。
+- **状態を読み取るノードは緩やかに縮退しますが、環境設定を読み取るノードはそうしません。** pure な状態読み取りノード——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、2 つのプレイ時間読み取り、そしてエンディング・訪問済み・DLC・ビルドバリアント・キャラクターの各読み取りノード——はすべて、何も再生されていないときには中立の値で答えます：`false`、`null`、`0`、空の配列、色ならば不透明な白、トラック音量ならば等倍です。これにより、1 つの共有 Page がこれらの値で分岐でき、ギャラリーの行がロック状態の見た目をピンに直接束縛できます。16 個の環境設定取得ノードはこの例外です：稼働中の `GamePreference` を読み取り、ゲームがなければ失敗します。`Is Dialog Shown` もその 1 つです——`showDialog` の設定を読み取るもので、キーではなく問いにちなんで名付けられています。
+- **環境設定の初期化は `App Boot` ではなく `On Game Ready` から行ってください。** `App Boot` は `LiveGame` が存在する前に実行されることがあり、稼働中のゲームがない状態での環境設定への書き込みは失敗します。[Events](/ja/docs/studio/blueprint/nodes/events) を参照してください。
+- **セーブ id は検証されます。** id は前後の空白が取り除かれ、空であってはならず、パス区切り文字や制御文字を含んではいけません。ディスク上のファイル名はその id のハッシュから付けられ、選んだ id 自体はレコードのメタデータの中に保持されます。
+
+## プレイ
+
+`Start Game` と `Quit Game` は終端ノードです：制御をランタイムに渡し、exec 出力を持たないため、次に起きるべきことはストーリー側か、それらが開く Page 側の責任になります。
+
+### Start Game
+
+`blueprint.game.startStory` · Latent
+
+カードで選んだ Story と Scene を開始し、ゲームステージに切り替えます。最初のフレームの準備ができると、現在の Page スタックはゲームの下に隠れます。そのため、後で行う `Go Page` はステージを置き換えるのではなく、その上に重なります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `storyId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `sceneId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます——これは `Import Progress` がその `Scene` を渡すピンです。 |
+| `startBlockId` | in · data | `string` | 省略可能で、**From Row** というラベルが付き、接続専用です。シーンの先頭ではなく、指定した行から開始します。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | 実行する story。`storyId` が接続されていない限り必須です。 |
+| `Scene` | 開始する scene。一覧は選んだ story に絞り込まれます。`sceneId` が接続されていない限り必須です。 |
+
+このピッカーは、作者が 10 回のうち 9 回まで使うものです：プロジェクト自身の story を列挙し、綴りを間違えることがありません。ピンは残りの 1 割のため——グラフを書いている時点では対象がわからない場合です。プレイヤーがいた場所から再開する Continue ボタンなどがこれにあたります。
+
+### Quit Game
+
+`blueprint.game.quit` · Latent
+
+プレイを終了し、カードで選んだ Page を開きます。この呼び出し 1 つですべてを行います：稼働中のゲームとそのセッションを破棄し、保留中の開始リクエストをキャンセルし、ダイアログのネームタグをクリアし、通常の Page 表示を復元してから遷移します——このノードの後に `Go Page` を接続する必要はありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Page` | ゲームが終了した後に開く [Surface](/ja/docs/studio/blueprint/surfaces)。必須です。 |
+
+### Is In Game
+
+`blueprint.game.isInGame` · Pure
+
+ゲームステージが表示されていて、かつセッションが存在する間は true です——その上に Page のオーバーレイが開いている場合も含みます。通常の Page プレビュー中、最初の `Start Game` の前、そして `Quit Game` の後は false です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isInGame` | out · data | `boolean` | |
+
+### Is Game Overlay
+
+`blueprint.game.isGameOverlay` · Pure
+
+この Surface インスタンスが、ゲームの上に重なる UI レイヤーとして動作しているかどうかです。`Start Game` または `Load Save` の後に `Go Page` で開かれた Page は `true` を返し、ダイアログスロットのような組み込みのゲーム UI Surface も同様です。`nl.frame` を通じて埋め込まれた Page は、その親の答えを引き継ぎます。通常のアプリケーション Page、Page プレビュー、そして `Quit Game` が開く Page は `false` を返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isGameOverlay` | out · data | `boolean` | |
+
+この答えは Page インスタンスが作成された時点で固定されます。そのため、退出アニメーションをまだ再生中のポーズメニューは、`Quit Game` がすでにセッションの破棄を始めていても `true` を返し続けます。ランタイムがまだ存在するかどうかは `Is In Game` に尋ね、共有 Page が何を表示すべきかはこちらに尋ねてください。
+
+## ストーリーを進める
+
+### Next
+
+`blueprint.game.next` · Latent
+
+ランタイムの仮想クリックを発火します。ダイアログラッパー自身のターゲットがあればそれをクリックし、「入力中の文を完了させる」か「次のステップへ進む」かの判断はエンジンに委ねます。ダイアログターゲットがない場合は、プレイヤーのメインコンテンツをクリックする動作にフォールバックします。スキップを強制することは決してありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 進行のリクエストが完了すると発火します。 |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Skip
+
+`blueprint.game.skip` · Latent
+
+現在のダイアログ行をスキップします。これは作者が明示的に用意する Skip アクションです。デフォルトのダイアログテンプレートは、これを自動では割り当てません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Select Choice
+
+`blueprint.game.choose` · Latent
+
+現在アクティブな選択メニューの中から、**元の**インデックスでオプションを選びます。非表示のオプションはプレイヤーに見える内容からは除外されますが、カウントには含まれます。そのため、メニューが渡すインデックスは必ずしも連続しているとは限りません——リスト内の位置ではなく、その項目が持つ `index` をそのまま渡し戻してください。ホストは対象の非表示状態と無効状態を再確認し、不正な選択は黙って拒否します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `index` | in · data | `integer` | 0 以上の整数でなければなりません。カード上にリテラル値を入力できます。 |
+
+選択メニューが開いていない場合は失敗します。
+
+### Get Choice Count
+
+`blueprint.game.getChoiceCount` · Pure
+
+現在アクティブな選択メニューが表示しているオプションの数です。非表示のオプションはカウントされません。メニューが閉じると `0` を返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `count` | out · data | `integer` | |
+
+## ダイアログ
+
+ダイアログに束縛されたエレメントは、ダイアログのテキスト・話者・完了状態が変わるたびに flush されます。そのため、これらの取得系ノードのいずれかを `On Flush` から読み取るウィジェットは、再マウントすることなくストーリーの進行に追従し続けます。
+
+### Get Nametag
+
+`blueprint.game.getNametag` · Pure
+
+現在の話者の名前です。ナレーション、話者のいない行、名前が空白または未設定の話者の場合は `null` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `nametag` | out · data | `string` | 話者がいない場合は `null` です。 |
+
+デフォルトのダイアログテンプレートは、そのウィジェット自身のブループリントから普通の `nl.text` のネームタグを駆動します——`Init` と `On Flush` を `Get Nametag` につなぎ、その結果の null チェックをテキストと不透明度に反映させます。特別なネームタグ用ウィジェットは関与しません。
+
+### Get Speaker Avatar
+
+`blueprint.game.getSpeakerAvatar` · Pure
+
+話しているキャラクターのダイアログアバターです。エンジンはそのキャラクターの現在の立ち絵から解決するため、キャラクターが現在着用している差分をすでに反映しており、undo・ロード・スキップをまたいでも正しい状態を保ちます。プロジェクトがアセットに逆引きできないアバター URL は、推測ではなく `null` に解決されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `avatar` | out · data | `ImageAsset\|null` | [image](/ja/docs/studio/blueprint/nodes/image) ノードまたは画像用 Blueprint Value に渡してください。 |
+
+### Get Dialog Text
+
+`blueprint.game.getDialogText` · Pure
+
+現在画面に表示されている行を、テキストとして返します。何も話していない場合は空文字列です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+
+### Get Speaker Color
+
+`blueprint.game.getSpeakerColor` · Pure
+
+話しているキャラクターのアクセントカラーで、ネームタグやネームプレートの色付けに使います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `color` | out · data | `RGBAColor` | 誰も話していない場合は不透明な白です。このピンは null を許容しない色型のため、「値なし」を表現できません。 |
+
+### Is Narrator
+
+`blueprint.game.isNarrator` · Pure
+
+画面上の行が、キャラクターの発言ではなくナレーションであるかどうかです。`Get Nametag` を null チェックする代わりに、ナレーション用にダイアログボックスの見た目全体を切り替えるための、すっきりした方法です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isNarrator` | out · data | `boolean` | |
+
+### Is Dialog Waiting
+
+`blueprint.game.isDialogWaiting` · Pure
+
+行の文字送りが完了し、ゲームがプレイヤーの進行操作を待っているかどうかです。「クリックして続ける」インジケーターが束縛するピンです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isWaiting` | out · data | `boolean` | ホストがない場合と、画面に行が表示されていない場合の両方で `false` です——インジケーターは、ゲームが存在する前からレイアウトされている必要があるためです。 |
+
+### Get Character
+
+`blueprint.game.getCharacter` · Pure
+
+カードで選んだ 1 人のキャラクターについて、プロジェクトが持つレコードです。上記の 3 つの話者読み取りとは異なり、これは誰が話しているかについてのものではありません——キャラクターシート、相関図画面、キャストギャラリーが、ステージ上にいない人物を描画するための手段です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `name` | out · data | `string` | 何も選ばれていない場合、またはそのキャラクターが存在しない場合は空です。 |
+| `characterColor` | out · data | `RGBAColor` | レコードがない場合はデフォルトの色です。 |
+| `characterAvatar` | out · data | `ImageAsset\|null` | |
+| `found` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Character` | プロジェクトのキャラクターの一つ。 |
+
+### Is NVL Mode
+
+`blueprint.game.isNvlMode` · Pure
+
+ゲームが現在 NVL モードであるかどうかです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isNvlMode` | out · data | `boolean` | |
+
+### Get Notifications
+
+`blueprint.game.getNotifications` · Pure
+
+ランタイムが現在表示している通知で、エンジンの通知コンポーネントの内容をそのまま反映します。何もない場合は空の配列です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `notifications` | out · data | `array` | |
+
+**エントリーフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `id` | 通知 id。 |
+| `message` | 通知テキスト。 |
+
+デフォルトの通知テンプレートはこのノードを使いません：その [list](/ja/docs/studio/blueprint/nodes/list) の項目テンプレートは、代わりに項目 props から `message` を読み取ります。
+
+### Show Dialog
+
+`blueprint.game.showDialog` · Latent
+
+`showDialog` の設定を `true` にし、ダイアログ UI を元に戻します。変更されるのは実行時の設定だけです——UI ドキュメントも、ストーリーの位置も変わりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Hide Dialog
+
+`blueprint.game.hideDialog` · Latent
+
+`showDialog` を `false` にします。ダイアログラッパーは非表示の間もインタラクションの意味づけを保持するため、`Next`、`Skip`、後で行う `Show Dialog` は引き続き機能します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Toggle Dialog Display
+
+`blueprint.game.toggleDialogDisplay` · Latent
+
+`showDialog` を読み取り、その反対の値を書き込みます——1 つの UI コントロールのための 1 つのノードです。それ以外には何も触れません：ダイアログのテキストも、ネームタグも、文字送り速度も変わりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Is Dialog Shown
+
+`blueprint.game.isDialogShown` · Pure
+
+上の 3 つのうちの読み取り側です。状態取得ノードのような名前を持つ環境設定取得ノードで——読み取る値は `showDialog` です——そのため縮退するのではなく、稼働中のゲームがない場合には失敗します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isShown` | out · data | `boolean` | |
+
+## 設定
+
+以下の各ペアは、稼働中のゲームにおけるエンジンの `GamePreference` の 1 つのフィールドに対応します。取得ノードは pure で Blueprint Value の中でも安全に使え、設定ノードは latent で、書き込む前に検証を行います——不正な値はクランプされるのではなく、ノードを失敗させます。`showDialog` にはここに対応するペアがありません。`Show Dialog`、`Hide Dialog`、`Toggle Dialog Display`、`Is Dialog Shown` がそれをカバーします。
+
+ここにあるすべての設定ノードは、ゲームのランタイムが稼働していない場合に失敗します。取得ノードも、`GamePreference` ではなくエンジンのバスミキサーを読み取る `Get Track Volume` を除いて同様です。新しいプレイの環境設定を初期化するには、設定ノードを `On Game Ready` にぶら下げてください。これは `LiveGame` が存在した後、最初の行が再生される前に実行されます。
+
+### Get Sentence Speed
+
+`blueprint.game.getCps` · Pure
+
+文が表示される速さである `cps`（1 秒あたりの文字数）を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `cps` | out · data | `float` | |
+
+### Set Sentence Speed
+
+`blueprint.game.setSentenceSpeed` · Latent
+
+`cps` を書き込みます。`0` より大きい有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `cps` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Auto Forward
+
+`blueprint.game.getAutoForward` · Pure
+
+行が終わると自動的に進行するかどうかを表す `autoForward` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `autoForward` | out · data | `boolean` | |
+
+### Set Auto Forward
+
+`blueprint.game.setAutoForward` · Latent
+
+`autoForward` を書き込みます。真偽値でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `autoForward` | in · data | `boolean` | |
+
+### Get Auto Forward Delay
+
+`blueprint.game.getAutoForwardDelay` · Pure
+
+オートフォワードが行の終了後に進行するまで待つ時間である `autoForwardDelay` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `autoForwardDelay` | out · data | `float` | |
+
+### Set Auto Forward Delay
+
+`blueprint.game.setAutoForwardDelay` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `autoForwardDelay` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Skip
+
+`blueprint.game.getSkip` · Pure
+
+そもそもスキップが許可されているかどうかを表す `skip` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `skip` | out · data | `boolean` | |
+
+### Set Skip
+
+`blueprint.game.setSkip` · Latent
+
+`skip` を書き込みます。真偽値でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skip` | in · data | `boolean` | |
+
+### Get Skipping
+
+`blueprint.game.getSkipping` · Pure
+
+ゲームが**今この瞬間**スキップ中であるかどうかを表す `skipping` を読み取ります。上の `skip` はそれを許可する設定であり、これは状態です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `skipping` | out · data | `boolean` | |
+
+### Set Skipping
+
+`blueprint.game.setSkipping` · Latent
+
+グラフからスキップのオン・オフを切り替えます——押し続ける `Skip` アクションではなく、押すたびに切り替わるスキップボタン向けです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipping` | in · data | `boolean` | |
+
+### Get Skip Read Text
+
+`blueprint.game.getSkipReadText` · Pure
+
+プレイヤーがまだ見たことのない行でスキップを止めるかどうかを表す `skipReadText` を読み取ります。ここでの「既読」とは、[既読テキスト](#既読テキスト) の裏にある記録を指します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `skipReadText` | out · data | `boolean` | |
+
+### Set Skip Read Text
+
+`blueprint.game.setSkipReadText` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipReadText` | in · data | `boolean` | |
+
+### Get Skip Delay
+
+`blueprint.game.getSkipDelay` · Pure
+
+プレイヤーが押し続けてからスキップが始まるまでの時間をミリ秒で表す `skipDelay` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `skipDelay` | out · data | `float` | |
+
+### Set Skip Delay
+
+`blueprint.game.setSkipDelay` · Latent
+
+`skipDelay` をミリ秒で書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipDelay` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Skip Interval
+
+`blueprint.game.getSkipInterval` · Pure
+
+スキップされる 2 つの行の間隔をミリ秒で表す `skipInterval` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `skipInterval` | out · data | `float` | |
+
+### Set Skip Interval
+
+`blueprint.game.setSkipInterval` · Latent
+
+`skipInterval` をミリ秒で書き込みます。`0` より大きい有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `skipInterval` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Game Speed
+
+`blueprint.game.getGameSpeed` · Pure
+
+全体の速度倍率である `gameSpeed` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `gameSpeed` | out · data | `float` | |
+
+### Set Game Speed
+
+`blueprint.game.setGameSpeed` · Latent
+
+`gameSpeed` を書き込みます。`0` より大きい有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `gameSpeed` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Global Volume
+
+`blueprint.game.getGlobalVolume` · Pure
+
+他のすべてのチャンネルがそれを基準にスケールされるマスター音量、`globalVolume` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `globalVolume` | out · data | `float` | |
+
+### Set Global Volume
+
+`blueprint.game.setGlobalVolume` · Latent
+
+`globalVolume` を書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `globalVolume` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get BGM Volume
+
+`blueprint.game.getBgmVolume` · Pure
+
+背景音楽のチャンネルである `bgmVolume` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `bgmVolume` | out · data | `float` | |
+
+### Set BGM Volume
+
+`blueprint.game.setBgmVolume` · Latent
+
+`bgmVolume` を書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `bgmVolume` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get SFX Volume
+
+`blueprint.game.getSoundVolume` · Pure
+
+効果音のチャンネルである `soundVolume` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `soundVolume` | out · data | `float` | |
+
+### Set SFX Volume
+
+`blueprint.game.setSoundVolume` · Latent
+
+`soundVolume` を書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `soundVolume` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Voice Volume
+
+`blueprint.game.getVoiceVolume` · Pure
+
+ボイスのチャンネルである `voiceVolume` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `voiceVolume` | out · data | `float` | |
+
+### Set Voice Volume
+
+`blueprint.game.setVoiceVolume` · Latent
+
+`voiceVolume` を書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `voiceVolume` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Voice Fade Duration
+
+`blueprint.game.getVoiceFadeDuration` · Pure
+
+行が終わったときにボイスクリップがフェードするのにかかる時間をミリ秒で表す `voiceFadeDuration` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `voiceFadeDuration` | out · data | `float` | カード上では **Voice Fade** というラベルが付きます。 |
+
+### Set Voice Fade Duration
+
+`blueprint.game.setVoiceFadeDuration` · Latent
+
+`voiceFadeDuration` をミリ秒で書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `voiceFadeDuration` | in · data | `float` | カード上では **Voice Fade** というラベルが付きます。カード上にリテラル値を入力できます。 |
+
+### Get Voice End Mode
+
+`blueprint.game.getVoiceEndMode` · Pure
+
+行が終わってもまだ再生中のボイスクリップに何が起きるかを表す `voiceEndMode` を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `voiceEndMode` | out · data | `string` | `"fade"`、`"stop"`、`"none"` のいずれかです。 |
+
+### Set Voice End Mode
+
+`blueprint.game.setVoiceEndMode` · Latent
+
+`voiceEndMode` を書き込みます。`"fade"`、`"stop"`、`"none"` のいずれかと厳密に一致していなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `voiceEndMode` | in · data | `string` | カード上にリテラル値を入力できます。 |
+
+### Get Track Volume
+
+`blueprint.game.getTrackVolume` · Pure
+
+プロジェクトのオーディオトラックの 1 つについての、プレイヤー側の音量です。ミキサーはプロジェクトが宣言するトラックの木構造です——望むならキャラクターごとに 1 つのバスを持たせることもできます——このペアは、トラックごとに 1 行を持つ設定画面を組み立てる材料になります。
+
+このセクションでは例外的な存在です：値は `GamePreference` ではなくエンジンのバスミキサーから取り出されるため、稼働中のゲームがなくても失敗しません。何も選ばれていない場合や、尋ねる対象がない場合は等倍として読み取られます——それに束縛されたスライダーは、ページの配線がまだ途中の間、ゼロに落ち込むのではなく上端に位置します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `audioTrackId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `volume` | out · data | `float` | トラックが指定されていない場合は `1` です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Track` | プロジェクトのオーディオトラックの一つ。 |
+
+### Set Track Volume
+
+`blueprint.game.setTrackVolume` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `audioTrackId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `volume` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Track` | プロジェクトのオーディオトラックの一つ。 |
+
+## セーブ
+
+セーブはプロジェクトローカルであり、選んだ id をキーとします。同じ id に 2 回書き込むと上書きされます。
+
+<Callout type="warn">
+`List Saves` はプレイヤーのスロットのみを返します。オートセーブは予約済みの id 名前空間——`@autosave.<n>`——に存在し、代わりに `List Auto Saves` で一覧できます。この 2 つの集合が重なることはありません。これは意図的な設計です：`List Saves` で組み立てたセーブ/ロードのグリッドは、Studio 自身の管理用の行を除外する必要が一切なく、オートセーブ画面もプレイヤーのスロットを隠す必要が一切ありません。オートセーブの id は、それ以外の場面では普通のセーブ id として扱われるため、変更なしで `Load Save`、`Get Save Preview`、`Get Save Metadata`、`Delete Save` に渡せます。
+</Callout>
+
+### Save fields
+
+セーブは 2 種類のデータを持ちます。1 つはエンジンがすべてのセーブで書き込むもので、セーブが再開する行、それを話した人物、タイムスタンプです。もう 1 つは作者自身のデータで、それを宣言する場所が **Save fields** です。
+
+`Save Game` または `Get Save Metadata` のカード下部にあるボタンから開きます。各フィールドには名前、型、デフォルト値があります。
+
+宣言したフィールドは名前付きのピンになります：`Save Game` では入力、`Get Save Metadata` では出力です。この一覧は、開いたノードではなくプロジェクトに属するため、プロジェクト内のすべてのセーブノードが同じフィールドを表示し、フィールドはすべてのノードに対して一度だけ宣言すれば済みます。
+
+フィールド名を変更すると、そのピンのラベルが変わりますが、すべての接続は保持されます。型を変更すると、デフォルト値はリセットされます。
+
+| 動作 | 結果 |
+| --- | --- |
+| フィールドが宣言される前に書かれたセーブから、そのフィールドを読み取った | そのフィールドのデフォルト値 |
+| フィールドが削除された | すでにそのフィールドの下に書き込まれていた値は、それを保持しているセーブファイルの中に残る |
+| フィールドが宣言されているのに、実行される `Save Game` で空のまま残された | プロジェクト lint がエラーとして `blueprint/save-field-empty` を報告する |
+
+`metadata` ピンは両方のノードに残り続けます。`Save Game` では、宣言済みのフィールドがそこに含まれる内容の上に書き込まれるため、宣言したキーは、その中にある同名のキーより優先されます。`Get Save Metadata` では、保存されたオブジェクト全体が引き続き返されます。
+
+### Save Game
+
+`blueprint.game.save.write` · Latent
+
+稼働中のゲームを、プロジェクトのローカルセーブストアへシリアライズします。`Capture` が `true` の場合は、ステージの PNG も撮影し、そのセーブのプレビューとして保存します。キャプチャに失敗しても、それは報告されますがセーブ自体は失われません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `metadata` | in · data | `json` | 省略可能です。[JSON](/ja/docs/studio/blueprint/nodes/data) であれば何でも構いません——オブジェクト、配列、文字列、数値、真偽値、または `null`。未接続の場合は `null` として書き込まれます。 |
+| `screenshot` | in · data | `boolean` | 省略可能です。カード上では **Capture** というラベルが付きます。カード上にリテラル値を入力できます。 |
+| 宣言済みフィールドごとに 1 つ | in · data | そのフィールドの型 | フィールドの名前が付きます。リテラル入力に対応する型では、カード上にリテラル値を入力できます。 |
+
+ゲームセッションが稼働していない場合は失敗します。
+
+### Load Save
+
+`blueprint.game.save.load` · Latent
+
+セーブを読み込み、現在の進行状況をそのために破棄します：ルーターとその履歴がクリアされ、新しいゲームインスタンスが作成されてデシリアライズされ、ルーターが抜けると Page スタックは再びステージの下に隠れます——そのため、この後の `Go Page` はゲームの上にオーバーレイを開きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `failed` | out · exec | — | セーブが存在しない、読み取れない、またはゲームのランタイムが稼働していない場合に実行されます。 |
+
+`next` はありません：ロードが成功すると稼働中のゲームが置き換えられるため、このグラフの続きとして残るものは何もないからです。`failed` だけが唯一の出口であり、それはゲーム側がそう告げる分岐です。
+
+### Delete Save
+
+`blueprint.game.save.delete` · Latent
+
+1 件のセーブを削除します。存在しない id を削除しても成功として扱われるため、削除ボタンは事前に存在チェックをする必要がありません。必要なのはプロジェクトのセーブ名前空間だけで、ゲームが稼働している必要はありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+
+### List Saves
+
+`blueprint.game.save.listIds` · Latent
+
+プロジェクトのプレイヤーセーブの id 一覧です。順序は保証されません。破損しているファイルや、メタデータがプレイヤーセーブでないファイルは、報告されるのではなくスキップされます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `ids` | out · data | `array` | `string` の配列です。 |
+
+### Get Save Metadata
+
+`blueprint.game.save.getMetadata` · Latent
+
+セーブが持つ、作者側のデータを読み取ります。宣言済みの各フィールドはそれぞれ専用のピンに出力され、`metadata` ピンは、どのフィールドも宣言していないキーも含めて、保存されたオブジェクト全体を返します。システムフィールドはどちらにも含まれません：id、レコードの種類、`createdAt`、`updatedAt`、プレビューは `Get Save Time` と `Get Save Preview` で読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `metadata` | out · data | `json` | セーブが存在しない、またはユーザーのメタデータを持たない場合は `null` です。 |
+| 宣言済みフィールドごとに 1 つ | out · data | そのフィールドの型 | フィールドの名前が付きます。セーブがそれを持たない場合は、そのフィールドのデフォルト値です。 |
+
+### Get Save Time
+
+`blueprint.game.save.getTime` · Latent
+
+スロットが書き込まれた時刻です。セーブストアは書き込むすべてのレコードにタイムスタンプを刻み、このノードはそれを読み戻します。セーブ画面は、自分の `metadata` に時刻を入れて両者を同期させ続ける必要がありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `savedAt` | out · data | `float` | スロットが最後に書き込まれた時刻。セーブが存在しない場合は `0` です。 |
+| `createdAt` | out · data | `float` | スロットが最初に書き込まれた時刻。セーブが存在しない場合は `0` です。 |
+| `exists` | out · data | `boolean` | |
+
+どちらの時刻も、協定世界時 1970 年 1 月 1 日からのミリ秒数です。これは `List Auto Saves` が報告する単位であり、すべての [Time](/ja/docs/studio/blueprint/nodes/time) ノードが受け付ける単位でもあります。
+
+<Callout type="warn">
+空のスロットかどうかを見分けるには `exists` を読んでください。セーブが存在しない場合、`savedAt` は `0` になりますが、`0` は 1970 年の正当な時刻でもあります。
+</Callout>
+
+### Get Save Line
+
+`blueprint.game.save.getLine` · Latent
+
+セーブが再開する行と、それを話した人物です。エンジンはシリアライズのたびにこの両方を記録し、このノードはそれを読み戻します。セーブ画面は、セーブ時にバックログを読んで最後のエントリーを自分のフィールドに書き込む必要がありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `line` | out · data | `string` | セーブが存在しない場合、または行が一つも再生される前に取られた場合は空です。 |
+| `speaker` | out · data | `string` | ナレーションの場合、および行がまだないセーブの場合は空です。 |
+| `exists` | out · data | `boolean` | |
+
+<Callout type="warn">
+これはバックログの最新のエントリーではありません。バックログは最後に表示された行を保持しますが、この 2 つのフィールドはセーブが再開する行を保持します。オーバーレイからセーブした場合や、最後の行の後にダイアログ以外のアクションが続いた地点からセーブした場合、この 2 つはずれます。
+</Callout>
+
+### Get Save Playtime
+
+`blueprint.game.save.getPlaytime` · Latent
+
+そのスロットが書き込まれた時点で、そのプレイがどれだけプレイされていたかです——セーブグリッドがサムネイルの下に表示する「12h 34m」のような値です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+| `recorded` | out · data | `boolean` | プレイ時間の記録が始まる前に書かれたセーブでは `false` です——スロット自体は存在しますが、数値は存在しません。 |
+| `exists` | out · data | `boolean` | |
+
+[Time](/ja/docs/studio/blueprint/nodes/time) の `Format Duration` で書式化してください。
+
+### Get Save Preview
+
+`blueprint.game.save.getPreview` · Latent
+
+セーブに保存されたスクリーンショットを、現在のセッション用の `ImageAsset` に変換します。この画像はプロジェクトのリソースにはインポートされません。そのまま `Set Image Asset` や画像用 Blueprint Value に接続してください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `preview` | out · data | `ImageAsset\|null` | セーブが存在しない、またはスクリーンショットがない場合は `null` です。 |
+
+## オートセーブ
+
+オートセーブはプロジェクトごとに **Project → Game** の下で設定します：オン・オフ、間隔、そしてリングが保持するスロット数です。この設定はプロジェクトとともに出荷されます。グラフは何もスケジューリングしません——スケジューラーは自律的に動作し、前回から story が進んだときにだけ書き込みます。そのため、間隔がどれだけ短くても、アイドル状態のゲームにはコストがかかりません。書き込みはリングを古い順に回転するため、永遠にオートセーブを続けても、ディスクの使用量には上限があります。
+
+### Auto Save
+
+`blueprint.game.autoSave.write` · Latent
+
+今すぐ 1 件のオートセーブを、スケジューラーが使うのと同じリングの次のスロットに、スクリーンショットも含めて書き込みます。オン・オフの設定も「story が進んだか」というゲートも無視します——作者が明示的にこれを要求したからです——その結果、後から見るとスケジュールされたオートセーブと見分けが付きません。実行は継続します：オートセーブはプレイを妨げません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+他のすべてのセーブ書き込みと同様、ゲームが稼働していない場合は失敗します。
+
+### List Auto Saves
+
+`blueprint.game.autoSave.list` · Latent
+
+予約済みの名前空間にあるすべてのオートセーブを、**新しい順**で返します。リングのサイズを縮小した後に取り残されたスロットも引き続き一覧に含まれます——設定変更によってプレイヤーのセーブが消えてしまってはならないからです——それらは単に、以後の書き込み対象から外れるだけです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `count` | out · data | `integer` | |
+
+**エントリーフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `id` | セーブ id。`Load Save`、`Get Save Preview`、`Get Save Metadata`、`Delete Save` にそのまま渡せます。 |
+| `slot` | リング内でのスロットのインデックス。 |
+| `timestamp` | 最後に書き込まれた時刻。エポックミリ秒。 |
+| `createdAt` | 最初に書き込まれた時刻。エポックミリ秒。 |
+| `metadata` | 書き込み側が付けたもの。何もない場合は `null`。 |
+
+エントリーが持つのは**シリアライズされたゲームではなく id** です：`SavedGameData` の塊はグラフの中では何もできませんが、id ならすでにあるセーブ系ノードにそのまま渡せます。
+
+### Get Latest Auto Save
+
+`blueprint.game.autoSave.latest` · Latent
+
+最新のオートセーブです。これは Continue ボタンのためのノードで——`List Auto Saves` の最初のエントリーを取り出すのに必要なインデックスやフィールドのノードなしで、同じことを行います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | out · data | `string` | オートセーブがない場合は空文字列です。 |
+| `hasAutoSave` | out · data | `boolean` | Continue を無効化するために接続してください。 |
+| `timestamp` | out · data | `float` | 最後に書き込まれた時刻。エポックミリ秒。オートセーブがない場合は `0` です。 |
+
+## 履歴
+
+ダイアログ履歴——バックログ——は、すでに過ぎた行やメニューについてのエンジン自身の記録であり、その中へと巻き戻すことができます。
+
+これは再生ヘッドを持つタイムラインであり、この 7 つのノードはその両面にあたります。`Get History` はヘッドまでのすべて——すでに読まれた行を、順番に返します。巻き戻すとヘッドが移動し、通り過ぎた行は**未来**になります。それを `Get Future History` が返し、`Redo Next History Entry` がその中へ進みます。`Can Undo History` と `Can Redo History` は、バックログの一対のボタンが自身を無効化する根拠です。
+
+### Get History
+
+`blueprint.game.history.get` · Latent
+
+バックログをフラットな配列として、古い順に返します。そのまま list ウィジェットに束縛できます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `count` | out · data | `integer` | |
+
+**エントリーフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `id` | 履歴トークン。`Restore From History` に渡します。 |
+| `type` | 発言された行は `"say"`、確定した選択は `"menu"`。 |
+| `text` | 文、またはメニューのプロンプト。元がなかった場合は空文字列。 |
+| `character` | say エントリーでは話者のネームタグ、メニューとナレーションでは `null`。 |
+| `voice` | say エントリーではボイスクリップの id、ない場合は `null`。 |
+| `selected` | メニューエントリーでは選ばれた選択肢のテキスト、say エントリーと未確定のメニューでは `null`。 |
+| `isPending` | 現在画面にあり、まだ確定していない行の場合は true。 |
+
+ゲームが稼働していない場合は空の配列です。
+
+### Restore From History
+
+`blueprint.game.history.restore` · Latent
+
+ゲームを 1 つのバックログエントリーまで巻き戻し、それより後をすべて破棄します。可能な場合はそのエントリーのスナップショットから復元し、できない場合は undo にフォールバックします——そのため、undo スタックが空である、ロードした直後のゲームでも機能します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上では **Entry Id** というラベルが付きます。必須です。空の id はノードを失敗させます。カード上にリテラル値を入力できます。 |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Undo Last History Entry
+
+`blueprint.game.history.undoLast` · Latent
+
+1 つ前のエントリーに戻ります——対象を指定しない `Restore From History` です。バックログ画面の「戻る」ボタンにあたります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Redo Next History Entry
+
+`blueprint.game.history.redoNext` · Latent
+
+undo が作った未来へと進みます——「戻る」ボタンの隣にある「進む」ボタンです。それ以外の方法でストーリーを進めるとその未来は破棄されるため、これは 2 回目の `Next` ではなく redo にあたります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+ゲームのランタイムが稼働していない場合は失敗します。
+
+### Get Future History
+
+`blueprint.game.history.getFuture` · Latent
+
+再生ヘッドより先にあるエントリーを、`Get History` と同じ形で返します。巻き戻す前にいた場所をプレイヤーに見せるバックログ画面は、これを 2 つ目の list に束縛します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | `Get History` と同じエントリーフィールドです。 |
+| `count` | out · data | `integer` | |
+
+ゲームが稼働していない場合、および巻き戻した箇所が何もない場合は空の配列です。
+
+### Can Undo History
+
+`blueprint.game.history.canUndo` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `canUndo` | out · data | `boolean` | ゲームが稼働していない場合は `false` です。 |
+
+pure であるため、直接 Blueprint Value を支えられます：戻るボタンの `enabled` をこれに束縛すれば、フレームごとにグラフを実行することなく、ログの先頭でボタンが自動的にグレーアウトします。
+
+### Can Redo History
+
+`blueprint.game.history.canRedo` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `canRedo` | out · data | `boolean` | ゲームが稼働していない場合は `false` です。 |
+
+## 既読テキスト
+
+行はそのテキストの表示が完了した瞬間に既読としてマークされます——ADV では文字送りの完了時、NVL では進行待ちの時点です。この記録はメッセージの安定したテキスト id をキーとするため、ストーリーの編集を経ても残り、プロジェクト内のすべての Story にまたがります。また、セーブファイルとは独立に、プロジェクトレベルで永続化されます。「既読のみスキップ」というオプションは、これを基盤にしています。
+
+### Is Text Read
+
+`blueprint.game.isTextRead` · Pure
+
+ダイアログの行が画面にあり、**かつ**そのメッセージが既読としてマークされている間は true です——以前のプレイで見た場合か、たった今表示が完了した場合のいずれかです。行が表示されていない場合は false です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isRead` | out · data | `boolean` | |
+
+### Clear Text Read
+
+`blueprint.game.clearTextRead` · Latent
+
+プロジェクト内のすべての story について、既読の記録をメモリ上とディスク上の両方から消去します。すでに表示が完了して画面に残っている行は、すぐにまた既読としてマークされ直します——プレイヤーがそれを見ているからです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+### Has Read Text
+
+`blueprint.game.isTextReadById` · Pure
+
+名前付きの 1 行がこれまでに既読になったことがあるかどうかを、画面の内容ではなくテキスト id で問い合わせます。上の `Is Text Read` は現在の行について答えるのに対し、これはプレイヤーが今見ていない行について答えます。エクストラ画面やボイスギャラリーが必要とするのはこちらです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textId` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `isRead` | out · data | `boolean` | id が空の場合は `false` です。そのため、配線が半端なギャラリー行はページ全体を巻き込まず、ロックされたままになります。 |
+
+## プレイ時間
+
+### Get Playtime
+
+`blueprint.game.getPlaytime` · Pure
+
+現在実行中のプレイがどれだけの時間プレイされたかです。両方のピンは同じ数値を異なる単位で運ぶため、時間を書式化する画面と、ミリ秒で計算する画面のどちらも、それぞれ必要な形で受け取れます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `playtimeSeconds` | out · data | `float` | |
+| `playtimeMilliseconds` | out · data | `float` | |
+
+何も計測していない場合は `0` です——ゲームが存在する前に「この回はどれだけ進んだか」をタイトル画面が尋ねるのは、正当な問いであり、実際の答えを持ちます。一方、ストーリープレビューにはそもそもストップウォッチが存在しません。
+
+### Get Total Playtime
+
+`blueprint.game.getTotalPlaytime` · Pure
+
+このプロジェクトで、あらゆるプレイを通じてこれまでに費やされた秒数です。これはコンプリート画面が表示する数値であり、`Get Playtime` はポーズメニューが表示する数値です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `totalPlaytimeSeconds` | out · data | `float` | |
+| `totalPlaytimeMilliseconds` | out · data | `float` | |
+
+## ルート進行状況
+
+`Is Scene Visited` と `Is Option Picked` は、プレイヤーが進むにつれてストーリーコンパイラが書き込む記録を読み取ります。これは**セーブ**の中にあるため、ロードすると巻き戻ります——「*今回の*プレイでこのルートを通ったか」に答えるもので、これはワンショットの選択肢やストーリー途中でのアンロックが求めているものです。下記のエンディングの記録はその逆で、プロジェクトの永続化領域にあります。
+
+どちらの読み取りノードも pure であるため、ギャラリーの行は行ごとにグラフを実行するのではなく、ロック状態の見た目をピンに直接束縛できます。また、空の id は例外を投げるのではなく「いいえ」と答えます。
+
+<Callout type="info">
+これは `Has Read Text` ではありません。既読の記録は行が**表示された**時点で書き込まれるため、プレイヤーが単に開いただけのメニューのすべての選択肢が既読としてカウントされます。`Is Option Picked` は選んだ時点で書き込まれます。
+</Callout>
+
+### Is Scene Visited
+
+`blueprint.game.isSceneVisited` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `sceneId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `isVisited` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | 問い合わせる対象の story。 |
+| `Scene` | その story に絞り込まれた scene。 |
+
+このピッカーは 10 件中 9 件をカバーします。ピンは残りの 1 割のためです：シーンごとに 1 枚のカードを複製するのではなく、シーンごとに 1 回だけ配置されたギャラリーカードが、自分の params からどのシーンかを読み取る場合です。
+
+### Is Option Picked
+
+`blueprint.game.isOptionPicked` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `storyId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `optionId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
+| `isPicked` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | 問い合わせる対象の story。 |
+| `Option` | その story に絞り込まれた選択肢。 |
+
+### Clear Visited
+
+`blueprint.game.clearVisited`
+
+両方の記録を空にします。副作用はありますが latent ではありません——ホストの永続化に書き込み、待機が必要な `Clear Text Read` とは異なり、稼働中の `Storable` の 2 つのキーを同じティック内でクリアします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## エンディング
+
+story 内の `/ending` 行がその宣言のすべてであり、そのブロック id がここでのすべての識別子になります。この 4 つのノードは、エンディング画面を組み立てる材料です：プレイヤーがどれを見つけたか、そして並べる対象となる全体の集合が何かです。
+
+エンディングの記録はセーブではなく**プロジェクトの永続化領域**にあり、何によっても巻き戻りません。エンディング画面が問うのは、このプレイヤーがこれまでに何を見たかであるため、もしセーブの記録を基にギャラリーを組み立てたなら、古いセーブをロードした人の前でエントリーが再びロックされ、「8 件中 5 件」という表示が減ってしまいます。これはまた、この 4 つのどれも、実行中の story を必要としないことを意味します——エンディングギャラリーはまさにタイトル画面から開かれるものだからです。
+
+### Is Ending Reached
+
+`blueprint.game.isEndingReached` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isReached` | out · data | `boolean` | 選ばれていないエンディングでは `false` です。そのため、配線が半端な行はロックされたままになります。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | 問い合わせる対象の story。 |
+| `Ending` | その story で宣言されているエンディング。 |
+
+### Get Endings
+
+`blueprint.game.getEndings` · Pure
+
+その story が宣言しているすべてのエンディングを、到達済みかどうかにかかわらず返します——ギャラリーが並べ、カウントの基準にする集合です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `endings` | out · data | `array` | 何も選ばれていない場合は空です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | エンディングを一覧する対象の story。 |
+
+### Clear Ending State
+
+`blueprint.game.clearEndingState` · Latent
+
+1 つのエンディングを再びロックします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Story` | 問い合わせる対象の story。 |
+| `Ending` | 忘れさせるエンディング。 |
+
+### Clear Endings
+
+`blueprint.game.clearEndings` · Latent
+
+すべてのエンディングを再びロックします。どちらの消去もホストの永続化に書き込むため、どちらも latent です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## エディションと追加コンテンツ
+
+### Get Build Variant
+
+`blueprint.game.getAppTag` · Pure
+
+このパッケージがプロジェクトのどの [variant](/ja/docs/studio/patches) であるかです。
+
+このカタログの中で唯一、ゲームが存在する前に値が決まるノードです。1 回のビルドは 1 つの variant を生成し、その名前がここに代入され、それを消費する比較はすべて畳み込まれ、このエディションが取らない分岐は**削除されます**——そのため、variant のチェックの裏にあるコンテンツは、パッケージの中で単に到達不能なのではなく、そもそも存在しなくなります。`Get Build Variant` が最終的に分岐を決定しないグラフは、リリースビルドを含むすべてのビルドで、ビルドゲートによって拒否されます：フォールバックできる実行時の値が存在しないため、そのようなグラフはそもそもコンパイルできません。
+
+これが、このノードが何も入力を取らず、カードフィールドも持たない理由でもあります。何かを与えられるとしても、それはすでに 1 つの答えを持つ問いへの、2 つ目の入力になってしまうからです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `appTag` | out · data | `string` | variant の名前です。フル版は `main` です。 |
+
+### Is DLC Installed
+
+`blueprint.game.isDlcInstalled` · Pure
+
+追加コンテンツの一部が、稼働中のゲームのそばに存在しているかどうかです。
+
+この問いは意図的に、所有ではなく**存在**についてのものです。DLC はゲームの隣にファイルとして届き、プレイヤーがどこで購入したにせよそこに置かれます。それがここにあるかどうかは、このビルドが確認できる事実です。プレイヤーがそれを*所有*しているかどうかはストアの事実であり、答えるのはストアプラグインのノードです——そこを基準にコンテンツをゲートすると、オフラインのプレイヤーが購入済みの章を奪われてしまいますが、存在の確認ならそれは決して起きません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isInstalled` | out · data | `boolean` | 何も選ばれていない場合は `false` です。そのため、配線が半端なメニュー行は非表示のままになります。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `DLC` | プロジェクトが宣言している DLC の一つ。 |
+
+## エディション間で進行状況を引き継ぐ
+
+体験版と製品版は別々の app id を持つ別々のパッケージであるため、別々のユーザーデータディレクトリを持ち、アセット保護キーも意図的に異なります：製品版のビルドは体験版のセーブファイルを読み取ることができず、また読み取ろうとしてもいけません。この 2 つのノードは、それでも越えることができる経路であり、意図的にセーブファイルの形は取っていません——それは、タイトルごとに 1 つの、プロジェクトレベルの変数、プレイヤーがどこまで進んだか、どのシーンを見たかを保持する、ただの JSON ドキュメントです。
+
+そのドキュメントがどこに置かれるかは、グラフではなく常にシェルが決めます：デスクトップ向けのシェルはそれをメインプロセスに渡し、Web 版は書き込むべき共有ファイルがページにはないため拒否します。そのため、この 2 つのノードにはどちらも失敗の分岐と理由があり、グラフは「だめだ」という答えを受け取れなければなりません。
+
+### Export Progress
+
+`blueprint.game.progress.export` · Latent
+
+このプレイが持つすべてを、タイトルの進行状況ドキュメントに書き込みます。何も入力を取りません：受け渡されるのはプロジェクトが宣言している集合であり、*他方の*エディションが読むドキュメントのために 1 つのグラフが選んだ部分集合ではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `failed` | out · exec | — | 書き込めないシェル、進行状況キーを持たないビルド、または拒否したディスクの場合です。 |
+| `error` | out · data | `string` | そのうちどれであったかです。 |
+
+### Import Progress
+
+`blueprint.game.progress.import` · Latent
+
+ドキュメントを読み取り、その内容を稼働中のゲームに適用します。
+
+**自動では遷移しません。** `Scene` はデータとして出力され、このノードはそこで止まります。story を開始するのは `Start Game` であり、タイトル画面には通常、その前にすべきことがあります——フェード、確認、チャプター選択などです。もしこのノード自身が遷移してしまえば、それらすべてを飛ばして story を開始する、もう一つの経路になってしまいます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `found` | out · exec | — | |
+| `missing` | out · exec | — | 誰も書き出していない場合です。 |
+| `failed` | out · exec | — | 読み取れないドキュメントの場合です。 |
+| `sceneId` | out · data | `string` | プレイヤーが到達していた場所です。ドキュメントがどこにも紐づいていない場合は空です。`Start Game` に接続してください。 |
+| `error` | out · data | `string` | |
+
+出口が 3 つあるのは、作者がそれぞれに違う答えを返すべきだからです。`Missing` は、書き出したことのない全員にとっての普通の状態です——新規インストールや、製品版へ直接進んだプレイヤーなど——これは「謝罪」ではなく「新しいゲームを始める」につながるべきものです。これを `Failed` にまとめてしまうと、初めてプレイするすべての人の前にエラーを出すことになります。`Failed` は読み取れないドキュメントを指します：より新しいビルドで書かれた、別のタイトルに属する、あるいは破損している場合です。
+
+## ストレージ
+
+### Check Storage Durability
+
+`blueprint.game.storageDurability` · Latent
+
+このビルドが書き込んだものが、書き込まれたまま残るかどうかです——プレイヤーのセーブについて、シェルは知っていてもゲーム自身では判断できない、唯一のことです。
+
+パッケージ化されたデスクトップゲームは、何にも回収されないユーザーデータディレクトリにファイルを保持します。Web 版はブラウザの間借り人であり、永続ストレージの許可を得ていないサイトは、セーブ・永続変数・既読テキストをまとめて丸ごと消去されることがあります。ページは読み込み時にその許可を要求しており、これはその際に得られた答えです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `durable` | out · exec | — | |
+| `evictable` | out · exec | — | |
+| `unknown` | out · exec | — | |
+
+分岐が 3 つあるのは、その 3 つがそれぞれ違う言葉につながるからです。`Evictable` は「このブラウザはセーブされたゲームを削除する可能性がある」という意味であり、`Unknown` はブラウザがそれを明言しない場合です。真実が後者であるにもかかわらず前者をプレイヤーに伝えることは、誰も約束していないことを約束してしまいます。何も自動では決まりません——ストレージが回収される可能性のあるページでも、ゲームを最後までプレイできるページであることに変わりはなく、プレイヤーにそれについて何かを伝えるかどうかは、そのタイトル次第です。

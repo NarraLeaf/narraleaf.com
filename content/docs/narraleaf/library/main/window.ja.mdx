@@ -1,0 +1,110 @@
+---
+title: "AppWindow"
+description: NarraLeaf のメイン BrowserWindow ラッパーと renderer のイベントブリッジを扱う
+---
+
+`AppWindow` は `app.launchApp()` が返します。Electron のメイン `BrowserWindow` を、NarraLeaf のライフサイクルイベント、ユーザーレベルの renderer イベント、便利なメソッドでラップしたものです。
+
+```ts
+app.onReady(async () => {
+    const win = await app.launchApp({
+        isolated: true,
+        options: {
+            width: 1280,
+            height: 720,
+        },
+    });
+});
+```
+
+## ウィンドウの設定
+
+`launchApp` は `Partial<WindowConfig>` を受け取ります。
+
+- `isolated`：ウィンドウで context isolation を使うかどうかです。デフォルトは `true` です。
+- `autoFocus`：ウィンドウが自動的にフォーカスされるかどうかです。デフォルトは `true` です。
+- `options`：Electron の `BrowserWindowConstructorOptions` です。
+
+```ts
+await app.launchApp({
+    isolated: true,
+    options: {
+        backgroundColor: "#000",
+        width: 1280,
+        height: 720,
+    },
+});
+```
+
+## ウィンドウの操作
+
+```ts
+win.setTitle("My Visual Novel");
+win.getTitle();
+
+win.enterFullScreen();
+win.exitFullScreen();
+win.isFullScreen();
+
+win.reload();
+win.toggleDevTools();
+```
+
+より低レベルの Electron の制御が必要な場合は、`loadURL`、`loadFile`、`show`、`setIcon` も呼び出せます。
+
+## ウィンドウイベント
+
+```ts
+const closeToken = win.onClose(() => {
+    app.logger.info("Main window closed");
+});
+
+closeToken.cancel();
+```
+
+`onKeyUp` は Electron の `before-input-event` を監視し、キーで絞り込みます。
+
+```ts
+win.onKeyUp("F12", () => {
+    win.toggleDevTools();
+});
+```
+
+## ユーザー用の Main Events
+
+主プロセスで、文字列をキーとするハンドラを登録します。
+
+```ts
+win.handleUserEvent<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    async ({ id }) => {
+        app.logger.info("ping", id);
+        return { ok: true };
+    },
+);
+```
+
+renderer 側のコードは、`requestMain` または型付けされた `invokeMainEvent` ラッパーでこのハンドラを呼び出せます。
+
+```ts
+import { requestMain } from "narraleaf/renderer";
+
+const result = await requestMain<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    { id: "intro" },
+);
+```
+
+型付けされた renderer 側のパターンについては [Main Events](/ja/docs/narraleaf/library/renderer/main-events) を参照してください。
+
+## ハンドラの管理
+
+アプリレベルのハンドラを確認したり削除したりする場合は、`isUserEventHandled` と `offUserEvent` を使います。
+
+```ts
+if (win.isUserEventHandled("example:ping")) {
+    win.offUserEvent("example:ping");
+}
+```
+
+> **Note:** `registerIPCHandler` は、NarraLeaf の組み込みブリッジと高度なフレームワーク拡張のために存在します。アプリ固有の renderer から main への呼び出しに使う通常のユーザー API ではありません。

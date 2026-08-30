@@ -1,0 +1,96 @@
+---
+title: はじめに
+description: ランチャーからプロジェクトを作成し、ワークスペースで開く
+---
+
+このガイドでは、ランチャーから空のプロジェクトを作成します。作成が終わると Studio はワークスペースを開き、UI エディタには `Main Page` が用意された状態になります。
+
+<Figure
+    src="/static/img/docs/studio/en/launcher.webp"
+    alt="ランチャーの Projects ページ。最近開いたプロジェクトが並ぶ"
+/>
+
+## プロジェクトを作成する
+
+<Steps>
+<Step>
+
+### ウィザードを開く
+
+ランチャーの**Projects**（プロジェクト）ページで、**Add Project**（プロジェクトを追加）を選択します。
+
+ウィザードには**Source**（ソース）、**Project**（プロジェクト）、**Stage**（ステージ）、**Review**（確認）の 4 つのステップがあります。
+</Step>
+<Step>
+
+### ソースを選ぶ
+
+**New project**（新規プロジェクト）を選択し、続けて**Empty**（空）テンプレートを選択します。
+
+同じステップで、エクスポート済みの `.nlspkg` ファイルのインポートや、バージョン管理サーバーからのプロジェクトのクローンも行えます。
+
+<Figure
+    src="/static/img/docs/studio/en/project-wizard.webp"
+    alt="ウィザードの Source ステップ。New project、Import .nlspkg、Clone from server と、その横に並ぶテンプレート"
+/>
+</Step>
+<Step>
+
+### プロジェクトの詳細を入力する
+
+次の項目を入力します。
+
+- **Project Name**（プロジェクト名）。既定の製品名にもなります。
+- **App ID**（アプリ ID）。使用できるのは小文字のアルファベット、数字、ハイフンのみで、プロジェクト作成後は変更できません。
+- **Location**（場所）。空のディレクトリか、まだ存在しないパスを指定します。Studio は空でないディレクトリにはプロジェクトを作成しません。
+
+**Version Control**（バージョン管理）をオンにすると、プロジェクトフォルダ内に履歴が記録されます。作成者、ライセンス、説明は後から入力できます。
+</Step>
+<Step>
+
+### ステージを設定する
+
+**Stage Size**（ステージサイズ）を選びます。これはゲーム UI とランタイム表示の基準サイズです。また、ストーリーを書く言語である**Script Language**（スクリプト言語）も選びます。他の言語は後から Localization パネルで追加できます。
+</Step>
+<Step>
+
+### 確認して作成する
+
+**Review**（確認）で入力内容を確認し、**Create Project**（プロジェクトを作成）を選択します。プロジェクトの準備が整うと、Studio はワークスペースを開きます。
+</Step>
+</Steps>
+
+## 初回起動時
+
+UI エディタはプロジェクトの既定のメインページである `Main Page` を開きます。これをタイトル画面として使うことも、これとは別にページを追加することもできます。
+
+<Figure
+    src="/static/img/docs/studio/en/ui-editor.webp"
+    alt="UI エディタで開いたページ。UI Outline、キャンバス、挿入バー、Properties"
+/>
+
+左側のアクティビティバーには、主要なツールがまとまっています。
+
+- **Project** — メタデータ、アイコン、依存関係、プロジェクト設定
+- **Story**（ストーリー） — ストーリー、チャプター、シーン
+- **UI** — ページ、ゲーム UI、コンポーネントライブラリ
+- **Characters**（キャラクター） — キャラクターのフォームとバリアント
+- **Assets**（アセット） — プロジェクトのアセットとグループ
+- **Localization**（ローカライゼーション） — 言語、翻訳、レビュー
+
+## 既存のプロジェクトを開く
+
+ランチャーで**Open Project**（プロジェクトを開く）または**Open Folder**（フォルダを開く）を選択し、`.nlproj` ファイルを含むディレクトリを選びます。エクスポート済みの `.nlspkg` パッケージを開くには、**Add Project** を選択し、**Source** ステップからインポートします。
+
+<Cards>
+    <Card
+        title="ワークスペースの概要"
+        description="編集時に使用する各エリア"
+        href="/ja/docs/studio/getting-started/workspace-overview"
+    />
+    <Card
+        title="最初のページを作成する"
+        description="Main Page に最初のインターフェース要素を配置します。"
+        href="/ja/docs/studio/getting-started/create-first-page"
+    />
+</Cards>

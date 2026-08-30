@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { projectSource, source } from '@/lib/source';
+import { pagesWrittenIn, projectSource, source } from '@/lib/source';
 import { i18n, type Locale, localizedPath } from '@/lib/i18n';
 import { absoluteUrl } from '@/lib/seo';
 import { docsRoute, downloadRoute, projectRoute } from '@/lib/shared';
@@ -51,7 +51,14 @@ function localizedEntries(
   }));
 }
 
-/** The documentation and project trees, grouped by page so translations pair up. */
+/**
+ * The documentation and project trees, grouped by page so translations pair up.
+ *
+ * A page that has not been translated yet is listed only in the languages it
+ * was written in. The site still serves it under the other prefixes, falling
+ * back to English, but a sitemap that named those addresses would be claiming
+ * translations that do not exist.
+ */
 function contentEntries(): MetadataRoute.Sitemap {
   const localesByPath = new Map<string, Locale[]>();
   const ordered: string[] = [];
@@ -67,14 +74,14 @@ function contentEntries(): MetadataRoute.Sitemap {
   };
 
   for (const locale of i18n.languages) {
-    for (const page of source.getPages(locale)) {
+    for (const page of pagesWrittenIn(source, locale)) {
       // `/docs/narraleaf` redirects into the library section; the pages beneath
       // it are listed on their own.
       if (page.slugs.length === 1 && page.slugs[0] === 'narraleaf') continue;
       record(`${docsRoute}/${page.slugs.join('/')}`, locale);
     }
 
-    for (const page of projectSource.getPages(locale)) {
+    for (const page of pagesWrittenIn(projectSource, locale)) {
       const slugs = page.slugs.join('/');
       record(slugs ? `${projectRoute}/${slugs}` : projectRoute, locale);
     }

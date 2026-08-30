@@ -1,0 +1,45 @@
+---
+title: "AudioBusState"
+description: "`game.audioBuses.list()` が返す、1つのバスにおけるプレイヤー音量・作者音量・そこから算出される実効音量"
+---
+```ts
+type AudioBusState = {
+    id: string;
+    parentId: string | null;
+    /**
+     * The player's control, 0..1, default 1. This is the one to persist.
+     */
+    volume: number;
+    /**
+     * The author's mix position, from AudioBusDeclaration.volume.
+     */
+    declaredVolume: number;
+    /**
+     * `declaredVolume * volume` - what is actually on the gain node.
+     */
+    effectiveVolume: number;
+};
+```
+
+1つのバスと、その2つの数値を `game.audioBuses.list()` が返します。
+
+この2つの値は独立しています。**宣言値 × プレイヤー値 = ノード上の値**であり、どちらかがもう一方を上書きすることはありません。
+
+## volume
+
+プレイヤーが操作する値であり、**永続化すべき側**です。この値を復元しておけば、作者がリリース済みのゲームをミックスし直しても、再訪したプレイヤーの保存済み設定が古いミックスに縛り付けることはありません。`game.audioBuses.getVolumes()` は、これらの値を id をキーとして返します。
+
+## declaredVolume
+
+作者がミックス上で設定した位置で、[AudioBusDeclaration](/ja/docs/narraleaf-react/core/types/AudioBusDeclaration) に由来します。
+これはストレージではなくゲーム自体に由来する値であり、永続化するとゲーム自身のコンテンツを永続化することになってしまいます。
+
+## effectiveVolume
+
+両者の積であり、ゲインノード上にある値そのものです。
+
+- 完全なモデルについては[音声バス](/ja/docs/narraleaf-react/core/game/audio-buses)を参照してください。
+
+<Callout type="info">
+    `0.23.0` で追加
+</Callout>

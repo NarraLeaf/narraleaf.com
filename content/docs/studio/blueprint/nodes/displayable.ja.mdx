@@ -1,0 +1,255 @@
+---
+title: 表示可能オブジェクト
+description: あらゆるビジュアルウィジェットが共有するジオメトリと外観のインターフェース——プロパティ、Appearance Variant、プロパティアニメーション
+---
+
+あらゆるビジュアルウィジェットは Displayable です。位置、サイズ、回転、不透明度を持ち、それらを定義しているウィジェットについては Appearance Variant も持ちます。これらのノードは、ウィジェット自身のブループリントの内部からこの共有インターフェースを読み書きするため、同じノードが Text、Image、Container のいずれに対しても機能します。
+
+## 規約
+
+- **Self ノードのみ。** このカテゴリのノードはいずれも`Element`入力を取りません——対象は常にブループリントを所有するウィジェットです。配線された要素に作用するバージョンは、[Element](/ja/docs/studio/blueprint/nodes/element)に`Get Element Property`、`Set Element Variant`などとして存在します。`Stop Element Animation`も`Element`入力を取らないにもかかわらずそちらに分類されています——`AnimationToken`がすでに1つのウィジェット上の1つのアニメーションを指名しているため、他に対象を指定する必要がないからです。
+- **現れる場所。** displayable なウィジェットすべての`widgetMain`ブループリントに現れます——`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`、および5つのステージウィジェット`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`。`Set Variant`と`Get Variant`はより限定的です——Appearance Variant を持つのは`nl.container`、`nl.text`、`nl.image`、`nl.button`のみです。
+- **グラフの種類。** Getter は純粋であり、Blueprint Value の内部を含め`event`、`function`、`macro`のいずれのグラフでも実行できます。Setter は latent であり、`event`と`macro`でのみ実行できます。
+- **書き込みはランタイムのパッチレイヤーに反映される**のであって、作成済みの UI ドキュメントには反映されません。何も変えない書き込みは flush をキューしません。
+- **座標は Surface のデザインピクセルです**——インスペクタの Position の`X` / `Y`が示すのと同じ数値です。
+- **単位。** カードは各数値フィールドの横に単位を表示します——`x` / `y` / `offsetX` / `offsetY` / `width` / `height`は`px`、`rotation`は`deg`、`scale`は`x`、時間は`s`、`opacity`は`%`。不透明度を除くすべては入力されたとおりに保存されます。不透明度はカード上ではパーセンテージですが、実行時には`0`–`1`の小数であり、すべての Getter が返すのも`0`–`1`です。
+- **使用できない入力は現在の値にフォールバックします。** ブール入力はカード上のリテラルを受け付けないため、配線されていない`display`や`visible`は何にも解決されず、ノードはすでにある値をそのまま書き戻します。数値プロパティに非数値の値が来た場合も同様です。
+
+<Callout type="warn">
+不透明度を書き込む2つのノードは、パーセンテージの読み方が食い違っています。`Animate Property`は常に`From` / `To`を100で割るため、そこでの`1`は1%を意味します。`Set Property`は値が1を超える場合にのみ割るため、そこでの`1`は完全な不透明を意味し、1%には到達できません。この非対称性は意図的なものです——不透明度を`0`–`1`の小数として保存していた旧図をそのまま変わらず動かし続けるためです。
+</Callout>
+
+## Get Property
+
+`blueprint.displayable.getProperty` · Pure
+
+Get Property（プロパティの取得）は、ブループリントを所有するウィジェットの1つのプロパティを読み取ります。キーはカード上で選択するため、このノード1つで、このページの末尾にある固定の Getter 群を代替できます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | 形状は選択したキーに従います。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `property` | 読み取るキー。 |
+
+**プロパティキー**
+
+| キー | 読み取り内容 |
+| --- | --- |
+| `position` | `{ x, y }`——ウィジェットの左上。 |
+| `size` | `{ width, height }`。 |
+| `bounds` | `{ x, y, width, height }`。 |
+| `x`、`y` | 左上の各成分。数値。 |
+| `offsetX`、`offsetY` | 作成済みレイアウトからの視覚的なオフセット。 |
+| `width`、`height` | サイズの各成分。数値。 |
+| `rotation` | 度数。 |
+| `opacity` | `0`–`1`。パーセンテージではありません。 |
+| `visible` | `boolean`。 |
+
+## Set Property
+
+`blueprint.displayable.setProperty` · Latent
+
+Set Property（プロパティの設定）は所有ウィジェットの1つのプロパティに書き込みます。書き込み可能なキーは`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity`、`visible`です——`position`、`size`、`bounds`は読み取り専用の集約値であり、`variant`キーは存在しません。バリアントには専用のノードがあるためです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | 配線すると、カードの Value フィールドは無効になり、配線された値が優先されます。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `property` | 書き込むキー。 |
+| `value` | 値。`value`ピンが未配線のときに使われます。`visible`は Visible / Hidden のドロップダウン、`opacity`はパーセンテージ、それ以外はすべて数値。 |
+
+`offsetX`と`offsetY`は、一回限りのモーションスロットではなく、ウィジェットの永続的なランタイムトランスフォームに保存されます。そのため、後からそのウィジェットを引き継ぐアニメーションがあっても、オフセットが失われることはありません。
+
+## Get Measured Rect
+
+`blueprint.displayable.getMeasuredRect` · Pure
+
+ウィジェットが実際にどこに落ち着いたかを、ドキュメントから読み取るのではなく、描画結果から計測したものです。
+
+これが`bounds`キーを指定した`Get Property`との全ての違いです。`bounds`は作成済みレイアウトに、その上へ書き込まれたランタイムパッチを重ねたものであり、まだ何も描画されていないウィジェットに対しても答えを返します。こちらは Surface のデザイン座標系における実際のボックスを計測するもので、それは Container の中、List の行の中、あるいはコンポーネントインスタンスの中にあるウィジェットが実際に占めている位置です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `rect` | out · data | `Rect` | `{ x, y, width, height }`。ウィジェットが描画されていないときは`null`。 |
+
+## Get Center
+
+`blueprint.displayable.getCenter` · Pure
+
+計測された矩形の中心を、点として返します。`Move Mouse To Element`が狙うのと同じ計測結果であり、移動そのものではなく点だけが欲しいときに使います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `center` | out · data | `Vector2D` | ウィジェットが描画されていないときは`null`。 |
+
+## Get Display
+
+`blueprint.displayable.getDisplay` · Pure
+
+Get Display（表示状態の取得）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `display` | out · data | `boolean` | 何かがそれ以外に設定するまでは`true`。 |
+
+## Set Display
+
+`blueprint.displayable.setDisplay` · Latent
+
+Set Display（表示状態の設定）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `display` | in · data | `boolean` | |
+
+`display = false`は CSS の`display: none`でウィジェットとそのサブツリーを非表示にしつつ、マウントは維持します。これが`visible`との全ての違いです——`visible = false`のウィジェットは、サブツリーごとレンダリングツリーから取り除かれます。
+
+## Set Variant
+
+`blueprint.displayable.setVariant` · Latent
+
+Set Variant（バリアントの設定）は、所有ウィジェットにランタイムの Appearance Variant オーバーライドを適用します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Variant` | 対象のバリアント。ウィジェット自身のバリアントから名前で選択します。 |
+| `Wait For Animation` | `No`は即座に続行します。`Yes`は、対象バリアント上で最も長いフィールドの transition が終わるまで`Next`を保留します。transition がない場合は待つものが何もありません。 |
+
+`variantId`のデータピンは存在せず、id を手で入力する方法もありません——カードはバリアントの内部 id を隠しフィールドとして書き込み、見えるのは常に名前だけです。Appearance Variant を持たないウィジェットに対してこのノードを実行すると、黙って何もしないのではなく、グラフ実行エラーになります。
+
+バリアントを設定すると、既存のランタイム不透明度オーバーライドもクリアされるため、切り替え先のバリアントが不透明度を決めることになります。これにより、透明なバリアントへの`Set Variant`に続けて`Animate Property opacity 0 → 100`を行う手法が成立します——フェードは古いオーバーライド値に固定されるのではなく、そのバリアントの透明度から始まります。
+
+## Get Variant
+
+`blueprint.displayable.getVariant` · Pure
+
+Get Variant（バリアントの取得）はパレットから非表示になっています。現在のバリアントカードより前に保存されたグラフを動かし続けるために保持されています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | 設定されていればランタイムオーバーライドの値、なければ作成時の既定値、それもなければ最初のバリアント。ウィジェットにバリアントがない場合は`""`。 |
+
+## Animate Property
+
+`blueprint.displayable.animateProperty` · Latent
+
+Animate Property（プロパティのアニメーション）は1つのプロパティをトゥイーンします。これはライブラリではなくプリミティブです——Fade、Shake、Pulse といったノードは存在せず、それらはこのノードの上にマクロとして組み立てられます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | アニメーションが完了したとき、または何かがそれを停止したときに発火します。 |
+| `animation` | out · data | `AnimationToken` | 早めに打ち切るには`Stop Animation`に渡します。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `property` | `opacity`、`offsetX`、`offsetY`、`x`、`y`、`scale`、`rotation`のいずれか。 |
+| `from` | 任意の開始値。空欄はウィジェットの現在のランタイム状態から始めることを意味します。 |
+| `to` | 目標値。 |
+| `duration` | 秒。既定値は`0.3`。 |
+| `delay` | 秒。 |
+| `easing` | `linear`、`easeIn`、`easeOut`、`easeInOut`、`circIn`、`circOut`、`circInOut`のいずれか。既定値は`easeOut`。 |
+| `after` | `hold`は最終値を保持し、`reset`は作成済みのレイアウトと外観に戻します。既定値は`hold`。 |
+
+`offsetX`と`offsetY`は、作成済みレイアウトからの視覚的なオフセットをアニメーションさせます。`x`と`y`は絶対的なレイアウト位置をアニメーションさせます——`hold`の場合、最終的な位置はランタイムのレイアウトパッチに確定され、残っていたオフセットはクリアされるため、位置が跳ね戻ることはありません。`scale`は倍率であり、`1`が元のサイズです。`opacity`はカード上ではパーセンテージです。
+
+`animation`トークンは、アニメーションが開始した瞬間に、`Next`が発火するより前に出力されます。このノード自身のチェーンはアニメーションが終わるまで一時停止しているため、それを止める唯一の方法は、同じブループリント内の別のチェーンが、アニメーションが進行中の間にそのピンを読み取ることです。
+
+<Callout type="info">
+`x`と`y`については、`From`の`0`は自分で入力した場合にのみ有効として扱われます——カードは入力したという事実そのものを記録しています。古いグラフから引き継がれた`0`は空欄として読み取られ、アニメーションは現在位置から始まります。これはそれらの旧図が本来意図していた挙動です。
+</Callout>
+
+## Stop Animation
+
+`blueprint.displayable.stopAnimation` · Latent
+
+Stop Animation（アニメーションの停止）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `animation` | in · data | `AnimationToken` | `Animate Property`または`Animate Element Property`から得たトークン。 |
+
+トークンが指名するその1つのアニメーションだけを停止し、それを待っている`Animate Property`を解放します。解放された側はそこから`Next`を通って続行します。トークンが欠けている場合、別の種類のトークンである場合、あるいはアニメーションがすでに終わっている場合は、黙って no-op になります——いずれの場合も実行は`next`を通って続行されます。
+
+## Get Position
+
+`blueprint.displayable.getPosition` · Pure
+
+Get Position（位置の取得）は`Get Property`の`position`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `position` | out · data | `Vector2D` | `{ x, y }`。ウィジェットの左上。 |
+
+## Get Size
+
+`blueprint.displayable.getSize` · Pure
+
+Get Size（サイズの取得）は`Get Property`の`size`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `size` | out · data | `Vector2D` | ピンの型は`Vector2D`ですが、値のキーは`width`と`height`です。 |
+
+## Get Bounds
+
+`blueprint.displayable.getBounds` · Pure
+
+Get Bounds（境界の取得）は`Get Property`の`bounds`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `bounds` | out · data | `Rect` | `{ x, y, width, height }`。 |
+
+## Get Rotation
+
+`blueprint.displayable.getRotation` · Pure
+
+Get Rotation（回転の取得）は`Get Property`の`rotation`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `rotation` | out · data | `float` | 度数。 |
+
+## Get Opacity
+
+`blueprint.displayable.getOpacity` · Pure
+
+Get Opacity（不透明度の取得）は`Get Property`の`opacity`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `opacity` | out · data | `float` | `0`–`1`。パーセンテージではありません。 |
+
+## Get Visible
+
+`blueprint.displayable.getVisible` · Pure
+
+Get Visible（可視性の取得）は`Get Property`の`visible`キーに取って代わられています。パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |

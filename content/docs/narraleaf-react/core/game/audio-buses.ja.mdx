@@ -1,0 +1,310 @@
+---
+title: "オーディオバス"
+description: オーディオバスツリーの設定、バスごとの作者音量とプレイヤー音量、サウンドのバスへのルーティング、AudioBusMixer API
+---
+**オーディオバス**とは、そこへルーティングされたすべてのサウンドが通過するゲインノードのことで、バスは入れ子にできます。
+`voice` の下の `cast` の下の `alice` にあるクリップは、`alice`、`cast`、`voice` の順に減衰され、最後にマスター音量が
+かかります。そのため、プレイヤーは他のキャストに影響を与えることなく、特定のキャラクターだけを下げられます。
+
+<Callout type="info">
+    `0.23.0` で追加されました。宣言の有無にかかわらず、すべてのゲームには `bgm`、`sound`、`voice` の
+    3 本のバスがあります。そのため、バスを一切宣言しないゲームは以前と同じ挙動になります。
+</Callout>
+
+## ツリーを宣言する
+
+ツリーは [GameConfig](/ja/docs/narraleaf-react/core/types/GameConfig) 上で一度だけ宣言します。エンジンは
+オーディオサブシステムの起動時に、それをオーディオグラフへ反映します。
+
+```ts
+import { Game } from "narraleaf-react";
+
+const game = new Game({
+    audioBuses: [
+        {id: "ambience", parentId: "bgm", volume: 0.6},
+        {id: "cast", parentId: "voice"},
+        {id: "alice", parentId: "cast"},
+        {id: "bob", parentId: "cast"},
+    ],
+});
+```
+
+- `id` はツリー全体で一意でなければなりません。バスは id だけで参照されるため、親が異なっていても 2 本の
+  バスが同じ id を共有することはできません。
+- `parentId` を省略する（または `null` にする）と、そのバスはマスター出力に直接ぶら下がります。
+- 宣言の順序は関係ありません。バスは自分より後に宣言される親を指定できます。
+- ここで `bgm`、`sound`、`voice` のいずれかを指定すると、**それを移動させたり音量を変えたり**します。
+  この 3 つの id は取り除くことができません。バスが存在する前に書かれたコンテンツにも、これまでに書かれた
+  すべてのセーブデータにも登場するからです。
+
+未知の親、重複した id、任意の長さの循環、あるいは 8 段を超えて入れ子になったチェーンは、起動時に
+`AudioBusError` を送出します。
+
+<Callout type="warn">
+    **ツリーの形状は一度しか読み取られません。** プレイヤーがマウントされた後に `configure()` を呼んでも
+    グラフは再構築されません。稼働中のバスの親を付け替えると、そのサブツリー内のすべてのサウンドが
+    中断されてしまうためです。一方、音量はいつでもリアルタイムに反映されます。
+</Callout>
+
+## クリップをバスに乗せる
+
+[Sound](/ja/docs/narraleaf-react/core/elements/sound) の `type` は、それが再生されるバスです。宣言済みの
+id であれば、内蔵の 3 本に限らずどれでも受け付けます。この型は
+[SoundBusId](/ja/docs/narraleaf-react/core/types/SoundBusId) です。
+
+```ts
+Sound.voice({src: "alice-01.mp3", type: "alice"});
+Sound.bgm({src: "rain.ogg", type: "ambience"});
+```
+
+`Sound.voice()`、`Sound.bgm()`、`Sound.sound()` は `type` を上書きするのではなく**デフォルト値として設定**
+するだけなので、上記の例では明示した `type` の方が有効になります。
+
+音声クリップは `voice` の下であればどこに置いてもよく、シーンの背景音楽も `bgm` の下であればどこでも
+構いません。これらの判定は子孫かどうかによるため、`voice` の下の `cast` の下の `alice` は音声として
+扱われます。
+
+<Callout type="info">
+    ストーリーを構築している間は、エンジンがまだ知らないバス id も受け入れられます。ストーリーモジュールは
+    通常、ホストが `Game` を構築するより前に評価されるためです。綴りを間違えたバスはプレイ時に初めて
+    検出されます。マネージャーはその id について一度だけ警告を出し、そのクリップを無音にする代わりに
+    `sound` バスへルーティングします。
+</Callout>
+
+## 宣言音量とプレイヤー音量
+
+**すべてのバスは 2 つの音量を持ちます。**
+
+| | 由来 | 意味 | 永続化するか |
+| --- | --- | --- | --- |
+| `AudioBusDeclaration.volume` | `GameConfig.audioBuses` | **作者のミックス**：出荷時のゲームにおいて、このバスが他のバスに対してどの位置にあるか | いいえ。これはゲームコンテンツであり、ゲームと共に戻ってくる |
+| `mixer.setVolume` / `getVolume` | プレイヤー、実行時 | **プレイヤーの操作**。初期値は `1` で、「作者のミックスに手を加えない」を意味する | **はい。** プレイヤー側に属するのはこの半分だけ |
+
+ゲインノードに届くのはこの 2 つの**積**であり、それが `getEffectiveVolume()` です。バスごとにゲインノードは
+1 つだけです。
+
+`{id: "sound", volume: 0.6}` を宣言したゲームの場合:
+
+```ts
+game.audioBuses.getDeclaredVolume("sound");  // 0.6 - 作者のミックス
+game.audioBuses.getVolume("sound");          // 1   - プレイヤーは何も触っていない
+game.audioBuses.getEffectiveVolume("sound"); // 0.6 - ゲインノード上の値
+
+game.audioBuses.setVolume("sound", 1);       // プレイヤーがスライダーを最大まで動かす
+game.audioBuses.getEffectiveVolume("sound"); // 0.6 - それでも作者のミックスのままで、フルゲインではない
+```
+
+何も変更していないプレイヤーには、作者が作ったミックスがそのまま聞こえます。スライダーを最大にすることは
+「これ以上減衰させない」という意味であり、「ミックスを無視する」という意味ではありません。
+
+### プレイヤーの音量を永続化する
+
+永続化するのは**`getVolumes()`、つまりプレイヤー側の半分だけ**です。こうしておけば、作者が出荷済みの
+タイトルを再ミックスしても、新しいミックスは設定を保存済みのプレイヤーにもそのまま届きます。
+
+```ts
+// プレイヤー側の半分を保存する
+localStorage.setItem("mixer", JSON.stringify(game.audioBuses.getVolumes()));
+
+// 復元する - `new Game(...)` 以降ならいつでも可能
+game.audioBuses.setVolumes(JSON.parse(localStorage.getItem("mixer") ?? "{}"));
+```
+
+ミキサーはオーディオマネージャーではなく [Game](/ja/docs/narraleaf-react/core/game/game) の上にあります。
+バスの音量はゲームの状態ではなく、プレイヤーの設定だからです。復元はオーディオコンテキストが解放される前、
+プレイヤーがマウントされる前のどの時点でも安全に行えます。ツリーにまだ存在しない id も記録されておき、
+対応するチャンネルが生まれた瞬間に適用されます。
+
+## キャラクターごとの音声音量
+
+```ts
+import { Game, Sound } from "narraleaf-react";
+
+const game = new Game({
+    audioBuses: [
+        {id: "cast", parentId: "voice"},
+        {id: "alice", parentId: "cast"},
+        {id: "bob", parentId: "cast", volume: 0.8}, // Bob was recorded hot
+    ],
+});
+
+room.action([
+    alice.say("Good morning.", {
+        voice: Sound.voice({src: "/voice/alice/001.ogg", type: "alice"}),
+    }),
+]);
+```
+
+```tsx
+import { useState } from "react";
+import { useGame } from "narraleaf-react";
+
+function CastVolume({busId}: {busId: string}) {
+    const game = useGame();
+    const [volume, setVolume] = useState(() => game.audioBuses.getVolume(busId));
+
+    return (
+        <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.05}
+            value={volume}
+            onChange={(event) => {
+                const next = Number(event.target.value);
+                setVolume(next);
+                game.audioBuses.setVolume(busId, next);
+            }}
+        />
+    );
+}
+```
+
+バスを変更すると、**すでに再生中**のサウンドにも適用されます。何かが停止したり再生し直されたりすることは
+なく、変化は数ミリ秒かけてランプされるため、スライダーをドラッグしてもプツプツと途切れることはありません。
+
+## game.audioBuses
+
+ミキサー、型は `AudioBusMixer` です。
+
+### setVolume
+
+<Steps>
+<Step>
+
+あるバスに対するプレイヤーの音量を設定します。スライダーが書き込むのはこの値です。
+
+```ts
+game.audioBuses.setVolume("alice", 0.5);
+```
+
+- `id: string` - バスの id
+- `volume: number` - 0 から 1 の範囲でクランプされる
+- 返り値 `AudioBusMixer` - ミキサー自身
+</Step>
+</Steps>
+
+### getVolume
+
+<Steps>
+<Step>
+
+あるバスに対するプレイヤーの音量です。最後に設定された値、なければ `1`。宣言音量**でも**、ゲインノード上の
+値**でもありません**。
+
+- `id: string` - バスの id
+- 返り値 `number`
+</Step>
+</Steps>
+
+### getDeclaredVolume
+
+<Steps>
+<Step>
+
+宣言に由来する、あるバスの作者のミックス上の位置です。実行時に書き込まれることはありません。
+
+- `id: string` - バスの id
+- 返り値 `number`
+</Step>
+</Steps>
+
+### getEffectiveVolume
+
+<Steps>
+<Step>
+
+バスのゲインノード上の値です。`getDeclaredVolume(id) * getVolume(id)`。
+
+- `id: string` - バスの id
+- 返り値 `number`
+</Step>
+</Steps>
+
+### setVolumes
+
+<Steps>
+<Step>
+
+複数のプレイヤー音量を一度に設定します。ホストが保存済みのミキサー状態を復元するときに呼び出すものです。
+ツリーに存在しない id も記録されるため、ツリーが解決される前に復元しても安全です。
+
+- `volumes: Record<string, number>`
+- 返り値 `AudioBusMixer`
+</Step>
+</Steps>
+
+### getVolumes
+
+<Steps>
+<Step>
+
+バスの id をキーにしたプレイヤーの音量です。ホストが永続化すべき半分であり、`setVolumes` が受け取る形状
+でもあります。
+
+- 返り値 `Record<string, number>`
+</Step>
+</Steps>
+
+### list
+
+<Steps>
+<Step>
+
+両方の数値を持つすべてのバスです。親が子より先に並びます。
+
+- 返り値 `AudioBusState[]` - 参照: [AudioBusState](/ja/docs/narraleaf-react/core/types/AudioBusState)
+</Step>
+</Steps>
+
+### getTree
+
+<Steps>
+<Step>
+
+解決済みのツリーです。初回使用時に解決され、以降はキャッシュされます。宣言を解決できない場合は
+`AudioBusError` を送出します。
+
+```ts
+const tree = game.audioBuses.getTree();
+
+tree.getNodes();              // すべてのバス、親が先
+tree.get("alice");            // ノード、なければ null
+tree.has("alice");            // boolean
+tree.isUnder("alice", "voice"); // true - 頂点も含む
+```
+
+- 返り値 `AudioBusTree`
+</Step>
+</Steps>
+
+### onVolumeChange
+
+<Steps>
+<Step>
+
+任意のバスでのプレイヤー音量の変化を監視します。
+
+```ts
+const token = game.audioBuses.onVolumeChange((id, volume, effectiveVolume) => {
+    console.log(id, volume, effectiveVolume);
+});
+
+token.cancel();
+```
+
+- `listener: (id: string, volume: number, effectiveVolume: number) => void`
+- 返り値 `cancel()` を持つトークン
+</Step>
+</Steps>
+
+## 音量プリファレンスとの関係
+
+音量[プリファレンス](/ja/docs/narraleaf-react/core/game/preference/preference)はこれまでどおり機能します。
+`bgmVolume`、`soundVolume`、`voiceVolume` は内蔵の 3 本のバスへのエイリアスで、書き込むのは**プレイヤー**側の
+半分です。`globalVolume` はマスター出力です。
+
+`{id: "sound", volume: 0.6}` を宣言したゲームでも、`getPreference("soundVolume")` は起動時に `1` を返し、
+これは「これ以上減衰させない」ことを意味します。
+
+内蔵の 3 本はプリファレンス経由で操作し、ホストが宣言したバスには `game.audioBuses` を使ってください。

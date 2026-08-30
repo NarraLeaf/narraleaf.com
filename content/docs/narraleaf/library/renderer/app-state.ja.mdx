@@ -1,0 +1,80 @@
+---
+title: "App State"
+description: React から RendererApp、再生状態、アプリレベルのアクションにアクセスする
+---
+
+NarraLeaf の renderer ツリーの中で `useApp()` を使うと、安定した `RendererApp` の窓口にアクセスできます。
+
+```tsx
+import { useApp } from "narraleaf/renderer";
+
+export function MainMenu() {
+    const app = useApp();
+
+    return <button onClick={() => void app.newGame()}>New Game</button>;
+}
+```
+
+## RendererApp
+
+`useApp()` は、renderer の `App` クラスを制御された形で一部だけ返します。
+
+- `newGame()`
+- `loadGame(id)`
+- `exitGame()`
+- `continueGame()`
+- `listSaves()`
+- `createRecovery(savedGame)`
+- `getCrashReport()`
+- `crash(error)`
+- `quit()`
+- `state`
+- `config`
+
+## 再生状態
+
+`useGamePlayback()` は、読み取り専用の高レベルな再生状態を返します。
+
+```tsx
+import { useGamePlayback } from "narraleaf/renderer";
+
+export function Overlay() {
+    const { isPlaying } = useGamePlayback();
+
+    return isPlaying ? <GameHUD /> : <MainMenu />;
+}
+```
+
+## useAppState
+
+`useAppState(key)` は renderer のアプリ状態のキーを購読し、`[value, setValue]` を返します。
+
+```tsx
+import { useAppState } from "narraleaf/renderer";
+
+export function PauseButton() {
+    const [isPlaying, setIsPlaying] = useAppState("isPlaying");
+
+    return (
+        <button onClick={() => setIsPlaying((value) => !value)}>
+            {isPlaying ? "Pause" : "Resume"}
+        </button>
+    );
+}
+```
+
+現在公開されている state のキーは次のとおりです。
+
+- `isPlaying`：NarraLeaf-React のライブなゲームが実行中かどうか。
+
+## ゲームを続ける
+
+`continueGame()` は、存在する場合に最新の通常セーブを読み込みます。
+
+```tsx
+const continued = await app.continueGame();
+
+if (continued === null) {
+    // 通常のセーブが見つかりませんでした。
+}
+```

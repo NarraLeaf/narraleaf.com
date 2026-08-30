@@ -1,0 +1,58 @@
+---
+title: saves
+description: セーブスロットを一覧表示し読み取る。そして — より重い機能によって — 一つを上書きまたはロードする
+---
+
+`app.game.saves` はプレイヤーのセーブスロットに到達します。これは二つの機能に分割されています。セーブを一覧表示することと、プレイスルーを破棄することは、同じ種類の要求ではないためです。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["saves.read", "saves.write"]
+  }
+}
+```
+
+## メソッド
+
+| メソッド | シグネチャ | 必要とするもの |
+| --- | --- | --- |
+| `listIds` | `() => Promise<string[]>` | `saves.read` |
+| `readMetadata` | `(id: string) => Promise<RuntimePluginSaveMetadata \| null>` | `saves.read` |
+| `write` | `(id: string, metadata?: unknown) => Promise<void>` | `saves.write` |
+| `load` | `(id: string) => Promise<void>` | `saves.write` |
+
+```ts
+type RuntimePluginSaveMetadata = {
+    id: string;
+    updatedAt?: number;
+    metadata?: unknown;
+};
+```
+
+`saves.write` がなければ `write` と `load` はオブジェクトに存在しないため、ガードしてください。`app.game.saves?.write?.(...)`。
+
+## クイックセーブの全体像
+
+```ts
+const SLOT = "yourname.quick-save.slot";
+
+// write
+await app.game.saves?.write?.(SLOT, { at: "chapter-2" });
+
+// read back
+const meta = await app.game.saves?.readMetadata(SLOT);
+
+// load — replaces the running playthrough
+await app.game.saves?.load?.(SLOT);
+```
+
+プレイヤーが名付けたスロットと決して衝突しないよう、あなたのプラグイン id で名前空間を切ったスロット id を選んでください。`metadata` は JSON を経由して往復するため、プレーンなデータのみを渡してください。
+
+<Callout type="warn">
+`write` はスロットを**上書き**し、`load` は**現在のプレイスルーを破棄**します。インストール時のプロンプトは、その言葉のとおりに作者に伝えます。`saves.write` を宣言するのは、スロットの上書きこそがあなたのプラグインの目的であるとき — クイックセーブ用のプラグイン、チャプター選択など — に限ってください。決して `saves.read` の上に乗せる便利機能として宣言しないでください。
+</Callout>
+
+## ここにないもの
+
+`deleteSave` はなく、スクリーンショットの取得もなく、`listIds` が返す id 以外の方法で他のプラグインのスロットを列挙する手段もありません。プラグインは、どのスロットが存在し、そこにどんなメタデータが保存されているかを見ることはできますが、プレイスルーの内容そのものはこの API を通じて読み取ることはできません。

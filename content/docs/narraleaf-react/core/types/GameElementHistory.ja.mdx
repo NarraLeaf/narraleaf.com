@@ -1,0 +1,45 @@
+---
+title: "GameElementHistory"
+description: 発話行ならテキスト・ボイス・キャラクター、メニューならプロンプトと選択結果を記録する、バックログ 1 件分の形状
+---
+```typescript
+type GameElementHistory =
+    | {
+        type: "say";
+        text: string;
+        voice: string | null;
+        voiceId?: string | number | null;
+        character: string | null;
+    }
+    | {
+        type: "menu";
+        text: string | null;
+        selected: string | null;
+    };
+```
+
+`GameElementHistory` 型は、履歴に記録されるゲーム要素の種類を表します。次のいずれかです。
+
+1. `"say"` 要素
+   - `text`: 発話されたテキスト
+   - `voice`: ボイスの src URL。ボイスを使用していない場合は null
+   - `voiceId`: その行が登録されている `voiceId`。ボイスマップを使用していない場合は null。0.24.0 から利用可能
+   - `character`: キャラクター名。地の文の場合は null
+
+2. `"menu"` 要素
+   - `text`: メニューのプロンプト。プロンプトがない場合は null
+   - `selected`: 選択されたオプション。メニューがまだ保留中の場合は null
+
+## バックログの行のボイスを再生し直す
+
+`voice` は解決済みのクリップ URL であり、プレイヤーがすでに再生したものです。`voiceId` はその行が登録された id であり、ホスト側が自分のボイステーブルを参照するのに使う値です。したがって、バックログの再生ボタンは `voice` ではなく `voiceId` から組み立てます。
+
+```ts
+for (const entry of liveGame.getHistory()) {
+    if (entry.element.type === "say" && entry.element.voiceId) {
+        replay(entry.element.voiceId);
+    }
+}
+```
+
+`voiceId` は、シーンのボイスマップではなく行内の `voice` オプションで指定された行では null になり、0.24.0 より前に記録されたエントリにはこのフィールド自体が存在しません。古いセーブデータはそのまま読み込めます。

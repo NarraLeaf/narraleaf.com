@@ -1,0 +1,451 @@
+﻿---
+title: "表示可能要素"
+description: ステージ上の要素が共有する `Displayable` 基底クラス。位置、スケール、不透明度、ビジュアルエフェクト、ループするトランスフォームを扱う
+---
+Displayable は、表示可能な要素が持つべきすべてのプロパティとメソッドを定義します。表示可能要素とは、画面に表示できる要素のことです。  
+例: Image、Text
+
+## チェーン可能なメソッド
+
+### pos
+
+<Steps>
+<Step>
+
+要素を新しい位置に変換します。
+
+```typescript
+element.pos({
+    xalign: 0.3
+}, 1000, "linear"); // 線形イージングで 1000ms かけて要素を x: 0.3 に移動する
+```
+
+- `position: CommonDisplayableConfig["position"]` - 要素の新しい位置。[CommonDisplayableConfig](/ja/docs/narraleaf-react/core/types/CommonDisplayableConfig) を参照
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### scale
+
+<Steps>
+<Step>
+
+要素を拡大縮小します。
+
+```typescript
+element.scale(1.5, 0.8, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素を X 軸方向に 1.5 倍、Y 軸方向に 0.8 倍に拡大縮小する
+```
+
+- `scaleX: number` - 要素の X 軸方向の新しい拡大率。負の値を指定すると反転します
+- `scaleY: number` - 要素の Y 軸方向の新しい拡大率。負の値を指定すると反転します
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### scaleX
+
+<Steps>
+<Step>
+
+要素を X 軸方向に拡大縮小します。
+
+```typescript
+element.scaleX(1.5, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素を X 軸方向に 1.5 倍に拡大縮小する
+```
+
+- `scaleX: number` - 要素の X 軸方向の新しい拡大率
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### scaleY
+
+<Steps>
+<Step>
+
+要素を Y 軸方向に拡大縮小します。
+
+```typescript
+element.scaleY(0.8, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素を Y 軸方向に 0.8 倍に拡大縮小する
+```
+
+- `scaleY: number` - 要素の Y 軸方向の新しい拡大率
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### scaleXY
+
+<Steps>
+<Step>
+
+要素を X 軸と Y 軸の両方向に拡大縮小します。
+
+```typescript
+element.scaleXY(1.2, 0.9, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素を X 軸方向に 1.2 倍、Y 軸方向に 0.9 倍に拡大縮小する
+```
+
+- `scaleX: number` - 要素の X 軸方向の新しい拡大率
+- `scaleY: number` - 要素の Y 軸方向の新しい拡大率
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### zoom
+
+<Steps>
+<Step>
+
+画像をズームします（画像の拡大縮小にはこちらを推奨します）。
+
+```typescript
+element.zoom(2, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて画像を 2 倍にズームする
+```
+
+- `zoom: number` - 画像の新しいズームレベル
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### rotate
+
+<Steps>
+<Step>
+
+要素を回転させます。
+
+```typescript
+element.rotate(90, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素を 90 度回転させる
+```
+
+- `angle: number` - 要素の新しい角度（度単位）
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+### opacity
+
+<Steps>
+<Step>
+
+要素の不透明度を変更します。
+
+```typescript
+element.opacity(0.5, 1000, "easeInOut"); // easeInOut イージングで 1000ms かけて要素の不透明度を 0.5 に変更する
+```
+
+- `opacity: number` - 要素の新しい不透明度。0 から 1 の間の値
+- `duration?: number` - トランスフォームの時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - 使用するイージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照
+</Step>
+</Steps>
+
+## ビジュアルエフェクト [#visual-effects]
+ビジュアルエフェクトは標準的な CSS のビジュアルプロパティに対応しており、他のトランスフォームと同じようにアニメーションさせることができます。マスク、ワイプ、フィルター、ぼかしのオーバーレイ、ブレンドモードなどに使用します。
+
+```typescript
+scene.action([
+    image
+        .mask("/masks/spotlight.png", {
+            maskSize: "cover",
+            maskPosition: "center",
+            duration: 300,
+        })
+        .filter("brightness(1.2) saturate(1.1)", { duration: 300 }),
+]);
+```
+
+### effect
+
+<Steps>
+<Step>
+
+1つ以上のビジュアルエフェクトフィールドを直接適用します。
+
+- `effect: TransformDefinitions.VisualEffectTransformProps` - `maskImage`、`maskSize`、`maskPosition`、`maskRepeat`、`maskMode`、`clipPath`、`filter`、`backdropFilter`、`mixBlendMode` をサポートします。
+- `options?: TransformDefinitions.VisualEffectOptions` - `duration`、`ease`、`delay`、`at` などのタイミングオプション。
+</Step>
+</Steps>
+
+### mask
+
+<Steps>
+<Step>
+
+画像マスクを適用します。ソースは自動的にプリロード対象として登録されます。
+
+- `src: ImageSrc` - マスク画像のソース。
+- `options?: TransformDefinitions.MaskOptions` - マスクのフィールドとタイミングオプション。
+</Step>
+</Steps>
+
+### clearMask
+
+<Steps>
+<Step>
+
+現在のマスクをクリアします。
+
+- `options?: TransformDefinitions.VisualEffectOptions` - タイミングオプション。
+</Step>
+</Steps>
+
+### clip / clearClip
+
+<Steps>
+<Step>
+
+CSS の `clip-path` を適用またはクリアします。
+
+```typescript
+scene.action([
+    image.clip("inset(0 0 50% 0)", { duration: 200 }),
+    image.clearClip({ duration: 0 }),
+]);
+```
+
+- `clipPath: React.CSSProperties["clipPath"]` - CSS の clip-path の値。
+- `options?: TransformDefinitions.VisualEffectOptions` - タイミングオプション。
+</Step>
+</Steps>
+
+### circleReveal / circleClose
+
+<Steps>
+<Step>
+
+アニメーションする円形の `clip-path` で要素を表示または閉じます。
+
+- `options?: TransformDefinitions.CircleRevealOptions | TransformDefinitions.CircleCloseOptions`
+- 共通オプション: `center`、`from`、`to`、`clearClip`、`duration`、`ease`
+</Step>
+</Steps>
+
+### wipe
+
+<Steps>
+<Step>
+
+方向性のあるワイプで要素を表示または非表示にします。
+
+- `options?: TransformDefinitions.WipeOptions`
+- 共通オプション: `direction`、`reverse`、`clearClip`、`duration`、`ease`
+</Step>
+</Steps>
+
+### filter / clearFilter
+
+<Steps>
+<Step>
+
+CSS の `filter` を適用またはクリアします。
+
+- `filter: React.CSSProperties["filter"]` - 例えば `blur(4px)` や `brightness(0.8)` など。
+- `options?: TransformDefinitions.VisualEffectOptions` - タイミングオプション。
+</Step>
+</Steps>
+
+### backdrop
+
+<Steps>
+<Step>
+
+CSS の `backdrop-filter` を適用します。ガラス風やぼかしのオーバーレイに便利です。
+
+- `backdropFilter: React.CSSProperties["backdropFilter"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - タイミングオプション。
+</Step>
+</Steps>
+
+### blend
+
+<Steps>
+<Step>
+
+CSS の `mix-blend-mode` を適用します。
+
+- `mixBlendMode: React.CSSProperties["mixBlendMode"]`
+- `options?: TransformDefinitions.VisualEffectOptions` - タイミングオプション。
+</Step>
+</Steps>
+
+### transform
+
+<Steps>
+<Step>
+
+要素にカスタムトランスフォームを適用します。
+
+```typescript
+element.transform(new Transform(
+    /* トランスフォーム定義 */
+));
+```
+
+- `transform: Transform` - 要素に適用するカスタムトランスフォーム。[Transform](/ja/docs/narraleaf-react/core/animation/transform) を参照
+</Step>
+</Steps>
+
+### loop
+
+<Steps>
+<Step>
+
+何かが止めるまで、要素にトランスフォームを繰り返し再生し続けます。
+
+**この行は待機しません。** これが `transform()` との唯一の違いです。`transform()` はストーリーの1ステップであり、
+次の行はそれが終わるのを待ちますが、`loop()` は要素が持つプロパティです — 設定されるとストーリーはそのまま先に進み、
+その動きはその後に続くすべての下でずっと動き続けます。
+
+要素は一度に**1つ**のトランスフォームしか持てないため、それ以外の何かが適用されると要素は引き戻されます。
+`transform()`、`pos()`、`zoom()`、`show()`、`hide()` などは、すべてループを終了させ、その時点の位置から続行します。
+ループを終了させ*ない*ものは次の通りです: プレイヤーによるスキップや早送り、画面を変えるトランジション、
+シーンの変更、セーブやロード — 読み込んだセーブはループを元に戻します。
+
+要素がループを開始したときのポーズが、戻り先のポーズであり、セーブに記録される唯一のものです。途中のフレームは記録されません。
+
+```typescript
+const breathe = Transform.create()
+    .scaleY(1.015)
+    .commit({ duration: 1900, ease: "easeInOut" });
+
+scene.action([
+    yuko.loop(breathe, { repeatType: "mirror" }),
+    yuko.say`It's quiet today.`,     // 彼女が呼吸を続けている間に再生される
+    yuko.stopLoop({ duration: 300 }),
+]);
+```
+
+- `transform: Transform` - 繰り返すモーション。[Transform](/ja/docs/narraleaf-react/core/animation/transform) を参照。`transform()` の場合と同じく、必ず commit しておく必要があります。繰り返しのたびに画面が飛ぶのを避けたい場合は、開始位置に戻すか、`repeatType: "mirror"` を指定してください。
+- `options?: LoopOptions` - 繰り返しの挙動。
+  - `repeatType?: "loop" | "reverse" | "mirror"` - デフォルトは `"loop"`。
+  - `repeatDelay?: number` - 次の繰り返しが始まる前に、最後のポーズを保持するミリ秒数。デフォルトは `0`。
+</Step>
+</Steps>
+
+### stopLoop
+
+<Steps>
+<Step>
+
+要素のループするトランスフォームを終了させ、ループが始まる前のポーズに戻します。
+
+`loop()` とは異なり、この行は待機**します** — 待つべき明確な終わりがあるためです。
+時間を指定しない場合、要素は同じフレーム内で元の位置に戻ります。ループしていない要素に対しては何もしません。
+
+```typescript
+yuko.stopLoop({ duration: 300, ease: "easeOut" });
+```
+
+- `options?: LoopStopOptions` - 要素がループからどのようにイーズアウトするか。
+  - `duration?: number` - ループが始まる前のポーズに戻るのにかけるミリ秒数。デフォルトは `0`。
+  - `ease?: EasingDefinition` - [Transform](/ja/docs/narraleaf-react/core/animation/transform) を参照。
+</Step>
+</Steps>
+
+### show
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/3
+
+要素を即座に表示します。
+
+```typescript
+element.show();
+```
+
+#### オーバーロード 2/3
+
+カスタムトランスフォームで要素を表示します。
+
+```typescript
+element.show({
+    /* トランスフォーム定義 */
+});
+```
+
+- `options: Transform` - 要素に適用するカスタムトランスフォーム。[Transform](/ja/docs/narraleaf-react/core/animation/transform) を参照
+
+#### オーバーロード 3/3
+
+トランスフォーム設定で要素を表示します。要素には alpha:1 のトランスフォームが適用されます。
+
+```typescript
+element.show({
+    duration: 1000,
+    ease: "easeInOut",
+});
+```
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - [TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[CommonTransformProps](/ja/docs/narraleaf-react/core/types/CommonTransformProps) を参照
+</Step>
+</Steps>
+
+### hide
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/3
+
+要素を即座に非表示にします。
+
+```typescript
+element.hide();
+```
+
+#### オーバーロード 2/3
+
+カスタムトランスフォームで要素を非表示にします。
+
+```typescript
+element.hide({
+    /* トランスフォーム定義 */
+});
+```
+
+- `options: Transform` - 要素に適用するカスタムトランスフォーム。[Transform](/ja/docs/narraleaf-react/core/animation/transform) を参照
+
+#### オーバーロード 3/3
+
+トランスフォーム設定で要素を非表示にします。要素には alpha:0 のトランスフォームが適用されます。
+
+```typescript
+element.hide({
+    duration: 1000,
+    ease: "easeInOut",
+});
+```
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - [TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[CommonTransformProps](/ja/docs/narraleaf-react/core/types/CommonTransformProps) を参照
+</Step>
+</Steps>
+
+### bringToFront
+
+<Steps>
+<Step>
+
+> `0.30.0` から利用可能
+
+この要素を、それが属するレイヤーの最前面に移動し、すでにそこにあるすべてのものより手前に表示します。他の何かが手前に移動されるまで、その位置に留まります。
+
+- 戻り値: チェーン
+
+```typescript
+scene.action([
+    yukoSprite.bringToFront(),
+    yuko.say`It was me, all along.`,
+]);
+```
+</Step>
+</Steps>

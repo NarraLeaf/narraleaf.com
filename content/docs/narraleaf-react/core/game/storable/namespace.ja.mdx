@@ -1,0 +1,126 @@
+---
+title: "Namespace\\<T extends NameSpaceContent\\<keyof T\\>\\>"
+description: Storable の名前空間内で値を設定・取得・比較・リセットする Namespace のメソッド
+---
+Namespace は、[Storable](.) の名前空間を表すクラスです。
+
+`set`、`assign`、`reset` を通じたすべての書き込みは、登録先のストアへ報告され、ホストはそれに反応
+できます。参照: [保存された値を監視する](/ja/docs/narraleaf-react/core/game/storable/events)。
+購読はここではなく `Storable` の上で行ってください。`newGame()` とセーブの読み込みは、どちらも
+`Namespace` オブジェクトを置き換えます。
+
+## 公開プロパティ
+
+### name
+
+- `string` - 名前空間の可読名
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - 名前空間の可読名
+- `initContent: T` - 名前空間の初期内容
+- `key?: string` - 名前空間のキー。デフォルトは name
+</Step>
+</Steps>
+
+### set\<Key extends keyof T\>
+
+<Steps>
+<Step>
+
+例:
+```typescript
+const namespace = new Namespace<{name: string}>('player1', {name: 'John Doe'});
+
+namespace.set('name', 'Jane Smith');
+```
+
+- `key: Key` - 設定する値のキー
+- `value: T[Key]` - 設定する値
+- 返り値: `this`
+</Step>
+</Steps>
+
+### get\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - 取得する値のキー
+- 返り値: `T[Key]`
+</Step>
+</Steps>
+
+### equals\<Key extends keyof T = any\>
+
+<Steps>
+<Step>
+
+- `key: Key` - 比較する値のキー
+- `value: T[Key]` - 比較する値
+- 返り値: `boolean`
+</Step>
+</Steps>
+
+### assign
+
+<Steps>
+<Step>
+
+- `values: Partial<T>` - 割り当てる内容
+- 返り値: `this`
+</Step>
+</Steps>
+
+### has
+
+<Steps>
+<Step>
+
+- `key: keyof T` - 確認するキー
+- 返り値: `boolean`
+</Step>
+</Steps>
+
+### keys
+
+<Steps>
+<Step>
+
+- 返り値: `(keyof T)[]`
+</Step>
+</Steps>
+
+### values
+
+<Steps>
+<Step>
+
+- 返り値: `T[keyof T][]`
+</Step>
+</Steps>
+
+### entries
+
+<Steps>
+<Step>
+
+- 返り値: `[keyof T, T[keyof T]][]`
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+名前空間を初期内容にリセットします。
+
+- 返り値: `this`
+</Step>
+</Steps>

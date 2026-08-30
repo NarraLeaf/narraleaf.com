@@ -1,0 +1,100 @@
+---
+title: "Ren'Py からの移行"
+description: Ren'Py のラベル、ジャンプ、スクリーンから NarraLeaf の Scene、Character、Menu への対応表
+---
+
+NarraLeaf は専用のスクリプト言語を使わず、TypeScript のオブジェクトで記述します。最も近い対応関係は次のとおりです。
+
+| Ren'Py | NarraLeaf React |
+|---|---|
+| `label` | `Scene` |
+| `jump` | `scene.jumpTo(otherScene)` |
+| `scene bg room` | Scene の `background`、または `scene.setBackground()` |
+| `show eileen happy` | `image.show()` の後に `image.char(["happy"])` |
+| `hide eileen` | `image.hide()` |
+| `e "こんにちは"` | `character.say("こんにちは")` |
+| `menu` | `Menu.prompt().choose()` |
+| `default` ／永続変数 | `Persistent` |
+| Screen Language | `Player` 内の React コンポーネント |
+| `with dissolve` | `new Dissolve({ duration })` |
+
+名称は似ていますが、担う範囲は異なります。NarraLeaf の `Character` は対話上のアイデンティティとアバターのルールだけを持ちます。舞台の立ち絵は `Image` が担当します。`Scene` は Ren'Py の `scene` 文よりも、Ren'Py の label に近い概念です。
+
+## 簡単な移行例
+
+Ren'Py:
+
+```text
+define a = Character("アリス")
+
+label start:
+    scene bg room
+    show alice happy at center
+    with dissolve
+    a "おはよう。"
+
+    menu:
+        "窓を開ける":
+            $ opened_window = True
+            jump window
+        "そのまま寝る":
+            jump sleep
+```
+
+NarraLeaf React:
+
+```ts
+import {
+    Character,
+    Dissolve,
+    Image,
+    Menu,
+    Scene,
+    Story,
+} from "narraleaf-react";
+
+const story = new Story("朝");
+const state = story.createPersistent("state", { openedWindow: false });
+const alice = new Character("アリス");
+const aliceSprite = new Image({
+    src: {
+        groups: [["happy", "sleepy"]],
+        defaults: ["happy"],
+        resolve: (expression) => `/characters/alice-${expression}.webp`,
+    } as const,
+});
+
+const windowScene = new Scene("窓辺");
+const sleepScene = new Scene("二度寝");
+const start = new Scene("オープニング", {
+    background: "/backgrounds/room.webp",
+}).action((scene) => [
+    aliceSprite.show(),
+    aliceSprite.char(["happy"], new Dissolve({ duration: 400 })),
+    alice.say("おはよう。"),
+    Menu.prompt("どうする？")
+        .choose("窓を開ける", [
+            state.set("openedWindow", true),
+            scene.jumpTo(windowScene),
+        ])
+        .choose("そのまま寝る", [
+            scene.jumpTo(sleepScene),
+        ]),
+]);
+
+story.entry(start);
+```
+
+## UI と screen
+
+NarraLeaf には Screen Language が付属しません。設定、セーブスロット、履歴、ギャラリー、メニューはすべて React コンポーネントです。ルーティングされるページは `Player` の内側に置き、対話・メニュー・NVL・通知の各スロットは `Game` の設定を通じて置き換えます。
+
+まず [基本](/ja/docs/narraleaf-react/basic) から始め、よく使うエンジン UI には [ページオーバーレイ](/ja/docs/narraleaf-react/solutions/page-overlay-settings)、[カスタムダイアログ](/ja/docs/narraleaf-react/solutions/custom-dialog)、[セーブシステム](/ja/docs/narraleaf-react/solutions/save-system-localstorage) を利用してください。
+
+## 移行前に考慮すべき違い
+
+- デフォルトではロールバック用の UI はありませんが、その土台となるアクションは [`liveGame.undo()`](/ja/docs/narraleaf-react/core/game/live-game#undo) と [`redo()`](/ja/docs/narraleaf-react/core/game/live-game#redo) が提供しており、ボタンの有効・無効は `canUndo()` / `canRedo()` で判定できます。Ren'Py のロールバックと同様、巻き戻しても先の内容が破棄されることはありません。再び読み進めれば同じ行をたどり直し、未来が失われるのはストーリーが別の場所へ進んだときだけです。
+- セーブデータはシリアライズ可能ですが、保存先とスロット UI は自分で用意します。
+- アセットは URL またはバンドラーによるインポートで指定します。Web のプリロードやブラウザの音声再生ルールが適用されます。
+- Transform と Transition は ATL ブロックではなく、TypeScript のオブジェクトです。
+- インターフェースのレイアウトとアクセシビリティは React が担います。

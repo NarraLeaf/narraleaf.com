@@ -1,0 +1,85 @@
+---
+title: "Installation"
+description: NarraLeaf の CLI、ランタイムパッケージ、peer dependencies をインストールする
+---
+
+NarraLeaf プロジェクトは 2 つのパッケージを使い分けます。
+
+- `narraleaf-cli` は `narraleaf` コマンドを提供します。
+- `narraleaf` は主プロセスのランタイム、renderer のエントリ、ビルド設定の型を提供します。
+
+## CLI をインストールする
+
+NarraLeaf プロジェクトの初期化、実行、検査、パッケージ化を行うときは CLI を使います。
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install -g narraleaf-cli
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn global add narraleaf-cli
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add -g narraleaf-cli
+        ```
+</Tab></Tabs>
+
+インストール後のコマンド名は `narraleaf` です。
+
+```bash
+narraleaf --version
+```
+
+## プロジェクトへのインストール
+
+既存のアプリケーションに組み込む場合は、ランタイムパッケージとその peer dependencies をインストールします。
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install narraleaf narraleaf-react react react-dom electron electron-builder
+        npm install -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="yarn">
+        ```bash
+        yarn add narraleaf narraleaf-react react react-dom electron electron-builder
+        yarn add -D narraleaf-cli typescript
+        ```
+</Tab><Tab value="pnpm">
+        ```bash
+        pnpm add narraleaf narraleaf-react react react-dom electron electron-builder
+        pnpm add -D narraleaf-cli typescript
+        ```
+</Tab></Tabs>
+
+> **Note:** 現在のランタイムは React 19 および Electron 34 と互換性のあるプロジェクトを前提としています。
+
+## パッケージのエントリポイント
+
+NarraLeaf は 3 つのランタイムエントリポイントを公開しています。
+
+```ts
+import { AppConfig } from "narraleaf";
+import { render, useApp } from "narraleaf/renderer";
+import { BuildTarget } from "narraleaf/config";
+```
+
+- `narraleaf` と `narraleaf/main` は主プロセスの API を公開します。
+- `narraleaf/renderer` は renderer 用の helpers、hooks、型を公開します。
+- `narraleaf/config` はビルド設定の helpers とターゲットの型を公開します。
+
+## 次のステップ
+
+<Cards>
+    <Card
+        title="Quick Start"
+        description="NarraLeaf プロジェクトを作成し、ローカルで実行する"
+        href="/ja/docs/narraleaf/library/quick-start"
+    />
+    <Card
+        title="Project Config"
+        description="必須のプロジェクトファイルと narraleaf.config.js のフィールドを学ぶ"
+        href="/ja/docs/narraleaf/library/project-config"
+    />
+</Cards>

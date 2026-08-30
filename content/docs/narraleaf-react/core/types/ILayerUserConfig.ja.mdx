@@ -1,0 +1,16 @@
+---
+title: "ILayerUserConfig"
+description: Layer のユーザー向け設定。共通の表示可能オプションに、重なり順を表す zIndex を加えたもの
+---
+```typescript
+interface ILayerUserConfig extends CommonDisplayableConfig {
+    /**
+     * The z-index of the layer, higher z-index will be rendered on top of the lower z-index, allows negative values.
+     *
+     * **Note**: the default background layer has a z-index of -1, and the default displayable layer has a z-index of 0.
+     */
+    zIndex: number;
+}
+```
+
+CommonDisplayableConfig については [CommonDisplayableConfig](/ja/docs/narraleaf-react/core/types/CommonDisplayableConfig) を参照してください。

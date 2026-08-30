@@ -1,0 +1,43 @@
+---
+title: "usePreference"
+description: useState 風のタプルとして、単一の GamePreference の値を読み書きする usePreference フック
+---
+このフックを使うと、設定にアクセスして管理できます。
+
+> **注意**：このフックは [GameProvider](/ja/docs/narraleaf-react/player/game-providers) の子孫にあたるコンポーネントの内部でのみ使用できます。
+
+```typescript
+function usePreference<K extends StringKeyOf<GamePreference>>(
+    key: K
+): [GamePreference[K], (value: GamePreference[K]) => void];
+```
+
+- GamePreference については [GamePreference](/ja/docs/narraleaf-react/core/types/GamePreference) を参照してください。
+
+## 使い方
+
+このフックは [useState](https://react.dev/reference/react/useState) フックと似ています。現在の値と、その値を更新する関数からなるタプルを返します。
+
+```typescript
+import {usePreference} from "narraleaf-react";
+```
+
+```typescript
+function myComponent() {
+    const [autoForward, setAutoForward] = usePreference("autoForward");
+
+    function triggerAutoForward() {
+        setAutoForward(current => !current);
+    }
+
+    return (
+        <div>
+            自動送り: {autoForward ? "有効" : "無効"}
+            
+            <button onClick={triggerAutoForward}>
+                自動送りを切り替え
+            </button>
+        </div>
+    );
+}
+```

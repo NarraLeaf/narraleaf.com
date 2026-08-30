@@ -1,0 +1,358 @@
+---
+title: テキスト
+description: 接続された nl.text 要素の内容・タイポグラフィ・エフェクトの読み書きと、接続された nl.textInput の値
+---
+
+`nl.text` と `nl.textInput` は別々のウィジェットですが、3つのノード名を共有しています。この衝突が一目でわかるように、両方のファミリーをこのページにまとめています。すべての Element ノードに共通する規則は [Element](/ja/docs/studio/blueprint/nodes/element) にあります。
+
+## Text
+
+Text ノードは `element:nl.text` ピンを持つため、グラフが `nl.text` 要素をバインドしたときにのみパレットに提供されます。Self 形態は [Text](/ja/docs/studio/blueprint/nodes/text) にあります。
+
+### Get Text
+
+`blueprint.element.text.getText` · Pure
+
+要素の現在のテキスト内容を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+
+### Set Text
+
+`blueprint.element.text.setText` · Latent
+
+テキスト内容を置き換えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Append Text
+
+`blueprint.element.text.appendText` · Latent
+
+現在のテキストの末尾に追加連結します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Clear Text
+
+`blueprint.element.text.clearText` · Latent
+
+テキストを空文字列にします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+
+### Get Font
+
+`blueprint.element.text.getFont` · Pure
+
+使用中のフォントアセット ID を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | out · data | `string` |  |
+
+### Set Font
+
+`blueprint.element.text.setFont` · Latent
+
+フォントアセット ID を設定します。空文字列を渡すとフォントがデフォルトに戻ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontAssetId` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Get Font Size
+
+`blueprint.element.text.getFontSize` · Pure
+
+フォントサイズを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | out · data | `float` |  |
+
+### Set Font Size
+
+`blueprint.element.text.setFontSize` · Latent
+
+フォントサイズを設定します。`1` 未満の値は `1` に引き上げられます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontSize` | in · data | `float` | カード上のリテラルを受け付けます。 |
+
+### Get Font Weight
+
+`blueprint.element.text.getFontWeight` · Pure
+
+フォントウェイトを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | out · data | `string` |  |
+
+### Set Font Weight
+
+`blueprint.element.text.setFontWeight` · Latent
+
+フォントウェイトを設定します:`normal`、`600`、`bold` のいずれか。それ以外の値は現在の値をそのまま残します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `fontWeight` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Get Text Color
+
+`blueprint.element.text.getTextColor` · Pure
+
+文字色を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | out · data | `RGBAColor` |  |
+
+### Set Text Color
+
+`blueprint.element.text.setTextColor` · Latent
+
+文字色を設定します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `color` | in · data | `RGBAColor` |  |
+
+### Get Text Align
+
+`blueprint.element.text.getTextAlign` · Pure
+
+横方向の揃えを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | out · data | `string` |  |
+
+### Set Text Align
+
+`blueprint.element.text.setTextAlign` · Latent
+
+横方向の揃えを設定します:`left`、`center`、`right` のいずれか。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textAlign` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Get Text Vertical Align
+
+`blueprint.element.text.getTextVerticalAlign` · Pure
+
+縦方向の揃えを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+
+### Set Text Vertical Align
+
+`blueprint.element.text.setTextVerticalAlign` · Latent
+
+縦方向の揃えを設定します:`start`、`center`、`end` のいずれか。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textVerticalAlign` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Get Line Height
+
+`blueprint.element.text.getLineHeight` · Pure
+
+行の高さを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | out · data | `float` |  |
+
+### Set Line Height
+
+`blueprint.element.text.setLineHeight` · Latent
+
+行の高さを設定します。`0.1` 未満の値は `0.1` に引き上げられます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `lineHeight` | in · data | `float` | カード上のリテラルを受け付けます。 |
+
+### Get Wrap Mode
+
+`blueprint.element.text.getWrapMode` · Pure
+
+折り返しモードを読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | out · data | `string` |  |
+
+### Set Wrap Mode
+
+`blueprint.element.text.setWrapMode` · Latent
+
+折り返しモードを設定します:`word`、`character`、`nowrap` のいずれか。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `textWrapMode` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Get Effects
+
+`blueprint.element.text.getEffects` · Pure
+
+静的なテキストエフェクトを `json` として読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | out · data | `json` |  |
+
+### Set Effects
+
+`blueprint.element.text.setEffects` · Latent
+
+静的なテキストエフェクトを書き込みます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `effects` | in · data | `json` |  |
+
+### Get All Properties
+
+`blueprint.element.text.getAllProperties` · Pure
+
+1回の読み取りで10個の出力を得ます。10個のノードを並べずにテキストの状態全体が欲しいときに。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | out · data | `string` |  |
+| `fontAssetId` | out · data | `string` |  |
+| `fontSize` | out · data | `float` |  |
+| `fontWeight` | out · data | `string` |  |
+| `color` | out · data | `RGBAColor` |  |
+| `textAlign` | out · data | `string` |  |
+| `textVerticalAlign` | out · data | `string` |  |
+| `lineHeight` | out · data | `float` |  |
+| `textWrapMode` | out · data | `string` |  |
+| `effects` | out · data | `json` |  |
+
+### Set All Properties
+
+`blueprint.element.text.setAllProperties` · Latent
+
+1回の呼び出しで10個すべてを書き込みます。どの入力も、何も解決しないときは要素の現在値にフォールバックするため、気にする2つだけを駆動しても安全です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `text` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `fontAssetId` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `fontSize` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `fontWeight` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `color` | in · data | `RGBAColor` |  |
+| `textAlign` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `textVerticalAlign` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `lineHeight` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `textWrapMode` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `effects` | in · data | `json` |  |
+
+## Text Input
+
+これらは `nl.text` ではなく `nl.textInput` を対象とし、パレット名は上の Text ノードと真正面から衝突します——`Get Text` が2つ、`Set Text` が2つ、`Clear Text` が2つ。両者を見分けるのはピンです——Text Input ノードは `element:nl.textInput` 型の `textInput` を取り、Text ノードは `element:nl.text` 型の `element` を取ります——実際には、パレットはグラフがすでに持つバインディングに一致する方だけを提供するため、各ペアのうち一方しか目にすることはありません。Self 形態は [Text Input](/ja/docs/studio/blueprint/nodes/text-input) にあります。
+
+### Get Text
+
+`blueprint.element.textInput.getValue` · Pure
+
+フィールドの現在の値と長さを読み取ります。`length` は `integer` ではなく `float` として宣言されています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | out · data | `string` |  |
+| `length` | out · data | `float` |  |
+
+### Set Text
+
+`blueprint.element.textInput.setValue` · Latent
+
+フィールドの値を置き換えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+
+### Clear Text
+
+`blueprint.element.textInput.clear` · Latent
+
+フィールドの値を空文字列にします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `textInput` | in · data | `element:nl.textInput` |  |

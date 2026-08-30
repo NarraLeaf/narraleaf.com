@@ -1,0 +1,153 @@
+---
+title: "ITransition"
+description: 非推奨となった、独自の画像・シーン遷移を実装するためのインターフェース。組み込みの遷移クラス群に置き換えられた
+---
+<Callout type="warning">
+    非推奨のインターフェースです
+</Callout>
+
+遷移効果は、シーンの画像や背景を変更する際に、Image または Scene にアニメーションを付けるために使用します。
+
+```ts
+interface ITransition<T extends ElementProp = Record<string, any>> {
+    events: EventDispatcher<EventTypes<[T[]]>>;
+    controller: AnimationPlaybackControls | null | undefined;
+    start(onComplete?: () => void): void;
+    toElementProps(): T[];
+    copy(): ITransition<T>;
+}
+```
+
+## パブリックメソッド
+
+### start
+
+遷移効果を開始します。
+
+- `onComplete?: () => void` - 遷移が完了したときに呼び出されるコールバック関数
+
+> `Base` クラスを継承している場合は、`Base.prototype.requestAnimation` を呼び出すことでアニメーションをリクエストできます。
+> 
+> ```ts
+> super.requestAnimation({
+>     start: 0,
+>     end: 1,
+>     duration: this.duration
+> }, {
+>     onComplete,
+>     onUpdate: (value) => {
+>         this.state.opacity = value;
+>     }
+> });
+> ```
+
+### toElementProps
+
+ElementProps の配列を返します。各要素は画像要素のプロパティを表します。
+
+[Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts) の例です。
+
+```ts
+public toElementProps(): (DissolveProps & ElementProp)[] {
+    return [
+        { // for the first image
+            style: {opacity: this.state.opacity},
+        },
+        { // for the second image
+            style: {opacity: 1 - this.state.opacity},
+            src: this.src,
+        }
+    ];
+}
+```
+
+画像をディゾルブする際、実際には 2 枚の画像を同時にレンダリングしています。1 枚目の不透明度は `this.state.opacity`、2 枚目は `1 - this.state.opacity` です。これにより、1 枚目が徐々に消えていき、2 枚目が徐々に現れます。
+
+### copy
+
+遷移効果の新しいインスタンスを返します。
+
+## パブリックプロパティ
+
+### events
+
+このプロパティをオーバーライドする必要はありません。
+
+### controller
+
+このプロパティをオーバーライドする必要はありません。
+
+## カスタム遷移
+
+[ITransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/type.ts) インターフェースを実装し、[ImageTransition](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/imageTransition.ts) のような遷移の基底クラスを継承することで、独自の遷移効果を作成できます。
+
+[Dissolve.ts](https://github.com/NarraLeaf/narraleaf-react/blob/master/src/game/nlcore/elements/transition/transitions/image/dissolve.ts) の例です。
+
+```ts
+import {Base, ITransition} from 'narraleaf-react';
+
+type DissolveProps = {
+    style: {
+        opacity: number;
+    },
+    src?: string;
+};
+
+/**
+ * @class Dissolve
+ * @implements ITransition
+ * @extends Base
+ * @description Dissolve transition effect
+ */
+export class Dissolve extends Base<DissolveProps> implements ITransition<DissolveProps> {
+    private duration: number;
+    private opacity = 0;
+    private src: string | undefined;
+
+    /**
+     * Image will dissolve from one image to another
+     */
+    constructor(duration: number = 1000, src?: string) {
+        super();
+        this.duration = duration;
+        if (src) {
+            this.src = src;
+        }
+    }
+
+    setSrc(src: string) {
+        this.src = src;
+    }
+
+    public start(onComplete?: () => void): void {
+        this.state.opacity = 1;
+
+        this.requestAnimation({
+            start: 1,
+            end: 0,
+            duration: this.duration
+        }, {
+            onComplete,
+            onUpdate: (value) => {
+                this.opacity = value;
+            }
+        });
+    }
+
+    public toElementProps() {
+        return [
+            {
+                style: {opacity: this.opacity},
+            },
+            {
+                style: {opacity: 1 - this.opacity},
+                src: this.src,
+            }
+        ];
+    }
+
+    copy(): ITransition<DissolveProps> {
+        return new Dissolve(this.duration, this.src);
+    }
+}
+```

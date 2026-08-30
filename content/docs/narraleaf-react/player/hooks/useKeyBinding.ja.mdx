@@ -1,0 +1,28 @@
+---
+title: "useKeyBinding"
+description: 単一のキーバインドを読み書きし、外部での変更を受けて再描画する useKeyBinding フック
+---
+`useKeyBinding` は、特定のキーバインドに対する読み書きアクセスを提供する React フックです。
+
+```typescript
+function useKeyBinding(type: KeyBindingType): [KeyBindingValue, (value: KeyBindingValue) => void];
+```
+
+## 使い方
+
+```typescript
+import { useKeyBinding } from "narraleaf-react";
+
+function ShortcutSetting() {
+    const [binding, setBinding] = useKeyBinding(KeyBindingType.skipAction);
+
+    return (
+        <div>
+            <p>現在のスキップキー: {Array.isArray(binding) ? binding.join(", ") : binding ?? "未設定"}</p>
+            <button onClick={() => setBinding("F3")}>F3 に設定</button>
+        </div>
+    );
+}
+```
+
+> このフックは内部で `game.keyMap.onKeyBindingChange` を購読しているため、他の場所でバインドが変更されると、このコンポーネントは自動的に再描画されます。

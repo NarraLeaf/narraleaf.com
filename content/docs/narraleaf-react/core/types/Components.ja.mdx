@@ -1,0 +1,13 @@
+---
+title: "Components"
+description: "say や menu など、ゲームの差し替え可能な UI スロットに型を与える汎用の関数コンポーネント型"
+---
+```typescript
+type Components<T extends Record<string, any>> = (props: Readonly<T>) => React.JSX.Element;
+```
+
+## 例
+
+```typescript
+const component: Components<{ text: string }> = ({ text }) => <div>{text}</div>;
+```

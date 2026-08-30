@@ -1,0 +1,97 @@
+---
+title: "SentenceConfig"
+description: "台詞の完全な設定：ボイス、話者、色、メタデータ、行ごとのアバター上書き"
+---
+```ts
+type SentenceConfig = {
+    voice: Sound | null;
+    character: Character | null;
+    voiceId: string | number | null;
+    color?: Color;
+    metadata?: SentenceMetadata;
+    avatar?: DialogAvatar | false;
+} & Font;
+```
+
+`SentenceMetadata` については後述します。`DialogAvatar` については [Dialog](/ja/docs/narraleaf-react/player/dialog) を参照してください。
+
+作者向けの部分的な設定は [SentenceUserConfig](/ja/docs/narraleaf-react/core/types/SentenceUserConfig) です。
+
+`Font` については [Font](/ja/docs/narraleaf-react/core/types/Font) を参照してください。
+
+## voice
+
+台詞を話すボイスです。
+
+`voice` を指定した場合、`voiceId` は無視されます。
+
+```ts
+character1.say("hello!", {
+    voice: new Sound({
+        src: "/your/path/to/voice.mp3"
+    })
+});
+```
+
+## voiceId
+
+ボイスの識別子です。文字列または数値を指定できます。
+
+たとえば大量のボイスファイルがある場合、`voiceId` でファイルを選択できます。
+
+```ts
+const voiceScene = new Scene("voice-scene", {
+    voices: {
+        "a_1_1": "/your/path/to/voice.mp3"
+    }
+});
+
+voiceScene.action([
+    character1
+        .say("hello!", {
+            voiceId: "a_1_1"
+        }),
+]);
+```
+
+またはハンドラでパスを解決します。
+
+```ts
+const voiceScene = new Scene("voice-scene", {
+    voices: (id) => `/static/game/sound/bgm/${id}.mp3`
+});
+```
+
+## character
+
+台詞を話すキャラクターです。設定すると以前のキャラクターを上書きします。
+
+## color
+
+台詞のテキスト色です。
+
+```ts
+new Sentence("hello!", {
+    color: "red"
+});
+
+new Sentence("hello!", {
+    color: "#ff0000"
+});
+
+new Sentence("hello!", {
+    color: {
+        r: 255,
+        g: 0,
+        b: 0
+    }
+});
+```
+
+## metadata
+
+台詞に付随する**実行時のみ**のオブジェクトです（`SentenceMetadata`、すなわち `Record<string, unknown>`）。セーブファイルには**シリアライズされません**。可能な限りシリアライズ可能なプレーンデータを使用してください。`Sentence.getMetadata()` で読み戻せます。
+
+## avatar
+
+行ごとのダイアログアバター上書きです。静的なソース、リゾルバ、またはこの行のアバターを隠す `false` を指定できます。詳細は [Dialog](/ja/docs/narraleaf-react/player/dialog) を参照してください。

@@ -1,0 +1,566 @@
+---
+title: "Puppet"
+description: 外部のキャラクターレンダラーをホストするための `Puppet` 要素。バックエンドの登録、ライフサイクル、ポーズ付けを扱う
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+<Callout type="info">
+    `0.20.0` から利用可能です。
+</Callout>
+
+Puppet は、ステージ上に置かれる箱であり、その内部は登録したバックエンドによって描画されます。箱の外側 — 位置、レイヤー、トランスフォーム、不透明度、そしてセーブデータ内の項目 — はエンジンが管理します。箱の内側を描画するのは、あなたのバックエンドです。
+
+```ts
+import {Puppet} from "narraleaf-react";
+```
+
+エンジンにはレンダラーが同梱されていません。`src`、`options`、コマンド名、ペイロードは、エンジンがそのまま保存・転送・シリアライズする不透明な値であるため、ホストは自分がすでに持っている2Dモデルレンダラー、パーティクルシステム、その他任意のレンダラーを接続できます。そのレンダラーが描画するキャラクターは、それでもスクリプトが指定した位置に立ち、[Camera](/ja/docs/narraleaf-react/core/elements/camera) と一緒に動き、ストーリーからポーズをつけられ、セーブデータから復元されます。
+
+バックエンドが登録されていない場合でも、要素はステージ上の位置を占め、トランスフォームし、セーブ・復元されますが、何も描画しません。これはクラッシュではなく正常な状態です。[バックエンドの欠落と失敗](#バックエンドの欠落と失敗) を参照してください。
+
+## バックエンドの登録
+
+バックエンドは config を通じてではなく、[Game](/ja/docs/narraleaf-react/core/game/game) インスタンス上に登録します。バックエンドはメソッドを持つ生きたオブジェクトであり、config は深くマージされ、凍結されることもあるためです。**ゲームがマウントされる前**に登録してください。プラグインは、自身の `register(game)` からこれを呼び出せます。
+
+以下のバックエンドは完全な実装です。そのモデルは色とテクスチャを指定する JSON マニフェストであり、実際のバックエンドが扱わなければならない2つのこと — 解析して初めて解決できるバンドルと、まだ読み込み中に届く最初のポーズ — をカバーしています。
+
+```ts title="swatch.ts"
+import {Game, type PuppetBackend} from "narraleaf-react";
+
+const swatch: PuppetBackend = {
+    name: "swatch",
+    mount(container, ctx) {
+        const box = document.createElement("div");
+        box.style.width = "100%";
+        box.style.height = "100%";
+        box.style.backgroundSize = "contain";
+        box.style.backgroundRepeat = "no-repeat";
+        box.style.outline = ctx.options.outline ? "2px solid white" : "none";
+        container.appendChild(box);
+
+        // マニフェストがバンドルの残りのファイルを指定しているため、
+        // マニフェストが届くまで兄弟ファイルは解決できない。
+        const loaded = fetch(ctx.resolveSrc(ctx.src))
+            .then((response) => response.json() as Promise<{colour: string; texture: string}>)
+            .then((manifest) => {
+                box.style.backgroundColor = manifest.colour;
+                box.style.backgroundImage = `url(${ctx.resolveSibling(manifest.texture)})`;
+            });
+
+        return {
+            ready: () => loaded,
+
+            // 受け取るのは常に完全な状態であり、差分ではない。最初の状態は `ready()` が
+            // 呼ばれる前に届くため、空の状態に描画するのではなく読み込みを待つ。
+            apply: (state) => loaded.then(() => {
+                box.textContent = [state.motion, state.expression].filter(Boolean).join(" / ");
+                box.style.opacity = String(state.params.alpha ?? 1);
+            }),
+
+            // 状態がモデル化しない、一回限りのもの。
+            command(name, payload) {
+                if (name === "flash") {
+                    box.animate([{filter: "brightness(3)"}, {filter: "none"}], {duration: 200});
+                } else {
+                    ctx.warn(`swatch: unknown command "${name}"`, payload);
+                }
+            },
+
+            resize(size) {
+                box.style.fontSize = `${size.height / 20}px`;
+            },
+
+            dispose() {
+                box.remove();
+            },
+        };
+    },
+};
+
+export const game = new Game();
+game.registerPuppetBackend(swatch);
+```
+
+その game を provider に渡します:
+
+```tsx
+<GameProviders game={game}>
+    <Player story={story} onReady={({liveGame}) => liveGame.newGame()} />
+</GameProviders>
+```
+
+すでに使われている名前で登録すると、以前のバックエンドが置き換えられます。
+
+## バックエンドのライフサイクル
+
+エンジンは、バックエンドを次の順序で呼び出します:
+
+1. `mount()` がインスタンスを返します。
+2. `apply()` が、完全な初期状態とともに即座に呼び出されます。**これは `ready()` が呼ばれるよりも前です。** 最初のポーズは、モデルがまだ読み込み中の段階で届きます。
+3. `apply()` が返したものが解決すると、`ready()` が一度だけ呼び出されます。これが resolve すると、要素は `"ready"` になります。
+4. 要素がステージ上にある間、`apply()`、`command()`、`resize()` が引き続き呼び出されます。これらはいずれも、`ready()` が resolve する前に届くことがあります。
+5. `dispose()` は、読み込み中を含むどの時点でも、これを終了させます。それ以降、エンジンはそのインスタンスに対して何も呼び出さず、コンテナは空にされます。
+
+ステップ2は固定された挙動です。次の2通りのいずれかで対処してください:
+
+- **状態を保持しておき**、モデルが立ち上がった時点で再適用する。
+- **`apply()` から、読み込みを待つ promise を返す**。こうすると、ポーズが届くまで `ready()` も保留されるため、見た目が正しくなる前に要素が `"ready"` になることはありません。上の例はこの方法を採用しています。
+
+<Callout type="warning">
+    `PuppetInstance` のうち、optional と記されていないメンバーはすべて実装してください。エンジンは `ready` と `resize` を呼び出す前にその存在をチェックしますが、これは、プレーンな JavaScript のホストや無理やりキャストされた `PuppetBackend` が、契約を満たさないオブジェクトを渡してくる可能性があるためです。このチェックがあるからといって、この2つが省略可能になるわけではありません。
+</Callout>
+
+## モデルバンドル内のファイルを解決する
+
+2D キャラクターモデルは、マニフェストとアトラスとテクスチャページの組み合わせであったり、モデルファイルとモーションと物理演算とテクスチャの組み合わせであったりします。どの兄弟ファイルが存在するかは、最初のファイルを解析して初めてわかるため、バックエンドが自分でそれらを解決します。
+
+`ctx.resolveSibling(path)` は、`src` が置かれているディレクトリを基準にパスを解決します:
+
+```ts
+// src: "models/alice/alice.model.json"
+ctx.resolveSibling("alice.atlas");            // -> "models/alice/alice.atlas"
+ctx.resolveSibling("textures/page-0.png");    // -> "models/alice/textures/page-0.png"
+ctx.resolveSibling("../shared/eyes.png");     // -> "models/shared/eyes.png"
+ctx.resolveSibling("https://cdn/x.png");      // -> そのまま返る。絶対パスが優先される
+```
+
+ルール:
+
+- `.` と `..` は畳み込まれ、ルートより上に出る場合はルートで打ち切られます。
+- すでに絶対パスである場合（スキームを持つ、先頭が `/`、プロトコル相対の `//host/…`、data URI）は、そのまま返されます。
+- 空のパスは `src` 自身に解決されます。
+- `\` は `/` として読み取られ、結果は常に `/` を使用します。
+
+ディレクトリは、エンジンが `src` から読み取る唯一の構造であり、それも `resolveSibling` が要求したときだけです。エンジンは `src` の形式も、内容も、それがどのファイルを引き込むかも知りません。`src` が場所ではなく不透明なキーであるバックエンドには、解決すべきディレクトリがないため、パスはそのまま返され、代わりに独自の `options`（これもエンジンがそのまま転送します）を読み取ることになります。
+
+## プリロード
+
+`ctx.resolveSrc` は、画像と同じルールでソースを解決します。data URI はそのまま返され、それ以外はプリロードキャッシュで検索されたうえで、そのまま返されます。`resolveSibling` も最後に同じ処理を経るため、[scene.preloadImage](/ja/docs/narraleaf-react/core/elements/scene#preloadimage) で温めておいたテクスチャは、ここでもキャッシュから提供されます。
+
+<Callout type="warning">
+    **Puppet 自身の `src` は、プリロード対象として登録されません。** それは画像ではなくモデルマニフェストであり、エンジンはそれがどのテクスチャを引き込むかを知りません。バックエンドのテクスチャを温めるには、それらに対して `scene.preloadImage` を呼び出してください。キャッシュにないものはすべて、バックエンドが自分で取得する普通の URL です。
+</Callout>
+
+## Puppet を作成する
+
+`backend` と `src` は必須です。それ以外にはすべてデフォルト値があります。
+
+```typescript
+const alice = new Puppet({
+    backend: "swatch",
+    src: "models/alice/alice.model.json",
+    size: {width: 900, height: 1200},   // 省略するとステージのサイズになる
+    position: {xalign: 0.3},
+    motion: "idle",
+});
+```
+
+Puppet をステージに配置する方法は、[Image](/ja/docs/narraleaf-react/core/elements/image) と同じです。シーンのアクションから参照するだけで、シーンがそれを初期化します。
+
+`size` は、箱の論理サイズをピクセル単位で表したものです。デフォルトの `null` は、ステージのサイズを意味します。バックエンドは箱の内部で自身のコンテンツをスケーリングし、要素のトランスフォーム（位置、ズーム、スケール、回転）は、画像に対するのと同じように、その上から適用されます。
+
+<Callout type="warning">
+    **Puppet は自分の `src` を変更できません。** バックエンドのインスタンスは、要素がステージ上にある間だけ生存します。代わりに2つ目の要素を使用してください。
+</Callout>
+
+<Callout type="info">
+    このリリースでは、Puppet には固有のトランジションがありません。`show()` と `hide()` は、不透明度によって箱をフェードさせます。
+</Callout>
+
+## ストーリーから Puppet にポーズをつける
+
+6つのチェーン可能なアクションがあり、`PuppetState` が引く線に沿って分かれています:
+
+```typescript
+scene.action([
+    alice.show({duration: 400}),
+
+    alice.setMotion("idle"),
+    alice.setExpression("smile"),
+    alice.setParam("ParamAngleX", 12),
+    alice.setSlot("prop", "umbrella"),
+
+    alice.command("playMotion", {id: "wave"}),                 // ストーリーはそのまま先に進む
+    alice.command("playMotion", {id: "bow"}, {await: true}),   // この行はそれを待つ
+
+    alice.setExpression(null),
+    alice.hide({duration: 400}),
+]);
+```
+
+5つの `set*` アクションはそれぞれ、永続状態の1つのフィールドに書き込み、そのうえで**状態全体**をバックエンドに渡します。ロードは1回の `apply` でそれを復元し、アンドゥはもう1回の `apply` でそれを元に戻します。何かが再生されることはありません。`params` と `slots` はキー単位でマージされるため、1つのパラメーターを設定しても、残りはそのまま保たれます。
+
+`command` は、エンジンがモデル化も解釈もしない一回限りの動作を送信します。何も後には残らないため、ロードでそれが復元されることも、アンドゥでそれが取り消されることもありません。一度だけ再生するモーション、当たり判定、リップシンクなどに使用してください。
+
+<Callout type="info">
+    **要求しない限り、何も待機しません。** `{await: true}` は `command` のオプトインであり、`set*` メソッドには同等の機能はありません。待機するコマンドも、他の時間のかかるアクションと同じようにスキップ可能です。
+</Callout>
+
+例外をスローするバックエンド、reject するバックエンド、あるいは登録されたことのないバックエンドは、致命的なエラーにはならずログに記録されます。状態の変更はそのまま成立し、次に要素がマウントされたときに完全な形で適用されます。ステージ上にない Puppet 宛てのコマンドは警告を出して破棄されます。
+
+## Puppet の状態
+
+Puppet の永続状態は `{motion, expression, skin, params, slots}` であり、これがセーブデータに含まれる、その Puppet に関するすべてです。
+
+`apply` が受け取るのは常に**完全な**状態であり、差分ではありません。セーブデータをロードすると、状態はセーブから再構築されて一度だけ適用されます。モデルが経てきたポーズの変化を1つずつ再生するわけではありません。
+
+そのため、一回限りのエフェクトは `command()` を経由します。状態がモデル化しないものも、ここに属します。`motion`、`expression`、`skin` は、あらゆる 2D キャラクターレンダラーが持つ3つの名前です。特定のレンダラー固有のものは、`params`（自由な数値）、`slots`（自由な文字列）、またはコマンドに入れます。これらの名前はどれも、特定のレンダラーに属するものではありません。
+
+### `null` の意味
+
+すべてのフィールドは1つの要求であり、`null` はその要求がないことを意味し、「今あるものをそのままにする」という意味では決してありません。状態は全体として適用されるため、クリアされたフィールドは目に見える形でクリアされ、ロードやアンドゥは記録された内容を再現します。
+
+| フィールド | `null` の意味 |
+|---|---|
+| `motion` | 何も再生されていません。モデルは、モーションが何も適用されていない状態の見た目 — セットアップ／レスト／バインドポーズ、あるいはそのようなものが概念として存在しない形式ではバックエンド自身のデフォルト — で静止します。 |
+| `expression` | 表情は何も適用されません。顔はモーションとスキンによって決まる見た目になります。モデル自身が持つ「neutral」という名前の表情に差し替えるのではなく、トラックをクリアしてください。こうすることで `null` と `"neutral"` は区別されたままになります。 |
+| `skin` | モデルのデフォルトスキン。誰も選択する前にモデルが表示しているものです。 |
+| `slots[id]` | そのスロットはクリアされます。これは、そのキーがそもそも存在しない状態と同じです。`setSlot(id, null)` は既存のマップにマージされるため、キー自体は残ります。 |
+| `params[id]` | この状況は発生しません。`params` の中に `null` は存在しません。マップに記載のないパラメーターはモデル自身のデフォルト値を保ちます。そのため、パラメーターをクリアするということは、そのキーを取り除くことを意味します。 |
+
+<Callout type="warning">
+    モデルに存在しない名前は、スローではなく `ctx.warn` を発生させます。`apply()` の中で例外をスローすると、要素全体が `"error"` になります。
+</Callout>
+
+<Callout type="info">
+    より新しいエンジンが書き込んだキーは、ロードされてもそのまま保持されます。
+</Callout>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `config: Partial<IPuppetUserConfig> & {backend: string; src: string}`
+
+フィールド:
+
+- `backend: string` - 登録済みバックエンドが応答する名前。**必須**。指定がない Puppet はコンストラクション時に例外をスローします。
+- `src: string` - バックエンドに渡されるリソース記述子。そのまま渡されます。**必須**。
+- `options: Record<string, unknown>` - バックエンド固有のオプション。そのまま渡されます。デフォルトは `{}`。
+- `size: PuppetSize | null` - 箱の論理サイズ（ピクセル単位）。デフォルトは `null` で、ステージのサイズを意味します。
+- `layer?: Layer` - [Layer](/ja/docs/narraleaf-react/core/elements/layer) を参照。
+- `className?: string` - 箱に付与するクラス名。これらは、箱の `position: relative` と幅・高さを持つ要素、すなわち `mount` に渡されるコンテナの**親**要素（コンテナ自体ではありません）に反映されます。さらにその上のラッパーがトランスフォームを書き込む場所であるため、ここで `transform` を設定するクラスは、フレームごとに上書きされます。
+- `motion: string | null` - 初期モーション。セーブされる状態の一部であるため、セーブ・ロードを経ても保持されます。
+- `expression: string | null` - 初期表情。
+- `skin: string | null` - 初期スキン。
+- `params: Record<string, number>` - 初期の数値パラメーター。
+- `slots: Record<string, string | null>` - 初期の文字列スロット。
+
+さらに、表示可能要素が持つすべてのトランスフォームプロパティ — `position`、`scale`、`rotation`、`opacity` など — を受け取ります。
+
+```typescript
+const alice = new Puppet({
+    backend: "swatch",
+    src: "models/alice/alice.model.json",
+    options: {outline: true},
+    motion: "idle",
+    params: {ParamAngleX: 12},
+});
+```
+</Step>
+</Steps>
+
+### getStatus
+
+<Steps>
+<Step>
+
+この Puppet を描画しているバックエンドが、現在何を行っているか。
+
+- 戻り値: `PuppetStatus` - [PuppetStatus](#puppetstatus) を参照
+
+特に扱う価値のある値が2つあります。`"missing-backend"` は `config.backend` に応答するものが何もないことを意味し、`"error"` はバックエンドが例外をスローしたか、モデルの読み込みに失敗したことを意味します。どちらの場合も、要素はステージ上にあり、トランスフォームもセーブも行われますが、描画はされません。
+
+このステータスは実行中のインスタンスの状態を表すものであり、**セーブデータの一部ではありません**。ロードすると再マウントが行われ、ステータスは `"unmounted"` からやり直しになります。
+
+```typescript
+if (alice.getStatus() === "missing-backend") {
+    // このプロジェクトが依存しているレンダラーが一度も登録されていない
+}
+```
+</Step>
+</Steps>
+
+### onStatusChange
+
+<Steps>
+<Step>
+
+この Puppet のステータス変化を監視し、新しいステータスを受け取ります。
+
+- `listener: (status: PuppetStatus) => void` - 新しいステータスとともに呼び出されます
+- 戻り値: `LiveGameEventToken` - 監視を止めるには dispose してください
+
+バックエンドは非同期に失敗します。要素はマウントされ、その後モデルが読み込まれるか、読み込みに失敗するかします。レンダラーが立ち上がったかどうかを知るには、購読してください。
+
+```typescript
+const token = alice.onStatusChange((status) => {
+    if (status === "error") console.warn("Alice is not being drawn");
+});
+```
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+この Puppet の描画に使用するレイヤーを上書きします。
+
+- `layer: Layer` - [Layer](/ja/docs/narraleaf-react/core/elements/layer) を参照
+- 戻り値: `this`
+
+```typescript
+puppet.useLayer(foreground);
+```
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### setMotion
+
+<Steps>
+<Step>
+
+名前付きのモーションをリクエストします。多くの場合、それはモデルが落ち着く先のループです。
+
+- `motion: string | null` - リクエストするモーション。クリアする場合は `null`
+
+これは一回限りのものではなく永続状態です。セーブされ、次にモデルがマウントされるときに完全な形で再適用されます。一度再生して終わるモーションは、[command](#command) に属します。ストーリーは、バックエンドがそのポーズを取るのを待ちません。
+
+```typescript
+alice.setMotion("idle");
+```
+</Step>
+</Steps>
+
+### setExpression
+
+<Steps>
+<Step>
+
+名前付きの表情をリクエストします。モーションと同様、永続状態です。
+
+- `expression: string | null` - リクエストする表情。クリアする場合は `null`
+
+```typescript
+alice.setExpression("smile");
+```
+</Step>
+</Steps>
+
+### setSkin
+
+<Steps>
+<Step>
+
+名前付きのスキンや衣装をリクエストします。モーションと同様、永続状態です。
+
+- `skin: string | null` - リクエストするスキン。クリアする場合は `null`
+
+```typescript
+alice.setSkin("winter");
+```
+</Step>
+</Steps>
+
+### setParam
+
+<Steps>
+<Step>
+
+1つの数値パラメーターを設定し、他のすべてのパラメーターはそのままにします。
+
+- `id: string` - パラメーターの id
+- `value: number` - その新しい値
+
+id が何を意味するかはバックエンドの領分です。リグのパラメーター、ボーンの上書き、ブレンドウェイトなど、何でもかまいません。エンジンはそれを記憶し、セーブし、ロード時にはマップ全体を返します。
+
+```typescript
+alice.setParam("ParamAngleX", 12);
+```
+</Step>
+</Steps>
+
+### setSlot
+
+<Steps>
+<Step>
+
+1つの自由な文字列スロットを設定し、他のすべてのスロットはそのままにします。
+
+- `id: string` - スロットの id
+- `value: string | null` - その新しい値。`null` はそのスロットをクリアします
+
+スロットは、`motion` / `expression` / `skin` がカバーしない、名前のついたものを運びます。アタッチメント（装着）ポイント、差し替えた小道具、あるいは特定のレンダラー独自の何かなどです。
+
+```typescript
+alice.setSlot("prop", "umbrella");
+```
+</Step>
+</Steps>
+
+### command
+
+<Steps>
+<Step>
+
+エンジンがモデル化も解釈もしないコマンドを、バックエンドに送信します。
+
+- `name: string` - そのまま転送されます
+- `payload?: unknown` - そのまま転送されます
+- `options?: PuppetCommandOptions` - [PuppetCommandOptions](#puppetcommandoptions) を参照
+
+`PuppetState` が扱わないもの — 一度再生して終わるモーション、当たり判定、リップシンク — に使用します。これらは何もセーブされないため、コマンドはロードによって復元されることも、アンドゥによって取り消されることもありません。生き残る必要のあるものは、上記の `set*` メソッドを通じて状態に属させてください。
+
+**要求しない限り、ストーリーは待機しません。**
+
+```typescript
+alice.command("playMotion", {id: "wave"});                  // ストーリーはそのまま先に進む
+alice.command("playMotion", {id: "bow"}, {await: true});    // この行はそれを待つ
+```
+</Step>
+</Steps>
+
+### Displayable から継承されるもの
+
+表示可能要素が提供するものはすべて、変更なしに Puppet でも機能し、箱全体に適用されます:
+
+[`pos`](/ja/docs/narraleaf-react/core/elements/displayable#pos)、[`scale`](/ja/docs/narraleaf-react/core/elements/displayable#scale)、[`scaleX`](/ja/docs/narraleaf-react/core/elements/displayable#scalex)、[`scaleY`](/ja/docs/narraleaf-react/core/elements/displayable#scaley)、[`scaleXY`](/ja/docs/narraleaf-react/core/elements/displayable#scalexy)、[`zoom`](/ja/docs/narraleaf-react/core/elements/displayable#zoom)、[`rotate`](/ja/docs/narraleaf-react/core/elements/displayable#rotate)、[`opacity`](/ja/docs/narraleaf-react/core/elements/displayable#opacity)、[`transform`](/ja/docs/narraleaf-react/core/elements/displayable#transform)、[`show`](/ja/docs/narraleaf-react/core/elements/displayable#show)、[`hide`](/ja/docs/narraleaf-react/core/elements/displayable#hide)、そして[ビジュアルエフェクト](/ja/docs/narraleaf-react/core/elements/displayable#visual-effects): `mask`、`clip`、`wipe`、`filter`、`backdrop`、`blend`、およびそれに対応するメソッド。
+
+## バックエンドの契約
+
+これらの型はライブラリの他の部分から何もインポートしていないため、レンダラーはこれらだけを対象に独立して実装できます。
+
+### PuppetBackend
+
+<Steps>
+<Step>
+
+- `name: string` - Puppet の `backend` 設定が指す鍵。
+- `mount(container: HTMLDivElement, ctx: PuppetMountContext): PuppetInstance` - ホスト要素に紐づくインスタンスを作成します。箱はエンジンが所有し、その内部はバックエンドが所有します。インスタンスが dispose されると、コンテナは空になります。
+</Step>
+</Steps>
+
+### PuppetMountContext
+
+<Steps>
+<Step>
+
+エンジンがバックエンドをマウントする際に、そのバックエンドに伝える情報。
+
+- `src: string` - Puppet が宣言したリソース記述子。そのまま渡されます。エンジンがこれから読み取る唯一の構造は、それが置かれているディレクトリであり、しかも `resolveSibling` を通じてのみです。
+- `options: Readonly<Record<string, unknown>>` - 作者がこのバックエンドに指定したオプション。そのまま渡されます。
+- `size: PuppetSize` - 箱の論理サイズ（ピクセル単位）。以降の変更は `resize` を通じて届きます。
+- `resolveSrc(src: string): string` - 画像と同じルールでソースを URL に解決します。[プリロード](#プリロード) を参照。
+- `resolveSibling(relativePath: string): string` - この Puppet 自身の `src` を基準にしたパス、つまり同じバンドル内の兄弟ファイルを解決します。[モデルバンドル内のファイルを解決する](#モデルバンドル内のファイルを解決する) を参照。
+- `warn(message: string, detail?: unknown): void` - 致命的でない問題を報告します。エンジンはそれをログに記録し、ステージを存続させます。例外がスローされることはありません。
+</Step>
+</Steps>
+
+### PuppetInstance
+
+<Steps>
+<Step>
+
+1つのマウント済みモデル。エンジンが保持するのはこのハンドルだけです。各メンバーがいつ呼び出されるかについては、[バックエンドのライフサイクル](#バックエンドのライフサイクル) を参照してください。
+
+- `ready(): Promise<void>` - モデルが読み込まれ、最初のフレームが描画された時点で resolve します。
+- `apply(state: Readonly<PuppetState>): void | Promise<void>` - **完全な**状態を適用します。マウント時に `ready()` より前に一度呼ばれ、その後は変更のたびに呼ばれます。
+- `command(name: string, payload: unknown): void | Promise<void>` - 名前付きのコマンドを実行します。エンジンは `name` や `payload` を決して解釈しません。promise を返すと、`{await: true}` を渡した呼び出し元がそれを待てるようになります。デフォルトでは何も待機しません。
+- `resize(size: PuppetSize): void` - 箱のサイズが変わりました。
+- `describe?(): Promise<PuppetDescription>` - 任意。モデルをエディターのホストに説明します。
+- `dispose(): void` - インスタンスを破棄します。その後、コンテナは空になります。
+
+`describe` はステータスによって制限されません。`mount` と `dispose` の間であればいつでも、`ready()` が resolve する前であっても、また複数回であっても呼び出される可能性があります。読み込み済みのモデルしか説明できないバックエンドは、`describe` の内部で自身の読み込みを待機してください。reject しても安全です。ホストはそれをログに記録し、作者が名前を手入力する形にフォールバックします。
+</Step>
+</Steps>
+
+### PuppetState
+
+<Steps>
+<Step>
+
+各フィールドについては [`null` の意味](#null-の意味) を参照してください。
+
+- `motion: string | null` - 現在リクエストされている名前付きのアクション。多くの場合、モデルが落ち着く先のループです。
+- `expression: string | null` - 現在リクエストされている名前付きの表情。
+- `skin: string | null` - 現在リクエストされている名前付きのスキン／衣装。
+- `params: Record<string, number>` - 自由な数値パラメーター。
+- `slots: Record<string, string | null>` - 自由な文字列スロット。上記3つの名前がカバーしないものに使用します。
+</Step>
+</Steps>
+
+### PuppetCommandOptions
+
+<Steps>
+<Step>
+
+ストーリーが一回限りの `command` をどのように扱うか。
+
+- `await?: boolean` - ストーリーが先に進む前に、バックエンドがコマンドを完了するのを待ちます。デフォルトは `false`。
+
+待機するコマンドも、他の時間のかかるアクションと同じようにスキップ可能です。
+</Step>
+</Steps>
+
+### PuppetDescription
+
+<Steps>
+<Step>
+
+エディターのホストに対してモデル自身を説明するもので、ホストはこれを使って実行中のインスタンスからインスペクターのドロップダウンを埋めることができます。応答できないバックエンドは `describe` を実装せず、その場合ホストは作者が名前を手入力する形にフォールバックします。
+
+- `motions: string[]`
+- `expressions: string[]`
+- `skins: string[]`
+- `params: {id: string; min: number; max: number; default: number}[]`
+- `size: PuppetSize | null` - モデル自身のキャンバスサイズ。報告しない場合は `null`。
+</Step>
+</Steps>
+
+### PuppetSize
+
+<Steps>
+<Step>
+
+- `width: number`
+- `height: number`
+
+論理ピクセル。
+</Step>
+</Steps>
+
+## バックエンドの欠落と失敗
+
+登録されたバックエンドを持たない Puppet は、ステージ上の位置、トランスフォーム、セーブされた状態を保持したまま、何も描画しません。エンジンは、要素ごとにではなく、**バックエンド名ごとに一度だけ**警告します。
+
+誤動作するバックエンドも同じように扱われます。例外をスローする `mount`、決して読み込まれないモデル、reject する `apply` — いずれもログに記録され、ステージは存続します。
+
+どちらの状況にも対応するには、実行中のインスタンスに対して [`getStatus()`](#getstatus) を読み取り、[`onStatusChange()`](#onstatuschange) で購読してください。
+
+### PuppetStatus
+
+| Value | Meaning |
+|---|---|
+| `unmounted` | 要素がステージ上にないか、そのコンポーネントがまだマウントされていません。 |
+| `missing-backend` | 要素はステージ上にありますが、その `backend` 名に応答するものがありません。箱はトランスフォーム、レイヤー、セーブには引き続き関与しますが、何も描画しません。 |
+| `loading` | バックエンドはマウントされましたが、その `ready()` がまだ resolve していません。 |
+| `ready` | 最初のフレームが描画されました。 |
+| `error` | マウント、状態の適用、または読み込みで例外がスローされました。それでもステージは存続します。 |
+
+## Game のメソッド
+
+<Steps>
+<Step>
+
+- `game.registerPuppetBackend(backend: PuppetBackend): this` - バックエンドを登録します。game 自身を返すため、呼び出しをチェーンできます。
+- `game.getPuppetBackend(name: string): PuppetBackend | null` - 指定した名前で登録されているバックエンド。なければ `null`。
+- `game.listPuppetBackends(): string[]` - 登録されているすべてのバックエンドの名前を、登録順に並べたもの。
+</Step>
+</Steps>

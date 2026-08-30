@@ -30,12 +30,14 @@ export function absoluteUrl(path: string): string {
 const HREFLANG: Record<Locale, string> = {
   en: 'en',
   zh: 'zh',
+  ja: 'ja',
 };
 
 /** The `og:locale` value for each language, which Open Graph wants regionalized. */
 const OG_LOCALE: Record<Locale, string> = {
   en: 'en_US',
   zh: 'zh_CN',
+  ja: 'ja_JP',
 };
 
 /**
@@ -71,8 +73,14 @@ export function alternatesFor(
     languages['x-default'] = absoluteUrl(localizedPath(path, i18n.defaultLanguage));
   }
 
+  // A page that has not been translated into the language being served is the
+  // English page under a prefixed address. It points at the English URL rather
+  // than declaring itself the original, which is what stops the same text
+  // competing with itself from two addresses.
+  const canonicalLocale = available.includes(locale) ? locale : i18n.defaultLanguage;
+
   return {
-    canonical: absoluteUrl(localizedPath(path, locale)),
+    canonical: absoluteUrl(localizedPath(path, canonicalLocale)),
     languages,
   };
 }
@@ -112,6 +120,21 @@ const SITE_KEYWORDS: Record<Locale, string[]> = {
     '互动叙事引擎',
     '剧情编辑器',
     'React 视觉小说',
+    'NarraLeaf',
+    'NarraLeaf Studio',
+    'narraleaf-react',
+  ],
+  ja: [
+    'ビジュアルノベル エンジン',
+    'ノベルゲーム エンジン',
+    'ノベルゲーム制作ソフト',
+    'ビジュアルノベル エディタ',
+    'ADV エンジン',
+    'ギャルゲー 制作',
+    'サウンドノベル 制作',
+    'インタラクティブノベル',
+    'ストーリーエディタ',
+    'React ビジュアルノベル',
     'NarraLeaf',
     'NarraLeaf Studio',
     'narraleaf-react',

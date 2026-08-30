@@ -1,0 +1,24 @@
+---
+title: "TransformersMap"
+description: "アニメーション可能なプロパティ名（位置、不透明度、スケールなど）から、`transform` がそれに対して受け付ける値の型へのマップ"
+---
+```typescript
+type TransformersMap = {
+    "position": RawPosition | IPosition;
+    "opacity": number;
+    "scale": number;
+    "rotation": number;
+    "display": string;
+    "src": string;
+    "backgroundColor": {
+        url: string;
+    } | color | null | undefined | StaticImageData;
+    "backgroundOpacity": number;
+    "transform": TransformDefinitions.Types;
+};
+```
+
+詳細は以下を参照してください。
+- [RawPosition](/ja/docs/narraleaf-react/core/types/RawPosition)
+- [IPosition](/ja/docs/narraleaf-react/core/types/IPosition)
+- [TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions)

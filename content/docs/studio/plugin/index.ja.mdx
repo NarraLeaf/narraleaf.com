@@ -1,0 +1,42 @@
+---
+title: プラグイン
+description: インストール可能なプラグインで NarraLeaf Studio とそれが構築するゲームを拡張します
+---
+
+プラグインは `manifest.json` と 1 つまたは 2 つの事前バンドル済みエントリーファイルを持つフォルダです。Studio にエディターパネル、アクション、キーバインド、ブループリントノード、ウィジェット、言語パックを追加できるほか、構築するゲームの内部で実行されるゲーム側コードを同梱できます。
+
+プラグインには 2 つのエントリーターゲットがあり、プラグインはそのどちらか、または両方を宣言します。
+
+| ターゲット | 実行環境 | API | 用途 |
+| --- | --- | --- | --- |
+| `studio` | エディター(ワークスペースウィンドウ) | `narraleaf-studio/plugin` | パネル、アクション、キーバインド、ブループリントノードのエディターメタデータ、ウィジェット、言語パック |
+| `runtime` | ゲーム(Dev Mode(開発モード)、Preview(プレビュー)、Production(本番環境)) | `narraleaf-studio/runtime` | ブループリントノードの実行、ウィジェットのレンダリング、ゲーム側ロジック |
+
+ブループリントノードは、公開されたゲームで動作するために**両方の**ターゲットを必要とします。`studio` エントリーがそのエディターメタデータを登録し、`runtime` エントリーがゲームがそれを実行するときに動くコードを登録します。定義は共有モジュールに 1 度だけ書き、各エントリーからそれぞれ登録します。詳しくは[プラグインを作る](/ja/docs/studio/plugin/create-first-plugin)を参照してください。
+
+<Cards>
+  <Card title="プラグインを作る" href="/ja/docs/studio/plugin/create-first-plugin" description="空のフォルダから、インストール済みのプラグインまで。マニフェスト、エントリー、ブループリントノード、パネル、ローカライゼーション、パッケージング" />
+  <Card title="マニフェスト" href="/ja/docs/studio/plugin/manifest" description="すべてのフィールド、contributes の全体像、そしてほとんどの権限が手書きではなく派生である理由" />
+  <Card title="API リファレンス" href="/ja/docs/studio/plugin/api-reference" description="studio と runtime 両方のサーフェス上のすべてのメソッドを、例と注意点つきで解説" />
+  <Card title="Studio API" href="/ja/docs/studio/plugin/studio" description="プラグインがエディターで触れるすべて。サービス、ui kit、そして特権的な機能" />
+  <Card title="Runtime API" href="/ja/docs/studio/plugin/runtime" description="能力によってゲートされたゲーム側サーフェス。宣言した各能力が app.game 上で何をもたらすか" />
+  <Card title="ビルド依存関係" href="/ja/docs/studio/plugin/build-dependencies" description="Studio がビルド時にダウンロード、検証、キャッシュする外部バイナリ" />
+  <Card title="プラグインをインストールする" href="/ja/docs/studio/plugin/install-plugin" description="ストアまたはフォルダからインストールし、権限を承認し、プラグインを最新に保つ" />
+  <Card title="プロジェクトの依存関係" href="/ja/docs/studio/plugin/project-dependencies" description="プロジェクトが使用するプラグインについて何を記録するか、そしてどれがビルドしたゲームに同梱されるか" />
+</Cards>
+
+## 能力は宣言されるものであり、発見されるものではない
+
+プラグインのゲーム側コードが、ノードやウィジェットの登録を超えて到達できるもの――ストレージ、ストーリー変数、セーブデータ、オーバーレイ、ネイティブの子プロセス――は、すべて `contributes` で宣言しなければなりません。Studio はこの宣言からインストール時の権限プロンプトを導出します。宣言されていない能力は、失敗する呼び出しになるのではなく、**API オブジェクトそのものに存在しません**。runtime エントリーを書く前に[能力モデル](/ja/docs/studio/plugin/runtime)を読んでください。これがほかのすべてを形づくる、たった一つの要点です。
+
+## API は型のみです
+
+`narraleaf-studio` は型のみのパッケージです。`narraleaf-studio/plugin` と `narraleaf-studio/runtime` の宣言を提供しますが、実装は読み込み時に Studio 側から供給されます。開発依存として追加し、バンドラーで両方の指定子を external としてマークしてください([テンプレート](/ja/docs/studio/plugin/create-first-plugin)がこれを代わりに行います)。
+
+```bash
+yarn add -D narraleaf-studio
+```
+
+<Callout type="warn">
+プラグインはサンドボックス化されていません。インストールされたプラグインは Studio 自身と同じアクセス権で実行され、そのゲーム側コードはプレイヤーのマシン上で実行されます。信頼できるプラグインのみをインストールしてください。プラグインがデフォルトのサーフェスを超えて宣言する内容については、Studio がインストール時に権限プロンプトを表示します。
+</Callout>

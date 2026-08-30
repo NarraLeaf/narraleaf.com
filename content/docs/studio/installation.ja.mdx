@@ -1,0 +1,54 @@
+---
+title: インストール
+description: Windows または macOS 向けに NarraLeaf Studio をダウンロードしてインストールする
+---
+
+<StudioDownloads lang="ja" />
+
+ダウンロードリンクは最新リリースを指しています。以前のバージョンは [releases ページ](https://github.com/NarraLeaf/NarraLeaf-Studio/releases) にあります。
+
+## 動作環境
+
+| プラットフォーム | 最小バージョン | アーキテクチャ |
+| --- | --- | --- |
+| Windows | Windows 10 | x64 |
+| macOS | macOS 11 | Apple Silicon |
+
+Studio は Intel Mac では動作しません。Intel Mac はビルドターゲットとしては引き続き選択できます。詳細は [実行とパッケージ化](/ja/docs/studio/getting-started/run-and-package) を参照してください。
+
+## インストール
+
+**Windows** — `.exe` インストーラーを実行します。既定では管理者への確認なしに、現在のユーザー向けにインストールされます。ウィザードではインストール先の変更や、管理者の承認が必要な全ユーザー向けインストールへの切り替えも行えます。
+
+**macOS** — `.dmg` を開き、NarraLeaf Studio を Applications フォルダへドラッグします。
+
+<Callout type="warn">
+Studio はコード署名されていないため、初回起動時は手動で許可する必要があります。Windows では**詳細情報 → 実行**を選択します。macOS では**システム設定 → プライバシーとセキュリティ**で**このまま開く**を選択するか、隔離属性を削除します。
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
+```
+</Callout>
+
+初回起動時はランチャーが開き、ここでプロジェクトとプラグインを管理します。
+
+<Figure
+    src="/static/img/docs/studio/en/launcher.webp"
+    alt="インストール後に表示されるランチャー。サイドバーに Projects、Plugins、Learning が並ぶ"
+/>
+
+## アップデート
+
+Studio は起動直後に新しいリリースがないか確認し、結果を**Settings → General → Updates**（設定 → 一般 → アップデート）に表示します。ダウンロードは自動的には開始されません。確認を止めるには**Check for updates at launch**（起動時にアップデートを確認）をオフにします。
+
+**Windows** — その画面から更新をダウンロードします。Studio は次回の再起動時にインストールします。
+
+**macOS** — Studio は新しいバージョンを通知するのみです。最新の `.dmg` をダウンロードし、Applications 内のアプリを置き換えてください。
+
+<Cards>
+    <Card
+        title="プロジェクトを始める"
+        description="プロジェクトを作成し、最初の実行を完了します。"
+        href="/ja/docs/studio/getting-started"
+    />
+</Cards>

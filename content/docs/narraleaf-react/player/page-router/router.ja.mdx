@@ -1,0 +1,468 @@
+---
+title: "LayoutRouter"
+description: ナビゲーション、クエリパラメータのヘルパー、パスのユーティリティ、履歴の確認メソッドを含む LayoutRouter の全 API
+---
+LayoutRouter は、ページとネストされたレイアウトの間のナビゲーションを管理します。従来の線形な **PageRouter** を置き換えるもので、`Layout` と `Page` コンポーネントと組み合わせて、ディレクトリのようなルートツリーを構築します。
+
+```tsx
+import { useRouter } from "narraleaf-react";
+
+const router = useRouter();
+```
+
+## 基本のナビゲーション
+
+```tsx
+// Absolute navigation
+router.navigate("/home");
+
+// With query parameters
+router.navigate("/user/profile", { tab: "info" });
+
+// Relative navigation
+router.navigate("./detail");
+
+// History control
+router.back();
+router.forward();
+
+// Replace without pushing history
+router.replace("/settings");
+
+// Clear current page & history
+router.clear();
+
+// Keep current page but drop history
+router.cleanHistory();
+```
+
+## クエリのヘルパー
+
+```tsx
+router.setQueryParam("lang", "en");
+router.getQueryParam("lang"); // "en"
+router.removeQueryParam("lang");
+
+router.setQueryParams({ tab: "general", theme: "dark" });
+router.clearQueryParams();
+```
+
+## パスのヘルパー
+
+| メソッド | 説明 |
+| ------ | ----------- |
+| `resolvePath(path)` | 相対パス（例：`../parent`）を絶対パスに解決します。 |
+| `matchPath(path, pattern)` | `*` と `:param` に対応した前方一致。 |
+| `exactMatch(path, pattern)` | `matchPath` と同様ですが、セグメント数が一致している必要があります。 |
+| `extractParams(path, pattern)` | マッチしたパスから動的パラメータを取り出します。 |
+
+## 公開メソッド [#public-methods]
+### navigate
+<Steps>
+<Step>
+
+新しいパスへ移動します。
+
+- `path: string` – 絶対または相対の移動先パス
+- `queryParams?: Record<string,string>` – 任意のクエリパラメータ
+- `return: this`
+
+```typescript
+router.navigate("/about");
+```
+</Step>
+</Steps>
+
+### back
+<Steps>
+<Step>
+
+1 つ前の履歴エントリへ戻ります（存在する場合）。
+
+- `return: this`
+</Step>
+</Steps>
+
+### forward
+<Steps>
+<Step>
+
+次の履歴エントリへ進みます（存在する場合）。
+
+- `return: this`
+</Step>
+</Steps>
+
+### replace
+<Steps>
+<Step>
+
+新しい履歴エントリを追加せずに、現在のパスを置き換えます。
+
+- `path: string` – 新しいパス
+- `queryParams?: Record<string,string>` – 任意のクエリパラメータ
+- `return: this`
+</Step>
+</Steps>
+
+### clear
+<Steps>
+<Step>
+
+現在のパスと履歴をクリアします。
+
+- `return: this`
+</Step>
+</Steps>
+
+### cleanHistory
+<Steps>
+<Step>
+
+現在のエントリ以外のすべての履歴を削除します。
+
+- `return: this`
+</Step>
+</Steps>
+
+### getCurrentPath / getPathname
+<Steps>
+<Step>
+
+現在のパス（クエリを含まない）を取得します。
+
+- `return: string`
+</Step>
+</Steps>
+
+### getCurrentQuery / getQueryParams
+<Steps>
+<Step>
+
+現在のクエリパラメータのオブジェクトを取得します。
+
+- `return: Record<string,string>`
+</Step>
+</Steps>
+
+### getCurrentUrl
+<Steps>
+<Step>
+
+現在の完全な URL（パス + クエリ）を取得します。
+
+- `return: string`
+</Step>
+</Steps>
+
+### setQueryParam
+<Steps>
+<Step>
+
+単一のクエリパラメータを設定します。
+
+- `key: string`
+- `value: string`
+- `return: this`
+</Step>
+</Steps>
+
+### setQueryParams
+<Steps>
+<Step>
+
+複数のクエリパラメータをマージします。
+
+- `params: Record<string,string>`
+- `return: this`
+</Step>
+</Steps>
+
+### getQueryParam
+<Steps>
+<Step>
+
+クエリパラメータの値を取得します。
+
+- `key: string`
+- `return: string | undefined`
+</Step>
+</Steps>
+
+### removeQueryParam
+<Steps>
+<Step>
+
+クエリパラメータを削除します。
+
+- `key: string`
+- `return: this`
+</Step>
+</Steps>
+
+### clearQueryParams
+<Steps>
+<Step>
+
+すべてのクエリパラメータを削除します。
+
+- `return: this`
+</Step>
+</Steps>
+
+### hasQueryParam
+<Steps>
+<Step>
+
+クエリパラメータが存在するかどうかを確認します。
+
+- `key: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### getQueryParamKeys
+<Steps>
+<Step>
+
+すべてのクエリパラメータのキーを取得します。
+
+- `return: string[]`
+</Step>
+</Steps>
+
+### getQueryParamCount
+<Steps>
+<Step>
+
+クエリパラメータの数を取得します。
+
+- `return: number`
+</Step>
+</Steps>
+
+### getHistory
+<Steps>
+<Step>
+
+ナビゲーション履歴全体を取得します。
+
+- `return: string[]`
+</Step>
+</Steps>
+
+### getHistoryIndex
+<Steps>
+<Step>
+
+履歴配列の中での現在のインデックスを取得します。
+
+- `return: number`
+</Step>
+</Steps>
+
+### canGoBack / canGoForward
+<Steps>
+<Step>
+
+router が戻る / 進むことができるかどうかを確認します。
+
+- `return: boolean`
+</Step>
+</Steps>
+
+### parseUrl
+<Steps>
+<Step>
+
+URL 文字列を `{ path, query }` に解析します。
+
+- `url: string`
+- `return: { path:string; query:Record<string,string>; }`
+</Step>
+</Steps>
+
+### buildUrl
+<Steps>
+<Step>
+
+パスとクエリのオブジェクトから完全な URL を組み立てます。
+
+- `path: string`
+- `query: Record<string,string>`
+- `return: string`
+</Step>
+</Steps>
+
+### resolvePath
+<Steps>
+<Step>
+
+相対パスを絶対パスに解決します。
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### normalizePath
+<Steps>
+<Step>
+
+パス中の重複したスラッシュや末尾のスラッシュを正規化します。
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### joinPath
+<Steps>
+<Step>
+
+複数のパスセグメントを連結し、結果を正規化します。
+
+- `path: string` – 基準となるパス
+- `...paths: string[]` – 追加のセグメント
+- `return: string`
+</Step>
+</Steps>
+
+### parsePath
+<Steps>
+<Step>
+
+パスをセグメントに分割します。
+
+- `path: string`
+- `return: string[]`
+</Step>
+</Steps>
+
+### buildPath
+<Steps>
+<Step>
+
+セグメントの配列からパス文字列を組み立てます。
+
+- `segments: string[]`
+- `return: string`
+</Step>
+</Steps>
+
+### getParentPath
+<Steps>
+<Step>
+
+指定したパスの親パスを取得します。
+
+- `path: string`
+- `return: string`
+</Step>
+</Steps>
+
+### matchPath
+<Steps>
+<Step>
+
+`*` と `:param` に対応した前方一致によるパスマッチングです。
+
+- `path: string`
+- `pattern: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### exactMatch
+<Steps>
+<Step>
+
+完全一致によるパスマッチングです（セグメント数が一致している必要があります）。
+
+- `path: string`
+- `pattern: string`
+- `return: boolean`
+</Step>
+</Steps>
+
+### extractParams
+<Steps>
+<Step>
+
+パターンに基づいてルートパラメータを取り出します。
+
+- `path: string`
+- `pattern: string`
+- `return: Record<string,string>`
+</Step>
+</Steps>
+
+### onExitComplete / onceExitComplete
+<Steps>
+<Step>
+
+すべての退場アニメーションが完了した後に実行されるハンドラを登録します。
+
+- `handler: () => void`
+- `return: LiveGameEventToken`
+</Step>
+</Steps>
+
+### onPageMount / oncePageMount
+<Steps>
+<Step>
+
+ページコンポーネントがマウントされたときに実行されるハンドラを登録します。
+
+- `handler: () => void`
+- `return: LiveGameEventToken`
+</Step>
+</Steps>
+
+## 状態の確認
+
+```tsx
+router.getCurrentPath();  // "/user/profile"
+router.getCurrentQuery(); // { tab: "info" }
+router.getCurrentUrl();   // "/user/profile?tab=info"
+
+router.getHistory();      // ["/home", "/user/profile"]
+router.canGoBack();
+router.canGoForward();
+```
+
+---
+
+### Layout と Page を組み合わせた例
+
+```tsx
+import { RouterProvider, RootLayout, Layout, Page, useRouter } from "narraleaf-react";
+
+function MyPages() {
+  return (
+    <RouterProvider>
+      <RootLayout>
+        {/* /home */}
+        <Layout name="home">
+          {/* default page: /home */}
+          <Page name={null}>
+            <Home />
+          </Page>
+
+          {/* /home/detail */}
+          <Page name="detail">
+            <Detail />
+          </Page>
+        </Layout>
+
+        {/* /about */}
+        <Layout name="about">
+          <Page name={null}>
+            <About />
+          </Page>
+        </Layout>
+      </RootLayout>
+    </RouterProvider>
+  );
+}
+```

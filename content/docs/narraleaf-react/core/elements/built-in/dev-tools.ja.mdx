@@ -1,0 +1,384 @@
+---
+title: "DevTools"
+description: エディタホスト向けの`DevTools`静的ユーティリティクラス。アクションと要素の識別、ダイアログの状態、舞台への直接登録を扱う
+---
+`DevTools`は**エディタホスト**向けの静的ユーティリティクラスです。ライブプレビュー、インスペクター、ステージエディタ、サムネイルレンダラーなどが該当します。こうしたホストが必要とし、通常のストーリーAPIでは提供されないエンジン内部の機能を公開します。アクションの識別、表示可能な要素の直接登録、現在のダイアログ行、レイヤー画像のレイヤーごとのソースなどです。
+
+ゲームを書くためだけであれば、これは一切必要ありません。
+
+```typescript
+import {DevTools} from "narraleaf-react/built-in";
+```
+
+<Callout type="info">
+    すべてのメンバーは静的で、構築が必要なものはありません。`DevTools`はパッケージのルート（`narraleaf-react`）からも再エクスポートされていますが、`narraleaf-react/built-in`のエントリポイントを優先してください。
+</Callout>
+
+## アクションの識別
+
+ストーリーが構築されると、すべてのアクションにidが割り当てられます。**静的id**が割り当てられていない限り、生成されたid（`a-0`、`a-1`、...）が使われ、静的idがあればそちらが使われます。静的idは、ストーリーの再構築をまたいでアクションをアドレス可能にするもので、例えば[fastForward](/ja/docs/narraleaf-react/core/game/live-game)のターゲットとして使われます。重複した静的idは、ストーリー構築時に拒否されます。
+
+### getActionId
+
+<Steps>
+<Step>
+
+アクションの解決済みidを読み取ります。
+
+- `action: LogicAction.Actions` - 対象のアクション
+- 戻り値は`string` - ストーリー構築時に割り当てられたid
+
+```typescript
+const id = DevTools.getActionId(action);
+```
+</Step>
+</Steps>
+
+### setActionId
+
+<Steps>
+<Step>
+
+アクションの解決済みidを上書きします。
+
+- `action: LogicAction.Actions` - 対象のアクション
+- `id: string` - 新しいid
+- 戻り値は`LogicAction.Actions` - 同じアクション
+
+```typescript
+DevTools.setActionId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+### getStaticId
+
+<Steps>
+<Step>
+
+アクションの静的idを読み取ります。静的idがなく、生成されたidを使っている場合は`null`を返します。
+
+- `action: LogicAction.Actions` - 対象のアクション
+- 戻り値は`string | null`
+
+```typescript
+const staticId = DevTools.getStaticId(action);
+```
+</Step>
+</Steps>
+
+### setStaticId
+
+<Steps>
+<Step>
+
+ストーリー構築をまたいでアクションが保持する静的idを割り当てます。`null`を渡すと解除され、生成されたidへ戻ります。
+
+- `action: LogicAction.Actions` - 対象のアクション
+- `id: string | null` - 静的id
+- 戻り値は`LogicAction.Actions` - 同じアクション
+
+```typescript
+DevTools.setStaticId(action, "chapter1:intro");
+```
+</Step>
+</Steps>
+
+## チェーンとアクション
+
+### chainToActions
+
+<Steps>
+<Step>
+
+チェーン可能な式を展開し、それが生成するアクションのフラットなリストにします。
+
+- `chain: Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - チェーンされた式。[ChainedActions](/ja/docs/narraleaf-react/core/types/ChainedActions)を参照
+- 戻り値は`LogicAction.Actions[]`
+
+```typescript
+const actions = DevTools.chainToActions(
+    image.char(["sad"]).darken(0.5, 300)
+);
+```
+</Step>
+</Steps>
+
+### wrapAction
+
+<Steps>
+<Step>
+
+複数のアクション、またはチェーンを、単一の[Control](/ja/docs/narraleaf-react/core/elements/control)アクションにラップし、ひとまとまりのシーケンスを1つの文として扱えるようにします。
+
+- `action: LogicAction.Actions[] | Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>>` - ラップするアクションまたはチェーン
+- 戻り値は`ControlAction`
+
+```typescript
+const wrapped = DevTools.wrapAction(image.char(["sad"]).darken(0.5, 300));
+```
+</Step>
+</Steps>
+
+## ステージの検査
+
+### getCurrentScene
+
+<Steps>
+<Step>
+
+現在マウントされているシーン。マウントされていない場合は`null`を返します。
+
+- `gameState: GameState` - [GameState](/ja/docs/narraleaf-react/core/game/game-state)を参照
+- 戻り値は`Scene | null` - [Scene](/ja/docs/narraleaf-react/core/elements/scene)を参照
+
+```typescript
+const scene = DevTools.getCurrentScene(gameState);
+```
+</Step>
+</Steps>
+
+### getLayerSrcs
+
+<Steps>
+<Step>
+
+[レイヤー画像](/ja/docs/narraleaf-react/core/elements/image#layered-image)の各レイヤーのsrcを、**下から上へ**の順で返します。`null`のエントリは、指定されたタグに対して何も描画しないレイヤーです。レイヤー画像でない場合は空の配列を返します。
+
+レイヤー画像は単一のsrcではなくスタックであるため、ステージ上の要素の独自サムネイルをレンダリングするホストは、これらを順番どおりに自分で合成する必要があります。
+
+- `image: Image` - [Image](/ja/docs/narraleaf-react/core/elements/image)を参照
+- `tags?: string[]` - 解決に使うタグ。デフォルトは画像の現在のタグ
+- 戻り値は`(string | null)[]`
+
+```typescript
+// 画像が今まさに表示している内容
+const srcs = DevTools.getLayerSrcs(yuko);
+// => ["yuko/body.png", "yuko/casual.png", "yuko/jacket.png", null, "yuko/mouth_sad.png"]
+
+// 別のタグの組み合わせでは何が表示されるか、ステージには触れずに確認する
+const preview = DevTools.getLayerSrcs(yuko, ["uniform", "happy"]);
+
+for (const src of preview) {
+    if (src === null) continue; // このレイヤーは何も描画しない
+    // srcを順番どおりに自分のキャンバスへ描画する
+}
+```
+</Step>
+</Steps>
+
+### getDisplayableTransformProps
+
+<Steps>
+<Step>
+
+表示可能な要素の現在の変換状態のprops（位置、不透明度、ズーム、回転、拡大縮小、エフェクト）を読み取ります。返されるのは浅いコピーなので、それを変更してもステージ上の何かが変わることはありません。
+
+ライブなポーズをキャプチャする用途を想定しています。例えば、要素の現在のステージ上の状態でモーションエディタを事前に埋めるような場合です。
+
+- `displayable: LogicAction.DisplayableElements` - [Displayable](/ja/docs/narraleaf-react/core/elements/displayable)を参照
+- 戻り値は`Record<string, unknown>`
+
+```typescript
+const pose = DevTools.getDisplayableTransformProps(image);
+```
+</Step>
+</Steps>
+
+### setDisplayableTransformProps
+
+<Steps>
+<Step>
+
+表示可能な要素の変換状態のpropsを、アニメーションなしで上書きし、要素がマウント済みであれば結果を即座にDOMへ反映します。
+
+デフォルトでは、指定したpropsは現在の状態にマージされます。`merge: false`を指定すると、以前の状態は完全に破棄されます。
+
+- `gameState: GameState` - [GameState](/ja/docs/narraleaf-react/core/game/game-state)を参照
+- `displayable: LogicAction.DisplayableElements` - 更新する要素
+- `props: Record<string, unknown>` - 書き込む変換のprops
+- `options?: { merge?: boolean }` - `merge`のデフォルトは`true`
+
+```typescript
+DevTools.setDisplayableTransformProps(gameState, image, {opacity: 0.5});
+
+// マージではなく、状態全体を置き換える
+DevTools.setDisplayableTransformProps(gameState, image, pose, {merge: false});
+```
+
+<Callout type="warning">
+    変換状態が進行中のトランスフォームによってロックされている場合は例外を投げます。ステージがアイドル状態のときにのみ注入してください。
+</Callout>
+
+<Callout type="info">
+    **この書き込みはセーブデータに伝えられます。** セーブフォーマットv3（`0.26.0`）以降、要素は何かがその状態の変化を通知したときにのみセーブへ反映されます。これはエンジンが、あるアクションがその要素に対して実行されるたびに行っていることです。この呼び出しはそのパスの外で状態を書き換えるため、代わりにその表示可能な要素に対して`markDirty()`を呼び出します。ホストが他の手段で要素の状態を書き込む場合は、自分でこれを呼び出す必要があります。呼び出さなければ、この書き込みはスキップされ、ロード時にはスクリプトが書いた状態に戻ります。`app.debug: true`のとき、エンジンは定期的にすべての要素を巡回し、マークされていない状態を見つけると警告します。[SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame)を参照してください。
+</Callout>
+</Step>
+</Steps>
+
+### registerDisplayable
+
+<Steps>
+<Step>
+
+表示可能な要素を、`displayable:init`アクションを発行**せずに**、シーンのレンダーツリーへ登録します。要素はコンストラクタの設定にある変換状態で直ちにレンダリングされ、表示されるかどうかは`opacity > 0`によって決まります。
+
+ステージを事前にポーズさせておきたいホスト向けです。計算済みの状態をコンストラクタの設定として要素を構築し（設定の状態は`element.reset()`や`newGame()`を経ても保持されます）、その後[Script](/ja/docs/narraleaf-react/core/elements/script)アクションから、あるいはマウント後に登録します。
+
+この呼び出しは冪等です。シーンルートの自動初期化アクションがすでに登録済みの要素は、そのまま変更されません。
+
+- `gameState: GameState` - [GameState](/ja/docs/narraleaf-react/core/game/game-state)を参照
+- `displayable: LogicAction.DisplayableElements` - 登録する要素
+- `scene?: Scene | null` - デフォルトは`null`。[Scene](/ja/docs/narraleaf-react/core/elements/scene)を参照
+- `layer?: Layer | null` - デフォルトは`null`。[Layer](/ja/docs/narraleaf-react/core/elements/layer)を参照
+
+```typescript
+const ghost = new Image({src: "yuko/body.png", opacity: 0.4});
+
+DevTools.setElementId(ghost, "preview:ghost");
+DevTools.registerDisplayable(gameState, ghost, scene, layer);
+```
+</Step>
+</Steps>
+
+### setElementId
+
+<Steps>
+<Step>
+
+要素に明示的なidを割り当てます。
+
+シーンのアクションツリーから到達可能な要素は、ストーリー構築時に生成されたid（`e-0`、`e-1`、...）を受け取ります。[registerDisplayable](#registerdisplayable)で直接登録された要素はそのツリーの外にあるため、そのままではデフォルトのidを使い続け、Reactのkeyとして他の要素と衝突してしまいます。生成されるidと決して衝突しないよう、独自のプレフィックスを持つ一意なidを与えてください。
+
+- `element: LogicAction.GameElement` - 対象の要素
+- `id: string` - 割り当てるid
+
+```typescript
+DevTools.setElementId(ghost, "preview:ghost");
+```
+</Step>
+</Steps>
+
+### setElementStaticId
+
+<Steps>
+<Step>
+
+ストーリー構築後も保持される名前を要素に与えます。
+
+これを設定しない場合、要素のidは構築時に生成され、その周囲のストーリーが変わると変化します。セーブはidによって要素の状態を復元するため、スクリプトの編集後も状態を維持する必要があるすべての要素には名前を付けてください。
+
+[setElementId](#setelementid)はidを直接割り当てますが、シーンのアクションツリーから到達可能な要素については、構築のたびにそれが上書きされます。ここに`null`を渡すと名前を解除し、生成されたidを使うようになります。
+
+- `element: LogicAction.GameElement` - 対象の要素
+- `id: string | null` - 保持する名前。`null`を渡すと生成されたidを使う
+
+```typescript
+const classroom = new Image({src: "bg/classroom.png"});
+
+DevTools.setElementStaticId(classroom, "bg:classroom");
+```
+</Step>
+</Steps>
+
+## ダイアログ
+
+### getCurrentDialog
+
+<Steps>
+<Step>
+
+現在プレイヤーに提示されているダイアログ行を読み取ります。画面に何も表示されていない場合は`null`を返します。ADVとNVLの両方の表示方式に対応します。
+
+- `gameState: GameState` - [GameState](/ja/docs/narraleaf-react/core/game/game-state)を参照
+- 戻り値は`DevToolsCurrentDialog | null` - [DevToolsCurrentDialog](#devtoolscurrentdialog)を参照
+
+```typescript
+const dialog = DevTools.getCurrentDialog(gameState);
+
+if (dialog?.ended) {
+    console.log("waiting for the player to advance", dialog.actionId);
+}
+```
+</Step>
+</Steps>
+
+### onDialogStateChange
+
+<Steps>
+<Step>
+
+現在提示されているダイアログ行の変化（作成、タイプの完了、進行、確定）を、ADVとNVLの両方のモードにわたって購読します。
+
+リスナーはペイロードを持ちません。新しい状態を読み取るには[getCurrentDialog](#getcurrentdialog)を呼び出してください。
+
+- `gameState: GameState` - [GameState](/ja/docs/narraleaf-react/core/game/game-state)を参照
+- `listener: () => void` - 変化のたびに呼び出される
+- 戻り値は`LiveGameEventToken` - [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)を参照
+
+```typescript
+const token = DevTools.onDialogStateChange(gameState, () => {
+    const dialog = DevTools.getCurrentDialog(gameState);
+    highlightRow(dialog?.actionId ?? null);
+});
+
+return function cleanup() {
+    token.cancel();
+};
+```
+</Step>
+</Steps>
+
+### DevToolsCurrentDialog
+
+<Steps>
+<Step>
+
+現在プレイヤーに提示されているダイアログ行のスナップショットです。
+
+```typescript
+type DevToolsCurrentDialog = {
+    /** Id of the say action that produced the line (static id when assigned). */
+    actionId: string | null;
+    /** True once the line finished displaying and awaits advance. */
+    ended: boolean;
+    mode: "adv" | "nvl";
+};
+```
+</Step>
+</Steps>
+
+## 永続化
+
+### getNamespaceName
+
+<Steps>
+<Step>
+
+[Persistent](/ja/docs/narraleaf-react/core/elements/persistent)がストア内で登録される際の名前で、[Storable.getNamespace](/ja/docs/narraleaf-react/core/game/storable)が受け取るのと同じ文字列です。
+
+- `persistent: Persistent<any>` - [Persistent](/ja/docs/narraleaf-react/core/elements/persistent)を参照
+- 戻り値は`string`
+
+```typescript
+const name = DevTools.getNamespaceName(playerPersistent);
+```
+</Step>
+</Steps>
+
+### DynamicPersistent
+
+<Steps>
+<Step>
+
+`DynamicPersistent`クラスそのもので、これ以外にパッケージからエクスポートされることはありません。これは`Persistent`の内部バリアントで、名前空間にプレフィックスが付き、実行時に作成されます。シーンのローカル変数はその一例です。
+
+```typescript
+const Dynamic = DevTools.DynamicPersistent;
+```
+
+<Callout type="warning">
+    これは意図的に内部向けとされているものです。ここで参照できるのは、ホストがエンジン自身の名前空間をミラーする必要がある場合のためであり、ストーリーのコードのためではありません。
+</Callout>
+</Step>
+</Steps>

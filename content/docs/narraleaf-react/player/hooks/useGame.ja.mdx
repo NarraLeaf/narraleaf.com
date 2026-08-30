@@ -1,0 +1,29 @@
+---
+title: "useGame"
+description: GameProviders の内部にネストされたコンポーネント向けに、GameContextType インスタンスを返す useGame フック
+---
+このフックを使うと、game オブジェクトにアクセスできます。
+
+> **注意**：このフックは [GameProvider](/ja/docs/narraleaf-react/player/game-providers) の子孫にあたるコンポーネントの内部でのみ使用できます。
+
+```typescript
+function useGame(): GameContextType;
+```
+
+- GameContextType については [GameContextType](/ja/docs/narraleaf-react/core/types/GameContextType) を参照してください。
+
+## 使い方
+
+```typescript
+import {useGame} from "narraleaf-react";
+```
+
+```typescript
+function myComponent() {
+    const game = useGame();
+
+    useEffect(() => {
+        // ...
+    }, [game]);
+}
+```

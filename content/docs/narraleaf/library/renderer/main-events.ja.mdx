@@ -1,0 +1,80 @@
+---
+title: "Main Events"
+description: NarraLeaf の renderer から主プロセスのハンドラを呼び出す
+---
+
+NarraLeaf は、ユーザーレベルの renderer から main へのイベント API を提供します。アプリのコードでは、まず `AppWindow` にハンドラを登録し、renderer からは `requestMain` または `invokeMainEvent` で呼び出します。
+
+アプリ固有の機能を作るために `IPCEventType` をインポートしたり、`IPCHandler` を実装したり、NarraLeaf の組み込みチャンネル名を知ったりする必要はありません。
+
+## ハンドラを登録する
+
+```ts title="main/index.ts"
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+
+app.onReady(async () => {
+    const win = await app.launchApp();
+
+    win.handleUserEvent<{ id: string }, { ok: boolean }>(
+        "example:ping",
+        ({ id }) => {
+            app.logger.info("ping", id);
+            return { ok: true };
+        },
+    );
+});
+```
+
+## requestMain
+
+呼び出し箇所で汎用の request / response の型を指定してもかまわない、単純な呼び出しには `requestMain` を使います。
+
+```ts
+import { requestMain } from "narraleaf/renderer";
+
+const result = await requestMain<{ id: string }, { ok: boolean }>(
+    "example:ping",
+    { id: "intro" },
+);
+```
+
+主プロセスが失敗を報告すると、`requestMain` は例外を投げます。
+
+## 型付けされた Events
+
+TypeScript の宣言のマージを使って `MainProcessEventMap` を拡張し、そのうえで `invokeMainEvent` を呼び出します。
+
+```ts title="renderer/narraleaf-events.d.ts"
+import type { MainProcessEventEntry } from "narraleaf/renderer";
+
+declare module "narraleaf/renderer" {
+    interface MainProcessEventMap {
+        "example:ping": MainProcessEventEntry<
+            { id: string },
+            { ok: boolean }
+        >;
+    }
+}
+```
+
+```ts
+import { invokeMainEvent } from "narraleaf/renderer";
+
+const result = await invokeMainEvent("example:ping", {
+    id: "intro",
+});
+```
+
+`MainProcessEventMap` を拡張するまで、型付けされたイベントキーは 1 つも有効になりません。
+
+## 使うべき場面
+
+ネイティブダイアログ、ファイルシステムへのアクセス、外部プロセスの呼び出し、アプリ固有のストレージなど、main プロセスに留まる必要がある機能には main events を使います。
+
+ゲームのセーブやアプリの再生については、`useSaveAction`、`useSavedGames`、`useApp` といった組み込みの renderer API を優先してください。
+
+## より低レベルの IPC
+
+NarraLeaf は、これらの呼び出しを内部で preload ブリッジを通じて実装しています。それらの組み込みの IPC 契約はフレームワークの配管であり、NarraLeaf 自体を拡張するのでない限り、上記のユーザーイベント API を使ってください。

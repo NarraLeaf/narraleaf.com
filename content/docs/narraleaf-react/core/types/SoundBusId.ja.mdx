@@ -1,0 +1,26 @@
+---
+title: "SoundBusId"
+description: "音声クリップの `type` が受け付けるオーディオバス id：組み込みの `SoundType` バス、または `GameConfig.audioBuses` で宣言された任意のバス名"
+---
+```ts
+type SoundBusId = SoundType | (string & {});
+```
+
+クリップの再生先となるオーディオバスで、[ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) の `.type` によって指定されます。
+
+[SoundType](/ja/docs/narraleaf-react/core/types/SoundType) の3つの値は、エンジンが常に用意するバスであり、
+意味はこれまでと変わりません。それ以外の任意の文字列は、ホストが
+[`GameConfig.audioBuses`](/ja/docs/narraleaf-react/core/game/audio-buses) で宣言したバスです。たとえば
+`"voice"` の下の `"alice"`、`"bgm"` の下の `"ambience"` のように、必要な深さまでネストできます。
+
+`(string & {})` の部分は、補完を犠牲にせずに型を広げるためのものです。エディタは依然として
+`"bgm" | "sound" | "voice"` を最初に提示し、`SoundType` が求められる箇所ではそのまま絞り込まれます。
+
+```ts
+Sound.voice({src: "alice-01.mp3", type: "alice"});
+```
+
+<Callout type="info">
+    `0.23.0` で追加されました。`Sound.config.type` は以前 `SoundType` でした。`SoundType` に変更はなく、
+    引き続きエクスポートされているため、既存のコードは型チェックを通り続けます。
+</Callout>

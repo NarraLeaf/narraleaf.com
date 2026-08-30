@@ -1,0 +1,388 @@
+---
+title: "Dialog"
+description: ダイアログボックスを構成する Dialog、Nametag、Texts、Avatar、TextsPreview の各コンポーネント、アバターの解決順序、アニメーション、改行、テキストの自動縮小
+---
+`Dialog` はダイアログボックスを描画します。キャラクターのネームタグ、対話テキスト、そして任意のアバターです。
+
+組み込みのダイアログボックスを差し替えるには、`game.configure({ dialog })` に自分のコンポーネントを渡します。その内部で `Avatar`、`Nametag`、`Texts` を組み合わせるか、[`useDialog`](/ja/docs/narraleaf-react/player/hooks/useDialog) で現在の行を読み取ります。
+
+## 例
+
+1. コンポーネントをインポートする
+
+```tsx
+import { Avatar, Dialog, Nametag, Texts, useGame } from "narraleaf-react";
+```
+
+2. ADV レイアウトを組み立てる
+
+```tsx
+function GameDialog() {
+    return (
+        <Dialog className="bg-white">
+            <div className="dialog-content flex items-start gap-4 w-full h-full">
+                <Avatar />
+                <div className="dialog-text-content min-w-0 flex-1">
+                    <Nametag className="font-bold" />
+                    <Texts className="text-lg" />
+                </div>
+            </div>
+        </Dialog>
+    );
+}
+```
+
+`Avatar` は任意です。組み込みのダイアログボックスもこのレイアウトを使っています。
+
+3. ゲームを設定する
+
+```tsx
+function App() {
+    const game = useGame();
+
+    useEffect(() => {
+        game.configure({
+            dialog: GameDialog,
+        });
+    }, []);
+
+    return /* ... */
+}
+```
+
+## コンポーネント
+
+### Dialog
+
+ダイアログのコンテナを描画します。子要素は通常 `Avatar`、`Nametag`、`Texts` で、レイアウトは自由です。
+
+- `children?: React.ReactNode` - ダイアログの内容。
+- `...props: HTMLMotionProps<"div">` - 内部の `motion.div` に渡されます。div の props に加えて、`initial`、`animate`、`exit`、`transition`、`layout` などの Motion props と Motion のイベントハンドラを受け付けます。
+
+視覚的な transform は `Dialog` 自体に指定します。プレイヤーがそれを内部の motion 要素に伝えます。
+
+### Nametag
+
+話者の名前を描画します。`Dialog` の内部で使います。`children` や `name` を渡さなければ現在の話者を表示し、`color` を渡さなければ現在のキャラクターの色を使います。
+
+- `character?: Character | null` - 名前の取得元となるキャラクター。
+- `entry?: NvlDialogEntry` - 名前の取得元となる NVL エントリ。
+- `name?: React.ReactNode` - 表示する名前。
+- `color?: Color` - テキストの色。
+- `children?: React.ReactNode` - カスタムのネームタグ内容。
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children" | "color">`
+
+### Texts
+
+タイプ表示される対話テキストを描画します。`Dialog` の内部で使います。これらの props は既定値を設定するもので、未設定のプロパティは CSS から継承され、`Sentence` や `Word` に設定されたスタイルは両方を上書きします。
+
+- `children?: never`
+- `defaultColor?: Color` - センテンスやワードが色を指定していない場合のテキスト色。
+- `fontSize?: React.CSSProperties["fontSize"]`
+- `fontWeight?: React.CSSProperties["fontWeight"]`
+- `fontWeightBold?: React.CSSProperties["fontWeight"]` - 太字のセンテンスやワードに使う字重。
+- `fontFamily?: React.CSSProperties["fontFamily"]`
+- `writingMode?: TextWritingMode` - テキストボックスの組み方向。`vertical-rl` は日本の小説の典型的な設定で、行は上から下へ読み、列は左へ進みます。既定値は `"horizontal-tb"`。`0.26.0` から利用可能。
+- `textOrientation?: TextGlyphOrientation` - 縦組みの列の中でグリフをどう配置するか。`mixed` は CJK を正立させ、ラテン文字を横倒しにします。横組みのときは無視されます。既定値は `"mixed"`。`0.26.0` から利用可能。
+- `tateChuYoko?: TateChuYoko` - 縦中横。短いラテン文字や数字の連続を横倒しにせず、列の中で横向きのまま正立させます。`true` は最大 2 文字までの連続をまとめ、数値を指定するとその上限を設定できます。横組みのときは無視されます。既定値は `true`。`0.26.0` から利用可能。
+- `autoFit?: boolean` - タイプ表示の間、行全体がボックスに収まるよう文字サイズを縮小し続けます。既定値は `true`。`0.34.0` から利用可能。
+- `autoFitMinFontSize?: number` - 縮小が到達しうる最小サイズ（px）。既定値は `12`。`0.34.0` から利用可能。
+- `...props: React.HTMLAttributes<HTMLDivElement>`
+
+### Avatar
+
+現在の行に対して解決されたアバターを描画します。その行にアバターがない場合は何も描画しません。
+
+- `...props: React.ImgHTMLAttributes<HTMLImageElement>` - 既定の画像スタイルとマージされます。
+
+既定の画像スタイル。
+
+- `width` / `height`：`96`
+- `objectFit`：`"cover"`
+- `borderRadius`：`6`
+- `flex`：`"0 0 auto"`
+
+### TextsPreview
+
+`Texts` と同じタイプライター表示を使いながら、進行中の対話からは切り離された 1 行を描画します。設定画面のテキスト速度の項目、フォントプレビュー、スタイル選択など、進行中の台詞とは別の場所に対話テキストのサンプルを表示したい場合はどこでもこれを使います。
+
+`cps` と `gameSpeed` の設定を読み取り、それらが変化すると再生をやり直します。これにより、速度スライダーのライブプレビューとして機能します。`GameProviders` の外では `Game.DefaultPreference` と `Game.DefaultConfig` にフォールバックするため、ゲームが動いていないページでも描画できます。
+
+```tsx
+import { TextsPreview, Word } from "narraleaf-react";
+
+<TextsPreview
+    text={["The quick brown fox ", new Word("jumps", { color: "#f00" }), " over the lazy dog."]}
+    fontSize={18}
+/>
+```
+
+内容の指定元は 1 つにしてください。`words` は `text` より優先され、`text` は `sentence` より優先されます。
+
+- `text?: TextsPreviewInput` - 静的な内容。`StaticWord<string | Pausing>`、またはその配列。
+- `sentence?: Sentence` - プレビューする [Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence)。動的なワードは評価されず**破棄される**ため、すでに実行済みの内容をプレビューする場合は `words` を渡してください。センテンス自体の色、フォント、太字・斜体の指定はそのまま適用されます。
+- `words?: Word<Pausing | string | TextEvent>[]` - 評価済みのワード。
+- `useTypeEffect?: boolean` - 行全体を一度に表示せず、タイプして表示します。既定値は `true`。
+- `loop?: TextsPreviewLoop` - `false` なら 1 回だけ再生します。`{enabled?: boolean, delay?: number}` でサイクル間の間隔をミリ秒で指定します。既定値は `true`。
+- `restartDelay?: number` - `loop` が真偽値のとき、次のサイクルまでの間隔（ミリ秒）。`loop` が独自の `delay` を持つオブジェクトのときは無視されます。既定値は `GameConfig.autoForwardDefaultPause`。
+- `cps?: number` - 1 秒あたりの文字数。既定値は `cps` の設定値。
+- `gameSpeed?: number` - 速度倍率。既定値は `gameSpeed` の設定値。
+- `pauseDuration?: number` - 自身の時間を持たない `Pause` が停止する長さ（ミリ秒）。既定値は `GameConfig.autoForwardDefaultPause`。
+- `defaultColor?: Color`、`fontSize`、`fontWeight`、`fontWeightBold`、`fontFamily` - `Texts` と同様です。
+- `writingMode?: TextWritingMode`、`textOrientation?: TextGlyphOrientation`、`tateChuYoko?: TateChuYoko` - `Texts` と同様です。`0.26.0` から利用可能。
+- `onCompleted?: () => void` - 行が完了するたびに呼び出されるため、ループするプレビューでは 1 サイクルごとに 1 回呼び出されます。
+- `...props: Omit<React.HTMLAttributes<HTMLDivElement>, "children">`
+
+プレビューには副作用がありません。内容に含まれる [TextEvent](/ja/docs/narraleaf-react/core/elements/character/text-event) は発火せずに読み飛ばされるため、行をプレビューしても立ち絵が変わったり音が鳴ったりすることはありません。`autoFit` もありません。プレビューはダイアログボックスの中にはなく、合わせるべき対象がないためです。
+
+## アニメーション
+
+`Dialog` に Motion props を渡します。組み込みのダイアログボックスには入場・退場アニメーションがありません。
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+    return (
+        <Dialog
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            layout
+        >
+            <Nametag />
+            <Texts />
+        </Dialog>
+    );
+}
+```
+
+プレイヤーは次のタイミングでアニメーションを実行します。
+
+- ある対話が別の対話に置き換わるとき：ボックスはその場にとどまります。`exit` は実行されず、テキストや名前が変わっても入場アニメーションはやり直されません。
+- 対話のあとに別の内容が続くとき：ストーリーが進む間に `exit` が実行されます。
+- 前の `exit` がまだ実行中のところに新しい対話が現れたとき：両方のアニメーションが同時に再生されます。
+- ダイアログボックスに表示されるメニューのプロンプト：選択肢が現れる前は同じ挙動になります。
+
+退場中のダイアログボックスは、クリック、スキップ、オートフォワードを無視します。
+
+`GameConfig.animationPropagate` はダイアログの `AnimatePresence` の境界に対して働きます。カスタムのダイアログボックスの内部にさらに `AnimatePresence` をネストし、その退場アニメーションを必ず実行させたい場合にのみ `true` にしてください。
+
+## アバター
+
+`Avatar` は話しているキャラクターの小さな肖像を表示します。画像はキャラクター、キャラクターに紐づいた舞台上の立ち絵、あるいは 1 行単位のいずれかに設定できます。
+
+各行について、アバターは次の順序で解決されます。
+
+1. ナレーターまたは無名のキャラクター：アバターなし。
+2. センテンス設定内の `avatar: false`：アバターなし。
+3. センテンス単位のアバター。
+4. そのキャラクターに紐づき、直近に表示された可視の立ち絵のアバター。
+5. キャラクター単位のアバター。
+6. アバターなし。
+
+全身の立ち絵がアバター用に切り出されることはありません。アバターが設定されていないキャラクターはアバターを表示しません。
+
+### キャラクターのアバター
+
+舞台上・画面外どちらの行にも同じ画像を使います。
+
+```ts
+import { Character } from "narraleaf-react";
+
+const alice = new Character("Alice", {
+    avatar: "/assets/alice/avatar-default.png",
+});
+
+alice.say("I can speak off-screen and still show an avatar.");
+```
+
+メソッド呼び出しでも同じことができます。
+
+```ts
+const alice = new Character("Alice")
+    .setAvatar("/assets/alice/avatar-default.png");
+
+alice.say("This line uses the default avatar.");
+```
+
+### 舞台の立ち絵
+
+舞台上の `Image` をキャラクターに紐づけ、表示中の立ち絵にアバターを選ばせます。
+
+```ts
+import { Character, Image } from "narraleaf-react";
+
+const aliceBody = new Image({
+    name: "alice-body",
+    src: "/assets/alice/body-normal.png",
+    opacity: 1,
+});
+
+const alice = new Character("Alice", {
+    avatar: "/assets/alice/avatar-default.png",
+    portraits: [
+        {
+            image: aliceBody,
+            avatar: "/assets/alice/avatar-normal.png",
+        },
+    ],
+});
+```
+
+`aliceBody` が現在のシーンで表示されている間は立ち絵のアバターが使われ、それ以外はキャラクターのアバターが使われます。
+
+```ts
+const alice = new Character("Alice")
+    .setAvatar("/assets/alice/avatar-default.png")
+    .addPortrait(aliceBody, {
+        avatar: "/assets/alice/avatar-normal.png",
+    });
+```
+
+### 表情ごとのアバター
+
+立ち絵のアバターは関数にすることもできます。現在の立ち絵、`currentSrc`、`tags`、`character`、`sentence`、`gameState` を受け取り、次のいずれかを返します。
+
+- 画像の URL または `StaticImageData`
+- `null`（アバターを表示しない）
+- `undefined`（解決順序の次のステップへ進む）
+
+```ts
+const aliceBody = new Image({
+    name: "alice-body",
+    src: {
+        groups: [
+            ["normal", "happy", "angry"],
+            ["school", "casual"],
+        ],
+        defaults: ["normal", "school"],
+        resolve: (emotion, outfit) => `/assets/alice/body-${emotion}-${outfit}.png`,
+    },
+    opacity: 1,
+});
+
+const alice = new Character("Alice", {
+    avatar: "/assets/alice/avatar-default.png",
+    portraits: [
+        {
+            image: aliceBody,
+            avatar: ({ tags }) => {
+                const emotion = tags?.[0] ?? "normal";
+                return `/assets/alice/avatar-${emotion}.png`;
+            },
+        },
+    ],
+});
+```
+
+### 行単位の上書き
+
+```ts
+alice.say("Hide avatar for this line only.", {
+    avatar: false,
+});
+
+alice.say("Special cut-in.", {
+    avatar: "/assets/alice/avatar-special.png",
+});
+
+alice.say("Resolver for one line.", {
+    avatar: ({ tags, currentSrc }) => {
+        if (tags?.includes("angry")) {
+            return "/assets/alice/avatar-angry-close.png";
+        }
+        return undefined;
+    },
+});
+```
+
+`avatar: false` はその行のアバターを非表示にします。それ以外の値は立ち絵のアバターやキャラクターのアバターより優先されます。
+
+### 複数の立ち絵が同時に表示されている場合
+
+紐づいた立ち絵が複数同時に表示されている場合、エンジンはシーンの表示順（奥から手前）に沿って最後に表示されたものを使います。実効 `opacity` が 0 の表示オブジェクトは無視されます。
+
+### アバターに応じたレイアウト
+
+`useAvatar()` は `visible`、`src`、`character`、`portrait` を返すため、行にアバターがないときにグリッドやフレックスのレイアウトを変えることができます。戻り値の構造と例は [useAvatar](/ja/docs/narraleaf-react/player/hooks/useAvatar) を参照してください。
+
+## スタイリング
+
+コンテナのスタイルは `Dialog` に指定します。
+
+```tsx
+function GameDialog() {
+    return (
+        <Dialog
+            style={{
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                borderRadius: "10px",
+                padding: "20px",
+            }}
+        >
+            {/* ... */}
+        </Dialog>
+    );
+}
+```
+
+ネームタグのスタイルは `Nametag` に指定します。
+
+```tsx
+function GameDialog() {
+    return (
+        <Dialog>
+            <Nametag
+                style={{
+                    backgroundImage: "url('/path/to/image.png')",
+                    backgroundSize: "cover",
+                    width: "100%",
+                    height: "100%",
+                }}
+            />
+        </Dialog>
+    );
+}
+```
+
+## 改行 [#line-breaking]
+対話テキストは横組み・縦組みどちらでも厳密な禁則処理で組まれます。行頭に 、 。 」 ？ ！、捨て仮名、長音符は来ず、行末に 「 （ は来ません。ラテン文字の単語は分割されず、URL のようにどの幅にも収まらない連続はオーバーフローせずに改行されます。
+
+厳密な禁則処理は、文書が言語を宣言している場合にのみ適用されます。プレイヤーをホストするページに `lang` を設定してください。値は何でもよく、NarraLeaf Studio が構築するシェルにはすでに設定されています。
+
+## テキストの自動縮小
+
+<Callout type="info">
+    `0.35.0` から利用可能です。
+</Callout>
+
+対話行はタイプ表示されながら、ボックスに収まるよう文字サイズが下げられます。初めは `fontSize` で表示され、それで収まる間はそのまま維持されるため、短い行は元のサイズのまま表示されます。テキストがボックスの端に達すると、以降の 1 文字ごとに計測され、行全体が収まるのに必要な分だけサイズが縮小されます。縮小の下限は `autoFitMinFontSize` です。最小サイズでも収まらない行はそのままオーバーフローします。
+
+自動縮小は既定で有効です。1 行だけ無効にするには `autoFit={false}` を、ゲーム全体で無効にするには `GameConfig.disableTextScaling` を使います。
+
+```tsx
+<Texts fontSize={24} autoFitMinFontSize={16} />
+```
+
+`Sentence` や `Word` に設定されたサイズは置き換えられるのではなく行と一緒に縮小されるため、相対的な大きさの関係はどのサイズでも保たれます。
+
+ボックスとはコンテナの親要素のことです。親要素自体に高さがない場合、行は指定された元のサイズのまま表示されます。
+
+## オーバーレイ
+
+ADV のダイアログボックスは、それを覆って上に描画されるオーバーレイを備えており、同じ縮尺のステージの内部に位置します。ある行に属していながらテキストボックスに収まらないものは、すべてここに置かれます。行内ワードの語義ポップアップ、名前へのツールチップなどです。[`useDialogOverlay`](/ja/docs/narraleaf-react/player/hooks/useDialogOverlay) から取得できます。
+
+このオーバーレイは組み込みの `Dialog` コンポーネントの一部であるため、`Dialog` を組み合わせて作ったカスタムダイアログにも備わっています。NVL モードにはオーバーレイがありません。
+
+## エクスポートされる型
+
+`narraleaf-react` は次をエクスポートします。
+
+- コンポーネントの props：`NametagProps`、`TextAppearanceProps`、`TextsProps`、`RawTextsProps`、`EntryTextsProps`、`TextsPreviewProps`、`TextsPreviewInput`、`TextsPreviewLoop`
+- アバターのソース：`DialogAvatarSource`、`DialogAvatarResolverContext`、`DialogAvatarResolver`、`DialogAvatar`
+- 立ち絵：`CharacterPortraitConfig`、`DialogAvatarResolution`
+- React：`Avatar`、`useAvatar`、および型 `DialogAvatarContext`
+
+`Character` は `setAvatar`、`addPortrait`、`setPortraits` を提供します。[Character](/ja/docs/narraleaf-react/core/elements/character)、[CharacterConfig](/ja/docs/narraleaf-react/core/types/CharacterConfig)、および [SentenceUserConfig](/ja/docs/narraleaf-react/core/types/SentenceUserConfig) と [SentenceConfig](/ja/docs/narraleaf-react/core/types/SentenceConfig) の `avatar` フィールドを参照してください。

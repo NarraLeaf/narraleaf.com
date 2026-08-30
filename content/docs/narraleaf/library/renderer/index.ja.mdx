@@ -1,0 +1,67 @@
+---
+title: Renderer
+description: renderer のランタイム、アプリ hooks、セーブ用 API、主プロセスイベント、ファイルベースのページルーティング
+---
+
+**Renderer** モジュールは、NarraLeaf デスクトップアプリの React 側です。生成されたアプリのエントリをマウントし、アプリケーションシェルを提供し、NarraLeaf-React の `Player` を埋め込み、セーブ、再生状態、renderer から main への通信のための hooks を公開します。
+
+```ts
+import {
+    render,
+    useApp,
+    useGamePlayback,
+    useSaveAction,
+    invokeMainEvent,
+} from "narraleaf/renderer";
+```
+
+## ガイド
+
+<Cards>
+    <Card
+        title="Render"
+        description="生成される renderer のエントリと render() 起動関数を理解する"
+        href="/ja/docs/narraleaf/library/renderer/render"
+    />
+    <Card
+        title="App State"
+        description="RendererApp のシェルと再生状態にアクセスする"
+        href="/ja/docs/narraleaf/library/renderer/app-state"
+    />
+    <Card
+        title="Save System"
+        description="セーブ用 hooks、現在のスナップショット、クイックセーブ、セーブのメタデータを使う"
+        href="/ja/docs/narraleaf/library/renderer/save-system"
+    />
+    <Card
+        title="Main Events"
+        description="renderer から文字列キーまたは型付けされた主プロセスハンドラを呼び出す"
+        href="/ja/docs/narraleaf/library/renderer/main-events"
+    />
+    <Card
+        title="Page Router"
+        description="CLI がスキャンするファイルベースのページ規則を学ぶ"
+        href="/ja/docs/narraleaf/library/renderer/page-router"
+    />
+</Cards>
+
+## 公開エクスポート
+
+- `render`
+- `useApp`
+- `useAppState`
+- `useGamePlayback`
+- `useCurrentSaved`
+- `useCurrentSavedRef`
+- `useSaveAction`
+- `useSavedGames`
+- `readGame`
+- `requestMain`
+- `invokeMainEvent`
+- `SaveType`
+
+renderer のエントリは、`RendererApp`、`RendererAppRootProps`、`GameMetadata`、ルートモジュールの型、セーブ結果の型、`MainProcessEventMap`、`MainProcessEventEntry` といった公開の型もエクスポートします。
+
+## NarraLeaf-React との関係
+
+NarraLeaf は、ストーリーの再生に NarraLeaf-React を使用します。ストーリー、シーン、キャラクター、メニュー、displayable は [NarraLeaf-React](/ja/docs/narraleaf-react) で作成し、そのストーリーを NarraLeaf の renderer アプリの `metadata.story` を通じてエクスポートします。

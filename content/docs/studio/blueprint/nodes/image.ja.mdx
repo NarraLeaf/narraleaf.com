@@ -1,0 +1,200 @@
+---
+title: 画像
+description: nl.image ウィジェットのアセット、フィルモード、切り抜き矩形、反転を読み書きする
+---
+
+これらのノードは、インターフェース用の画像ウィジェット `nl.image` を操作します——タイトル画面の絵、セーブスロットのサムネイル、装飾フレームなどです。ステージ画像やキャラクターの立ち絵、プレイ中にストーリーが表示するものとは一切関係ありません。それらはストーリーアセットであり、UI ウィジェットではありません。
+
+## 規約
+
+- **Self ノードのみです。** ここには `Element` 入力を取るノードはありません。対象は常に、そのブループリントを所有する `nl.image` です。接続されたエレメントに対して働くバージョンは [Element](/ja/docs/studio/blueprint/nodes/element) の `blueprint.element.image.*` で、それぞれ `element:nl.image` 入力を持ち、グラフにすでに互換性のあるバインディングがある場合にのみ現れます。
+- **グラフの種類。** 取得系ノードは pure で、`event`・`function`・`macro` のいずれのグラフでも、Blueprint Value の中でも動作します。書き込み系ノードは latent で、`event` と `macro` でのみ動作します。
+- **`ImageAsset` は構造化された値です**（`{ kind: "imageAsset", assetId }`）。単なる id 文字列ではありません。`null` 許容形の `ImageAsset|null` は、`null` を*画像なし*として受け付けます。これらのピンに渡された素の `string` も、依然としてアセット id として読み取られます。これにより、この型が存在する前に保存されたグラフも動作し続けます。
+- **書き込みはウィジェットの `imageFill`**（`mode`、`assetId`、`cropPlacement`）**または `imageFlipX` / `imageFlipY` を書き換え**、その後エレメントの flush をキューに入れます。書き込む値がすでにある値と一致する場合は、何も起きません——パッチも flush も発生しません。
+- **利用できない入力は現在の値にフォールバックします。** 認識できない、または空のフィットモード、数値でない切り抜きパーセンテージ、未接続の真偽値は、いずれもそのプロパティをリセットせず、そのままにします。
+- **ジオメトリ、不透明度、バリアントはここにはありません。** 位置、サイズ、回転、不透明度は [Displayable](/ja/docs/studio/blueprint/nodes/displayable) に属します。また、Default 以外の外観バリアントが Default のフィルモードや切り抜きを上書きすることは決してありません——そのため、半透明のバリアントに切り替えても画像が `crop` のまま固まることはありません。
+
+## Image Asset
+
+`blueprint.image.assetLiteral` · Pure
+
+アセットリテラルです。カードには現在のサムネイル、アセット名、または未設定の状態が表示されます。クリックすると画像アセットピッカーが開きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `ImageAsset` | |
+
+画像が選ばれていない場合、このノードは何も出力しません。これは `ImageAsset|null` 入力にとっては*クリアする*という意味になります。
+
+## Get Image Asset
+
+`blueprint.image.getImageAsset` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `asset` | out · data | `ImageAsset\|null` | ウィジェットに画像がない場合は `null` です。 |
+
+## Set Image Asset
+
+`blueprint.image.setImageAsset` · Latent
+
+ウィジェットが指す画像を切り替えて flush します。フィルモードと切り抜き矩形はそのままです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `asset` | in · data | `ImageAsset\|null` | カード上にリテラル値を入力できます。 |
+
+未接続のままにすると、このピンはカード上で画像ピッカーとして展開されます。画像を選ぶとノードのパラメータに書き込まれ、クリアすると `null` が書き込まれます。接続すると、接続された値が優先されます。
+
+## Clear Image Asset
+
+`blueprint.image.clearImageAsset` · Latent
+
+ウィジェットの画像を取り除きます——`Set Image Asset` を `null` で呼ぶのと同じことを、ピンなしで行います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Get Image Fit Mode
+
+`blueprint.image.getFitMode` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `fitMode` | out · data | `string` | `cover`、`contain`、`stretch`、`crop`、`tile` のいずれかです。ウィジェットにまだフィルがない場合は `cover` です。 |
+
+**モード**
+
+| モード | 画像がボックスを満たす方法 |
+| --- | --- |
+| `cover` | ボックスを覆うように拡大縮小され、はみ出た部分は切り取られます。 |
+| `contain` | ボックス内に収まるように拡大縮小され、余白ができます。 |
+| `stretch` | アスペクト比を無視してボックスに引き伸ばされます。 |
+| `crop` | 切り抜き矩形によって配置されます。 |
+| `tile` | 元のサイズのまま左上から繰り返し並べられます。 |
+
+## Set Image Fit Mode
+
+`blueprint.image.setFitMode` · Latent
+
+現在のアセットと切り抜き矩形を保ったまま、画像がボックスを満たす方法を変更します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fitMode` | in · data | `string` | カード上にリテラル値を入力できます。5 つのモード以外の値は無視され、現在のモードが維持されます。 |
+
+## Get Image Crop Rect
+
+`blueprint.image.getCropRect` · Pure
+
+切り抜き矩形を読み取ります。4 つの数値は、元画像に対してではなく**ウィジェット自身のボックスに対する**パーセンテージです：`leftPct` / `topPct` は画像の左上隅をボックス内のどこに置くかを、`widthPct` / `heightPct` は描画されるサイズを表します。したがって `0, 0, 100, 100`——何も切り抜いていないときに得られる値——は*ボックスをちょうど満たす*ことを意味し、100 を超える値や 0 未満の値は、ボックスより大きい画像を表現する手段になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `leftPct` | out · data | `float` | |
+| `topPct` | out · data | `float` | |
+| `widthPct` | out · data | `float` | |
+| `heightPct` | out · data | `float` | |
+
+## Set Image Crop Rect
+
+`blueprint.image.setCropRect` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `leftPct` | in · data | `float` | カード上にリテラル値を入力できます。 |
+| `topPct` | in · data | `float` | カード上にリテラル値を入力できます。 |
+| `widthPct` | in · data | `float` | カード上にリテラル値を入力できます。 |
+| `heightPct` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+<Callout type="warn">
+このノードはフィルモードも `crop` に設定します。そうする必要があります：配置矩形を読み取るのは `crop` モードだけで、他のモードではこの 4 つの数値は保存されても無視されるためです。以前のモードに戻したい場合は、続けて `Set Image Fit Mode` を置いてください。
+</Callout>
+
+## Get Image Flip X
+
+`blueprint.image.getFlipX` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `flipX` | out · data | `boolean` | |
+
+## Set Image Flip X
+
+`blueprint.image.setFlipX` · Latent
+
+画像を中心を軸に左右反転します。反転するのは画像コンテンツのレイヤーだけです——ウィジェットのボックス、枠線、子要素には影響しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipX` | in · data | `boolean` | |
+
+## Get Image Flip Y
+
+`blueprint.image.getFlipY` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `flipY` | out · data | `boolean` | |
+
+## Set Image Flip Y
+
+`blueprint.image.setFlipY` · Latent
+
+画像を中心を軸に上下反転します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `flipY` | in · data | `boolean` | |
+
+## Get Visible
+
+`blueprint.image.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+これは Displayable が `visible` プロパティキーとして公開しているのと同じ可視性です——1 つの値を、2 通りの方法で読んでいます。ウィジェットをレンダーツリーから取り除かずに非表示にしたい場合は、代わりに Displayable の `Set Display` を使ってください。
+
+## Set Visible
+
+`blueprint.image.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.image.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.image.setEnabled` · Latent
+
+ウィジェットのインタラクションのオン・オフを切り替えます。これは内部の無効化機構にマッピングされます。作者向けに公開された `interactionDisabled` プロパティはありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |

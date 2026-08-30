@@ -1,0 +1,40 @@
+---
+title: "Commands"
+description: 現在の NarraLeaf CLI コマンドリファレンス
+---
+
+`narraleaf` コマンドは `narraleaf-cli` パッケージによって提供されます。
+
+```bash
+narraleaf --version
+narraleaf --debug info
+```
+
+## コマンド一覧
+
+| Command | 用途 |
+| --- | --- |
+| `narraleaf info` | プラットフォーム情報、CLI 設定、マージ後のプロジェクト設定、renderer のルート、node_modules のパス、スキャンされたルートツリーを出力します。 |
+| `narraleaf init [path]` | `npx narraleaf-skeleton@latest <path>` を実行してプロジェクトを作成します。 |
+| `narraleaf dev` | 開発モードを開始します。main と renderer を監視し、Electron を実行し、開発用 WebSocket で通信します。 |
+| `narraleaf build` | renderer をビルドし、main をビルドしたうえで Electron Builder でパッケージ化します。 |
+| `narraleaf cache [action] --force` | CLI に登録されていますが、現時点では文書化された動作はありません。 |
+
+## グローバルオプション
+
+- `--debug`：デバッグ出力を有効にします。
+
+```bash
+narraleaf --debug dev
+```
+
+## 作業ディレクトリ
+
+プロジェクトコマンドは、カレントディレクトリをプロジェクトルートとして使用します。
+
+```bash
+cd my-visual-novel
+narraleaf dev
+```
+
+CLI は相対的なプロジェクトパスをそのディレクトリから解決します。

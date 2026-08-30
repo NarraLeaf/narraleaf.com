@@ -1,0 +1,110 @@
+---
+title: Container
+description: ブループリントが属するコンテナのコンテンツクリッピングと操作状態の読み書き
+---
+
+`nl.container`の Self ノード群です。各ノードは自身のブループリントが属するコンテナに対して作用し、`Element`入力を取らず、そのコンテナ自身のブループリントにのみ現れます。別のコンテナを操作するには、[Element](/ja/docs/studio/blueprint/nodes/element)にある対応するノードを使ってください。
+
+## 規約
+
+- **読み取りは純粋、書き込みは latent です。** このページの`Get`ノードはすべて`Pure`であり、`event`、`function`、`macro`のいずれのグラフでも使用できます。`Set`ノードはすべて`Latent`であり、`event`と`macro`でのみ使用できます——書き込みはホストを経由して非同期に解決され、`function`グラフは呼び出し元へ同期的に戻るため、保留中の結果を置く場所がありません。
+- **何も変えない書き込みは何もしません。** ホストは入力された値を現在の値と比較し、一致すれば早期に処理を終えます。そのため再描画はキューされず、`On Flush`も発火しません。
+- **ブール入力は現在の値にフォールバックします。** `clipContent`、`enabled`、`visible`はカード上のリテラルを受け付けません。何も配線されていない場合、または配線先が`null`に解決される場合、プロパティはそのまま維持されます。配線されたブール以外の値は、文字列`"true"`または`"1"`である場合に限り真として扱われます。
+- **レイアウトは作成時のみ設定できます。** レイアウトモード、スタック方向、間隔、パディングにはノードが存在しません——クリッピングは、実行中のグラフが変更できる唯一のボックスプロパティです。位置とサイズは[Displayable](/ja/docs/studio/blueprint/nodes/displayable)から来ており、不透明度と外観バリアントもそちらが担います。
+- **このページの2つのノードはパレットに存在しません。** `Get Variant`と`Set Variant`は Displayable のバリアントノードに取って代わられ、非表示になっています。ここに記載しているのは、切り替え以前に作成されたブループリントが今もこれらを保持し、今も実行できるためであり、新規に追加できるからではありません。
+- **これらはいずれも Blueprint Value の内部では実行できません。** `Get`ノードは純粋ですが、Blueprint Value は`widgetValue`オーナー上で評価され、このページのすべてのノードはコンテナのメインブループリントにスコープされています。Blueprint Value の内部からこのコンテナを読み取るには、それを指す`Element`リテラルを配置し、Element カテゴリの読み取りノードを使ってください。`nl.container`には、Blueprint Value が駆動できる固有のプロパティは存在しません。
+
+## Set Clip Content
+
+`blueprint.container.setClipContent` · Latent
+
+Set Clip Content（コンテンツクリッピングの設定）はコンテナの子要素を自身のボックスにクリップします。既定でオン。クリッピングは子要素レイヤーに適用され、コンテナ自身の外枠（chrome）には適用されません。そのため、コンテナに設定したボックスシャドウやフィルターは境界の外にも描画されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `clipContent` | in · data | `boolean` | |
+
+これはスクロールレイアウトとは独立しています。スクロールモードのコンテナはそのモードの一部として、すでに一方の軸をクリップし、もう一方の軸をスクロールさせています。`clipContent`が決めるのは、それでもなおスタック全体がコンテナのボックスで切り取られるかどうかです。
+
+## Get Clip Content
+
+`blueprint.container.getClipContent` · Pure
+
+Get Clip Content（コンテンツクリッピングの取得）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `clipContent` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.container.setEnabled` · Latent
+
+Set Enabled（有効化の設定）は、`false`を渡すとコンテナの操作を無効化します。描画とレイアウトはそのまま維持されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.container.getEnabled` · Pure
+
+Get Enabled（有効状態の取得）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.container.setVisible` · Latent
+
+Set Visible（表示状態の設定）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+<Callout type="warn">
+`visible`に false を渡すと、コンテナと**その内部のすべて**がランタイムの要素ツリーから取り除かれます——これは CSS による非表示ではありません。すべての子ウィジェットがアンマウントされ、それらのブループリントは停止し、コンテナが戻ってきたときに`Init`が再び実行されます。隠れたコンテナは自分自身を再表示できません——別の何かがそれに対して`Set Element Visible`を呼び出す必要があります。サブツリーを非表示のままマウントしておきたい場合は、Displayable の`Set Display`を使ってください。
+</Callout>
+
+## Get Visible
+
+`blueprint.container.getVisible` · Pure
+
+Get Visible（表示状態の取得）
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Set Variant
+
+`blueprint.container.setVariant` · Latent
+
+Set Variant（バリアントの設定）はパレットから非表示になっており——このノードを追加することはできません。カード上で名前によりバリアントを選び、バリアントを持つすべてのウィジェットをカバーする Displayable の`Set Variant`に取って代わられました。それでも実行は可能であるため、切り替え以前に作成されたブループリントは動作し続けます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+バリアント id は、旧いドキュメントがノード上に保存していた`variantId`入力から得られます。現在の定義にはそのようなピンは存在しないため、新しく配置したカードには設定できるものが何もありません。コンテナが所有していない id を渡すとグラフ実行エラーになります。空の id は既定のバリアントへリセットします。
+
+## Get Variant
+
+`blueprint.container.getVariant` · Pure
+
+Get Variant（バリアントの取得）も同じ理由でパレットから非表示になっており、サポートされる代替も存在しません——Displayable の`Get Variant`も同様に非表示であり、これが出力するバリアント UUID は内部の永続化用の値にすぎず、新しいブループリントの中でそれを消費するものは何もありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `variantId` | out · data | `string` | コンテナが既定のバリアントである間は空。 |

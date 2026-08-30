@@ -1,0 +1,53 @@
+---
+title: "Dev"
+description: NarraLeaf 開発サーバーを起動する
+---
+
+`narraleaf dev` は、現在のプロジェクトルートからローカル開発ワークフローを起動します。
+
+```bash
+narraleaf dev
+```
+
+## 実行される内容
+
+`dev` コマンドは次のことを行います。
+
+1. `package.json` と `narraleaf.config.js` を解析します。
+2. renderer プロジェクトの構造を検証します。
+3. main プロセスのエントリと renderer のファイルを監視します。
+4. 設定された `temp` ディレクトリ以下に開発用の出力をビルドします。
+5. Electron を起動します。
+6. `dev.port` で WebSocket サーバーを起動します。
+7. 必要に応じて renderer の出力用に HTTP 開発サーバーを起動します。
+
+## ポート
+
+デフォルトの開発用 WebSocket ポートは `5050` です。
+
+```js title="narraleaf.config.js"
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+`renderer.httpDevServer` を有効にすると、renderer の出力は HTTP 経由で配信されます。デフォルトの HTTP ポートは `5051` です。
+
+```js
+module.exports = {
+    renderer: {
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+## 再ビルドの挙動
+
+- main プロセスの変更は、実行中のアプリに終了を要求し、Electron を再起動します。
+- renderer の変更は、renderer プロセスに再読み込みを要求します。
+- ページの変更は、再ビルドの前に一時的な renderer のエントリを再生成します。
+
+開発サーバーは `Ctrl+C` で停止します。

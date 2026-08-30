@@ -1,0 +1,128 @@
+---
+title: "Page Router (LayoutRouter)"
+description: LayoutRouter によるページルーティング API、ネストされた Layout と Page コンポーネント、パスパターン、PageRouter からの移行方法の概要
+---
+`LayoutRouter` は、`Layout` と `Page` コンポーネントと組み合わせて、木構造の UI を組み立てます。メニュー、設定画面、ギャラリー、レイヤー構造を持つゲーム UI に推奨されるページルーティング API です。
+
+このドキュメントは概要のみを扱います。詳細な API は以下を参照してください。
+
+- [`LayoutRouter`](/ja/docs/narraleaf-react/player/page-router/router)
+- [`Layout`](/ja/docs/narraleaf-react/player/page-router/layout)
+- [`Page`](/ja/docs/narraleaf-react/player/page-router/page)
+
+## クイックな例
+
+```tsx
+import { RouterProvider, RootLayout, Layout, Page, useRouter } from "narraleaf-react";
+
+function UI() {
+  return (
+    <RouterProvider>
+      <RootLayout>
+        {/* /home */}
+        <Layout name="home">
+          <Page name={null}> // default page /home
+            <Home />
+          </Page>
+          <Page name="detail"> // /home/detail
+            <Detail />
+          </Page>
+        </Layout>
+
+        {/* /about */}
+        <Layout name="about">
+          <Page name={null}>
+            <About />
+          </Page>
+        </Layout>
+      </RootLayout>
+    </RouterProvider>
+  );
+}
+
+function MenuButton() {
+  const router = useRouter();
+  return (
+    <button onClick={() => router.navigate("/about")}>Go to about</button>
+  );
+}
+```
+
+## パスパターン（スラッグとワイルドカード）
+
+`Layout` と `Page` の名前は、2 種類の特殊なトークンをサポートします。
+
+1. **スラッグ / パラメータ** – `:param` は 1 つのセグメントにマッチし、その値を取り出せます。
+2. **ワイルドカード** – `*` は 1 つのセグメントにマッチします（繰り返し使用可能）。
+
+```tsx
+// /user/:id/profile
+<Layout name="user">
+  <Layout name=":id"> {/* matches any user id */}
+    <Page name="profile"> {/* e.g. /user/42/profile */}
+      <UserProfile />
+    </Page>
+  </Layout>
+</Layout>
+```
+
+パラメータの値は router のヘルパーで取り出せます。
+
+```tsx
+const router = useRouter();
+const params = router.extractParams(router.getCurrentPath(), "/user/:id/profile");
+console.log(params.id); // "42"
+```
+
+ワイルドカードの例 - `/docs/**` 配下のすべてにマッチします。
+
+```tsx
+<Layout name="docs">
+  <Page name="*"> {/* /docs/installation, /docs/api/x, ... */}
+    <DocViewer />
+  </Page>
+</Layout>
+```
+
+## なぜ変わったのか
+
+1. **ネストされたレイアウト** – レイアウトを組み合わせることで、複雑な UI（サイドバー、ポップアップ、タブ）を構築できます。
+2. **URL のようなパス** – 見慣れたパスパターン（`/user/:id/profile`）を使えます。
+3. **アニメーション制御の向上** – 退場・入場アニメーションがレイアウトツリーを通じて伝播します。
+
+## 移行ガイド
+
+| 旧 API | 新 API | 備考 |
+| ------- | ------- | ----- |
+| `<Page id="about" />` | `<Page name="about" />` | `id` ➜ `name` |
+| `router.push("about")` | `router.navigate("/about")` | パスは `/` で始まります |
+| 概念なし | `<Layout name="home">...</Layout>` | 新しいコンテナ |
+
+## 次のステップ
+
+1. [`LayoutRouter` の公開メソッド](/ja/docs/narraleaf-react/player/page-router/router#public-methods)を読む。
+2. [`Layout`](/ja/docs/narraleaf-react/player/page-router/layout) とパスパターンについて学ぶ。
+3. プロジェクトを更新する：`Page id` を `Page name` に置き換え、関連するページを `Layout` で包み、`router.navigate` を使う。
+
+## コンポーネントのアニメーション
+
+`LayoutRouter` は `Page` / `Layout` コンポーネントを自動的にマウント・アンマウントします。入場・退場の**トランジション**を追加するには、コンポーネントの最上位のノードを Framer Motion の要素にするだけです。router 側に追加のコードは必要ありません。
+
+```tsx
+import { motion } from "framer-motion";
+
+export function PageContent() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* your page UI */}
+    </motion.div>
+  );
+}
+```
+
+`PageContent` を `<Page>` の中に包んでおけば、ルートが変わるたびにこのトランジションが実行されます。

@@ -1,0 +1,71 @@
+---
+title: blueprintNodes
+description: エディター側でブループリントノードの定義と動的な選択肢を登録する
+---
+
+`app.services.blueprintNodes` は、エディター向けのブループリントノード定義――パレット項目、ピン、検査パネルのフィールド、そして編集器内プレビュー用の `execute`――を登録します。同じノードを公開したゲームでも動かすには、runtime エントリーから `app.game.blueprintNodes` で再び登録します。定義は共有モジュールに 1 度だけ書き、その配列を両方のエントリーから登録してください。[プラグインを作る](/ja/docs/studio/plugin/create-first-plugin)を参照してください。
+
+各ノードの `type` は `contributes.blueprintNodes` に、あなたのプラグイン id を前置して宣言されていなければなりません。
+
+## メソッド
+
+| メソッド | シグネチャ | 備考 |
+| --- | --- | --- |
+| `register` | `(def: BlueprintNodeDef) => void` | セッションを通じて永続します――`void` を返し、一度登録したノード型は取り除けません。 |
+| `registerMany` | `(defs: BlueprintNodeDef[]) => void` | 同上。 |
+| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | `kind: "select"` の検査パネルパラメーターに、生きた選択肢を供給します。クリーンアップを返します。 |
+| `notifyDynamicSelectOptionsChanged` | `() => void` | provider のデータが変化したあと、開いているノードカードを更新します。 |
+
+## BlueprintNodeDef
+
+主要なフィールドです。
+
+| フィールド | 型 | 備考 |
+| --- | --- | --- |
+| `type` | `string` | 名前空間付きの型 id。 |
+| `displayName` | `string` | パレットのラベル。 |
+| `category` | `string` | パレットのグループ分け。 |
+| `keywords` | `string[]` | パレットの検索語。 |
+| `graphKinds` | `BlueprintGraphKind[]` | ノードが現れてよい場所、例えば `["event", "macro"]`。 |
+| `isPure` | `boolean` | 純粋なノードは副作用を持ちません。 |
+| `isLatent` | `boolean` | 非同期 / await を伴う実行。関数グラフでは許可されません。 |
+| `pins` | `BlueprintNodePinDef[]` | 実行ピンとデータピン。 |
+| `inspectorParams` | `BlueprintInspectorParamDef[]` | カード上のフィールドで、実行時に `ctx.params` から読み取られます。 |
+| `execute` | `BlueprintNodeExecuteFn` | ノード本体。下記参照。 |
+
+ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。
+
+## execute とノードのコンテキスト
+
+`execute(ctx)` は、狭く固定されたコンテキスト――`params`、`resolveInput`、`eventName`、`eventPayload`、`signal`、`game`――を受け取ります。`ctx.game` は能力によってゲートされたゲームサーフェスで、runtime エントリーの `setup(app)` が `app.game` として受け取るのと同じオブジェクトです。
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    ctx.game.log("info", message);
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="warn">
+**studio** エントリーからノードを登録するということは、それがエディターのキャンバスプレビューでも実行されることを意味し、そこにはゲームが存在しないため、`ctx.game` 上の能力ゲート付き名前空間はすべて欠落しています。オプショナルチェイニング(`ctx.game.store?.…`)で防護し、同じ `execute` がエディターでは縮退し、公開したゲームでは正しく動くようにしてください。
+</Callout>
+
+`ctx.game` から到達できるものはすべて[Runtime API リファレンス](/ja/docs/studio/plugin/runtime)に文書化されています。
+
+## 動的な選択肢
+
+```ts
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+// 元となるデータが変化したとき:
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+`{ kind: "select", dynamicOptionsSource: "yourname.plugin.items" }` として宣言された検査パネルパラメーターは、このソースが返す選択肢をレンダリングします。
+
+<Callout type="info">
+配線された**データ入力ピン**を読み取るには、`execute` の中で `ctx.resolveInput?.(pinId)` を呼び出します。これは配線されたエッジに沿って遅延評価され、ピンが未配線または未宣言の場合は `undefined` を返します。カード上の静的なフィールドは、引き続き `inspectorParams` と `ctx.params` から来ます。
+</Callout>

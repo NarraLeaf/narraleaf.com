@@ -1,0 +1,66 @@
+---
+title: state
+description: 実行中のプレイスルーのストーリー変数を読み取り、書き込み、観察する
+---
+
+`app.game.state` は、作者が Studio で宣言したストーリー変数 — シーンローカル変数、セーブされた変数、永続的な変数 — に到達します。プレイスルーを読み取ることと、それを書き換えることはプラグインに委ねるにはまったく異なる事柄であるため、これらは二つの機能に分かれています。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["state.read", "state.write"]
+  }
+}
+```
+
+`state.read` は `get` と `onChange` を付与します。`state.write` はさらに `set` を付与し — そして `state.read` を**含意**するため、`write` だけを宣言しても Studio が読み取りの半分を代わりに追加します。
+
+## メソッド
+
+| メソッド | シグネチャ | 必要とするもの |
+| --- | --- | --- |
+| `get` | `<T>(scope, key: string) => T \| null` | `state.read` |
+| `onChange` | `(listener: (change) => void) => RuntimePluginCleanup` | `state.read` |
+| `set` | `(scope, key: string, value: unknown) => void` | `state.write` |
+
+`get` と `set` は**同期的**です — 変数テーブルはメモリ上にあります。`state.write` がなければ `set` はオブジェクトから完全に消えるため、あなたのプラグインがどちらの宣言でも動作するようにするなら `app.game.state.set?.(...)` として呼び出してください。
+
+## スコープ
+
+| スコープ | 生存期間 |
+| --- | --- |
+| `"scene"` | 現在のシーン。シーンが終わると消える。 |
+| `"saved"` | そのプレイスルー。セーブスロットに書き込まれ、そこから復元される。 |
+| `"persistent"` | プレイヤー本人に紐づき、すべてのプレイスルーをまたぐ。新しいゲームを始めても失われない。 |
+
+```ts
+const count = app.game.state?.get<number>("saved", "timesAsked") ?? 0;
+app.game.state?.set?.("saved", "timesAsked", count + 1);
+```
+
+## 変化を観察する
+
+```ts
+type RuntimePluginStateChange = {
+    scope: "scene" | "saved" | "persistent";
+    key: string;
+    previous: unknown;
+    next: unknown;
+};
+
+const stop = app.game.state?.onChange(change => {
+    if (change.scope === "persistent" && change.key === "trueEndingSeen" && change.next === true) {
+        // unlock something
+    }
+});
+```
+
+`onChange` は、ストーリーからの書き込み、他のプラグインからの書き込み、そしてあなた自身の `set` からの書き込みのすべてで発火します。クリーンアップを返します。
+
+<Callout type="info">
+永続的な変数は正確に観察されます — 変化は書き込みと同じフレームで届きます。シーン変数とセーブされた変数は、ストーリーがそれらを書き込みうる時点(アクションの変化、台詞の終わり、シーンのマウントまたはアンマウント、セーブの復元、そしてあなた自身の `set`)でスナップショットと比較され、実際に誰かが監視しているときにのみ行われます。実際にはあなたはすべての変化を目にすることになりますが、頼りにできないのは、シーンまたはセーブされた変化が一フレームの中の*どの瞬間に*報告されるかです。
+</Callout>
+
+## これはプラグインの store ではない
+
+`state` は**作者の**データです。彼らが Studio で宣言し、自分のストーリーに組み込んだ変数です。[`app.game.store`](/ja/docs/studio/plugin/runtime/store) は**あなたのプラグインの**データで、自分専用の名前空間に置かれ、ストーリーからは見えません。作者のスクリプトに参加するには `state` を使い、自分自身のものを覚えておくには `store` を使ってください。

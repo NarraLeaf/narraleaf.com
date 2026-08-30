@@ -1,0 +1,35 @@
+---
+title: "VfxConfig"
+description: "`Vfx` オーバーレイの設定：動画ソース、ブレンドモード、ループ・ミュート挙動、不透明度、再生速度、フィット、重なり順"
+---
+```typescript
+type VfxConfig = {
+    src: string;
+    blendMode: VfxBlendMode;
+    loop: boolean;
+    muted: boolean;
+    opacity: number;
+    playbackRate: number;
+    fit: "cover" | "contain" | "fill";
+    zIndex: number;
+};
+
+type VfxBlendMode =
+    | "normal"
+    | "screen"
+    | "multiply"
+    | "lighten"
+    | "color-dodge"
+    | "overlay";
+```
+
+- `src` — 動画の URL です。必須です。
+- `blendMode` — オーバーレイをステージにどう合成するかです。デフォルトは `"normal"`。`"normal"` は真のアルファを持つ素材（VP9 の `yuva420p` アルファ WebM）向けです。`"screen"` は黒背景に描かれた発光素材向けの加算ブレンドです（暗いピクセルは明るい背景の上で薄れます）。`"multiply"` は白背景に描かれた影素材向けです。`"normal"` 以外の値は `0.31.4` から有効です。
+- `loop` — 再生をループするかどうかです。デフォルトは `true`。
+- `muted` — デフォルトは `true`。ミュートを解除した自動再生はブラウザに拒否されることがあります。
+- `opacity` — オーバーレイの目標不透明度（フェードインの到達値）です。デフォルトは `1`。
+- `playbackRate` — 初期の再生速度です。デフォルトは `1`。
+- `fit` — 動画に対する CSS の `object-fit` です。デフォルトは `"cover"`。
+- `zIndex` — 複数の Vfx オーバーレイ間の重なり順です。デフォルトは `0`。
+
+詳細は [Vfx](/ja/docs/narraleaf-react/core/elements/vfx) を参照してください。

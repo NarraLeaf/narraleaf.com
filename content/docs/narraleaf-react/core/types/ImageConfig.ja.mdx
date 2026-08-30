@@ -1,0 +1,64 @@
+---
+title: "ImageConfig"
+description: Image インスタンスの設定。ソース、装着物、名前、初期化の挙動を扱う
+---
+```typescript
+type ImageConfig = {
+    src: string | StaticImageData;
+    wearables: Image[];
+    isWearable?: boolean;
+    name?: string;
+    /**
+     * If set to false, the image won't be initialized unless you call `init` method
+     */
+    autoInit: boolean;
+} & CommonDisplayable;
+```
+
+画像の設定です。
+
+CommonDisplayable については [CommonDisplayableConfig](/ja/docs/narraleaf-react/core/types/CommonDisplayableConfig) を参照してください。
+
+## パブリックプロパティ
+
+### src
+
+画像のソースです。URL または StaticImageData を指定できます。
+
+### wearables
+
+画像の装着物です。装着物とは、キャラクターに着せることができる画像を指します。
+
+`image.addWearable` と同じです。
+
+```typescript
+// method 1
+const child = new Image({
+    isWearable: true,
+    /* ... */
+});
+const parent = new Image({
+    src: "parent/image/src",
+    wearables: [child]
+});
+
+// method 2
+const child = new Image(/* ... */);
+const parent = new Image(/* ... */).addWearable(child);
+
+// method 3
+const parent = new Image(/* ... */);
+const child = new Image(/* ... */).bindWearable(parent);
+```
+
+### isWearable
+
+画像が装着物かどうかです。既定値は `false` です。
+
+`parent.addWearable(child)` または `child.bindWearable(parent)` を使用すると、`isWearable` は自動的に `true` に設定されます。
+
+> **注意:** `isWearable` を `true` に設定していない、または親画像がない場合、装着物は使用できません。
+
+### autoInit
+
+`false` に設定すると、`init` メソッドを呼び出すまで画像は初期化されません。

@@ -1,0 +1,200 @@
+---
+title: フロー
+description: 実行の経路制御——分岐、ループ、順序付け、そしてグラフを一時停止させる遅延待機
+---
+
+Flow ノードは実行が次にどこへ向かうかを決めます。他のノードはすべて何かを計算したり変更したりしますが、これらは実行ラインをそこに通すだけです。グラフが問いを立てる必要があるとき、繰り返す必要があるとき、待つ必要があるとき、早期に止まる必要があるとき、手を伸ばすのはこれらのノードです。
+
+## 規約
+
+- **グラフの種類。** Flow ノードは1つを除いて`event`グラフで利用でき、`Return Value`を除くすべてが`macro`グラフでも利用できます。それらはいずれも`function`グラフには現れません——そのグラフ種別は純粋で非 latent なノードのみを提供し、Flow ノードはいずれも副作用ありと宣言されているためです。本ページ末尾の `Function Entry` は両方向で例外であり——`function`グラフにのみ存在し、他のどこにも存在しません。
+- **ピン名。** `in`は実行の入口です。`next`、`true`、`false`、`then`、`else`、`then0`…、`case0`…、`default`、`loop`、`completed`は実行の出口であり、カード上のそれ以外のピンはすべてデータピンです。
+- **カード上のリテラルはピン単位で許可されるのであって、型単位ではありません。** 下の表の行がそのピンはリテラルを受け付けると記載している場合に限り、配線せずカードに直接値を入力できます。`condition`ピンにはそれが一つもありません——`If`、`If Else`、`While`は常に配線されたブール値を求めます。
+- **ループは1つのカーソルで進みます。** `For Loop`、`For Each`、`While`は1回の進入につき1ステップだけ進みます。ループ本体の末尾を**同じ**ノードの`in`ピンに配線し直すことで、ノードは`loop`から次の反復を渡し、最終的に`completed`から抜けます。`in`に戻らない本体はちょうど1回だけ実行されます。
+- **`Max iterations`は空欄のとき既定で1000になります。** これはブレーキであって目標値ではありません——上限に達すると、作業が完了したかのように`completed`から抜けます。無制限のモードは存在しません。
+- **[Blueprint Value](/ja/docs/studio/blueprint)はタイマー類を除く Flow を受け付けます。** `Delay`と`Skip Delay`はそこでは除外されます——一時停止するプロバイダーは、担当するプロパティを未解決のまま残してしまうためです。
+
+## If
+
+`if`
+
+If（もし）はブール値で実行を振り分けます。実行のたびに出口はちょうど1つだけ発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `true` | out · exec | — | |
+| `false` | out · exec | — | |
+| `condition` | in · data | `boolean` | 配線が必須。 |
+
+## If Else
+
+`blueprint.flow.ifElse`
+
+If Else（もし・それ以外なら）は、1枚のカードにまとめられた if / else if / else の連鎖です。条件は順番に評価され、最初に真になったものが採用されます。どれも真でなければ`else`が発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then` | out · exec | — | `condition`が真のときに通ります。 |
+| `else` | out · exec | — | どの条件も真でないときに通ります。 |
+| `condition` | in · data | `boolean` | 配線が必須。 |
+
+カード上の**Add If condition**は、さらに1つの分岐を追加します——`boolean`型の入力`if_N_condition`と、それに対応する実行出力`if_N_then`が、固定の`else`の直前に挿入されます。追加された条件は`condition`の後、追加した順に評価されます。
+
+## Switch String
+
+`blueprint.flow.switchString`
+
+Switch String（文字列分岐）は1つの文字列を各 Case の値と順に比較し、最初に一致した出口を発火させます。どれとも一致しなければ`default`が発火します。値を一度も設定していない Case は決して一致しません——空のままのカードはワイルドカードではなく、永遠に到達しない分岐です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `case0` | out · exec | — | |
+| `case1` | out · exec | — | |
+| `default` | out · exec | — | どの Case も一致しないときに通ります。 |
+| `value` | in · data | `string` | 照合する文字列。カード上のリテラルを受け付けます。 |
+| `case0Value` | in · data | `string` | `case0`の照合値。カード上のリテラルを受け付けます。 |
+| `case1Value` | in · data | `string` | `case1`の照合値。カード上のリテラルを受け付けます。 |
+
+**Add Case**は`string`型の入力`case_N_value`と、それに対応する実行出力`case_N_output`を追加し、固定の`default`の直前に挿入します。追加された Case は`case0`と`case1`の後に照合されます。
+
+## Sequence
+
+`blueprint.flow.sequence`
+
+Sequence（順次実行）は各出力をキューに入れ、順番に実行します——1つの分岐が完了してから次が始まります。未接続の出力はスキップされます。あるひとつの分岐の内部で`Return`に到達すると、まだキューに残っている分岐はすべて破棄されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then0` | out · exec | — | カード上では Then 1 と表示されます。 |
+| `then1` | out · exec | — | Then 2。 |
+| `then2` | out · exec | — | Then 3。 |
+| `then3` | out · exec | — | Then 4。 |
+
+## For Loop
+
+`blueprint.flow.forLoop`
+
+For Loop（For ループ）は`start`から`step`刻みで`end`へ向かって数え、値ごとに1回`loop`を発火させ、その値を`index`として出力します。方向は`step`の符号で決まります——インデックスが`end`を超えていない間は継続します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 1回の反復。本体の末尾を`in`に配線し直します。 |
+| `completed` | out · exec | — | 範囲を使い切りました。 |
+| `start` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `end` | in · data | `integer` | この値を含みます。カード上のリテラルを受け付けます。 |
+| `step` | in · data | `integer` | `0`のステップは`1`として扱われます。カード上のリテラルを受け付けます。 |
+| `maxIterations` | in · data | `integer` | 既定値は1000。カード上のリテラルを受け付けます。 |
+| `index` | out · data | `integer` | 現在の値。 |
+
+## For Each
+
+`blueprint.flow.forEach`
+
+For Each（各要素の走査）は JSON 配列を走査し、要素ごとに1回`loop`を発火させ、`item`と`index`をあわせて出力します。`items`が配列でない場合は失敗せず、直ちに`completed`から抜けます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 1つの要素。本体の末尾を`in`に配線し直します。 |
+| `completed` | out · exec | — | 配列を使い切りました。 |
+| `items` | in · data | `json` | 走査する配列。 |
+| `maxIterations` | in · data | `integer` | 既定値は1000。カード上のリテラルを受け付けます。 |
+| `item` | out · data | `json` | 現在の要素。 |
+| `index` | out · data | `integer` | 現在の位置。 |
+
+## While
+
+`blueprint.flow.while`
+
+While（While ループ）は`condition`が成り立っている間、`loop`を発火し続けます。条件は進入のたびに再評価されるため、ループ本体が実際に変更できるもの——変数や実行時の読み取り——でなければならず、ループの前に一度だけ計算された値であってはなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `loop` | out · exec | — | 1回の反復。本体の末尾を`in`に配線し直します。 |
+| `completed` | out · exec | — | 条件が偽になったか、ブレーキが働きました。 |
+| `condition` | in · data | `boolean` | 配線が必須。 |
+| `maxIterations` | in · data | `integer` | 既定値は1000。カード上のリテラルを受け付けます。 |
+
+## Delay
+
+`blueprint.flow.delay` · Latent
+
+Delay（遅延）は一定時間待機した後、`completed`から続行します。これは唯一の latent な Flow ノードです——進入してきた実行チェーンを一時停止させるため、`function`グラフに現れることができません。関数は呼び出し元へ同期的に結果を返すものであり、未完了の待機を置いておく場所がないためです。
+
+`token`は待機が始まる**前**に出力されるため、このチェーンが一時停止している間に別のチェーンがそれを読み取り、`Skip Delay`で待機を早めに切り上げることができます。`0`以下の時間では一切一時停止しません。待機が保留中にグラフの実行がキャンセルされた場合、その待機はキャンセルとして終わり、`completed`は発火しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `completed` | out · exec | — | 待機の後、またはスキップされ次第、発火します。 |
+| `duration` | in · data | `float` | 単位は秒。`0.25`は250ミリ秒。カード上のリテラルを受け付けます。 |
+| `token` | out · data | `Timer` | `Skip Delay`に渡します。 |
+
+<Callout type="warn">
+`Timer`が識別するのは、そのランタイムスコープ内の`Delay`ノードそのものであり、特定の1回の待機ではありません。同じ`Delay`に2つの実行チェーンが同時に停まっている場合、1回の`Skip Delay`で両方が解放されます。
+</Callout>
+
+## Skip Delay
+
+`blueprint.flow.skipDelay`
+
+Skip Delay（遅延のスキップ）は、保留中の`Delay`を早期に完了させます。対象は自身の`completed`から抜けます。`Skip Delay`自身はそれを待たず、そのまま`next`から続行します。`Delay`のトークンではないものや、現在待機していない`Delay`を渡した場合は、黙って no-op になります——実行はそのまま`next`から続行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | スキップが送信され次第、続行します。 |
+| `timer` | in · data | `Timer` | 早めに切り上げたい`Delay`のトークン。 |
+
+## Return
+
+`blueprint.flow.return`
+
+Return（リターン）は現在の実行チェーンを終了させます。実行出力を持たず、`Sequence`にまだキューされている分岐もあわせて破棄します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+## Return Value
+
+`blueprint.data.returnValue`
+
+Return Value（値の返却）は値を求めた側へ値を返し、チェーンを終了させます。これは Blueprint Value グラフの終端ノードであり——バインドされたプロパティが取る値を決めるノードです。`event`グラフにのみ属し、値を産出するオーナー上にのみ配置できます。それ以外の場所に置くと、グラフのバリデーションがそれを指摘します。値を返すグラフがこのノードに到達せずに終了した場合、以前に解決済みの値がそのまま有効であり続けます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `value` | in · data | `any` | プロパティが取る値。 |
+
+fn から返す場合は代わりに`Fn Return`を使ってください——[Functions](/ja/docs/studio/blueprint/nodes/functions)を参照してください。
+
+## Noop
+
+`blueprint.flow.noop`
+
+Noop（何もしない）は何も変更せず、実行をそのまま通します。複数の分岐が1本の続きに合流する合流点として、また配線の途中でプレースホルダーとして使うのに向いています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Function Entry
+
+`blueprint.function.entry` · Pure
+
+`function`グラフが開始する場所です。このカテゴリの中で`function`グラフが提供する唯一のノードであり、他のどのグラフ種別も提供しない唯一のノードでもあります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `then` | out · exec | — | |
+
+`function`グラフは fn の本体ではありません——それは通常のイベントグラフであり、その先頭は[Functions](/ja/docs/studio/blueprint/nodes/functions)にある`Fn`です。`function`は計算された値を支えるグラフ種別であり、純粋で非 latent なノードのみを提供します。

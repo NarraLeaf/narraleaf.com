@@ -1,0 +1,278 @@
+﻿---
+title: "シーン"
+description: "`Scene` クラス。アクション、背景とレイヤー、シーンローカルなストレージ、NVL モード、シーン間のジャンプを扱う"
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+Scene には、そのシーン上で実行できる複数のアクションが含まれます。 
+
+例えば、シーンに [Character](/ja/docs/narraleaf-react/core/elements/character) のアクションを追加できます
+
+```ts
+import { Scene } from 'narraleaf-react';
+
+const scene = new Scene("scene 1");
+const character1 = new Character("character 1");
+
+scene.action([
+    character1
+        .say("Hello World")
+        .say("How are you?"),
+]);
+```
+
+## 公開プロパティ
+
+### local
+
+<Steps>
+<Step>
+
+`scene.local` は、シーンにローカルな [Persistent](/ja/docs/narraleaf-react/core/elements/persistent) インスタンスです。
+そのシーン内でのみ使用できる一時的なデータを保存するために使います。
+
+ローカルデータは登録や初期化を必要としませんが、使用する前は「undefined」です。
+
+> local 内のデータは、シーンを抜けると破棄されます。
+
+```ts
+scene.action([
+    new Menu("Which coffee do you want?")
+        .choose("Latte", [
+            scene.local.set("coffee", "latte"),
+        ])
+        .choose("Cappuccino", [
+            scene.local.set("coffee", "cappuccino"),
+        ]),
+    character1.say`You chose ${scene.local.get("coffee")} coffee`,
+]);
+```
+</Step>
+</Steps>
+
+### background
+
+<Steps>
+<Step>
+
+このプロパティは、シーンの背景 [Image](/ja/docs/narraleaf-react/core/elements/image) インスタンスにアクセスするために使用します。
+
+```ts
+scene.background
+    .char("background.png", new Dissolve({ duration: 1000, easing: "linear" }))
+```
+</Step>
+</Steps>
+
+### backgroundLayer
+
+<Steps>
+<Step>
+
+このプロパティは、シーンの背景レイヤーにアクセスするために使用します。  
+このレイヤーには、シーンの背景画像が含まれます。
+
+```ts
+scene.backgroundLayer.opacity(0.5, 1000, "linear")
+```
+</Step>
+</Steps>
+
+### displayableLayer
+
+<Steps>
+<Step>
+
+このプロパティは、シーンの表示可能レイヤーにアクセスするために使用します。  
+このレイヤーには、特定のレイヤーに属さないすべての表示可能要素が含まれます。
+
+```ts
+scene.displayableLayer.opacity(0.5, 1000, "linear")
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - シーンの名前
+- `config?: Partial<ISceneUserConfig>` - [ISceneUserConfig](/ja/docs/narraleaf-react/core/types/ISceneUserConfig)
+</Step>
+</Steps>
+
+### action
+
+<Steps>
+<Step>
+
+シーンにアクションを追加します。このメソッドを2回以上呼び出さないでください。
+
+#### オーバーロード 1/2
+
+- `actions: ActionStatements` - 実行するアクション。[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照
+
+#### オーバーロード 2/2
+
+このオーバーロードでは、シーンインスタンスを受け取り、実行するアクションを返す関数を渡せます。
+
+場合によっては、シーンインスタンスへのショートカットを作りたいことがあります
+
+```ts
+story.entry(
+    new Scene("scene 1").action(scene => [
+        scene
+            .setBackground(background)
+            .sleep(1000),
+    ])
+);
+```
+
+- `actions: ((scene: Scene) => ActionStatements)` - 実行するアクション。[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照
+- 戻り値: `this`
+</Step>
+</Steps>
+
+### preloadImage
+
+<Steps>
+<Step>
+
+画像ソースを手動で登録します
+
+プリローダーが自力では予測できないソースに対して使用します。多くの場合、これは[レイヤード画像](/ja/docs/narraleaf-react/core/elements/image#layered-image)の関数レイヤーが返す src で、プリローダーにとっては不透明なものです。あるいは、外観の変化が複雑すぎて「予測できないソース」の警告が出るケースもこれに当たります。
+
+- `src: string | string[]` - 画像の URL、または URL の配列
+- 戻り値: `this`
+</Step>
+</Steps>
+
+
+## チェーン可能なメソッド
+
+### setBackground
+
+<Steps>
+<Step>
+
+`scene.background.char` のエイリアスです。
+
+シーンの背景を設定します。トランジションを指定すると、そのトランジション効果で背景が切り替わります。
+
+```typescript
+scene.action([
+    scene.setBackground("background.png")
+
+    // これは次と等価
+    scene.background.char("background.png")
+]);
+```
+
+- `background: Color | ImageSrc` - [Color](/ja/docs/narraleaf-react/core/types/color) または [ImageSrc](/ja/docs/narraleaf-react/core/types/ImageSrc) を参照
+- `transition?: ImageTransition` - ImageTransition については [Transition](/ja/docs/narraleaf-react/core/animation/transition) を参照
+</Step>
+</Steps>
+
+### jumpTo
+
+<Steps>
+<Step>
+
+別のシーンにジャンプします。トランジションを指定すると、2つのシーンが入れ替わる間、ステージ全体にわたってそのトランジションが再生されます。背景だけでなく、スプライト、テキスト、その他すべてのレイヤーが対象になります。[JumpConfig](/ja/docs/narraleaf-react/core/types/JumpConfig) を参照してください。
+
+> 注: 通常のジャンプは現在のシーンを破棄するため、ジャンプ後のアクションは決して実行されません。[`returnable`](/ja/docs/narraleaf-react/core/types/JumpConfig) を指定したジャンプの場合は、現在のシーンを**サスペンド**し、ジャンプ先のシーンのアクションが尽きたときに戻ってきます。そのため、ジャンプ後のアクションも実行されます。
+
+- `scene: Scene` - ジャンプ先のシーン
+- `config: Partial<JumpConfig> | Transition` - [Jump Config](/ja/docs/narraleaf-react/core/types/JumpConfig)、またはトランジション単体
+
+```typescript
+// One way: this scene is gone, and nothing after the jump runs.
+scene.jumpTo(nextScene);
+
+// A call: this scene is parked, and the line after the jump runs when the storeroom is done.
+scene.jumpTo(storeroom, {returnable: true});
+```
+</Step>
+</Steps>
+
+### setBackgroundMusic
+
+<Steps>
+<Step>
+
+シーンの背景音楽を設定します。
+
+- `sound: Sound` - [Sound](/ja/docs/narraleaf-react/core/elements/sound) インスタンス
+- `fade?: number` - 指定すると、前の曲にはフェードアウト、現在の曲にはフェードインが適用されます。値はミリ秒単位の長さです
+</Step>
+</Steps>
+
+### nvl
+
+<Steps>
+<Step>
+
+蓄積されたダイアログを表示するための NVL（ノベル）モードブロックを作成します。NVL モードでは、ダイアログは互いに置き換わるのではなく、画面上に積み重なって表示されます。これは従来のビジュアルノベルの地の文表示に似ています。
+
+#### オーバーロード 1: actions のみ
+
+- `actions: ActionStatements | ((nvl: NVLToken) => ActionStatements)` - NVL モード内で実行するアクション、または表示・非表示・終了を手動制御するための [NVLToken](#nvl-token-メソッド) を受け取るコールバック
+- 戻り値: `ChainableAction`
+
+```ts
+scene.action([
+    scene.nvl([
+        character.say("First line"),
+        character.say("Second line"),
+        character.say("Third line"),
+    ]),
+]);
+```
+
+#### オーバーロード 2: options + actions
+
+- `options: Partial<TransformDefinitions.CommonTransformProps>` - NVL レイヤーの表示・非表示に使うトランジションオプション（例: `{ duration: 500 }`）。[CommonTransformProps](/ja/docs/narraleaf-react/core/types/CommonTransformProps) を参照
+- `actions: ActionStatements | ((nvl: NVLToken) => ActionStatements)` - オーバーロード 1 と同じ
+- 戻り値: `ChainableAction`
+
+```ts
+scene.action([
+    scene.nvl({ duration: 300 }, [
+        character.say("Line 1"),
+        character.say("Line 2"),
+    ]),
+]);
+```
+
+#### NVLToken を使ったコールバック形式
+
+コールバック `(nvl) => [...]` を渡すと、`nvl.show()`、`nvl.hide()`、`nvl.end()` を使って NVL レイヤーを明示的に制御できます:
+
+```ts
+scene.action([
+    scene.nvl(nvl => [
+        character.say("Line 1"),
+        character.say("Line 2"),
+        nvl.hide({ duration: 500 }),
+        Control.waitForClick(),
+        nvl.show({ duration: 500 }),
+        character.say("Line 3"),
+        nvl.end(),
+    ]),
+]);
+```
+</Step>
+</Steps>
+
+#### NVL Token メソッド
+
+コールバック形式 `scene.nvl(nvl => [...])` を使う場合、`nvl` 引数は `NVLToken` であり、次のチェーン可能なメソッドを持ちます:
+
+| Method | Description |
+|--------|-------------|
+| `nvl.show(options?)` | NVL レイヤーを表示します。トランジションを任意で指定できます（例: `{ duration: 500 }`）。[CommonTransformProps](/ja/docs/narraleaf-react/core/types/CommonTransformProps) を参照。 |
+| `nvl.hide(options?)` | NVL レイヤーを非表示にします。トランジションを任意で指定できます。NVL モードの終了やダイアログのクリアは行いません。 |
+| `nvl.end()` | 即座に NVL モードを強制終了します。蓄積されたすべてのダイアログをクリアし、NVL レイヤーを非表示にします。 |

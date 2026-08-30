@@ -1,0 +1,138 @@
+---
+title: "Preference\\<T extends Record\\<string, string | boolean | number | null | undefined\\>\\>"
+description: プレイヤーのプリファレンス値を読み取り、設定し、インポート・エクスポートし、切り替える Preference のメソッド
+---
+Preference を使うと、自動送りモードのような一部のゲームの挙動を制御できます。
+
+プリファレンスキーの一覧は [GamePreference](/ja/docs/narraleaf-react/core/types/GamePreference) を
+参照してください。
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `settings: T` - デフォルトのプリファレンス設定
+</Step>
+</Steps>
+
+### setPreference\<K extends Extract\<keyof T, string\>\>
+
+プリファレンスを設定します。
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.setPreference("autoForward", true);
+```
+
+- `key: K` - プリファレンスのキー
+- `value: T[K]` - プリファレンスの値
+- 返り値: `void`
+</Step>
+</Steps>
+
+### getPreference\<K extends Extract\<keyof T, string\>\>
+
+プリファレンスを取得します。
+
+<Steps>
+<Step>
+
+```typescript
+const autoForward = game.preference.getPreference("autoForward");
+```
+
+- `key: K` - プリファレンスのキー
+- 返り値: `T[K]`
+</Step>
+</Steps>
+
+### getPreferences
+
+すべてのプリファレンスを取得します。
+
+<Steps>
+<Step>
+
+- 返り値: `T`
+</Step>
+</Steps>
+
+### onPreferenceChange\<U extends Extract\<keyof T, string\>\>
+
+プリファレンスの変化を監視します。
+
+<Steps>
+<Step>
+
+#### オーバーロード 1 / 1
+
+```typescript
+game.preference.onPreferenceChange("autoForward", value => {
+    console.log(`Auto-forward mode is ${value ? "enabled" : "disabled"}`);
+});
+```
+
+- `key: U` - プリファレンスのキー
+- `listener: (value: T[U]) => void`
+- 返り値: `PreferenceEventToken` - 参照: [PreferenceEventToken](/ja/docs/narraleaf-react/core/types/PreferenceEventToken)
+
+#### オーバーロード 2 / 2
+
+- `listener: (key: Extract<keyof T, string>, value: T[Extract<keyof T, string>]) => void`
+</Step>
+</Steps>
+
+### importPreferences
+
+プリファレンスをインポートします。
+
+> 注意: これは既存のプリファレンスを上書きし、変更イベントを発火させます。
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.importPreferences({
+    autoForward: true,
+});
+```
+
+- `preferences: Partial<T>`
+- 返り値: `void`
+</Step>
+</Steps>
+
+### exportPreferences
+
+プリファレンスをエクスポートします。
+
+<Steps>
+<Step>
+
+```typescript
+const preferences = game.preference.exportPreferences();
+```
+
+- 返り値: `Partial<T>`
+</Step>
+</Steps>
+
+### togglePreference\<K extends BooleanValueKeyOf\<T\>\>
+
+真偽値のプリファレンスを切り替えます。
+
+<Steps>
+<Step>
+
+```typescript
+game.preference.togglePreference("autoForward");
+```
+
+- 返り値: `void`
+</Step>
+</Steps>

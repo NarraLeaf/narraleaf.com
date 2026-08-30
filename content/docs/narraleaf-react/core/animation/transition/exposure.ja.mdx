@@ -1,0 +1,35 @@
+---
+title: "Exposure"
+description: 画面を段階的に白へ露光オーバーさせてから、次の画像を通常露光へ戻すトランジション
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+画面を段階的に持ち上げて白へ焼き切り、白の中で画像を入れ替えたのち、次のフレームを通常の露光まで戻します。
+
+ハイライトが最初に焼き切れ、彩度の高い色は途中で色相がずれ、シャドウが最後まで残ります。白の`color`を指定した[Through Color](/ja/docs/narraleaf-react/core/animation/transition/through-color)は、すべての色が同時に白へ到達する平坦なバージョンです。
+
+## 使い方
+
+```tsx
+import { Exposure } from "narraleaf-react";
+
+image.char("image1.jpg", new Exposure({ duration: 1200 }));
+
+// より強く焼き切り、白のまま留まってから戻す
+image.char("image1.jpg", new Exposure({ duration: 2000, ev: 5.5, holdMs: 400 }));
+
+// 夜のフレームでは、シャドウを持ち上げるためにより強いリフトが必要
+image.char("image1.jpg", new Exposure({ duration: 1200, lift: 0.08 }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: ExposureOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `ev?: number` - 段（EV）単位でのピーク露光量。画面は`2 ** ev`のゲインまで持ち上げられるため、`1`増えるごとにゲインは倍になります。デフォルトは`4.6`
+  - `lift?: number` - ゲインの前に適用されるシャドウのリフト（`0`–`1`）。`0`のときシャドウは決して白に到達せず、暗いフレームはシルエットのまま焼き切りを終えます。デフォルトは`0.04`
+  - `holdMs?: number` - フレームが完全に白飛びした状態を保持する時間（ミリ秒）。`duration`の残りは焼き切りとクールダウンに均等に分けられるため、`{duration: 3000, holdMs: 1500}`は750msの焼き切り、1500msの白の保持、750msのクールダウンになります。`0.36.0`以降
+  - `hold?: number` - **`0.36.0`以降非推奨。`holdMs`を使用してください。** 完全に白飛びした状態に費やす持続時間の割合（`0`–`1`）。`holdMs`が指定されていない場合にのみ読み取られ、その場合デフォルトは`0`
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

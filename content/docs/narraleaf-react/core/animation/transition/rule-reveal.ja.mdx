@@ -1,0 +1,43 @@
+---
+title: "RuleReveal"
+description: グレースケールのルール画像が指定する順序で、暗い領域から明るい領域へと次の画像を見せるトランジション
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+グレースケール画像が定める順序で、現在の画像の上に次の画像を見せます。その画像の暗い領域が最初に切り替わり、明るい領域が最後に切り替わります。渦巻きとして描かれたルールは、渦巻き状にワイプします。
+
+[Reveal](/ja/docs/narraleaf-react/core/animation/transition/reveal)は[マスクパターン](/ja/docs/narraleaf-react/core/animation/transition/mask)から幾何形状を得ます。`RuleReveal`は画像から幾何形状を得るという違いがあり、他の画像トランジションが再生されるあらゆる場所で再生できます。
+
+## 使い方
+
+```tsx
+import { RuleReveal } from "narraleaf-react";
+import spiral from "path/to/rules/spiral.png";
+
+// パスで指定したルール
+scene.jumpTo(next, new RuleReveal({ duration: 1200, rule: "/rules/spiral.png" }));
+
+// よりくっきりとしたエッジで、ルールの明るい端から始める
+scene.jumpTo(next, new RuleReveal({ duration: 900, rule: spiral, feather: 0.03, inverted: true }));
+
+// 背景とスプライトは同じトランジションを使う
+scene.setBackground("/backgrounds/room-night.webp", new RuleReveal({ duration: 1000, rule: spiral }));
+image.char("image1.jpg", new RuleReveal({ duration: 800, rule: spiral }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: RuleRevealOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `rule: ImageSrc` - 画面が切り替わる順序を決めるグレースケール画像。[ImageSrc](/ja/docs/narraleaf-react/core/types/ImageSrc)を参照してください。
+  - `feather?: number` - ソフトエッジの幅。ルールの階調範囲に対する比率で指定します。値が小さいほどくっきりします。指定できる範囲は`0.002`–`1`で、範囲外の値は最も近い端に丸められます。デフォルトは`0.12`
+  - `inverted?: boolean` - 暗い領域の代わりに、ルールの明るい領域を最初に切り替えます。デフォルトは`false`
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。
+
+## ルール画像
+
+任意のグレースケール画像がルールとして機能します。黒はトランジションの開始時に、白は終了時に切り替わり、`inverted: true`にすると代わりに明るい端から掃引します。
+
+ルールは再生対象の要素に合わせて引き伸ばされるため、舞台のアスペクト比で描いてください。ルールは大きい必要はなく、`960x540`で1080pの舞台をカバーできます。

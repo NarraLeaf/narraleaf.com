@@ -1,0 +1,32 @@
+---
+title: assets
+description: プロジェクトのアセットを読み取り、プレビュー用のオブジェクト URL に変換する
+---
+
+`app.services.assets` は、プロジェクトのアセットライブラリ――画像、音声、フォントなど――への読み取り専用アクセスです。アセットを一覧表示したり、そのデータを読み取ったり、パネル内でのプレビュー用にオブジェクト URL を作成したりするために使います。
+
+## メソッド
+
+| メソッド | シグネチャ | 備考 |
+| --- | --- | --- |
+| `getMap` | `() => AssetsMap` | アセットマップ全体。 |
+| `list` | `<T>(type: AssetType) => Asset<T>[]` | 1 つの型のすべてのアセット。 |
+| `get` | `<T>(type: AssetType, assetId: string) => Asset<T> \| undefined` | 型と id で 1 つのアセットを取得。 |
+| `fetch` | `<T>(asset: Asset<T>) => Promise<AssetData<T>>` | アセットのデータとメタデータ。 |
+| `createObjectUrl` | `(asset: Asset) => Promise<string>` | そのアセットをプレビューするためのオブジェクト URL。 |
+| `revokeObjectUrl` | `(url: string) => void` | 作成したオブジェクト URL を解放する。 |
+
+`AssetType` は `Image`、`Audio`、`Video`、`JSON`、`Blueprint`、`Font`、`Other` のいずれかです。
+
+```ts
+import { AssetType } from "narraleaf-studio/plugin";
+
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// <img src={url} /> ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+<Callout type="info">
+作成したオブジェクト URL は、使い終わったらそのつど解放してください――さもないと漏れます。このサービスはアセットを読み取るだけで、追加、名前変更、削除は行いません。
+</Callout>

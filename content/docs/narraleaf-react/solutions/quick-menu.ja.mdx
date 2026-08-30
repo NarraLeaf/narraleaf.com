@@ -1,0 +1,123 @@
+---
+title: "クイックメニュー"
+description: undo、redo、履歴、オートフォワード、セーブ、ロード、設定、終了を 1 つのコンポーネントにまとめたクイックアクセスパネル
+---
+## 対象範囲
+
+クイックメニューは、プレイヤーがよく使う操作（前後へのステップ、履歴、オート、セーブ／ロード、設定、終了）に 1 回のクリックまたはキー操作でアクセスできるコンテキストパネルです。
+
+以下のコンポーネントは、前後へのステップ、履歴、オートフォワード、セーブ、ロード、設定、終了をカバーします。ルート名と終了時の挙動は、アプリケーション側のコードに委ねられます。
+
+<Callout type="info">
+    `undo()` と `redo()` は、それ以上進めない・戻れない場合に `false` を返すため、上記のボタンはタイムラインの両端でも安全に押せます。ボタンを無効化したい場合は、代わりに
+    [`canUndo()`](/ja/docs/narraleaf-react/core/game/live-game#canundo) /
+    [`canRedo()`](/ja/docs/narraleaf-react/core/game/live-game#canredo) を使用してください。
+</Callout>
+
+## 1. コンポーネントを作成する
+
+```tsx
+import { useGame, usePreference, useRouter } from "narraleaf-react";
+import { ArrowLeft, ArrowRight, History, Play, Save, FileText, Settings, Home } from "lucide-react";
+
+export default function QuickMenu() {
+  const game = useGame();
+  const router = useRouter();
+  const liveGame = game.getLiveGame();
+  const [autoForward, setAutoForward] = usePreference("autoForward");
+
+  // ヘルパー ------------------------------------------------
+  const undo = () => liveGame.undo();
+  const redo = () => liveGame.redo();
+  const toHistory = () => router.navigate("/history");
+  const toggleAuto = () => setAutoForward(!autoForward);
+  const save = () => router.navigate("/save");
+  const load = () => router.navigate("/load");
+  const openSettings = () => router.navigate("/settings");
+  const exitGame = () => /* 独自の終了処理（例: useApp().exitGame()） */ undefined;
+
+  // メニュー項目 ----------------------------------------------
+  const Item = ({ icon: Icon, label, onClick }: { icon: any; label: string; onClick: () => void }) => (
+    <button onClick={onClick} className="flex items-center gap-1 px-2 py-1 rounded-full hover:bg-white/20">
+      <Icon className="w-4 h-4" />
+      <span className="text-xs">{label}</span>
+    </button>
+  );
+
+  return (
+    <div className="fixed bottom-5 left-0 right-0 flex justify-center pointer-events-none">
+      <div className="flex gap-2 bg-black/40 rounded-full px-4 py-1 pointer-events-auto">
+        <Item icon={ArrowLeft} label="戻る" onClick={undo} />
+        <Item icon={ArrowRight} label="進む" onClick={redo} />
+        <Item icon={History} label="履歴" onClick={toHistory} />
+        <Item icon={Play} label={autoForward ? "オート: オン" : "オート: オフ"} onClick={toggleAuto} />
+        <Item icon={Save} label="セーブ" onClick={save} />
+        <Item icon={FileText} label="ロード" onClick={load} />
+        <Item icon={Settings} label="設定" onClick={openSettings} />
+        <Item icon={Home} label="終了" onClick={exitGame} />
+      </div>
+    </div>
+  );
+}
+```
+
+## 2. LayoutRouter で使用する
+
+メニューはルートレイアウトの既定ページ（`/`）に配置します。`Player` がルートレイアウトを自動的に作成します。
+
+```tsx
+import { GameProviders, Page, Player } from "narraleaf-react";
+import QuickMenu from "./QuickMenu";
+
+function MyApp() {
+  return (
+    <GameProviders>
+      <Player story={story} onReady={({ liveGame }) => liveGame.newGame()}>
+        {/* QuickMenu は、既定のページであるルーターのパスが `/` のときに表示される */}
+        {/* `router.clear().navigate("/")` を使ってゲーム内でクイックメニューを表示することもできる */}
+        {/* つまり、他のすべてのページが閉じられたときにクイックメニューが表示される */}
+        <Page name={null}>
+          <QuickMenu />
+        </Page>
+      </Player>
+    </GameProviders>
+  );
+}
+```
+
+## 3. トランジション
+
+上のコンポーネントは静的です。最上位の要素を Motion の要素にすると、登場・退場アニメーションを追加できます。ページルーターは、退場アニメーションが終わるまでコンポーネントをマウントしたままにします。
+
+```tsx
+import { motion } from "motion/react";
+
+export default function QuickMenu() {
+  // ...hooks & helpers...
+
+  return (
+    <motion.div
+      /* initial ➜ 登場前 */
+      initial={{ opacity: 0, scale: 0.8, y: 20 }}
+      /* animate ➜ 登場後 */
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      /* exit ➜ アンマウント前 */
+      exit={{ opacity: 0, scale: 0.8, y: 20 }}
+      /* タイミングカーブ */
+      transition={{ type: "spring", stiffness: 300, damping: 25, duration: 0.3 }}
+      className="fixed bottom-5 left-0 right-0 flex justify-center pointer-events-none"
+    >
+      <div className="flex gap-2 bg-black/40 rounded-full px-4 py-1 pointer-events-auto">
+        {/* メニュー項目 */}
+      </div>
+    </motion.div>
+  );
+}
+```
+
+指針:
+
+- **ルートの motion 要素** – `motion.*` にする必要があるのは最上位のノードだけです。内部のコンテンツは通常の JSX のままで構いません。
+- `initial` / `animate` / `exit` を**カスタマイズ**して、フェード、スライド、スケールなどを実現します。
+- **ずらして表示する** – より凝った演出にしたい場合は、各ボタンを個別の `motion.button` でラップするか、Motion の variants を使用します。
+- **presence の管理** – NarraLeaf のページルーターは、`Page` の内容に対する presence をすでに管理しています。独自の `<AnimatePresence>` を追加するのは、`Page` の外で条件付きレンダリングを行う場合だけです。

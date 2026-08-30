@@ -1,0 +1,19 @@
+---
+title: "SoundType"
+description: "すべてのゲームがデフォルトで持つ3つのオーディオバスの列挙型：`Voice`、`Bgm`、`Sound`"
+---
+```ts
+export enum SoundType {
+    Voice = "voice",
+    Bgm = "bgm",
+    Sound = "sound",
+}
+```
+
+この3つの値は、ホストが何かを宣言しているかどうかにかかわらず、エンジンがすべてのゲームに対して用意する
+オーディオバスの id です。これらはクリップをどの音量コントロールが管轄するかを選ぶだけで、それ以外の
+影響はありません。
+
+`0.23.0` 以降、クリップの `type` は [SoundBusId](/ja/docs/narraleaf-react/core/types/SoundBusId) であり、
+[`GameConfig.audioBuses`](/ja/docs/narraleaf-react/core/game/audio-buses) で宣言された任意のバスの id も
+受け付けます。`SoundType` 自体に変更はなく、引き続きエクスポートされています。

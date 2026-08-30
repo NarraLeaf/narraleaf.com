@@ -1,0 +1,204 @@
+---
+title: "カスタムダイアログ"
+description: Nametag、Texts、useDialog フックでデフォルトの Dialog コンポーネントを置き換え、レイアウトと状態をカスタマイズする
+---
+## 何を置き換えるか
+
+Dialog コンポーネントは、Say モードでのキャラクターの対話——キャラクター名（ネームタグ）と本文テキストを含む——を描画します。デフォルトの [Dialog](/ja/docs/narraleaf-react/player/dialog) コンポーネントは [game.configure](/ja/docs/narraleaf-react/core/game/game) 経由で置き換えられるため、対話の見た目を完全にカスタマイズできます。
+
+以下の実装では、キャラクター名とセリフの本文にそれぞれ [Nametag](/ja/docs/narraleaf-react/player/dialog) と [Texts](/ja/docs/narraleaf-react/player/dialog) を使用します。
+
+## 1. カスタムダイアログコンポーネントを作成する
+
+[Dialog](/ja/docs/narraleaf-react/player/dialog)、[Nametag](/ja/docs/narraleaf-react/player/dialog)、[Texts](/ja/docs/narraleaf-react/player/dialog) の 3 つを使ってレイアウトを組み立てます。`Dialog` はコンテナ、`Nametag` はキャラクター名の描画、`Texts` は対話テキストの描画を担当します。
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+  return (
+    <Dialog
+      className="bg-black/70 rounded-lg px-6 py-4"
+      // Dialog: ダイアログボックスのコンテナ。className / style に対応
+    >
+      <Nametag className="text-lg font-bold" color="#fbbf24" />
+      {/* Nametag: キャラクター名の内容と色は props で制御 */}
+      <Texts className="text-base leading-relaxed" defaultColor="white" />
+      {/* Texts: コンポーネントの既定値は props で指定。Sentence/Word の上書きが引き続き優先される */}
+    </Dialog>
+  );
+}
+```
+
+## 2. 状態の取得に useDialog を使う（任意）
+
+子コンポーネントで現在の対話状態（`done`、`text`、`isNarrator` など）を読み取る必要がある場合は、[useDialog](/ja/docs/narraleaf-react/player/hooks/useDialog) フックを使用します。
+
+```tsx
+import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
+
+function GameDialog() {
+  const { done, text, isNarrator } = useDialog();
+  // done: タイプ入力が完了しているか
+  // text: 現在表示されているテキスト
+  // isNarrator: 話者が null（ナレーター）のとき true
+
+  return (
+    <Dialog className="bg-black/70 rounded-lg px-6 py-4">
+      {!isNarrator && <Nametag className="text-lg font-bold" />}
+      {/* ナレーターが話しているときはネームタグを非表示にする */}
+      <Texts defaultColor="white" />
+    </Dialog>
+  );
+}
+```
+
+## 3. アプリに登録する
+
+[Game](/ja/docs/narraleaf-react/core/game/game) を作成する際に dialog コンポーネントを指定し、そのインスタンスを `GameProviders` に渡します。Game を React コンポーネントの外で作成しておくと、レンダーのたびに再構築されるのも避けられます。
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+import GameDialog from "./GameDialog";
+
+const game = new Game({ dialog: GameDialog });
+
+function App() {
+  return (
+    <GameProviders game={game}>
+      <Player
+        story={story}
+        onReady={({ liveGame }) => liveGame.newGame()}
+      />
+    </GameProviders>
+  );
+}
+```
+
+実行時にコンポーネントを差し替える必要がある場合は `game.configure({ dialog: GameDialog })` を使用します。
+
+## 4. 完全な例（[narraleaf-react-skeleton](https://github.com/NarraLeaf/narraleaf-react-skeleton) より）
+
+この例では、[useDialog](/ja/docs/narraleaf-react/player/hooks/useDialog) の `done` をタイプ完了インジケーターに、`isNarrator` をネームタグの非表示切り替えに使い、背景画像も併用しています。
+
+```tsx
+import { Dialog, Nametag, Texts, useDialog } from "narraleaf-react";
+import clsx from "clsx";
+
+// サブコンポーネント: タイプ完了時に三角形／下線を表示
+function SentenceContext() {
+  const { done } = useDialog();
+  return (
+    <>
+      <Texts
+        className="max-w-max flex items-center"
+        defaultColor="white"
+        fontSize={22}
+      />
+      <div className="flex flex-col items-center">
+        <div className={clsx(
+          "w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white",
+          done ? "opacity-100" : "opacity-0"  // 完了時にインジケーターを表示
+        )} />
+        <div className="w-[12px] h-[2px] bg-white mt-[2px]" />
+      </div>
+    </>
+  );
+}
+
+export function GameDialog() {
+  const { isNarrator } = useDialog();
+
+  return (
+    <Dialog
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 p-12 px-16 w-[90%] h-[216px]"
+      style={{
+        backgroundImage: "url('/ui/game-dialog.png')",
+        backgroundSize: "contain",
+        backgroundPosition: "bottom",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className={clsx("absolute left-[30px] -top-[15px]", { "hidden": isNarrator })}>
+        <Nametag
+          className="px-4 py-2 min-w-[220px] min-h-[56px] flex items-center justify-center"
+          color="#2987a1"
+          style={{
+            backgroundImage: "url('/ui/game-dialog-nametag.png')",
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+      </div>
+      <div className="flex items-center gap-[5px] h-full">
+        <SentenceContext />
+      </div>
+    </Dialog>
+  );
+}
+```
+
+テキストとネームタグの既定値は、コンポーネント自身に設定します。`GameConfig` は、対話のフォント・文字色・ネームタグの色といった既定値をもう保持しません。
+
+## 5. シンプルなスタイルの例
+
+```tsx
+function GameDialog() {
+  return (
+    <Dialog
+      style={{
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        borderRadius: "12px",
+        padding: "24px",
+        border: "1px solid rgba(255, 255, 255, 0.2)",
+      }}
+    >
+      <Nametag style={{ marginBottom: "8px", paddingBottom: "4px", borderBottom: "2px solid rgba(255, 193, 7, 0.8)" }} />
+      <Texts defaultColor="white" fontSize={18} />
+    </Dialog>
+  );
+}
+```
+
+## 6. 登場・退場の Motion を追加する
+
+`Dialog` は Motion の props をそのまま受け取れます。対話ボックスのアニメーションのために、自分で `motion.div` にラップする必要はありません。
+
+```tsx
+import { Dialog, Nametag, Texts } from "narraleaf-react";
+
+function GameDialog() {
+  return (
+    <Dialog
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[90%] rounded-xl bg-black/75 px-6 py-4"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -24 }}
+      transition={{ duration: 0.24, ease: "easeOut" }}
+      layout
+      onAnimationComplete={() => {
+        // 任意の Motion イベントハンドラー
+      }}
+    >
+      <Nametag className="font-bold" color="#fbbf24" />
+      <Texts defaultColor="white" />
+    </Dialog>
+  );
+}
+```
+
+Motion の props は、ダイアログ内部の `motion.div` に適用されます。外側のラッパーは引き続きプレイヤーの拡大縮小とクリック／キー操作を担うため、`x`、`y`、`scale`、`rotate` などの transform が `useAspectScale` と衝突することはありません。
+
+ダイアログの presence（表示・非表示の切り替え）はプレイヤーが管理します。
+
+- 連続する対話行は同じダイアログ presence スロットを再利用するため、前の行は次の行が現れる前に `exit` を実行**しません**。
+- 対話の後に非対話の区間が続く場合、古いダイアログはストーリーの進行と並行して `exit` アニメーションを実行できます。
+- 古い `exit` が終わる前に次の対話が現れた場合、新しい対話には別の presence キーが割り当てられるため、古い exit と新しい enter が重なって再生されることがあります。
+- ダイアログスロットを通じて描画されるメニューのプロンプトも、選択肢が現れる前に同じ motion の挙動を使います。
+- 退場中のダイアログはクリック、スキップ、オートフォワードのイベントを無視するため、再びストーリーを進めることはできません。
+
+## 補足
+
+- **ネームタグの内容と色**: `name`、`children`、`color`、`className`、`style` など、`Nametag` の props で制御します。
+- **テキストの既定値**: `defaultColor`、`fontSize`、`fontFamily`、`fontWeight`、`fontWeightBold` など、`Texts` の props で制御します。[Word](/ja/docs/narraleaf-react/core/elements/character/word) / [Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence) 単位のスタイルは、引き続き特定の単語や行を上書きします。

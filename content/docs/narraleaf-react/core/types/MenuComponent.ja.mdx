@@ -1,0 +1,15 @@
+---
+title: "MenuComponent"
+description: "`game.configure({ menu })` のスロット型で、カスタムメニュー画面が満たすべきコンポーネント契約"
+---
+```typescript
+interface MenuElementProps {
+    prompt: Sentence;
+    choices: Choice[];
+    afterChoose: (choice: Choice) => void;
+    state: GameState;
+}
+type MenuComponent = Components<MenuElementProps>;
+```
+
+Components については、[Components](/ja/docs/narraleaf-react/core/types/Components) を参照してください

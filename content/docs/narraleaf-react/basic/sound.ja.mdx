@@ -1,0 +1,121 @@
+---
+title: "サウンド"
+description: Sound による効果音・BGM・ボイスクリップの再生と、Control.doAsync でストーリーと並行して再生を進める方法
+---
+
+効果音、BGM、ボイスクリップには [Sound](/ja/docs/narraleaf-react/core/elements/sound) を使用します。静的なコンストラクターが、それぞれの音声に正しい種類を設定します。
+
+```ts
+import { Sound } from "narraleaf-react";
+
+const door = Sound.sound({
+    src: "/audio/door.ogg",
+    volume: 0.8,
+});
+
+const theme = Sound.bgm({
+    src: "/audio/theme.ogg",
+    volume: 0.5,
+    loop: true,
+});
+```
+
+## 効果音
+
+`play()` はアクションです。デフォルトでは、ストーリーはクリップの再生が終わるまで待機します。
+
+```ts
+scene.action([
+    door.play(),
+    alice.say("誰か来た。"),
+]);
+```
+
+音声が再生されている間もストーリーを進めたい場合は、非同期のコントロールスタック上で実行します。
+
+```ts
+import { Control } from "narraleaf-react";
+
+scene.action([
+    Control.doAsync([door.play()]),
+    alice.say("扉が背後で閉まった。"),
+]);
+```
+
+<Callout type="warning">
+    従来の `sync` オプションはすでに存在しません。非ブロッキングな音声には `Control.doAsync()` または `Control.allAsync()` を使用してください。
+</Callout>
+
+## BGM
+
+シーンの設定で BGM を指定するか、シーンの途中で変更します。フェードの値の単位はミリ秒です。
+
+```ts
+const room = new Scene("room", {
+    backgroundMusic: theme,
+    backgroundMusicFade: 800,
+});
+
+room.action([
+    room.setBackgroundMusic(Sound.bgm("/audio/night.ogg"), 800),
+]);
+```
+
+`null` を渡すと、現在の BGM を停止します。
+
+```ts
+room.setBackgroundMusic(null, 500);
+```
+
+## イントロとループ区間
+
+`seek` はクリップのイン点、`endTime` はアウト点です。`loop` と組み合わせると、この二つがループ区間になり、`loopStart` が各繰り返しの戻り先を指定します。これにより、イントロ付きの BGM は冒頭を一度だけ再生し、以降は本編部分だけを繰り返せます。
+
+```ts
+const theme = Sound.bgm({
+    src: "/audio/theme.ogg",
+    loop: true,
+    seek: 0,       // 最初の再生は先頭から始まる
+    loopStart: 12, // 以降の各繰り返しはここに戻る（イントロの後）
+    endTime: 90,
+});
+```
+
+この繰り返しはサンプル単位で正確です。継ぎ目に隙間が生じることも、長時間の再生でずれることもありません。詳しくは
+[ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照してください。
+
+すでに再生中のクリップの再生位置を移動するには、`seek()` をアクションとして使用します。
+
+```ts
+room.action([
+    theme.seek(12), // イントロをスキップする
+]);
+```
+
+## 音量とバス
+
+すべてのクリップは、その `type` によって決まる音声バス上で再生されます。ゲームは何も宣言しなくても `bgm`、`sound`、`voice` の 3 つのバスを持ち、さらに宣言を追加できます。たとえばキャラクターごとに 1 つのバスを用意すれば、固定の 3 つのバスでは表現できないプレイヤー向けの操作を提供できます。詳しくは[オーディオバス](/ja/docs/narraleaf-react/core/game/audio-buses)を参照してください。
+
+## 再生の制御
+
+Sound のアクションで、再生の状態や値を変更できます。
+
+```ts
+scene.action([
+    door.setVolume(0.3, 300),
+    door.setRate(1.2),
+    door.pause(200),
+    door.resume(200),
+    door.mute(),
+    door.unmute(),
+    door.stop(300),
+]);
+```
+
+React の UI から即座に再生したい場合は、ストーリーのアクションを追加する代わりに `liveGame.playSound()` を使用します。
+
+```tsx
+const liveGame = useLiveGame();
+
+<button onClick={() => liveGame.playSound("/audio/click.ogg")}>再生</button>
+```

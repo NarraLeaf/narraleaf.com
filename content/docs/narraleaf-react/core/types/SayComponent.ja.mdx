@@ -1,0 +1,17 @@
+---
+title: "SayComponent"
+description: "`game.configure({ dialog })` のスロット型で、カスタムダイアログボックスが満たすべき引数なしのコンポーネント契約"
+---
+```typescript
+interface IDialogProps {}
+
+type SayComponent = Components<IDialogProps>;
+```
+
+`SayComponent` は `game.configure({ dialog })` が使用するスロット型です。これは引数なしのコンポーネント契約であり、プレイヤーは現在の行を props ではなく dialog context を通じて渡します。
+
+コンポーネントの内部では、[`Dialog`](/ja/docs/narraleaf-react/player/dialog)、[`Nametag`](/ja/docs/narraleaf-react/player/dialog)、[`Texts`](/ja/docs/narraleaf-react/player/dialog)、[`Avatar`](/ja/docs/narraleaf-react/player/dialog) を描画するか、[`useDialog`](/ja/docs/narraleaf-react/player/hooks/useDialog) を呼び出して現在のダイアログ状態を読み取ります。
+
+`Dialog` 自体は `HTMLMotionProps<"div">` を受け付けるため、`SayComponent` はスロットのシグネチャを変えることなく `<Dialog initial={...} animate={...} exit={...}>...</Dialog>` を返すことができます。
+
+Components については、[Components](/ja/docs/narraleaf-react/core/types/Components) を参照してください。

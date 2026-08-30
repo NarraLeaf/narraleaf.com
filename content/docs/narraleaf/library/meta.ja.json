@@ -1,0 +1,15 @@
+{
+  "title": "NarraLeaf Desktop",
+  "description": "NarraLeaf Desktop のランタイム、レンダラー、CLI のドキュメント。",
+  "defaultOpen": true,
+  "pages": [
+    "index",
+    "installation",
+    "quick-start",
+    "project-config",
+    "build-targets",
+    "main",
+    "renderer",
+    "cli"
+  ]
+}

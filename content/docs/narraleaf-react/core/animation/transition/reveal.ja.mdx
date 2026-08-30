@@ -1,0 +1,39 @@
+---
+title: "Reveal"
+description: マスクパターンを通して、現在の画像の上に次の画像を直接見せるトランジション。途中に色の保持を挟まない
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+任意の[マスクパターン](/ja/docs/narraleaf-react/core/animation/transition/mask)を通して、現在の画像の上に次の画像を見せます。色の保持を挟まない、直接的なA→Bのカットです。`Reveal`は[Through Color](/ja/docs/narraleaf-react/core/animation/transition/through-color)の直接的な対になる存在で、Through Colorは同じパターンを単色の保持を通して再生します。
+
+幾何形状はすべてパターン側にあるため、同じ`Mask`ファクトリーを使えば、1語の書き換えだけで2つのエンジンの間をトランジション自体を移動できます。
+
+## 使い方
+
+```tsx
+import { Reveal, Mask } from "narraleaf-react";
+
+// 柔らかい方向性ワイプ
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "left" }) }));
+
+// 中心から開く、羽根状にぼかしたアイリス
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.iris() }));
+
+// 硬いエッジのワイプ（羽根ぼかしゼロ）
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.wipe({ direction: "right", feather: 0 }) }));
+
+// ベネシアンブラインド
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: Mask.blinds({ slats: 8 }) }));
+
+// 時計の掃引
+image.char("image1.jpg", new Reveal({ duration: 1200, pattern: Mask.clock() }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: RevealOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `pattern: MaskPattern` - 次の画像が見せられる際の覆いの幾何形状。[Mask](/ja/docs/narraleaf-react/core/animation/transition/mask)の静的ファクトリーで構築するか、自分で書きます。
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

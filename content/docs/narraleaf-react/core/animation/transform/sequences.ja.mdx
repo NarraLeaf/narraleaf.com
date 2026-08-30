@@ -1,0 +1,165 @@
+---
+title: "シーケンス"
+description: Transformのシーケンスの仕組み。連結APIと生のシーケンス配列の比較、および静的ファクトリー、commit、repeat、copyの各メソッド
+---
+`Transform`は1つ以上のシーケンスで構成されます。各シーケンスは、見た目を表す`props`とタイミングを表す`options`を持ちます。
+
+## 連結APIと生のシーケンス
+
+連結APIとコンストラクタは、同じ種類の`Transform`を作成します。手書きのアニメーションでは連結APIを使うのがおすすめです。タイミングが対応する変化のすぐ隣に書けるためです。
+
+<Tabs items={['連結API', '生のシーケンス']}><Tab value="連結API">
+        ```typescript
+        const bounce = Transform.create()
+            .position({ yoffset: -10 })
+            .commit({ duration: 120, ease: "easeOut" })
+            .position({ yoffset: 0 })
+            .commit({ duration: 100, ease: "easeOut" });
+        ```
+</Tab>
+<Tab value="生のシーケンス">
+        ```typescript
+        const bounce = new Transform<TransformDefinitions.ImageTransformProps>([
+            {
+                props: {
+                    position: { yoffset: -10 },
+                },
+                options: {
+                    duration: 120,
+                    ease: "easeOut",
+                },
+            },
+            {
+                props: {
+                    position: { yoffset: 0 },
+                },
+                options: {
+                    duration: 100,
+                    ease: "easeOut",
+                },
+            },
+        ]);
+        ```
+</Tab></Tabs>
+
+## コンストラクタ
+
+すでにシーケンスオブジェクトを持っている場合、または生成されたコードがシーケンス配列を作る場合は、コンストラクタを使用します。
+
+### シーケンスの配列
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>([
+    {
+        props: {
+            position: { xalign: 0.3 },
+        },
+        options: {
+            duration: 120,
+            ease: "easeOut",
+        },
+    },
+    {
+        props: {
+            position: { xalign: 0.6 },
+        },
+        options: {
+            duration: 100,
+            ease: "easeOut",
+        },
+    },
+], {
+    repeat: 2,
+});
+```
+
+- `sequences: TransformDefinitions.Sequence<T>[]` - シーケンスの配列
+- `transformConfig?: Partial<TransformDefinitions.TransformConfig>` - Transform全体のオプション
+
+### 単一のシーケンス
+
+```typescript
+new Transform<TransformDefinitions.ImageTransformProps>({
+    position: {
+        xalign: 0.3,
+    },
+}, {
+    duration: 120,
+    ease: "easeOut",
+});
+```
+
+- `props: SequenceProps<T>` - 単一の[SequenceProps](/ja/docs/narraleaf-react/core/types/TransformDefinitions)オブジェクト
+- `options?: Partial<TransformDefinitions.CommonTransformProps>` - そのシーケンスのタイミングオプション。[CommonTransformProps](/ja/docs/narraleaf-react/core/types/CommonTransformProps)を参照してください。
+
+## 静的メソッド
+
+### left / right / center
+
+画像を舞台上のよく使う位置へ移動します。
+
+- `duration: number` - 移動時間（ミリ秒）
+- `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。
+- 戻り値は`Transform<T>`
+
+```typescript
+Transform.left(250, "easeOut");
+Transform.center(250, "easeInOut");
+Transform.right(250, "easeOut");
+```
+
+### immediate\<T extends TransformDefinitions.Types\>
+
+指定したプロパティを即座に適用するtransformを作成します。
+
+- `props: SequenceProps<T>` - 単一のシーケンスプロパティオブジェクト
+- 戻り値は`Transform<T>`
+
+### create\<T extends TransformDefinitions.Types\>
+
+連結したプロパティメソッドで組み立てられる、空のtransformを作成します。
+
+- `config?: Partial<TransformDefinitions.TransformConfig>` - Transformの設定
+- 戻り値は`Transform<T>`
+
+## パブリックメソッド
+
+### commit
+
+`commit()`は、それより前のすべてのプロパティ呼び出しを1つのシーケンスにまとめます。そのシーケンス内のすべてのプロパティは、同じタイミングオプションで同時にアニメーションします。
+
+```typescript
+transform
+    .position({ x: 100, y: 100 })
+    .zoom(1.1)
+    .opacity(1)
+    .commit({ duration: 300 })
+    .position({ x: 200, y: 200 })
+    .opacity(0)
+    .commit({ duration: 1000 });
+```
+
+保留中のプロパティ呼び出しがない場合、`commit()`は変更を加えずに現在のインスタンスを返します。
+
+- `options?: Partial<TransformDefinitions.SequenceOptions>` - シーケンスのタイミングオプション
+- 戻り値は`this`
+
+### repeat
+
+transformを繰り返します。
+
+```typescript
+transform
+    .repeat(2)
+    .repeat(3);
+// 6回繰り返す
+```
+
+- `n: number` - transformを繰り返す回数
+- 戻り値は`this`
+
+### copy
+
+transformを複製します。
+
+- 戻り値は`Transform<T>`

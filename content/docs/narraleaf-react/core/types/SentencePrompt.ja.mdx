@@ -1,0 +1,74 @@
+---
+title: "SentencePrompt"
+description: "対話の一行を書くあらゆる場所で受け付けられる値：プレーンな文字列、スタイル付きの単語、埋め込まれたポーズ、動的テキスト"
+---
+```typescript
+export type DynamicWord = (ctx: ScriptCtx) => DynamicWordResult;
+export type DynamicWordResult = string | Word | Pausing | (string | Word | Pausing)[];
+export type StaticWord<T extends string | DynamicWord | Pausing | TextEvent = string | DynamicWord | Pausing | TextEvent> = string | Pausing | TextEvent | Word<T>;
+export type SingleWord = StaticWord | DynamicWord;
+export type SentencePrompt = SingleWord[] | SingleWord;
+```
+
+## 例
+
+1. シンプルな文字列の文
+
+```typescript
+// "Hello, world!"
+const sentence: SentencePrompt = "Hello, world!";
+```
+
+2. 文字列が混在する文
+
+```typescript
+// "Hello, world!" with "world" in red color
+const sentence: SentencePrompt = [
+    "Hello, ",
+    new Word("world", {color: "#f00"}), // a red word
+    "!"
+];
+```
+
+3. ポーズを含む文
+
+```typescript
+// "Hello, ", pause for 1 second, "world" and wait until player click, "!"
+const sentence: SentencePrompt = [
+    "Hello, ",
+    Pause.wait(1000), // pause for 1 second
+    "world",
+    Pause, // wait until player click
+    "!"
+];
+```
+
+4. 動的な文
+
+```typescript
+// "Hello, you have 100 coins!"
+const sentence: SentencePrompt = [
+    "Hello, ",
+    ({storable}) => {
+        return `you have ${storable.getNamespace("game").get("coin")} coins`
+    },
+    "!"
+];
+```
+
+5. 動的に評価される文
+
+```typescript
+// "Hello, you have 100 coins!" with "100" in red color
+const sentence: SentencePrompt = [
+    "Hello, ",
+    ({storable}) => {
+        return [
+            "you have ",
+            new Word(`${storable.getNamespace("game").get("coin")}`, {color: "#f00"}),
+            " coins"
+        ]
+    },
+    "!"
+];
+```

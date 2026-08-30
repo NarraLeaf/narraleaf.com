@@ -1,0 +1,21 @@
+---
+title: "useQueryParams"
+description: 現在の LayoutRouter のクエリパラメータを返し、変化に応じて更新される useQueryParams フック
+---
+現在のクエリパラメータをオブジェクトとして返し、`LayoutRouter` の変化と同期させます。
+
+```tsx
+import { useQueryParams } from "narraleaf-react";
+
+const { tab, theme } = useQueryParams<{ tab?: string; theme?: string }>();
+```
+
+## 定義
+
+```typescript
+function useQueryParams<T extends Record<string,string>>(): T;
+```
+
+このフックは内部で `router.onChange` を購読しているため、ナビゲーション時や `router.setQueryParam(s)` によってクエリの値が変更されたときに再描画されます。
+
+関連項目：[`usePathname`](/ja/docs/narraleaf-react/player/hooks/usePathname) • [`useParams`](/ja/docs/narraleaf-react/player/hooks/useParams)

@@ -1,0 +1,339 @@
+---
+title: テキスト
+description: nl.text ウィジェットの Self ノード——内容、タイポグラフィ、色、静的エフェクトの読み書きです
+---
+
+Text 分類は `nl.text` ウィジェットの Self ノード集合です。表示する文字列、表示に使う書体と字形の各種数値、そしてその上に重ねる静的エフェクトを扱います。これらのノードは `nl.text` 要素自身の `widgetMain` ブループリントのパレットにのみ現れ、いずれもその要素に対して作用します。**別の**テキスト要素にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) 分類にある同名の `blueprint.element.text.*` ノードを使用してください——プロパティは同一で、対象を指定するための `element:nl.text` 入力が追加されているだけです。
+
+## 規約
+
+- **ターゲットピンはありません。** Self ノードには `Element` 入力がなく、ブループリントの実行元からターゲットを解決します。接続するものがない以上、誤った要素を指定してしまうこともありません。
+- **読み取りは `Pure`、書き込みは `Latent` です。** 各 getter は副作用がなく、`event`、`function`、`macro` グラフで合法です。各 setter はホストがパッチを適用する間グラフを一時停止させるため、`function` グラフには置けません——function は呼び出し元に同期的に戻るため、保留中の書き込みを置いておく場所がありません。
+- **Blueprint Value では使用できません。** Blueprint Value の宿主は `widgetValue` であり、これらのノードのスコープは `widgetMain` であるため、getter が pure であっても、そのパレットには現れません。Blueprint Value からテキストのプロパティを読み取るには、Element を対象とした getter を `Element` のリテラルとともに使用してください。
+- **書き込みにはゲームの実行が必要です。** ホスト API はブループリントの実行時の下でのみ存在します。エディターのキャンバス上では、setter は `Host API unavailable (use Dev Mode)` で失敗し、getter は何も生成しません。
+- **何も変わらない書き込みは何もしません。** 各 setter はパッチを正規化したうえで要素の現在のプロパティと比較し、一致する場合は早期に処理を終えます——その要素の再描画も `On Flush` も発生しません。getter も flush をキューに入れることはないため、グラフは自分自身をループに追い込むことなくプロパティをポーリングできます。
+- **未接続または認識されない入力は「そのままにする」ことを意味しません。** エッジがない、カード上に何も入力されていない、あるいは許可された集合の外の値である場合、ほとんどの setter は現在の値を保持するのではなく、固定のフォールバック値を書き込みます。`Set Text` は空文字列を、`Set Font` はフォントをクリアし、`Set Font Size` は `16` を、`Set Line Height` は `1.4` を書き込み、各列挙型 setter はそのリストの先頭の値を書き込みます。何も拒否されず、何もスローされません。現在の値にフォールバックするのは、`Set Text Color`、`Set Effects`、そして `Set All Properties` のすべてのピンだけです。
+
+## Get Text
+
+`blueprint.text.getText` · Pure
+
+要素が現在保持している文字列を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+
+## Set Text
+
+`blueprint.text.setText` · Latent
+
+文字列全体を置き換えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | 何にも解決できない場合は空文字列を書き込みます。カード上での直接入力に対応します。 |
+
+<Callout type="warn">
+要素の `props.text` が [Blueprint Value](/ja/docs/studio/blueprint) にバインドされている場合、そのバインディングが優先されます。算出された値は毎回の描画時に `props.text` の上に重ねられ、書き戻されることはありません。そのため `Set Text` が保存する文字列は誰の目にも触れず、`Get Text` が読み取るのも画面上のものではなく保存されたその文字列です。値グラフが読んでいるデータそのものを変更してください。
+</Callout>
+
+## Append Text
+
+`blueprint.text.appendText` · Latent
+
+現在の文字列を読み取り、末尾に `text` を付けて書き戻します。空文字列を追加した場合は元と同じ文字列になるため、実質的な操作は行われません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | 区切り記号を挟まず、そのまま追加されます。カード上での直接入力に対応します。 |
+
+## Clear Text
+
+`blueprint.text.clearText` · Latent
+
+空文字列を書き込みます。何も接続していない `Set Text` と同じですが、カード上でその意図を明示します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Get Font
+
+`blueprint.text.getFont` · Pure
+
+要素が使用しているプロジェクトのフォントアセットの id を読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `fontAssetId` | out · data | `string` | フォントアセットが未設定で、要素がキャンバスの既定書体を継承している場合は空文字列です。 |
+
+## Set Font
+
+`blueprint.text.setFont` · Latent
+
+要素をプロジェクトのフォントアセットに向けます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontAssetId` | in · data | `string` | 空欄または解決できない値はフォントをクリアし、要素をキャンバスの既定書体に戻します。カード上での直接入力に対応します。 |
+
+## Get Font Size
+
+`blueprint.text.getFontSize` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `fontSize` | out · data | `float` | Surface のデザインピクセルです。 |
+
+## Set Font Size
+
+`blueprint.text.setFontSize` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontSize` | in · data | `float` | 下限は `1` にクランプされます。インスペクターの 8–256 の範囲はブループリントによる書き込みには適用されません。フォールバック値は `16` です。カード上での直接入力に対応します。 |
+
+## Get Font Weight
+
+`blueprint.text.getFontWeight` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `fontWeight` | out · data | `string` | `normal`、`600`、`bold` のいずれかです。 |
+
+## Set Font Weight
+
+`blueprint.text.setFontWeight` · Latent
+
+字重は数値の CSS font-weight ではなく、3値の列挙型です。ここでの `700` は `bold` の同義語ではありません——許可された集合の外にあるため、`normal` にフォールバックします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `fontWeight` | in · data | `string` | `normal`、`600`、または `bold` です——`"600"` は文字列であり、数値ではありません。それ以外の値はすべて `normal` にフォールバックします。カード上での直接入力に対応します。 |
+
+## Get Text Color
+
+`blueprint.text.getTextColor` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `color` | out · data | `RGBAColor` | |
+
+## Set Text Color
+
+`blueprint.text.setTextColor` · Latent
+
+要素は色を CSS の色文字列として保持しており、これらのピンは双方向に変換します。そのためピンの型は `string` ではなく `RGBAColor` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `color` | in · data | `RGBAColor` | カード上での直接入力はできません——[Data](/ja/docs/studio/blueprint/nodes/data) の色の定数、または別のノードの `RGBAColor` 出力を接続してください。フォールバックは現在の色です。 |
+
+## Get Text Align
+
+`blueprint.text.getTextAlign` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textAlign` | out · data | `string` | `left`、`center`、`right` のいずれかです。 |
+
+## Set Text Align
+
+`blueprint.text.setTextAlign` · Latent
+
+要素のボックス内でテキスト行を水平方向に揃えます。ボックス自体の移動やサイズ変更は行いません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textAlign` | in · data | `string` | `left`、`center`、または `right` です。それ以外の値はすべて `left` にフォールバックします。カード上での直接入力に対応します。 |
+
+## Get Text Vertical Align
+
+`blueprint.text.getTextVerticalAlign` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textVerticalAlign` | out · data | `string` | `start`、`center`、`end` のいずれかです。 |
+
+## Set Text Vertical Align
+
+`blueprint.text.setTextVerticalAlign` · Latent
+
+要素のボックス内でのテキスト行の配置を決めます。ボックス内でテキストを動かすものであり、ボックス自体のサイズは変更しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textVerticalAlign` | in · data | `string` | `start`、`center`、または `end` です。それ以外の値はすべて `start` にフォールバックします。カード上での直接入力に対応します。 |
+
+## Get Line Height
+
+`blueprint.text.getLineHeight` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `lineHeight` | out · data | `float` | ピクセル距離ではなく、フォントサイズに対する単位のない倍率です。 |
+
+## Set Line Height
+
+`blueprint.text.setLineHeight` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `lineHeight` | in · data | `float` | 倍率で、下限は `0.1` にクランプされます。フォールバック値は `1.4` です。カード上での直接入力に対応します。 |
+
+## Get Wrap Mode
+
+`blueprint.text.getWrapMode` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textWrapMode` | out · data | `string` | `word`、`character`、`nowrap` のいずれかです。 |
+
+## Set Wrap Mode
+
+`blueprint.text.setWrapMode` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textWrapMode` | in · data | `string` | `word` は単語の間で改行し、`character` は単語の内部でも改行し、`nowrap` は決して改行しません。それ以外の値はすべて `word` にフォールバックします。カード上での直接入力に対応します。 |
+
+## Get Effects
+
+`blueprint.text.getEffects` · Pure
+
+要素の静的エフェクトブロックを、常にすべてのフィールドが揃った1つの JSON オブジェクトとして読み取ります。
+
+```json
+{
+    "effectBlur": 0,
+    "effectBackgroundBlur": 0,
+    "effectShadow": null,
+    "effectTextShadow": null,
+    "effectInnerShadow": null,
+    "effectBlend": "",
+    "effectGlow": null,
+    "effectFilter": null
+}
+```
+
+テキスト要素が反映するのは `effectBlur`、`effectTextShadow`、`effectBlend`、`effectFilter` だけです——影は CSS の `text-shadow` で描かれ、box-shadow 系のフィールドは chrome 系ウィジェットに属します。そのため、テキスト要素上では `effectShadow`、`effectInnerShadow`、`effectGlow` は常に `null` として読み戻されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `effects` | out · data | `json` | |
+
+## Set Effects
+
+`blueprint.text.setEffects` · Latent
+
+エフェクトブロック全体を置き換えます——これはマージではないため、1つのフィールドだけを変えたい場合は、先に `Get Effects` で読み取ってからそのオブジェクトを編集してください。
+
+box-shadow 系のフィールドへの書き込みが静かに失われるわけではありません。次に読み取ったとき、テキストシャドウが未設定であれば `effectShadow`（それもなければ `effectGlow`）が `effectTextShadow` に昇格し、box-shadow 系のフィールド自体は `null` として返ります。影自体は表示されますが、書き込んだキーの下ではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `effects` | in · data | `json` | 欠けているフィールドや形式が不正なフィールドは、現在のエフェクトではなく上記の既定値で埋められます。何にも解決できない場合のみ、全体が現在のエフェクトにフォールバックします。 |
+
+## Get All Properties
+
+`blueprint.text.getAllProperties` · Pure
+
+1枚のカードですべてのテキストプロパティを取得します。各出力は、対応する専用の getter が返すものとまったく同じ内容を運びます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `text` | out · data | `string` | |
+| `fontAssetId` | out · data | `string` | フォントアセットが未設定の場合は空文字列です。 |
+| `fontSize` | out · data | `float` | |
+| `fontWeight` | out · data | `string` | |
+| `color` | out · data | `RGBAColor` | |
+| `textAlign` | out · data | `string` | |
+| `textVerticalAlign` | out · data | `string` | |
+| `lineHeight` | out · data | `float` | |
+| `textWrapMode` | out · data | `string` | |
+| `effects` | out · data | `json` | |
+
+## Set All Properties
+
+`blueprint.text.setAllProperties` · Latent
+
+1回のパッチですべてのテキストプロパティを書き込むため、要素は10回ではなく1回だけ再描画されます。まず現在のプロパティを読み取り、それを**すべての**ピンのフォールバックとして使うため、これは唯一「ピンを未接続のままにすると現在の値が保持される」setter です——単一プロパティの setter とはちょうど逆になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `text` | in · data | `string` | カード上での直接入力に対応します。 |
+| `fontAssetId` | in · data | `string` | 明示的に `null` を渡した場合もフォントはクリアされます。カード上での直接入力に対応します。 |
+| `fontSize` | in · data | `float` | 下限は `1` にクランプされます。カード上での直接入力に対応します。 |
+| `fontWeight` | in · data | `string` | `normal`、`600`、または `bold` です。カード上での直接入力に対応します。 |
+| `color` | in · data | `RGBAColor` | カード上での直接入力はできません。 |
+| `textAlign` | in · data | `string` | `left`、`center`、または `right` です。カード上での直接入力に対応します。 |
+| `textVerticalAlign` | in · data | `string` | `start`、`center`、または `end` です。カード上での直接入力に対応します。 |
+| `lineHeight` | in · data | `float` | 倍率で、下限は `0.1` にクランプされます。カード上での直接入力に対応します。 |
+| `textWrapMode` | in · data | `string` | `word`、`character`、または `nowrap` です。カード上での直接入力に対応します。 |
+| `effects` | in · data | `json` | カード上での直接入力はできません。 |
+
+## Get Visible
+
+`blueprint.text.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Set Visible
+
+`blueprint.text.setVisible` · Latent
+
+要素の `visible` プロパティを設定します。これは [Displayable](/ja/docs/studio/blueprint/nodes/displayable) 分類の `Set Display` とは別のスイッチです。`display` は要素とそのサブツリーをマウントしたまま CSS で隠す実行時の描画スイッチであり、`visible` はインスペクターが公開しているレイアウト上の可視性プロパティです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | カード上での直接入力はできません——真偽値を接続してください。フォールバックは現在の値です。 |
+
+## Get Enabled
+
+`blueprint.text.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.text.setEnabled` · Latent
+
+`false` は下層の操作無効化の仕組みに対応付けられます。生の `interactionDisabled` プロパティは作者には公開されていないため、このペアがそのインターフェースのすべてです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | カード上での直接入力はできません——真偽値を接続してください。フォールバックは現在の値です。 |

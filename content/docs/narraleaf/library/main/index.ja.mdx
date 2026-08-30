@@ -1,0 +1,73 @@
+---
+title: Main
+description: Electron の主プロセスランタイム、設定、ウィンドウ、ユーザーイベント、hooks、ストレージ
+---
+
+**Main** モジュールは、NarraLeaf の Electron 主プロセス側の窓口です。アプリケーションホストを作成し、メインウィンドウを起動し、renderer のイベントブリッジを接続し、アプリのデータパスを管理し、セーブおよび JSON ストレージ用の helpers を公開します。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```
+
+## エントリポイント
+
+同じ安定した窓口は `narraleaf` と `narraleaf/main` のどちらからでも利用できます。
+
+```ts
+import {
+    App,
+    AppConfig,
+    AppWindow,
+    assertSafeStorageKey,
+} from "narraleaf";
+```
+
+## ガイド
+
+<Cards>
+    <Card
+        title="AppConfig"
+        description="復旧の挙動、エラー処理、サンドボックス、プラットフォームアイコン、カスタムのセーブバックエンドを設定する"
+        href="/ja/docs/narraleaf/library/main/app-config"
+    />
+    <Card
+        title="App"
+        description="ライフサイクル、パス、hooks、ストレージのためにメインのアプリケーションホストを使う"
+        href="/ja/docs/narraleaf/library/main/app"
+    />
+    <Card
+        title="AppWindow"
+        description="メインウィンドウ、ユーザーイベント、フルスクリーン状態、devtools、renderer のイベントブリッジを扱う"
+        href="/ja/docs/narraleaf/library/main/window"
+    />
+</Cards>
+
+## ユーザー向けのエクスポート
+
+- `App`：Electron のアプリケーションホスト。
+- `AppConfig`：`App` を作成するための連鎖可能な設定ビルダー。
+- `AppWindow`：`app.launchApp()` が返す `BrowserWindow` のラッパー。
+- `StoreProvider`：カスタムのセーブバックエンド用の型。
+- `assertSafeStorageKey`、`MAX_STORAGE_KEY_LENGTH`：セーブ id と JSON ストアの名前を検証する helpers。
+
+## Main Events
+
+アプリレベルの renderer から main への呼び出しは、main 側で `AppWindow.handleUserEvent()` を使ってハンドラを登録し、renderer 側では `requestMain()` または `invokeMainEvent()` で呼び出します。
+
+<Cards>
+    <Card
+        title="Main Events"
+        description="ユーザーレベルの renderer から main へのイベント API を使う"
+        href="/ja/docs/narraleaf/library/renderer/main-events"
+    />
+</Cards>
+
+## 低レベルの契約型
+
+このパッケージは、`IPCEventType`、`Namespace`、`IPCEvents`、`RequestStatus` といった低レベルの IPC 契約型もエクスポートしています。これらは NarraLeaf の組み込み preload ブリッジとデフォルトのハンドラを記述するものです。通常のアプリ機能では、これらをインポートする必要はほとんどありません。

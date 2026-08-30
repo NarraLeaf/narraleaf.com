@@ -1,0 +1,17 @@
+{
+  "title": "NarraLeaf Studio",
+  "description": "ガイド付きの制作と編集のためのノーコード ビジュアルノベル IDE。",
+  "pages": [
+    "index",
+    "installation",
+    "getting-started",
+    "workspace",
+    "team",
+    "blueprint",
+    "model-runtimes",
+    "security",
+    "patches",
+    "plugin",
+    "third-party-licenses"
+  ]
+}

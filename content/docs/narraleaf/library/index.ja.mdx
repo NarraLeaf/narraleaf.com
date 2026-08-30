@@ -1,0 +1,78 @@
+---
+title: NarraLeaf Desktop
+description: NarraLeaf Desktop のランタイム、renderer、プロジェクト設定、CLI に関するデスクトップ版ビジュアルノベルアプリのドキュメント
+---
+
+**NarraLeaf Desktop** のドキュメントへようこそ。
+
+NarraLeaf Desktop は、Electron、React、NarraLeaf-React の上に構築されたデスクトップ版ビジュアルノベルアプリのツールチェーンです。主プロセスのランタイム、renderer のシェル、セーブブリッジ、ページルーティング、プロジェクト設定、そして完全なパッケージアプリを作成するための CLI ワークフローを提供します。
+
+## NarraLeaf Desktop を選ぶ理由
+
+- **完全なデスクトップアプリ**：既存の Web ページにプレイヤーを埋め込むだけでなく、独立した Electron アプリケーションを構築できます。
+- **型付けされたランタイム**：主プロセス、renderer ブリッジ、セーブシステム、ビルドターゲットを TypeScript フレンドリーな API で設定できます。
+- **内蔵の NarraLeaf-React**：NarraLeaf-React でストーリーを作成し、アプリの起動、ルーティング、永続化、パッケージ化は NarraLeaf Desktop に任せられます。
+
+React のプレイヤーフレームワークだけが必要な場合は [NarraLeaf-React](/ja/docs/narraleaf-react) を選んでください。デスクトップアプリのシェル、CLI、配布ワークフローも必要な場合は NarraLeaf Desktop を選んでください。
+
+## はじめに
+
+まずインストールを行い、そのあとプロジェクトを作成してローカルで実行します。
+
+<Cards>
+    <Card
+        title="Installation"
+        description="NarraLeaf Desktop アプリが使う CLI とランタイムパッケージをインストールする"
+        href="/ja/docs/narraleaf/library/installation"
+    />
+    <Card
+        title="Quick Start"
+        description="最初の NarraLeaf Desktop プロジェクトを作成し、開発サーバーを起動する"
+        href="/ja/docs/narraleaf/library/quick-start"
+    />
+</Cards>
+
+## モジュール
+
+<Cards>
+    <Card
+        title="Main"
+        description="Electron の主プロセスランタイム、AppConfig、App、AppWindow、hooks、ストレージ"
+        href="/ja/docs/narraleaf/library/main"
+    />
+    <Card
+        title="Renderer"
+        description="renderer のエントリ、App プロバイダ、セーブ用 hooks、型付けされた主プロセスイベント、ページルーティング"
+        href="/ja/docs/narraleaf/library/renderer"
+    />
+    <Card
+        title="CLI"
+        description="init、dev、build、info 用のプロジェクトコマンドと、生成される renderer のエントリ"
+        href="/ja/docs/narraleaf/library/cli"
+    />
+</Cards>
+
+## プロジェクトのセットアップ
+
+<Cards>
+    <Card
+        title="Project Config"
+        description="narraleaf.config.js と必須のプロジェクトフォルダについて理解する"
+        href="/ja/docs/narraleaf/library/project-config"
+    />
+    <Card
+        title="Build Targets"
+        description="narraleaf/config を通じて Windows、macOS、Linux のターゲットを設定する"
+        href="/ja/docs/narraleaf/library/build-targets"
+    />
+</Cards>
+
+## 推奨する読み進め方
+
+1. [Installation](/ja/docs/narraleaf/library/installation) を読みます。
+2. [Quick Start](/ja/docs/narraleaf/library/quick-start) を進めます。
+3. [Project Config](/ja/docs/narraleaf/library/project-config) を学びます。
+4. API の詳細が必要になったら [Main](/ja/docs/narraleaf/library/main) と [Renderer](/ja/docs/narraleaf/library/renderer) を参照します。
+5. ローカル開発とパッケージ化を自動化する準備ができたら [CLI](/ja/docs/narraleaf/library/cli) を使います。
+
+> **Note:** NarraLeaf Desktop は初期開発段階にあります。文書化するに足るほど安定した API もありますが、プロジェクトでは NarraLeaf Desktop、NarraLeaf-React、Electron、React のバージョンを揃えておいてください。

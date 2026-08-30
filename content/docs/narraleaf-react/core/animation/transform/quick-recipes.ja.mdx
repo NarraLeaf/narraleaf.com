@@ -1,0 +1,76 @@
+---
+title: "クイックレシピ"
+description: 舞台の端への移動、フェード、タイムラインの構築、キャラクターのフラッシュに使える、そのままコピーできるTransformの例
+---
+例をコピーして、シーンに合わせてタイミングや位置の値を調整してください。
+
+## 端へ移動する
+
+一般的な舞台位置には、組み込みのヘルパーを使います。
+
+```typescript
+scene.action([
+    characterImage.transform(Transform.left(250, "easeOut")),
+    characterImage.transform(Transform.center(250, "easeInOut")),
+    characterImage.transform(Transform.right(250, "easeOut")),
+]);
+```
+
+## 移動とフェードを同時に行う
+
+1つの`commit()`の前に複数のプロパティ呼び出しをまとめると、同時にアニメーションします。
+
+```typescript
+const enter = Transform.create()
+    .position({ xalign: 0.5, yoffset: 0 })
+    .opacity(1)
+    .commit({ duration: 300, ease: "easeOut" });
+
+scene.action([
+    characterImage.transform(enter),
+]);
+```
+
+## 小さなタイムラインを構築する
+
+`commit()`のたびに1つのステップが追加されます。コードの記述順が再生順になります。
+
+```typescript
+const lookAround = Transform.create()
+    .rotation(-4)
+    .commit({ duration: 180, ease: "easeOut" })
+    .rotation(4)
+    .commit({ duration: 240, ease: "easeInOut" })
+    .rotation(0)
+    .commit({ duration: 180, ease: "easeOut" });
+```
+
+## 状態を即座に反映する
+
+トランジションなしで見た目の状態を反映したいときは、`Transform.immediate()`を使います。
+
+```typescript
+scene.action([
+    characterImage.transform(
+        Transform.immediate({ opacity: 0 })
+    ),
+]);
+```
+
+## キャラクターをフラッシュさせる
+
+効果をアニメーションの一部として実行したい場合は、視覚効果のプロパティを使います。
+
+```typescript
+const flash = Transform.create()
+    .filter("brightness(1.5)")
+    .commit({ duration: 100 })
+    .filter("none")
+    .commit({ duration: 160 });
+
+scene.action([
+    characterImage.transform(flash),
+]);
+```
+
+効果別のメソッドについては、[視覚効果](/ja/docs/narraleaf-react/core/animation/transform/visual-effects)を参照してください。

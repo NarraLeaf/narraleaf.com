@@ -1,0 +1,65 @@
+---
+title: "useAvatar"
+description: 現在のダイアログ行に対して解決されたアバターの表示状態、画像 URL、キャラクター、立ち絵を返す useAvatar フック
+---
+`useAvatar` は、**現在の** Say 行に対して解決されたダイアログのアバターを返します。表示するかどうか、画像 URL、関連する `Character` や立ち絵 `Image` への参照です。[`Dialog`](/ja/docs/narraleaf-react/player/dialog) のサブツリーの**内部**（[`useDialog`](/ja/docs/narraleaf-react/player/hooks/useDialog) と同じコンテキスト）で使うことを想定しています。
+
+## 使い方
+
+```tsx
+import { Avatar, Dialog, Nametag, Texts, useAvatar } from "narraleaf-react";
+
+function GameDialog() {
+    const avatar = useAvatar();
+
+    return (
+        <Dialog>
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: avatar.visible ? "120px 1fr" : "1fr",
+                    gap: 16,
+                }}
+            >
+                {avatar.visible && <Avatar style={{ width: 120, height: 120 }} />}
+                <div>
+                    <Nametag />
+                    <Texts />
+                </div>
+            </div>
+        </Dialog>
+    );
+}
+```
+
+## 戻り値：`DialogAvatarContext`
+
+- `visible: boolean` — この行でアバター画像を表示すべきかどうか。
+- `src: string | null` — `<img src>` 用に解決された URL。画像がない場合は `null`。
+- `character: Character | null` — 話しているキャラクター（あれば）。
+- `portrait: Image | null` — 解決に寄与した舞台の立ち絵 `Image`（あれば）。
+- `alt: string` — 推奨される `alt` テキスト。
+
+`visible` が false のとき、`src` は `null` になります。[`Avatar`](/ja/docs/narraleaf-react/player/dialog) コンポーネントはこのフックを使っており、表示するものがない場合は何も描画しません。
+
+### 表示されているときのメタデータ
+
+```tsx
+const avatar = useAvatar();
+
+if (avatar.visible) {
+    console.log(avatar.src);
+    console.log(avatar.character?.state.name);
+    console.log(avatar.portrait?.config.name);
+}
+```
+
+## `<Avatar />` との関係
+
+[`Avatar`](/ja/docs/narraleaf-react/player/dialog) は `useAvatar()` を呼び出し、既定のサイズ（96×96、`objectFit: "cover"`、`borderRadius: 6`）で `<img>` を描画します。上書きするには `className` / `style` を渡してください。
+
+## 関連項目
+
+- [Dialog](/ja/docs/narraleaf-react/player/dialog) — 解決順序、`Character` / `Sentence` の設定
+- [Character](/ja/docs/narraleaf-react/core/elements/character) — `setAvatar`、`addPortrait`、`setPortraits`
+- 型：`DialogAvatarContext`（`narraleaf-react` からエクスポート）

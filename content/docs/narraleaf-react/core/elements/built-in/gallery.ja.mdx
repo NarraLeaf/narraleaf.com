@@ -1,0 +1,345 @@
+﻿---
+title: "Gallery"
+description: 画像コレクションのための組み込み`Gallery`サービス。追加、削除、確認の操作と、セーブデータまたはlocalStorageでの永続化を扱う
+---
+Galleryは、ビジュアルノベルゲームのギャラリー（画像コレクション）専用に設計された組み込みサービスです。項目の追加、削除、確認を行うことができます。Galleryのデータは、**localStorage**による独立した永続化（`serialize`/`deserialize`経由）、または**ゲームのセーブデータ**への自動的な組み込みのどちらでも永続化できます。
+
+Galleryは、キャラクターの立ち絵、CG画像、背景画像など、ゲーム内の画像コレクションシステムを管理するのに適しています。
+
+```typescript
+import {Gallery} from "narraleaf-react";
+```
+
+## 基本的な使い方
+
+### Galleryを作成する
+
+```typescript
+const gallery = new Gallery<{timestamp: number}>();
+
+scene.action([
+  gallery.add("item", () => ({
+    timestamp: Date.now(),
+  }))
+]);
+```
+
+### サービスを登録する
+
+Galleryを使うには、ストーリーに登録する必要があります。
+
+```typescript
+story.registerService("gallery", gallery);
+```
+
+登録後は、ゲームのコンテキストを通じてGalleryへアクセスできます。
+
+```typescript
+const liveGame = useLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery<{timestamp: number}>>("gallery");
+
+if (gallery) {
+  console.log("All items in the gallery:", gallery.$getAll());
+}
+```
+
+## 完全な例
+
+```typescript
+const gallery = new Gallery<{timestamp: number, description: string}>();
+
+scene.action([
+  gallery.add("item1", {
+    timestamp: Date.now(),
+    description: "First item"
+  }),
+  
+  gallery.add("item2", (ctx) => ({
+    timestamp: Date.now(),
+    description: "Dynamically created item"
+  })),
+  
+  Condition.If(gallery.has("item1"), [
+    "Item 1 is unlocked!",
+  ]),
+  
+  gallery.remove("item1"),
+  
+  gallery.clear()
+]);
+```
+
+## localStorageでの永続化
+
+Galleryのデータは、ゲームのセーブデータとは独立して[localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage)へ永続化できます。`serialize()`を呼び出してデータを取得し、ロード時に`deserialize()`を呼び出します。
+
+```typescript
+const GALLERY_STORAGE_KEY = "my-game-gallery";
+
+// Galleryをlocalstorageへ保存する（ギャラリーページを開いたときや、一定間隔ごとなど）
+function saveGalleryToStorage() {
+  const gallery = liveGame.story?.getService<Gallery<CgMetadata>>("gallery");
+  if (gallery) {
+    const data = gallery.serialize();
+    localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(data));
+  }
+}
+
+// localStorageからGalleryをロードする（ゲームの初期化時、newGameの前など）
+function loadGalleryFromStorage() {
+  const gallery = liveGame.story?.getService<Gallery<CgMetadata>>("gallery");
+  if (gallery) {
+    const raw = localStorage.getItem(GALLERY_STORAGE_KEY);
+    if (raw) {
+      try {
+        gallery.deserialize(JSON.parse(raw));
+      } catch {}
+    }
+  }
+}
+```
+
+これにより、プレイヤーがセーブ／ロードのシステムを一度も使わなくても、ギャラリーの解除状態はセッションをまたいで保持されます。
+
+## ゲームのセーブデータでのserialize / deserialize
+
+Galleryは`serialize()`と`deserialize()`を実装しています。[LiveGame.serialize](/ja/docs/narraleaf-react/core/game/live-game#serialize)を使ってゲームを保存すると、フレームワークはGalleryのシリアライズされたデータを自動的に`SavedGame.game.services`へ含めます。[LiveGame.deserialize](/ja/docs/narraleaf-react/core/game/live-game#deserialize)を呼び出してセーブデータをロードすると、フレームワークはGalleryを含む、登録済みのすべてのサービスを復元します。
+
+そのため、`liveGame.serialize()`をlocalStorageへ永続化する[セーブシステム](/ja/docs/narraleaf-react/solutions/save-system-localstorage)を使っている場合、ギャラリーの解除状態は追加のコードなしにゲームと**自動的に**保存・復元されます。この統合を可能にしているのが`serialize`/`deserialize`メソッドです。
+
+## チェーン可能なメソッド
+
+これらのメソッドは`scene.action`の中で使用する必要があり、チェーンできる操作オブジェクトを返します。
+
+### add
+
+<Steps>
+<Step>
+
+ギャラリーに項目を追加します。
+
+```typescript
+scene.action([
+  gallery.add("item", {
+    timestamp: Date.now(),
+    description: "Item description"
+  })
+]);
+
+// 関数を使うこともできる
+scene.action([
+  gallery.add("item", (ctx) => {
+    return {
+      timestamp: Date.now(),
+      description: "Dynamic item"
+    };
+  })
+]);
+```
+
+- `name: string` - 追加する項目の名前
+- `metadata: Metadata | ((ctx: ScriptCtx) => Metadata)` - 項目のメタデータ。オブジェクト、またはメタデータを返す関数のいずれか
+</Step>
+</Steps>
+
+### remove
+
+<Steps>
+<Step>
+
+ギャラリーから項目を削除します。
+
+```typescript
+scene.action([
+  gallery
+    .remove("item")
+    .remove("item2"),
+]);
+```
+
+- `name: string` - 削除する項目の名前
+</Step>
+</Steps>
+
+### clear
+
+<Steps>
+<Step>
+
+ギャラリーを空にします。
+
+```typescript
+scene.action([
+  gallery.clear()
+]);
+```
+</Step>
+</Steps>
+
+## パブリックメソッド
+
+`$`が先頭に付いたこれらのメソッドは即座に実行され、`scene.action`の中で使う必要はありません。ゲームの実行中にギャラリーのデータを直接操作するために設計されています。
+
+### has
+
+<Steps>
+<Step>
+
+ギャラリーに項目が存在するかどうかを確認します。
+
+```typescript
+Condition.If(gallery.has("item"), [
+    "Item is unlocked!",
+    // ...
+])
+```
+
+- `name: string` - 確認する項目の名前
+- 戻り値は`Lambda<boolean>` - 項目が存在すれば`true`、存在しなければ`false`を返します。
+</Step>
+</Steps>
+
+### $add
+
+<Steps>
+<Step>
+
+ギャラリーに項目を即座に追加します。
+
+```typescript
+gallery.$add("item", {
+  timestamp: Date.now(),
+  description: "Immediately added item"
+});
+```
+
+- `name: string` - 追加する項目の名前
+- `metadata: Metadata` - 項目のメタデータ
+</Step>
+</Steps>
+
+### $remove
+
+<Steps>
+<Step>
+
+ギャラリーから項目を即座に削除します。
+
+```typescript
+gallery.$remove("item");
+```
+
+- `name: string` - 削除する項目の名前
+</Step>
+</Steps>
+
+### $clear
+
+<Steps>
+<Step>
+
+ギャラリーを即座に空にします。
+
+```typescript
+gallery.$clear();
+```
+
+このメソッドを呼び出した後、ギャラリーは直ちに空になります。
+</Step>
+</Steps>
+
+### $get
+
+<Steps>
+<Step>
+
+項目のメタデータを取得します。
+
+```typescript
+const metadata = gallery.$get("item");
+console.log(metadata?.timestamp);
+```
+
+- `name: string` - メタデータを取得する項目の名前
+- 戻り値は`Metadata | undefined` - 項目のメタデータ
+</Step>
+</Steps>
+
+### $set
+
+<Steps>
+<Step>
+
+項目のメタデータを設定します。
+
+```typescript
+gallery.$set("item", {
+  timestamp: Date.now(),
+  description: "Updated description"
+});
+```
+
+- `name: string` - メタデータを設定する項目の名前
+- `metadata: Metadata` - 設定するメタデータ
+</Step>
+</Steps>
+
+### $getAll
+
+<Steps>
+<Step>
+
+ギャラリー内のすべての項目を取得します。
+
+```typescript
+const allItems = gallery.$getAll();
+console.log("All items:", allItems);
+```
+
+- 戻り値は`Record<string, Metadata>` - ギャラリー内のすべての項目
+</Step>
+</Steps>
+
+### $has
+
+<Steps>
+<Step>
+
+ギャラリーに項目が存在するかどうかを確認します。
+
+```typescript
+if (gallery.$has("item")) {
+  console.log("Item exists");
+}
+```
+
+- `name: string` - 確認する項目の名前
+- 戻り値は`boolean` - 項目が存在すれば`true`、存在しなければ`false`を返します。
+</Step>
+</Steps>
+
+## 型パラメータ
+
+### Metadata
+
+Galleryは、項目のメタデータの型を定義するジェネリックパラメータ`Metadata`を受け取ります。
+
+```typescript
+// メタデータの型を定義する
+type ItemMetadata = {
+  timestamp: number;
+  description: string;
+  unlocked: boolean;
+};
+
+// 型制約付きでGalleryを作成する
+const gallery = new Gallery<ItemMetadata>();
+
+// これで、すべてのメソッドに型チェックが働くようになる
+gallery.add("item", {
+  timestamp: Date.now(),
+  description: "Description",
+  unlocked: true
+});
+```

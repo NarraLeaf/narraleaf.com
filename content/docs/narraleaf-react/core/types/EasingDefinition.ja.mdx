@@ -1,0 +1,10 @@
+---
+title: "EasingDefinition"
+description: "トランスフォームがイージングカーブを必要とする箇所で受け付けられる、名前付きイージングキーワード、`BezierDefinition`、`CustomEasingFunction` の合成型"
+---
+```typescript
+type EasingDefinition = CustomEasingFunction | BezierDefinition | "linear" | "easeIn" | "easeOut" | "easeInOut" | "circIn" | "circOut" | "circInOut" | "backIn" | "backOut" | "backInOut" | "anticipate";
+```
+
+CustomEasingFunction については、[CustomEasingFunction](/ja/docs/narraleaf-react/core/types/CustomEasingFunction) を参照してください。  
+BezierDefinition については、[BezierDefinition](/ja/docs/narraleaf-react/core/types/BezierDefinition) を参照してください。

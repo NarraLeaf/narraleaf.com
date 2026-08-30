@@ -1,0 +1,69 @@
+---
+title: "ストーリーを再生する"
+description: Story のエントリーシーンを設定し、GameProviders の中でレンダリングし、Player の onReady コールバックから再生を開始する方法
+---
+
+[Story](/ja/docs/narraleaf-react/core/elements/story) を作成し、そのエントリーシーンを設定します。
+
+```ts title="story.ts"
+import { Character, Scene, Story } from "narraleaf-react";
+
+const alice = new Character("アリス");
+const opening = new Scene("opening", {
+    background: "/backgrounds/room.webp",
+}).action([
+    alice.say("おはよう。"),
+]);
+
+export const story = new Story("マイストーリー").entry(opening);
+```
+
+`GameProviders` の中でストーリーをレンダリングし、`Player.onReady` から再生を開始します。
+
+```tsx title="Game.tsx"
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { story } from "./story";
+
+export default function Game() {
+    return (
+        <GameProviders>
+            <Player
+                story={story}
+                width="100%"
+                height="100%"
+                onReady={({ liveGame }) => liveGame.newGame()}
+            />
+        </GameProviders>
+    );
+}
+```
+
+`GameProviders` は、ゲーム、ルーター、スケーリング、プリロードの各コンテキストを提供します。`useGame`、`useLiveGame`、`useRouter` などのフックは、この Provider の内側で実行する必要があります。
+
+## 最初のフレームが準備できてから開始する
+
+`onReady` は Player インスタンスが初期化されたことを意味します。外側のローディング画面を、最初のシーンが描画されるまで表示し続けたい場合は、その UI の状態には `onFirstSceneReady` を使ってください。ストーリーの開始自体は、引き続き `onReady` で行います。
+
+```tsx
+<Player
+    story={story}
+    onReady={({ liveGame }) => liveGame.newGame()}
+    onFirstSceneReady={() => setLoading(false)}
+/>
+```
+
+`onPreloadComplete` は*別の*タイミングであることに注意してください。`0.17.0` 以降、エントリーシーンはストーリーが読み込まれた時点でウォームアップが始まるため、このコールバックはゲームに入る前、まだメニューが画面に表示されている段階で発火することがあります。詳しくは[プリロード](/ja/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on)を参照してください。
+
+設定済みの Game インスタンスを Provider と共有するには、一度だけ作成し、`game` 経由で渡します。
+
+```tsx
+import { Game, GameProviders, Player } from "narraleaf-react";
+
+const game = new Game({ waitForPreload: true });
+
+<GameProviders game={game}>
+    <Player story={story} onReady={({ liveGame }) => liveGame.newGame()} />
+</GameProviders>
+```

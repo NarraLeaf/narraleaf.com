@@ -1,0 +1,24 @@
+---
+title: "IStoryConfig"
+description: Story の設定。ステージの原点と、そのストーリー唯一の Camera を扱う
+---
+```typescript
+interface IStoryConfig {
+    origin: Origins;
+    camera?: Camera;
+}
+```
+
+## origin
+
+Origin については [Origins](/ja/docs/narraleaf-react/core/types/Origins) を参照してください。
+
+## camera
+
+ストーリーのステージ[カメラ](/ja/docs/narraleaf-react/core/elements/camera)。省略した場合はデフォルトのカメラが使われます。指定するのは初期姿勢を設定するためだけです。1 つのストーリーにつきカメラは 1 つだけです。
+
+```typescript
+const story = new Story("ストーリー名", {
+    camera: new Camera({scale: 1.1}),
+});
+```

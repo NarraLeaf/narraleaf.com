@@ -1,0 +1,9 @@
+{
+  "title": "キャラクター",
+  "pages": [
+    "sentence",
+    "word",
+    "pause",
+    "text-event"
+  ]
+}

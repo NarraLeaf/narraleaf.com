@@ -1,0 +1,17 @@
+---
+title: "ScriptCtx"
+description: スクリプトと lambda が共有する基底コンテキストオブジェクト：game、gameState、liveGame、storable、および名前空間アクセス
+---
+```typescript
+type NamespaceGetter = <T extends NameSpaceContent<keyof T>>(namespace: string) => Namespace<T>;
+
+interface ScriptCtx {
+    gameState: GameState;
+    game: Game;
+    liveGame: LiveGame;
+    storable: Storable;
+    $: NamespaceGetter;
+}
+```
+
+詳細は [Game](/ja/docs/narraleaf-react/core/game/game)、[GameState](/ja/docs/narraleaf-react/core/game/game-state)、[LiveGame](/ja/docs/narraleaf-react/core/game/live-game)、[Storable](/ja/docs/narraleaf-react/core/game/storable) を参照してください。

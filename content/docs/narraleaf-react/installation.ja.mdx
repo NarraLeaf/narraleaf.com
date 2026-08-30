@@ -1,0 +1,73 @@
+---
+title: "インストール"
+description: NarraLeaf-React と Motion をインストールし、React アプリケーションで GameProviders を設定する方法
+---
+## 必要条件
+
+- [React](https://reactjs.org/) 19 以降
+- [Motion](https://motion.dev/) 11 以降
+
+## 依存パッケージとして追加する
+
+このライブラリを使う最も簡単な方法は、プロジェクトの依存パッケージとしてインストールすることです。
+
+<Steps>
+<Step>
+
+### NarraLeaf-React をインストールする
+
+NarraLeaf-React をインストールするには、プロジェクトディレクトリで次のコマンドを実行します。
+
+<Tabs items={['npm', 'yarn', 'pnpm']}><Tab value="npm">
+        ```bash
+        npm install narraleaf-react motion@11
+        ```
+</Tab>
+<Tab value="yarn">
+        ```bash
+        yarn add narraleaf-react motion@11
+        ```
+</Tab>
+<Tab value="pnpm">
+        ```bash
+        pnpm add narraleaf-react motion@11
+        ```
+</Tab></Tabs>
+
+これでプロジェクトに NarraLeaf-React がインストールされます。
+</Step>
+<Step>
+
+### GameProviders を設定する
+
+NarraLeaf-React を使うには、アプリに GameProviders を設定する必要があります。
+
+```tsx
+// 1. Mark your file as a client file
+"use client";
+
+// 2. Import the GameProviders component
+import { GameProviders } from 'narraleaf-react';
+
+export default function App() {
+
+    // 3. Wrap your app content with the GameProviders component
+    return (
+        <GameProviders>
+            {/* Your app content */}
+        </GameProviders>
+    );
+}
+```
+</Step>
+<Step>
+
+### 制作を始める
+
+これで NarraLeaf-React で制作を始める準備が整いました。
+
+ビジュアルノベルのスクリプトを書き、Game コンポーネントに渡してください。
+
+抽象的なビジュアルノベルスクリプトの作成については、[基礎](/ja/docs/narraleaf-react/basic)セクションで詳しく解説しています。
+</Step>
+</Steps>

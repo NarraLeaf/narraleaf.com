@@ -1,0 +1,315 @@
+﻿---
+title: "Persistent\\<T extends PersistentContent\\>"
+description: 名前付きで保存されるストーリー状態を扱う `Persistent` クラス。比較、条件、動的な単語、値の設定を扱う
+---
+これまでは、Storable の状態を Script を通じてしか変更できませんでしたが、Persistent はフローを簡単に制御するための便利なメソッド群を提供します。
+
+Persistent には、名前空間の**名前**と**初期状態**が必要です。**同じ名前の Persistent は同じ状態を共有します。**
+
+<Callout type="warning">
+    名前空間は、既存の組み込み名前空間にはできません（組み込みの名前空間には「game」が含まれます）
+</Callout>
+
+```typescript
+type PersisData = {
+    flag: boolean;
+    coin: number;
+    name: string;
+    // ...
+};
+const persis = new Persistent<PersisData>("persis", {
+    flag: false,
+    coin: 0,
+    name: "John Smith",
+    // ...
+});
+```
+
+> **注:** 保存する内容は**シリアライズ可能**でなければなりません。NarraLeaf-React がサポートするシリアライズ可能な値は次の通りです:
+> - `string`
+> - `number`
+> - `boolean`
+> - `object`: キーは `string`、値は上記のシリアライズ可能な値のいずれか
+> - `array`: 要素が上記のシリアライズ可能な値のいずれか
+> - `undefined`
+> - `null`
+> - `Date`: 標準の JavaScript の Date オブジェクト
+
+<Callout type="warning">
+
+スクリプトの内容に Persistent が含まれる場合は、[Story](/ja/docs/narraleaf-react/core/elements/story) に登録する必要があります。
+
+```typescript
+story.registerPersistent(persis);
+```
+
+</Callout>
+
+## ホストからこれらの値を監視する
+
+以下のメソッドは**アクション**を構築するものなので、シーンの中に置く必要があります。ストーリーの外側にある React コード — HUD、実績の監視、エディターパネルなど — は、[Storable](/ja/docs/narraleaf-react/core/game/storable) を通じて同じ値を読み書きでき、それらを購読することもできます:
+
+```typescript
+game.getLiveGame().getStorable()
+    .onChange("persistent:persis", "coin", ({previous, next}) => {...});
+```
+
+名前空間の**キー**に注意してください: `"persis"` という名前の `Persistent` は `"persistent:persis"` として登録されます。[Namespace](/ja/docs/narraleaf-react/core/game/storable/namespace) ではなく `Storable` 側で購読し、読み込まれたセーブを取りこぼさないように `onChange` と `onRestore` を組み合わせてください — 詳細は[保存された値を監視する](/ja/docs/narraleaf-react/core/game/storable/events)を参照してください。
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `namespace: string` - 名前空間の名前
+- `defaultContent: T` - 初期状態
+</Step>
+</Steps>
+
+### equals\<K extends StringKeyOf\<T\>\>
+
+値が等しいかどうかを判定します。Condition の中で使用できます
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 比較する値、ラムダ関数、またはラムダハンドラー
+- 戻り値: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.equals("id", persis.get("player_id")), [
+            character1.say("ID matches!")
+        ])
+]);
+
+// またはラムダハンドラーを使う場合
+scene.action([
+    Condition
+        .If(persis.equals("id", (ctx) => ctx.$("player").get("player_id")), [
+            character1.say("Player ID matches!")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### notEquals\<K extends StringKeyOf\<T\>\>
+
+値が等しくないかどうかを判定します。Condition の中で使用できます
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- `value: T[K] | Lambda<T[K]> | LambdaHandler<T[K]>` - 比較する値、ラムダ関数、またはラムダハンドラー
+- 戻り値: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.notEquals("id", persis.get("player_id")), [
+            character1.say("ID doesn't match!")
+        ])
+]);
+
+// またはラムダハンドラーを使う場合
+scene.action([
+    Condition
+        .If(persis.notEquals("id", (ctx) => ctx.$("player").get("player_id")), [
+            character1.say("Player ID doesn't match!")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isTrue\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+値が true かどうかを判定します。Condition の中で使用できます
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- 戻り値: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.isTrue("flag"), [
+            character1.say("Flag is true")
+        ])
+]);
+```
+</Step>
+</Steps>
+
+### isFalse\<K extends Extract\<keyof T, BooleanValueKeyOf\<T\>\>\>
+
+値が false かどうかを判定します。Condition の中で使用できます
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- 戻り値: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### isNotNull\<K extends StringKeyOf\<T\>\>
+
+値が null でも undefined でもないかどうかを判定します。Condition の中で使用できます
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- 戻り値: `Lambda<boolean>`
+</Step>
+</Steps>
+
+### toWord\<K extends StringKeyOf\<T\>\>
+
+動的な単語に変換します
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- 戻り値: `Word<DynamicWord>`
+
+```typescript
+character.say(["You have ", persis.toWord("gold"), " gold"]);
+
+// or
+
+character.say`You have ${persis.toWord("gold")} gold`;
+```
+</Step>
+</Steps>
+
+### get\<K extends StringKeyOf\<T\>\>
+
+<Steps>
+<Step>
+
+`toWord` のエイリアスです
+
+- `key: K` - 状態のキー
+- 戻り値: `Word<DynamicWord>`
+
+```typescript
+character.say`You have ${persis.get("coin")} coins`;
+```
+</Step>
+</Steps>
+
+### conditional
+
+条件付きの単語を作成します
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+- `ifTrue: DynamicWordResult` - 条件が真の場合に返す単語
+- `ifFalse: DynamicWordResult` - 条件が偽の場合に返す単語
+- 戻り値: `Word`
+
+```typescript
+character.say([
+  "Your flag is ",
+  persis.conditional(
+    persis.isTrue("flag"),
+    "on",
+    "off"
+  )
+]);
+```
+</Step>
+</Steps>
+
+### evaluate\<K extends StringKeyOf\<T\>\>
+
+JavaScript 関数を評価し、その結果が true かどうかを判定します
+
+<Steps>
+<Step>
+
+- `key: K` - 状態のキー
+- `fn: (value: T[K]) => boolean` - 状態を評価する JavaScript 関数
+- 戻り値: `Lambda<boolean>`
+
+```typescript
+scene.action([
+    Condition
+        .If(persis.evaluate("coin", (coin) => coin < 10), [
+            character1.say`You don't have enough coins!`
+        ])
+]);
+```
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### set\<K extends StringKeyOf\<T\>\>
+
+指定したキーの値を永続ストレージに設定するアクションを作成します
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/2
+
+- `key: K` - 値を設定するキー
+- `value: T[K]` - 設定する値
+- 戻り値: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+
+```typescript
+scene.action([
+    persis.set("coin", 10)
+]);
+```
+
+#### オーバーロード 2/2
+
+- `key: K` - 値を設定するキー
+- `handler: (value: T[K]) => T[K]` - 値を変更するハンドラー
+- 戻り値: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+
+```typescript
+scene.action([
+    persis.set("coin", (coin) => coin + 10) // コインは 10 増える
+]);
+```
+</Step>
+</Steps>
+
+### assign
+
+永続ストレージに値を割り当てるアクションを作成します
+
+<Steps>
+<Step>
+
+- `value: Partial<T> | ((value: T) => Partial<T>)` - 状態に割り当てる値
+- 戻り値: `Proxied<Persistent<T>, Chained<LogicAction.Actions>>`
+
+```typescript
+scene.action([
+    persis.assign({ coin: 10 })
+]);
+
+// または関数を使う場合
+scene.action([
+    persis.assign((state) => ({ coin: state.coin + 10 }))
+]);
+```
+</Step>
+</Steps>

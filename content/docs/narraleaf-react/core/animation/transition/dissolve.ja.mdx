@@ -1,0 +1,24 @@
+---
+title: "Dissolve"
+description: 現在の画像がフェードアウトすると同時に次の画像がフェードインするクロスフェードトランジション
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+現在の画像から次の画像へディゾルブします。
+現在の画像はフェードアウトし、同時に次の画像がフェードインします。
+
+## 使い方
+
+```tsx
+import { Dissolve } from "narraleaf-react";
+
+image.char("image1.jpg", new Dissolve({ duration: 3000 }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: DissolveOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

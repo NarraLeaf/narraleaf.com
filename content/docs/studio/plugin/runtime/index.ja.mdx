@@ -1,0 +1,137 @@
+---
+title: ランタイム API
+description: ゲーム側のインターフェース — ランタイムエントリが何に到達できるか、機能フラグがそれをどう制御するか、そして宣言されていないドメインがなぜ単に存在しないのか
+---
+
+ランタイム API は `narraleaf-studio/runtime` インターフェースです。プラグインが**実行中のゲーム**の内部で到達できるすべて — Dev Mode ウィンドウ、Preview、そしてエクスポートされた本番ビルド — を指します。プラグインのブループリントノードはここで実行され、ウィジェットはここで描画され、データを保存し、ストーリーを購読し、ゲームの上に描画するのもここです。
+
+すべては一つのオブジェクト `app.game` にぶら下がっており、これは `setup(app)` に渡され、また各ノードの `execute` には `ctx.game` として渡されます。
+
+```ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+        app.game.log("info", "runtime bindings registered");
+    },
+});
+```
+
+## 常に存在する五つのメンバー
+
+| メンバー | 内容 |
+| --- | --- |
+| `game.blueprintNodes` | あなたのノード種別のゲーム側 `execute` を `register` / `registerMany` する。 |
+| `game.widgets` | あなたのウィジェット種別のゲーム側レンダラーを `register` / `registerMany` する。 |
+| `game.data` | `readJson(namespace)` — ゲームとともに公開されたプラグインのストレージを読む。 |
+| `game.config` | `get(key)` — あなたの `contributes.buildConfig` フィールドに作者が入力した値。`game.data` と同じ理由で常に存在します。フィールドを宣言してもプラグインに何かが付与されるわけではないため、そこには制御すべき機能フラグがありません。 |
+| `game.log` | ホストのログに `log(level, message)` を書き込む。 |
+
+登録するすべての種別は `contributes.blueprintNodes` / `contributes.widgets` に宣言されていなければならず、`game.data` は `contributes.runtimeData` に列挙された名前空間しか見えません。[マニフェストのリファレンス](/ja/docs/studio/plugin/manifest)を参照してください。
+
+## それ以外はすべて機能フラグで制御される
+
+上記の四つを除き、`app.game` 上の各名前空間は、**マニフェストが `contributes.runtimeCapabilities` でそれを宣言した場合に限って**存在します。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["store", "events", "state.read"]
+  }
+}
+```
+
+<Callout type="warn">
+宣言されていないドメインは、**オブジェクトから存在しない**のであって、例外を投げるメソッドではありません。`state.read` を宣言していなければ `app.game.state` は `undefined` です — 呼び出すものも、捕まえるものも何もありません。存在するかどうかを確認してください。`try` で包んではいけません。
+</Callout>
+
+これが契約のすべてです。インストール時のプロンプトは `app.game` 上に存在することになるドメインをそのまま列挙するため、作者がインストール時に承認した内容とあなたのプラグインができることは、構造上そのまま同じ集合になります。これらの権限を手で書くことは決してありません。Studio が `contributes` からそれらを導出し、手書きのものは[マニフェストのエラー](/ja/docs/studio/plugin/manifest#permissions-are-derived)になります。
+
+### 十の機能
+
+| 機能 | 付与するもの | 用途 |
+| --- | --- | --- |
+| `store` | [`app.game.store`](/ja/docs/studio/plugin/runtime/store) | プレイヤーのセーブデータの隣に保持される、プラグイン単位の永続的なキー・バリューストレージ。 |
+| `events` | [`app.game.events`](/ja/docs/studio/plugin/runtime/events) | ゲームのライフサイクルとストーリーのイベントを購読する。 |
+| `state.read` | [`app.game.state`](/ja/docs/studio/plugin/runtime/state) — `get`、`onChange` | ストーリー変数を読み取り、観察する。 |
+| `state.write` | `app.game.state.set` | ストーリー変数を書き込む。`state.read` を含意する。 |
+| `saves.read` | [`app.game.saves`](/ja/docs/studio/plugin/runtime/saves) — `listIds`、`readMetadata` | セーブスロットを一覧表示し、そのメタデータを読み取る。 |
+| `saves.write` | `app.game.saves.write` / `.load` | スロットを上書きする、または実行中のプレイスルーを置き換える。 |
+| `ui.overlay` | [`app.game.ui.overlay`](/ja/docs/studio/plugin/runtime/overlay) | ゲームの上に要素を描画する。 |
+| `assets` | [`app.game.assets`](/ja/docs/studio/plugin/runtime/assets-locale) | パッケージ化されたアセット id を URL に解決する。 |
+| `locale` | [`app.game.locale`](/ja/docs/studio/plugin/runtime/assets-locale) | ゲームの表示言語を読み取り、観察する。 |
+| `story.compile` | `app.game.story` | 各シーンを観察し、その行の周囲にエンジンのアクションを注入するコンパイルパスを登録する。十個の中で最も重いもの: このパスはプロジェクトの*すべての*シーンにわたって実行され、各シーンで誰が話しているかを見て、自分が書いていない行の周囲にアクションを置くことができます。これは `state.write` の変装ではなく、それを含意もしません — パスはアクションを組み立てるだけで、それを実行はしません。 |
+
+このリストは閉じています。認識されない機能文字列はマニフェストの検証を失敗させ、無視されるわけではありません。そのためタイプミスが「何も要求していない」と読まれることは決してありません。
+
+このうち二つは、意図的に一つのドメインを二つに分けています。
+
+- **`state.write` は `state.read` を含意します。** `write` だけを宣言すると、プラグインが実際にできることを過小に申告することになります。書けるものは何であれ観察できるからです。Studio が代わりに `state.read` を追加します。
+- **`saves.write` は `saves.read` より重く**、それとは別に分かれています。スロットを上書きしたり、プレイスルーを放棄したりできるためです。インストール時のプロンプトは、そのままの言葉で作者にそう伝えます。
+
+### sidecar には機能文字列がない
+
+[`app.game.sidecar`](/ja/docs/studio/plugin/runtime/sidecar) は、`contributes.sidecars` が空でないときにちょうど存在します。この sidecar を宣言すること自体がその要求であるため、他に忘れられるものは何もありません。
+
+## 制御は積集合である
+
+あるドメインが現れるのは、**マニフェストがそれを宣言し**、*かつ*、**この環境がそれを裏付けられる**場合です。前半は承認であり、後半は物理的な現実です — ブラウザには起動する子プロセスがなく、エディタには読むべきゲームがありません。
+
+宣言された機能がここで裏付けを持たない場合、その名前空間は存在せず、ホストはどれが、なぜかをログに警告として書き込みます。それでもプラグインは読み込まれます。
+
+| ドメイン | デスクトップビルド | Web エクスポート | Android / iOS | Preview | Dev Mode | エディタ内プレビュー |
+| --- | --- | --- | --- | --- | --- | --- |
+| `store` | あり | あり（IndexedDB） | あり | あり | あり | なし |
+| `events` | あり | 一部 — 下記参照 | 一部 | あり | あり | なし |
+| `state` | あり | あり | あり | あり | あり | なし |
+| `saves` | あり | あり | あり | あり | あり | なし |
+| `ui.overlay` | あり | あり | あり | あり | あり | なし |
+| `assets` | あり | あり | あり | あり | **なし** | なし |
+| `locale` | あり | あり | あり | あり | あり | なし |
+| `sidecar` | あり | **決してなし** | **決してなし** | あり | **なし** | なし |
+
+- `events.closeRequested` は Web では決して発火しません — 閉じるべきウィンドウがないためです。デスクトップの実行環境を仮定するのではなく、[`events.available(name)`](/ja/docs/studio/plugin/runtime/events) を使ってください。
+- **Dev Mode は Preview ではありません。** Preview は出荷されたゲームが実行するのと同じ実行環境を動かしますが、Dev Mode ウィンドウはプロジェクトを直接駆動する Studio のウィンドウです。そこでは二つの機能が異なります。`assets` は存在しません。アセット解決が非同期の IPC を経由する一方でこの機能のシグネチャは同期の `url()` だからです。`sidecar` も存在しません。Dev Mode ウィンドウは子プロセスを一切ホストしないからです。どちらも Preview の方で検証してください。
+- **エディタ内プレビュー**（エディタのキャンバス上でノードを実行すること）にはそもそもゲームが存在しないため、制御されるすべてのドメインが存在しません。そこでは `game.data.readJson` も `null` を返し、`game.blueprintNodes.register` を呼ぶと例外が投げられます — 登録は studio エントリの `app.services.*` に属するものです。同じ `execute` が両方の場所で実行されるため、ノードは決めつけるのではなく、機能を落として動作しなければなりません。
+
+## 機能を落として動作するノードを書く
+
+存在しないドメインは `undefined` であるため、そのガードは通常のオプショナルチェーンで済みます — 実行環境を嗅ぎ分ける必要も、`try` も不要です。
+
+```ts
+execute: async ctx => {
+    // Undeclared, or unavailable here: skip the work, keep the flow going.
+    await ctx.game.store?.set("seen", true);
+
+    if (ctx.game.events?.available("closeRequested")) {
+        // desktop only
+    }
+
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="info">
+ノードの `execute` 内の `ctx.game` は、`setup(app)` が受け取った `app.game` と**同一のオブジェクト**です。一つの API、一組の機能、ノードの内でも外でも変わりません。
+</Callout>
+
+## サブページ
+
+<Cards>
+  <Card title="store" href="/ja/docs/studio/plugin/runtime/store" description="新しいゲームを始めても失われない、プラグイン単位の永続的なキー・バリューストレージ。" />
+  <Card title="events" href="/ja/docs/studio/plugin/runtime/events" description="環境ごとの利用可否を伴う、十三のゲームおよびストーリーのイベント。" />
+  <Card title="state" href="/ja/docs/studio/plugin/runtime/state" description="scene / saved / persistent のストーリー変数を読み取り、書き込み、観察する。" />
+  <Card title="saves" href="/ja/docs/studio/plugin/runtime/saves" description="セーブスロットを一覧表示し読み取る。より重い機能でスロットを上書きまたはロードする。" />
+  <Card title="ui.overlay" href="/ja/docs/studio/plugin/runtime/overlay" description="ゲームの上に要素を描画する — そして、それが決して届かない唯一の場所。" />
+  <Card title="assets と locale" href="/ja/docs/studio/plugin/runtime/assets-locale" description="パッケージ化されたアセットの URL を解決し、プレイヤーの言語に追従する。" />
+  <Card title="sidecar" href="/ja/docs/studio/plugin/runtime/sidecar" description="作者のゲームの中にネイティブの子プロセスを同梱し、NDJSON でそれと会話する。" />
+</Cards>
+
+## ランタイム側のインターフェースにないもの
+
+- **`hostAdapter` はありません。** ノードの `ctx` が持つのは `params`、`resolveInput`、`eventName`、`eventPayload`、`signal`、`game` だけで、他には何もありません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体が漏れていましたが、その経路はなくなりました。今ではすべてが `ctx.game` を経由し、それはマニフェストが宣言したものそのものです。
+- **エディタのサービスはありません。** `app.services`、`app.privileged`、そして `ui` キットは、[studio エントリ](/ja/docs/studio/plugin/studio)にのみ存在します。ランタイムエントリはゲームコードです。
+- **`react-dom/client` はありません。** ホストは `react`、`react-dom`、そして JSX ランタイムを外部依存として提供しますが、プラグインは決して自分自身の React ルートをマウントしてはいけません。二つ目のルートは同じツリーをめぐってホストのものと衝突します。要素を返し、それをホストに描画させてください。
+- **エディタの i18n はありません。** `app.services.i18n` はエディタの UI 言語です。ゲームはプレイヤー向けのコンテンツを NarraLeaf 自身のローカライズシステムを通じてローカライズします。ランタイム側のインターフェースは、現在どのロケールが有効かを教えるだけです。
+- **クリーンアップのライフサイクルはありません。** ゲームのプロセスはプラグインを一度だけ読み込み、決してアンロードしないため、`setup` にはクリーンアップの戻り値がなく、`register` は `void` を返します。

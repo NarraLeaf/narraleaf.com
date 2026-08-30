@@ -1,0 +1,88 @@
+---
+title: "環境設定を管理する"
+description: usePreference フックを使って、自動送り・スキップ・文字速度・音量などの再生に関する設定を読み書きする方法
+---
+
+環境設定は、自動送り、スキップの挙動、文字速度、音量など再生を制御します。`GameProviders` の下にレンダリングされる UI では `usePreference()` を使用します。
+
+```tsx
+import { usePreference } from "narraleaf-react";
+
+export function AutoForwardButton() {
+    const [autoForward, setAutoForward] = usePreference("autoForward");
+
+    return (
+        <button onClick={() => setAutoForward(!autoForward)}>
+            自動送り：{autoForward ? "オン" : "オフ"}
+        </button>
+    );
+}
+```
+
+setter は新しい値を直接受け取ります。React の関数形式の更新は受け付けません。
+
+## 文字速度と音量
+
+```tsx
+function PreferencesPanel() {
+    const [cps, setCps] = usePreference("cps");
+    const [voiceVolume, setVoiceVolume] = usePreference("voiceVolume");
+
+    return (
+        <div>
+            <label>
+                文字速度
+                <input
+                    type="range"
+                    min={1}
+                    max={60}
+                    value={cps}
+                    onChange={(event) => setCps(Number(event.target.value))}
+                />
+            </label>
+            <label>
+                ボイス音量
+                <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={voiceVolume}
+                    onChange={(event) => setVoiceVolume(Number(event.target.value))}
+                />
+            </label>
+        </div>
+    );
+}
+```
+
+利用できるキーには `autoForward`、`skip`、`showDialog`、`gameSpeed`、`cps`、`voiceVolume`、`voiceFadeDuration`、`voiceEndMode`、`bgmVolume`、`soundVolume`、`globalVolume`、`skipDelay`、`skipInterval` があります。型とデフォルト値については [GamePreference](/ja/docs/narraleaf-react/core/types/GamePreference) を参照してください。
+
+## 環境設定を永続化する
+
+環境設定は `SavedGame` とは別のものです。明示的にエクスポートして保存する必要があります。
+
+```tsx
+import { useEffect } from "react";
+import { useGame } from "narraleaf-react";
+
+function PreferenceStorage() {
+    const game = useGame();
+
+    useEffect(() => {
+        const raw = localStorage.getItem("game-preferences");
+        if (raw) game.preference.importPreferences(JSON.parse(raw));
+
+        const token = game.preference.onPreferenceChange(() => {
+            localStorage.setItem(
+                "game-preferences",
+                JSON.stringify(game.preference.exportPreferences()),
+            );
+        });
+
+        return token.cancel;
+    }, [game]);
+
+    return null;
+}
+```

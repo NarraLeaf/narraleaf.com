@@ -1,0 +1,32 @@
+---
+title: "WrappedStorableData"
+description: "セーブ内の単一の保存値を包むタグ付きラッパーで、読み込み時に `Date` や `undefined` を復元する必要があるパスを示す"
+---
+セーブに現れる単一の保存値です。
+
+```typescript
+export type WrappedStorableData<T extends StorableType = any> = {
+    type: BaseStorableTypeName;
+    data: T;
+    dates?: StorablePath[];
+    undefineds?: StorablePath[];
+}
+```
+
+値は、JSON では表現できない型がラウンドトリップを生き延びられるよう、セーブに書き込む際にその型でタグ付けされます。現在のところ該当するのは `Date` と、ネストされた `undefined` です。
+
+どちらも値の中には埋め込まれません —— 保存された値と衝突しうるセンチネルオブジェクトは一切挿入されません。`data` は純粋な JSON のままで、そのどちらかを保持していた位置は `dates` と `undefineds` にパスとして記録され、読み込み時にローダーがそのパスをたどって本来の値を戻します。記録すべきものがなければ両方とも存在しないため、どちらも含まない値はこの仕組みが存在する前とまったく同じ形でシリアライズされ、それ以前に書かれたセーブもそのまま読み込めます。
+
+```typescript
+{type: "any", data: 42}
+{type: "any", data: false}
+{type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"}
+```
+
+これはセーブ形式の一部であり、[SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame) の `store` が保持する内容そのもので、[SerializedNamespaceData](/ja/docs/narraleaf-react/core/types/SerializedNamespaceData) によって名前空間ごとにグループ化されます。
+
+<Callout type="warning">
+    保存された値は [Namespace](/ja/docs/narraleaf-react/core/game/storable/namespace) を通じて読み書きしてください。ラップと解除を代わりに行ってくれます。このラッパーはオブジェクトであるため、保存された `false` は解除されるまで truthy です。
+</Callout>
+
+`data` は `StorableType` を保持します。これは名前空間が受け付ける種類の値の一つです。詳細は [Persistent](/ja/docs/narraleaf-react/core/elements/persistent) を参照してください。

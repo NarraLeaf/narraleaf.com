@@ -1,0 +1,105 @@
+---
+title: "TextEvent"
+description: タイプ中の台詞の途中でキャラクターの表情を切り替えたり、音を再生したりするインライントークンの`TextEvent`
+---
+
+<Callout type="info">
+    `0.16.0`以降で使用できます。
+</Callout>
+
+TextEventは、タイプライターがその位置を表示した瞬間に、行の**中で**効果を発火させるインラインの対話トークンです。[Pause](/ja/docs/narraleaf-react/core/elements/character/pause)と同じように、Sentenceのワードストリームの中に存在します。それ自体は何もレンダリングせず、アクションでもないため、実行スタックに入ることは決してありません。
+
+これがなければ、立ち絵は行と行の間でしか変えられず、文の途中で表情を変えたければ、文を2つに分割するしかありませんでした。
+
+```ts
+import {TextEvent} from "narraleaf-react";
+
+scene.action([
+    character.say([
+        "Don't ",
+        TextEvent.expression(aliceImage, ["angry"]),  // ちょうどここで立ち絵が切り替わる
+        "test me.",
+    ]),
+    character.say([
+        "...",
+        TextEvent.sound(sting),                       // スティング音のみ、立ち絵は変わらない
+    ]),
+]);
+```
+
+## 閉じた効果の集合
+
+テキストイベントが運ぶのは、キャラクターの表情切り替え、音の再生、またはその両方です。それがすべてであり、アクションのための汎用的な抜け道として設計されているわけではありません。
+
+テキストイベントが行うことは実行スタックには積まれないため、セーブデータには何も追加されません。その効果は通常の要素の状態に乗るもので、この状態は**シリアライズされ**、所属する`say`アクションが再評価されるたびに改めて適用されます。表情の切り替えにトランジションは伴いません。要素へ直接書き込まれる、瞬時の入れ替えです。
+
+## スキップと瞬間表示
+
+タイプライターをスキップする場合、あるいはタイプ効果を伴わずに文全体を一度に表示する瞬間表示の場合でも、通り過ぎたトークンが取りこぼされることはありません。通過したすべてのトークンはソースの順序どおりに1度だけ発火するため、結果はタイプライターが1つずつ順に到達した場合と同じになります。画像は**最後に**通過したトークンが指定する見た目で終わり、通過した各音効果は1回ずつ再生されます。
+
+同じ表示の中ですでに発火したトークンを再び通過しても、何も起こりません。そのため、プレイヤーがすでに読んだ行は、そのコンテナが再マウントされても効果を再生しません。このガードは実行時のみのものでセーブデータには含まれないため、ゲームをロードすると新たな表示が始まり、通常どおり発火します。
+
+## 静的メソッド
+
+### expression
+
+<Steps>
+<Step>
+
+タイプライターがこの位置を表示したときに、画像の見た目を切り替えます。任意で音の再生を伴わせることもできます。
+
+- `image: Image` - 見た目を切り替える対象の[Image](/ja/docs/narraleaf-react/core/elements/image)
+- `appearance: TextEventAppearance` - タグの配列、または静的な`src`／色。[`Image.char`](/ja/docs/narraleaf-react/core/elements/image#char)が受け付けるのと同じ形式です。`char`と同様、裸の文字列は`src`として解釈されるため、タグによる切り替えは**必ず**配列で書く必要があります。
+- `options?: {sound?: Sound}` - 同じ位置で再生する[Sound](/ja/docs/narraleaf-react/core/elements/sound)
+- 戻り値は`TextEvent`
+
+```ts
+TextEvent.expression(alice, ["angry"]);
+TextEvent.expression(alice, ["angry"], {sound: slap});
+TextEvent.expression(alice, "/images/alice-angry.png");
+```
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+タイプライターがこの位置を表示したときに、音だけを再生します。
+
+- `sound: Sound` - 再生する[Sound](/ja/docs/narraleaf-react/core/elements/sound)
+- 戻り値は`TextEvent`
+
+```ts
+TextEvent.sound(sting);
+```
+</Step>
+</Steps>
+
+## パブリックメソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+明示的な効果記述子からテキストイベントを構築します。一般的なケースでは`expression`／`sound`ファクトリーの使用を優先してください。
+
+- `config: TextEventConfig` - 効果の記述子
+
+```ts
+new TextEvent({expression: {image: alice, appearance: ["angry"]}, sound: slap});
+```
+</Step>
+</Steps>
+
+## エクスポートされる型
+
+`narraleaf-react`は`TextEvent`とともに、3つの型をエクスポートします。
+
+| 型 | 形状 |
+|---|---|
+| `TextEventAppearance` | `ImageSrc \| Color \| string[]` — [ImageSrc](/ja/docs/narraleaf-react/core/types/ImageSrc)と[Color](/ja/docs/narraleaf-react/core/types/color)を参照 |
+| `TextEventExpression` | `{image: Image, appearance: TextEventAppearance}` |
+| `TextEventConfig` | `{expression?: TextEventExpression, sound?: Sound}` |

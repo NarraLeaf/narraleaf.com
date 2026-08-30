@@ -1,0 +1,80 @@
+﻿---
+title: "スクリプト"
+description: ストーリーアクションとして任意のコードを実行する `Script` 要素。ゲーム状態にアクセスでき、アンドゥ時のクリーンアップにも対応
+---
+`Script` を使うと、スクリプトを実行してゲームと連携できます。
+
+```typescript
+scene.action([
+    new Script(({ storable }) => {
+        console.log("This script is being executed.");
+
+        // ユーザーに入力を求める
+        const price = prompt("How much do you want to pay for this item?");
+        const namespace = storable.getNamespace("test");
+
+        if (!isNaN(price)) {
+            namespace.set("price", price);
+        }
+    })
+]);
+```
+
+## 静的メソッド
+
+### execute
+
+<Steps>
+<Step>
+
+指定したハンドラーで新しい Script インスタンスを作成し、プロキシされたオブジェクトとして返します。
+
+- `handler: ScriptRun` - 実行するスクリプトハンドラー関数
+- 戻り値: `Proxied<Script, Chained<LogicAction.Actions>>` - プロキシされた Script インスタンス
+
+```typescript
+const script = Script.execute(({ storable }) => {
+    console.log("Script executed via static method");
+    const namespace = storable.getNamespace("test");
+    namespace.set("value", 42);
+});
+
+scene.action([
+    script, // ストーリーにスクリプトを追加
+]);
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `handler: (ctx: ScriptCtx) => void` - スクリプトが実行されると、このハンドラーが呼び出されます。ハンドラーは [ScriptCtx](/ja/docs/narraleaf-react/core/types/ScriptCtx) オブジェクトを受け取ります。
+
+<Callout type="warning">
+    `handler` 関数に副作用がある場合は、クリーンアップ関数を返す必要があります。  
+    このクリーンアップ関数は、プレイヤーがアクションをアンドゥしたときに呼び出されます。
+
+    ```typescript
+    new Script((ctx) => {
+        const token = setTimeout(() => {
+            console.log("This script is being executed.");
+        }, 1000);
+
+        return () => clearTimeout(token);
+    })
+    ```
+</Callout>
+
+
+```typescript
+const script = new Script((ctx) => {
+    console.log(ctx.gameState);
+});
+```
+</Step>
+</Steps>

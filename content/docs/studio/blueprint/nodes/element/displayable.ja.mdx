@@ -1,0 +1,555 @@
+---
+title: 表示可能オブジェクト
+description: 接続された要素のジオメトリ・不透明度・Variant・プロパティアニメーション、および全ウィジェットが持つ visible / enabled の対
+---
+
+あらゆるウィジェット型に適用される2つのファミリー——Displayable のジオメトリと外観に関するノード、そして各組み込みウィジェットが繰り返し持つ `visible` / `enabled` の対です。すべての Element ノードを規定する規則——パレットがいつそれを提供するか、ターゲットが欠けているときにどう失敗するか——は [Element](/ja/docs/studio/blueprint/nodes/element) にあります。
+
+## Displayable
+
+これらは汎用の `element` ピンを取るため、1つのウィジェット型ではなく、任意の displayable な要素への参照を受け付けます。座標は Surface のデザイン座標です——インスペクタが示すのと同じ数値です。不透明度は単一の有効値です——Appearance Variant の `transformOpacity` はそこに解決され、`nl.image` Variant で変更された `fillOpacity` もそこに解決され、`Get Element Property`、`Set Element Property`、`Animate Element Property` はすべてこの同じ1つの数値に触れます。
+
+このセクションの末尾にある7つの読み取りノード——position、size、bounds、rotation、opacity、visible、variant——は `Get Element Property` に取って代わられ、パレットから隠されています。すでにこれらを含むブループリントが動き続けるよう、登録は残っています。ここに文書化されているのは、あなたが古いグラフでこれらに出会うからであって、新しく追加すべきだからではありません。
+
+これらすべての Self 形態は [Displayable](/ja/docs/studio/blueprint/nodes/displayable) にあります。
+
+### Get Element Property
+
+`blueprint.element.displayable.getProperty` · Pure
+
+使うべき読み取りノードです。カードでプロパティを選ぶと、`value` ピンがそれを運びます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `value` | out · data | `any` |  |
+
+**カード上のフィールド**
+
+| フィールド | 説明 |
+| --- | --- |
+| `property` | `position` は `{ x, y }` を、`size` は `{ width, height }` を、`bounds` は `{ x, y, width, height }` を返します。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` は number を、`visible` は boolean を返します。`opacity` は `0..1` で返ってきます。 |
+
+### Set Element Property
+
+`blueprint.element.displayable.setProperty` · Latent
+
+ターゲットの1つのランタイムプロパティを書き込みます。`variant` は意図的に一覧から外されています——Variant は `Set Element Variant` を通します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `value` | in · data | `any` | 接続するとカードの Value コントロールは無効化され、接続した値が優先されます。 |
+
+**カード上のフィールド**
+
+| フィールド | 説明 |
+| --- | --- |
+| `property` | `x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity`、`visible`。 |
+| `value` | カードは単位を表示します:位置とサイズには `px`、`rotation` には `deg`、`opacity` には `%`。`visible` は Visible / Hidden のドロップダウンになります。数値フィールドはドラフト編集方式です——Enter を押すかフォーカスを失うと確定し、Esc で破棄されます。 |
+
+### Animate Element Property
+
+`blueprint.element.displayable.animateProperty` · Latent
+
+プロパティのトゥイーンを開始します。`animation` トークンはアニメーションが始まった瞬間に書き出されます。`next` は、アニメーションが自然に終わるか `Stop Element Animation` によって途中で打ち切られたときに一度だけ発火します。これはプロパティノードであって、エフェクトライブラリではありません——Fade や Shake はこの上に macro として組み立ててください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `animation` | out · data | `AnimationToken` |  |
+
+**カード上のフィールド**
+
+| フィールド | 説明 |
+| --- | --- |
+| `property` | `opacity`、`offsetX`、`offsetY`、`x`、`y`、`scale`、`rotation`。`offsetX` / `offsetY` は記述済みレイアウトからの見た目上の変位であり、`x` / `y` はレイアウト位置そのものをアニメーションさせます。 |
+| `from` | 空のままにしておくと、トゥイーンは要素の現在のランタイム状態から始まります。`x` や `y` を座標ゼロから始めたい場合は、明示的に `0` と入力しなければなりません——空欄はゼロではありません。 |
+| `to` | 目標値。 |
+| `duration` | 秒。`0.3` は 300ms。 |
+| `delay` | 秒。 |
+| `easing` | `linear`、`easeIn`、`easeOut`、`easeInOut`、`circIn`、`circOut`、`circInOut`。 |
+| `after` | `hold` は最終値を保持してランタイム patch に書き戻すため、後のリフレッシュがそれを元に戻すことはありません。`reset` は記述済みのレイアウトと外観に戻ります。 |
+
+<Callout type="warn">
+`opacity` に対する `From` と `To` はパーセンテージです——`100` が不透明で、`1` は1パーセントです。`Set Element Property` は同じプロパティを異なる方法で解釈します——`1` を超える値はパーセンテージとして、`1` 以下の値は `0..1` の割合として扱われるため、そちらでは `1` は完全な不透明を意味します。同じプロパティ、2つのノード、数値 `1` の意味は正反対です。
+</Callout>
+
+### Stop Element Animation
+
+`blueprint.element.displayable.stopAnimation` · Latent
+
+このカテゴリの中で唯一、要素ターゲットを持たないノードです——トークンだけで、ある要素上のある1つのアニメーションを特定できるからです。それはまさにそのアニメーションを停止させ、それを待っている `Animate Element Property` を早期に `next` へ到達させます。値が欠けている、`AnimationToken` でない値、あるいはもう pending でないトークンの場合は、静かに何もしません。バインディングを必要としないため、これはパレットが無条件に提供する唯一の Element ノードでもあります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `animation` | in · data | `AnimationToken` |  |
+
+### Set Element Variant
+
+`blueprint.element.displayable.setVariant` · Latent
+
+ランタイムの Appearance Variant オーバーライドを設定します。`variantId` ピンはなく、id を手入力する方法もありません——接続された参照によってターゲットが静的にわかるようになると、カードはその要素自身の Variant を名前で一覧表示し、内部 UUID は隠された値として保存します。もう1つのカードフィールド Wait For Animation は、すぐに続行するか、選択した Variant 上で最も長いフィールドトランジションを待つかを選びます。Appearance Variant に対応していない要素に対して実行すると、何もしないのではなく実行エラーになります。
+
+また、それ以前のランタイム不透明度オーバーライドをクリアし、不透明度を Variant に決めさせます——これが、透明な Variant に切り替えてから `opacity` を 0 から 100 までアニメーションさせると、ゼロに固定されるのではなく、その透明な状態から入場する理由です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` | ここで受け付けられるのは、Appearance Variant に対応するウィジェット型のみです。 |
+
+### Get Element Display
+
+`blueprint.element.displayable.getDisplay` · Pure
+
+ランタイムの描画スイッチを読み取ります。デフォルトは `true`。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `display` | out · data | `boolean` |  |
+
+### Set Element Display
+
+`blueprint.element.displayable.setDisplay` · Latent
+
+`false` にすると、要素とその子孫に CSS の `display: none` が適用されるが、Surface の要素ツリーにはマウントされたままになります。これは `visible` ではありません——`visible` はあくまでレイアウトと可視性のプロパティであり、`Get Element Property` / `Set Element Property` を通して扱います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element` |  |
+| `display` | in · data | `boolean` |  |
+
+### Get Element Measured Rect
+
+`blueprint.element.displayable.getMeasuredRect` · Pure
+
+要素が実際にどこに落ち着いたかを、ドキュメントから読み取るのではなく、実際に描画されたものから計測します。`Get Element Property` の `bounds` キーは、記述済みレイアウトとそのランタイム patch から答えを出すため、まだ何も描かれていない要素に対しても答えを返します——こちらは実物の box を計測します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `rect` | out · data | `Rect` | Surface のデザイン座標。要素が描画されていないときは `null` |
+
+### Get Element Center
+
+`blueprint.element.displayable.getCenter` · Pure
+
+その計測された矩形の中心。`Move Mouse To Element` が狙うのと同じ計測値であり、グラフが移動そのものではなく点だけを欲しいときに使います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `center` | out · data | `Vector2D` | 要素が描画されていないときは `null` |
+
+### Get Element Position
+
+`blueprint.element.displayable.getPosition` · Pure
+
+レイアウト位置をデザイン座標系の `Vector2D` として読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `position` | out · data | `Vector2D` |  |
+
+### Get Element Size
+
+`blueprint.element.displayable.getSize` · Pure
+
+幅と高さを `Vector2D` として読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `size` | out · data | `Vector2D` |  |
+
+### Get Element Bounds
+
+`blueprint.element.displayable.getBounds` · Pure
+
+`{ x, y, width, height }` を1つのオブジェクトとして読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `bounds` | out · data | `Rect` |  |
+
+### Get Element Rotation
+
+`blueprint.element.displayable.getRotation` · Pure
+
+視覚的な回転角度を度単位で読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `rotation` | out · data | `float` |  |
+
+### Get Element Opacity
+
+`blueprint.element.displayable.getOpacity` · Pure
+
+有効な不透明度を `0..1` で読み取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `opacity` | out · data | `float` |  |
+
+### Get Element Visible
+
+`blueprint.element.displayable.getVisible` · Pure
+
+`visible` プロパティを読み取ります——`display` ではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Get Element Variant
+
+`blueprint.element.displayable.getVariant` · Pure
+
+現在有効な Variant の内部 UUID を読み取ります。今のエディタには作者にその id を扱わせる場面がどこにもないため、id ベースの Variant 経路はまるごと廃止されています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element` |  |
+| `variantId` | out · data | `string` |  |
+
+## Visible と Enabled
+
+8種類のウィジェット型が同じ4つのノードを持ちます——`visible` の読み書き、`enabled` の読み書きです。それらは Button、Container、Frame、Image、List、Slider、Switch、Text です——`nl.textInput` は、この Element の対を持たない唯一の組み込みウィジェットであり、代わりに `Get Element Property` / `Set Element Property` を通して扱います。それぞれ自分自身のウィジェットに型付けされたターゲットピンを取るため、パレットがどの4つを提供するかは、グラフがどのウィジェット型をバインドしているかによって決まります。`Set … Enabled` に `false` を渡すと、レンダラーの操作無効化経路を通ります——ノード面は `interactionDisabled` を意図的に一切公開しません。
+
+要素をアンマウントせずに隠すには、代わりに `Set Element Display` を使ってください——`visible` と `display` は別のスイッチであり、子孫を折りたたむのは `display` だけです。
+
+### Get Button Visible
+
+`blueprint.element.button.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Button Visible
+
+`blueprint.element.button.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Button Enabled
+
+`blueprint.element.button.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Button Enabled
+
+`blueprint.element.button.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.button` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Container Visible
+
+`blueprint.element.container.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Container Visible
+
+`blueprint.element.container.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Container Enabled
+
+`blueprint.element.container.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Container Enabled
+
+`blueprint.element.container.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.container` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Frame Visible
+
+`blueprint.element.frame.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Frame Visible
+
+`blueprint.element.frame.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Frame Enabled
+
+`blueprint.element.frame.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Frame Enabled
+
+`blueprint.element.frame.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.frame` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Image Visible
+
+`blueprint.element.image.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Image Visible
+
+`blueprint.element.image.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Image Enabled
+
+`blueprint.element.image.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Image Enabled
+
+`blueprint.element.image.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.image` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get List Visible
+
+`blueprint.element.list.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set List Visible
+
+`blueprint.element.list.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get List Enabled
+
+`blueprint.element.list.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set List Enabled
+
+`blueprint.element.list.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.list` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Slider Visible
+
+`blueprint.element.slider.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Slider Visible
+
+`blueprint.element.slider.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Slider Enabled
+
+`blueprint.element.slider.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Slider Enabled
+
+`blueprint.element.slider.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.slider` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Switch Visible
+
+`blueprint.element.switch.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.switch` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Switch Visible
+
+`blueprint.element.switch.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.switch` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Switch Enabled
+
+`blueprint.element.switch.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.switch` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Switch Enabled
+
+`blueprint.element.switch.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.switch` |  |
+| `enabled` | in · data | `boolean` |  |
+
+### Get Text Visible
+
+`blueprint.element.text.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | out · data | `boolean` |  |
+
+### Set Text Visible
+
+`blueprint.element.text.setVisible` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `visible` | in · data | `boolean` |  |
+
+### Get Text Enabled
+
+`blueprint.element.text.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | out · data | `boolean` |  |
+
+### Set Text Enabled
+
+`blueprint.element.text.setEnabled` · Latent
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `element` | in · data | `element:nl.text` |  |
+| `enabled` | in · data | `boolean` |  |

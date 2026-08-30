@@ -1,0 +1,321 @@
+﻿---
+title: "画像"
+description: キャラクターと背景アートのための `Image` 要素。タグベース、レイヤード、src ベースの画像、ウェアラブル、暗くする処理を扱う
+---
+> このクラスは [Displayable](/ja/docs/narraleaf-react/core/elements/displayable) を継承しています
+
+Image はビジュアルノベルにとって非常に重要です。キャラクターの見た目を表示するために使用します。 
+
+NarraLeaf-React では、Image はキャラクターの見た目だけを制御します。キャラクターのセリフは制御しません。セリフには [Character](/ja/docs/narraleaf-react/core/elements/character) を使用してください。
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+<Callout type="warning">
+    画像は、タグベース、レイヤード、src ベースのいずれかです。同じ画像の中でこれらを混在させることはできません。
+</Callout>
+
+- `config: Partial<IImageUserConfig>` - 画像の設定。[IImageUserConfig](/ja/docs/narraleaf-react/core/types/IImageUserConfig) を参照
+
+#### タグベース画像
+
+例えば、`happy`、`sad`、`angry` のようなタグを持つ画像がある場合、タグベース画像を使用できます。
+
+タグベース画像の例を示します。
+
+```typescript
+const image = new Image({
+    src: {
+        groups: [
+            ["happy", "sad", "angry"],
+            ["shirt", "jacket", "t-shirt"],
+            ["trousers", "skirt", "shorts"],
+        ],
+        defaults: ["happy", "shirt", "trousers"],
+        resolve: (emotion, top, bottom) => `https://your/image/src/${emotion}_${top}_${bottom}.png`
+    } as const,
+});
+// デフォルトの画像は `https://your/image/src/happy_shirt_trousers.png` になる
+```
+
+<Callout type="warning">
+
+**注:** 同じグループ内でも、異なるグループ間でも、同じタグを2つ持つことはできません。
+
+```typescript
+const image = new Image({
+    src: {
+        groups: [
+            ["a", "b", "c"],
+            ["1", "2", "3"],
+            ["a"], // 無効。タグ "a" はすでに最初のグループにある
+            ["x", "y", "y"], // 無効。タグ "y" が重複している
+        ],
+        defaults: ["a"], // 無効。デフォルトの定義にはタグの完全な組が必要
+    } as const,
+    /* ... */
+});
+```
+</Callout>
+
+#### レイヤード画像 [#layered-image]
+アートワークが組み合わせごとではなく、パーツごとに1枚の画像としてエクスポートされている場合は、レイヤード画像を使用します。5種類の表情と4種類の衣装を持つキャラクターの場合、5 × 4通りの合成済み画像ではなく、5 + 4枚のファイルで済みます。
+
+```typescript
+const yuko = new Image({
+    src: {
+        // 下から上へ
+        layers: [
+            "yuko/body.png",                                              // 常に表示されるレイヤー
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},     // 衣装グループ
+            {uniform: null, casual: "yuko/jacket.png"},                   // 衣装グループに追従する
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},   // 表情グループ
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},   // 表情グループに追従する
+            {happy: null, sad: "yuko/tears.png"},                         // null は何も描画しない
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+```
+
+レイヤード画像は、タグベース画像と同じ [char](#char) メソッドで制御します。**グループ**は、それを提供するレイヤーではなく*タグの集合*によって識別されるため、**同じタグを提供するすべてのレイヤーは、一つのグループによって制御されます**:
+
+```typescript
+yuko.char(["sad"]);                  // 眉、口、涙がまとめて変わる。衣装はそのまま
+yuko.char(["casual"]);               // 衣装とジャケットがまとめて変わる。表情はそのまま
+yuko.char(["casual", "sad"]);        // 複数のグループを一度に、任意の順序で
+yuko.char(["sad"], new Dissolve({ duration: 300 })); // トランジションは他の画像と同じように機能する
+```
+
+これが、レイヤード・スプライトに求められる形です。「angry」は口ではなく、口*と*眉*と*、アーティストが分割したその他の要素すべてを指し、一つのタグでそれらすべてが動きます。
+
+`layers` の各エントリーは、次のいずれかです:
+
+- **文字列** — 常に描画される固定レイヤー
+- **バリアントマップ** — タグをキーとする、互いに排他的な src の集合。`null` は、そのタグに対してレイヤーが何も描画しないことを意味します。そのキーの集合が、そのレイヤーが属するグループになります。
+- **関数** — [LayerResolver](/ja/docs/narraleaf-react/core/types/LayeredDefinition) で、現在アクティブなタグからレイヤーの src を導出します。それ自体はタグを宣言せず、そのソースはプリローダーには見えません — 別のレイヤーのグループに追従する場合も含め、バリアントマップの使用を優先してください。
+- `null` — 何も描画しない
+
+配列の順序が重なり順になり、最初のエントリーが一番下になります。`defaults` は**グループ**ごとに1つのタグを、任意の順序で受け取ります — 同じグループを共有するレイヤーは、その1つのデフォルトを共有します。
+
+タグは定義から推論されるため、明示的な型引数を与えなくても、`char()` はスペルミスのあるタグをコンパイル時に拒否します。
+
+レイヤーは、追従するグループの一部のタグに対して何も描画しないことがあるため、**バリアント固有のパーツ**（カジュアルな服装だけが持つジャケットなど）は、タグの集合全体を繰り返しつつ、レイヤーが存在しない箇所を `null` にすることで表現します。そのため、1つのスタックでキャラクターのワードローブ全体をまかなうことができます。服を着替えても現在の表情はそのまま保たれ、他のタグ変更と同じようにクロスフェードするため、衣装を別の画像としてモデル化する理由はありません。
+
+<Callout type="info">
+    1つの画像に含まれるすべてのレイヤーは、同じキャンバスを共有していることが前提です。これは、画像編集ソフトでレイヤーをエクスポートする際にデフォルトで得られる形式です。レイヤーは画像を中心にそろえて配置されるため、レイヤーごとに個別の位置指定はできません。
+</Callout>
+
+<Callout type="info">
+    画像全体に適用されるエフェクト — トランジション、`darken`、`opacity` や `pos` のようなトランスフォーム — は、スタック全体に対して1つの単位として適用されるため、あるレイヤーがその上にあるレイヤーを透けて見せることはありません。
+</Callout>
+
+<Callout type="warning">
+    グループに追従するレイヤーは、そのグループの**タグ集合全体**を繰り返す必要があります。一部だけを指定すると*別の*グループを宣言したことになり、そのタグはすでにそれを所有しているグループと衝突します — これはやってしまいがちな間違いです。また、各グループは `defaults` の中にそのタグのうちちょうど1つが列挙されている必要があります。
+
+```typescript
+const image = new Image({
+    src: {
+        layers: [
+            {happy: "happy.png", sad: "sad.png"},
+            {sad: "tears.png"},        // 無効。新しいグループ {sad} を宣言してしまい、上のグループと衝突する
+            // {happy: null, sad: "tears.png"},   // 正しい例: 集合を繰り返し、何も描画しない箇所は null にする
+            {none: null, hat: "hat.png"},
+        ],
+        defaults: ["happy"], // 無効。hat グループにデフォルトがない
+    },
+});
+```
+</Callout>
+
+レイヤースタックが表示しうるすべての src は、画像が作成された時点でプリロード対象として登録されます。レイヤー同士は掛け合わされないため、これは各レイヤーのバリアントの直積ではなく総和になります — レイヤード画像が「予測できないソース」について警告することはありません。追従レイヤーは通常のバリアントマップなので、その src は列挙可能であり、その登録に含まれます。そのため、タグの切り替えに新たな取得は発生しません。**関数レイヤー**が返す src は不透明です。プリローダーはそれを見ることができないため、初回使用時 — タグが変わったそのフレームで取得されます。他のレイヤーがそのソースを使っていない場合は、[scene.preloadImage](/ja/docs/narraleaf-react/core/elements/scene#preloadimage) で登録してください。
+
+#### src ベース画像
+
+タグがない場合は、src ベース画像を使用できます。
+
+```typescript
+const image = new Image({
+    src: "https://your/image/src.png",
+});
+```
+
+#### ウェアラブル画像
+
+画像にウェアラブルを追加できます。  
+ウェアラブル画像は、メイン画像と一緒に移動・拡大縮小・アニメーションします。
+
+```typescript
+const child = new Image({
+    /* ... */
+});
+const parent = new Image({
+    /* ... */
+}).wear(child);
+```
+
+> **注:** 画像が持てる親は1つだけです。
+</Step>
+</Steps>
+
+### useLayer
+
+<Steps>
+<Step>
+
+画像にレイヤーを使用します
+
+- `layer: Layer` - [Layer](/ja/docs/narraleaf-react/core/elements/layer)
+
+```typescript
+const layer = new Layer(/* ... */);
+
+image.useLayer(layer);
+```
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### char
+
+<Steps>
+<Step>
+
+キャラクターの見た目を設定します
+
+- `src: ImageSrc | Color | SelectElementFromEach<Tags> | FlexibleTuple<SelectElementFromEach<Tags>> | LayerTagsOf<Layers>[]` - 画像のソース
+- `transition?: ImageTransition` - ImageTransition については [Transition](/ja/docs/narraleaf-react/core/animation/transition) を参照
+
+```typescript
+image.char("your/image/src", new Dissolve({ duration: 1000 }));
+```
+
+あるいはタグベース画像の場合
+
+```typescript
+// happy, shirt, trousers
+const image = new Image({
+    src: {
+        groups: [
+            ["happy", "sad", "angry"],
+            ["shirt", "jacket", "t-shirt"],
+            ["trousers", "skirt", "shorts"],
+        ],
+        defaults: ["happy", "shirt", "trousers"],
+        /* ... */
+    } as const,
+});
+
+//  happy , [jacket], [t-shirt]
+image.char(["jacket", "t-shirt"], new Dissolve({ duration: 1000 }));
+
+// [angry],  jacket ,  t-shirt
+image.char(["angry"], new Dissolve({ duration: 1000 }));
+```
+
+[レイヤード画像](#layered-image)の場合、タグはその**グループ**のバリアントを選択し、そのグループのタグ集合を提供するすべてのレイヤーがそれに合わせて変わります。タグで指定されなかったグループはそのまま保たれます。タグは任意の順序で指定でき、トランジションはスタック全体をクロスフェードします。
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {uniform: null, casual: "yuko/jacket.png"},
+            {happy: "yuko/brows_happy.png", sad: "yuko/brows_sad.png"},
+            {happy: "yuko/mouth_happy.png", sad: "yuko/mouth_sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+//  uniform , [sad] — 眉と口の両方が変わる
+yuko.char(["sad"], new Dissolve({ duration: 300 }));
+
+// [casual],  sad  — 衣装とジャケットの両方が変わり、表情はそのまま
+yuko.char(["casual"]);
+```
+</Step>
+</Steps>
+
+### darken
+
+<Steps>
+<Step>
+
+画像の暗さを設定します
+
+- `darkness: number` - 画像の暗さ。0 から 1 の間の値。0 は暗さなし、1 は完全な暗さです。
+- `duration?: number` - トランジションの時間。指定しない場合、新しい暗さは即座に適用されます。
+- `easing?: TransformDefinitions.EasingDefinition` - [TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition) を参照。指定しない場合、デフォルトのイージングが使用されます。
+
+```typescript
+image.darken(0.5, 500, "easeIn");
+
+image.darken(0.5, 500); // デフォルトのイージングで 500ms かけてアニメーションする
+image.darken(0.5);      // 即座に適用される
+```
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### addWearable
+
+<Steps>
+<Step>
+
+画像にウェアラブルを追加します
+
+> ウェアラブルは、メイン画像に関連付けられた画像を追加できる機能です。例えば、キャラクターに帽子を追加できます。
+> そして、そのウェアラブル画像はメイン画像と一緒に移動・拡大縮小・アニメーションします。
+
+- `children: Image | Image[]` - ウェアラブル画像、またはその配列
+- 戻り値: `this`
+
+```typescript
+const childImage = new Image(/* ... */);
+
+image.addWearable(childImage);
+```
+</Step>
+</Steps>
+
+### wear
+
+<Steps>
+<Step>
+
+`addWearable` のエイリアスです
+</Step>
+</Steps>
+
+### bindWearable
+
+<Steps>
+<Step>
+
+この画像をウェアラブルとして親画像にバインドします
+
+- `parent: Image` - 親画像
+- 戻り値: `this`
+
+```typescript
+childImage.bindWearable(parentImage);
+```
+</Step>
+</Steps>
+
+### asWearableOf
+
+<Steps>
+<Step>
+
+`bindWearable` のエイリアスです
+</Step>
+</Steps>

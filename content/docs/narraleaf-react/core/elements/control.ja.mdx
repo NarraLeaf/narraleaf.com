@@ -1,0 +1,225 @@
+﻿---
+title: "フロー制御"
+description: 順次実行、並行実行、ループ、ラベル、ジャンプ、入力待ちを扱う `Control` クラスのフロー制御ユーティリティ
+---
+`Control` はフロー制御のためのユーティリティメソッドを持つクラスです。
+
+```typescript
+Control.do([
+    character1.say("hello"),
+
+    // サウンドの再生と画像のシェイクを同時に行う
+    Control.allAsync([
+        sound.play(),
+        shake(image1),
+    ]),
+]);
+```
+
+## 静的メソッド
+
+### do
+
+<Steps>
+<Step>
+
+アクションを**順番に**実行し、各アクションの完了を待ちます
+
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### doAsync
+
+<Steps>
+<Step>
+
+アクションを**順番に**実行しますが、このアクションの完了は待ちません
+
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### any
+
+<Steps>
+<Step>
+
+すべてのアクションを**同時に**実行し、いずれか一つの完了を待ちます
+
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### all
+
+<Steps>
+<Step>
+
+すべてのアクションを**同時に**実行し、すべての完了を待ちます
+
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### allAsync
+
+<Steps>
+<Step>
+
+すべてのアクションを**同時に**実行しますが、すべての完了は待ちません
+
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### repeat
+
+<Steps>
+<Step>
+
+アクションを複数回実行します
+
+- `times: number` - 回数
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### whileLoop
+
+<Steps>
+<Step>
+
+条件が真である間、アクションを実行します
+
+```typescript
+const loopState = new Persistent("loop-state", {
+    tries: 0,
+});
+
+story.registerPersistent(loopState);
+
+scene.action([
+    loopState.set("tries", 0),
+
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 3), [
+        character.say`Attempt ${loopState.get("tries")}`,
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+- `actions: ActionStatements` - [ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements)
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### breakLoop
+
+<Steps>
+<Step>
+
+現在のループ（repeat/while）を中断します。
+ループ本体の中でのみ使用できます。
+
+```typescript
+scene.action([
+    Control.whileLoop(loopState.evaluate("tries", (tries) => tries < 10), [
+        Condition.If(loopState.equals("tries", 3), [
+            character.say("Stop here."),
+            Control.breakLoop(),
+        ]),
+        loopState.set("tries", (tries) => tries + 1),
+    ]),
+]);
+```
+
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### sleep
+
+<Steps>
+<Step>
+
+指定した時間だけ待機します
+
+- `duration: number | Awaitable<any> | Promise<any>` - 待機する時間
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### waitForClick
+
+<Steps>
+<Step>
+
+ユーザーがステージ上のどこかをクリックするまで実行を一時停止します（ダイアログ、ボタン、メニューなどの GUI 要素は除きます）。[Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence) の中で時間指定なしのポーズを挿入するのと似ています。
+
+ADV モードで「クリックして続ける」という間を作ったり、NVL ブロック内でプレイヤーの準備ができるまで一時停止したりするのに便利です。
+
+```typescript
+scene.action([
+    character.say("Read this carefully..."),
+    Control.waitForClick(),
+    character.say("Now we continue."),
+]);
+```
+
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### label
+
+<Steps>
+<Step>
+
+現在のシーン内に、[`jump`](#jump) がジャンプ先にできる名前付きの地点を作成します。ラベルは実行時には見えず、単に次のアクションへと通過するだけです。
+
+ラベル名は宣言されたシーンの中だけで有効なスコープを持つため、同じ名前を別のシーンで再利用できます。同じシーン内で同じ名前を2回宣言すると、ビルドが失敗します。
+
+```typescript
+scene.action([
+    Control.label("intro"),
+    character.say("Let's begin."),
+]);
+```
+
+- `name: string` - ラベル名。そのシーン内で一意である必要があります
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>
+
+### jump
+
+<Steps>
+<Step>
+
+**同じシーン**内の別の場所にある [`label`](#label) にジャンプし、そこから再生を再開します。
+
+[`Scene.jumpTo`](/ja/docs/narraleaf-react/core/elements/scene#jumpto) とは異なり、これは現在のシーン内にとどまります — シーンのアンロードや再初期化は行われず、再生位置だけが移動します。ジャンプ先は同じシーン内で宣言されたラベルでなければならず、そうでない場合はストーリーのビルドに失敗します。
+
+`Control.jump` はメインのストーリーフローをリダイレクトするため、（メニューの選択肢のような）分岐の最後のアクションとして配置してください。シーンをループさせたい場合は、`repeat` / `while` の本体からジャンプで抜け出すのではなく、メニューや条件によってループを駆動してください。
+
+```typescript
+scene.action([
+    Control.label("start"),
+    Menu.prompt("Again?")
+        .choose("Yes", [Control.jump("start")])
+        .choose("No", []),
+]);
+```
+
+- `name: string` - ジャンプ先のラベル名。同じシーン内で宣言されている必要があります
+- 戻り値: `Proxied<Control, Chained<LogicAction.Actions>>` - チェーンされた Control インスタンス
+</Step>
+</Steps>

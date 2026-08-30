@@ -1,0 +1,33 @@
+{
+  "title": "ノード",
+  "pages": [
+    "index",
+    "events",
+    "input",
+    "flow",
+    "functions",
+    "variables",
+    "data",
+    "math",
+    "time",
+    "game",
+    "sound",
+    "voice",
+    "app",
+    "localization",
+    "network",
+    "displayable",
+    "element",
+    "component",
+    "image",
+    "text",
+    "text-input",
+    "button",
+    "container",
+    "frame",
+    "list",
+    "slider",
+    "switch",
+    "debug"
+  ]
+}

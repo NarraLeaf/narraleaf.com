@@ -1,0 +1,56 @@
+---
+title: "Layout"
+description: Page コンポーネントとネストされた Layout コンポーネントを LayoutRouter のルートツリーへとまとめる Layout コンポーネント
+---
+`Layout` は、ページ（およびネストされた `Layout`）をまとめて、`LayoutRouter` のための階層的なルートを組み立てます。
+
+```tsx
+import { Layout, Page } from "narraleaf-react";
+```
+
+## 基本的な使い方
+
+```tsx
+<Layout name="home">
+  {/* /home */}
+  <Page name={null}>
+    <Home />
+  </Page>
+
+  {/* /home/detail */}
+  <Page name="detail">
+    <Detail />
+  </Page>
+</Layout>
+```
+
+## Props
+
+| Prop | 型 | 説明 |
+| ---- | ---- | ----------- |
+| `name` | `string` | このレイアウトが扱う相対パスのセグメント、またはパターン。静的な文字列、動的パラメータ（`:id`）、ワイルドカード（`*`）をサポートします。 |
+| `propagate?` | `boolean` | `true` の場合、退場アニメーションがネストされた `AnimatePresence` へ伝播します。既定値は `game.config.animationPropagate`。 |
+| `children` | `React.ReactNode` | 子要素の `Layout` または `Page` コンポーネント。 |
+
+## ネストされたレイアウト
+
+レイアウトはネストして、深いルートを構成できます。
+
+```tsx
+<Layout name="user">
+  <Layout name=":id">
+    <Page name={null}> // /user/:id
+      <UserHome />
+    </Page>
+    <Page name="profile"> // /user/:id/profile
+      <UserProfile />
+    </Page>
+  </Layout>
+</Layout>
+```
+
+## ルール
+
+1. `Layout` の直接の子要素にできるのは `Layout` または `Page` コンポーネントのみです。
+2. `Page` コンポーネントの内部に `Layout` を置いては**いけません**。
+3. ネストされた `Layout` や `Page` の `name` は、親の `Layout` のパスからの相対値です。

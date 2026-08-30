@@ -1,0 +1,1276 @@
+---
+title: データ
+description: リテラル、型変換、型判定、そしてグラフを組み立てるためのあらゆる文字列・配列・オブジェクト・JSON 操作
+---
+
+Data は、ブループリントが計算に使う値を保持するカテゴリです。定数が必要なとき、値が想定と違う型で届いたとき、あるいは文字列・配列・JSON ドキュメントを分解する必要があるときに使います。ここにあるノードのほとんどは実行ピンを持ちません——Data ノードは、その出力に配線された側から読み取られます。`Memo`だけが例外であり、それについてはこのページの末尾で説明します。
+
+## 値の型 [#value-types]
+
+以下のピンには10種類の`valueType`が現れます。
+
+| `valueType` | 内容 | 生成元 |
+| --- | --- | --- |
+| `string` | テキスト。 | `String`、およびすべての文字列ノード。 |
+| `integer` | 整数。 | `Integer`、および各種の長さ・添字・件数。 |
+| `float` | 数値。 | `Float`、`To Float`、`Parse Float`。 |
+| `boolean` | 真または偽。 | `Boolean`、およびすべての型判定と文字列判定。 |
+| `json` | 任意の JSON 値——object、array、string、number、boolean、`null`のいずれか。 | `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`。 |
+| `array` | JSON 配列。ただし独立した型として扱われます。 | `Make Array`、配列を返す`Array …`ノード群、`Object Keys`、`Object Values`。 |
+| `any` | 何であってもよい値。 | `Memo`、`Get Item Field`、およびカードの選択に応じて形状が決まるプロパティ読み取り。 |
+| `RGBAColor` | `{ r, g, b, a }`。 | `Color`。 |
+| `Vector2D` | `{ x, y }`。 | `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`。 |
+| `Rect` | `{ x, y, width, height }`。 | `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`。 |
+
+2つのデータピン間の接続は、型が完全に一致する場合、または次のいずれかが成り立つ場合に許可されます。
+
+| 元 | 先 | 理由 |
+| --- | --- | --- |
+| `integer` | `float` | すべての整数は浮動小数点数です。 |
+| `integer`、`float` | `string` | 入力を読み取る際に、数値はテキストへ変換されます。これは値を書き換える唯一の暗黙変換です——それ以外の許可された接続はすべて値をそのまま通します。 |
+| `array` | `json` | 配列は JSON 値そのものです。 |
+| `Rect` | `json` | 構造化された値についての規則ではなく、移行のために許されている経路です——下記参照。 |
+| `any` | 任意の型 | `any`はどちらの方向にも一致します。 |
+| 任意の型 | `any` | |
+
+他のカテゴリの型も同じ形でのみ広がります——`element`はどの`element:nl.…`ピンにも接続でき、その逆方向にも接続できます。`ImageAsset`と`string`はどちらも`ImageAsset|null`入力に届きます。
+
+それ以外はすべて拒否されます。作者が動くはずだと思い込みがちな逆方向の接続も含めてです。
+
+- **`json` → `array`、`json` → `Rect`。** どの拡張規則も一方向にしか成り立ちません。任意のオブジェクトが矩形であるとは限りません。
+- **`float` → `integer`。** `To Integer`を挟んでください。これはゼロ方向に切り捨てます。
+- **`string` → `integer`または`float`。** `Parse Int`、`Parse Float`、`To Integer`、`To Float`のいずれかを挟んでください。
+- **`boolean` → `string`、`json` → `string`。** テキストへ暗黙変換されるのは数値だけです。`To String`または`Stringify JSON`を挟んでください。
+- **`string`、`integer`、`float`、`boolean` → `json`。** `json`入力に暗黙に届く型は`array`と`Rect`だけです。`To JSON`を挟んでください。
+- **`RGBAColor` → `json`、`Vector2D` → `json`。** これらはそれぞれ独立した構造化型であり、JSON ドキュメントではありません。`Break Vector2D`で分解するか、`Make Object`でドキュメントを組み立ててください。
+
+<Callout type="info">
+`Rect` → `json`は、`Rect`が独立した型になる前に書かれたグラフのために存在します。`Rect`が型になるまでは、`Rect`リテラルと`Get Bounds`はどちらも`json`を公開していました。そのため当時作成された矩形は今も`Get JSON Field`へ渡せて動作し続けます。`Vector2D`は`json`ピンであったことが一度もなく、狭いままです。
+</Callout>
+
+<Callout type="info">
+`array`は`json`入力に渡せるが、逆方向は決してできません。たまたま配列を保持している`json`の値——`Split`の結果、`Parse JSON`、`Get JSON Field`——は、`Array Length`や List の`Set Items`のような`array`入力には接続できません。[Flow](/ja/docs/studio/blueprint/nodes/flow)の`For Each`は`json`を受け取るため、それを使った反復は引き続き機能します。`Array …`ノード群はそうはいきません。
+</Callout>
+
+## 規約
+
+- **このページのノードは、1つを除いてすべて純粋です。** 接続できる実行ピンがないため、Data ノードは実行経路の上に置くことができません。その出力は、消費側が読み取るときに計算され、次の読み取りで再計算されます。`Memo`は例外です——値をそのまま保持することは、純粋なノードにはできないことそのものであるため、これは実行ノードになっています。
+- **3種類のグラフすべてがこれらを受け付けます**——`event`、`function`、`macro`——そして Blueprint Value グラフも同様です。ここでも`Memo`は例外であり、`event`と`macro`でのみ利用できます。
+- **インプレースでの変更は存在しません。** 書き込みを行うノードは、出力ピンに新しい値を返し、入力にはまったく手を加えません。
+- **カード上のリテラルが存在するのは`string`、`integer`、`float`、`boolean`のピンだけです。** `json`または`array`の入力にはカード上のエディタが存在しません——`JSON`リテラル、または`Make Object` / `Make Array`ノードを渡してください。
+- **未配線の入力はエラーではありません。** そのピンのカード上のリテラルを読み取り、リテラルがなければ何も読み取りません。そして各ノードはそれを正規化します——欠けた配列は空として、欠けた文字列は`""`として、欠けた数値は`0`として読み取られます。
+- **純粋なノードの連鎖は、最大32段まで解決されます。** それを超えると、読み取りは何も返さず、静かに終わります。
+
+<Callout type="warn">
+`Array Push`、`Set JSON Field`、`Object Set Field`、そしてこのページの他のすべての書き込みノードは、**新しい**値を返し、入力にはまったく手を加えません。`Get Var → Array Push`と配線しただけでは何も変わりません——結果を`Set Var`へ配線し直す必要があります。[Variables](/ja/docs/studio/blueprint/variables)を参照してください。
+</Callout>
+
+## リテラル
+
+リテラルは1つの出力ピンと1つのカード上のフィールドを持ちます。その型は選んだノードによって固定され、それによってグラフの残りの部分が型チェックできるようになります。
+
+### String
+
+`blueprint.data.stringLiteral` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `string` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | テキスト。 |
+
+### Integer
+
+`blueprint.data.integerLiteral` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `integer` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 数値。読み取り時に整数へ切り捨てられます。 |
+
+### Float
+
+`blueprint.data.floatLiteral` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 数値。有限でない値は`0`として読み取られます。 |
+
+### Boolean
+
+`blueprint.data.booleanLiteral` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | True / False のドロップダウン。 |
+
+### Null
+
+`blueprint.data.nullLiteral` · Pure
+
+カード上のフィールドを持たない唯一のリテラルです——`null`について設定できることは何もありません。その出力の型は`json`であるため、あらゆる`json`または`any`の入力に届きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `json` | 常に`null`。 |
+
+### JSON
+
+`blueprint.data.jsonLiteral` · Pure
+
+カードにはルートの型と概要が表示されます。編集を開始すると、オブジェクトには名前付きフィールド、配列には順序付きの項目を持つツリー形式のフォームが開きます。新規ノードは空のオブジェクトから始まります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `json` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | ドキュメント。ツリーとして編集します。書き込まれる内容はすべて JSON セーフです。 |
+
+### Color
+
+`blueprint.data.colorLiteral` · Pure
+
+カラーピッカーで編集し、8桁の RGBA 16進数として表示されます。出力は常に正規化された`{ r, g, b, a }`のレコードです——`r`、`g`、`b`はバイト値、`a`は`0`から`1`。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `RGBAColor` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | カラーピッカー。 |
+
+### Vector2D
+
+`blueprint.data.vector2dLiteral` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `Vector2D` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 固定された`x` / `y`の数値スキーマ。余分なフィールドは拒否され、欠けているフィールドや数値でないフィールドは`0`として読み取られます。 |
+
+### Rect
+
+`blueprint.data.rectLiteral` · Pure
+
+`Color`や`Vector2D`と同様に、`Rect`もそれ自身の型です。それらと異なり、`Rect`は`json`にも広がるため、あらゆる`json`入力に接続できます——理由については[値の型](#value-types)の注記を参照してください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `Rect` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 固定された`x` / `y` / `width` / `height`の数値スキーマ。`Vector2D`と同じ方法で検証されます。 |
+
+### Number
+
+`blueprint.data.numberLiteral` · Pure
+
+旧式の数値定数であり、新しいグラフに追加できないようパレットから非表示になっています。旧いグラフの解決を保つために登録だけは残されています。新規には`Float`を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 数値。 |
+
+### Literal
+
+`blueprint.data.literal` · Pure
+
+旧式の型なし定数であり、これもパレットから非表示になっています。その`any`型の出力はあらゆるものと型チェックを通ってしまいます——それこそが、型付きのリテラル群がこれを置き換えた理由です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `any` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `value` | 型のない値。 |
+
+## 変換
+
+これらは、接続ルールがあなたを導く先のノード群です。どれも失敗しません——読み取れない入力は、エラーではなくその型のゼロ値を生成します。
+
+### To String
+
+`blueprint.string.toString` · Pure
+
+`null`と未配線の入力はどちらも`""`として読み取られます。オブジェクトや配列は JSON テキストにシリアライズされます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `string` | |
+
+### To Integer
+
+`blueprint.data.toInteger` · Pure
+
+ゼロ方向に切り捨てます——`-2.7`は`-3`ではなく`-2`になります。`true`は`1`、`false`は`0`として読み取られ、数値の文字列は受け付けられます。それ以外はすべて`0`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `integer` | |
+
+### To Float
+
+`blueprint.data.toFloat` · Pure
+
+`To Integer`と同じ受け付け方ですが、切り捨ては行いません。有限の数値でない値は`0`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `float` | |
+
+### To Boolean
+
+`blueprint.data.toBoolean` · Pure
+
+文字列はトリムして小文字化したうえで照合されます——`""`、`"false"`、`"0"`、`"no"`は偽、`"true"`、`"1"`、`"yes"`は真であり、それ以外の空でない文字列はすべて真になります。`0`と有限でない数値は偽になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### To JSON
+
+`blueprint.data.toJson` · Pure
+
+文字列は JSON としてパースされ、パースできなければ元の文字列のまま保たれます——そのためこのノードがテキストを壊すことはありません。それ以外の値は JSON セーフな形にされます——有限でない数値や循環参照は`null`に、関数やシンボルはそのテキスト形式になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `json` | |
+
+### Parse Int
+
+`blueprint.data.parseInt` · Pure
+
+10進数として扱われ、先頭の数値部分が採用されます——`"12px"`は`12`になります。数字がまったくない場合は`0`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `integer` | |
+
+### Parse Float
+
+`blueprint.data.parseFloat` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `float` | |
+
+### Parse JSON
+
+`blueprint.data.parseJson` · Pure
+
+厳密です——パースできないテキストと空文字列は、どちらも`null`になります。元のテキストを残したいときは代わりに`To JSON`を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `json` | |
+
+### Stringify JSON
+
+`blueprint.data.stringifyJson` · Pure
+
+未配線の入力はテキスト`"null"`になります。シリアライズできない値は`""`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `json` | |
+| `result` | out · data | `string` | |
+
+## 型判定
+
+それぞれが`any`を受け取り、実際に届いた値についての問いに答えます——これが、`json`や`any`のピンが本当は何を運んでいるかを知る方法です。
+
+### Is String
+
+`blueprint.data.isString` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Number
+
+`blueprint.data.isNumber` · Pure
+
+有限の数値だけが対象です——`NaN`と無限大は偽であり、数値の文字列も偽になります。これは型について尋ねるものであり、パース可能かどうかについてではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Boolean
+
+`blueprint.data.isBoolean` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Array
+
+`blueprint.data.isArray` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Object
+
+`blueprint.data.isObject` · Pure
+
+配列ではない、`null`でないオブジェクトに対して真になります。配列に答えるのはこれではなく`Is Array`です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Null
+
+`blueprint.data.isNull` · Pure
+
+`null`に対して真になり、また何にも解決されなかった入力に対しても真になります——未配線のピンはここでは null として読み取られます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Not Null
+
+`blueprint.data.notNull` · Pure
+
+`Is Null`の否定であり、これによって`Not`をぶら下げる必要がなくなります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Is Empty Value
+
+`blueprint.data.isEmptyValue` · Pure
+
+`null`、`""`、空の配列、空のオブジェクトに対して真になります。`0`と`false`は空ではなく値であり、どちらも偽になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+## 文字列
+
+ここでのすべての`value`入力はカード上のリテラルを受け付けるため、一度きりの文字列のために専用のリテラルノードを用意する必要はありません。添字は0始まりであり、範囲外の添字は拒否されるのではなくクランプされます。
+
+### Concat
+
+`blueprint.string.concat` · Pure
+
+その入力を、ピンの順に、間に何も挟まずに連結します。カードには入力追加コントロールがあり、`a`と`b`を超えてさらに`string`入力を追加できます。以下のシグネチャは、最初から存在する2つだけを示しています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `b` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Format
+
+`blueprint.string.format` · Pure
+
+テンプレート内の`{name}`を、`values`の対応するフィールドで置き換えます。`values`が配列の場合は`{0}`、`{1}`……で置き換えます。一致しないプレースホルダーは空になり、`values`がオブジェクトでも配列でもない場合はすべてのプレースホルダーが空になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `template` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `values` | in · data | `json` | `JSON`リテラルまたは`Make Object`を配線してください。 |
+| `result` | out · data | `string` | |
+
+### Length
+
+`blueprint.string.length` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `length` | out · data | `integer` | |
+
+### Is Empty
+
+`blueprint.string.isEmpty` · Pure
+
+長さがゼロであることです。空白だけの文字列は空ではありません——それは`Is Blank`が扱います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Is Blank
+
+`blueprint.string.isBlank` · Pure
+
+空である、または空白しか含みません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Trim
+
+`blueprint.string.trim` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Trim Start
+
+`blueprint.string.trimStart` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Trim End
+
+`blueprint.string.trimEnd` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### To Upper Case
+
+`blueprint.string.toUpperCase` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### To Lower Case
+
+`blueprint.string.toLowerCase` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Capitalize
+
+`blueprint.string.capitalize` · Pure
+
+先頭の文字だけを大文字にし、それ以外はそのまま残します——タイトルケースではありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Equals
+
+`blueprint.string.equals` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `b` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Equals Ignore Case
+
+`blueprint.string.equalsIgnoreCase` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `b` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Contains
+
+`blueprint.string.contains` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Starts With
+
+`blueprint.string.startsWith` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Ends With
+
+`blueprint.string.endsWith` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Index Of
+
+`blueprint.string.indexOf` · Pure
+
+`start`から前方へ検索し、一致がない場合は`-1`を返します。`start`は文字列の範囲内にクランプされるため、範囲外の値は失敗するのではなく先頭または末尾から検索されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `start` | in · data | `integer` | カード上のリテラルを受け付けます。既定値は`0`。 |
+| `index` | out · data | `integer` | |
+
+### Last Index Of
+
+`blueprint.string.lastIndexOf` · Pure
+
+末尾から後方へ検索します。`start`ピンは存在しません——それが`Index Of`との唯一の非対称点です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `index` | out · data | `integer` | |
+
+### Count
+
+`blueprint.string.count` · Pure
+
+重ならない出現回数を数えます。空の`search`は、文字列の長さではなく`0`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `count` | out · data | `integer` | |
+
+### Char At
+
+`blueprint.string.charAt` · Pure
+
+文字列の範囲外の添字は、エラーではなく`""`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `char` | out · data | `string` | |
+
+### Substring
+
+`blueprint.string.substring` · Pure
+
+2番目のピンは**終了位置**ではなく**長さ**です。どちらも文字列の範囲内にクランプされ、未配線の`length`は`start`以降のすべてを取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `start` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `length` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Insert
+
+`blueprint.string.insert` · Pure
+
+`index`は文字列の範囲内にクランプされ、読み取れない添字は末尾に追加されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `insert` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Replace
+
+`blueprint.string.replace` · Pure
+
+最初の出現だけを置き換えます。空の`search`は、あらゆる位置に挿入するのではなく、値をそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `replacement` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Replace All
+
+`blueprint.string.replaceAll` · Pure
+
+すべての出現を置き換えます。`search`はパターンではなく単なるテキストです——空の`search`は、この場合も値をそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `search` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `replacement` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Repeat
+
+`blueprint.string.repeat` · Pure
+
+`count`は`0`–`10000`にクランプされるため、暴走した数値が無制限な文字列を作ることはありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `count` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Pad Start
+
+`blueprint.string.padStart` · Pure
+
+`length`は追加する文字数ではなく、目標となる合計の長さです。すでに十分な長さの文字列は変更されずに返ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `length` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `pad` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Pad End
+
+`blueprint.string.padEnd` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `length` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `pad` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Split
+
+`blueprint.string.split` · Pure
+
+結果の型は`array`ではなく`json`であるため、`Join`、`For Each`、その他の`json`入力には届きますが、`Array …`ノード群には届きません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `separator` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `json` | |
+
+### Join
+
+`blueprint.string.join` · Pure
+
+`array`を受け取る`Array Join`とは異なり、これは`json`を受け取ります。`values`が配列でない場合は`""`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `values` | in · data | `json` | |
+| `separator` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Matches Regex
+
+`blueprint.string.matchesRegex` · Pure
+
+`pattern`は、区切り記号もフラグも付かない正規表現のソースそのものです。コンパイルできないパターンは、例外を投げるのではなく`false`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `pattern` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Extract Regex
+
+`blueprint.string.extractRegex` · Pure
+
+パターンにキャプチャグループがある場合はその最初のものを、なければマッチ全体を返します。マッチしない場合、またはコンパイルできないパターンの場合は`""`になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `pattern` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Normalize Line Breaks
+
+`blueprint.string.normalizeLineBreaks` · Pure
+
+`\r\n`および単独の`\r`を`\n`に書き換えます。これにより、どのプラットフォームから貼り付けたテキストでも、比較や分割が一貫して行えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+## 配列
+
+これらはすべて、`array`入力を配列として読み取り、配列でない場合は空の配列に置き換えます。そのため何も例外を投げません。書き込みを行うものはすべて、`result`に新しい配列を返します。
+
+### Array Length
+
+`blueprint.collection.arrayLength` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `length` | out · data | `integer` | |
+
+### Array Get
+
+`blueprint.collection.arrayGet` · Pure
+
+負の添字、または末尾を超える添字は`null`になります。出力の型が`json`なのは、配列の要素が任意の JSON 値になりうるためです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `item` | out · data | `json` | |
+
+### Array Set
+
+`blueprint.collection.arraySet` · Pure
+
+`index`の位置に書き込み、新しい配列を返します。負の添字、または`10000`を超える添字は、入力をそのまま返します。末尾を超える添字は配列を拡張し、飛ばされたスロットは空のままになります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Push
+
+`blueprint.collection.arrayPush` · Pure
+
+末尾に追加します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Insert
+
+`blueprint.collection.arrayInsert` · Pure
+
+`index`は`0`から配列の長さまでにクランプされるため、範囲外の添字は失敗するのではなく末尾に追加されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Remove
+
+`blueprint.collection.arrayRemove` · Pure
+
+`item`と等しい最初の要素を削除します。比較は JSON の値で行われます——同じフィールドを持つ2つのオブジェクトは、たとえ別のオブジェクトであっても一致します。一致しない場合は入力をそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Remove At
+
+`blueprint.collection.arrayRemoveAt` · Pure
+
+1つの要素を削除し、空いた隙間を詰めます。範囲外の添字は入力をそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `array` | |
+
+### Array Contains
+
+`blueprint.collection.arrayContains` · Pure
+
+`Array Remove`と同じ規則である JSON 値としての等価性で比較します。これは、同一性を比較する[Math](/ja/docs/studio/blueprint/nodes/math)の`Equal`より意図的に緩くなっています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `result` | out · data | `boolean` | |
+
+### Array Slice
+
+`blueprint.collection.arraySlice` · Pure
+
+`end`は含まれません。両方の境界は配列の範囲内にクランプされ、未配線の`end`は末尾まで実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `start` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `end` | in · data | `integer` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `array` | |
+
+### Array Join
+
+`blueprint.collection.arrayJoin` · Pure
+
+各要素をテキストに変換し——オブジェクトと配列は JSON になります——それらを連結します。文字列の`Join`が`json`を受け取るのに対し、こちらは`array`を受け取ります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `separator` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `string` | |
+
+### Array First
+
+`blueprint.collection.arrayFirst` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | 空の配列の場合は`null`。 |
+
+### Array Last
+
+`blueprint.collection.arrayLast` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | out · data | `json` | 空の配列の場合は`null`。 |
+
+### Array Is Empty
+
+`blueprint.collection.arrayIsEmpty` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `boolean` | |
+
+### Array Index Of
+
+`blueprint.collection.arrayIndexOf` · Pure
+
+`item`と等しい最初の要素の位置。`Array Contains`と同じ方法で値により比較します。一致しない場合は`-1`。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `item` | in · data | `any` | |
+| `index` | out · data | `integer` | |
+
+### Array Concat
+
+`blueprint.collection.arrayConcat` · Pure
+
+`a`に続けて`b`を並べた、新しい配列。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `array` | |
+| `b` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Reverse
+
+`blueprint.collection.arrayReverse` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Unique
+
+`blueprint.collection.arrayUnique` · Pure
+
+後から出てくる重複を捨て、それぞれ最初のものだけを残します。要素は値によって比較されるため、同じフィールドを持つ2つのオブジェクトは1つとして扱われます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `result` | out · data | `array` | |
+
+### Array Range
+
+`blueprint.collection.arrayRange` · Pure
+
+`start`から始まり、それぞれ`step`ずつ進む`count`個の数値。ページが何かをN個描画する必要があり、その数値自体がコンテンツになる場合に使う配列です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `start` | in · data | `integer` | カード上のリテラルを受け付けます。既定値は`0`。 |
+| `count` | in · data | `integer` | カード上のリテラルを受け付けます。`0`以上にクランプされます。 |
+| `step` | in · data | `integer` | カード上のリテラルを受け付けます。既定値は`1`であり、`step`が`0`の場合は`1`として読み取られます——そうしないと、範囲の形をした`start`の`count`個のコピーになってしまうためです。 |
+| `result` | out · data | `array` | |
+
+### Array Find By Key
+
+`blueprint.collection.arrayFind` · Pure
+
+`key`フィールドが`value`と等しい最初の要素と、その位置。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | フィールド名。カード上のリテラルを受け付けます。 |
+| `value` | in · data | `any` | |
+| `item` | out · data | `json` | 一致しない場合は`null`。 |
+| `index` | out · data | `integer` | 一致しない場合は`-1`。 |
+
+### Array Filter By Key
+
+`blueprint.collection.arrayFilter` · Pure
+
+`key`フィールドが`value`と等しいすべての要素を、元の順序のまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `value` | in · data | `any` | |
+| `result` | out · data | `array` | |
+
+### Array Sort By Key
+
+`blueprint.collection.arraySort` · Pure
+
+レコードをそのフィールドの1つによって並べ替えます。この key ベースの3つのノードは、比較関数ではなくフィールド名を受け取ります——比較関数は関数値であり、レコードをそのフィールドの1つで並べ替えることこそが、実際にリストが必要としているものだからです。
+
+数値は数値として比較され、真偽値は`false`が`true`より前になり、それ以外はすべてテキストとして、ランタイムが文字列を照合する方法で順序付けられます。フィールドが欠けている、`null`である、または`""`である要素は、**どちらの**方向でも末尾に並びます。同順位は届いた順序を保ちます。空の`key`は配列をそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `array` | in · data | `array` | |
+| `key` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `descending` | in · data | `boolean` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `array` | |
+
+### JSON Array Length
+
+`blueprint.data.jsonArrayLength` · Pure
+
+`Array Length`の旧名であり、既存のグラフの解決を保つために残されています。配列でない値は`0`になります。新しいグラフでは`Array Length`を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `array` | |
+| `length` | out · data | `integer` | |
+
+## ジオメトリ
+
+`Vector2D`と`Rect`は JSON ドキュメントではなく構造化された型であるため、`Get JSON Field`ではなく専用のノードで組み立てたり分解したりします。すべての入力は、数値でない値を`0`として読み取ります。
+
+### Make Vector2D
+
+`blueprint.data.makeVector2d` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `y` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `value` | out · data | `Vector2D` | |
+
+`Vector2D`リテラルとは異なり、両方の成分を配線できます——これは、点を計算で求めるときに`Move Mouse To`が必要とするものです。
+
+### Break Vector2D
+
+`blueprint.data.breakVector2d` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Vector2D` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+
+### Make Rect
+
+`blueprint.data.makeRect` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `x` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `y` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `width` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `height` | in · data | `float` | カード上のリテラルを受け付けます。 |
+| `value` | out · data | `Rect` | |
+
+負の`width`や`height`は、そのまま保持されるのではなく正規化されます——原点が移動し、大きさは正の値になります。そのため、得られる矩形は実際に描いたとおりのものになります。
+
+### Break Rect
+
+`blueprint.data.breakRect` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `x` | out · data | `float` | |
+| `y` | out · data | `float` | |
+| `width` | out · data | `float` | |
+| `height` | out · data | `float` | |
+
+### Rect Center
+
+`blueprint.data.rectCenter` · Pure
+
+矩形の4辺から等距離にある点。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `Rect` | |
+| `center` | out · data | `Vector2D` | |
+
+## オブジェクト
+
+これらは、名前によって一度に1つのフィールドに作用します。パスは受け取りません——ネストした書き込みには`Set JSON Field`を使ってください。オブジェクトでない入力は`{}`として読み取られます。
+
+### Object Keys
+
+`blueprint.collection.objectKeys` · Pure
+
+挿入順のフィールド名。配列やその他のオブジェクトでない値は、空の配列になります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `result` | out · data | `array` | |
+
+### Object Values
+
+`blueprint.collection.objectValues` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `result` | out · data | `array` | |
+
+### Object Set Field
+
+`blueprint.collection.objectSetField` · Pure
+
+`field`は単なる名前であり、その中のドットはパスの区切りではなく名前の一部として扱われます。空の名前はコピーをそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `field` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `value` | in · data | `any` | |
+| `result` | out · data | `json` | |
+
+### Object Remove Field
+
+`blueprint.collection.objectRemoveField` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `object` | in · data | `json` | |
+| `field` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `json` | |
+
+### Object Merge
+
+`blueprint.collection.objectMerge` · Pure
+
+浅いマージであり、衝突した場合は`b`が優先されます。ネストしたオブジェクトはマージされず、置き換えられます。`Merge JSON Object`は、別の型 id を持つ同一の操作です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `json` | |
+| `b` | in · data | `json` | |
+| `result` | out · data | `json` | |
+
+## JSON
+
+パスを扱うノードは、ドット記法でドキュメントを指し示します——`user.profile.name`のように、また配列の添字には数値のセグメントを使います——`items.0`のように。キーの中のリテラルなドットは`\.`としてエスケープします。空のパスはドキュメント全体を意味するため、パスを指定しない`Set JSON Field`はそれをまるごと置き換えます。
+
+### Get JSON Field
+
+`blueprint.data.jsonGet` · Pure
+
+存在しないパスは`null`になるため、存在しないフィールドと`null`を保持するフィールドは同じように読み取られます。その違いが重要な場合は`Has JSON Field`を使ってください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `json` | |
+
+### Has JSON Field
+
+`blueprint.data.jsonHas` · Pure
+
+真偽値ではなく存在の有無を見ます——値が`null`であるフィールドも、存在はしています。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `boolean` | |
+
+### Set JSON Field
+
+`blueprint.data.jsonSet` · Pure
+
+入力をコピーし、そのコピーへ書き込みます。パスの途中で欠けているコンテナは作成されます——次のセグメントが数値であれば配列、そうでなければオブジェクトになります。そのため、空のドキュメントへ`stats.hp`を書き込むと`{ "stats": { "hp": … } }`が生成されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `value` | in · data | `any` | JSON セーフな形で保存されます。 |
+| `result` | out · data | `json` | |
+
+### Remove JSON Field
+
+`blueprint.data.jsonRemove` · Pure
+
+オブジェクトのフィールドを削除するか、配列の項目を取り除いて後続の要素を詰めます。存在しないパスは、コピーをそのまま返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `json` | in · data | `json` | |
+| `path` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `result` | out · data | `json` | |
+
+### Make Object
+
+`blueprint.data.jsonMakeObject` · Pure
+
+動的なピンの組からオブジェクトを組み立てるため、下のシグネチャは出力のみを示します。カード上の各フィールドは、`Name`入力（`string`、カード上のリテラルを受け付ける）と`Value`入力（`any`）を1組追加します。新規ノードは1組から始まります。名前は実行時に読み取られるため、配線された`Name`はキーを計算で求められます。名前が空である、または前に出てきた名前と重複するフィールドはスキップされます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `result` | out · data | `json` | |
+
+### Make Array
+
+`blueprint.data.jsonMakeArray` · Pure
+
+動的な`Item`入力をピンの順に並べて配列を組み立てるため、下のシグネチャは出力のみを示します。新規ノードはどのピンも持たない状態から始まります——カード上で追加してください。これが`array`型を生成するノードであり、組み立てた配列を`Array Length`や List の`Set Items`へ渡す方法です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `result` | out · data | `array` | |
+
+### Merge JSON Object
+
+`blueprint.data.jsonMergeObject` · Pure
+
+`b`が優先される浅いマージであり、`Object Merge`と同一です。オブジェクトでない入力は`{}`として扱われます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `a` | in · data | `json` | |
+| `b` | in · data | `json` | |
+| `result` | out · data | `json` | |
+
+### Clone JSON
+
+`blueprint.data.jsonClone` · Pure
+
+深く、JSON セーフなコピー。書き込み系のノードはすでに入力をコピーしているため、これが必要になるのは、同じドキュメントを、互いの変更を見てはならない2つの分岐へ渡そうとするときだけです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | in · data | `json` | |
+| `result` | out · data | `json` | |
+
+## 値を保持する
+
+### Memo
+
+`blueprint.data.memo`
+
+実行がそこを通過するときに一度だけ入力を読み取り、次に実行がそこを通過するまで、その値を出力に保持し続けます。
+
+これは、このカタログの中で**複数**の消費先に供給してよい唯一のデータ出力です。それ以外はすべて単一消費であり、その理由は2つあります——純粋なノードは読み取るたびに再評価されるため、1つの`Random Float`を3つのピンに配線すると3つの数値が得られてしまいます。そして実行ノードの出力は、それを生成したパルスに属します。Memo にはただ1つの書き手——自分自身——しかいないため、どの読み取りも、その書き込みが残した値を返し、複数へ分岐させても誰も驚きません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `any` | 実行が通過する際に一度だけ読み取られます。 |
+| `result` | out · data | `any` | カード上では Value と表示されます。 |
+
+意図的に latent ではなく同期的です——待つべきものが何もなく、latent なノードはインラインのストーリー値の中では使えないためです。`function`グラフは純粋なままであるため、Memo をその中に置くことはできません。

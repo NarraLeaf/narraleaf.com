@@ -1,0 +1,65 @@
+---
+title: "Render"
+description: NarraLeaf の renderer のルートをマウントし、ストーリーのメタデータを提供する
+---
+
+`render()` は NarraLeaf の renderer のルートをマウントします。通常のプロジェクトでは、CLI が renderer のエントリを自動生成し、`renderer/pages` をスキャンして、あなたの `renderer/App.tsx` をインポートし、`render()` を呼び出します。
+
+## ユーザーアプリの契約
+
+renderer アプリは次をエクスポートする必要があります。
+
+- `metadata.story`：NarraLeaf-React の `Story`。
+- `default`：`children` を受け取る React コンポーネント。
+
+```tsx title="renderer/App.tsx"
+import type { GameMetadata } from "narraleaf/renderer";
+import type { ReactNode } from "react";
+import { Story } from "narraleaf-react";
+
+const story = new Story("My Story");
+
+export const metadata: GameMetadata = {
+    story,
+};
+
+export default function App({ children }: { children: ReactNode }) {
+    return <main>{children}</main>;
+}
+```
+
+生成される renderer のルートは、あなたのアプリを NarraLeaf の `AppProvider` の内側に配置し、プレイヤー／ページの描画結果をあなたの `children` の下に配置します。
+
+## 手動での Render
+
+自分で `render()` を呼び出す必要があることはめったにありません。もし呼び出す場合は、React root アダプタ、ユーザーアプリ、router のデータ、メタデータを渡してください。
+
+```tsx
+import { createRoot } from "react-dom/client";
+import { render } from "narraleaf/renderer";
+import App, { metadata } from "./App";
+
+const root = createRoot(document.getElementById("root")!);
+
+await render({
+    renderer: root,
+    App,
+    appRouterData,
+    metadata,
+});
+```
+
+## 検証
+
+マウントする前に、`render()` は次を確認します。
+
+- `window.NarraLeaf` が存在すること。
+- `document` が存在すること。
+- React のメジャーバージョンが `19` であること。
+- `metadata.story` が存在すること。
+
+preload ブリッジがプラットフォーム情報を返せない場合、NarraLeaf はホストプロセスを終了し、マウントせずに処理を返します。
+
+## エラー時のフォールバック
+
+`renderer/pages/error.tsx` が存在する場合、CLI はそれを renderer 全体のエラーフォールバックページとして扱います。存在しない場合、NarraLeaf は組み込みのフォールバックコンポーネントを使用します。

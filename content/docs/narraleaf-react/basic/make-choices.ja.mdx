@@ -1,0 +1,64 @@
+---
+title: "選択肢を作る"
+description: Menu による分岐ダイアログ、プロンプトと選択肢テキストの装飾、hideIf と disableIf による選択肢の非表示・無効化
+---
+
+[Menu](/ja/docs/narraleaf-react/core/elements/menu) を使うと、ストーリーを一時停止して選択肢を表示できます。選択された項目は、それぞれ自分自身のアクションリストを実行します。
+
+```ts
+import { Menu, Narrator } from "narraleaf-react";
+
+scene.action([
+    Menu.prompt("どこへ行こう?")
+        .choose("図書館", [
+            Narrator.say("図書館へ向かった。"),
+            scene.jumpTo(library),
+        ])
+        .choose("駅", [
+            Narrator.say("駅へ向かって歩き出した。"),
+            scene.jumpTo(station),
+        ]),
+]);
+```
+
+プロンプトが不要な場合は `Menu.choose()` を使います。
+
+```ts
+scene.action([
+    Menu.choose("続ける", [scene.jumpTo(nextScene)]),
+]);
+```
+
+## 選択肢テキストの装飾
+
+プロンプトと選択肢には、文字列、Word、またはその両方の配列を渡せます。
+
+```ts
+import { b, i, Menu } from "narraleaf-react";
+
+Menu.prompt(i("慎重に選んでください。"))
+    .choose([b("左のドア"), "を選ぶ"], [
+        scene.jumpTo(leftDoor),
+    ]);
+```
+
+## 選択肢を隠す・無効化する
+
+`hideIf()` は、条件が真のとき最後の選択肢を取り除きます。`disableIf()` は選択肢を表示したままにしますが、選べないようにします。
+
+```ts
+const state = story.createPersistent("player", {
+    hasKey: false,
+    visitedRoof: false,
+});
+
+const menu = Menu.prompt("次はどうする？")
+    .choose("鍵のかかった扉を開ける", [scene.jumpTo(vault)])
+        .disableIf(state.isFalse("hasKey"))
+    .choose("屋上へ行く", [scene.jumpTo(roof)])
+        .hideIf(state.isTrue("visitedRoof"));
+
+scene.action([menu]);
+```
+
+`enableWhen(condition, prompt, actions)` と `showWhen(condition, prompt, actions)` は、同じ仕組みを肯定形で書いたものです。

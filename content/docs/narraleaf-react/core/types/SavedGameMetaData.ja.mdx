@@ -1,0 +1,53 @@
+---
+title: "SavedGameMetaData"
+description: セーブデータが持つメタデータ：タイムスタンプ、id、最後に発言された行、ストーリーハッシュ、セーブフォーマットのバージョン
+---
+```ts
+interface SavedGameMetaData {
+    created: number;
+    updated: number;
+    id: string;
+    lastSentence: string | null;
+    lastSpeaker: string | null;
+    storyHash: string;
+    version?: number;
+}
+```
+
+## created
+
+ゲームが作成された時刻のタイムスタンプ
+
+## updated
+
+ゲームが最後に更新された時刻のタイムスタンプ
+
+## id
+
+ゲームの id で、各セーブデータに固有です
+
+## lastSentence
+
+最後に発言された文
+
+## lastSpeaker
+
+最後に発言したキャラクター
+
+## storyHash
+
+ストーリーのハッシュ値で、ストーリー同士に互換性があるかどうかを確認するために使われます 
+
+> **注**：ストーリーハッシュはストーリーの内容ではなく、ストーリーのロジックに基づいています。
+>
+> 例えば、アニメーションの順序を変更するとストーリーハッシュに反映されますが、文の内容を変更しても反映されません。
+
+## version
+
+セーブフォーマットのバージョンで、現在は `3` です。
+
+- なし —— バックログが永続化される前に書き出された旧形式（v1）のセーブです。そのまま読み込まれ、バックログは空になります
+- `2` —— 永続化されたバックログを持ちます。[SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame) の `history` を参照してください
+- `3` —— `0.26.0` 以降：`elementStates` にはスクリプトの記述と状態が異なる要素だけが列挙され、読み込み時にはセーブを適用する前にすべての要素がリセットされます
+
+`0.26.0` はこの3種類すべてを読み込めます。それより古いエンジンは v3 のセーブを正しく読み込めません。リセットをスキップしてしまうためです —— [SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame) の `elementStates` を参照してください。

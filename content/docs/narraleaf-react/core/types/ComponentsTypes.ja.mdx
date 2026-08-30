@@ -1,0 +1,30 @@
+---
+title: "ComponentsTypes"
+description: "`Game.configure` を通じてゲームが上書きできる、say、menu、notification、NVL ダイアログの差し替え可能な UI コンポーネントスロットのマップ"
+---
+```typescript
+type ComponentsTypes = {
+    say: SayComponent;
+    menu: MenuComponent;
+    notification: NotificationComponent;
+    nvlDialog: NvlDialogComponent;
+};
+```
+
+ゲームが独自のコンポーネントで差し替えられる、すべてのスロットです。[`Game.configure`](/ja/docs/narraleaf-react/core/game/game) を通じて渡します。
+
+## say
+
+[SayComponent](/ja/docs/narraleaf-react/core/types/SayComponent) を参照してください。
+
+## menu
+
+[MenuComponent](/ja/docs/narraleaf-react/core/types/MenuComponent) を参照してください。
+
+## notification
+
+`Components<INotificationsProps>` —— ゲームの通知を描画するコンポーネントです。[Notification](/ja/docs/narraleaf-react/player/notification) を参照してください。
+
+## nvlDialog
+
+`Components<INvlContainerProps>` —— NVL モードを描画するコンポーネントです。[NVL Container](/ja/docs/narraleaf-react/player/nvl-container) を参照してください。

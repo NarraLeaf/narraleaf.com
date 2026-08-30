@@ -1,0 +1,91 @@
+---
+title: "プラグインシステム"
+description: register と unregister のメソッド、および Game インスタンスへの登録方法を含むプラグインシステム
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+プラグインシステムは、高い拡張性を目指して設計されたフレームワークにとって欠かせない構成要素です。
+プラグインは、開発者が特定のニーズに応じてフレームワークの機能を拡張できるように、ゲームロジックへの
+注入、変更、監視の能力を提供します。
+
+さらに、プラグインシステムはコードの再利用も促進します。開発者はコミュニティが開発したツールを
+活用したり、さまざまなプロジェクト間で共有・統合できるカスタムスクリプトを作成したりできます。
+
+## プラグインを定義する
+
+NarraLeaf-React では、プラグインは `IGamePluginRegistry` インターフェースを実装したオブジェクトとして
+定義されます。
+
+```typescript
+interface IGamePluginRegistry {
+    name: string;
+    register(game: Game): void;
+    unregister(game: Game): void;
+}
+```
+
+- `name` プロパティはプラグインを一意に識別します。
+- `register` メソッドはゲームの初期化時に呼び出されます。
+- `unregister` メソッドはゲームが破棄されるときに呼び出され、副作用を片付ける機会を与えます。
+
+`init` イベントを監視するプラグインの例です。
+
+```typescript
+import { Game, IGamePluginRegistry, LiveGameEventToken } from "narraleaf-react";
+
+let listenerToken: LiveGameEventToken;
+
+const plugin: IGamePluginRegistry = {
+    name: "test_plugin",
+
+    register: (game: Game) => {
+        // このロジックはゲームが初期化されたとき、
+        // かつプレイヤーコンポーネントが描画される前に実行される
+        listenerToken = game.hooks.hook("init", () => {
+            console.log("Game initialized");
+        });
+    },
+
+    unregister: (game: Game) => {
+        // このロジックはゲームが破棄されるとき、
+        // かつプレイヤーコンポーネントがアンマウントされる前に実行される
+        listenerToken.cancel();
+    }
+};
+```
+
+フックについての詳しい情報は、[フック](/ja/docs/narraleaf-react/core/game/hooks)のドキュメントを
+参照してください。
+
+## プラグインを登録する
+
+プラグインを登録するには、プラグインのレジストリを `Game` インスタンスへ渡す必要があります。
+やり方は次のとおりです。
+
+```typescript
+import { useEffect } from "react";
+import { Game, useGame } from "narraleaf-react";
+
+function App() {
+    // このフックはコンポーネント内で呼び出す
+    const game = useGame();
+
+    useEffect(() => {
+        game.use(YOUR_PLUGIN_REGISTRY);
+    }, [game]);
+
+    return /* ... */;
+}
+```
+
+## 組み込みプラグイン
+
+<Callout type="warning">
+    このセクションは作成中です。
+</Callout>

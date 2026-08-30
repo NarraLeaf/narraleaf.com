@@ -7,6 +7,7 @@ import { type Locale, localizedPath } from '@/lib/i18n';
 const LABEL = {
   en: 'Download Studio',
   zh: '下载 Studio',
+  ja: 'Studio をダウンロード',
 } satisfies Record<Locale, string>;
 
 /**

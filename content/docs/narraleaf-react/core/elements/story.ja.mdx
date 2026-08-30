@@ -1,0 +1,174 @@
+﻿---
+title: "ストーリー"
+description: ゲームのエントリーポイントとなる `Story` クラス。シーンのエントリー、永続化データとサービスの登録、セーブ互換性のためのハッシュ計算を扱う
+---
+`Story` はストーリーを作成するための主要なエントリーポイントです。
+
+```ts
+import { Story } from 'narraleaf-react';
+
+const story = new Story("story name");
+const scene1 = new Scene("scene 1");
+
+story.entry(scene1);
+```
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `name: string` - ストーリーの名前
+- `config: IStoryConfig` - [IStoryConfig](/ja/docs/narraleaf-react/core/types/IStoryConfig) を参照
+</Step>
+</Steps>
+
+### entry
+
+<Steps>
+<Step>
+
+- `scene: Scene` - 最初に実行するシーン
+- 戻り値: `this`
+</Step>
+</Steps>
+
+### registerPersistent
+
+<Steps>
+<Step>
+
+永続化オブジェクトをストーリー内で使用できるようにするには、登録する必要があります。
+
+```ts
+const story = new Story("story name");
+const persis = new Persistent</* ... */>("persis", /* ... */);
+
+story.registerPersistent(persistent);
+
+const scene1 = new Scene("scene 1");
+scene1.action([
+    persis.set(/* ... */, /* ... */)
+]);
+```
+
+- `persistent: Persistent<any>` - 登録する [Persistent](/ja/docs/narraleaf-react/core/elements/persistent)
+- 戻り値: `this`
+</Step>
+</Steps>
+
+### registerService
+
+<Steps>
+<Step>
+
+サービスを登録します。詳細は [Service](/ja/docs/narraleaf-react/core/elements/service) を参照してください。
+
+```ts
+const story = new Story(/* ... */);
+const gallery = new Gallery(/* ... */);
+
+story.registerService("gallery", gallery);
+```
+
+- `name: string` - サービスの名前
+- `service: Service<any>` - 登録する [Service](/ja/docs/narraleaf-react/core/elements/service)
+- 戻り値: `this`
+</Step>
+</Steps>
+
+### getService\<T extends Service\>
+
+<Steps>
+<Step>
+
+名前を指定してサービスを取得します。サービスが見つからない場合はエラーをスローします。
+
+```tsx
+const game = useGame();
+const liveGame = game.getLiveGame();
+
+const gallery = liveGame.story?.getService<Gallery>("gallery");
+```
+
+- `name: string` - サービスの名前
+- 戻り値: `T`
+</Step>
+</Steps>
+
+### createPersistent\<T extends PersistentContent\>
+
+<Steps>
+<Step>
+
+Persistent を作成し、ストーリーに登録します。
+
+```typescript
+const persistent = story.createPersistent("playerData", {
+  name: "persistent",
+});
+
+// これは次と等価
+const persistent = new Persistent("playerData", {
+  name: "persistent",
+});
+story.registerPersistent(persistent);
+```
+
+- `namespace: string` - 永続化オブジェクトの名前
+- `defaultContent: T`
+- 戻り値: `Persistent<T>`
+</Step>
+</Steps>
+
+### hash
+
+<Steps>
+<Step>
+
+ストーリーの 64 ビットハッシュを返します。
+
+このハッシュは、テキスト内容ではなく、ストーリーのロジックと操作の順序に基づいて計算されます。具体的には次の通りです:
+
+- ハッシュは、ストーリー内の操作の論理構造と順序を反映します
+- 操作の順序（アニメーションやジャンプなど）を変更すると、ハッシュ値が変わります
+- テキスト内容（セリフや説明文など）を変更しても、ハッシュ値には**影響しません**
+- `strict` が `true` の場合、ハッシュには文字列化されたラムダ関数も含まれます
+
+このハッシュは主に、セーブデータ間のストーリー互換性を確認するために使用されます。
+
+```ts
+const story = new Story("story name");
+const hash = story.hash(); // 基本のハッシュ
+const strictHash = story.hash(true); // 厳格モードのハッシュ
+```
+
+- `strict: boolean` - ハッシュ計算に厳格モードを使用するかどうか（デフォルト: `false`）
+- 戻り値: `string` - ストーリーの 64 ビットハッシュ
+</Step>
+</Steps>
+
+### stringify
+
+<Steps>
+<Step>
+
+ストーリーを文字列表現に変換します。これは主に、内部でのハッシュ計算に使用されます。
+
+文字列化の挙動は `strict` パラメーターによって変わります:
+
+- `strict` が `false`（デフォルト）の場合、基本的な文字列表現を返します
+- `strict` が `true` の場合、出力に文字列化されたラムダ関数が含まれます
+
+```ts
+const story = new Story("story name");
+const str = story.stringify(); // 基本的な文字列表現
+const strictStr = story.stringify(true); // 厳格モードの文字列表現
+```
+
+- `strict: boolean` - 文字列化に厳格モードを使用するかどうか（デフォルト: `false`）
+- 戻り値: `string` - ストーリーの文字列表現
+</Step>
+</Steps>

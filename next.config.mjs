@@ -111,7 +111,7 @@ const config = {
       ...docsRedirects,
       ...docsRedirects.map((redirect) => ({
         ...redirect,
-        source: `/:lang(en|zh)${redirect.source}`,
+        source: `/:lang(en|zh|ja)${redirect.source}`,
         destination: `/:lang${redirect.destination}`,
       })),
     ];

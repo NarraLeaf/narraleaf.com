@@ -1,0 +1,12 @@
+{
+  "title": "CLI",
+  "description": "init、dev、build、プロジェクト検査のための NarraLeaf コマンドラインツール。",
+  "pages": [
+    "index",
+    "commands",
+    "init",
+    "dev",
+    "build",
+    "info"
+  ]
+}

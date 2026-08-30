@@ -1,0 +1,11 @@
+---
+title: "SentenceUserConfig"
+description: "`character.say` に渡される、ユーザー向けの `SentenceConfig` の部分的な形式で、`voice` にはプレーンな文字列を渡せる"
+---
+```typescript
+type SentenceUserConfig = Partial<Omit<SentenceConfig, "voice"> & {
+    voice: Sound | string | null | undefined;
+}>;
+```
+
+`SentenceConfig` については [SentenceConfig](/ja/docs/narraleaf-react/core/types/SentenceConfig) を参照してください。そこには `metadata` や `avatar`（ダイアログアバター。[Dialog](/ja/docs/narraleaf-react/player/dialog) を参照）などの省略可能なフィールドが含まれます。

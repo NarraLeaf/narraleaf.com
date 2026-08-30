@@ -1,0 +1,34 @@
+---
+title: "ActionStatements"
+description: "`Scene.action` がスクリプト本体として受け付ける、連結アクションとナレーション文字列の合成型"
+---
+ActionStatements は、構造化されたナレーションスクリプトで使用できるすべての文要素を表す型です。
+
+```typescript
+export type ChainedActions = (Proxied<LogicAction.GameElement, Chained<LogicAction.Actions>> | LogicAction.Actions)[];
+export type ActionStatements = ChainedActions | string[];
+```
+
+## 例
+
+```typescript
+scene.action([
+    character`こんにちは、世界！`, // これは有効なアクション文です
+
+    character
+        .char(/* ... */)
+        .transform(/* ... */)
+        .say`こんにちは、世界！`, // これも有効な連結アクション文です
+
+    Menu
+        .prompt(/* ... */)
+        .choose("これが選択肢1です", [
+            character`選択肢1を選びました`, // 文はネストできます
+        ]),
+
+    // これは (new Character(null)).say`ナレーターが話す文です` と同等です
+    "ナレーターが話す文です",
+    "昔々、アリスという名前の少女がいました。",
+    "彼女は本を読むのが好きな少女でした。",
+]);
+```

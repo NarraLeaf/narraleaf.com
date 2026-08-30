@@ -1,0 +1,157 @@
+---
+title: Spine
+description: Spine ランタイムアダプタをビルドしてプロジェクトにインストールし、Spine のスケルトンを Studio のキャラクターとして使う
+---
+
+Spine は **骨（ボーン）** によってアニメーションします。スケルトンが、パックされたテクスチャアトラスから描画されるアタッチメントを駆動します。Spine モデルは、スケルトンファイル（`.json` または `.skel`）、`.atlas`、そしてアトラスが参照するテクスチャページから成ります。
+
+Studio は Spine キャラクターをサポートしますが、[Live2D](/ja/docs/studio/model-runtimes/live2d) とは異なり、Spine アダプタを自身でビルドすることはありません。アダプタは一度だけビルドし、プロジェクトにインストールします。アダプタモジュールの一般的な契約については[独自のランタイムを書く](/ja/docs/studio/model-runtimes/custom)を参照してください。このページでは Spine 固有の部分を扱います。
+
+## ライセンス要件
+
+<Callout type="warn">
+    **Spine Runtimes は Esoteric Software によってライセンスされています。** それを含む製品のすべてのユーザーは、それぞれ自身の Spine Editor ライセンスを保有し、あらゆる再配布には Spine Runtimes License Agreement とその著作権表示が伴います。Studio は Spine のコードを一切同梱せず、アダプタをビルドすることもありません。
+</Callout>
+
+ここから三つの要件が生じます。
+
+1. **Spine を扱う全員が、それぞれ自分の Editor ライセンスを必要とします。** これはプロジェクト単位ではなく人単位で数えられます。[Spine の購入ページ](https://esotericsoftware.com/spine-purchase)を参照してください。
+2. **Spine Essential と Professional が有効なのは、売上および資金調達額が 50 万米ドルを下回る場合に限られます。** それを超えると Spine Enterprise が必要になります。しきい値を超えると、Essential または Professional ライセンスは降格ではなく終了します。
+3. **Spine Runtimes License Agreement は、その全文がゲームとともに出荷されなければなりません。** これをランタイムフォルダの `index.js` の隣に置いてください。そのフォルダ内のすべてのファイルはゲームとともに公開されます。
+
+## アダプタをビルドする
+
+アダプタは、Spine ランタイムをエンジンの puppet 契約に橋渡しする単一の ES モジュールです。Esoteric はこのランタイムを npm で公開しているため、ソースを取り込むのではなく npm の依存関係として参照するべきです。
+
+<Steps>
+<Step>
+
+### ビルド用プロジェクトを用意する
+
+```bash
+mkdir spine-adapter && cd spine-adapter
+npm init -y
+npm install @esotericsoftware/spine-webgl esbuild
+```
+
+</Step>
+<Step>
+
+### アダプタを書く
+
+アダプタは、エンジンの `PuppetBackend` を実装する単一のファイルです。Spine 特有の点が二つあります。スケルトンとアトラスは別ファイルであるため、アトラスはホストが提供するエントリを基準に解決しなければならないこと、そして Spine は独自の WebGL コンテキストを必要とすることです。
+
+```js title="src/index.js"
+import {
+    AnimationState, AnimationStateData, AtlasAttachmentLoader,
+    GLTexture, ManagedWebGLRenderingContext, Physics,
+    SceneRenderer, Skeleton, SkeletonBinary, SkeletonJson, TextureAtlas,
+} from "@esotericsoftware/spine-webgl";
+
+export default function createPuppetBackends({ log }) {
+    log("info", "spine backend registered");
+    return {
+        name: "spine",
+        mount(container, ctx) {
+            // ctx.src is the skeleton file; ctx.resolveSibling() reaches the atlas
+            // and its pages. ctx.options is interpreted by the adapter and can
+            // carry the atlas name. Return { ready, apply, command, resize,
+            // dispose } as the engine's Puppet contract describes.
+            // ...
+        },
+    };
+}
+```
+
+エンジンの [Puppet](/ja/docs/narraleaf-react/core/elements/puppet) ページに、各メソッドの内容、呼び出されるタイミング、「完全な状態」が何を意味するかが記載されています。フィールドの対応関係は、`motion` が Spine のアニメーション名に、`skin` が Spine のスキンに、`expression` はリグが表情に使う何かに、あるいは何にも対応しません。
+
+</Step>
+<Step>
+
+### バンドルする
+
+出力は単一の自己完結型 ES モジュールでなければなりません。Studio が読み込むのはそれだからです。
+
+```js title="build.mjs"
+import { build } from "esbuild";
+
+// esbuild keeps a comment only when it contains `@license` or `@preserve` or opens with `/*!`, and
+// the Spine sources open with none of them, so their copyright header is placed here instead.
+const notice = `/*!
+ * Spine Runtimes License Agreement: https://esotericsoftware.com/spine-runtimes-license
+ * Copyright (c) 2013-2025, Esoteric Software LLC
+ */`;
+
+await build({
+    entryPoints: ["src/index.js"],
+    outfile: "dist/index.js",
+    bundle: true,
+    format: "esm",
+    platform: "browser",
+    target: "es2022",
+    banner: { js: notice },
+});
+```
+
+banner が著作権表示をモジュール内に残します。ライセンス契約全文そのものは、ランタイムフォルダに置くファイルの側です。
+
+</Step>
+</Steps>
+
+## アダプタをインストールする
+
+<Steps>
+<Step>
+
+### インストーラーを開く
+
+**新規キャラクター → Spine** で作成したキャラクターから、その*描画ランタイム*行の **インストール** を選択します。あるいは **プロジェクト → ランタイム → Spine → インストール** を使います。
+
+</Step>
+<Step>
+
+### ライセンス条項を確認する
+
+ダイアログには上記の要件が改めて示されます。確認のチェックを入れて続行します。
+
+</Step>
+<Step>
+
+### アダプタの出力を指定する
+
+単一のバンドル済み `index.js` の場合は **ファイルを選択** を使います。アダプタが実行時に読み込む付属ファイルを持つ場合は **フォルダを選択** を使い、この場合はフォルダ全体がコピーされます。
+
+</Step>
+<Step>
+
+### 検証
+
+Studio はそのモジュールをゲームと全く同じ方法で読み込み、バックエンドを産出することを確認します。何も産出しないモジュールは拒否されロールバックされ、プロジェクトには残りません。
+
+</Step>
+</Steps>
+
+<Callout type="info">
+    **Studio はランタイムフォルダに `README.md` を書き込みます。** ただし、そのフォルダにすでに一つある場合は除きます。これは、そのランタイムが Studio によってビルドされたのではなく提供されたものであること、そしてライセンスをゲームとともに公開しなければならないことを記録します。
+</Callout>
+
+<Callout type="info">
+    **フォルダ名はモジュールが登録するバックエンドの名前になります。** モジュールが自身を `spine-pro` として登録し、インストール時には `spine` として選択されていた場合、Studio はフォルダを `spine-pro` にリネームし、それを報告します。エンジンはキャラクターのランタイムを登録名で解決するため、名称の不一致はキャラクターがステージ上に描画されないまま残る原因になります。
+</Callout>
+
+## モデルを追加する
+
+Spine モデルは、スケルトン・アトラス・テクスチャページを含むフォルダなので、フォルダとしてインポートされます。二つの設定が Spine の形式によって決まります。
+
+- **エントリファイル。** Studio はその中のスケルトンファイルを特定します。バンドルに一つのアトラスを共有する複数のスケルトンが含まれる場合は、このキャラクターが使うものを **エントリ** フィールドで指定してください。
+- **アトラス。** ファイル名だけではアトラスを特定するのに十分でないため、その判断はアダプタが行います。慣例として **オプション** から読み取ります。
+
+```json
+{ "atlas": "spineboy/spineboy-pma.atlas", "format": "binary" }
+```
+
+オプションは手を加えられずアダプタに渡され、Studio はそのどのキーも読み取りません。
+
+## キャラクターがサポートする内容
+
+これはアダプタが何を報告するかによります。アダプタがエンジンの `describe()` を実装していれば、Studio はモーション・スキン・パラメータのフィールドをモデルから埋めます — アニメーション名、スキン名、アダプタが公開するパラメータです — そしてプレビューはスケルトンを静止ポーズで描画します。実装していなければ、すべてのフィールドはテキストボックスとなり、名前は手動で入力します。

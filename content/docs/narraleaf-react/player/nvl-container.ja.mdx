@@ -1,0 +1,188 @@
+---
+title: "NVL Container"
+description: NVL モードのコンポーネントである NvlContainer、DefaultNvlContainer、NvlDialogList、および NVL の状態を読み取る useNvl 系のフック
+---
+NVL Container コンポーネントは、NVL（ノベル）モードのダイアログオーバーレイを描画します。複数のダイアログエントリを、スクロール可能なリストとして表示します。`DefaultNvlContainer` をそのまま使うことも、`NvlContainer`、`Nametag`、`Texts` を組み合わせて独自のものを作ることもできます。
+
+## 例
+
+1. コンポーネントをインポートする
+
+```tsx
+import { useEffect } from "react";
+import { DefaultNvlContainer, useGame } from "narraleaf-react";
+```
+
+2. デフォルトのコンポーネントを使う（または `game.configure` でカスタマイズする）
+
+```tsx
+// DefaultNvlContainer is the built-in implementation.
+// It wraps NvlContainer and renders each dialog with Nametag + Texts.
+function App() {
+    const game = useGame();
+
+    useEffect(() => {
+        game.configure({
+            nvlDialog: DefaultNvlContainer,
+        });
+    }, []);
+
+    return /* ... */
+}
+```
+
+3. 独自のコンポーネントでカスタマイズする
+
+```tsx
+import {
+    NvlContainer,
+    Nametag,
+    Texts,
+    useGame,
+    type INvlContainerProps,
+} from "narraleaf-react";
+
+function CustomNvlContainer({ dialogs = [] }: INvlContainerProps) {
+    return (
+        <NvlContainer className="bg-black/80 text-white p-16">
+            {dialogs.map((d) => (
+                <div key={d.entry.id} className="space-y-2">
+                    {d.entry.character && <Nametag entry={d.entry} />}
+                    <Texts
+                        entry={d.entry}
+                        gameState={d.gameState}
+                        words={d.words}
+                        useTypeEffect={d.useTypeEffect}
+                        isActive={d.isActive}
+                    />
+                </div>
+            ))}
+        </NvlContainer>
+    );
+}
+
+function App() {
+    const game = useGame();
+    useEffect(() => {
+        game.configure({ nvlDialog: CustomNvlContainer });
+    }, []);
+    return /* ... */
+}
+```
+
+## コンポーネント
+
+### NvlContainer
+
+NvlContainer は NVL モードの外側のラッパーを描画します。可視性、トランジション、アスペクト比のスケーリングを扱います。子要素はダイアログリストの内容です。
+
+- `children?: React.ReactNode` - 子要素（ダイアログリスト）。
+- `className?: string` - コンテナのクラス名。
+- `style?: React.CSSProperties` - コンテナのスタイル。
+
+### DefaultNvlContainer
+
+DefaultNvlContainer は既定の slot コンポーネントです。プレイヤーから `dialogs` と `renderDialogItem` を受け取り、各ダイアログを `Nametag` と `Texts` で描画します。`game.configure({ nvlDialog: DefaultNvlContainer })` に渡すか、独自実装の参考として使えます。
+
+- `dialogs?: NvlDialogProxy[]` - ダイアログエントリのリスト（プレイヤーから提供されます）。
+- `renderDialogItem?: NvlDialogItemRenderer` - 任意。コンテナ全体を置き換えずに、各項目のレイアウト（スタイルなど）だけをカスタマイズしたい場合に使います。
+
+### NvlDialogList
+
+NvlDialogList はエントリそのものを描画します。`DefaultNvlContainer` はこれを使っており、`NvlContainer` の上に構築するカスタムコンテナも、リストを描画するためにこれ（またはそれに相当する独自実装）を必要とします。各エントリはダイアログのコンテキストで包まれるため、その内部で描画される `Nametag` や `Texts` は、ADV の行ではなくそのエントリを読み取ります。
+
+- `children?: React.ReactNode` - カスタムの項目要素。エントリごとに 1 回ずつ複製され、`entry` と `index` が注入されます。
+- `renderDialogItem?: NvlDialogItemRenderer` - `children` より優先されます。`{ entry, index, isActive, nametag, texts }` を受け取ります。
+- `className?: string` / `style?: React.CSSProperties` - リストのコンテナに適用されます。
+
+`children` も `renderDialogItem` も渡さない場合、各エントリは `DefaultNvlDialogItem` によって描画されます。
+
+### DefaultNvlDialogItem
+
+既定の行：話者の名前の後にコロンが続き、その後にその行のテキストが続きます。カスタムリストの中でのフォールバックとして、あるいは参考実装として使えます。
+
+- `entry: NvlDialogEntry` - 描画するエントリ。
+- `index: number` - リスト内でのインデックス。
+- `texts?: React.ReactNode` - 描画されるテキスト行を置き換えます。ネームタグはそのままです。
+- `className?: string` / `style?: React.CSSProperties`
+
+## Props
+
+### INvlContainerProps
+
+NVL の slot コンポーネントに渡される props です。
+
+- `dialogs?: NvlDialogProxy[]` - 評価済みの単語と状態を持つダイアログエントリの配列。
+- `renderDialogItem?: NvlDialogItemRenderer` - カスタムの項目レイアウト用の任意の拡張。`{ entry, index, isActive, nametag, texts }` を受け取ります。
+
+### NvlDialogItemRenderProps
+
+`renderDialogItem` に渡される props です。
+
+- `entry: NvlDialogEntry` - ダイアログエントリ。
+- `index: number` - リスト内でのインデックス。
+- `isActive: boolean` - このダイアログが現在アクティブ（タイプ中）かどうか。
+- `nametag: React.ReactNode` - あらかじめ描画されたネームタグ（キャラクターがなければ null）。
+- `texts: React.ReactNode` - あらかじめ描画されたテキストの内容。
+
+## renderDialogItem で項目のレイアウトをカスタマイズする
+
+コンテナ全体を置き換えることなく、各ダイアログ項目の見た目だけを変えたい場合（枠線を追加する、非アクティブな項目を薄くするなど）は、`DefaultNvlContainer` をラップして `renderDialogItem` を渡します。
+
+```tsx
+function CustomNvlWithRenderer({ dialogs }: INvlContainerProps) {
+    return (
+        <DefaultNvlContainer
+            dialogs={dialogs}
+            renderDialogItem={({ entry, index, isActive, nametag, texts }) => (
+                <div className={isActive ? "opacity-100" : "opacity-60"}>
+                    {nametag}
+                    <div className="border-l-4 border-blue-500 pl-2">{texts}</div>
+                </div>
+            )}
+        />
+    );
+}
+
+// Then configure: game.configure({ nvlDialog: CustomNvlWithRenderer });
+```
+
+## Hooks
+
+NVL の状態を読み取るフックが 4 つあります。いずれも引数を取らないコンテキストリーダーで、プレイヤーがマウントする `NvlProvider` が保持している値を返します。
+
+このプロバイダーはステージ、ダイアログ、NVL オーバーレイを包んでいるため、カスタムの NVL コンテナ、カスタムのダイアログ、あるいはステージが描画するその他の要素からであれば、これらを呼び出せます。[page router](/ja/docs/narraleaf-react/player/page-router) が描画するページはそのプロバイダーの外側にあり、代わりに何もしない既定値を受け取ります。アクティブではなく、表示されておらず、エントリもありません。
+
+```tsx
+import { useIsNvlMode, useNvlDialogs } from "narraleaf-react";
+
+function LineCount() {
+    const inNvl = useIsNvlMode();
+    const dialogs = useNvlDialogs();
+
+    if (!inNvl) return null;
+    return <span>{dialogs.length} lines</span>;
+}
+```
+
+### useNvl
+
+NVL のコンテキスト値全体を返します。
+
+- `state: NvlState` - 全体のレコード：`active`、`visible`、`sessionId`、`dialogs`、`options`、`activeDialogId`、`phase`（`"idle" | "typing" | "awaitAdvance"`）、`pendingAdvance`、`isTyping`。
+- `dialogs: NvlDialogEntry[]` - 現在リストにあるエントリ。
+- `isActive: boolean` - ゲームが NVL モードかどうか。
+- `isVisible: boolean` - NVL レイヤーが画面に表示されているかどうか。レイヤーが非表示の間もセッションはアクティブなままなので、この 2 つは同じことを問うているわけではありません。
+- `transitionOptions: Partial<TransformDefinitions.CommonTransformProps> | null` - 現在有効になっている表示または非表示のトランジションの transform オプション。ない場合は `null`。
+
+### useNvlDialogs
+
+`useNvl().dialogs` — 現在リストにあるエントリ。
+
+### useIsNvlMode
+
+`useNvl().isActive` — ゲームが NVL モードかどうか。
+
+### useIsNvlVisible
+
+`useNvl().isVisible` — NVL レイヤーが画面に表示されているかどうか。

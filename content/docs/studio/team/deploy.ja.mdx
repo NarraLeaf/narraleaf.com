@@ -1,0 +1,134 @@
+---
+title: サーバーをデプロイする
+description: コンテナまたは npm から NarraLeaf Team サーバーを実行する方法と、それが必要とする二つのポート
+---
+
+NarraLeaf Team サーバーは一台のマシン上で動作し、それが所有するすべてを一つのディレクトリの下に保持します。コンテナイメージはより短い道であり、必要なものをすべて持っています。
+
+## Docker を使う場合
+
+`compose.yaml` を書きます。変更が必要な値は一つだけで、それは人々がこのサーバーに到達する際に使う名前です。
+
+```yaml
+services:
+  team:
+    image: ghcr.io/narraleaf/team:0.1.0
+    restart: unless-stopped
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+    ports:
+      - "41402:41402"
+      - "41337:41337/tcp"
+      - "41337:41337/udp"
+    volumes:
+      - team:/var/lib/nlteam
+volumes:
+  team:
+```
+
+<Steps>
+
+<Step>
+
+### サーバーを起動する
+
+```sh
+docker compose up -d
+```
+
+初回起動時には何もダウンロードされません。イメージにはバージョン管理サーバーが既に展開済みの状態で含まれています。
+
+</Step>
+
+<Step>
+
+### 最初のアカウントを作成する
+
+まずパスワードをファイルに書き出します。そのファイルにはそのパスワードだけを入れてください。パスワードは十文字以上である必要があります。
+
+```sh
+printf '%s' 'a password of your own' > admin-password
+docker compose exec -T team nlteam init ada < admin-password
+rm admin-password
+```
+
+`init` は一度だけ実行されます。これは最初のアカウントを作成して `admin` グループに入れ、サーバーに一つでもアカウントができた瞬間から拒否されるようになります。パスワードは引数からではなくファイルから読み取られます。引数に書くと、プロセス一覧や shell の履歴に現れてしまうためです。
+
+</Step>
+
+<Step>
+
+### アドレスとフィンガープリントを読み取る
+
+```sh
+docker compose exec team nlteam status
+```
+
+`sign in` の行にはアドレスがあり、その下の行にはサーバー証明書のフィンガープリントがあります。接続する人はそれぞれこのフィンガープリントを一度だけ照合するため、これから信頼しようとしているその接続とは別の経路で送ってください。
+
+</Step>
+
+</Steps>
+
+これで、このサーバーを使う人々に渡すべき三つのものが揃いました。アドレス、一つのアカウント、そしてそのフィンガープリントです。それ以外はすべて Studio 側で行います。
+
+アドレスはホストとポートから成り、`nlteam://team.example.com:41402` のように書きます。`status` はこれを `https://` から始まる URL として表示しますが、それは Studio がサインインする際のエンドポイントであって、配布すべきアドレスではありません。Studio はその書き方を受け付けません。
+
+## Docker を使わない場合
+
+このパッケージはまだ公開されていません。チェックアウトから `nlteam` をビルドします。
+
+```sh
+git clone https://github.com/NarraLeaf/NarraLeaf-Team.git
+cd NarraLeaf-Team
+npm install && npm run build && npm link
+nlteam up --root /srv/team --hostname team.example.com
+```
+
+`up` はバージョン管理サーバーをインストールし、設定し、起動し、中断されるまで動作し続けます。残りのコマンドは二つ目の端末で実行してください。
+
+```sh
+printf '%s' 'a password of your own' | nlteam init ada --root /srv/team
+nlteam status --root /srv/team
+```
+
+64 ビットの Linux、Windows、または Apple silicon 上で、Node.js 24 以降が必要です。
+
+## ポート
+
+| ポート | 作者のマシンから到達可能か | 用途 |
+| --- | --- | --- |
+| 41402 | はい | サインイン、および Studio が保持するセッション |
+| 41337 | はい、TCP と UDP | プロジェクトデータ |
+| 41339 | いいえ | バージョン管理サーバーのヘルスチェック |
+| 41400 | いいえ | サーバーの署名鍵 |
+
+41337 の両方を公開してください。QUIC に落ち着いた接続は UDP を使うため、TCP だけを開いたデプロイでは、そのようなクライアントを待たせ続けることになります。
+
+他の二つのリスナーはループバックにバインドされており、ファイアウォールが何を許可していようと、他のマシンから到達することはできません。
+
+## 既に証明書を持っている場合
+
+人々が使う名前に対する証明書を既に持っている組織は、それをサーバーに渡します。すると誰もフィンガープリントを照合する必要がなくなります。発行者は各マシンで既に信頼されているためです。
+
+```yaml
+    environment:
+      NLTEAM_HOSTNAME: team.example.com
+      NLTEAM_TLS_CERT: /etc/nlteam/tls/fullchain.pem
+      NLTEAM_TLS_KEY: /etc/nlteam/tls/privkey.pem
+    volumes:
+      - team:/var/lib/nlteam
+      - ./tls:/etc/nlteam/tls:ro
+```
+
+両方の値を指定するか、どちらも指定しないかのどちらかにし、鍵にはパスフレーズを付けないでください。更新は再起動で反映されます。
+
+## バックアップ
+
+`/var/lib/nlteam`、または `--root` が指す先のディレクトリには、アカウント、プロジェクト、署名鍵、証明書の認証局、そしてリポジトリの保存領域が入っています。そのディレクトリをバックアップすれば、このサーバーはバックアップされたことになります。
+
+それを失うと、このサーバーを信頼していたすべてのマシンに、その後継を信頼するよう伝え直さなければなりません。
+
+## 完全なリファレンス
+
+リポジトリの[デプロイ文書](https://github.com/NarraLeaf/NarraLeaf-Team/blob/main/docs/operations.md)に、すべてのコマンドとすべての設定項目が載っています。

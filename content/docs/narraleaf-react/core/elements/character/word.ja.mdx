@@ -1,0 +1,200 @@
+﻿---
+title: "Word\\<T extends string | DynamicWord | Pausing | TextEvent = string | DynamicWord | Pausing | TextEvent\\>"
+description: 対白テキストにスタイルを付ける`Word`クラス。色、太字、斜体、ルビ、カスタムレンダリングされる単語を扱う
+---
+Wordは`Sentence`の一部です。テキストにスタイルを付けるために使用します。
+
+赤い単語を構築する：
+
+```ts
+import { Word } from 'narraleaf-react';
+
+const word = new Word("Hello", {color: "#f00"});
+```
+
+ルビ付きの単語を構築する：
+
+```ts
+const word = new Word("你好", {ruby: "nǐ hǎo"});
+```
+
+動的な単語を構築する：
+
+```ts
+// This word will be executed when it is displayed
+const word = new Word((ctx) => 
+    `Now it is ${new Date().toLocaleTimeString()}`
+, {color: "#f00"});
+```
+
+## 静的メソッド
+
+### isWord
+
+<Steps>
+<Step>
+
+- `obj: any` - チェック対象のオブジェクト
+- オブジェクトが`Word`のインスタンスであれば`true`、そうでなければ`false`を返します。
+</Step>
+</Steps>
+
+### color
+
+<Steps>
+<Step>
+
+- `text: string | Word` - 色を付けるテキスト、またはWordインスタンス
+- `color: Color` - 適用する色。[Color](/ja/docs/narraleaf-react/core/types/color)を参照
+- 指定した色を持つ新しい`Word`インスタンスを返します。
+</Step>
+</Steps>
+
+### bold
+
+<Steps>
+<Step>
+
+- `text: string | Word` - 太字にするテキスト、またはWordインスタンス
+- 太字書式を持つ新しい`Word`インスタンスを返します。
+</Step>
+</Steps>
+
+### italic
+
+<Steps>
+<Step>
+
+- `text: string | Word` - 斜体にするテキスト、またはWordインスタンス
+- 斜体書式を持つ新しい`Word`インスタンスを返します。
+</Step>
+</Steps>
+
+### custom
+
+<Steps>
+<Step>
+
+自分で用意したコンポーネントで単語をレンダリングします。[カスタムレンダリング](#custom-rendering)を参照してください。`0.27.0`以降で使用できます。
+
+- `text: string | Word` - レンダリング対象のテキスト、またはWordインスタンス
+- `render: WordRenderer` - コンポーネント、または[registerWordRenderer](#registerwordrenderer)で登録済みのコンポーネントのid
+- `config?: Partial<WordConfig> & { data?: T }` - `render`を除いた[WordConfig](/ja/docs/narraleaf-react/core/types/WordConfig)に加えて、コンポーネントへ渡す`data`ペイロード
+- そのコンポーネントによって描画される新しい`Word`インスタンスを返します。
+</Step>
+</Steps>
+
+## パブリックメソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `text: T` - 単語の内容
+- `config?: Partial<WordConfig>` - [WordConfig](/ja/docs/narraleaf-react/core/types/WordConfig)
+</Step>
+</Steps>
+
+### toString
+
+<Steps>
+<Step>
+
+単語が文字列であれば、その文字列を返します。そうでなければ、空文字列を返します。
+
+- 戻り値は`string`
+</Step>
+</Steps>
+
+## カスタムレンダリング [#custom-rendering]
+カスタム単語は、コンポーネントをまとった普通のテキスト単語です。他の単語と同じように1文字ずつタイプされ、バックログ、既読テキストの記録、ボイスパイプラインにはプレーンテキストとして届き、決してシリアライズされません。行が再評価されるたびにコンポーネントが再アタッチされるため、セーブデータにはその痕跡が一切残りません。
+
+```tsx
+import { Word, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    return (
+        <span className="underline decoration-dotted"
+              onClick={() => revealed && openGlossary(data.entry)}>
+            {children}
+        </span>
+    );
+}
+
+character.say([
+    "今日は",
+    Word.custom("エーテル濃度", GlossaryTerm, {data: {entry: "aether"}}),
+    "が異常に高い。",
+]);
+```
+
+コンポーネントは[WordRenderProps](/ja/docs/narraleaf-react/core/types/WordRenderProps)を受け取ります。これを土台にした完全なポップアップについては、[Custom Word](/ja/docs/narraleaf-react/solutions/custom-word)を参照してください。
+
+### レイアウト済みのテキスト
+
+`children`は、エンジンがすでにレイアウトを終えた単語のテキストで、ルビ、縦書きモード、縦中横が適用済みです。レンダリングするのは`children`にしてください。代わりに`text`をレンダリングすると、同じ文字は得られますが、この3つはいずれも適用されません。
+
+### スタイルの適用順序
+
+コンポーネントは、エンジンがスタイルを設定する要素の内側でレンダリングされるため、解決済みのスタイルはすでに効いています。エンジンのデフォルト、ダイアログのテキストprops、Sentence、Wordの順に適用されます。コンポーネントは最も内側にあるため、そこで設定した内容が最後に適用されます。
+
+`Word.custom`は他のファクトリーとどちらの順序でも組み合わせられます。`Word.bold(Word.custom(text, Term))`と`Word.custom(Word.color(text, "#f00"), Term)`は、どちらもスタイルとコンポーネントの両方を保ちます。
+
+### クリック
+
+単語がまだタイプ中の間は、それをクリックすると他の場所と同じように行が進みます。単語が完全に表示されると、その単語自身がクリックを受け取るようになり、行はその裏で進まなくなります。
+
+### 改行
+
+改行を含むカスタム単語は、行ごとに1つのラッパーとして描画されます。改行は両者の間にあり、どちらにも属さないためです。そのうち`revealed`を報告するのは最後のラッパーだけです。改行はカスタム単語の内部ではなく、その前後の単語の中に置いてください。
+
+### NVLモード
+
+カスタム単語はNVLモードでも同じようにレンダリングされ、同じように振る舞いますが、そこでは[useDialogOverlay](/ja/docs/narraleaf-react/player/hooks/useDialogOverlay)にホストがなく、コンテナも報告されません。NVLモードで動作する必要があるポップアップは、インラインでレンダリングしてください。
+
+## レンダラーレジストリ [#renderer-registry]
+コード内で構築された単語は、コンポーネントを直接保持します。ストーリーファイルからコンパイルされたり、プラグインから提供されたりする、データとして届く単語はidを保持し、そのidは単語が描画される際に解決されます。以下の3つの関数はすべて`0.27.0`以降で使用できます。
+
+```tsx
+import { registerWordRenderer, Word } from "narraleaf-react";
+
+registerWordRenderer("glossary", GlossaryTerm);
+
+new Word("エーテル濃度", {render: "glossary", data: {entry: "aether"}});
+```
+
+何も登録されていないidは、プレーンテキストとしてレンダリングされ、コンソールにidごとに1回報告されます。例外は投げられないため、プラグインが見つからない行でも読むことはできます。
+
+### registerWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - 単語が参照するid
+- `component: React.ComponentType<WordRenderProps<T>>` - それらの単語を描画するコンポーネント
+- 登録を解除する関数を返します。
+
+同じidを再度登録すると、コンポーネントは置き換えられます。すでに画面上にある行は、次回のレンダリング時に新しいコンポーネントを使うようになります。
+</Step>
+</Steps>
+
+### unregisterWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - 削除するid
+- 戻り値は`void`
+</Step>
+</Steps>
+
+### getWordRenderer
+
+<Steps>
+<Step>
+
+- `id: string` - 検索するid
+- 登録済みのコンポーネント、または`null`を返します。
+</Step>
+</Steps>

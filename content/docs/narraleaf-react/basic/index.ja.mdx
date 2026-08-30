@@ -1,0 +1,133 @@
+---
+title: "NarraLeaf-React 基礎"
+description: シーン、アクション、対話、選択肢、メディア、データ、環境設定を扱う NarraLeaf-React の基本的な制作フローを学びます
+---
+
+基礎ガイドは、NarraLeaf-React プロジェクトが動く状態になった後に最初に読むページです。シーンの定義、アクションの追加、対話や画像の表示、シーン同士の接続という物語制作の流れを一通り解説したうえで、インタラクション、音声、データ、ボイス、プレイヤー設定を順に重ねていきます。
+
+<Callout type="info">
+    これらのサンプルは NarraLeaf React 0.39.2 および React 19 を対象としています。古いプロジェクトには、`Sound.sync` や `GameConfig` の対話フォントのデフォルト値など、すでに削除されたオプションが残っている場合があります。
+</Callout>
+
+## 前提条件
+
+このセクションを始める前に、NarraLeaf-React プロジェクトを作成または用意してください。
+
+<Cards>
+    <Card
+        title="クイックスタート"
+        description="スターターテンプレートから新しい NarraLeaf-React プロジェクトを作成します。"
+        href="/ja/docs/narraleaf-react/quick-start"
+    />
+    <Card
+        title="インストール"
+        description="既存の React アプリケーションに NarraLeaf-React をインストールします。"
+        href="/ja/docs/narraleaf-react/installation"
+    />
+</Cards>
+
+## 基本の流れ
+
+<Steps>
+<Step>
+
+### シーンを作成する
+
+まず [Scene](/ja/docs/narraleaf-react/basic/create-scene) を定義するところから始めます。シーンは、ビジュアルノベルの名前付きの区間に、その背景と物語の文脈を与えるものです。
+
+</Step>
+<Step>
+
+### アクションを追加する
+
+[アクション](/ja/docs/narraleaf-react/basic/add-actions)を使って、シーンの中で何が起こるかを記述します。アクションは、ストーリー再生中に NarraLeaf-React が順番に実行する命令です。
+
+</Step>
+<Step>
+
+### ストーリーの内容を表示する
+
+[対話](/ja/docs/narraleaf-react/basic/show-dialog)を表示し、[画像](/ja/docs/narraleaf-react/basic/show-image)を表示したうえで、[ストーリーを再生](/ja/docs/narraleaf-react/basic/play-story)してプレイヤーに渡すことで、シーンをインタラクティブに体験できるようにします。
+
+</Step>
+<Step>
+
+### インタラクションと状態を追加する
+
+[選択肢](/ja/docs/narraleaf-react/basic/make-choices)、[条件](/ja/docs/narraleaf-react/basic/conditional)、[保存データ](/ja/docs/narraleaf-react/basic/store-data)を使って、ストーリーがプレイヤーの選択やそれまでの出来事に応じて反応するようにします。
+
+</Step>
+<Step>
+
+### 体験を磨き上げる
+
+[サウンド](/ja/docs/narraleaf-react/basic/sound)、[ボイス](/ja/docs/narraleaf-react/basic/voice)、[環境設定](/ja/docs/narraleaf-react/basic/manage-preferences)を追加して、ビジュアルノベルとしての完成度を高め、プレイヤーが再生を自分でコントロールできるようにします。
+
+</Step>
+</Steps>
+
+## チュートリアル
+
+<Cards>
+    <Card
+        title="シーンを作成する"
+        description="物語の構造と視覚的な文脈をなす基本単位を定義します。"
+        href="/ja/docs/narraleaf-react/basic/create-scene"
+    />
+    <Card
+        title="アクションを追加する"
+        description="シーンを駆動する、順序付けられたアクションのリストを組み立てます。"
+        href="/ja/docs/narraleaf-react/basic/add-actions"
+    />
+    <Card
+        title="対話を表示する"
+        description="キャラクターのセリフとナレーションを表示します。"
+        href="/ja/docs/narraleaf-react/basic/show-dialog"
+    />
+    <Card
+        title="画像を表示する"
+        description="シーンに視覚素材を配置します。"
+        href="/ja/docs/narraleaf-react/basic/show-image"
+    />
+    <Card
+        title="ストーリーを再生する"
+        description="シーンをプレイヤーに接続し、ストーリーを実行します。"
+        href="/ja/docs/narraleaf-react/basic/play-story"
+    />
+    <Card
+        title="選択肢を作る"
+        description="プレイヤーに分岐を選ばせます。"
+        href="/ja/docs/narraleaf-react/basic/make-choices"
+    />
+    <Card
+        title="サウンド"
+        description="オーディオキューと再生の挙動を追加します。"
+        href="/ja/docs/narraleaf-react/basic/sound"
+    />
+    <Card
+        title="データを保存する"
+        description="後のストーリーの出来事に影響する値を保存します。"
+        href="/ja/docs/narraleaf-react/basic/store-data"
+    />
+    <Card
+        title="条件分岐"
+        description="現在のゲーム状態が一致するときだけアクションを実行します。"
+        href="/ja/docs/narraleaf-react/basic/conditional"
+    />
+    <Card
+        title="ボイス"
+        description="ストーリーの表現にボイス再生を組み合わせます。"
+        href="/ja/docs/narraleaf-react/basic/voice"
+    />
+    <Card
+        title="環境設定を管理する"
+        description="プレイヤー向けの設定を公開し、更新します。"
+        href="/ja/docs/narraleaf-react/basic/manage-preferences"
+    />
+</Cards>
+
+## 次のステップ
+
+基礎ガイドを終えたら、完成されたパターンについては[ソリューション](/ja/docs/narraleaf-react/solutions)を、基盤となるストーリー API については[コア](/ja/docs/narraleaf-react/core)を、体験を描画する React コンポーネントとフックについては[プレイヤー](/ja/docs/narraleaf-react/player)を参照してください。
+
+0.13 系のプロジェクトについては、[画像を表示する](/ja/docs/narraleaf-react/basic/show-image)のページでレイヤー化されたスプライトを、[サウンド](/ja/docs/narraleaf-react/basic/sound)のページで `Control.doAsync()` を使った現在の非ブロッキングな音声パターンを扱っています。

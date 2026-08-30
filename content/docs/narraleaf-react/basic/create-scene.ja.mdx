@@ -1,0 +1,56 @@
+---
+title: "シーンを作成する"
+description: URL・インポートした画像・色によるシーンの背景、setBackground による切り替え、scene.local によるシーン内データ
+---
+
+[Scene](/ja/docs/narraleaf-react/core/elements/scene) は、ストーリーの中の一つの区間です。背景、アクションのリスト、シーン内データを持ちます。
+
+```ts
+import { Scene } from "narraleaf-react";
+
+const room = new Scene("room-morning", {
+    background: "/backgrounds/room-morning.webp",
+});
+```
+
+第一引数はシーン名です。一意になるようにしてください。NarraLeaf はストーリーの構築時とセーブデータの復元時にこの名前を使用します。第二引数は省略可能な [ISceneUserConfig](/ja/docs/narraleaf-react/core/types/ISceneUserConfig) です。
+
+## 背景
+
+URL、インポートした画像、または CSS の色を指定できます。
+
+```ts
+const blackScreen = new Scene("black-screen", {
+    background: "#000",
+});
+
+// Next.js、Vite などのバンドラーは、インポートした画像データを解決できます。
+import roomBackground from "./room.webp";
+
+const importedRoom = new Scene("imported-room", {
+    background: roomBackground,
+});
+```
+
+背景は後から `setBackground()` で変更できます。変更をアニメーションさせたい場合は Transition を渡してください。
+
+```ts
+import { Dissolve } from "narraleaf-react";
+
+room.action([
+    room.setBackground("/backgrounds/room-night.webp", new Dissolve({ duration: 600 })),
+]);
+```
+
+## シーン内データ
+
+`scene.local` は一時的な値を保持します。シーンを抜けるとクリアされ、ストーリーへの登録も不要です。
+
+```ts
+room.action([
+    room.local.set("visitedWindow", true),
+    "カーテンを開けた。",
+]);
+```
+
+シーンをまたいで保持する必要がある値には [Persistent](/ja/docs/narraleaf-react/basic/store-data) を使用してください。

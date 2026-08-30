@@ -1,0 +1,53 @@
+---
+title: テキスト入力
+description: nl.textInput ウィジェットの Self ノード——プレイヤーが入力した値の読み取り、置き換え、クリアです
+---
+
+Text Input 分類は `nl.textInput` ウィジェットの Self ノード集合です。ノードは3つで、いずれも同じもの、すなわちフィールドの実行時の値を扱います。これらは `nl.textInput` 要素自身の `widgetMain` ブループリントのパレットにのみ現れ、その要素に対して作用します。**別の**フィールドにアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) 分類にある同名の `blueprint.element.textInput.*` ノードを使用してください。これは `element:nl.textInput` 入力を取ります。
+
+ノードが3つしかないのは、実行時の値がこの文字列以外に何も運ばないためです。`placeholder`、`readOnly`、`disabled`、`inputMode`、`maxLength` は作者が設定する props のままであり——これらへのブループリントによるパッチは静かに破棄されるため、対応するノードは一切提供されません。入力への反応は、[Events](/ja/docs/studio/blueprint/nodes/events) 分類にあるこのウィジェットの `Value Changed` と `Submit` イベントで処理してください。
+
+## 規約
+
+- **ターゲットピンはありません。** Self ノードには `Element` 入力がなく、ブループリントの実行元からターゲットを解決します。
+- **この値はセッション状態です。** プレイヤーが入力した内容はそのセッションの実行時ストアに存在し、プロジェクトドキュメントに書き戻されることはありません。`Get Text` はそのストアを読み取り、`Set Text` と `Clear Text` はそこに書き込みます。作者が設定した `props.value` は、フォールバック時の起点にすぎません。
+- **`Get Text` は `Pure`、2つの書き込みノードは `Latent` です。** 読み取りは `event`、`function`、`macro` グラフで合法です。書き込みはグラフを一時停止させるため `function` グラフには置けません——function は同期的に戻るため、保留中の書き込みを置いておく場所がありません。
+- **Blueprint Value では使用できません。** Blueprint Value の宿主は `widgetValue` であり、これらのノードのスコープは `widgetMain` であるため、`Get Text` はそのパレットには現れません。Blueprint Value 内であるフィールドを読み取るには、Element を対象とした `Get Text` を `Element` のリテラルとともに使用してください。
+- **書き込みにはゲームの実行が必要です。** ホスト API はブループリントの実行時の下でのみ存在します。エディターのキャンバス上では、書き込みノードは `Host API unavailable (use Dev Mode)` で失敗し、`Get Text` は何も生成しません。
+- **書き込まれた値もクランプされます。** 改行は単一のスペースに畳み込まれます——単一行のフィールドは、グラフから改行を紛れ込ませてはいけません——また、`maxLength` がゼロでない場合は文字列がその長さに切り詰められます。ただし `inputMode` のフィルターは適用されません。これはキーボード上で不正なキー入力を拒否する仕組みであるため、ブループリントは `number` フィールドに文字を書き込むことができます。
+- **ブループリントによる書き込みはキー入力ではありません。** 値を移動させ、flush をキューに入れるだけです。`Value Changed` と `Submit` はプレイヤーの入力によってのみ発生し、`Set Text` や `Clear Text` によって発生することはありません。そのため、自分自身のフィールドに書き戻すハンドラーが無限ループに陥ることはありません。
+- **何も変わらない書き込みは何もしません。** フィールドがすでに保持している値を設定しても flush はキューに入らず、要素は `On Flush` を発行しません。
+
+## Get Text
+
+`blueprint.textInput.getValue` · Pure
+
+フィールドの現在の値と、その長さを合わせて読み取ります。これにより、「空かどうか / 十分な長さかどうか」というよくある判定のために別の文字列ノードを用意する必要がなくなります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `string` | |
+| `length` | out · data | `float` | UTF-16 単位ではなくコードポイント単位で数えるため、絵文字は1として数えられます。これは `maxLength` が使う単位と同じです。常に整数ですが、型は `float` です。 |
+
+## Set Text
+
+`blueprint.textInput.setValue` · Latent
+
+フィールドの値を置き換えます。実行時ストアに直接書き込み、フォーカスは移動させません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `string` | 何にも解決できない場合は空文字列を書き込みます。カード上での直接入力に対応します。 |
+
+## Clear Text
+
+`blueprint.textInput.clear` · Latent
+
+空文字列を書き込みます。何も接続していない `Set Text` と同じですが、カード上でその意図を明示します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |

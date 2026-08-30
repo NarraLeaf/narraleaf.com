@@ -1,0 +1,66 @@
+---
+title: "WordRenderProps"
+description: "`Word.custom` に登録されたコンポーネントに渡される props：表示済みテキスト、完全なテキスト、表示状態、解決済みスタイル、単語自身の設定"
+---
+```typescript
+type WordRenderProps<T = unknown> = {
+    children: React.ReactNode;
+    text: string;
+    fullText: string;
+    revealed: boolean;
+    done: boolean;
+    style: Readonly<React.CSSProperties>;
+    config: Readonly<Partial<WordConfig>>;
+    data: T;
+};
+```
+
+[`Word.custom`](/ja/docs/narraleaf-react/core/elements/character/word#custom) に渡すコンポーネントが受け取る内容です。`0.27.0` から利用可能です。
+
+```tsx
+import { Word, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<{entry: string}>) {
+    return (
+        <span onClick={() => revealed && openGlossary(data.entry)}>
+            {children}
+        </span>
+    );
+}
+```
+
+## children
+
+エンジンがすでに組版済みの、この単語のテキストです。ルビ、縦書きモード、縦中横がこの中に適用されており、これまでに表示された文字のみが含まれます。
+
+`children` を描画してください。代わりに `text` を描画すると、同じ文字がルビなし・縦書きモードなし・縦中横なしで得られます。
+
+## text
+
+これまでに表示された文字を、プレーンな文字列として表したものです。タイプライターがこの単語を通過し終えると `fullText` と等しくなります。
+
+## fullText
+
+表示済みかどうかにかかわらず、単語全体です。
+
+## revealed
+
+この単語のすべての文字が表示済みかどうかです。
+
+改行を含む単語は行ごとに一つのラッパーとして描画され、そのうち最後のものだけが `revealed` を報告します。
+
+## done
+
+この単語だけでなく、行全体の表示が完了したかどうかです。
+
+## style
+
+この単語について解決済みのスタイルです。エンジンの既定値、ダイアログのテキスト props、文、単語の順に適用されます。コンポーネントが描画される要素にはすでに適用済みであり、これを基準に測定したり、ポータルへ持ち込んだりするコンポーネントのために渡されます。
+
+## config
+
+この単語自身の [WordConfig](/ja/docs/narraleaf-react/core/types/WordConfig) です。
+
+## data
+
+単語の作成時に `data` として渡されたペイロードです。参照として渡されるため、コンポーネントは渡された値そのものを受け取り、コピーではありません。

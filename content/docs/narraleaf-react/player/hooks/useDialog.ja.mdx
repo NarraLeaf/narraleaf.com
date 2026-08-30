@@ -1,0 +1,78 @@
+---
+title: "useDialog"
+description: 現在のダイアログ行の完了状態、テキスト、ナレーターかどうかを返す useDialog フック
+---
+`useDialog` は、現在のダイアログの状態と内容にアクセスするためのカスタムフックです。センテンスのコンテキストからダイアログの情報を取得し、単語を処理して最終的なテキストを生成します。
+
+## 使い方
+
+```tsx
+import { useDialog } from '@narraleaf/player';
+
+function MyComponent() {
+    const { done } = useDialog();
+    
+    return (
+        <div>
+            {!done && <div>The sentence is not complete</div>}
+        </div>
+    );
+}
+```
+
+## 戻り値
+
+このフックは、次のプロパティを持つ `DialogContext` オブジェクトを返します。
+
+- `done: boolean` - ダイアログの表示が完了したかどうか
+- `text: string` - ダイアログのテキスト内容
+- `isNarrator: boolean` - ダイアログがナレーターの発言かどうか。キャラクターがない、またはキャラクターに名前がないセンテンスはナレーターの発言になります
+
+## 例
+
+`useDialog` フックを使って、対話テキストと次の行があることを示すインジケーターを表示する実践的な例です。
+
+```tsx {23, 32}
+import { Dialog, Texts, Nametag, useDialog } from "narraleaf-react";
+
+/* 
+ * NextLine component displays the dialog text and a visual indicator
+ * showing when the dialog is complete.
+ * 
+ * - An animated triangle and underline that appear when dialog is done
+ */
+export function GameDialog() {
+    return (
+        <Dialog className="bg-contain bg-no-repeat bg-bottom relative">
+            <div className="absolute flex justify-center">
+                <Nametag />
+            </div>
+            <div className="flex items-center gap-[5px]">
+                <NextLine />
+            </div>
+        </Dialog>
+    )
+}
+
+function NextLine() {
+    const {done} = useDialog(); // use the dialog hook to access the dialog state
+
+    return (
+        <>
+            <Texts className="max-w-max" />
+            {/* Add inverted triangle and underline */}
+            <div className="flex flex-col items-center">
+                {/* Inverted triangle */}
+                {/* The triangle is hidden when the dialog is not complete */}
+                <div className={`${done ? '' : 'transparent'} w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[10px] border-t-white`} />
+                {/* Underline */}
+                <div className="w-[12px] h-[2px] bg-white mt-[2px]" />
+            </div>
+        </>
+    );
+}
+```
+
+## 補足
+
+- テキストは、そのセンテンスに含まれるすべての単語を連結した文字列です

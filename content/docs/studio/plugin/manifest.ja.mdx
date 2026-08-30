@@ -1,0 +1,149 @@
+---
+title: マニフェスト
+description: manifest.json のすべてのフィールド――エントリー、contributes の全体像、そしてほとんどの権限が手書きではなく派生である理由
+---
+
+`manifest.json` は、Studio がコードを実行せずに読み取る唯一のファイルです。プラグインが提供するものを宣言し、インストールプロンプトに表示されるすべてがそこから計算されます。
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": {
+    "blueprintNodes": ["yourname.hello.log"],
+    "runtimeCapabilities": ["store"]
+  },
+  "permissions": []
+}
+```
+
+## トップレベルのフィールド
+
+| フィールド | 必須 | 備考 |
+| --- | --- | --- |
+| `manifestVersion` | はい | 常に `2`。バージョン 1 は拒否されます。 |
+| `id` | はい | 名前空間付き:`publisher.plugin-name`、すべて小文字、少なくとも 1 つのドット。 |
+| `name` | はい | 表示名。 |
+| `version` | はい | セマンティックバージョン(`1.0.0`)。プレリリースやビルドの接尾辞を付けてもかまいません。 |
+| `publisher` | いいえ | プラグイン一覧に表示されます。 |
+| `description` | いいえ | 1 行、インストール時に表示されます。 |
+| `entries` | はい | `{ studio?, runtime? }`――パッケージ相対の ESM パス。少なくとも 1 つ必要で、両方のファイルが存在しなければなりません。 |
+| `contributes` | いいえ | プラグインが提供するすべて。キーを省略すると空のリストと同じ扱いになります。 |
+| `permissions` | いいえ | 作者が宣言する特権的な能力のみ――[下記](#permissions-are-derived)を参照してください。 |
+
+エントリーパスは絶対パスにしたり、`..`、`.`、null バイト、`?`、`#` を含めたりすることはできません。
+
+## contributes
+
+`contributes` は、プラグインが何をできるかについての**唯一の真実の源**です。Studio はプラグインのコードを実行せずにこれをもとにプロジェクトを検証し、インストール時の権限セットもここから導出されます。
+
+| キー | 型 | 宣言する内容 |
+| --- | --- | --- |
+| `blueprintNodes` | `string[]` | このプラグインが提供するブループリントノード型。 |
+| `widgets` | `string[]` | このプラグインが提供するウィジェット要素型。 |
+| `locales` | object[] | Studio の言語パック――プラグインが追加または補完するロケール。 |
+| `runtimeData` | `string[]` | ゲームと一緒に公開するプラグインストレージの名前空間。 |
+| `runtimeCapabilities` | `string[]` | runtime エントリーが使用してよい能力ドメイン。 |
+| `sidecars` | object[] | 作者のゲームに同梱されるネイティブの子プロセス。 |
+| `buildDependencies` | object[] | ビルド時に取得しキャッシュする外部バイナリ。 |
+| `tests` | `string[]` | Run > Test 向けに、このプラグインが提供するテスト種別。 |
+| `buildConfig` | object[] | このプラグインがビルドダイアログに追加するビルド構成フィールド。 |
+| `externalLinks` | `string[]` | runtime エントリーがプレイヤーのブラウザーで開いてよいアドレスパターン。 |
+| `network` | `string[]` | runtime エントリーがバイトを取得してよいホストパターン。 |
+
+すべてのノード型、ウィジェット型、ストレージの名前空間、sidecar id、ビルド依存関係 id には、あなたのプラグイン id を前置しなければなりません。`contributes` の下に未知のキーがあると、無視されるのではなく拒否されます。
+
+### blueprintNodes と widgets
+
+宣言していない型を登録すると、両方のエントリーで読み込み時にエラーになります。この宣言があるからこそ、Studio はビルド*の前に*、プロジェクトが使っているノードに runtime の提供元がないことを作者に伝えられます――何もしないノードを含むゲームを出荷してしまう代わりに。
+
+### runtimeData
+
+プラグインのストレージはプロジェクトのエディターディレクトリの下にあり、そこは決してパッケージ化されません。runtime エントリーが Studio 内で作者が作成したデータ――カタログや検索テーブル――を必要とする場合は、その名前空間をここに列挙し、`app.game.data.readJson(namespace)` で読み取ってください。
+
+```json
+{ "contributes": { "runtimeData": ["yourname.hello.catalog"] } }
+```
+
+このリストは明示的な許可リストであり、エディター専用のプラグイン状態が誤って公開されたゲームに漏れ出さないようにするためのものです。`readJson` は**同期的**です――データはパックと一緒に運ばれます――名前空間が宣言されていない場合、プロジェクトがそれを一度も書き込んでいない場合、またはゲームがそのデータの公開より前のものである場合は `null` を返します。作者が作成したデータが存在することを前提にせず、優雅に縮退させてください。
+
+### runtimeCapabilities
+
+10 個の能力ドメインがあり、それぞれが `app.game` の 1 つの名前空間に対応します。宣言されていないドメインは、エラーを投げるメソッドになるのではなく、**オブジェクトから欠落**します。`entries.runtime` を伴わずにこれを宣言することはマニフェストエラーです。
+
+```json
+{ "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
+```
+
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+
+完全なモデル、それぞれが具体的に何を許可するか、そして各環境がそれをどうさらに狭めるかについては、[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
+
+### sidecars と buildDependencies
+
+もっとも重い 2 つの宣言です。[sidecar](/ja/docs/studio/plugin/runtime/sidecar)は、作者が構築するゲームに同梱されるネイティブの子プロセスです。[ビルド依存関係](/ja/docs/studio/plugin/build-dependencies)は、Studio がビルド時にダウンロード、検証、キャッシュする外部バイナリです。どちらも `<platform>-<arch>` をキーとし、どちらも `sha256` を必須とします。
+
+### locales
+
+Studio の言語パックです――プラグインが追加するロケール、または組み込みロケールの欠落を補うものです。[プラグインを作る](/ja/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack)を参照してください。`contributes.locales` だけを含み、エントリーのコードを持たないマニフェストも有効なプラグインです。
+
+## 権限は派生するものです [#permissions-are-derived]
+
+インストール権限には 2 つの系統があり、この区別こそが要点です。
+
+**作者が宣言するもの**――あなたが `permissions[]` に書きます。これらは `contributes` とは無関係な、特権的な Studio の制御項目です。
+
+```json
+{
+  "permissions": [
+    { "kind": "filesystem", "path": "/absolute/path", "mode": "readwrite", "recursive": true },
+    { "kind": "api", "capability": "bash.execute" }
+  ]
+}
+```
+
+| 種類 | 形 |
+| --- | --- |
+| `filesystem` | `{ path, mode: "read" \| "write" \| "readwrite", recursive }`――実際のパス文字列。 |
+| `api` | `{ capability }`――現時点でプラグインが使用できるのは `bash.execute` のみです。 |
+
+これらは **studio** エントリーにのみ影響します。付与は `pluginId@version` ごとに記録されるため、バージョンを上げると作者は再度承認が必要になります。
+
+**派生するもの**――Studio が `contributes` から計算し、あなたが手書きすることは決してありません。
+
+| 種類 | 派生元 |
+| --- | --- |
+| `runtime` | `contributes.runtimeCapabilities` の各項目。 |
+| `sidecar` | `contributes.sidecars` の各エントリーと、それが同梱するプラットフォームキー。 |
+| `buildDependency` | `contributes.buildDependencies` の各エントリーと、そのダウンロード元のホスト名。 |
+| `externalLink` | `contributes.externalLinks`。作者自身のパターンそのまま――書き換えられないので、プロンプトとマニフェストは同一の文書になります。 |
+| `network` | `contributes.network`。`externalLink` とは別の問題であり、決して統合されません。ページを開く操作はアドレスをブラウザーに渡すだけで何も返ってきませんが、これはバイトを取得する操作であり、返ってきたものはゲームの内部で実行されます。 |
+
+<Callout type="warn">
+`runtime`、`sidecar`、`buildDependency`、`externalLink`、`network` の権限を手で書くことは**マニフェストエラー**です――プラグインは *"permission kind … is derived from contributes and must not be declared by hand."* というメッセージとともにインストールに失敗します。能力を `contributes` に一度だけ宣言すれば、権限は自動的についてきます。
+</Callout>
+
+これが、インストールプロンプトの正直さを保っている仕組みです。ある能力はただ 1 か所でしか宣言されないため、プロンプトが列挙する内容とプラグインが実際に到達できる範囲がずれることはあり得ません。これはまた、更新の挙動も健全にします――能力を追加すると派生する権限セットが広がり、作者への再確認が自動的に発生します。一方、何も広げないバージョンは既存の許可をそのまま引き継ぎます。
+
+## 検証エラー
+
+| 症状 | 確認事項 |
+| --- | --- |
+| インストールが拒否される | `manifest.json` が正しい JSON でない、または `id` / `version` / `entries` の検証に失敗している。 |
+| "requires a runtime entry" | `entries.runtime` を伴わずに `runtimeCapabilities` または `sidecars` が宣言されている。 |
+| "must not be declared by hand" | 派生される種類の権限が `permissions[]` に書かれている。 |
+| "Unknown plugin runtime capability" | `runtimeCapabilities` の綴りが誤っている。このリストは閉じています。 |
+| 登録が読み込み時にエラーになる | `contributes` にない、またはプラグイン id を前置していないノード型やウィジェット型。 |
+| プレビューが "Plugin validation failed" で失敗する | プロジェクトが使用するノードまたはウィジェットに runtime の提供元がない――プラグインが無効化されている、存在しない、`entries.runtime` がない、またはその型が宣言されていない。 |
+| インストール時にダイジェストが一致しない | sidecar ファイルのバイト列がその `sha256` と一致しない。 |
+
+### 権限を一切派生させない貢献
+
+`tests` と `buildConfig` は、インストール権限を一切生じさせない唯一 2 種類の貢献であり、どちらの場合もそれは見落としではなく裁定です。
+
+その他のコードを伴う貢献はすべて、プラグインが読み込まれた瞬間に何らかの力を得ます。**テスト**は、作者が Run > Test を開き、ダイアログでそれを選び、Start を押したときにしか実行されません。インストール時に同意すべき常在の能力というものは存在せず、実行中のテストが何に触れられるかは、そのテスト自身の `requires` によって別途制御されます。**ビルド構成フィールド**は作者が埋める空欄にすぎず、それを埋めてもプラグインが以前より多くのものに触れられるようになるわけではありません。

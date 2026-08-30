@@ -526,6 +526,217 @@ const homeCopy = {
       copyright: 'NarraLeaf Project',
     },
   },
+  ja: {
+    hero: {
+      eyebrow: '',
+      title: 'ビジュアルノベルを、モダンなソフトウェアとして作る',
+      description:
+        'ビジュアルノベルの制作、配信、組み込みを一つのプロジェクトシステムで行えます。',
+      primaryCta: 'Studio をダウンロード',
+      secondaryCta: 'ドキュメントを見る',
+      imageAlt: 'ビジュアルノベルのプロジェクトを開いた NarraLeaf Studio のワークスペース',
+    },
+    solutionIntro: {
+      eyebrow: 'プロジェクトの選択肢',
+      title: '目の前の作業に合った進め方を選ぶ',
+      description:
+        '自由に制作するなら Studio、素早く展開するなら NarraLeaf Desktop、細部までカスタマイズするなら NarraLeaf-React が向いています。',
+    },
+    editorIntro: {
+      eyebrow: 'Studio',
+      title: 'NarraLeaf Studio は、目に見える場所でプロジェクトを形づくる',
+      description:
+        'アセット管理、インターフェース編集、没入感のあるストーリー制作、チームでの共同作業を、ビジュアルノベル制作向けに設計された一つのエディタにまとめています。',
+      cta: 'Studio を見る',
+      href: '/studio',
+      groups: [
+        {
+          id: 'craft',
+          title: 'ストーリーを書く',
+          description:
+            'キーボード操作を中心にした文章エディタ、入力しながら確認できるステージプレビュー、動くキャラクターを備えています。',
+          slideAlts: [
+            '対話文とキャラクターの差分表示を並べたストーリーエディタ',
+            'エディタの隣で現在のシーンを再生するストーリープレビュー',
+            'キャラクターがステージを移動するタイミングを調整するモーションエディタ',
+            'ランタイムを導入した上でステージに配置された Live2D キャラクター',
+            'シーン数、文字数、アセット数、ブループリントのノード数を表示するプロジェクトダッシュボード',
+          ],
+        },
+        {
+          id: 'customize',
+          title: '見た目を思いどおりに',
+          description:
+            'プレイヤーの目に触れるすべての画面――対話ボックスからメニュー、ロジックまで――を編集でき、テーマに縛られることはありません。',
+          slideAlts: [
+            'レイヤーツリーからゲーム画面を組み立てる UI エディタ',
+            'プロジェクトにそのまま使えるインターフェーステンプレート',
+            'セーフエリアとアスペクト比のプレビューを見ながらスタイルを変更する対話ボックス',
+            'ゲーム設定パネルと並んだブループリントグラフ',
+            'プロジェクトに Steam の実績を追加するプラグイン',
+          ],
+        },
+        {
+          id: 'ship',
+          title: '翻訳し、バージョン管理し、届ける',
+          description:
+            '審査工程を伴うローカライズ、提出・共有できるバージョン管理、ライブデバッグを経て、最後に本番ビルドを作成します。',
+          slideAlts: [
+            '審査と承認を待つ翻訳が並ぶローカライズパネル',
+            'アセットライブラリと音声波形の隣に並ぶバージョン履歴',
+            'ストーリーランタイムインスペクタを開いた状態で Dev Mode がゲームを実行している様子',
+            '配布用にプロジェクトをビルドする様子',
+          ],
+        },
+      ],
+      slideControls: {
+        previous: '前の Studio プレビュー',
+        next: '次の Studio プレビュー',
+        goToSlide: 'Studio プレビューを表示',
+        openPreview: 'Studio プレビューを拡大表示',
+        closePreview: '拡大表示した Studio プレビューを閉じる',
+      },
+    },
+    desktopIntro: {
+      eyebrow: 'Desktop',
+      title: 'NarraLeaf Desktop は、コードとプレビューをそのままつなぐ',
+      description:
+        'ウィンドウのライフサイクル、セーブデータ、ルーティング、メニュー、パッケージングが、プレビューからそのまま配信する NarraLeaf ランタイムに組み込まれたデスクトッププロジェクトです。',
+      cta: 'Desktop を見る',
+      href: '/narraleaf/library/main',
+      codeImageAlt: 'NarraLeaf Desktop プロジェクトのエントリファイルを開いた VS Code のウィンドウ',
+      demoSlideAlts: [
+        '対話 UI を開いた NarraLeaf Desktop のビジュアルノベルデモ',
+        'ロードメニューを表示した NarraLeaf Desktop のビジュアルノベルデモ',
+      ],
+      slideControls: {
+        previous: '前の Desktop デモプレビュー',
+        next: '次の Desktop デモプレビュー',
+        goToSlide: 'Desktop デモプレビューを表示',
+      },
+    },
+    projectModelIntro: {
+      eyebrow: 'プロジェクト構造',
+      title: '従来のエディタの枠に収まらないプロジェクト構造',
+      description:
+        'NarraLeaf は、制作作業とデスクトップランタイム、埋め込み再生を、同一のプロジェクト内で対等な経路として分離しています。それぞれの経路には固有の役割がありますが、ストーリーが分断された書き出しになることはありません。',
+    },
+    projectModelTabs: [
+      {
+        label: 'Studio',
+        name: 'NarraLeaf Studio',
+        tone: 'studio',
+        logo: 'narraleaf',
+        title: 'NarraLeaf Studio が制作を担う',
+        description:
+          'Studio は制作をひとつにまとめるエディタです。アセット、インターフェースの状態、物語の流れ、チームでの共同作業の文脈が、同じワークスペースに収まります。',
+        points: [
+          'シーンや UI の判断を下すその場で、プロジェクトのアセットを管理します。',
+          'インターフェースを、それが属する没入型のストーリーの流れのすぐそばで編集します。',
+          '作業を複数のツールに分散させず、制作の文脈をチーム全体から見える状態に保ちます。',
+        ],
+      },
+      {
+        label: 'NarraLeaf Desktop',
+        name: 'NarraLeaf Desktop',
+        tone: 'electron',
+        logo: 'electron',
+        title: 'NarraLeaf Desktop が配信するアプリケーションを担う',
+        description:
+          'Desktop は、ビジュアルノベルをプレイヤーが起動できるソフトウェアにする場所です。ウィンドウのライフサイクル、ルーティング、セーブデータ、メニュー、パッケージング、ランタイムの挙動はすべてここに属します。',
+        points: [
+          'プレイ可能なアプリを、それを制御するコードのすぐそばでビルドします。',
+          'Electron、レンダラー、NarraLeaf ランタイムに関する判断を一箇所にまとめます。',
+          'ビジュアルノベル自体が製品であり、他のアプリの中の一画面ではない場合に選びます。',
+        ],
+      },
+      {
+        label: 'NarraLeaf-React',
+        name: 'NarraLeaf-React',
+        tone: 'react',
+        logo: 'react',
+        title: 'NarraLeaf-React が組み込み再生を担う',
+        description:
+          'React は、周囲のアプリをビジュアルノベルエンジンに仕立てることなく、ストーリーを Web プロダクトに持ち込むためのものです。',
+        points: [
+          '既存の React の画面にプレイヤーを組み込みます。',
+          'ホストとなるアプリ側で、レイアウト、データ、認証、プロダクト UI を管理し続けられます。',
+          'ストーリーが、より大きな体験の中の一機能である場合に選びます。',
+        ],
+      },
+    ],
+    solutions: [
+      {
+        title: 'NarraLeaf Studio',
+        description:
+          'アセット、インターフェース、没入型のストーリーテリング、共同作業のための制作エディタです。',
+        audience: '配信作業に入る前に、ビジュアルノベルを一箇所で形づくりたいチーム向けです。',
+        href: '/studio',
+        cta: 'Studio を見る',
+        tone: 'studio',
+        logo: 'narraleaf',
+      },
+      {
+        title: 'NarraLeaf Desktop',
+        description: 'ランタイム、レンダラー、セーブデータ、パッケージング、リリース作業のためのデスクトップアプリケーション経路です。',
+        audience: '単体のビジュアルノベルアプリケーションとして仕立てたいプロジェクト向けです。',
+        href: '/narraleaf/library/main',
+        cta: 'Desktop を見る',
+        tone: 'electron',
+        logo: 'electron',
+      },
+      {
+        title: 'NarraLeaf-React',
+        description: '自分のインターフェースの中にビジュアルノベルのシーンを配置するための React プレイヤーです。',
+        audience: 'ストーリーがより大きな Web 体験を支える製品向けです。',
+        href: '/narraleaf-react',
+        cta: 'React プレイヤーを見る',
+        tone: 'react',
+        logo: 'react',
+      },
+    ],
+    embedDemo: {
+      eyebrow: 'React プレイヤー',
+      title: 'NarraLeaf-React は、ページの中にとどまる',
+      description:
+        'プレイヤーは他の React UI と並んで配置でき、背景、キャラクター、対話、選択肢はフレーム内でスクリプトが制御します。',
+      code: [
+        'introScene.background.char("/room.jpg", new FadeIn(600)),',
+        '',
+        'narraImage.show({ duration: 600 }),',
+        'narraImage.transform(',
+        '  Transform.create()',
+        '    .position({ yoffset: -24 })',
+        '    .commit({ duration: 260 })',
+        '),',
+        '',
+        'narrator.say`このシーンは、このページの中から始まる。`',
+        '',
+        'narra.say`セリフにも ${c("色", "#7dd3fc")} を乗せられる。`,',
+        '',
+        'Menu.prompt("次はどこへ進む？")',
+        '  .choose("部屋を移動する", [',
+        '    narra.say`少し場所を空けるね。`,',
+        '    narraImage.hide({ duration: 500 }),',
+        '    introScene.jumpTo(featureScene, new Dissolve(500)),',
+        '  ]),',
+      ],
+    },
+    bottomCta: {
+      title: 'まず、ここから',
+      description:
+        'プロジェクト概要で NarraLeaf 全体の姿がつかめます。詳細が必要になったら、すぐ隣にドキュメントがあります。',
+      primaryCta: 'プロジェクトを見る',
+      secondaryCta: 'ドキュメントを見る',
+    },
+    footer: {
+      navigationLabel: 'フッターナビゲーション',
+      projectLabel: 'プロジェクト',
+      docsLabel: 'ドキュメント',
+      sourceLabel: 'GitHub',
+      copyright: 'NarraLeaf Project',
+    },
+  },
 } satisfies Record<Locale, HomePageCopy>;
 
 /**
@@ -649,7 +860,17 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
               <p className="text-sm font-medium tracking-[0.18em] text-fd-muted-foreground uppercase">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              {/*
+                `auto-phrase` is what stops the Japanese headline breaking in the
+                middle of a word. Japanese has no spaces, so the default rule is
+                free to break between any two characters, and at this size in
+                this column it was splitting ビジュアルノベル and ソフトウェア
+                across lines. `auto-phrase` breaks at phrase boundaries instead.
+                It is defined to behave as `normal` for languages that have no
+                phrase model, so English and Chinese are unaffected, as are
+                browsers that do not implement it.
+              */}
+              <h1 className="text-4xl font-semibold tracking-tight text-balance [word-break:auto-phrase] sm:text-5xl lg:text-6xl">
                 {copy.hero.title}
               </h1>
               <p className="max-w-xl text-lg leading-8 text-fd-muted-foreground sm:text-xl">

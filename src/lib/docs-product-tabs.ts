@@ -36,6 +36,23 @@ const localizedTabs = {
       path: 'narraleaf-react',
     },
   ],
+  ja: [
+    {
+      title: 'NarraLeaf Studio',
+      description: 'ノーコードでの制作、編集、プレビュー、公開までのワークフロー。',
+      path: 'studio',
+    },
+    {
+      title: 'NarraLeaf Desktop',
+      description: 'デスクトップアプリのツールチェーン向け Library と CLI のドキュメント。',
+      path: 'narraleaf/library',
+    },
+    {
+      title: 'NarraLeaf-React',
+      description: 'Web への組み込みと UI カスタマイズのための React プレイヤーのドキュメント。',
+      path: 'narraleaf-react',
+    },
+  ],
 } satisfies Record<Locale, { title: string; description: string; path: string }[]>;
 
 /**

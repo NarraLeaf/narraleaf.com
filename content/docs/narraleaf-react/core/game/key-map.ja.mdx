@@ -1,0 +1,105 @@
+---
+title: "KeyMap"
+description: ゲームアクションのキーバインドを設定・取得・照合する KeyMap のメソッド
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+KeyMap は、さまざまなゲームアクションに対するキーボードのバインドを保存・操作する役割を持ちます。
+
+## 公開メソッド
+
+### setKeyBinding
+
+<Steps>
+<Step>
+
+特定のアクションのキーバインドを設定（または上書き）します。
+
+```typescript
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, " ");
+// または、一度に**複数**のキーをバインドする
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, ["Control", "F3"]);
+// バインドを削除する
+game.keyMap.setKeyBinding(KeyBindingType.skipAction, null);
+```
+
+- `type: KeyBindingType | string` – アクションの種類
+- `value: KeyBindingValue` – 単一のキー、キーのリスト、またはバインドを削除する `null`
+</Step>
+</Steps>
+
+### getKeyBinding
+
+<Steps>
+<Step>
+
+アクションの現在のバインドを取得します。
+
+```typescript
+const current = game.keyMap.getKeyBinding(KeyBindingType.skipAction);
+```
+</Step>
+</Steps>
+
+### addKeyBinding
+
+<Steps>
+<Step>
+
+既存のバインドに 1 つ以上のキーを追加します。
+
+```typescript
+game.keyMap.addKeyBinding(KeyBindingType.skipAction, "F3");
+// キーのリストを追加する
+game.keyMap.addKeyBinding(KeyBindingType.skipAction, ["Alt", "Shift"]);
+```
+</Step>
+</Steps>
+
+### getKeyBindings
+
+<Steps>
+<Step>
+
+すべてのバインドを取得します。
+</Step>
+</Steps>
+
+### onKeyBindingChange
+
+<Steps>
+<Step>
+
+バインドの変化を購読します。
+
+```typescript
+const token = game.keyMap.onKeyBindingChange(KeyBindingType.skipAction, (value) => {
+    console.log("Binding changed", value);
+});
+
+token.cancel(); // 監視を止める
+```
+</Step>
+</Steps>
+
+### match
+
+<Steps>
+<Step>
+
+あるキーが事前に定義したバインドに一致するかどうかを判定します（大文字小文字は区別しません）。
+
+```typescript
+if (game.keyMap.match(KeyBindingType.skipAction, event.key)) {
+    // do something
+}
+```
+</Step>
+</Steps>
+
+## 関連フック
+
+バインドが変化するたびに UI を自動更新する、便利な React フックについては
+[`useKeyBinding`](/ja/docs/narraleaf-react/player/hooks/useKeyBinding) を参照してください。

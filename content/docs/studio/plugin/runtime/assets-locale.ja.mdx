@@ -1,0 +1,57 @@
+---
+title: assets と locale
+description: パッケージ化されたアセット id を、この実行環境が読み込める URL に解決し、プレイヤーの言語に追従する
+---
+
+それぞれ独立して宣言する、二つの小さな機能です。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["assets", "locale"]
+  }
+}
+```
+
+## assets
+
+`app.game.assets` は、プロジェクトのパック内のアセット id を、現在の実行環境が読み込める URL に変換します。これがなければ、プラグインはゲーム内部のプロトコル文字列をハードコードするしかなく、しかもこの文字列はデスクトップ版と Web 版の間で異なります。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `url` | `(assetId: string) => string` |
+
+```tsx
+const src = app.game.assets?.url(String(ctx.params.iconAssetId ?? ""));
+```
+
+同期的なので、ウィジェットのレンダラー内でも純粋なノード内でも安全に使えます。
+
+<Callout type="warn">
+`assets` は **Dev Mode には存在しません**。そこでのアセット解決は非同期の IPC を経由しますが、この機能のシグネチャは同期の `url()` です。両者は折り合わないため、このドメインはそもそも提供されません。アセットに基づく画像を描画するプラグインは Dev Mode 用のフォールバックを持たなければなりません。さもないと、それをテストする作者は空のボックスを目にし、プラグインのせいだと考えるでしょう。Preview および、あらゆるエクスポートビルドでは利用できます。
+</Callout>
+
+## locale
+
+`app.game.locale` は **ゲームの** 表示言語です。プレイヤーが選んだもので、実行中のプロジェクトのローカライズデータによって設定されます。
+
+| メンバー | シグネチャ |
+| --- | --- |
+| `current` | `readonly string` |
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+
+```ts
+const locale = app.game.locale?.current ?? "en";
+
+const stop = app.game.locale?.onChange(next => {
+    // `next` に合わせて自分の翻訳済み文字列を読み直す
+});
+```
+
+これは読み取り専用です。プラグインはプレイヤーの言語に追従できますが、それを変更することはできません。
+
+<Callout type="info">
+これを [`app.services.i18n`](/ja/docs/studio/plugin/studio/i18n) と混同しないでください。あちらは **エディタの** UI 言語であり、studio エントリにのみ存在します。両者は異なる人が設定する異なる言語です。英語で編集している作者が、日本語で動くゲームをテストしていることもあり得ます。
+</Callout>
+
+プラグインがゲーム向けのテキストに自前の翻訳済み文字列を用意しているなら、`locale.current` をキーにし、`onChange` で再描画してください。ランタイム側のインターフェースには翻訳機構そのものはありません。

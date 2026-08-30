@@ -1,0 +1,379 @@
+---
+title: プラグインを作る
+description: 空のフォルダから、インストール済みのプラグインまで――マニフェスト、エントリー、ブループリントノード、パネル、ローカライゼーション、パッケージング
+---
+
+本稿では、実際に動くプラグインを一から作り上げます。公開したゲームの中で動くブループリントノード、エディターパネル、ローカライズされた文字列、そして Studio の言語パックです。ビルドと型がすでに整った公式テンプレートから始めます。
+
+## 前提条件
+
+- Node.js 20 以降とパッケージマネージャー(本稿では Yarn を使用します)
+- NarraLeaf Studio がインストール済みで、成果物をインストールしてテストできること
+- TypeScript に慣れていること。プラグインは ESM にバンドルされた TypeScript です
+
+## テンプレートから始める
+
+テンプレートリポジトリには、マニフェスト、tsconfig、ビルドスクリプト、そして動作するノードがすでに用意されています。
+
+<Steps>
+<Step>
+
+### テンプレートをコピーする
+
+[Plugins リポジトリ](https://github.com/NarraLeaf/Plugins)の `template/` ディレクトリを新しいフォルダにコピーし、その開発依存関係をインストールします。
+
+```bash
+cp -r Plugins/template my-plugin
+cd my-plugin
+yarn install
+```
+
+</Step>
+<Step>
+
+### 名前を変更する
+
+`manifest.json` と `package.json` を開き、id、name、publisher を自分のものに置き換えます。プラグイン id は名前空間を持たなければなりません――`publisher.plugin-name`、すべて小文字、少なくとも 1 つのドットを含みます。
+
+```json
+{
+  "manifestVersion": 2,
+  "id": "yourname.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "publisher": "Your Name",
+  "description": "A starter plugin.",
+  "entries": { "studio": "main.js", "runtime": "runtime.js" },
+  "contributes": { "blueprintNodes": ["yourname.hello.log"] },
+  "permissions": []
+}
+```
+
+</Step>
+</Steps>
+
+## マニフェスト
+
+`manifest.json` は、Studio がコードを実行せずに読み取る唯一のファイルです。各フィールドは次のとおりです。
+
+| フィールド | 必須 | 備考 |
+| --- | --- | --- |
+| `manifestVersion` | はい | 常に `2`。バージョン 1 は拒否されます |
+| `id` | はい | 名前空間付き:`publisher.plugin-name`、すべて小文字、`[a-z0-9-]`、少なくとも 1 つのドット |
+| `name` | はい | 表示名 |
+| `version` | はい | セマンティックバージョン(`1.0.0`) |
+| `publisher` | いいえ | プラグイン一覧に表示されます |
+| `description` | いいえ | 1 行の説明 |
+| `entries` | はい | `{ studio?, runtime? }`――相対 ESM パス。少なくとも 1 つ |
+| `contributes` | いいえ | プラグインが提供するすべて――下記参照 |
+| `permissions` | いいえ | 作者が宣言する特権的な能力(ファイルシステム、API)のみ。既定では空 |
+
+`contributes` は、Studio があなたのコードを実行せずに検証できる宣言であり、プラグインが何をできるかの**唯一の真実の源**です。
+
+| キー | 宣言する内容 |
+| --- | --- |
+| `blueprintNodes` / `widgets` | このプラグインが提供する型 |
+| `locales` | Studio の言語パック |
+| `runtimeData` | ゲームと一緒に公開するプラグインストレージの名前空間 |
+| `runtimeCapabilities` | runtime エントリーが使用してよい能力ドメイン |
+| `sidecars` | 作者のゲームに同梱されるネイティブの子プロセス |
+| `buildDependencies` | ビルド時に取得する外部バイナリ |
+
+宣言していない型を登録すると読み込み時にエラーになり、提供元が存在しないノードを使うゲームは、明確なエラーとともにビルドに失敗します――この宣言があるからこそ、そのチェックが可能になります。フィールドごとの完全なリファレンスは[マニフェスト](/ja/docs/studio/plugin/manifest)のページにあります。
+
+<Callout type="warn">
+Studio はインストール時の権限プロンプトを `contributes` から**導出**します。`runtime`、`sidecar`、`buildDependency` の権限を手で `permissions[]` に書き込まないでください――そうするとマニフェストは拒否されます。能力を一度宣言すれば、権限は自動的についてきます。
+</Callout>
+
+## 2 つのエントリー
+
+各エントリーは事前バンドル済みの ESM ファイルです。両者は物理的に隔離されています。runtime エントリーから `narraleaf-studio/plugin` をインポートするとエラーになります。
+
+- **`entries.studio`** はエディター(ワークスペースウィンドウ)で読み込まれます。`narraleaf-studio/plugin` とやり取りし、パネル、アクション、キーバインド、ブループリントノードのエディターメタデータ、ウィジェット、言語パックを登録できます。
+- **`entries.runtime`** はあらゆるゲーム環境――Dev Mode、Preview、そしてエクスポートされた Production ビルド――で読み込まれます。`narraleaf-studio/runtime` とやり取りし、実際に実行されるコード、すなわちブループリントノードの `execute` やウィジェットのレンダラーを登録します。
+
+必要なものだけを宣言してください。UI のみのプラグインには `studio` だけが必要です。ブループリントノードが公開したゲームの中で動かなければならないプラグインには、**両方**が必要です――エディター用の `studio` エントリーと、ゲーム用の `runtime` エントリーです。
+
+<Callout type="warn">
+`studio` エントリーからのみ登録されたブループリントノードは、エディターのノードパレットには表示されますが、公開したゲームには対応するコードがありません。編集器内プレビューでは動作します(studio エントリーも `execute` を持つため)が、いったんゲームがエクスポートされると、何も起こらないまま静かに失敗します。runtime エントリーからも同じノードを登録してください。
+</Callout>
+
+## 両方のエントリーから登録するブループリントノード
+
+ノードの定義を共有モジュールに 1 度だけ書き、同じ配列を各エントリーから登録します。`execute` は 1 か所にしか存在しないため、両方のターゲットはまったく同じロジックを配布します。
+
+```ts
+// src/nodes.ts
+import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+
+export const PLUGIN_ID = "yourname.hello";
+
+export function createNodes(): BlueprintNodeDef[] {
+    return [
+        {
+            type: `${PLUGIN_ID}.log`,
+            displayName: "Log Message",
+            category: "Hello",
+            keywords: ["log", "debug"],
+            graphKinds: ["event", "macro"],
+            isPure: false,
+            isLatent: false,
+            pins: [
+                { id: "in", kind: "input", semantic: "exec", label: "In" },
+                { id: "next", kind: "output", semantic: "exec", label: "Next" },
+            ],
+            inspectorParams: [
+                { key: "message", label: "Message", kind: "string" },
+            ],
+            execute: async ctx => {
+                const message = String(ctx.params.message ?? "");
+                console.log(`[hello] ${message}`);
+                return { nextPort: "next" };
+            },
+        },
+    ];
+}
+```
+
+studio エントリーは、パレットと編集器内プレビューのために完全な定義を登録します。
+
+```ts
+// src/main.ts
+import { definePlugin } from "narraleaf-studio/plugin";
+import { createNodes } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+runtime エントリーは、ゲーム実行のために同じ定義を登録します。
+
+```ts
+// src/runtime.ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+import { createNodes } from "./nodes";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+2 つの `registerMany` 呼び出しはどちらも同じ `BlueprintNodeDef[]` を受け取ります。runtime 側は `type`、`displayName`、`execute` だけを使い、エディターメタデータは無視します。この「1 つの定義、2 つのエントリー」という形こそが、型パッケージが両方のサーフェスを 1 つにまとめている理由です――`/plugin` の `BlueprintNodeDef` は `/runtime` の register が期待する型に代入できます。
+
+### 設定を読み取る
+
+ノードは `ctx.params` から検査パネルのフィールドを読み取ります。キー名は、各 `inspectorParams` 項目に指定した `key` です。得られる値はそのフィールドが生成したもの(`kind: "string"` なら文字列、など)そのままなので、自分で型変換してください。
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    // ...
+}
+```
+
+静的なフィールドではなく**配線されたデータ入力ピン**を読み取るには、`ctx.resolveInput?.(pinId)` を使います。これはエッジを遅延評価でたどり、ピンが未配線または未宣言の場合は `undefined` を返します。
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.resolveInput?.("message") ?? ctx.params.message ?? "");
+    // ...
+}
+```
+
+### ゲームに手を伸ばす
+
+ノードのコンテキストは意図的に狭く保たれています。`params`、`resolveInput`、`eventName`、`eventPayload`、`signal`、`game` を持ち、`ctx.game` は `setup(app)` に渡された `app.game` と**同じオブジェクト**です。ノードの内側と外側で API は 1 種類しかなく、それはまさにあなたのマニフェストが宣言したとおりのものです。
+
+能力を宣言すれば、その名前空間が手に入ります。
+
+```json
+{ "contributes": { "runtimeCapabilities": ["store"] } }
+```
+
+```ts
+execute: async ctx => {
+    // Undeclared, or unavailable in this environment: the namespace is absent,
+    // so optional chaining is the whole guard.
+    const seen = (await ctx.game.store?.get<number>("count")) ?? 0;
+    await ctx.game.store?.set("count", seen + 1);
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="warn">
+宣言されていない能力は、**`ctx.game` から欠落している**のであって、エラーを投げるメソッドがあるわけではありません――catch すべきものが何もないのです。また `ctx.hostAdapter` というものも存在しません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体が漏れ出しており、何も宣言されず、インストール時に作者へ示されるものも何もありませんでした。その経路に対して書かれたプラグインを移植しているなら、そこで使われていたものはすべて、今では `ctx.game` 上の宣言済みの能力の背後にあります――[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
+</Callout>
+
+同じ `execute` は編集器内プレビューでも実行され、そこにはゲームがまったく存在せず、ゲート対象の名前空間は**すべて**欠落しています。何かを前提とするノードではなく、優雅に縮退するノードを書いてください。
+
+## `ui` キットを使ったパネル
+
+パネルは studio 専用です。`setup` はクリーンアップ関数を返し、各 `register` もそれ自身の破棄関数を返します。それをホストも追跡しているため、あなたが破棄関数を呼んでも呼ばなくても、パネルはアンロード時に取り除かれます。登録 id にはあなたのプラグイン id を前置してください。
+
+```tsx
+// src/main.tsx  (rename main.ts and update entries.studio to "main.js")
+import { definePlugin, ui, PanelPosition } from "narraleaf-studio/plugin";
+import { createNodes, PLUGIN_ID } from "./nodes";
+
+export default definePlugin({
+    setup(app) {
+        app.services.blueprintNodes.registerMany(createNodes());
+
+        const unregister = app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: "Hello",
+            position: PanelPosition.Left,
+            component: () => (
+                <ui.Panel.Root>
+                    <ui.Panel.Header title="Hello" description="A plugin panel." />
+                    <ui.Panel.Section>
+                        <ui.Button
+                            variant="primary"
+                            onClick={() => app.services.ui.notifications.success("Hi from the plugin")}
+                        >
+                            Say hi
+                        </ui.Button>
+                    </ui.Panel.Section>
+                </ui.Panel.Root>
+            ),
+        });
+
+        return () => unregister();
+    },
+});
+```
+
+`ui` キットは Studio 自身のコンポーネント――`Button`、`Input`、`Select`、`Switch`、`Card`、`Panel.*` のレイアウトプリミティブなど――を公開しています。これによりパネルは、自前のスタイルを持たなくてもエディターの見た目とテーマに合わせられます。
+
+## 自分の文字列をローカライズする
+
+`app.services.i18n` はエディターの言語への読み取り専用アクセスを提供し、プラグインが自分の UI を翻訳できるようにします。自前のメッセージテーブルを用意し、その上に翻訳器を構築してください。それはエディターのロケールにリアルタイムで追従します。
+
+```tsx
+const messages = {
+    en: { "panel.title": "Hello", "panel.hi": "Say hi" },
+    zh: { "panel.title": "你好", "panel.hi": "打个招呼" },
+};
+
+export default definePlugin({
+    setup(app) {
+        const i18n = app.services.i18n.createTranslator({ messages, fallbackLocale: "en" });
+
+        app.services.ui.panels.register({
+            id: `${PLUGIN_ID}.panel`,
+            title: i18n.t("panel.title"),
+            position: PanelPosition.Left,
+            component: () => <PanelBody t={i18n.t} />,
+        });
+
+        // Re-render your own React state when the editor language changes.
+        app.services.i18n.onLocaleChange(() => {/* trigger a re-render */});
+    },
+});
+```
+
+`i18n.t(key)` はまず現在のエディターロケールのテーブルに対して解決を試み、次に `fallbackLocale`、最後にそのキー自体を返します。`i18n.locale`、`formatNumber`、`formatDate`、`formatList` も利用でき、いずれもエディターの現在の言語に連動します。これはエディターの UI 言語であり、ゲームのプレイヤー向けローカライゼーションとは無関係です。runtime エントリーは後者を受け取りません。
+
+## Studio の言語パックを配布する [#ship-a-studio-language-pack]
+
+プラグインは**Studio 自体**を翻訳することもできます――新しい言語を追加する、あるいは既存の言語の欠落を補うのです。`contributes.locales` に各ロケールを宣言し、JSON の対訳ファイルを指定します。
+
+```json
+{
+  "contributes": {
+    "locales": [
+      { "code": "ja", "nativeName": "日本語", "intl": "ja-JP", "messages": "locales/ja.json" },
+      { "code": "zh", "messages": "locales/zh-extra.json" }
+    ]
+  }
+}
+```
+
+この対訳ファイルは、Studio 自身の翻訳キーを文字列に対応させたフラットなマップです。
+
+```json
+{
+  "settings.categories.general.label": "一般",
+  "workspace.menu.file": "ファイル"
+}
+```
+
+新しいロケール(`ja`)は設定 → 言語に表示され、エディター全体に適用されます。組み込みロケール(`zh`)を拡張すると、Studio が未翻訳のまま残しているキーを補います。ルールは次のとおりです。
+
+- **新しいロケール**の追加、または組み込みロケールの**欠落の補完**は自由に行えます。
+- 組み込みロケールについて、Studio がすでに翻訳しているキーを**上書きすることはできません**――組み込みの翻訳が優先され、Studio は警告を記録します。言語パックは欠落を埋めるものであり、公開済みの翻訳を分岐させるものではありません。
+- 新しいロケールには `nativeName` を設定してください(言語選択画面に表示される自称です)。`intl` は日付・数値の書式設定に使われる BCP-47 タグで、既定値は `code` です。
+
+言語パックには `studio` エントリーのコードは一切不要です――`contributes.locales` だけを含むマニフェストも有効なプラグインです。ただし `contributes.locales` を理解する Studio ビルドが必要で、古いビルドはそのマニフェストを拒否します。
+
+## ビルド
+
+テンプレートの `build.mjs` は esbuild で各エントリーをバンドルし、ホスト側のモジュールを external としてマークし、`manifest.json` を `dist/` にコピーします。
+
+```bash
+yarn build
+```
+
+external の設定こそが要です――ホストが実行時にこれらのモジュールを提供するため、あなたのバンドルにはそれ自身のコピーを含めてはいけません。
+
+```js
+external: [
+    "narraleaf-studio/plugin",
+    "narraleaf-studio/runtime",
+    "react",
+    "react-dom",
+    "react-dom/client",
+    "react/jsx-runtime",
+    "react/jsx-dev-runtime",
+]
+```
+
+言語パックを配布する場合は、その JSON ファイルを `dist/` の中に `manifest.json` と並べてコピーし、パスが `contributes.locales` に宣言したものと一致するようにしてください。そうしないと、パッケージ化されたプラグインがそれらを見つけられません。
+
+作業中はバンドルせずに型チェックだけを行えます。
+
+```bash
+yarn typecheck
+```
+
+## パッケージング
+
+インストール可能なプラグインとは `dist/` フォルダそのものです――`manifest.json`、ビルド済みのエントリーファイル、そして言語 JSON があれば含みます。そのフォルダ(またはその中身)を zip にまとめればリリースできます。手元で試すには、Studio にビルド済みの `dist/` ディレクトリを指定してください。[プラグインをインストールする](/ja/docs/studio/plugin/install-plugin)を参照してください。
+
+<Callout type="info">
+プラグインが[sidecar](/ja/docs/studio/plugin/runtime/sidecar)を同梱している場合、zip は実行ビットを保持**しません**――どのプラグインパッケージング経路もこれを保持しません。ゲームホストは起動する前にそれを修復するため、これは回避策を講じる必要のあるものではありません。macOS や Linux でディスク上のモードに驚かないでください。同梱される各バイナリは、依然としてマニフェストに `sha256` が必要で、インストール時とパッケージ化時の 2 回検証されます。
+</Callout>
+
+<Files>
+  <Folder name="dist" defaultOpen>
+    <File name="manifest.json" />
+    <File name="main.js" />
+    <File name="runtime.js" />
+    <Folder name="locales">
+      <File name="ja.json" />
+    </Folder>
+  </Folder>
+</Files>
+
+## 公開
+
+zip とダウンロードリンクさえあれば十分です――Studio はどんなフォルダからでもインストールでき、プラグインの動作はそれがどこから来たかに一切依存しません。
+
+代わりに Studio 組み込みのストアに掲載したい場合は、[NarraLeaf/Plugins](https://github.com/NarraLeaf/Plugins) レジストリに提出してください。そのリポジトリには、NarraLeaf チームが審査し保証するプラグインが収録されています。そのため、プルリクエストを書く前に、プラグインが何をするか、どの権限を必要とするかを説明する issue を立ててください。具体的な手順は `CONTRIBUTING.md` にあります。ディレクトリ名はマニフェストの `id` と一致していなければならず、ローカルバリデーターの実行結果と再生成した `index.json` を同じコミットに含めます。
+
+どちらの経路を取るにせよ、バージョン番号は「それを使っているプロジェクトにとって何が変わったか」で決めてください。
+
+| 更新幅 | 対象 |
+| --- | --- |
+| patch | どのノード型、ピン、パラメーターも変えない修正 |
+| minor | 新しいノード、ウィジェット、任意のピンの追加 |
+| major | 貢献済みの型の削除や名前変更、ピンの削除、既存のグラフに対する既存ノードの挙動の変更 |
+
+メジャーバージョンは、ツールチェーンがそれに基づいて動く破壊的変更です。旧メジャーバージョンに対して作られたプロジェクトは、あなたのプラグインを非互換と判定してスキップします。[プロジェクトの依存関係](/ja/docs/studio/plugin/project-dependencies)を参照してください。
+
+次は、両方のサーフェスのすべてのメソッドを網羅した[API リファレンス](/ja/docs/studio/plugin/api-reference)、そしてプラグインが実行中のゲームから何かを取得する必要があるなら、[能力モデル](/ja/docs/studio/plugin/runtime)を読んでください。

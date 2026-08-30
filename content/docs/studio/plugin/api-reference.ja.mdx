@@ -1,0 +1,324 @@
+---
+title: API リファレンス
+description: studio と runtime、2 つのプラグインサーフェスをメソッド単位で解説し、例と落とし穴を添える
+---
+
+型のみの `narraleaf-studio` パッケージからインポートする 2 つのエントリーポイントがあります。
+
+- `narraleaf-studio/plugin`――エディターサーフェス。`studio` エントリーが使用します。
+- `narraleaf-studio/runtime`――ゲームサーフェス。`runtime` エントリーが使用します。
+
+## 規約
+
+これらは studio サーフェス全体にわたって成り立ちます。
+
+- **登録はクリーンアップを返します。** すべての `register` / `registerMany` は、自分が登録したものだけを取り除く `PluginCleanup` を返します。ホストも各登録を追跡しているため、クリーンアップを一度も呼ばなくても、プラグインをアンロードすればすべて回収されます。クリーンアップはべき等です。
+- **id には名前空間が付きます。** 登録する任意の id や型には、あなたのプラグイン id を前置しなければなりません(`yourname.plugin.thing`)。前置していない id を登録するとエラーになります。
+- **命令的な呼び出しはその値を返します。** `editors.open`、`notifications.*`、`i18n.format*`、`blueprintNodes.notifyDynamicSelectOptionsChanged` は登録ではなく操作であり、クリーンアップを返しません。
+- **1 つだけ例外があります。** `blueprintNodes.register` / `registerMany` は `void` を返します。ノード定義はセッションを通じて永続するため――1 つを取り除くと開いているドキュメント内のノードが孤立してしまいます――破棄すべきものが何もないのです。
+
+runtime サーフェスにはそもそもクリーンアップのライフサイクルがありません。ゲームプロセスはプラグインを一度だけ読み込み、決してアンロードしないため、その `register` 呼び出しは `void` を返します。
+
+---
+
+## `narraleaf-studio/plugin`
+
+### definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // register things
+        return () => { /* optional cleanup */ };
+    },
+});
+```
+
+`setup(app)` は、ワークスペースウィンドウがプラグインを読み込むときに実行されます。非同期でもかまいません。アンロード時に実行するクリーンアップ関数を返してください。何も返さなくても問題ありません――ホストがどのみち各登録を追跡しているためです。
+
+`app` は次を持ちます。
+
+| プロパティ | 内容 |
+| --- | --- |
+| `app.plugin` | 識別情報:`id`、`name`、`version`、`publisher`。 |
+| `app.manifest` | 正規化されたマニフェスト。 |
+| `app.services` | 厳選された API サーフェス(下記)。 |
+| `app.privileged` | マニフェストの権限によって制御される特権的な能力(ファイルシステム、bash)。 |
+
+### services.i18n
+
+エディターの言語への読み取り専用アクセスで、自分の文字列をローカライズするためのものです。
+
+```ts
+const i18n = app.services.i18n.createTranslator({
+    messages: { en: { hi: "Hi" }, zh: { hi: "你好" } },
+    fallbackLocale: "en",
+});
+i18n.t("hi"); // follows the editor locale
+
+const stop = app.services.i18n.onLocaleChange(locale => {
+    // re-render your UI for the new locale
+});
+```
+
+| メンバー | 内容 |
+| --- | --- |
+| `locale` | 現在有効なエディターロケールコード。 |
+| `onLocaleChange(fn)` | 言語切り替え時に新しいロケールとともに発火します。クリーンアップを返します。 |
+| `createTranslator(bundle)` | *あなた自身の* `{ locale: { key: string } }` テーブルに基づく翻訳器。`t(key, params?)` はアクティブ → フォールバック → キー自身の順で解決し、`{placeholders}` を埋めます。 |
+| `formatNumber` / `formatDate` / `formatList` | エディターロケールに連動した `Intl` フォーマッター。 |
+
+これは**エディターの** UI 言語です。ゲームのプレイヤー向け言語ではありません――runtime サーフェスに i18n はなく、ゲームは自身のシステムを通じてローカライズします。
+
+### services.storage
+
+プラグインごとの JSON ストレージで、スコープはプロジェクトに限られます。
+
+```ts
+await app.services.storage.writeJson("state", { count: 1 });
+const data = await app.services.storage.readJson<{ count: number }>("state");
+// readJson returns null when nothing is stored yet.
+```
+
+### services.assets
+
+プロジェクトのアセットを読み取り、プレビュー用のオブジェクト URL に変換します。
+
+```ts
+const images = app.services.assets.list(AssetType.Image);
+const url = await app.services.assets.createObjectUrl(images[0]);
+// ... use url ...
+app.services.assets.revokeObjectUrl(url);
+```
+
+`getMap()`、`list(type)`、`get(type, id)`、`fetch(asset)`、`createObjectUrl(asset)`、`revokeObjectUrl(url)`。作成したオブジェクト URL は漏れを防ぐために解放してください。
+
+### services.ui.panels
+
+サイドバーパネルとボトムパネルです。
+
+```ts
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    position: PanelPosition.Left,
+    component: () => <MyPanel />,
+});
+// off() removes it; unload removes it too.
+```
+
+`register(panel)` と `registerMany(panels)` はクリーンアップを返します。
+
+### services.ui.actions
+
+ツールバーおよびメニューのアクションと、アクショングループ(ドロップダウン / ネイティブメニュー項目)です。
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+app.services.ui.actions.registerGroup({ id: `${PLUGIN_ID}.menu`, label: "My Menu", actions: [/* ... */] });
+```
+
+`register`、`registerMany`、`registerGroup` はクリーンアップを返します。プラグインのアクショングループは自身のメニューに閉じています――Studio ネイティブの Edit メニューに統合したり、標準コマンドの役割を占めたりすることはできません。
+
+### services.ui.editors
+
+エディタータブを開閉します。命令的です――タブはユーザーに見えるため、アンロード時に強制的に閉じられることは決してありません。
+
+```ts
+app.services.ui.editors.open({ id: `${PLUGIN_ID}.doc`, title: "Doc", component: MyEditor });
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+### services.ui.keybindings
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: () => { /* ... */ },
+});
+```
+
+`register` と `registerMany` はクリーンアップを返します。`mod` は macOS では ⌘、それ以外では Ctrl です。
+
+### services.ui.notifications
+
+送りっぱなしのトースト通知です。`info`、`success`、`warning`、`error`。
+
+```ts
+app.services.ui.notifications.success("Saved");
+```
+
+### services.widgets
+
+UI エディターのウィジェットモジュール(エディター側)を登録します。同じウィジェット型のゲーム側レンダラーは、runtime エントリーから登録します。
+
+```ts
+const off = app.services.widgets.register(myWidgetModule);
+app.services.widgets.get(type);
+app.services.widgets.list();
+app.services.widgets.has(type);
+```
+
+`register` / `registerMany` はクリーンアップを返します。ウィジェットの `type` は `contributes.widgets` に宣言されていなければなりません。
+
+### services.story.actions
+
+ストーリーブロックを挿入する、シーンエディターのパレットアクションです。これらのブロックは標準のストーリーブロックであり、挿入後にドキュメントがそのプラグインに依存することはありません。
+
+```ts
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.insertNote`,
+    label: "Insert Note",
+    createBlock: () => ({ /* a story block */ }),
+});
+```
+
+`register` と `registerMany` はクリーンアップを返します。
+
+### services.blueprintNodes
+
+```ts
+app.services.blueprintNodes.register(def);        // void — session-persistent
+app.services.blueprintNodes.registerMany(defs);   // void
+
+const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
+    `${PLUGIN_ID}.items`,
+    () => [{ value: "a", label: "A" }],
+);
+app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
+```
+
+- `register` / `registerMany` はエディター側の定義(と、編集器内プレビュー用の `execute`)を追加します。これらは `void` を返します。ノード定義は一度登録されると取り除けません。各型は `contributes.blueprintNodes` に宣言されていなければなりません。
+- `registerDynamicSelectOptionsSource(id, provider)` は、選択肢が生きたプラグインの状態から来る `kind: "select"` の検査パネルパラメーターを支えます。クリーンアップを返します。その状態が変化したら `notifyDynamicSelectOptionsChanged()` を呼び、開いているノードカードを更新させてください。
+
+### `ui` キット
+
+```ts
+import { ui } from "narraleaf-studio/plugin";
+```
+
+Studio 自身のコンポーネントで、パネルをエディターのテーマに合わせられます。`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`(とそのパーツ)、`ui.Modal`(とそのパーツ)、`ui.AssetSelector`、そして `ui.Panel.*` のレイアウトプリミティブ(`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`)。
+
+---
+
+## `narraleaf-studio/runtime`
+
+### defineRuntimePlugin
+
+```ts
+import { defineRuntimePlugin } from "narraleaf-studio/runtime";
+
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.blueprintNodes.registerMany(createNodes());
+    },
+});
+```
+
+`setup(app)` はゲームプロセス(Dev Mode、Preview、Production)ごとに 1 回実行されます。非同期でもかまいません。クリーンアップの返り値はありません――ゲームプロセスはプラグインをアンロードしないためです。
+
+`app` は `app.plugin`、`app.manifest`、`app.game` を持ちます。
+
+`app.game` には常に存在する 4 つのメンバー――`blueprintNodes`、`widgets`、`data`、`log`――と、`contributes.runtimeCapabilities` が宣言した場合にのみ存在する、能力によってゲートされた名前空間の集合があります。宣言されていない名前空間は `undefined` であり、エラーを投げるメソッドではありません。完全なモデルは[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
+
+### game.blueprintNodes
+
+```ts
+app.game.blueprintNodes.register({ type, execute });
+app.game.blueprintNodes.registerMany(defs);
+```
+
+各ノード型についてゲーム側の `execute` を登録します。studio 側で登録したのと同じ `BlueprintNodeDef[]`(共有モジュール)を渡してください――使われるのは `type`、`displayName`、`execute` だけです。各型は `contributes.blueprintNodes` に宣言されていなければなりません。`void` を返します。
+
+#### ノードのコンテキスト
+
+`execute(ctx)` が受け取るのはちょうど次のものだけで、それ以外はありません。
+
+| フィールド | 型 | 内容 |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | ノード上で設定された静的なパラメーター値。 |
+| `ctx.resolveInput?` | `(pinId: string) => unknown` | ノードが宣言したデータ入力ピンの 1 つを、配線されたエッジをたどって読み取ります。遅延評価で、ピンが未配線または未宣言の場合は `undefined`。 |
+| `ctx.eventName?` | `string` | ノードがイベントグラフの内部で実行されているときに処理中のイベントスロット。 |
+| `ctx.eventPayload?` | `Record<string, unknown>` | そのイベントのペイロード。 |
+| `ctx.signal?` | `AbortSignal` | 実行がキャンセルされると中止されます。長時間実行するノードではこれを尊重してください。 |
+| `ctx.game` | `RuntimePluginGame` | `setup(app)` が受け取った `app.game` と**まったく同じオブジェクト**。 |
+
+```ts
+execute: async ctx => {
+    const message = String(ctx.params.message ?? "");
+    const wired = ctx.resolveInput?.("value");
+
+    // Undeclared or unavailable here: the namespace is absent, so skip the work.
+    await ctx.game.store?.set("lastMessage", message);
+
+    return { nextPort: "next" };
+}
+```
+
+<Callout type="warn">
+`ctx.hostAdapter` というものは存在しません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体――セーブ、ローカライゼーション、アプリの終了――が漏れ出しており、マニフェストには何も宣言されておらず、インストール時に作者へ示されるものも何もありませんでした。その経路はもうありません。ノードが触れるものは何であれ `ctx.game` を経由し、それはまさに `contributes` が宣言した能力の集合そのものです。
+</Callout>
+
+### game.widgets
+
+```ts
+app.game.widgets.register({ type, render });
+app.game.widgets.registerMany(defs);
+```
+
+あるウィジェット型についてゲーム側のレンダラーを登録します。`render` は、Studio が組み込みの要素レンダラーに渡すのと同じ props を受け取ります。各型は `contributes.widgets` に宣言されていなければなりません。`void` を返します。
+
+### game.data
+
+```ts
+const catalog = app.game.data.readJson<Catalog>("yourname.plugin.catalog");
+```
+
+ゲームと一緒に公開されたプラグインストレージへの読み取り専用アクセスで、対象は `contributes.runtimeData` に宣言された名前空間です。**同期的**です――データはパックと一緒に運ばれるため、await すべきものは何もありません。名前空間が宣言されていない場合、プロジェクトがそれを一度も書き込んでいない場合、またはゲームがそのデータの公開より前のものである場合は `null` を返します。
+
+### game.log
+
+```ts
+app.game.log("info", "loaded");    // "info" | "warning" | "error"
+```
+
+`[plugin:{id}]` という接頭辞付きでゲームホストのログに書き込みます。Dev Mode ではウィンドウのコンソールに送られ、Preview と Production ではゲームプロセスのログに送られます。
+
+### 能力によってゲートされる名前空間
+
+これらはそれぞれ、`contributes.runtimeCapabilities` で宣言され、*かつ*その環境がそれを支えられる場合にのみ存在します。完全なリファレンス:[Runtime API](/ja/docs/studio/plugin/runtime)。
+
+| 名前空間 | 能力 | リファレンス |
+| --- | --- | --- |
+| `game.store` | `store` | [store](/ja/docs/studio/plugin/runtime/store) |
+| `game.events` | `events` | [events](/ja/docs/studio/plugin/runtime/events) |
+| `game.state` | `state.read`(`set` には `state.write` が必要) | [state](/ja/docs/studio/plugin/runtime/state) |
+| `game.saves` | `saves.read`(`write` / `load` には `saves.write` が必要) | [saves](/ja/docs/studio/plugin/runtime/saves) |
+| `game.ui.overlay` | `ui.overlay` | [ui.overlay](/ja/docs/studio/plugin/runtime/overlay) |
+| `game.assets` | `assets` | [assets & locale](/ja/docs/studio/plugin/runtime/assets-locale) |
+| `game.locale` | `locale` | [assets & locale](/ja/docs/studio/plugin/runtime/assets-locale) |
+| `game.sidecar` | なし――空でない `contributes.sidecars` があればよい | [sidecar](/ja/docs/studio/plugin/runtime/sidecar) |
+| `game.story` | `story.compile` | [Runtime API](/ja/docs/studio/plugin/runtime) |
+| `game.navigation` | なし――空でない `contributes.externalLinks` があればよい | [Runtime API](/ja/docs/studio/plugin/runtime) |
+
+### runtime サーフェスに i18n はありません
+
+runtime エントリーはゲームの中で実行されます――Production にはエディターもエディターロケールも存在しないため、そのようなものを公開しても移植性がありません。ゲームは、プラグインの runtime API ではなく、NarraLeaf のゲームローカライゼーションシステムを通じて自らのプレイヤー向けコンテンツをローカライズします。
+
+---
+
+## 落とし穴
+
+- **ホストのモジュールを external としてマークしてください。** `narraleaf-studio/plugin`、`narraleaf-studio/runtime`、そして React 関連パッケージはホストが提供します。自分のコピーをバンドルすると読み込みが壊れます。テンプレートの esbuild 設定はすでにこれらを列挙しています。
+- **ブループリントノードは公開したゲームで動くために両方のエントリーを必要とします**――studio はパレット用、runtime は実行用です。studio だけに登録すると、エディタープレビューでは動きますが、エクスポートすると何もしなくなります。
+- **名前空間の有無を確認してください。catch はしません。** 宣言されていない、あるいは利用できない能力は `app.game` から欠落しているだけなので、`app.game.store?.set(...)` がガードのすべてです。`try` するものは何もありません。
+- **エディターはどの能力も支えられません。** 同じ `execute` はエディターのキャンバス上でも実行され、そこではゲートされた名前空間がすべて欠落しています。ゲームがあることを前提とするノードはそこで何もしません――それで問題ないように書いてください。
+- **ノード定義はセッションを通じて永久です。** `blueprintNodes.register` は設計上 `void` を返します。ノード型を登録解除することはできません。
+- **派生される権限を手で書かないでください。** `runtime`、`sidecar`、`buildDependency` の権限は `contributes` から来ます。それらを `permissions[]` に書き込むと、マニフェストの検証に失敗します。

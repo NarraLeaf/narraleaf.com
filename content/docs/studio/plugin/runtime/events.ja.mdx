@@ -1,0 +1,80 @@
+---
+title: events
+description: ゲームのライフサイクルとストーリーのイベントを購読し、この環境でそれが発火し得るかを確認する
+---
+
+`app.game.events` により、プラグインはグラフに組み込まれることなく、実行中のゲームに反応できます。プリロードの完了、台詞の終わり、選択が行われたこと、ウィンドウが閉じられたことなどです。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["events"]
+  }
+}
+```
+
+## メソッド
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `on` | `<K>(event: K, listener: (payload) => void) => RuntimePluginCleanup` |
+| `available` | `(event) => boolean` |
+
+`on` は購読を解除するクリーンアップ関数を返します。ホストもすべてのリスナーを追跡しているため、失敗したプラグインがそれらを漏らすことはありません。
+
+```ts
+export default defineRuntimePlugin({
+    setup(app) {
+        app.game.events?.on("choiceMade", ({ text }) => {
+            app.game.log("info", `player chose: ${text}`);
+        });
+    },
+});
+```
+
+## イベント一覧
+
+| イベント | ペイロード | 備考 |
+| --- | --- | --- |
+| `preloadComplete` | `void` | 最初のプリロードが完了した。**再生される** — 購読が遅れても発火する。 |
+| `firstSceneReady` | `void` | 最初のシーンがマウントされ、一度描画された。**再生される**。 |
+| `sceneEnter` | `{ sceneId: string \| null }` | シーンコンポーネントが**マウント**された。下の警告を参照。 |
+| `sceneExit` | `{ sceneId: string \| null }` | その対になるアンマウント。 |
+| `dialogueEnd` | `{ textId: string \| null }` | 一行の台詞の表示が終わった。`textId` はその行の安定したテキスト id で、翻訳テーブルやエンジンの `voiceId` が使うのと同じキーです。ホストが名前を付けられない行では null になります。プラグインが「プレイヤーが何を聞いたか」を自前で記録する際に、対象として記録すべき id です。 |
+| `choiceMade` | `{ text: string }` | プレイヤーが選択肢を選んだ。 |
+| `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | 選択メニューが画面に表示され、それが提示するすべての選択肢を伴う — `choiceMade` の対になるもので、あちらは選ばれたものしか語りません。メニューがマウントされるたびに発火するため、同じ選択に巻き戻ると再び報告されます。`index` はエンジンの索引であり、選んだ際に指定するものです。条件によって隠された選択肢は一覧に含まれず、他の索引を**前に詰めることもない**ため、索引に欠番が生じることがあります。 |
+| `characterPrompt` | `{ character: string \| null; text: string }` | キャラクターの台詞が表示された。 |
+| `audioPlayed` | `{ assetId: string }` | ストーリーが音声アセットの再生を開始した。`/bgm` や `/sound` の行、あるいはマウント時に設定済みの BGM が鳴り始めるシーンです。報告されるのは *ストーリー* が開始したものであり、ゲームが発するすべての音ではありません。Page が `Play Sound` を通じて開始するクリップはインターフェースに属し、ここには現れません。`sceneEnter` と同様、これは初回到達ではなく実行に追従するため、これに対して行う処理は冪等にしてください。 |
+| `gameEnd` | `void` | ストーリーがエンディングに達した。`/ending` 行が実行された、**または** セーブコンテキストが存在する状態でアクションスタックが空になった。どちらも該当するのは意図的で、作者が書いたエンディングはゲームの終わりであるため、スタックが空になることだけを見張るプラグインは、プロジェクトがエンディングにマークを付け始めた瞬間からそれを聞き逃すことになります。 |
+| `endingReached` | `{ endingId: string; name: string }` | `/ending` 行が実行され、それが宣言するエンディングの名前を伴う。*どの*エンディングだったかを語れるのはこちらです。 |
+| `beforeRestore` | `void` | セーブデータが復元されようとしている。 |
+| `afterRestore` | `void` | セーブデータが復元された。 |
+| `fullscreenChanged` | `boolean` | 新しいフルスクリーン状態。 |
+| `closeRequested` | `void` | プレイヤーがウィンドウを閉じるよう要求した。**デスクトップのみ**。 |
+| `saveWritten` | `{ id: string }` | セーブスロットが書き込まれた。 |
+
+<Callout type="warn">
+`sceneEnter` / `sceneExit` は**描画**イベントであり、「ストーリーがこのシーンに到達した」ではありません。再マウントは、プレイヤーが実際には再訪していないシーンについても `sceneEnter` を再び発火させます。ストーリーの進行が必要なら、マウントからではなく、ストーリー自体（ブループリントノード）から駆動してください。
+</Callout>
+
+## 利用可能性を確認する。実行環境を決めつけない
+
+一部のイベントは、一部の環境では存在し得ません。`closeRequested` が典型例です。Web エクスポートには閉じるべきウィンドウがないため、そこで登録されたリスナーは決して発火しません — この種のバグは一つのターゲットでしか露見しません。
+
+```ts
+if (app.game.events?.available("closeRequested")) {
+    app.game.events.on("closeRequested", () => { /* flush something */ });
+} else {
+    // web: flush on `dialogueEnd` or on your own schedule instead
+}
+```
+
+<Callout type="info">
+`closeRequested` のリスナーは**観察者であり、拒否権ではありません**。プラグインは並行に問い合わせられ、それぞれが隔離されています。リスナー内で例外を投げても「異議なし」と読み取られるだけで、close をキャンセルする要求にはなりません。プラグインが何をしても、ウィンドウを開いたままにすることはできません。
+</Callout>
+
+## 再生されるものと、その場限りのもの
+
+`preloadComplete` と `firstSceneReady` は再生されます。プラグインがそれらが既に起きた後に購読しても、リスナーは即座に発火します。他のすべてのイベントはその場限りで、事後に登録されたリスナーは過去について何も聞くことができません。
+
+これが重要なのは、`setup` が非同期になり得るためです。購読の前に何かを await するプラグインは、その間に発火したその場限りのイベントを見逃す可能性がありますが、再生される二つについては引き続き受け取れます。

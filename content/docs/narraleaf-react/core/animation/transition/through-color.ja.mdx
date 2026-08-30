@@ -1,0 +1,61 @@
+---
+title: "ThroughColor"
+description: 画面を単色で覆い、保持したのち、次の画像で覆いを外すトランジション
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+画面を単色で覆い、保持したのち、次の画像で覆いを外します。そのため次の画像は色の保持の**後にだけ**現れます。2つの画像は、完全に覆われた画面の裏で、見えないまま入れ替わります。
+
+色は任意の[マスクパターン](/ja/docs/narraleaf-react/core/animation/transition/mask)を通して覆います。`pattern`を指定しない場合、色は単純にフェードイン・フェードアウトします。黒や白へのシンプルなフェード、または`holdMs: 0`によるフラッシュです。[Reveal](/ja/docs/narraleaf-react/core/animation/transition/reveal)は、同じパターンを受け取る直接的なA→Bの対になる存在です。
+
+## 使い方
+
+```tsx
+import { ThroughColor, Mask } from "narraleaf-react";
+
+// 黒へフェードし、保持したのち、次の画像へフェードインする
+image.char("image1.jpg", new ThroughColor({ duration: 1000 }));
+
+// 素早い白のフラッシュ（保持なし）
+image.char("image1.jpg", new ThroughColor({ duration: 700, color: "#ffffff", holdMs: 0 }));
+
+// 黒を通した柔らかいワイプ
+image.char("image1.jpg", new ThroughColor({ duration: 1100, pattern: Mask.wipe({ direction: "left", feather: 15 }) }));
+
+// 黒への古典的なアイリス：円が縁から中心へ閉じていく、
+// これはアイリスパターンの反転方向
+image.char("image1.jpg", new ThroughColor({ duration: 1400, pattern: Mask.iris(), inverted: true }));
+
+// 時計の針は後退せず、保持を挟んでそのまま掃引を続ける
+image.char("image1.jpg", new ThroughColor({ duration: 1800, pattern: Mask.clock(), uncover: "continue" }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: ThroughColorOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `color?: string` - 保持する色。デフォルトは`"#000000"`
+  - `holdMs?: number` - 色が完全に覆った状態を保持する時間（ミリ秒）。`duration`の残りは、覆う時間と覆いを外す時間に均等に分けられるため、`{duration: 4000, holdMs: 2000}`は1秒で覆い、2秒保持し、1秒で外すことになります。フラッシュには`0`を使います。`0.36.0`以降
+  - `hold?: number` - **`0.36.0`以降非推奨。`holdMs`を使用してください。** 完全に覆われた状態に費やす持続時間の割合（`0`–`1`）。`holdMs`が指定されていない場合にのみ読み取られ、その場合デフォルトは`0.3`です。割合では色が実際にどれだけ保持されるかを言い表せません。デフォルトのまま300msで実行した`ThroughColor`は、色をわずか53ミリ秒しか保持せず、目に見える長さではありませんでした。
+  - `pattern?: MaskPattern` - 色が画面を覆う際の幾何形状。[Mask](/ja/docs/narraleaf-react/core/animation/transition/mask)を参照してください。省略すると、色を通した単純なフェードになります。
+  - `inverted?: boolean` - 代わりにパターンの反転（補完）方向で覆います。`Mask.iris()`はデフォルトで中心から外へ覆いますが、`inverted: true`では縁から中心へ（古典的な「黒へのアイリス」）になります。デフォルトは`false`
+  - `uncover?: ThroughColorUncover` - 保持の後、色がどのように覆いを外すか。下記を参照してください。`pattern`がない場合は無視されます。デフォルトは`"retreat"`
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。
+
+## 覆いを外すモード
+
+保持の後、`uncover`が後半の再生方法を決めます。
+
+- `"retreat"`（デフォルト） - 覆いのパターンが入ってきた方向へそのまま後退します。左から入ってきたワイプは左へ抜け、閉じたアイリスは閉じたときと同じ経路で再び開きます。
+- `"continue"` - 縁は同じ方向へ進み続け、パターンは画面を*通り抜けます*。ワイプは反対側へ抜け、縁から中心へ閉じたアイリスは中心から外へ開き、時計の針はもう一周します。
+- `MaskPattern` - 色が、覆ったときとは無関係な独自の幾何形状で覆いを外し、覆う/外すが非対称になります。例えば、時計の掃引で覆い、ワイプで覆いを外す場合。
+
+```tsx
+image.char("image1.jpg", new ThroughColor({
+    duration: 2000,
+    pattern: Mask.clock(),
+    uncover: Mask.wipe({ direction: "bottom" }),
+}));
+```

@@ -1,0 +1,14 @@
+{
+  "title": "プラグイン",
+  "pages": [
+    "index",
+    "create-first-plugin",
+    "manifest",
+    "api-reference",
+    "studio",
+    "runtime",
+    "build-dependencies",
+    "install-plugin",
+    "project-dependencies"
+  ]
+}

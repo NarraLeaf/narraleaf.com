@@ -1,0 +1,44 @@
+---
+title: widgets
+description: UI エディターのウィジェットモジュール――カスタムウィジェットのエディター側――を登録する
+---
+
+`app.services.widgets` は**ウィジェットモジュール**を登録します。これはカスタムウィジェット型のエディター側半分です。1 つのモジュールが、そのウィジェットのキャンバス上のレンダリング、プロパティ検査パネル、ドッカーバーのコントロールを担います。同じ型のゲーム側レンダラーは、runtime エントリーから [`app.game.widgets`](/ja/docs/studio/plugin/api-reference) を使って別途登録します。
+
+各 `type` は `contributes.widgets` に、あなたのプラグイン id を前置して宣言されていなければなりません。
+
+## メソッド
+
+| メソッド | シグネチャ | 備考 |
+| --- | --- | --- |
+| `register` | `(module: UIWidgetModule) => PluginCleanup` | |
+| `registerMany` | `(modules: UIWidgetModule[]) => PluginCleanup` | |
+| `get` | `(type: string) => UIWidgetModule \| undefined` | |
+| `list` | `() => UIWidgetModule[]` | |
+| `has` | `(type: string) => boolean` | |
+
+## UIWidgetModule
+
+Studio の組み込みウィジェットが実装しているのと同じインターフェースです。
+
+| メンバー | 型 | 備考 |
+| --- | --- | --- |
+| `type` | `string` | 一意な型 id。例:`"yourname.plugin.badge"`。 |
+| `displayName` | `string` | 要素パレットに表示されます。 |
+| `icon` | `LucideIcon` | パレットのアイコン。 |
+| `createDefaultElement` | `() => Partial<UIElement>` | ユーザーがこのウィジェットを追加したときに挿入される要素。システムの既定値とマージされます。 |
+| `render` | `(props: WidgetRendererProps) => ReactElement \| null` | キャンバス上のレンダリング。 |
+| `logicApi` | `WidgetLogicApi` | 任意。ウィジェットのブループリントイベントとロジックの能力を宣言します。 |
+| `createInspector` | `(context) => PropertyEditorSchema \| undefined` | 任意。共通のレイアウトフィールドのあとに追加されるフィールド。 |
+| `createDefaultChildElements` | `(context) => …` | 任意。ウィジェットと一緒に作成される構造的な子要素。 |
+| `createDockerBarItems` | `(context) => DockerBarItem[]` | 任意。ウィジェットが選択されたときに表示されるコントロール。 |
+| `createContextMenuItems`、`createFloatingToolbarItems`、`createMultiSelectDockerBarItems`、`createLayoutSizeField` | | 任意のエディター機能。 |
+| `registerBlueprintNodes` | `() => void` | 任意。モジュールの読み込み時に追加のブループリントノードを登録します。べき等に保ってください。 |
+
+```ts
+app.services.widgets.register(myWidgetModule);
+```
+
+<Callout type="info">
+公開したゲームでレンダリングされなければならないウィジェットには、両方の半分が必要です。エディター用のこのモジュールと、runtime エントリーから `app.game.widgets` で登録するゲーム側のレンダラーです。エディターモジュールだけを登録すると、ウィジェットはキャンバス上には現れますが、ゲームがエクスポートされたあとは空白のままになります。
+</Callout>

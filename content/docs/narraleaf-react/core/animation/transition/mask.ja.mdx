@@ -1,0 +1,153 @@
+---
+title: "Mask"
+description: RevealとThroughColorのトランジションエンジンが使用する、wipe、barn door、iris、clock、fan、blinds、dotsを含むマスクパターンのファクトリー
+---
+> マスクパターンは、[Reveal](/ja/docs/narraleaf-react/core/animation/transition/reveal)と[Through Color](/ja/docs/narraleaf-react/core/animation/transition/through-color)のトランジションエンジンで使用されます。
+
+`Mask`はトランジションアニメーションの語彙です。その静的ファクトリーは`MaskPattern`の値を構築します。これはパラメータ化された覆いの幾何形状で、マスク駆動のエンジンが`0`（何も覆われていない）から`1`（完全に覆われている）までアニメーションさせます。
+
+パターンは単なる値であり、`new`でインスタンス化することはありません。ファクトリーで構築し、エンジンの`pattern`オプションへ渡します。
+
+```tsx
+import { Reveal, ThroughColor, Mask } from "narraleaf-react";
+
+image.char("image1.jpg", new Reveal({ duration: 1000, pattern: Mask.wipe({ direction: "right" }) }));
+image.char("image1.jpg", new ThroughColor({ duration: 1600, pattern: Mask.blinds() }));
+```
+
+どのパターンにも、自然な向きと反転（補完）した向きがあり、同じ幾何形状が反対側から覆います。ワイプは反対の端から成長し、アイリスは中心から広がる代わりに縁から閉じ、時計の針は逆方向へ掃引します。エンジンは`ThroughColor`の`inverted`オプションと、その`"continue"`覆い外しモードを通じて反転した向きを使用します。また、[`Mask.invert`](#maskinvert)で恒久的に反転させることもできます。
+
+## ファクトリー
+
+各ファクトリーは、単一の省略可能なオプションオブジェクトを受け取り、`MaskPattern`を返します。
+
+### Mask.wipe
+
+方向性を持つ、羽根ぼかし付きのワイプです。1本の柔らかいエッジが画面を横切ります。
+
+- `options?: WipePatternOptions`
+  - `direction?: "left" | "right" | "top" | "bottom" | number` - 覆うエッジが進む方向。キーワード、または任意のCSSグラデーション角度（度、`0` = 上、`90` = 右）。デフォルトは`"left"`
+  - `feather?: number` - 柔らかいエッジ帯の幅（パーセント）。硬いエッジにするには`0`を使います。デフォルトは`12`
+
+```tsx
+Mask.wipe({ direction: "right" });
+Mask.wipe({ direction: 45, feather: 20 }); // 斜め方向、さらに柔らかく
+```
+
+### Mask.barnDoor
+
+観音開き。羽根ぼかしされた2本のエッジが、両端から中央へ向かって閉じます。反転すると、代わりに中央線から外側へ帯が広がります。
+
+- `options?: BarnDoorPatternOptions`
+  - `axis?: "horizontal" | "vertical" | number` - ドアが動く軸、または任意のCSSグラデーション角度（度）。デフォルトは`"horizontal"`
+  - `feather?: number` - 柔らかいエッジ帯の幅（パーセント）。デフォルトは`12`
+
+### Mask.iris
+
+中心から外へ広がる、羽根ぼかし付きのアイリスです。反転すると、縁から内側へ覆います。古典的な「黒へのアイリス」は`new ThroughColor({ pattern: Mask.iris(), inverted: true })`です。
+
+- `options?: IrisPatternOptions`
+  - `center?: string` - アイリスの中心。CSSの位置として指定します。デフォルトは`"50% 50%"`
+  - `feather?: number` - 柔らかいエッジ帯の幅（パーセント）。硬いエッジにするには`0`を使います。デフォルトは`12`
+  - `shape?: "circle" | "ellipse"` - アイリスの最終的な形状。デフォルトは`"circle"`
+
+### Mask.clock
+
+時計ワイプです。1本の羽根ぼかしされた放射状のエッジが、中心の周りを1周します。古典的な時計ワイプと同様、開始角度における後端は本質的に硬く、羽根ぼかしされるのは先端のみです。
+
+- `options?: ClockPatternOptions`
+  - `center?: string` - 掃引の中心。CSSの位置として指定します。デフォルトは`"50% 50%"`
+  - `from?: number` - 掃引が始まる角度（度、`0` = 上）。デフォルトは`0`
+  - `feather?: number` - 柔らかい先端エッジの幅、**度単位**。デフォルトは`24`
+  - `direction?: "clockwise" | "counterclockwise"` - 針が掃引する方向。デフォルトは`"clockwise"`
+
+### Mask.fan
+
+並行する時計掃引からなる風車で、それぞれが独自の扇形を覆います。
+
+- `options?: FanPatternOptions`
+  - `blades?: number` - 並行して掃引する羽根の数。デフォルトは`4`
+  - `center?: string` - 掃引の中心。CSSの位置として指定します。デフォルトは`"50% 50%"`
+  - `from?: number` - 掃引が始まる角度（度、`0` = 上）。デフォルトは`0`
+  - `feather?: number` - 各羽根の柔らかい先端エッジの幅、**度単位**。デフォルトは`10`
+
+### Mask.blinds
+
+画面を覆うまで幅を広げていくベネシアンブラインドのスラットです。デフォルトでは硬いエッジで、`feather`を上げると柔らかいスラットに、角度を渡すと斜めのスラットになります。
+
+- `options?: BlindsPatternOptions`
+  - `orientation?: "horizontal" | "vertical" | number` - スラットの向き、または任意のCSSグラデーション角度（度）。デフォルトは`"horizontal"`
+  - `slats?: number` - スラットの数。デフォルトは`8`
+  - `feather?: number` - 各スラットの柔らかいエッジの幅、画面に対するパーセント。デフォルトは`0`（硬いスラット）
+
+### Mask.dots
+
+タイル状の水玉模様のフラッドです。グリッドの各セルの中でドットが成長し、セル同士がつながって覆い尽くします。
+
+- `options?: DotsPatternOptions`
+  - `rows?: number` - タイルの行数。デフォルトは`6`
+  - `cols?: number` - タイルの列数。デフォルトは`10`
+  - `feather?: number` - 各ドットの柔らかい縁の幅、そのタイルに対するパーセント。デフォルトは`20`
+  - `stagger?: number` - タイルの角に固定した2つ目のドットグリッドの位相オフセット（`0`–`1`）。均一な塗りつぶしの代わりに、市松模様のような互い違いの塗りつぶしになります。デフォルトは`0`
+
+```tsx
+Mask.dots({ rows: 4, cols: 7, stagger: 0.5 });
+```
+
+## Mask.invert
+
+パターンの向きを入れ替えます。反転した幾何形状が自然な向きになり、その逆も同様です。
+
+- `pattern: MaskPattern` - 反転させるパターン
+
+```tsx
+// 中心から外へではなく、縁から内側へ見せるアイリス
+image.char("image1.jpg", new Reveal({ duration: 900, pattern: Mask.invert(Mask.iris()) }));
+```
+
+## カスタムパターン
+
+`MaskPattern`は単なるオブジェクト型なので、手書きのパターンは組み込みのパターンが使えるあらゆる場所で機能します。
+
+```ts
+type MaskPattern = {
+    // 不透明領域が画面の`t`（0–1）の割合を覆う、CSSマスク画像。
+    // カンマ区切りの複数レイヤー画像リストでもよい。
+    mask(t: number, inverted?: boolean): string;
+    // タイル状パターンの`mask-size`。デフォルトは"100% 100%"。
+    size?: string;
+    // タイル状パターンの`mask-repeat`。デフォルトは"no-repeat"。
+    repeat?: string;
+};
+```
+
+すべてのパターンは、次の3つの不変条件を満たす必要があります。
+
+- `mask(0)`は完全に透明、`mask(1)`は完全に不透明（羽根ぼかしを含む）。柔らかい帯は、行程の両端で完全に外へ掃き出されます。
+- 不透明な割合は`t`に対して単調に増加します。
+- `mask(t, true)`は、同じ幾何形状・同じ被覆率における補完の向きです。これにより、`ThroughColor`は保持の後にパターンを後退させるのではなく、そのまま続けることができます。
+
+```tsx
+import { MaskPattern, Reveal } from "narraleaf-react";
+
+// 硬いエッジの対角線分割
+const diagonal: MaskPattern = {
+    mask: (t, inverted) => inverted
+        ? `linear-gradient(45deg, transparent ${(1 - t) * 100}%, #000 ${(1 - t) * 100}%)`
+        : `linear-gradient(45deg, #000 ${t * 100}%, transparent ${t * 100}%)`,
+};
+
+image.char("image1.jpg", new Reveal({ duration: 800, pattern: diagonal }));
+```
+
+### Mask.toStyle
+
+カスタムトランジションの作者向けです。被覆率`t`におけるパターンの完全なCSSマスクスタイルブロックを返します。パターンの画像とそのタイル設定を、`-webkit-`プレフィックスにも反映したものです。
+
+- `pattern: MaskPattern` - レンダリングするパターン
+- `t: number` - 被覆率（`0`–`1`）
+- `inverted?: boolean` - 反転した向きをレンダリングします。デフォルトは`false`
+
+```tsx
+const style = Mask.toStyle(Mask.iris(), 0.5);
+```

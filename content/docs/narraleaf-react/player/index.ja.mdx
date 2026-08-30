@@ -1,0 +1,80 @@
+---
+title: "Player"
+description: Player パッケージの概要、ストーリーを描画するためのコンポーネントとフック、クイックスタートの例
+---
+Player は NarraLeaf-React フレームワークの一部で、ストーリーを再生するための React コンポーネントを含みます。
+
+抽象クラスを使ってストーリーを作成している場合は、[Core](/ja/docs/narraleaf-react/core) のドキュメントを確認してください。
+
+`Player` コンポーネントを探している場合は、[こちら](/ja/docs/narraleaf-react/player/player)にあります。
+
+## クイックスタート
+
+まだストーリーがない場合は、`Story` クラスを使ってストーリーを作成し、エクスポートしてください。ストーリーの作り方は [Core](/ja/docs/narraleaf-react/core) のドキュメントを参照してください。
+
+以下は `Player` コンポーネントの基本的な使用例です。
+
+```tsx
+"use client";
+
+import { GameProviders, Player } from "narraleaf-react";
+import { useState } from "react";
+import { story } from "./my-story";
+
+export default function Page() {
+    return (
+        <GameProviders>
+            <Player story={story} onReady={({ liveGame }) => {
+                liveGame.newGame();
+            }}
+                width="100vw"
+                height="100vh"
+            />
+        </GameProviders>
+    );
+}
+```
+
+上のコードを説明します。
+
+### 1. NarraLeaf-React ライブラリから必要なコンポーネントをインポートする
+
+```tsx
+import { GameProviders, Player } from "narraleaf-react";
+```
+
+これらのコンポーネントはゲームを作るために必要です。
+`GameProviders` はコンポーネントに Game インスタンスを提供するコンテキストプロバイダーです。`Player` はストーリーを再生するコンポーネントです。
+
+### 2. `GameProviders` と `Player` コンポーネントを描画する
+
+```tsx
+<GameProviders>
+    <Player story={story} onReady={({ liveGame }) => {
+        liveGame.newGame();
+    }}
+        width="100vw"
+        height="100vh"
+    >
+    </Player>
+</GameProviders>
+```
+
+`Player` コンポーネントは `GameProviders` コンポーネントで包む必要があります。
+`Player` コンポーネントは `story` prop を受け取ります。これは再生したいストーリーです。
+`onReady` prop は、ゲームが開始できる状態になったときに呼び出されるコールバック関数です。
+`liveGame` オブジェクトの `newGame` メソッドを呼び出すことでゲームを開始できます。
+
+`width` と `height` は `Player` コンポーネントの幅と高さです。プレイヤーは、指定された幅と高さに収まるよう拡大縮小します。
+
+## コンポーネントと Hooks
+
+- [Player](/ja/docs/narraleaf-react/player/player)
+- [GameProviders](/ja/docs/narraleaf-react/player/game-providers)
+- [FixedAspectRatioContainer](/ja/docs/narraleaf-react/player/fixed-aspect-ratio-container)
+- [Dialog](/ja/docs/narraleaf-react/player/dialog)
+- [Notification](/ja/docs/narraleaf-react/player/notification)
+- [Menu](/ja/docs/narraleaf-react/player/menu)
+- [NvlContainer](/ja/docs/narraleaf-react/player/nvl-container)
+- [Hooks](/ja/docs/narraleaf-react/player/hooks)
+- [LayoutRouter](/ja/docs/narraleaf-react/player/page-router)

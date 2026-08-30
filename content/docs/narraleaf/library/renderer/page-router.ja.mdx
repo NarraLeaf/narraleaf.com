@@ -1,0 +1,76 @@
+---
+title: "Page Router"
+description: NarraLeaf CLI がスキャンする renderer の pages ディレクトリを理解する
+---
+
+CLI は `renderer/pages` をスキャンし、`render()` に渡すルートツリーを生成します。ページは、生成される `RootPages` コンポーネントを通じて、NarraLeaf-React のプレイヤー内に描画されます。
+
+## ファイルの規則
+
+- `index.tsx`、`index.jsx`、`index.ts`、`index.js` は、そのディレクトリのデフォルトページを担当します。
+- `layout.tsx`、`layout.jsx`、`layout.ts`、`layout.js` は、そのディレクトリ内の子ページをラップします。
+- pages のルート直下にある `error.tsx`、`error.jsx`、`error.ts`、`error.js` は、グローバルなエラーフォールバックになります。
+- それ以外のファイルは、ファイル名に応じてページになります。
+- `[name]` のようなディレクトリ名は、slug パラメータになります。
+
+```txt
+renderer/pages
+├── index.tsx
+├── save.tsx
+├── settings.tsx
+├── error.tsx
+└── gallery
+    ├── layout.tsx
+    ├── index.tsx
+    └── [id].tsx
+```
+
+## Layouts
+
+layout モジュールは、`children` を受け取る React コンポーネントをエクスポートします。
+
+```tsx title="renderer/pages/gallery/layout.tsx"
+import type { ReactNode } from "react";
+
+export default function GalleryLayout({ children }: { children: ReactNode }) {
+    return <section>{children}</section>;
+}
+```
+
+## Pages
+
+page モジュールは、React コンポーネントをエクスポートします。
+
+```tsx title="renderer/pages/save.tsx"
+import { useSavedGames } from "narraleaf/renderer";
+
+export default function SavePage() {
+    const { results } = useSavedGames();
+
+    return <pre>{JSON.stringify(results, null, 2)}</pre>;
+}
+```
+
+## Slugs
+
+`[` で始まり `]` で終わるディレクトリ名は、slug セグメントとして扱われます。slug の名前に使える文字には、アルファベット、数字、アンダースコア、ハイフン、一般的な CJK 文字が含まれます。
+
+```txt
+renderer/pages/gallery/[id].tsx
+```
+
+## ルートの衝突
+
+1 つのディレクトリでは、次のいずれかしか使えません。
+
+- そのディレクトリ内の `index` ファイル、または
+- そのディレクトリと同名の兄弟ファイル
+
+同じルートに対して両方を使わないでください。
+
+```txt
+renderer/pages/gallery.tsx
+renderer/pages/gallery/index.tsx
+```
+
+どちらのファイルも `/gallery` を処理することになるため、CLI はこれをルーティングの衝突として扱います。

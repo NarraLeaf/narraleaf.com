@@ -1,0 +1,131 @@
+---
+title: "保存された値を監視する"
+description: Storable のイベントシステムを通じて保存された値の変化やセーブの復元を監視する方法、および購読を張るべき場所
+---
+
+<Callout type="info">
+    `0.19.0` 以降で利用可能です。
+</Callout>
+
+[Storable](/ja/docs/narraleaf-react/core/game/storable) はすべての書き込みを報告するため、保存された
+値に反応するホストはポーリングの代わりに購読できます。`gold` が 100 に達したら実績を解除する、
+フラグをエディタパネルへミラーする、HUD を同期させておく、といった用途です。
+
+```typescript
+const storable = game.getLiveGame().getStorable();
+
+// どこであれ、あらゆる変化
+storable.onChange(({namespace, key, previous, next}) => {
+    console.log(`${namespace}.${key}: ${previous} -> ${next}`);
+});
+
+// 1つの名前空間
+storable.onChange("persistent:player", ({key, next}) => {
+    console.log(key, next);
+});
+
+// 1つのキー
+const token = storable.onChange("persistent:player", "gold", ({next}) => {
+    if (next === 100) achievements.unlock("rich");
+});
+
+token.cancel();
+```
+
+ペイロードは [StorableChange](/ja/docs/narraleaf-react/core/types/StorableChange) です。その
+`namespace` は、その名前空間が登録されている**キー**であり、`getNamespace` が受け取り、セーブファイルが
+携えているのと同じ文字列です。人間が読むための名前ではありません。`new Persistent("player", ...)` と
+して宣言された名前空間は `"persistent:player"` として登録され、シーンのローカルストアは
+`"local:"` にシーン名を付けたものとして登録されます。
+
+リスナーは新しい値が読み取れるように**なった後**に実行されるため、名前空間の残りを読み取って一貫した
+状態を見ることができます。[assign](/ja/docs/narraleaf-react/core/game/storable/namespace#assign) は
+キーごとに 1 回変化を報告します。[reset](/ja/docs/narraleaf-react/core/game/storable/namespace#reset)
+は各キーがデフォルト値に戻ったことを報告し、構築後に書き込まれたキーについては `undefined` への
+変化として報告します。
+
+## Namespace ではなく Storable で購読する
+
+`newGame()` とセーブの読み込みは、いずれも**すべての名前空間をゼロから再構築します**。ストアはクリア
+され、登録済みの [Persistent](/ja/docs/narraleaf-react/core/elements/persistent) はそれぞれ新しい
+`Namespace` オブジェクトを構築します。`Storable` は [LiveGame](/ja/docs/narraleaf-react/core/game/live-game)
+と共に一度だけ作成され、決して置き換えられません。ストアに登録された購読はどちらの場合でも生き残り
+ますが、名前空間オブジェクトに結び付けられた購読は最初の読み込みの後、何のエラーもなく静かになります。
+
+<Callout type="warning">
+    同じ理由から、`getNamespace` が返すオブジェクトを `newGame()` や読み込みをまたいでキャッシュしない
+    でください。もう一度 `getNamespace` を呼んでください。保持していた参照は、もはや登録されていない
+    名前空間を指すため、読み取りは古い値を見て、書き込みは何も報告しません。
+</Callout>
+
+## 値が変化しない書き込み
+
+すでにそこにある値と等しい値を書き込んでも、何も報告されません。
+
+等価性の判定は**構造的なものであり、参照によるものではありません**。保存される値は定義上シリアライズ
+可能です（プリミティブ、`Date`、あるいはそれらから成る単純なオブジェクトや配列）。よくある書き方は、
+中身が何も動いていなくてもコンテナを作り直します。
+
+```typescript
+namespace.assign({gold: 10});                        // 一度報告される
+namespace.assign({gold: 10});                        // 何も報告されない
+
+namespace.set("bag", v => ({...v, gold: v.gold}));   // 新しいオブジェクト、内容は同じ: 何もない
+```
+
+- `Date` の値はタイムスタンプで比較され、同一性では比較されません。
+- シリアライズ可能な領域の外にある値（クラスインスタンスや、`set` が警告しつつも保存する関数）は
+  自分自身とだけ等しいとみなされるため、常に変化として報告されます。
+
+## セーブを読み込む
+
+一括適用は名前空間を列挙しながら **`onRestore`** を一度だけ発火させ、`onChange` はまったく発火
+しません。
+
+```typescript
+storable.onRestore(({namespaces}) => {
+    rereadMyDerivedView();
+});
+```
+
+これは、セーブ全体に対して 1 回のイベントを発火する
+[deserialize](/ja/docs/narraleaf-react/core/game/live-game#deserialize)と、1 つの名前空間をスナップ
+ショットへ巻き戻す処理（シーンのローカル変数のアンドゥはこのように実装されています。該当する名前
+空間を列挙して 1 回のイベントを発火します）の両方をカバーします。通常のプレイでは、依然としてキー
+ごとに変化が報告されます。
+
+<Callout type="warning">
+    **ホストは両方の信号を必要とします。** 読み込み中は `onChange` が静かなので、あるキーだけを見て
+    いるリスナーは、読み込んだセーブがすでに目的の値になっている状態で届いても発火しません。
+    `onRestore` でもその値を再確認してください。
+</Callout>
+
+```typescript
+const storable = game.getLiveGame().getStorable();
+
+function readGold() {
+    return storable.getNamespace("persistent:player").get("gold");
+}
+
+// 徐々に変化していく値
+storable.onChange("persistent:player", "gold", ({next}) => render(next));
+
+// 再読み込みによる不連続点
+storable.onRestore(({namespaces}) => {
+    if (namespaces.includes("persistent:player")) render(readGold());
+});
+```
+
+## 生のイベント
+
+[onChange](/ja/docs/narraleaf-react/core/game/storable#onchange) と
+[onRestore](/ja/docs/narraleaf-react/core/game/storable#onrestore) は、1 つのディスパッチャーに
+対するフィルターであり、直接それに接続したいホストのために `storable.events` として公開されて
+います。
+
+| イベント | ペイロード |
+| --- | --- |
+| `event:storable.change` | [StorableChange](/ja/docs/narraleaf-react/core/types/StorableChange) |
+| `event:storable.restore` | [StorableRestore](/ja/docs/narraleaf-react/core/types/StorableRestore) |
+
+名前空間とキーでフィルタリングしてくれる `onChange` の使用を優先してください。

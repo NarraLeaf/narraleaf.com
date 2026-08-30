@@ -1,0 +1,24 @@
+---
+title: "useParams"
+description: 現在の Layout のパスパターンで捕捉されたルートパラメータを返す useParams フック
+---
+親の `Layout` のパスパターンに従って、現在のパスから抽出したパラメータオブジェクトを返します。
+
+```tsx
+import { useParams } from "narraleaf-react";
+
+// inside /user/:id/layout
+const { id } = useParams<{ id: string }>();
+```
+
+レイアウトが `name=":id"` として定義されている場合、そのレイアウトにマッチしたときに `useParams` から捕捉された値が得られます。
+
+## 定義
+
+```typescript
+function useParams<T extends Record<string,string>>(): T;
+```
+
+このフックは型安全です。ジェネリクスを渡すことで、返されるオブジェクトの型を絞り込めます。
+
+関連項目：[`usePathname`](/ja/docs/narraleaf-react/player/hooks/usePathname) • [`useQueryParams`](/ja/docs/narraleaf-react/player/hooks/useQueryParams)

@@ -1,0 +1,11 @@
+{
+  "title": "コア",
+  "pages": [
+    "elements",
+    "animation",
+    "game",
+    "plugin",
+    "types",
+    "utils"
+  ]
+}

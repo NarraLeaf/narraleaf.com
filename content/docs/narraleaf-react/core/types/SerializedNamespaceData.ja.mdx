@@ -1,0 +1,34 @@
+---
+title: "SerializedNamespaceData"
+description: "セーブデータ内の一つの名前空間の内容。各値はタグ付きの `WrappedStorableData` 形式でラップされる"
+---
+セーブデータに現れる一つの名前空間の内容です。各値は [WrappedStorableData](/ja/docs/narraleaf-react/core/types/WrappedStorableData) によってラップされています。
+
+```typescript
+export type SerializedNamespaceData = {
+    [key: string]: WrappedStorableData;
+}
+```
+
+これは [SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame) の `store` が各名前空間について保持する内容です。`story.registerPersistent` で登録された名前空間ごとに一つ、加えてシーンのローカルごとに一つが含まれます。
+
+```typescript
+// savedGame.game.store
+{
+    "persistent:player": {
+        "name": {type: "any", data: "Yuko"},
+        "metHer": {type: "any", data: false},
+        "lastMet": {type: "date", data: "Wed Jul 15 2026 14:23:27 GMT+0000"},
+    },
+}
+```
+
+名前空間のキーには種類を表す接頭辞が付きます。`story.registerPersistent` で登録された名前空間には `persistent:`、シーンの `scene.local` には `local:` が付きます。
+
+<Callout type="warning">
+    直接手を加えず、[Namespace](/ja/docs/narraleaf-react/core/game/storable/namespace) を通じて読み書きしてください。セーブ内の値はその値自体ではなくタグ付き形式であるため、保存された `false` はオブジェクトになり、`false` と直接比較しても期待どおりの結果にはなりません。
+</Callout>
+
+## 互換性
+
+0.13.0 より前は、`SavedGame` の `store` は [StorableData](/ja/docs/narraleaf-react/core/types/StorableData) として宣言されていましたが、実際にはすでにこのタグ付き形式を保持していました。変わったのは宣言だけで、セーブ形式自体は変わっていません。詳細は[非互換の変更](/ja/docs/narraleaf-react/info/incompatible-changes)を参照してください。

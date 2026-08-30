@@ -1,0 +1,76 @@
+---
+title: store
+description: プラグイン単位の永続的なキー・バリューストレージ。プレイヤーのセーブデータの中ではなく、その隣に保持される
+---
+
+`app.game.store` は、プレイヤーのゲームの中にある、あなたのプラグイン専用の永続的な領域です。これはセーブデータの**中**ではなく**隣**にあるため、新しいゲームを始めても失われません。これは、アンロック済みコンテンツの記録、実績のミラー、そして「もうこれを見たか」といったフラグが必要としている性質です。
+
+まず宣言します。
+
+```json
+{
+  "contributes": {
+    "runtimeCapabilities": ["store"]
+  }
+}
+```
+
+## メソッド
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `get` | `<T>(key: string) => Promise<T \| null>` |
+| `set` | `<T>(key: string, value: T) => Promise<void>` |
+| `remove` | `(key: string) => Promise<void>` |
+| `keys` | `() => Promise<string[]>` |
+
+すべて非同期で、何も保存されていない場合 `get` は `null` に解決されます。
+
+```ts
+export default defineRuntimePlugin({
+    async setup(app) {
+        const seen = (await app.game.store?.get<string[]>("unlocked")) ?? [];
+        app.game.log("info", `${seen.length} unlocked`);
+    },
+});
+```
+
+## キーはあなたの代わりに名前空間化される
+
+裸のキーを書いてください。ホストは、それが裏側のストレージに届く前に、すべてのキーにあなたのプラグイン id を前置します。そのため `"unlocked"` を使う二つのプラグインが衝突することは決してなく、あなたも自分の id を繰り返し書く必要はありません。
+
+```ts
+await app.game.store?.set("unlocked", [...seen, "cg_01"]);
+const unlocked = await app.game.store?.get<string[]>("unlocked");
+```
+
+`keys()` はあなたのキーを接頭辞*なしで*返すため、返ってくるものはあなたが渡したものと同じです。
+
+## どこに保存されるか
+
+| ターゲット | 裏側 |
+| --- | --- |
+| デスクトップゲーム | プレイヤーのユーザーデータ内にある、そのゲームの永続化ファイル。 |
+| Web エクスポート | IndexedDB。 |
+| Android / iOS | シェルの永続化。デスクトップと同じ。 |
+
+このストアはセーブスロットの一部ではなく、また、ワークスペースが開いている間しか存在しないエディタ側の [`app.services.storage`](/ja/docs/studio/plugin/studio/storage) でもありません。Studio で作成したデータをゲームに届ける必要があるなら、[`contributes.runtimeData`](/ja/docs/studio/plugin/manifest#runtimedata) で公開し、代わりに `app.game.data.readJson` で読み取ってください。こちらは読み取り専用で、パックとともに配布されます。
+
+<Callout type="info">
+このストアは、ノードがその背後にゲームを持たないままエディタのキャンバス上で実行される**エディタ内プレビューでは利用できません**。`app.game.store?.` でガードし、そこではノードが何もしないようにしてください。
+</Callout>
+
+## 非同期であること、そしてそれがノードに与える影響
+
+すべてのメソッドは promise を返します。store を await するブループリントノードは `isLatent: true` と宣言しなければならず、latent なノードはインラインのストーリー式の中では使えません — イベントグラフかマクログラフの中に置いてください。
+
+```ts
+{
+    type: `${PLUGIN_ID}.isUnlocked`,
+    isLatent: true,
+    execute: async ctx => {
+        const unlocked = (await ctx.game.store?.get<string[]>("unlocked")) ?? [];
+        return { nextPort: "next", outputValues: { value: unlocked.includes(String(ctx.params.id ?? "")) } };
+    },
+}
+```

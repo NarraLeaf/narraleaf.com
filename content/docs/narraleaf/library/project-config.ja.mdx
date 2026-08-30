@@ -1,0 +1,158 @@
+---
+title: "Project Config"
+description: narraleaf.config.js、必須のフォルダ、renderer のパス、開発用ポート、リソース、パッケージング出力を設定する
+---
+
+`narraleaf.config.js` は、CLI が `dev`、`build`、`info` を実行する前に読み込まれます。main のエントリの場所、renderer アプリの場所、アプリのパッケージ方法を制御します。
+
+## 基本設定
+
+```js title="narraleaf.config.js"
+const {
+    ArchType,
+    BuildTarget,
+    WindowsBuildTarget,
+} = require("narraleaf/config");
+
+module.exports = {
+    main: "main/index.ts",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+    },
+    temp: ".narraleaf",
+    resources: "assets",
+    dev: {
+        port: 5050,
+    },
+    build: {
+        appId: "com.example.visualnovel",
+        productName: "My Visual Novel",
+        dist: "dist",
+        dev: false,
+        targets: BuildTarget.Windows({
+            target: WindowsBuildTarget.nsis,
+            arch: ArchType.x64,
+        }),
+    },
+};
+```
+
+## 必須ファイル
+
+CLI は次のファイルとフォルダを検証します。
+
+- `package.json`：空でない `name`、`version`、`description` を含む必要があります。
+- `narraleaf.config.js`：プロジェクトの設定オブジェクトをエクスポートする必要があります。
+- main のエントリ：デフォルトは `main/index.js` です。
+- renderer のベースディレクトリ：デフォルトは `renderer` です。
+- renderer のアプリコンポーネント：`renderer/App.tsx` または `renderer/App.jsx`。
+- renderer のページディレクトリ：`renderer/pages`。
+- renderer の public ディレクトリ：`renderer/public`。
+
+## 設定フィールド
+
+### main
+
+主プロセスのエントリファイルです。Electron の main 用にバンドルされ、`AppConfig` でアプリを作成する必要があります。
+
+```js
+module.exports = {
+    main: "main/index.ts",
+};
+```
+
+### renderer
+
+renderer プロジェクトのルートと開発時のアセットモードを制御します。
+
+- `baseDir`：renderer プロジェクトのディレクトリ。
+- `allowHTTP`：生成される CSP で、画像に `http:` と `https:` の送信元を許可します。
+- `httpDevServer`：開発中に renderer の出力を HTTP で配信します。
+- `httpDevServerPort`：デフォルトは `5051` です。
+
+```js
+module.exports = {
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: true,
+        httpDevServer: true,
+        httpDevServerPort: 5051,
+    },
+};
+```
+
+### temp
+
+生成されるビルド出力と開発出力に使われるディレクトリです。デフォルトは `.narraleaf` です。
+
+```js
+module.exports = {
+    temp: ".narraleaf",
+};
+```
+
+### resources
+
+Electron Builder によってパッケージ化されたアプリにコピーされる追加のリソースです。
+
+```js
+module.exports = {
+    resources: "assets",
+};
+```
+
+### dev
+
+CLI と実行中のアプリが使う開発用 WebSocket ポートです。
+
+```js
+module.exports = {
+    dev: {
+        port: 5050,
+    },
+};
+```
+
+### build
+
+Electron Builder に渡されるパッケージングオプションです。
+
+- `appId`：アプリケーション識別子。
+- `productName`：パッケージ化された製品名。
+- `copyright`：著作権表示のテキスト。
+- `dist`：出力ディレクトリ。
+- `dev`：true の場合、開発向けの高速なパッケージングを使用します。
+- `targets`：1 つの `PlatformBuildTarget`、または配列。
+
+ターゲット用のヘルパーは [ビルドターゲット](/ja/docs/narraleaf/library/build-targets) を参照してください。
+
+## デフォルト値
+
+省略した場合、NarraLeaf は次のデフォルト値をあなたの設定にマージします。
+
+```js
+{
+    build: {
+        appId: "com.example.App",
+        copyright: "",
+        dev: false,
+        dist: "dist",
+        productName: "Example App",
+        targets: [],
+    },
+    main: "main/index.js",
+    renderer: {
+        baseDir: "renderer",
+        allowHTTP: false,
+        httpDevServer: false,
+        httpDevServerPort: 5051,
+    },
+    temp: ".narraleaf",
+    dev: {
+        port: 5050,
+    },
+    resources: "assets",
+}
+```

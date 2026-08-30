@@ -1,0 +1,238 @@
+﻿---
+title: "サウンド"
+description: 音声、音楽、効果音の再生を扱う `Sound` クラス。音量、ミュート、再生速度、シーク、フェードを扱う
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+Sound はゲーム内の音声を制御します
+
+## 静的メソッド
+
+### voice
+
+<Steps>
+<Step>
+
+ボイスサウンドを作成します
+
+```ts
+const voice = Sound.voice({
+    src: 'voice.mp3',
+});
+
+// これは次と等価
+const voice = new Sound({
+    src: 'voice.mp3',
+    type: SoundType.Voice,
+});
+```
+
+ここでの `type` は**デフォルト値**であり、上書きではありません。値を渡すと、そのセリフを `voice` の下にあるバスに割り当てられます —
+これによって、ゲームはキャストの各メンバーに固有の音量を持たせることができます。
+
+```ts
+const line = Sound.voice({src: 'alice-01.mp3', type: 'alice'});
+```
+
+- `arg0: Partial<ISoundUserConfig> | string` - サウンドの設定、またはサウンドのソース。[ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照
+- 戻り値: `Sound`
+</Step>
+</Steps>
+
+### bgm
+
+<Steps>
+<Step>
+
+BGM サウンドを作成します。`type` はデフォルトで `bgm` になり、その下にある任意のバスを指定できます。
+
+- `arg0: Partial<ISoundUserConfig> | string` - サウンドの設定、またはサウンドのソース。[ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照
+- 戻り値: `Sound`
+</Step>
+</Steps>
+
+### sound
+
+<Steps>
+<Step>
+
+サウンドを作成します。`type` はデフォルトで `sound` になり、その下にある任意のバスを指定できます。
+
+- `arg0: Partial<ISoundUserConfig> | string` - サウンドの設定、またはサウンドのソース。[ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照
+- 戻り値: `Sound`
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/2
+
+- `config?: Partial<ISoundUserConfig>` - [ISoundUserConfig](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照
+
+#### オーバーロード 2/2
+
+- `src?: string` - サウンドのソース
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### play
+
+<Steps>
+<Step>
+
+サウンドを再生し、終了するまで待機します
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+});
+scene.action([
+    sound.play(1000), // 再生して1秒かけてフェードイン
+]);
+```
+
+どのバス上のクリップも、`bgm` のものを含めてこの方法で再生できます。`type` はそのクリップをどの音量コントロールが管轄するかを
+決めるだけで、それ以外には影響しません。そのため、環境音トラックを `bgm` に置いて（プレイヤーの音楽スライダーで制御できるように
+して）、それを普通の一行から再生する、というのは正当な使い方です。
+
+<Callout type="info">
+    **これは `scene.setBackgroundMusic()` とは異なります。** ここで再生されるクリップはシーンの背景音楽スロットには
+    入らないため、シーンを離れてもそのクリップは停止せず、クロスフェードも組まれません。この方法で `bgm` タイプの
+    クリップを再生すると、その旨を伝える `console.warn` が出力されますが、これは注意喚起であってエラーではありません。
+    `0.22.0` より前は、これは例外をスローし、チェーンのビルド時にストーリー全体を失敗させていました。
+</Callout>
+
+- `duration?: number` - フェードの長さ（ミリ秒）
+</Step>
+</Steps>
+
+### stop
+
+<Steps>
+<Step>
+
+サウンドを停止します。停止後、サウンドは先頭に戻ります
+
+- `duration?: number` - フェードの長さ（ミリ秒）
+</Step>
+</Steps>
+
+### setVolume
+
+<Steps>
+<Step>
+
+サウンドの音量を設定します。時間を指定すると、変化は瞬間的なジャンプではなくフェードになります。
+
+```ts
+const sound = new Sound({
+    src: 'sound.mp3',
+    volume: 0,
+});
+scene.action([
+    sound
+        .play()
+        .setVolume(1, 1000), // 1秒かけてフェードイン
+]);
+```
+
+- `volume: number` - 音量。0 から 1 まで
+- `duration?: number` - フェードの長さ（ミリ秒）
+</Step>
+</Steps>
+
+### mute
+
+<Steps>
+<Step>
+
+再生を止めずに、サウンドをミュートまたはミュート解除します。
+
+```ts
+scene.action([
+    bgm.play(),
+    bgm.mute(),
+    bgm.unmute(),
+]);
+```
+
+- `muted?: boolean` - `true` でサウンドをミュート、`false` で音量を復元します（デフォルトは `true`）
+- 戻り値: `Proxied<Sound, Chained<LogicAction.Actions>>` - チェーンされた Sound インスタンス
+</Step>
+</Steps>
+
+### unmute
+
+<Steps>
+<Step>
+
+元の音量を復元するための `mute(false)` のエイリアスです。
+
+- 戻り値: `Proxied<Sound, Chained<LogicAction.Actions>>` - チェーンされた Sound インスタンス
+</Step>
+</Steps>
+
+### setRate
+
+<Steps>
+<Step>
+
+サウンドの再生速度を設定します
+
+- `rate: number` - 速度。基準値は 1
+</Step>
+</Steps>
+
+### pause
+
+<Steps>
+<Step>
+
+- `duration?: number` - フェードの長さ（ミリ秒）
+</Step>
+</Steps>
+
+### resume
+
+<Steps>
+<Step>
+
+- `fade?: number` - フェードの長さ（ミリ秒）
+</Step>
+</Steps>
+
+### seek
+
+<Steps>
+<Step>
+
+クリップ内の位置（秒単位）にジャンプし、そこから再生を続けます。これは再生位置を読み取る処理に対する書き込み側の対になる
+もので、音楽プレイヤー画面や「イントロをスキップする」処理に必要です。
+
+```ts
+scene.action([
+    theme.seek(30),
+]);
+```
+
+現在再生していないサウンドに対しては何もしません: 動かすべきものがないためです。ループ区間（
+[`endTime`](/ja/docs/narraleaf-react/core/types/ISoundUserConfig) を参照）はジャンプ後も保持されるため、
+ループ中のトラック内をシークしても、気づかないうちにワンショット再生に変わってしまうことはありません。
+
+- `time: number` - 位置（秒）。ファイルの先頭から測定します（イン点からではありません）
+- 戻り値: `Proxied<Sound, Chained<LogicAction.Actions>>` - チェーンされた Sound インスタンス
+</Step>
+</Steps>

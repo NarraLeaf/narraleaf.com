@@ -1,0 +1,126 @@
+---
+title: スライダー
+description: スライダー ウィジェットの実行時の値と範囲を読み書きします
+---
+
+Slider ノードは、編集中のプライベートブループリントが属する `nl.slider` の実行時の値と範囲を読み書きします——たとえば `Init` 時に保存済みの音量を読み込む必要がある音量コントロールや、モードによって範囲が変わる難易度セレクターなどです。ドラッグイベント自体は [Events](/ja/docs/studio/blueprint/nodes/events) にあります。
+
+## 規約
+
+- **1つのノードを除き、すべてがマッピング済みの値を扱います。** `props.value` とその Blueprint Value、`dragStart` / `valueChanged` / `dragEnd` のペイロード、`Get Value`、`Set Slider Value` は、いずれも `min…max` の単位で値を運びます。`0…1` の比率は `Get Normalized Value` にしか存在しません——これを塗りつぶし幅に接続し、`Get Value` はプレイヤーが数値として読むものに接続してください。
+- **書き込まれた値は clamp され、snap され、再び clamp されます。** snap は `min` から整数ステップ分だけ上へ数えるもので、2回目の clamp は、範囲を割り切らないステップが値を `max` の外に押し出すのを防ぐ役割を持ちます。
+
+  ```text
+  clamped = clamp(value, min, max)
+  snapped = min + round((clamped - min) / step) * step
+  value   = clamp(snapped, min, max)
+  ```
+
+- **`step` が `0` のときは snap が無効になります。** その場合、値は範囲内を連続的に変化します。負の `step` は `0` として扱われます。
+- **範囲は使用される前に修正されます。** `max` が `min` 以下のときは常に `min + 1` に強制されるため、スライダーの範囲が幅ゼロになることはありません。有限数でない値はフォールバックします——壊れた範囲を読み取る場合はウィジェットの既定値（`min` 0、`max` 100、`step` 1）に、`Set Slider Range` の場合はその項目の現在の実行時の値にフォールバックします。
+- **読み取りは pure、書き込みは latent です。** `Get Value`、`Get Normalized Value`、`Get Slider Range` は `event`、`function`、`macro` グラフで実行でき、Blueprint Value グラフでも使用できます。2つの書き込みノードは latent で、`event` と `macro` に限られます——function は呼び出し元に同期的に値を返すため、保留中の書き込みを置いておく場所がありません。
+- **これらは Self ノードです。** グラフを所有する Slider に対して作用し、ターゲットピンを持ちません。別の Slider を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある `blueprint.element.slider.*` の対をなすノードを使用してください。これらは `slider` 入力を持ち、グラフに `nl.slider` へのバインディングノードがある場合にのみ現れます。
+
+<Callout type="warn">
+`Set Slider Value` と `Set Slider Range` は実行時の状態のみを変更します。`valueChanged`、`dragStart`、`dragEnd` は発行しないため、それらのイベントを介してスライダーに反応するグラフは、ブループリントがスライダーを動かしても実行されません——後続の処理は同じ実行チェーン上で行ってください。また、これらは UIDocument に書き戻すこともないため、ウィジェットが次にマウントされるときのスライダーの起点は、作者が設定した値のままです。
+</Callout>
+
+## Set Slider Value
+
+`blueprint.slider.setValue` · Latent
+
+現在の `min` / `max` / `step` に対して正規化したマッピング値を設定します。有限数でない値は `0` として扱われてから範囲内に clamp されるため、`min` がゼロより大きい場合、未接続または不正な入力はハンドルを `min` の位置に留めます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `value` | in · data | `float` | マッピング単位であり、`0…1` ではありません。カード上での直接入力に対応します。 |
+
+## Set Slider Range
+
+`blueprint.slider.setRange` · Latent
+
+`min`、`max`、`step` をまとめて設定し、新しい範囲に対して現在の値を再正規化します。そのため、範囲を狭めるとハンドルが移動し、`step` を粗くするとハンドルが吸着します——値が、たった今宣言した範囲の外に取り残されることはありません。
+
+各ピンは、有限数に解決できない場合、その項目の現在の実行時の値にフォールバックします。そのため、あるピンを未接続のままにし、カード上の値も空にしておけば、範囲のその部分を変更せずに保つことができます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `min` | in · data | `float` | カード上での直接入力に対応します。 |
+| `max` | in · data | `float` | `min` 以下のときは `min + 1` に強制されます。カード上での直接入力に対応します。 |
+| `step` | in · data | `float` | `0` は snap を無効にします。負数は `0` として扱われます。カード上での直接入力に対応します。 |
+
+## Set Visible
+
+`blueprint.slider.setVisible` · Latent
+
+ウィジェットの実行時の可視性を設定します。これは作者が設定した `visible` プロパティであり、Displayable の描画スイッチではありません——要素をマウントしたまま `display: none` で隠したい場合は、[Displayable](/ja/docs/studio/blueprint/nodes/displayable) の `Set Display` を参照してください。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |
+
+## Set Enabled
+
+`blueprint.slider.setEnabled` · Latent
+
+Slider の実行時の操作を有効または無効にします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
+
+## Get Value
+
+`blueprint.slider.getValue` · Pure
+
+現在のマッピング値を出力します——すでに `min` / `max` / `step` に対して clamp と snap が済んでいます。これがセーブに保存したり、コントロールの横に表示したりする数値です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `value` | out · data | `float` | |
+
+## Get Normalized Value
+
+`blueprint.slider.getNormalizedValue` · Pure
+
+マッピング値の範囲内での位置を `0…1` として出力します。これは clamp と snap を経た値から導かれるため、`step` が粗いとこの出力も飛び飛びに変化します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `normalizedValue` | out · data | `float` | |
+
+## Get Slider Range
+
+`blueprint.slider.getRange` · Pure
+
+現在の実行時の範囲を3つのピンで出力します。これらは修正後の値であり、作者が設定した値そのものではありません——`max` にはすでに `min + 1` という下限が反映されており、`step` が負になることもありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `min` | out · data | `float` | |
+| `max` | out · data | `float` | |
+| `step` | out · data | `float` | |
+
+## Get Visible
+
+`blueprint.slider.getVisible` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
+
+## Get Enabled
+
+`blueprint.slider.getEnabled` · Pure
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |

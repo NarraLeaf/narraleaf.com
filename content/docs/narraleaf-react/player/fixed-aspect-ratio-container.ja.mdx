@@ -1,0 +1,54 @@
+---
+title: "FixedAspectRatioContainer"
+description: FixedAspectRatioContainer コンポーネントのアスペクト比とサイズ関連の props、onUpdate に渡されるリサイズ情報
+---
+`FixedAspectRatioContainer` は、任意のコンテナの内部でステージを固定のアスペクト比に保ちます。利用可能なスペースを自動的に計測し、レイアウトを中央に配置し、リサイズ情報を通知するため、自分で計算する必要はありません。
+
+> **注意**：`Player` の内部で描画する場合も、同じゲーム設定を共有できるよう `GameProviders` でこのコンポーネントを包んでおいてください。
+
+## 例
+
+```tsx
+"use client";
+
+import { FixedAspectRatioContainer } from "narraleaf-react";
+
+export default function MyStage() {
+    return (
+        <FixedAspectRatioContainer
+            aspectRatio={16 / 9}
+            baseWidth={1920}
+            minWidth={480}
+            minHeight={270}
+            onUpdate={({ width, height, scale }) => {
+                console.log("render size", width, height, scale);
+            }}
+        >
+            <div className="stage">
+                {/* stage rendering goes here */}
+            </div>
+        </FixedAspectRatioContainer>
+    );
+}
+```
+
+## Props
+
+- `aspectRatio: number` — 目標とする幅 / 高さの比率。例：`16 / 9`。
+- `baseWidth: number` — `scale = renderWidth / baseWidth` の計算に使う基準幅で、プレイヤーの意味づけと一致します。
+- `minWidth?: number` — 描画幅の下限。既定値は `0`。計算した幅を更新前にこの下限でクランプします。
+- `minHeight?: number` — 描画高さの下限。既定値は `0`。計算した高さを更新前にこの下限でクランプします。
+- `debounceMs?: number` — リサイズのデバウンス時間（ミリ秒）。既定値はプレイヤーの `ratioUpdateInterval`。`0` を指定するとデバウンスを無効化します。
+- `onUpdate?: (metrics: {
+    width: number;
+    height: number;
+    scale: number;
+    containerWidth: number;
+    containerHeight: number;
+}) => void` — リサイズの計算のたびに呼び出されます。`containerWidth` / `containerHeight` は親要素の利用可能なスペースを表します。
+- `children?: React.ReactNode` — ステージ内部に描画する内容。
+- `id?: string` — 最も外側のラッパーに転送され、CSS やセレクタとの整合に使います。
+- `className?: string` — 最も外側のラッパーに転送され、レイアウトやアニメーション用のクラスに使います。
+- `[data-*?: string]` — その他の属性はすべてラッパーに転送され、既存のスタイルに組み込めます。
+
+内部では `ResizeObserver` で親要素を監視し、親要素に `position: relative` を設定したうえで内部を絶対配置で中央に揃え、プレイヤーの内部にあるか単体のレイアウトにあるかにかかわらず、ステージの縮尺を一貫させます。

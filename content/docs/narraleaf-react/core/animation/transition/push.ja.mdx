@@ -1,0 +1,24 @@
+---
+title: "Push"
+description: 次の画像を一方の端からスライドインさせながら、現在の画像を反対側へスライドアウトさせるトランジション
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+カメラがパンしたかのように、次の画像を一方の端からスライドインさせながら、現在の画像を反対方向へスライドアウトさせます。
+
+## 使い方
+
+```tsx
+import { Push } from "narraleaf-react";
+
+image.char("image1.jpg", new Push({ duration: 800, direction: "left" }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: PushOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `direction?: TransformDefinitions.WipeDirection` - 現在の画像が移動する方向（`"left"`、`"right"`、`"top"`、`"bottom"`）。次の画像は反対側の端から入ってきます。デフォルトは`"left"`
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

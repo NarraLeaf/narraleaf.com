@@ -1,0 +1,90 @@
+---
+title: "useDialogOverlay"
+description: ダイアログボックスの上にポップアップやツールチップを描画するための、useDialogOverlay フックとその Portal・measure・container メンバー
+---
+ある行に属していながらその行の中には収まらないものを描画する場所です。行内ワードの語義ポップアップ、名前へのツールチップなどです。`0.27.0` から利用可能です。
+
+```typescript
+function useDialogOverlay(): DialogOverlay;
+```
+
+このオーバーレイはダイアログボックスを覆って上に描画され、同じ縮尺のステージの内部にあります。ワードがある位置にそのままインラインで描画したポップアップはテキストボックスにクリップされます。`document.body` へポータルしたポップアップはステージの縮尺から外れてしまい、それが説明している行とはサイズが合わなくなります。オーバーレイにはどちらの問題もありません。
+
+## 使い方
+
+```tsx
+import { useDialogOverlay } from "narraleaf-react";
+
+function Definition({anchor, children}: {anchor: Element | null; children: React.ReactNode}) {
+    const overlay = useDialogOverlay();
+    const rect = overlay.measure(anchor);
+
+    if (!rect) return null;
+
+    return (
+        <overlay.Portal>
+            <div style={{
+                position: "absolute",
+                left: rect.left,
+                top: rect.bottom + 8,
+                width: 320,
+                pointerEvents: "auto",
+            }}>
+                {children}
+            </div>
+        </overlay.Portal>
+    );
+}
+```
+
+## DialogOverlay
+
+```typescript
+type DialogOverlay = {
+    Portal: React.FC<{ children?: React.ReactNode }>;
+    measure: (element: Element | null) => DialogOverlayRect | null;
+    container: HTMLElement | null;
+};
+```
+
+### Portal
+
+子要素をオーバーレイの中に描画します。ダイアログの上に位置し、縮尺されたステージの内部にとどまります。子要素は、オーバーレイの左上を基準に絶対配置されます。
+
+### measure
+
+- `element: Element | null` - 位置を求める要素。通常はポップアップが属するワードです。
+- [DialogOverlayRect](#dialogoverlayrect) を返します。要素が `null` の場合、またはオーバーレイが存在しない場合は `null` を返します。
+
+### container
+
+オーバーレイの要素です。ダイアログの外では `null` になります。
+
+## DialogOverlayRect
+
+```typescript
+type DialogOverlayRect = {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+};
+```
+
+## 座標系
+
+`measure` が報告する位置は、オーバーレイ自身の座標系によるものです。すなわち、ステージがウィンドウに合わせて拡大縮小する前の、authored サイズのダイアログボックスを基準にしています。結果はそのまま `left` と `top` に渡し、ポップアップのサイズも同じ単位で指定してください。ポップアップがステージの縮尺を読み取る必要は一切ありません。
+
+## ポインターイベント
+
+オーバーレイは、子要素が描画していない箇所ではすべてクリックを通過させます。ポップアップ自体には `pointer-events: auto` を指定してください。
+
+## 行を保持する
+
+開いている間はプレイヤーの次のキー入力を受け止めるポップアップは、[useSuspendAdvance](/ja/docs/narraleaf-react/player/hooks/useSuspendAdvance) を使ってその行を保持しておく必要があります。
+
+## 利用可能な範囲
+
+このオーバーレイは ADV のダイアログボックスに属します。NVL モードには受け皿がなく、`container` は `null`、`measure` は `null` を返し、`Portal` は何も描画しません。NVL モードでも動作する必要があるポップアップは、インラインで描画してください。

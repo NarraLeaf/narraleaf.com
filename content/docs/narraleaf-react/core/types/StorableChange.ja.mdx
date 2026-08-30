@@ -1,0 +1,21 @@
+---
+title: "StorableChange"
+description: "`Storable.onChange` が単一の保存値の変化時に報告するイベント：所属する名前空間、キー、変更前の値、変更後の値"
+---
+一つの保存値が変化したことを表します。新しい値がすでに `getNamespace(namespace).get(key)` で読み取れる状態になった後に、[Storable.onChange](/ja/docs/narraleaf-react/core/game/storable#onchange) によって報告されます。
+
+```typescript
+type StorableChange<T extends StorableType = any> = {
+    namespace: string;
+    key: string;
+    previous: T | undefined;
+    next: T | undefined;
+};
+```
+
+- `namespace` - [Storable](/ja/docs/narraleaf-react/core/game/storable) にその名前空間が登録されているキーです。`getNamespace` が受け取るのと同じ文字列で、セーブファイルにも記録されます。`new Persistent("player", ...)` で宣言された名前空間の場合、これは `"persistent:player"` になります。
+- `key` - その名前空間内のキーです。
+- `previous` - 直前にあった値です。そのキーが一度も書き込まれていない場合は `undefined` です。
+- `next` - 現在の値です。キーが削除された場合は `undefined` になります。これは構築後に書き込まれたキーに対して [reset](/ja/docs/narraleaf-react/core/game/storable/namespace#reset) が行う処理です。
+
+書き込みは値が実際に変化した場合にのみ報告され、セーブの読み込みではキーごとの変化の代わりに [StorableRestore](/ja/docs/narraleaf-react/core/types/StorableRestore) が報告されます。詳細は[保存値の監視](/ja/docs/narraleaf-react/core/game/storable/events)を参照してください。

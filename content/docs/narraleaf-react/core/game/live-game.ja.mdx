@@ -1,0 +1,868 @@
+---
+title: "LiveGame"
+description: LiveGame のゲーム開始、セーブ・ロード、アンドゥとリドゥ、履歴、スクリーンショット、フルスクリーン、再生の早送りに関するメソッド
+---
+LiveGame は、ゲームの現在の状態を表すメインクラスです。
+
+## 公開プロパティ
+
+### game
+
+[Game](/ja/docs/narraleaf-react/core/game/game) インスタンス
+
+### story
+
+現在の [Story](/ja/docs/narraleaf-react/core/elements/story) インスタンス
+
+## 公開メソッド
+
+### getStorable
+
+<Steps>
+<Step>
+
+[Storable](/ja/docs/narraleaf-react/core/game/storable) インスタンスを返します。
+
+`LiveGame` のライフサイクルを通じて常に同じインスタンスです。`newGame()` と `deserialize()` が再構築
+するのはその中の名前空間であって、ストア自体ではありません。だからこそ、
+[保存された値を監視する](/ja/docs/narraleaf-react/core/game/storable/events)で確立した購読は、
+どちらの場合でも生き残ります。
+
+- 返り値: `Storable` - [Storable](/ja/docs/narraleaf-react/core/game/storable)
+</Step>
+</Steps>
+
+### get storable
+
+<Steps>
+<Step>
+
+[Storable](/ja/docs/narraleaf-react/core/game/storable) インスタンスを返します。
+
+```typescript {2}
+const game = useGame();
+const storable = game.getLiveGame().storable;
+
+// 次と等価
+const storable = game.getLiveGame().getStorable();
+```
+
+- 返り値: `Storable` - [Storable](/ja/docs/narraleaf-react/core/game/storable)
+</Step>
+</Steps>
+
+### newGame
+
+<Steps>
+<Step>
+
+新しいゲームを開始します。
+
+- 返り値: `this`
+</Step>
+</Steps>
+
+### deserialize
+
+<Steps>
+<Step>
+
+保存されたゲームを読み込みます。
+
+このメソッドを呼び出すと、現在のゲーム状態は失われ、ステージは強制的にリセットされます。
+
+> **注意：** スクリプトを 1 行変更しただけでも、保存されたゲームは新しいバージョンと互換性がない
+> 場合があります。
+
+例：
+
+```typescript
+const savedGame = {
+    // ...saved game data
+};
+
+// コンポーネント内でフックを使う
+const game = useGame();
+
+// 保存されたゲームデータをゲームインスタンスへ渡す
+game.getLiveGame().deserialize(savedGame);
+```
+
+- `savedGame: SavedGame` - [SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame)
+</Step>
+</Steps>
+
+### serialize
+
+<Steps>
+<Step>
+
+現在のゲーム状態をシリアライズします。
+
+これを使ってゲーム状態をファイルやデータベースに保存できます。
+
+> **注意：** スクリプトを 1 行変更しただけでも、保存されたゲームは新しいバージョンと互換性がない
+> 場合があります。
+
+- 返り値: `SavedGame` - 参照: [SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame)
+</Step>
+</Steps>
+
+### onCharacterPrompt
+
+<Steps>
+<Step>
+
+キャラクターが何かを話したときに呼び出されます。
+
+- `fc: (event: LiveGameEvent["event:character.prompt"]) => void` - 参照: [LiveGameEvent](/ja/docs/narraleaf-react/core/types/LiveGameEvent)
+- 返り値: `LiveGameEventToken` - 参照: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+
+```typescript
+const game = useGame();
+const [texts, setTexts] = useState<string[]>([]);
+
+useEffect(() => {
+    const token = game.getLiveGame().onCharacterPrompt((event) => {
+        setTexts((prevTexts) => [...prevTexts, event.text]);
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+
+return (
+    <div>
+        {/* Your Text Log */}
+    </div>
+);
+```
+</Step>
+</Steps>
+
+### onMenuChoose
+
+<Steps>
+<Step>
+
+メニューが完了したときに呼び出されます。
+
+- `fc: (event: LiveGameEvent["event:menu.choose"]) => void` - 参照: [LiveGameEvent](/ja/docs/narraleaf-react/core/types/LiveGameEvent)
+- 返り値: `LiveGameEventToken` - 参照: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### capturePng
+
+<Steps>
+<Step>
+
+ゲームのスクリーンショットを取得します。含まれるのはプレイヤー要素のみです。
+
+PNG 画像の base64 エンコード済みデータ URL を返します。
+
+> **注意：** このメソッドが返す画像は圧縮されておらず、`screenshotQuality` オプションの影響も
+> 受けません。
+
+```typescript
+const game = useGame();
+
+function handleButtonClick() {
+    game.getLiveGame().capturePng().then((dataUrl) => {
+        // dataUrl に対して何かする
+    });
+}
+```
+
+- 返り値: `Promise<string>`
+</Step>
+</Steps>
+
+### captureJpeg
+
+<Steps>
+<Step>
+
+ゲームのスクリーンショットを取得します。含まれるのはプレイヤー要素のみです。
+
+圧縮された JPEG 画像のデータ URL を返します。
+
+- 返り値: `Promise<string>`
+</Step>
+</Steps>
+
+### captureSvg
+
+<Steps>
+<Step>
+
+ゲームのスクリーンショットを取得します。含まれるのはプレイヤー要素のみです。
+
+SVG データ URL を返します。
+
+- 返り値: `Promise<string>`
+</Step>
+</Steps>
+
+### capturePngBlob
+
+<Steps>
+<Step>
+
+ゲームのスクリーンショットを取得します。含まれるのはプレイヤー要素のみです。
+
+PNG 画像の Blob を返します。
+
+- 返り値: `Promise<Blob | null>`
+</Step>
+</Steps>
+
+### requestFullScreen
+
+<Steps>
+<Step>
+
+Chrome / Safari / Firefox / IE / Edge / Opera でフルスクリーンを要求します。フルスクリーンになるのは
+プレイヤー要素です。
+
+**注意**: このメソッドはユーザー操作（クリックイベントなど）への応答として呼び出す必要があります。
+
+Safari iOS と Webview iOS ではサポートされていません。詳しくは
+[MDN-requestFullscreen](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen)
+を参照してください。
+
+- `options?: FullscreenOptions | undefined`
+- 返り値: `Promise<void> | void`
+</Step>
+</Steps>
+
+### exitFullScreen
+
+<Steps>
+<Step>
+
+フルスクリーンを終了します。
+
+- 返り値: `Promise<void> | void`
+</Step>
+</Steps>
+
+### onPlayerEvent
+
+<Steps>
+<Step>
+
+プレイヤー要素のイベントを監視します。
+
+```typescript
+const game = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onPlayerEvent("click", (event) => {
+        // do something
+    }).cancel;
+}, []);
+```
+
+- `type: K` - イベントの種類
+- `listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any` - イベントリスナー
+- `options?: boolean | AddEventListenerOptions`
+- 返り値: `LiveGameEventToken`
+</Step>
+</Steps>
+
+### getHistory
+
+<Steps>
+<Step>
+
+ゲームの履歴を取得します。このメソッドはバックログを作るために使います。
+
+バックログとは、読み終えた行から現在ゲームがいる行までのすべてです。セーブフォーマット v2 以降は
+これが永続化されるため、`deserialize` の直後にこのメソッドはただちに完全な履歴を返します。読み込んだ
+ゲームはもはや空のバックログから始まりません。
+
+[undo](#undo) で後退した後、再生ヘッドより先の行は**ここには含まれません**。それらはプレイヤーが再び
+踏み込める未来であり、[getFuture](#getfuture) が返します。バックログにそれらを載せることは、まだ
+起きていないことを表示することになってしまいます。
+
+```typescript
+import { useLiveGame, GameHistory } from "narraleaf-react";
+```
+
+```typescript
+const liveGame = useLiveGame();
+const history = liveGame.getHistory();
+
+function handleRestore(entry: GameHistory) {
+    liveGame.restoreToHistory(entry.token);
+}
+
+return (
+    <div>
+        <h3>Backlog</h3>
+
+        {history.map((item) => (
+            <div
+                key={item.token}
+                onClick={() => handleRestore(item)}
+            >
+                {/* show the action text */}
+                {/* text is available when the action is "say" or "menu" */}
+                {item.element.text}
+            </div>
+        ))}
+    </div>
+);
+```
+
+エントリの `token` はセーブや巻き戻しをまたいでも同じ行を指し続けるため、バックログの UI はそれを
+保持しておいて後で使うことができます。
+
+- 返り値: `GameHistory[]` - ゲームの履歴。参照: [GameHistory](/ja/docs/narraleaf-react/core/types/GameHistory)
+
+<Callout type="info">
+    `0.26.0` より前は、バックログが再構築されるたびにすべてのエントリへ新しいトークンが発行されて
+    いました。そのため、セーブを読み込んだり行を復元したりすると、呼び出し側が保持していたトークンが
+    すべて静かに無効になり、バックログのボタンは一覧を読み直すまで動かなくなり、同じ行への復元を
+    2 回行うと 2 回目は必ず失敗していました。現在ではトークンはセーブに書き込まれ、読み戻すときにも
+    保持されます。それ以前に書き出されたセーブはトークンを持たないため、そのエントリには以前どおり
+    新しいトークンが与えられます。
+</Callout>
+</Step>
+</Steps>
+
+### getFuture
+
+<Steps>
+<Step>
+
+再生ヘッドより先の行です。一度読まれ、[undo](#undo) によって後退して通り過ぎ、[redo](#redo) によって
+再び到達できます。
+
+通常のプレイ中は空で、セーブを読み込んだ直後も空です。後退した後に書き出されたセーブは、その行までの
+バックログしか持たず、その先は一切持ちません。そのため、それを読み込むと前方に進む先が何もない状態で
+開始します。それが「過去でセーブする」ということの意味です。
+
+```typescript
+const liveGame = useLiveGame();
+
+// プレイヤーが後退して通り過ぎた行、古い順。
+const future = liveGame.getFuture();
+```
+
+- 返り値: `GameHistory[]` - 前方の行。参照: [GameHistory](/ja/docs/narraleaf-react/core/types/GameHistory)
+
+<Callout type="info">
+    `0.26.0` 以降で利用可能です。
+</Callout>
+</Step>
+</Steps>
+
+### canUndo
+
+<Steps>
+<Step>
+
+この行より前に、後退できる行があるかどうかです。
+
+```typescript
+<button disabled={!liveGame.canUndo()} onClick={() => liveGame.undo()}>
+    Back
+</button>
+```
+
+- 返り値: `boolean`
+
+<Callout type="info">
+    `0.26.0` 以降で利用可能です。
+</Callout>
+</Step>
+</Steps>
+
+### canRedo
+
+<Steps>
+<Step>
+
+後退して通り過ぎた行が前方で待っているかどうかです。
+
+```typescript
+<button disabled={!liveGame.canRedo()} onClick={() => liveGame.redo()}>
+    Forward
+</button>
+```
+
+- 返り値: `boolean`
+
+<Callout type="info">
+    `0.26.0` 以降で利用可能です。
+</Callout>
+</Step>
+</Steps>
+
+### undo
+
+<Steps>
+<Step>
+
+1 行後退します。
+
+```typescript
+liveGame.undo();
+```
+
+- 返り値: `boolean` - ゲームが移動すれば `true`。すでに最初の行である場合、またはその行にスナップ
+  ショットがない場合は `false`。
+
+後退と前進は同じ 1 つの仕組みです。すべての行は到達した時点でゲームの自己完結したスナップショットを
+記録しており、どちらの方向へ移動しても、移動先の行のスナップショットが復元されます。
+
+**セーブを読み込んだ後でも後退できます。** `0.26.0` より前は、`undo` はメモリ上に保持されたクロージャの
+スタックだけを辿っていました。クロージャはファイルに書き出せないため、セーブを読み込むとプレイヤーは
+後退できないバックログを抱えることになり、ボタンはそこにあるのに何も起きませんでした。生きたスタックが
+目的の行に届く限り、今でもそれが優先ルートです。まさにそれが、何も邪魔することなく後退できるからです。
+音楽は流れ続け、進行中のトランジションも乱されず、ステージは再構築されません。スタックが届かなくなった
+所からはスナップショットが引き継ぐため、その境界はもう存在しません。
+
+**再び前方へ読み進めても、先にある内容は保たれます。** 後退して離れた行は破棄されません。3 行後退して
+から前方へ読み進めると、それらを上書きするのではなく、同じ 3 行を辿り直します。そのため、それ以前に
+読んでいた残りの部分は依然として前方にあります。未来が捨てられるのは、物語が別の場所へ進んだとき
+（選択の別の枝）だけです。その未来はもはや現在いる場所から続くものではないからです。
+
+<Callout type="info">
+    **`0.26.0` でのシグネチャ変更。** `undo()` はもはやアクション id を受け取りません。行は
+    [restoreToHistory](#restoretohistory) を通じてトークンで指定されます。行き先がないときは
+    例外を送出する代わりに `false` を返します。
+</Callout>
+</Step>
+</Steps>
+
+### redo
+
+<Steps>
+<Step>
+
+1 行前進し、後退して通り過ぎた行へ入ります。
+
+```typescript
+liveGame.redo();
+```
+
+- 返り値: `boolean` - ゲームが移動すれば `true`。前方に何もない場合、またはスナップショットを
+  持たない場合は `false`。
+
+これはプレイヤーがすでに読んだ行にしか到達しません。記録された未来を再生するのであって、物語を
+先へ進めるわけではありません。未来の終端を越えて続けるには、ゲームを通常どおり進行させてください。
+
+<Callout type="info">
+    `0.26.0` 以降で利用可能です。
+</Callout>
+</Step>
+</Steps>
+
+### restoreToHistory
+
+<Steps>
+<Step>
+
+記録済みのある行へ、そのトークンを指定してゲームを移動させます。
+
+[undo](#undo) や [redo](#redo) と同じ仕組みであり、どちらの方向にも届きます。
+[getHistory](#gethistory) のトークンは後退し、[getFuture](#getfuture) のトークンは前進します。
+この 2 つと同様、**セーブを読み込んだ後**でも機能し、何も破棄しません。移動先の行より先にある行も
+引き続き到達可能です。
+
+```typescript
+const history = liveGame.getHistory();
+
+// ある行へジャンプする —— 読み込んだセーブから復元された行も含む。
+liveGame.restoreToHistory(history[0].token);
+```
+
+- `token: string` - 移動先の履歴項目のトークン。参照: [GameHistory](/ja/docs/narraleaf-react/core/types/GameHistory)。
+- 返り値: `boolean` - その行が復元できれば `true`。トークンが不明な場合、またはそのエントリに
+  復元用のスナップショットがない場合は `false`。
+
+<Callout type="info">
+    `0.26.0` より前は、これは後方にしか届かず、移動先の行までバックログを切り詰めていたため、
+    それ以降のすべてが失われていました。現在はタイムラインを切断するのではなく、再生ヘッドを
+    動かすようになっています。
+</Callout>
+</Step>
+</Steps>
+
+### notify
+
+<Steps>
+<Step>
+
+通知を作成します。
+
+通知のスタイルは [Notification](/ja/docs/narraleaf-react/player/notification) で定義されています。
+
+```typescript
+// 3秒間通知する
+game.getLiveGame().notify("Save success", 3000);
+```
+
+```typescript
+// 通知を制御するには、duration を `null` にして通知を永続的に表示させる
+const token = game.getLiveGame().notify("Fast forward", null);
+
+// プレイヤーが右キーを離したら通知をキャンセルする
+window.addEventListener("keyup", (event) => {
+    if (event.key === "ArrowRight") {
+        token.cancel();
+    }
+});
+```
+
+- `message: string` - 通知するメッセージ
+- `duration?: number | null` - 通知の表示時間。デフォルトは 3000ms。`null` にすると通知は永続的に
+  表示されます。
+- 返り値: `NotificationToken` - 参照: [NotificationToken](/ja/docs/narraleaf-react/core/types/NotificationToken)
+</Step>
+</Steps>
+
+### playSound
+
+<Steps>
+<Step>
+
+サウンドを即座に再生し、その `SoundToken` を返します。
+
+```typescript
+const game = useGame();
+
+game.getLiveGame()
+    .playSound("https://example.com/voice.mp3")
+    .then((token) => {
+        token.once("ended", () => {
+            console.log("Voice playback completed");
+        });
+    });
+```
+
+クリップは、その `Sound` が設定された音量で始まります。`Sound.voice({src, volume: 0.4})` は満音量では
+なく 0.4 から始まります。文字列や `URL` として渡された音源はデフォルトの `Sound` になり、これは
+満音量です。それ以外にしたい場合は `Sound` を渡してください。
+
+<Callout type="info">
+    `0.22.0` より前は、ここで「音量が指定されていない」ことが*満音量*として扱われていたため、
+    設定済みの `volume` が捨てられていました。`setVolume` の後に再生し直したクリップは、現在では
+    満音量へ飛ぶのではなく、最後に設定された音量で戻ってきます。
+
+    フェードはありません。この Promise が resolve する時点で音量はすでに確定しており、進行中の
+    ランプも残っていません。そのため、返されたトークンに対して後から `setVolume` を呼んだり
+    フェードを駆動したりすれば、それが確実に最後の書き込みになります。
+</Callout>
+
+- `sound: Sound | string | URL` - サウンドインスタンス、サウンドのソース文字列、または URL
+- 返り値: `Promise<SoundToken>` - soundToken インスタンスについての詳細は
+  [`@NarraLeaf/Sound`](https://github.com/NarraLeaf/Sound) を参照してください。
+</Step>
+</Steps>
+
+### waitForRouterExit
+
+<Steps>
+<Step>
+
+ルーターが退出するのを待ちます。
+
+新しいゲームを作成し、ルーターの退出を待ちたいときに便利なメソッドです。
+
+```typescript {10}
+const game = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.clear().cleanHistory();
+
+    const token = liveGame
+        .newGame()
+        .waitForRouterExit()
+    
+    token
+        .promise
+        .then(() => {
+            dispatchState({ isPlaying: true });
+        });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- 返り値: `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### waitForPageMount
+
+<Steps>
+<Step>
+
+ページがマウントされるのを待ちます。
+
+```typescript
+const game = useGame();
+const router = useRouter();
+const liveGame = game.getLiveGame();
+
+useEffect(() => {
+    router.push("home");
+    const token = liveGame.waitForPageMount();
+
+    token.promise.then(() => {
+        // do something
+    });
+
+    return () => {
+        token.cancel();
+    };
+}, []);
+```
+
+- 返り値: `{ promise: Promise<void>; cancel: VoidFunction; }`
+</Step>
+</Steps>
+
+### onWindowEvent
+
+<Steps>
+<Step>
+
+ウィンドウのイベントを監視します。
+
+```typescript
+const game = useGame();
+
+useEffect(() => {
+    return game.getLiveGame().onWindowEvent("resize", (event) => {
+        // handle window resize
+    }).cancel;
+}, []);
+```
+
+- `type: K` - イベントの種類
+- `listener: (this: Window, ev: WindowEventMap[K]) => any` - イベントリスナー
+- `options?: boolean | AddEventListenerOptions`
+- 返り値: `LiveGameEventToken` - 参照: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+### reset
+
+<Steps>
+<Step>
+
+ゲームの状態をリセットします。
+
+> **注意：** このメソッドを呼び出すと、現在のゲーム状態が失われます。
+
+```typescript
+const game = useGame();
+const router = useRouter();
+
+game.getLiveGame().reset();
+router.clear().cleanHistory().push("home");
+```
+</Step>
+</Steps>
+
+### skipDialog
+
+<Steps>
+<Step>
+
+現在のダイアログをスキップします。
+
+```typescript
+game.getLiveGame().skipDialog();
+```
+</Step>
+</Steps>
+
+### fastForward
+
+<Steps>
+<Step>
+
+次のメニュー、ストーリーの終わり、または特定のアクションまで再生を早送りします。
+
+その間のすべての行は実際に実行されるため、バックログとその復元用スナップショットは通常のプレイと
+まったく同じように蓄積されます。ただし、より速く、無音で行われます。早送り中は音声がミュートされ、
+実行中に発生する時間待ち（`Control.sleep`、自動送り）は即座に解決されます。メニューが選択を待っている
+状態になった時点で停止するため、選択そのものは常にプレイヤーに委ねられます。履歴は全区間で蓄積される
+ため、[getHistory](#gethistory) と [restoreToHistory](#restoretohistory) は、早送りされた区間も
+通常のプレイと同じようにカバーします。
+
+行をスキップするのは、レンダラーへブロードキャストされる*要求*であって、同期的な状態変更では
+ありません。そのため、この要求はその行が確定するまで繰り返し発行されます。決して応答しない行は、
+呼び出しをハングさせるのではなく `"stalled"` で早送りを終了させます。このメソッドは常に確定します。
+
+```typescript
+// 次の決定点まで先へ進む。
+await game.getLiveGame().fastForward();
+
+// またはストーリーの終わりまで実行する。
+await game.getLiveGame().fastForward({ until: "end" });
+
+// または、特定のアクションに再生ヘッドを止め、それを実行しない。
+const result = await game.getLiveGame().fastForward({ until: { actionId: "act-42" } });
+
+if (result.reason === "action") {
+    // act-42 で止まり、まだ実行されていない
+} else if (result.reachedTarget === false) {
+    // メニューが道を塞いだ、スタックが尽きた、maxSteps に達した、または行が固まった
+}
+```
+
+- `options.until?: "menu" | "end" | { actionId: string }` - `"menu"`（デフォルト）は次のメニューで
+  停止します。`"end"` はストーリーが終わるまで実行します。`{ actionId }` は、そのアクションが次に
+  実行されるものとして現れるまで進み、それを**実行する直前**で停止します。つまり、再生ヘッドはその
+  行に止められたままになります。走査されるのはルートの実行スタックだけです。進行中の `Control.all` /
+  `Control.any` や非同期分岐の内側に埋もれた id は停止点になりません。目的地に到達する前にプレイヤーが
+  選択を行う必要がある場合、メニューは `actionId` 指定の実行も同様に停止させます。
+- `options.maxSteps?: number` - 進行ステップ数の安全上限（デフォルトは `maxStackModelLoop` 設定）。
+- `options.stepTimeout?: number` - 1 つの一時停止された行が `"stalled"` と報告されるまでに確定を
+  許される時間（ミリ秒）。デフォルトは `10000`。スキップできない長いメディアを通過する早送りが
+  あるストーリーでは、これを上げてください。
+- 返り値: `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>`
+  - なぜ停止したか。
+    - `reason` - `"action"` は `until.actionId` に到達したこと、`"menu"` はメニューが選択を待って
+      いること、`"end"` はスタックが尽きたこと、`"maxSteps"` はステップ上限に達したこと、
+      `"stalled"` は行が `stepTimeout` 内に確定しなかったことを示します。
+    - `reachedTarget` - `until: { actionId }` を指定したときに**のみ**存在し、`reason` が
+      `"action"` のときにのみ `true` になります。`"menu"` / `"end"` の実行はそのまま単純な
+      `{ reason }` の形を保ちます。
+</Step>
+</Steps>
+
+<Callout type="info">
+    `until: { actionId }`、`"action"` という reason、`reachedTarget` は `0.16.0` 以降で利用可能です。
+    `options.stepTimeout` と `"stalled"` という reason は `0.17.1` 以降で利用可能です。
+</Callout>
+
+<Callout type="warning">
+    **スキップできないステップによって、実行が早期に終わることがあります。** 実行開始時にすでに
+    進行中だったステップ、動画（`allowSkipVideo` はデフォルトで `false`）、カメラやレイヤーの
+    トランジションは、いずれもスキップ要求を無視します。そのようなステップでも `stepTimeout` 内に
+    自力で確定すればそのまま続行されるため、タイムアウトを超えたものだけが実行を終了させます ——
+    `"stalled"` として、かつ抜ける際に音量と早送りフラグを復元したうえで終了します。
+
+    `0.17.1` より前は、このようなステップで実行がそのまま止まっていました。Promise はどちらの
+    向きにも確定せず、ゲームはミュートされたまま永続的に早送りモードに留まっていました。以前から
+    動いていたものが今から失敗し始めることはありませんが、`"menu"` 以外の reason をすべて成功と
+    見なしていたホストは、今後 `"stalled"` を区別すべきです。また、`reason` を網羅的に `switch`
+    している箇所は、コンパイルを通すためにこの分岐を追加する必要があります。
+</Callout>
+
+### onCurrentActionChange
+
+<Callout type="info">
+    `0.16.0` 以降で利用可能です。
+</Callout>
+
+<Steps>
+<Step>
+
+現在のアクションのストリームを購読します。ハンドラーはアクションが実行を開始するたびに呼び出され、
+そのアクションの id と種類を受け取ります。エディタのタイムラインのような外部の再生ヘッドが、
+稼働中のゲームを追跡するのに十分な情報です。
+
+これは`Control.all` / `Control.any` の内側や、`Control.doAsync` / `Control.allAsync` の非同期分岐に
+含まれるものを含め、実行される**すべての**アクションに対して発火します。トップレベルの行だけを
+追跡したいリスナーは、自分自身の id 集合でフィルタリングしてください。
+
+```typescript
+const liveGame = useLiveGame();
+
+useEffect(() => {
+    return liveGame.onCurrentActionChange(({actionId, actionType}) => {
+        // 再生ヘッドを actionId へ移動する
+    }).cancel;
+}, []);
+```
+
+- `fc: (payload: {actionId: string | null, actionType: string | null}) => void` - 実行を開始した
+  ばかりのアクションとともに呼び出されます。ストーリーがそのアクションに id や種類を記録していない
+  場合、両方のフィールドとも `null` になります。
+- 返り値: `LiveGameEventToken` - 参照: [LiveGameEventToken](/ja/docs/narraleaf-react/core/types/LiveGameEventToken)
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **実験的、読み取り専用。** この面は、稼働中のゲームを監視するツール向けに存在します。これから
+    ストーリーのロジックを駆動しないでください。また、これが報告する内容を永続化しないでください
+    —— [serialize](#serialize) がセーブフォーマットです。
+</Callout>
+
+### getCurrentActionId
+
+<Callout type="info">
+    `0.16.0` 以降で利用可能です。
+</Callout>
+
+<Steps>
+<Step>
+
+最後に実行されたアクションの id です。[onCurrentActionChange](#oncurrentactionchange) に対する、
+購読ではなくポーリングを行うホストのための、プル型の対応物です。
+
+```typescript
+const actionId = game.getLiveGame().getCurrentActionId();
+```
+
+- 返り値: `string | null` - 実行の最初のアクションがまだ実行されていない場合、また、ストーリーが
+  そのアクションに id を記録していない場合は `null`。
+</Step>
+</Steps>
+
+### getStackSnapshot
+
+<Callout type="info">
+    `0.16.0` 以降で利用可能です。
+</Callout>
+
+<Steps>
+<Step>
+
+コールスタックやデバッグパネル向けの、実行スタックの上から順に並んだビューです。ルートスタックに加えて、
+`Control.doAsync` / `Control.allAsync` によって開始された、進行中の非同期スタックごとに 1 エントリが
+含まれます。
+
+```typescript
+const {root, async} = game.getLiveGame().getStackSnapshot();
+
+// 現在実行中の行
+root.frames[0]?.actionId;
+
+// 並行するフレームはそれぞれの分岐を持ち、各分岐は丸ごと 1 つのスナップショットである
+root.frames[0]?.branches?.[0]?.frames;
+
+// Control.repeat のフレームは反復カウンタを持つ
+root.frames[0]?.branches?.[0]?.loop?.counter;
+```
+
+- 返り値: `{root: StackSnapshot, async: StackSnapshot[]}` - ゲーム開始前は frames が空です。
+
+`StackSnapshot` は `{tag?: string, frames: StackFrameSnapshot[], loop?: {type: "count" | "condition", counter: number, limit?: number, broken: boolean}}` です。`frames` は上から順に並んでおり、
+`frames[0]` が今まさに実行中のフレームです。
+
+`StackFrameSnapshot` は `{actionId: string | null, actionType: string | null, branchWaitType?: string, branches?: StackSnapshot[]}` です。並行グループ（`Control.all` / `Control.any`）であるフレームは
+自分の分岐を列挙し、各分岐は丸ごと 1 つの `StackSnapshot` です。そのため、ネストしたスタック自身の
+`loop` カウンタや `tag` もそのまま付いてきます。
+</Step>
+</Steps>
+
+<Callout type="warning">
+    **実験的、読み取り専用。** この形状は読みやすさのための投影であり、安定性の契約ではありません。
+    メジャーバージョンの変更なしに変わる可能性があります。スナップショットを決して永続化しないで
+    ください —— セーブには [serialize](#serialize) を使ってください。
+</Callout>

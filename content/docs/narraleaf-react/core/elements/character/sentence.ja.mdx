@@ -1,0 +1,80 @@
+﻿---
+title: "Sentence"
+description: 台詞のテキストとWordを構成する`Sentence`クラス。複製と実行時メタデータを扱う
+---
+Sentenceは`Character`の一部です。対話を構築するために使用します。
+
+Sentenceを構築する：
+
+```ts
+import { Sentence } from 'narraleaf-react';
+
+const character = new Character("character 1");
+const sentence = new Sentence([
+    "こんにちは、",
+    Word.color("世界", "#f00") // wordに色を付けることもできる,
+], {
+    character,
+});
+```
+
+または
+
+```ts
+const sentence = new Sentence("こんにちは、世界");
+```
+
+または
+
+```ts
+const sentence = new Sentence([
+    "こんにちは、", persis.get("playerName"), "！"
+]);
+
+```
+
+## パブリックメソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+- `text: SentencePrompt` - [SentencePrompt](/ja/docs/narraleaf-react/core/types/SentencePrompt)を参照
+- `config?: Partial<SentenceUserConfig>` - [SentenceUserConfig](/ja/docs/narraleaf-react/core/types/SentenceUserConfig)
+</Step>
+</Steps>
+
+### copy
+
+<Steps>
+<Step>
+
+Sentenceを複製します。
+
+```ts
+const sentence = new Sentence("こんにちは、世界");
+const sentence2 = sentence.copy();
+```
+
+- 戻り値：`Sentence`
+</Step>
+</Steps>
+
+### getMetadata
+
+<Steps>
+<Step>
+
+Sentenceの設定（[SentenceConfig](/ja/docs/narraleaf-react/core/types/SentenceConfig)を参照）から、実行時のみの`metadata`を返します。未設定の場合は`undefined`です。メタデータはセーブデータにはシリアライズされません。
+
+```ts
+const sentence = new Sentence("こんにちは", {
+    metadata: { uiHint: "emphasis" },
+});
+sentence.getMetadata(); // { uiHint: "emphasis" }
+```
+
+- 戻り値：`SentenceMetadata | undefined`
+</Step>
+</Steps>

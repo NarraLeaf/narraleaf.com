@@ -1,0 +1,24 @@
+---
+title: "BlurDissolve"
+description: 2つの画像間のクロスフェードトランジション。出ていくフレームをぼかし、入ってくるフレームをシャープにする。回想シーンや夢のシーンに向く
+---
+> [Image](/ja/docs/narraleaf-react/core/elements/image)の切り替えと[シーンジャンプ](/ja/docs/narraleaf-react/core/types/JumpConfig)で使用できます。
+
+現在の画像から次の画像へ、ぼかしを伴ってクロスフェードします。現在の画像はぼけながらフェードアウトし、次の画像はシャープになりながら現れます。回想や夢の状態に向きます。
+
+## 使い方
+
+```tsx
+import { BlurDissolve } from "narraleaf-react";
+
+image.char("image1.jpg", new BlurDissolve({ duration: 800, blur: 16 }));
+```
+
+## パブリックメソッド
+
+### constructor
+
+- `options: BlurDissolveOptions`
+  - `duration: number` - トランジションの持続時間（ミリ秒）
+  - `blur?: number` - 交差点で適用されるピーク時のぼかし半径（ピクセル）。デフォルトは`16`
+  - `easing?: TransformDefinitions.EasingDefinition` - イージング関数。[TransformDefinitions](/ja/docs/narraleaf-react/core/types/TransformDefinitions).[EasingDefinition](/ja/docs/narraleaf-react/core/types/EasingDefinition)を参照してください。

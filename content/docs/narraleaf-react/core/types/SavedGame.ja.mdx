@@ -1,0 +1,105 @@
+---
+title: "SavedGame"
+description: セーブファイルの完全な構造：メタデータ、名前空間ストア、要素状態、ステージ、サービス、実行スタック
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能のため、変更される可能性があります。
+</Callout>
+
+```typescript
+interface SavedGame {
+    name: string;
+    meta: SavedGameMetaData;
+    game: {
+        store: { [key: string]: SerializedNamespaceData; };
+        elementStates: RawData<ElementStateRaw>[];
+        stage: PlayerStateData;
+        services: { [key: string]: unknown; };
+        stackModel: StackModelRawData;
+        asyncStackModels: StackModelRawData[];
+        history?: SerializedGameHistory[];
+    };
+}
+```
+
+> **注：** セーブフォーマットは [`meta.version`](/ja/docs/narraleaf-react/core/types/SavedGameMetaData) によってバージョン管理されています（現在は `3`）。バックログが永続化されるようになる前に書き出されたセーブには `history` が含まれず、空のバックログとして読み込まれます。
+
+<Callout type="warning">
+    **セーブフォーマット v3（`0.26.0`）：それより古いエンジンは v3 のセーブを正しく読み込めません。**
+    古いエンジンは `elementStates` の各項目を適用しますが、このフォーマットが前提とするリセットを
+    スキップしてしまうため、セーブに含まれない要素は実行中のセッションが入れていた状態のまま
+    残ります。逆方向は問題ありません —— v1 と v2 のセーブは `0.26.0` でもそのまま読み込めます。
+</Callout>
+
+## name
+
+セーブデータの名前
+
+## meta
+
+セーブデータのメタデータ。[SavedGameMetaData](/ja/docs/narraleaf-react/core/types/SavedGameMetaData) を参照してください
+
+## game
+
+セーブデータのゲームデータ
+
+### store
+
+すべての名前空間の内容を、名前空間名をキーとして格納したものです。値はタグ付きの形式で保存されます。[SerializedNamespaceData](/ja/docs/narraleaf-react/core/types/SerializedNamespaceData) を参照してください。
+
+これには `story.registerPersistent` で登録された名前空間と、`scene.local` の背後にあるシーンローカルの両方が含まれます。
+
+<Callout type="warning">
+    これは手作業で読むのではなく、`Storable` / `Namespace` を通して読んでください。保存された値は
+    値そのものではなく `{type, data}` というラッパーであり、これによって `Date` が JSON を経ても
+    保持されます。
+</Callout>
+
+### elementStates
+
+状態がスクリプトの記述と異なる要素の一覧で、各項目は要素の id とそのデータを持ちます。
+
+ある要素がここに含まれていないことは、情報の欠落を意味しません。読み込み時にはセーブを適用する前に**すべての**要素がリセットされるため、セーブに名前が挙がっていない要素はリセットによって復元されるのであって、実行中のセッションが入れていた状態のまま残るわけではありません。ある時点で実際に差分があるものはわずかです。なぜなら、あるシーンを離れる時点で、そのシーンがステージに置いたものはすべてすでに作者が記述した状態に戻されているからです —— 実際には、現在のシーンの要素に加えて、ストーリーカメラや再生中のサウンドなど、設計上シーンをまたいで存続するわずかな要素だけが対象になります。
+
+`0.26.0` より前は、ストーリーが到達しうるすべてのシーンのすべての要素がここに列挙されていました。そのため、プロジェクトの登場人物全員が毎回のセーブに、さらには各行の履歴スナップショットにも書き込まれており、そのコストはステージ上の内容ではなくプロジェクトの規模とともに増大していました。
+
+<Callout type="info">
+    **エンジンのアクションディスパッチの外部から書き込まれた要素は認識されません。** 要素は、
+    それに対してアクションが実行された時点でセーブの対象として考慮されます。たとえば
+    [DevTools](/ja/docs/narraleaf-react/core/elements/built-in/dev-tools) のように要素の状態を
+    直接書き込むホストは、`element.markDirty()` を呼び出す必要があります。`app.debug: true` の
+    場合、エンジンは定期的にすべての要素を巡回して警告を出し、状態が変化しているのに何も
+    マークされていない要素の名前を挙げ、次のセーブに含まれるようにマークを付けます。
+</Callout>
+
+<Callout type="warning">
+    自動生成される要素の id は、身元ではなくアクションツリー内の位置を表すものです。そのため、
+    セーブを復元するアプリケーションは、
+    [`DevTools.setElementStaticId`](/ja/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid)
+    を通じて自分の登場人物に名前を付けるべきです。`0.26.0` 以降はキャラクターもセーブの項目を
+    占めるようになったため、この点はより重要になっています。
+</Callout>
+
+### stage
+
+プレイヤーの状態で、現在ステージ上にあるシーンと表示可能な要素を含みます。
+
+### services
+
+`story.registerService` で登録されたすべてのサービスのシリアライズされた状態です。
+
+### stackModel
+
+メインの実行スタックで、セーブを読み込んだ際にゲームがここから再開します。
+
+### asyncStackModels
+
+メインの実行スタックと並行して動作する実行スタックです —— `Control.doAsync` と `Control.allAsync` によって開始されたアクションが該当します。
+
+### history
+
+永続化されたバックログです（セーブフォーマット v2 以降）。各項目は、描画済みの say/menu の内容と、安定したアクション id、その行におけるゲームの自己完結したスナップショットを組にして持ちます。これによって、読み込み後に `liveGame.getHistory()` が完全なバックログを返し、`liveGame.restoreToHistory(token)` がこれらの行のどこにでも戻ることができます。任意項目です：旧形式のセーブには `history` がなく、セーブ後にストーリーが変更された場合、対応するアクションがもう存在しない項目は取り除かれます。

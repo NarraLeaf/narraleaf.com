@@ -1,0 +1,119 @@
+---
+title: ui
+description: ワークスペースにパネル、アクション、エディタータブ、キーバインド、通知を提供する
+---
+
+`app.services.ui` は、プラグインがワークスペースの外枠に追加を行うための入口です。パネル、アクション、エディター、キーバインド、通知の 5 つの系統があります。登録する id にはあなたのプラグイン id を前置しなければなりません。
+
+## panels
+
+サイドバー(左 / 右)およびボトムパネルです。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `register` | `(panel: PanelDefinition) => PluginCleanup` |
+| `registerMany` | `(panels: PanelDefinition[]) => PluginCleanup` |
+
+```ts
+import { ui, PanelPosition } from "narraleaf-studio/plugin";
+
+const off = app.services.ui.panels.register({
+    id: `${PLUGIN_ID}.panel`,
+    title: "My Panel",
+    icon: <MyIcon />,
+    position: PanelPosition.Left,
+    component: ({ panelId, payload }) => <MyPanel />,
+});
+```
+
+| フィールド | 型 | 備考 |
+| --- | --- | --- |
+| `id` | `string` | 名前空間付き。必須。 |
+| `title` | `string` | 必須。 |
+| `titleKey` | `TranslationKey` | リアクティブに解決され、言語切り替えに追従します。 |
+| `icon` | `ReactNode` | レールのアイコン。必須。 |
+| `position` | `PanelPosition` | `Left`、`Right`、`Bottom` のいずれか。 |
+| `component` | `ComponentType<{ panelId; payload? }>` | パネルの本体。 |
+| `defaultVisible` | `boolean` | 初回読み込み時に表示するか。 |
+| `order` | `number` | パネル間の並び順。 |
+| `badge` | `string \| number` | レールのバッジ。 |
+| `payload` | `TPayload` | `component` に渡されるデータ。 |
+
+## actions
+
+ツールバーおよびメニューのアクションと、アクショングループ(ドロップダウン / ネイティブメニュー項目)です。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `register` | `(action: ActionDefinition) => PluginCleanup` |
+| `registerMany` | `(actions: ActionDefinition[]) => PluginCleanup` |
+| `registerGroup` | `(group: ActionGroup) => PluginCleanup` |
+
+```ts
+app.services.ui.actions.register({
+    id: `${PLUGIN_ID}.doThing`,
+    label: "Do Thing",
+    onClick: workspace => { /* ... */ },
+});
+
+app.services.ui.actions.registerGroup({
+    id: `${PLUGIN_ID}.menu`,
+    label: "My Menu",
+    items: [/* ActionDefinition | ActionSubmenu | Separator */],
+});
+```
+
+`ActionDefinition` のフィールド:`id`、`label` / `labelKey`、`icon?`、`tooltip?` / `tooltipKey?`、`shortcut?`、`onClick(workspace)`、`order?`、`disabled?`、`visible?`、`checked?`(トグル状態)、`when?(context)`、`badge?`、`allowInEditable?`。`ActionGroup` のフィールド:`id`、`label` / `labelKey`、`icon?`、`actions?`(フラット)または `items?`(サブメニューを含む)、`order?`、`menuSlot?`。区切り線を表示するには、エクスポートされている `Separator` 定数を項目の間に挿入してください。
+
+<Callout type="info">
+プラグインのアクショングループは自身のメニューに閉じています――Studio ネイティブの Edit メニューに統合したり、標準コマンドの役割(`menuRole`)を占めたりすることはできません。それらは組み込みのサーフェス用に予約されています。
+</Callout>
+
+## editors
+
+エディタータブを開閉します。命令的です――タブはユーザーに見えるため、アンロード時に強制的に閉じられることは決してありません。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `open` | `(tab: EditorTabDefinition, groupId?: string) => void` |
+| `close` | `(tabId: string, groupId?: string) => void` |
+
+```ts
+app.services.ui.editors.open({
+    id: `${PLUGIN_ID}.doc`,
+    title: "Doc",
+    component: ({ tabId, payload, active }) => <MyEditor active={active} />,
+});
+app.services.ui.editors.close(`${PLUGIN_ID}.doc`);
+```
+
+`EditorTabDefinition` のフィールド:`id`、`title`、`icon?`、`component`(`{ tabId, payload?, active }` を受け取る)、`closable?`、`modified?`、`payload?`。隠されつつも生かされたタブは `active: false` のままマウントされ続けます――これを使って、非表示のときは作業を一時停止し、再表示されたときにスクロール位置やフォーカスを復元してください。
+
+## keybindings
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `register` | `(keybinding: Keybinding) => PluginCleanup` |
+| `registerMany` | `(keybindings: Keybinding[]) => PluginCleanup` |
+
+```ts
+const off = app.services.ui.keybindings.register({
+    id: `${PLUGIN_ID}.save`,
+    key: "mod+s",
+    handler: context => { /* ... */ },
+});
+```
+
+`Keybinding` のフィールド:`id`、`key`(`"mod+s"`、`"ctrl+tab"`、`"cmd+shift+p"`――`mod` は macOS では ⌘、それ以外では Ctrl)、`description?`、`handler(context)`、`when?(context)`、`allowInEditable?`(既定は `false`――true に設定しない限り、テキストフィールドに入力している間はバインディングがスキップされます)、`catalogId?`。
+
+## notifications
+
+送りっぱなしの通知です。
+
+| メソッド | シグネチャ |
+| --- | --- |
+| `info` / `success` / `warning` / `error` | `(message: string) => void` |
+
+```ts
+app.services.ui.notifications.success("Saved");
+```

@@ -1,0 +1,93 @@
+---
+title: "GameState"
+description: GameState のプロパティとメソッド。オーディオマネージャー、シーンのプリロード、行の進行の一時停止を含む
+---
+<Callout type="warning">
+    このページは作成中です。
+</Callout>
+
+<Callout type="warning">
+    ベータ機能であり、変更される可能性があります。
+</Callout>
+
+GameState はプレイヤーコンポーネントによって作成され、`liveGame.serialize` など他の主要なクラスへ渡す
+ことができます。
+
+## 公開プロパティ
+
+### game
+
+- `Game` - ゲームインスタンス
+
+### audioManager
+
+ゲームのオーディオキャッシュと再生を管理するマネージャーです。
+
+```typescript
+// 音源を再生せずに、フェッチしてデコードし、オーディオキャッシュへ入れる
+void gameState.audioManager.preload(bgm);
+```
+
+- `preload(sound: Sound): Promise<void>` - 音源を 1 つ温めます。`0.17.0` 以降で利用可能です。読み込みに
+  失敗した音源は警告としてログに記録されるだけで、代わりに初回再生時に読み込まれるため、この Promise は
+  reject しません。**返り値の Promise で何かをゲートしないでください**。ブラウザの自動再生ポリシーが
+  ユーザー操作によって満たされるまでオーディオコンテキストはロックされたままなので、正当に保留し続ける
+  ことがあります。詳細は[プリロード](/ja/docs/narraleaf-react/core/game/preload#sound-preloading)を参照
+  してください。
+
+## 公開メソッド
+
+### preloadScene
+
+<Steps>
+<Step>
+
+マウントしたりアクションを実行したりせずに、資源を温めておくシーンを指定します。
+
+```typescript
+gameState.preloadScene(scene);   // または Story を渡すと、その入口シーンが使われる
+```
+
+`0.17.0` 以降、`Player` はストーリーの入口シーンを自動的に登録します。ただし、これはプリロード中のシーンも
+マウント済みのシーンも存在しないときに限られるため、先にこのメソッドを呼んでおけば自分の選択を維持できます。
+詳細は[プリロード](/ja/docs/narraleaf-react/core/game/preload)を参照してください。
+
+- `arg: Scene | Story` - 温めるシーン、または入口シーンが使われるストーリー。入口シーンを持たない
+  ストーリーを渡すと例外を送出します。
+- 返り値: `this`
+</Step>
+</Steps>
+
+### suspendAdvance
+
+<Steps>
+<Step>
+
+現在の行をその場に留めます。少なくとも 1 つの一時停止が残っている間は、ステージのクリック、進行キー、
+スキップキーのいずれも効果を持ちません。`0.27.0` 以降で利用可能です。
+
+```typescript
+const release = gameState.suspendAdvance();
+// ...
+release();
+```
+
+一時停止は入れ子にできます。すべてが解除されて初めて行が再開します。返される関数は複数回呼んでも安全です。
+
+React コンポーネント内では [useSuspendAdvance](/ja/docs/narraleaf-react/player/hooks/useSuspendAdvance) を
+使ってください。コンポーネントに合わせて一時停止の取得と解除を行います。
+
+- 返り値: `() => void` - この一時停止を解除する
+</Step>
+</Steps>
+
+### isAdvanceSuspended
+
+<Steps>
+<Step>
+
+現在この行を留めているものがあるかどうかです。`0.27.0` 以降で利用可能です。
+
+- 返り値: `boolean`
+</Step>
+</Steps>

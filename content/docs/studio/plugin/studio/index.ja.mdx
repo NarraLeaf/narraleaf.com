@@ -1,0 +1,74 @@
+---
+title: Studio API
+description: プラグインがエディターで触れるすべて――definePlugin エントリー、app オブジェクト、サービス、ui キット、そして特権的な能力
+---
+
+Studio API は `narraleaf-studio/plugin` サーフェスです。プラグインが**エディタープロセス**(ワークスペースウィンドウ)で到達できるすべてを指します。プラグインが Studio 自身に貢献する場所――パネル、アクション、キーバインド、ブループリントノードのメタデータ、ウィジェット、言語パック――であり、プロジェクトのアセットや自身のストレージを読み取る場所でもあります。
+
+これは、実行中のゲームに作用する[Runtime API](/ja/docs/studio/plugin/runtime)のエディター側の対応物です。プラグインの `studio` エントリーは Studio API とやり取りし、`runtime` エントリーはゲームとやり取りします。[2 つのエントリー](/ja/docs/studio/plugin/create-first-plugin)を参照してください。
+
+## definePlugin
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+export default definePlugin({
+    setup(app) {
+        // 注册贡献内容、读取服务
+        return () => { /* 可选的清理 */ };
+    },
+});
+```
+
+`setup(app)` はワークスペースウィンドウがプラグインを読み込むときに実行されます。非同期でもかまいません。アンロード時に実行するクリーンアップを返してください――ホストがどのみち各登録を追跡しているため、何も返さなくてもかまいません。
+
+## `app` オブジェクト
+
+| プロパティ | 型 | 内容 |
+| --- | --- | --- |
+| `app.plugin` | `PluginIdentity` | 識別情報:`id`、`name`、`version`、`publisher`。 |
+| `app.manifest` | `NormalizedPluginManifestV2` | 正規化されたマニフェスト。 |
+| `app.services` | `PluginServices` | 厳選されたエディター API――以下のサービス群。 |
+| `app.privileged` | `BoundPrivilegedFacade` | マニフェストの権限によって制御される特権的な能力(ファイルシステム、bash)。 |
+
+## サービス
+
+<Cards>
+  <Card title="storage" href="/ja/docs/studio/plugin/studio/storage" description="プロジェクトにスコープされた、プラグインごとの JSON ストレージ" />
+  <Card title="assets" href="/ja/docs/studio/plugin/studio/assets" description="プロジェクトのアセットを読み取り、オブジェクト URL に変換する" />
+  <Card title="i18n" href="/ja/docs/studio/plugin/studio/i18n" description="自分の文字列をローカライズするための、エディターの言語" />
+  <Card title="ui" href="/ja/docs/studio/plugin/studio/ui" description="パネル、アクション、エディタータブ、キーバインド、通知を提供する" />
+  <Card title="widgets" href="/ja/docs/studio/plugin/studio/widgets" description="UI エディターのウィジェットモジュールを登録する" />
+  <Card title="story" href="/ja/docs/studio/plugin/studio/story" description="ストーリーブロックを挿入する、シーンエディターのパレットアクション" />
+  <Card title="blueprintNodes" href="/ja/docs/studio/plugin/studio/blueprint-nodes" description="ブループリントノードの定義と動的な選択肢を登録する" />
+</Cards>
+
+さらに 4 つが `app.studio` 上にありますが、まだ専用のページはありません。
+
+| サービス | 内容 |
+| --- | --- |
+| `workspace` | 現在プロジェクトデータを書き込んでよいかどうか(`frozen`、`freezeReason`、`onFreezeChange`)、そして `registerReloader` ――プロジェクトのドキュメントが足元で入れ替わったときに、手元のデータを読み直す。 |
+| `textEditor` | Studio のテキストエディター向けの `registerLanguage`、`registerPreview`、`registerAction`。 |
+| `tests` | 作者が Run > Test から自分のゲームに対して実行するチェック:`protocolVersion`、`register`、`registerMany`。あなたのプラグインのユニットテストとは無関係です――ここでのテストは作者が開始するもので、結果は Test Report タブに報告されます。すべての id は `contributes.tests` に列挙されていなければなりません。 |
+| `voice` | `listUnits(localeCode?)` ――プロジェクトのボイスユニット、読み取り専用。 |
+
+サービスではないものを扱うページがさらに 2 つあります。
+
+<Cards>
+  <Card title="ui kit" href="/ja/docs/studio/plugin/studio/ui-kit" description="Studio 自身の React コンポーネントで、パネルをエディターのテーマに合わせられる" />
+  <Card title="privileged" href="/ja/docs/studio/plugin/studio/privileged" description="ファイルシステム、権限、bash――マニフェストの権限によって制御される" />
+</Cards>
+
+## 登録に関する規約
+
+これらは、何かを登録するすべてのサービスにわたって成り立ちます。
+
+- **`register` はクリーンアップを返します。** 各 `register` / `registerMany` は、自分が登録したものだけを取り除く `PluginCleanup`(`() => void | Promise<void>`)を返します。`registerMany` はバッチ全体に対して 1 つのクリーンアップを返します。
+- **アンロードがすべてを回収します。** ホストは各登録を追跡しているため、返されたクリーンアップを一度も呼ばなくても、プラグインをアンロードすればそれは取り除かれます。クリーンアップはべき等です。
+- **id には名前空間が付きます。** 登録する任意の id や型には、あなたのプラグイン id を前置しなければなりません(`yourname.plugin.thing`)。前置していない id はエラーになります。
+- **命令的な呼び出しはクリーンアップではなく、その値を返します。** `ui.editors.*`、`ui.notifications.*`、`i18n.format*`、`blueprintNodes.notifyDynamicSelectOptionsChanged` はいずれも操作です。
+- **ブループリントノードの登録は `void` を返します。** ノード定義はセッションを通じて永続するため――1 つを取り除くと開いているドキュメント内のノードが孤立してしまいます――破棄すべきものが何もないのです。
+
+<Callout type="warn">
+プラグインはサンドボックス化されていません。Studio API は厳選されたホワイトリストですが、マニフェストが対応する権限を宣言すると、`app.privileged` は実際のファイルシステムとシェルに到達します。すべては Studio 自身のアクセス権のもとで実行されます。
+</Callout>

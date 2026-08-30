@@ -1,0 +1,77 @@
+---
+title: "LayeredDefinition"
+description: レイヤー化された `Image` の `src` の形状：順序付きレイヤースタックと、各排他グループのデフォルトタグ
+---
+レイヤー化された画像の src です。[Image](/ja/docs/narraleaf-react/core/elements/image#layered-image) を参照してください。
+
+```typescript
+export type LayeredDefinition<L extends LayerGroupDefinition = LayerGroupDefinition> = {
+    /**
+     * レイヤースタック。下から上へ。配列の順序がそのまま重ね順になる
+     */
+    layers: L;
+    /**
+     * グループごとに1つのタグを、順不同で指定する。同じタグ集合を提供するレイヤーは
+     * 同じグループを共有し、したがって同じデフォルト値を共有する
+     */
+    defaults: readonly LayerTagsOf<L>[];
+};
+```
+
+```typescript
+/**
+ * レイヤー化された画像の1つのスロット。下から上へ。定数の src、`null`、
+ * バリアントマップ、またはリゾルバのいずれか
+ */
+export type LayerSlot = string | null | LayerVariants | LayerResolver;
+export type LayerGroupDefinition = readonly LayerSlot[];
+
+/**
+ * 1つのレイヤーが持つ、タグをキーとした互いに排他的なバリアントの集合
+ *
+ * `null` は、そのタグではこのレイヤーが何も描画しないことを意味する
+ *
+ * タグ集合こそがグループの正体であり、**同じ**タグ集合を提供するレイヤーはすべて
+ * 同一のグループによって駆動される。これが、`char(["angry"])` を1回呼ぶだけで
+ * 眉・目・口が同時に動く仕組みである。あるグループに追従させるには、そのレイヤーに
+ * グループの全タグ集合を繰り返し指定し、そのレイヤーが描画しないタグには `null` を
+ * 指定する。集合の一部だけを指定すると**別の**グループを宣言したことになり、
+ * 共有されたタグが衝突する
+ */
+export type LayerVariants = Record<string, string | null>;
+
+/**
+ * 現在有効なタグからレイヤーの src を導出する。自身はタグを一切宣言しない
+ *
+ * リゾルバは不透明であるため、それが返しうる src はプリローダーから見えず、
+ * 初回使用時に取得される。もはやリゾルバが不要になった、他のレイヤーのグループに
+ * 追従するレイヤーも含めて LayerVariants を優先し、リゾルバは本当に列挙できない
+ * ソースのためだけに残すこと
+ */
+export type LayerResolver = (tags: ReadonlySet<string>) => string | null;
+
+/**
+ * レイヤースタックが宣言する全タグのユニオン型
+ */
+export type LayerTagsOf<L> = L extends readonly (infer E)[]
+    ? (E extends LayerResolver ? never : E extends LayerVariants ? keyof E & string : never)
+    : never;
+```
+
+タグは定義から自動的に推論されるため、型引数を明示する必要はありません。
+
+```typescript
+const yuko = new Image({
+    src: {
+        layers: [
+            "yuko/body.png",
+            {uniform: "yuko/uniform.png", casual: "yuko/casual.png"},
+            {happy: "yuko/happy.png", sad: "yuko/sad.png"},
+        ],
+        defaults: ["uniform", "happy"],
+    },
+});
+
+yuko.char(["sad"]);  // 正常
+yuko.char(["sda"]);  // コンパイル時にエラー
+```

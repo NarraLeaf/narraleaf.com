@@ -1,0 +1,191 @@
+﻿---
+title: "メニュー"
+description: プレイヤーの選択を分岐させる `Menu` クラス。プロンプト、条件付きの表示制御、個々の選択肢の有効化を扱う
+---
+`Menu` を使うと、ビジュアルノベル内にメニューを作成できます。ストーリーの異なる部分の間を移動するために使用します。
+
+```ts
+Menu.prompt("What should I do?")
+    .choose("Go left", [
+        character1.say("I went left"),
+        scene1.jumpTo(scene2)
+    ])
+    .choose("Go right", [
+        character1.say("I went right")
+    ])
+```
+
+## 静的メソッド
+
+### prompt
+
+プロンプト付きのメニューを作成します。
+
+<Steps>
+<Step>
+
+- `prompt: SentencePrompt | Sentence | null | undefined` - プレイヤーに表示するプロンプト
+- `config?: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+</Step>
+</Steps>
+
+## 公開メソッド
+
+### constructor
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/5
+
+- `prompt: SentencePrompt` - [SentencePrompt](/ja/docs/narraleaf-react/core/types/SentencePrompt) を参照
+- `config?: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+
+#### オーバーロード 2/5
+
+- `prompt: Sentence` - メニューのプロンプト。[Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence) を参照
+- `config?: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+
+#### オーバーロード 3/5
+
+- `prompt: SentencePrompt | Sentence` - メニューのプロンプト
+- `config: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+
+#### オーバーロード 4/5
+
+- `prompt: null` - メニューにプロンプトなし
+- `config?: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+
+#### オーバーロード 5/5
+
+- `prompt: SentencePrompt | Sentence | null` - メニューのプロンプト
+- `config: MenuConfig` - [MenuConfig](/ja/docs/narraleaf-react/core/types/MenuConfig)
+</Step>
+</Steps>
+
+## チェーン可能なメソッド
+
+### choose
+
+メニューに選択肢を追加します。
+
+<Steps>
+<Step>
+
+#### オーバーロード 1/3
+
+```ts
+new Menu("what should I do?")
+    .choose({
+        prompt: "go left",
+        action: [
+            character1.say("I went left"),
+        ]
+    })
+```
+
+- `choice: MenuChoice` - メニューの選択肢。[MenuChoice](/ja/docs/narraleaf-react/core/types/MenuChoice) を参照
+
+#### オーバーロード 2/3
+
+```ts
+new Menu("what should I do?")
+    .choose(new Sentence("go left"), [
+        character1.say("I went left"),
+    ])
+```
+
+- `prompt: Sentence` - 選択肢のプロンプト。[Sentence](/ja/docs/narraleaf-react/core/elements/character/sentence) を参照
+- `action: ActionStatements` - 選択肢のアクション。[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照
+
+#### オーバーロード 3/3
+
+```ts
+new Menu("what should I do?")
+    .choose("go left", [
+        character1.say("I went left"),
+    ])
+```
+
+- `prompt: SentencePrompt` - [SentencePrompt](/ja/docs/narraleaf-react/core/types/SentencePrompt) を参照
+- `action: ActionStatements` - 選択肢のアクション。[ActionStatements](/ja/docs/narraleaf-react/core/types/ActionStatements) を参照
+</Step>
+</Steps>
+
+### hideIf
+
+条件が真のとき、最後の選択肢を非表示にするマジックメソッドです。
+
+```ts
+menu.choose(
+  "Go left",
+  [character.say("I went left")]
+).hideIf(persis.isTrue("flag"));
+```
+
+**注:** このメソッドは、最後の選択肢の `config.hidden` を上書きします
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+</Step>
+</Steps>
+
+### disableIf
+
+条件が真のとき、最後の選択肢を無効化するマジックメソッドです。
+
+**注:** このメソッドは、最後の選択肢の `config.disabled` を上書きします
+
+```ts
+menu.choose(
+  "Go left",
+  [character.say("I went left")]
+).disableIf(persis.isTrue("flag"));
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+</Step>
+</Steps>
+
+### enableWhen
+
+選択肢を追加し、条件が真のときのみ有効にします。
+
+```ts
+menu.enableWhen(persis.isTrue("flag"), "Go left", [
+    character.say("I went left")
+]);
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+- `prompt: Sentence | SentencePrompt` - 選択肢のプロンプト
+- `action: ActionStatements` - 選択肢のアクション
+</Step>
+</Steps>
+
+### showWhen
+
+選択肢を追加し、条件が真のときのみ表示します。
+
+```ts
+menu.showWhen(persis.isTrue("flag"), "Go left", [
+    character.say("I went left")
+]);
+```
+
+<Steps>
+<Step>
+
+- `condition: Lambda<boolean> | LambdaHandler<boolean>` - チェックする条件
+- `prompt: Sentence | SentencePrompt` - 選択肢のプロンプト
+- `action: ActionStatements` - 選択肢のアクション
+</Step>
+</Steps>

@@ -1,0 +1,196 @@
+---
+title: "非互換な変更"
+description: NarraLeaf-React の各バージョン間における破壊的変更および非互換な変更と、それぞれの移行手順
+---
+完全な変更内容は [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md) を参照してください。
+
+## 0.39.2
+
+- ホストが受け取るスクリプトエラー（`RuntimeScriptError`。[`GameConfig.onError`](/ja/docs/narraleaf-react/core/types/GameConfig) 経由で渡されます）は、`message` に文だけを含むようになりました。以前は問題を起こしたアクションの `id` と `type`、さらにそのアクションの構築スタック全体がその後ろに連結されており、メッセージをパネルに表示するホストでは折り返し線の上がバンドルのスタックフレームで埋め尽くされていました。これらは今後それぞれ別のフィールドに分かれます —— `error.action`（`id` と `type`）、`error.actionStack`、そして一つの文字列としてまとめた `error.composedMessage` です。**メッセージ文字列を解析してこれらを取り出していたホストは、フィールドを直接読むように変更してください。** エラーオブジェクトをそのままログに出しているだけなら何も失われません。`error.stack` には引き続き構築の全体が含まれます
+
+## 0.36.0
+
+- [`ThroughColor`](/ja/docs/narraleaf-react/core/animation/transition/through-color) と [`Exposure`](/ja/docs/narraleaf-react/core/animation/transition/exposure) の `hold` は非推奨となり、`holdMs` に置き換わりました。こちらは実行時間に対する割合ではなくミリ秒単位です。`holdMs` が指定されていない場合は引き続き `hold` が読み取られるため、コンパイルが通らなくなることはありません
+- **同じ `hold` の値でも、以前より長く保持されるようになりました。** その割合は元々自称通りの割合ではありませんでした。デフォルトのイージングでは、名目上 30% の保持が実時間では 17.8% しか占めておらず、デフォルト設定のまま 300ms で実行した `ThroughColor` は実際には 53 ミリ秒しか色を保持していませんでした。旧来の挙動に合わせてタイミングを調整していた転場は、目に見えて長く保持されるようになります。`holdMs` を指定し、本来望む長さを直接設定してください
+
+## 0.35.0
+
+- **対話テキストの自動縮小がデフォルトで有効になりました。** 1 行はまず `fontSize` で組まれ、収まっている間はそのままです。ボックスの端に達すると、それ以降の文字はすべて計測され、行全体が収まるようフォントサイズが下げられます。下限は `autoFitMinFontSize` です。以前は溢れていた行に合わせてボックスの大きさを調整していたゲームでは、そうした行が溢れる代わりに小さく表示されるようになります。個々のボックスでは `autoFit={false}` で、ゲーム全体では [`GameConfig.disableTextScaling`](/ja/docs/narraleaf-react/core/types/GameConfig) で無効化できます
+
+## 0.29.1
+
+- [`Camera.resetCamera`](/ja/docs/narraleaf-react/core/elements/camera#resetcamera) は、フィルターを時間をかけて緩和させる代わりに最初のフレームで即座に解除するようになりました。姿勢は引き続き緩やかに変化します。カラーグレーディングがパンと一緒にフェードアウトするようタイミングを合わせていたシーンでは、グレーディングが代わりに即座に消えるようになります
+
+## 0.29.0
+
+- 対話テキストは横書き・縦書きの両方で厳密な禁則処理に従って組まれるようになり、CJK 行内のラテン語の単語も途中で分割されなくなりました。改行位置は以前と変わります。以前は途中で分割されていた単語がそのまま次の行に移動するため、旧来の折り返しを基準にサイズを決めた対話ボックスでは、行数が 1 行増えることがあります。この変更のためにストーリー側を編集する必要はありません
+- 厳密な禁則処理が適用されるのは、ドキュメントが言語を宣言している場合のみです。プレイヤーをホストするページに `lang` が指定されていない場合は、ブラウザの既定の規則が使われます。詳細は [Dialog](/ja/docs/narraleaf-react/player/dialog#line-breaking) を参照してください
+
+## 0.27.0
+
+- [`Scene.jumpTo`](/ja/docs/narraleaf-react/core/elements/scene#jumpto) に渡した転場は、退場するシーンの背景画像ではなく、舞台全体を対象に再生されるようになりました。立ち絵やテキストなど他のすべてのレイヤーも、ジャンプの終わりに消えるのではなく、ジャンプに参加するようになります。転場自体の書き方は何も変わりませんが、その幾何学的な基準は舞台になりました。`Push` は舞台の幅ぶん移動し、`Mask` は舞台の矩形全体に重ねられ、意図的に舞台より小さい背景は「掃われる対象」ではなく「一緒に掃われるもの」になります。詳細は [JumpConfig](/ja/docs/narraleaf-react/core/types/JumpConfig) を参照してください
+- [`JumpConfig.transition`](/ja/docs/narraleaf-react/core/types/JumpConfig#transition) の型が `ImageTransition` から `Transition` に広がりました。組み込みの転場はすべて両方を満たすため、既存の呼び出しに影響はありません
+- `allowSkipBackgroundTransition` は `allowSkipSceneTransition` に置き換わり、デフォルトは `true` です。旧フラグは実は一度も読み取られておらず、背景の転場は他の画像と同様に `allowSkipImageTransition` の管轄下でスキップされていました。新フラグはジャンプが再生する舞台転場を制御します。**`game.configure` の呼び出し内で名前を変更してください。** 詳細は [GameConfig](/ja/docs/narraleaf-react/core/types/GameConfig) を参照してください
+
+## 0.26.0
+
+- `Camera.reset` は [`Camera.resetCamera`](/ja/docs/narraleaf-react/core/elements/camera#resetcamera) になりました。すべての要素は内部的な `reset()` を持っています——新しいゲームの開始時やセーブの読み込み時にエンジンが実行するライフサイクルフックです——ところが Camera はこの名前を、連鎖呼び出しできる作成用ヘルパーに使ってしまっていたため、`newGame()` はカメラの姿勢を一度も復元せず、パンやズームを行ったストーリーはその画角を次のプレイにまで持ち越していました。**スクリプト内の `camera.reset(...)` はすべて名前を変更してください。** Camera に対する `reset()` の呼び出しは、これでライフサイクルフックに届くようになります。設定された姿勢を即座に復元し、アニメーションは行わず、連鎖可能なアクションではなく Camera 自身を返します
+- [`LiveGame.undo`](/ja/docs/narraleaf-react/core/game/live-game#undo) はアクション id を受け取らなくなり、戻り先がない場合は例外を投げずに `false` を返すようになりました。行はトークンを通じて [restoreToHistory](/ja/docs/narraleaf-react/core/game/live-game#restoretohistory) から指定します。引数なしの `undo()` は引き続き使え、以前は決してできなかったセーブ読み込み後の呼び出しにも対応しました
+- [`LiveGame.getHistory`](/ja/docs/narraleaf-react/core/game/live-game#gethistory) は、再生位置より先の行を含まなくなりました。通常のプレイ中は何も変わりません。巻き戻した後は、現在位置より先の行は新設の [getFuture](/ja/docs/narraleaf-react/core/game/live-game#getfuture) から取得します。そのため `getHistory` で組み立てたバックログには、まだ起きていない内容が並ばなくなります
+- [`LiveGame.restoreToHistory`](/ja/docs/narraleaf-react/core/game/live-game#restoretohistory) は前後どちら方向にも移動できるようになり、移動先より先の行を破棄しなくなりました。バックログが切り詰められることに依存していたコードは、それらの行が引き続き到達可能なままであることに気づくはずです——タイムラインが切られるのではなく、再生位置が移動します
+- **セーブフォーマット v3。** `elementStates` には、状態がスクリプトの記述と異なる要素だけが列挙され、読み込み時にはセーブを適用する前にすべての要素がリセットされます。v1 と v2 のセーブは 0.26.0 でも変わらず読み込めますが、**それより古いエンジンは v3 のセーブを正しく読み込めません**。リセットが行われないため、セーブに含まれない要素は実行中のセッションが与えた状態のままになります。エンジンのアクションディスパッチの外で要素の状態を書き換えるホストは `element.markDirty()` を呼び出す必要があります。そうしないとセーブに反映されません——`app.debug: true` の場合、エンジンはマークされていない状態を見つけると警告を出します。詳細は [SavedGame](/ja/docs/narraleaf-react/core/types/SavedGame) を参照してください
+- [Character](/ja/docs/narraleaf-react/core/elements/character) の名前もセーブに保存されるようになりました。以前は `setName` による変更が読み込み時に静かに失われ、名前を明かした後に保存したセーブを読み込むと「???」に戻っていました。以前のバージョンで書かれたセーブにはキャラクターの項目が含まれませんが、そのまま読み込め、スクリプトで指定した名前がそのまま使われます。キャラクターがセーブの項目を占めるようになったため、セーブを復元するアプリケーションは [`DevTools.setElementStaticId`](/ja/docs/narraleaf-react/core/elements/built-in/dev-tools#setelementstaticid) を使ってキャストに名前を付けるべきです
+- [Layer](/ja/docs/narraleaf-react/core/elements/layer) は、それを宣言したシーンの外へ姿勢を持ち出さなくなりました。シーンを離れると、そのシーンが舞台に配置したレイヤー——設定された z-index と姿勢——もリセットされるようになり、そこに乗っている表示要素だけがリセットされるわけではありません。`newGame()` でも同様です。レイヤーが脇にスライドしたまま、あるいはフェードアウトしたままの状態が後続のシーンでも続くことに依存していたストーリーは、改めて設定し直す必要があります。ストーリーカメラはこの対象外です
+- 舞台のクリックで ADV 形式の対話が進むようになりました。以前は[スキップキー](/ja/docs/narraleaf-react/core/types/KeyBindingType#skipaction)だけがこれを行っていました。クリックはタイプ中の行を完了させ、完了済みの行を先に進めます。強制的に進めることは一切ないため、スキップキーを押しっぱなしにした場合のようにシーンを一気に走り抜けることはありません。`event:state.player.stageClick` の上に独自のクリック進行を実装していたアプリケーションでは、クリック 1 回につき 2 行分進むようになります
+
+## 0.23.0
+
+- [Sound](/ja/docs/narraleaf-react/core/elements/sound) の `type` は `SoundType` ではなく [SoundBusId](/ja/docs/narraleaf-react/core/types/SoundBusId)（`SoundType | (string & {})`）になりました。`SoundType` 自体は変わらず引き続きエクスポートされており、3 つの値の意味も変わっていないため、それらの値しか使わないコードは変更不要です——ただし、`type` を 3 種類の網羅的なユニオン型だと見なして `switch` していたコードには、default 節を追加する必要があります
+- `Sound.voice()`、`Sound.bgm()`、`Sound.sound()` は `type` を上書きするのではなく**デフォルト値**として扱うようになりました。`Sound.voice({src, type: "alice"})` は以前は黙って `voice` バスのクリップを生成していましたが、今後は `alice` バスのクリップを生成します。ファクトリ関数に `type` を渡しつつ、それが無視されることに依存していたコードでは、今後はその指定が実際に反映されます
+- `Preference` は渡されたデフォルト値オブジェクトを直接書き換えるのではなく、複製するようになりました。同一プロセス内の 2 つの `Game` が 1 つの設定オブジェクトを共有することはなくなり、スライダーを動かしてもそのプロセスの残り全体に対して `Game.DefaultPreference` が書き換わることはなくなりました。意図的に共有オブジェクトを変更していたホストは、今後 `game.preference` を経由する必要があります
+
+## 0.22.0
+
+- [`LiveGame.playSound`](/ja/docs/narraleaf-react/core/game/live-game#playsound) と対話行のボイスは、フルボリュームではなく `Sound` に**設定された**音量でクリップを開始するようになりました。どちらの経路で再生しても、`Sound.voice({src, volume: 0.4})` は以前は音量 1 で鳴っていましたが、今後は 0.4 で鳴ります。明示的に目標音量を渡している呼び出し元には影響しません
+- `bgm` タイプのクリップに対する `Sound.play()` は、`StaticScriptWarning` を投げなくなりました。代わりに `console.warn` を出力してそのまま再生します。この例外をチェーン構築時に大きく失敗させる仕組みとして使っていたストーリーも、今後は問題なく実行されます
+
+## 0.20.0
+
+- `Chained*` 系の型エイリアス——`ChainedControl`、`ChainedPersistent` およびその仲間——が削除されました。これらは `@internal` だったため出力される型定義には元々現れておらず、それらを使っていた公開シグネチャは連鎖型を直接記述するようになりました。`Control.do()` は `Proxied<Control, Chained<LogicAction.Actions>>` を返し、`Persistent.set()` は `Proxied<Persistent<T>, Chained<LogicAction.Actions>>` を返します。シグネチャの形はどれも変わっておらず、実行時の挙動にも変化はありません
+
+## 0.19.1
+
+- `StackFrameSnapshot.branches` は「フレーム配列の配列」ではなく `StackSnapshot[]` になりました。これにより、分岐はフレームだけに削減されるのではなく、`loop` や `tag` を伴った完全な形で渡されます。`branches[i][0]` は `branches[i].frames[0]` になります。この型は実験的かつ読み取り専用であるため、並行するフィールドを新設するのではなく、そのまま修正されました
+
+## 0.17.1
+
+- [fastForward](/ja/docs/narraleaf-react/core/game/live-game#fastforward) の `reason` に `"stalled"` が加わりました。既存の値の実行時の挙動は変わりませんが、戻り値の型は広がっています。`reason` を網羅的に `switch` しているコードは、コンパイルを通すために分岐を追加する必要があります。戻り値を無視するホストには影響しません
+- 早送りの実行が、スキップできないステップで途中終了するようになりました。中断された各行には、決着まで `options.stepTimeout` ミリ秒（デフォルト `10000`）が与えられます。この時間を超えたステップは、そのまま先へ進む代わりに `"stalled"` として実行を終了させます。以前はそこで実行が止まったまま、Promise はどちらの結果にも決着しませんでした。したがって今まで動いていたものが動かなくなることはありませんが、`"menu"` 以外の理由をすべて成功とみなしていたホストは、今後 `"stalled"` を区別する必要があります。スキップできない長いメディアを早送りで通過するストーリーでは、`stepTimeout` を引き上げてください
+
+## 0.17.0
+
+- `onPreloadComplete`、`oncePreloadComplete`、`whenPreloadComplete()`、および `event:preloaded.complete` は、`newGame()` がシーンをマウントした後ではなく、**ゲームに入る前**——まだメニューが画面に残っているかもしれない段階——で発火するようになりました。ストーリーが読み込まれた時点でエントリーシーンがプリロード対象として登録される、というのが今回のリリースの主眼です。コンパイルが通らなくなることはなく、コールバックが実行されるタイミングが変わるだけです
+  - **ローディングステップ**の合図として使っていた場合は、今後より正しく機能するようになり、変更は不要です
+  - **「ゲームの内容が画面に表示された」**という意味で使っていた場合は、`onFirstSceneReady` / `whenFirstSceneReady()` に切り替えてください。これらは変更されておらず、引き続き実際にマウントされたシーンを必要とします
+  - 詳細は[プリロード](/ja/docs/narraleaf-react/core/game/preload#which-signal-to-wait-on)を参照してください
+
+## 0.16.0
+
+転場（トランジション）API は 2 つの考え方を軸に再設計されました。転場**エンジン**は `new` でインスタンス化し、単一のオプションオブジェクトを受け取ります。一方、それらが動かすマスクの**パターン**は [Mask](/ja/docs/narraleaf-react/core/animation/transition/mask) の静的ファクトリメソッドで組み立て、`pattern` オプションとして渡します。
+
+- `Dissolve` と `FadeIn` は位置引数を受け取らなくなりました
+  - `new Dissolve(1000, easing)` → `new Dissolve({duration: 1000, easing})`
+  - `new FadeIn(500, [x, y], easing)` → `new FadeIn({duration: 500, offset: [x, y], easing})` —— パラメータ名が `startPos` から `offset` に変更されている点に注意してください
+- `SoftWipe`、`SoftIris`、`Blinds` は削除されました。対応するパターンを指定した [Reveal](/ja/docs/narraleaf-react/core/animation/transition/reveal) を使用してください
+  - `new SoftWipe({duration, direction, feather})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather})})`
+  - `new SoftIris({duration, center, feather})` → `new Reveal({duration, pattern: Mask.iris({center, feather})})`
+  - `new Blinds({duration, orientation, slats})` → `new Reveal({duration, pattern: Mask.blinds({orientation, slats})})`
+- `MaskTransition` は削除されました。そのハードエッジのクリップは、フェザーを 0 にした `Reveal` と等価です
+  - `MaskTransition.circle({duration, center})` → `new Reveal({duration, pattern: Mask.iris({center, feather: 0})})`
+  - `MaskTransition.wipe({duration, direction})` → `new Reveal({duration, pattern: Mask.wipe({direction, feather: 0})})`
+- `ThroughColor` の静的ファクトリメソッドは削除されました。現在は `new` で構築し、形状は `pattern` として渡します
+  - `ThroughColor.fade({duration, color, hold})` → `new ThroughColor({duration, color, hold})`
+  - `ThroughColor.wipe({direction, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.wipe({direction, feather})})`
+  - `ThroughColor.blinds({orientation, slats, ...rest})` → `new ThroughColor({...rest, pattern: Mask.blinds({orientation, slats})})`
+  - `ThroughColor.iris({center, feather, ...rest})` → `new ThroughColor({...rest, pattern: Mask.iris({center, feather}), inverted: true})` —— `inverted: true` に注意してください。定番の「アイリスから黒へ」は外周から中心に向かって閉じる動きで、これはこのパターンの反転方向にあたります
+- 削除されたオプション型: `SoftWipeOptions`、`SoftIrisOptions`、`BlindsOptions`、`MaskTransitionCircleOptions`、`MaskTransitionWipeOptions`、`ThroughColorFadeOptions`、`ThroughColorWipeOptions`、`ThroughColorBlindsOptions`、`ThroughColorIrisOptions`。新たにエクスポートされる型: `DissolveOptions`、`FadeInOptions`、`RevealOptions`、`ThroughColorOptions`、`ThroughColorUncover`、`MaskPattern`、および各ファクトリメソッドに対応する `*PatternOptions` 型
+
+## 0.13.0
+
+- `SavedGame` の `store` は、[StorableData](/ja/docs/narraleaf-react/core/types/StorableData) ではなく [SerializedNamespaceData](/ja/docs/narraleaf-react/core/types/SerializedNamespaceData) として型付けされるようになりました。実際には常にタグ付きの形式を保持しており、誤っていたのは型定義だけです。セーブフォーマット自体は変わっていないため、既存のセーブは引き続き読み込めます——ただし `savedGame.game.store` を直接読み取り、旧来の型定義に依存していたコードは、今後、実際にはずっと受け取っていたタグ付きの形が見えるようになります
+- 0.12.x 以前で書き出されたセーブは再び正しく読み込めるようになりましたが、一つ例外があります。影響を受けたバージョンで**読み込んだ後に保存した**セーブは、ディスク上で値が二重にタグ付けされており、これはゲームが正当に保存した値と区別できません。この種のセーブは修復されません
+- `image.darken(darkness, duration)` は即座に適用されるのではなく、`duration` の時間をかけてアニメーションするようになりました。以前はイージングも同時に渡した場合にしかアニメーションが行われず、それ以外では `duration` が黙って無視されていました。以前の「瞬時に切り替わる」挙動が必要な場合は `duration` に `0` を渡してください
+
+## 0.9.0
+
+- `JumpConfig.unloadScene` が削除されました
+
+## 0.8.0
+
+- `Displayable.scale` が変更されました。これまでの単一の `scale` パラメータではなく、`scaleX` と `scaleY` の 2 つのパラメータを取るようになりました
+
+## 0.7.0
+
+- `Router` は非推奨になりました。より強力な `LayoutRouter` を使用してください
+- `Page` がリファクタリングされました
+- `game.config.skipKey` と `game.config.nextKey` は非推奨になりました。`game.keyMap` を使用してください
+
+## 0.6.0
+
+- ゲームは単一ノードの `currentAction` から完全に **StackModel** へ移行しました。このモデルにより以下が保証されます。
+  - Awaitable が明示的に扱われる
+  - サブスタックモデルの再帰呼び出しに対応
+  - シリアライズ／デシリアライズを完全にサポート
+  - シナリオの操作でコールスタックを中断できる
+  - より優れた分岐・マージ処理
+  - デシリアライズや undo の際に状態が混乱しにくい
+  - ネストした操作に対する完全な解決策になっている
+- `game.config.skipInterval` は非推奨になりました。`GamePreference.skipInterval` を使用してください
+
+## 0.5.0
+
+- `game.config.cps` は非推奨になりました。`GamePreference.cps` を使用してください
+- メニューの `GameElementHistory.selected` が `null` になる場合があります
+
+## 0.4.0
+
+- `game.config.elements.say.textInterval` は非推奨になりました。`game.config.elements.say.cps` を使用してください
+- `game.config` がリファクタリングされました。詳細は [GameConfig](/ja/docs/narraleaf-react/core/types/GameConfig) を参照してください
+  - `game.config.player` は非推奨になりました。`game.config` を使用してください
+  - `game.config.elements` は非推奨になりました。`game.config` を使用してください
+  - `game.config.elementStyles` は非推奨になりました。`game.config` を使用してください
+
+## 0.3.0
+
+- NarraLeaf-React は [React 19](https://react.dev/blog/2024/12/05/react-19) 以降を**必須**とするようになりました
+- Image の設定が変更されました。
+    - `config.src` の型はタグ定義または文字列でなければなりません
+    - タグベースの画像設定において、リゾルバー関数としての `config.src` は `config.src.resolve` に移動しました
+    - 画像を wearable としてマークすることはできなくなりました。`image.wear` または `image.asWearableOf` を使用してください
+- `Image` の以下のメソッドが変更されました。
+    - `setAppearance`、`setTags`、`setSrc` → `char`
+    - `applyTransform` → `transform`
+    - `wear` は `addWearable` の新しいエイリアスです
+    - `asWearableOf` は `bindWearable` の新しいエイリアスです
+    - `init`、`setPosition`、`dispose`、`copy` は削除されました
+    - `IImageTransition` は削除されました。`ImageTransition` を使用してください
+    - `Fade` は削除されました。同じ duration と easing を受け取る [Dissolve](/ja/docs/narraleaf-react/core/animation/transition/dissolve) を使用してください
+- `Text` の以下のメソッドが変更されました。
+    - `applyTransform` → `transform`
+    - `applyTransition` は削除されました。転場の適用は現在も計画段階です
+    - `ITextTransition` は削除されました。`TextTransition` を使用してください
+- `Transform` の以下のメソッドが変更されました。
+    - `overwrite` は削除されました
+    - Transformer API は完全に非推奨になりました
+- `Scene` の以下のメソッド／プロパティが変更されました。
+    - `activate`、`deactivate` は削除されました。シーンのライフサイクルはゲームが自動的に管理します
+    - `applyTransform` は削除されました。`scene.background.transform` を使用してください
+    - `inherit` は削除されました
+    - `requestImagePreload` → `preloadImage`
+- `Sound` の以下のメソッドが変更されました。
+    - 新しい `Sound` インスタンスの作成には `copy` を使用します
+    - `play`、`stop`、`setVolume` の各メソッドは `duration` パラメータを受け取れるようになりました
+    - `fade` は削除されました。`setVolume` を使用してください
+- 表示可能な要素において、変換（transform）の状態が要素の状態から分離されました
+- `Sound` の設定に以下の変更が加えられました。
+    - `sync` と `type` は削除されました
+    - [Howler.js](https://howlerjs.com/) のプリロード機能を使うには `preload` を使用します
+    - 初期のシーク位置を設定するには `seek` プロパティを使用します
+- Scene の設定では `invertY` と `invertX` を指定できなくなりました。story の設定にある `origin` を使用してください
+- `Top`、`Center`、`Bottom`、`HBox`、`VBox` は非推奨になりました。`PageRouter` API を使用してください
+- `ITransition` 系はすべて非推奨になりました。`Transition` API を使用してください
+    - `FontSizeTransition` → `FontSize`
+    - `BaseImageTransition` → `ImageTransition`
+    - `BaseTextTransition` → `TextTransition`
+
+## 0.2.2
+
+- SceneConfig の `invertY` はデフォルトで `true` になりました
+
+## 0.2.0
+
+- Image のコンストラクタのシグネチャが変更されました。第一引数は設定オブジェクトでなければなりません。
+
+## 0.1.2
+
+- `game.config.player.width` と `game.config.player.height` は文字列を指定できなくなりました

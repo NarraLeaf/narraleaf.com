@@ -1,0 +1,97 @@
+---
+title: "AppConfig"
+description: NarraLeaf の主プロセスのアプリケーションホストを設定する
+---
+
+`AppConfig` は NarraLeaf の主プロセス用の設定ビルダーです。main のエントリで作成し、必要に応じてプラットフォーム固有の設定をマージしてから `create()` を呼び出します。
+
+```ts
+import { AppConfig } from "narraleaf";
+
+const app = new AppConfig({
+    appErrorHandling: "restart",
+    recoveryCreationInterval: 5000,
+})
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" })
+    .create();
+```
+
+## 基本設定
+
+コンストラクタは `Partial<BaseAppConfig>` を受け取ります。
+
+- `forceSandbox`：prepare の段階で Electron の `app.enableSandbox()` を呼び出します。
+- `recoveryCreationInterval`：renderer の復旧アナウンサーが使う間隔です。
+- `appErrorHandling`：`"terminate"`、`"raw"`、`"restart"` のいずれかです。
+- `deleteCorruptedSaves`：デフォルトのローカルセーブバックエンドに渡されます。
+- `store`：任意のカスタム `StoreProvider` です。
+
+```ts
+const app = new AppConfig({
+    forceSandbox: false,
+    recoveryCreationInterval: 5000,
+    appErrorHandling: "terminate",
+    deleteCorruptedSaves: false,
+}).create();
+```
+
+## エラー処理
+
+`appErrorHandling` は、パッケージ化されたアプリで renderer のエラーバウンダリがホストプロセスに何を要求するかを制御します。
+
+- `"terminate"` は、致命的な renderer のエラー時にアプリを終了します。
+- `"restart"` は、アプリのウィンドウを再読み込みします。
+- `"raw"` は、エラーを renderer 層に見えるままにします。
+
+開発時、NarraLeaf は通常の renderer エラーでアプリを終了しないようにするため、問題を調査できます。
+
+## プラットフォームアイコン
+
+OS ごとのアプリアイコンには、プラットフォーム用の helpers を使います。
+
+```ts
+const config = new AppConfig()
+    .configWindows({ appIcon: "assets/icon.ico" })
+    .configMac({ appIcon: "assets/icon.icns" })
+    .configLinux({ appIcon: "assets/icon.png" });
+```
+
+アイコンのパスは、ウィンドウマネージャーによってプロジェクトルートからの相対パスとして解決されます。
+
+## カスタムのセーブバックエンド
+
+デフォルトのファイルベースのセーブプロバイダを置き換えたい場合は、`store` を指定します。
+
+```ts
+import { AppConfig, type StoreProvider } from "narraleaf";
+
+declare const store: StoreProvider;
+
+const app = new AppConfig({
+    store,
+}).create();
+```
+
+`StoreProvider` は次を実装する必要があります。
+
+- `get(name)`
+- `metadata(name)`
+- `set(name, type, metadata, data)`
+- `list()`
+- `delete(name)`
+
+`App` を経由するセーブ id は、プロバイダに到達する前に検証されます。
+
+## App を作成する
+
+`create()` は `App` を返します。app が ready になる前にライフサイクルハンドラを登録してください。
+
+```ts
+const app = new AppConfig().create();
+
+app.onReady(() => {
+    void app.launchApp();
+});
+```

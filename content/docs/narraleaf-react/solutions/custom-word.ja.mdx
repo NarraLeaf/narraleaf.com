@@ -1,0 +1,126 @@
+---
+title: "カスタムワードチュートリアル"
+description: Word.custom で行内の単語を独自コンポーネントとして描画し、useDialogOverlay と useSuspendAdvance でポップアップを表示する
+---
+行の中の単語を、自分の用意したコンポーネントで描画し、そこからポップアップを開けます。プレイヤーがタップした位置に語釈を表示する用語集の項目や、ゲーム内の事典につながる人名などに使えます。`0.27.0` から利用できます。
+
+この仕組みは 4 つの要素で成り立っています。
+
+1. [`Word.custom`](/ja/docs/narraleaf-react/core/elements/character/word#custom) が単語にコンポーネントを結び付けます。
+2. [`WordRenderProps`](/ja/docs/narraleaf-react/core/types/WordRenderProps) が、コンポーネントに何をいつ描画すべきかを伝えます。
+3. [`useDialogOverlay`](/ja/docs/narraleaf-react/player/hooks/useDialogOverlay) が、テキストボックスに切り取られないポップアップの描画先を提供します。
+4. [`useSuspendAdvance`](/ja/docs/narraleaf-react/player/hooks/useSuspendAdvance) が、ポップアップが開いている間、行の進行を止めます。
+
+## 1. 単語コンポーネントを書く
+
+コンポーネントには、組版済みのテキストが `children` として渡されます。そのまま描画してください。ルビ、縦書き、縦中横はすでにその中に含まれています。
+
+```tsx
+import { WordRenderProps } from "narraleaf-react";
+
+type GlossaryData = { entry: string };
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <span
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+        </span>
+    );
+}
+```
+
+`revealed` がクリックの可否を決めます。単語がまだタイプ中の間は、エンジンは代わりに行を進めます。これは単語の途中でクリックした場合に求められている挙動です。
+
+## 2. 単語を行に組み込む
+
+```tsx
+import { Word } from "narraleaf-react";
+
+character.say([
+    "今日は",
+    Word.custom("エーテル濃度", GlossaryTerm, {data: {entry: "aether"}}),
+    "が異常に高い。",
+]);
+```
+
+この単語はあくまでテキストの単語のままです。1 文字ずつタイプされ、バックログ、既読テキストの記録、ボイスのパイプラインには「エーテル濃度」として届きます。シリアライズされることは一切ないため、セーブにコンポーネントの痕跡は残りません。
+
+スタイリングも引き続き機能します。`Word.custom("エーテル濃度", GlossaryTerm, {color: "#c33", bold: true})` はその単語に色と太字を適用し、コンポーネントはそのスタイルの内側に描画されます。
+
+## 3. ダイアログオーバーレイにポップアップを描画する
+
+単語の内部に配置したポップアップはテキストボックスに切り取られ、`document.body` にポータルしたポップアップは舞台のスケールを失います。ダイアログオーバーレイはそのどちらでもありません。ダイアログボックスを覆いながら同じスケールの内側にとどまり、その上に描画されます。
+
+単語を計測し、`measure` が返す座標にポップアップを配置します。
+
+```tsx
+import { useDialogOverlay, WordRenderProps } from "narraleaf-react";
+
+function GlossaryTerm({children, revealed, data}: WordRenderProps<GlossaryData>) {
+    const [open, setOpen] = useState(false);
+    const anchorRef = useRef<HTMLSpanElement>(null);
+    const overlay = useDialogOverlay();
+    const rect = open ? overlay.measure(anchorRef.current) : null;
+
+    return (
+        <span
+            ref={anchorRef}
+            className="underline decoration-dotted cursor-pointer"
+            onClick={() => revealed && setOpen(value => !value)}
+        >
+            {children}
+            {rect && (
+                <overlay.Portal>
+                    <div style={{
+                        position: "absolute",
+                        left: rect.left,
+                        top: rect.bottom + 8,
+                        width: 320,
+                        pointerEvents: "auto",
+                    }}>
+                        {glossary[data.entry]}
+                    </div>
+                </overlay.Portal>
+            )}
+        </span>
+    );
+}
+```
+
+`rect` はダイアログボックス自身の座標系にあり、舞台がウィンドウに合わせて拡大縮小する前の値です。そのため `width: 320` は作成時の 320 単位そのものであり、どのウィンドウサイズでも隣接するテキストと釣り合います。オーバーレイはクリックを透過させるため、ポップアップ自身が `pointer-events: auto` を設定します。
+
+## 4. ポップアップが開いている間は行を保持する
+
+これをしないと、ポップアップを閉じるためのキー操作が、背後の行を進めてしまいます。
+
+```tsx
+useSuspendAdvance(open);
+```
+
+この保持は `open` が `false` になったときと、コンポーネントがアンマウントされたときに解除されます。したがって、ポップアップが消えてもゲームが止まったままになることはありません。
+
+## データ由来の単語
+
+ストーリーファイルからコンパイルされた単語や、プラグインが提供する単語は関数を保持できません。コンポーネントを id で登録し、単語からその id を指定させます。
+
+```tsx
+import { registerWordRenderer } from "narraleaf-react";
+
+registerWordRenderer("glossary", GlossaryTerm);
+```
+
+```tsx
+new Word("エーテル濃度", {render: "glossary", data: {entry: "aether"}});
+```
+
+登録は、その行が再生される前に済ませてください。対応するものがない id は、プレーンテキストとして描画され、警告が 1 度だけ出ます。したがってプラグインが欠けていても失われるのは装飾だけです。
+
+## 補足
+
+- カスタム単語の中に改行を入れないでください。改行を含む単語は行ごとに 1 つのラッパーとして描画され、そのうち最後のものだけが `revealed` を報告します。
+- このオーバーレイは ADV 対話ボックスに属します。NVL モードでは `overlay.measure` は `null` を返し、`overlay.Portal` は何も描画しません。NVL モードでも動作させる必要があるポップアップは、インラインで描画してください。
