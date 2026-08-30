@@ -1,5 +1,6 @@
 ---
 title: "ScriptCtx"
+description: 脚本与 lambda 共用的基础上下文对象：game、gameState、liveGame、storable 与命名空间访问器
 ---
 ```typescript
 type NamespaceGetter = <T extends NameSpaceContent<keyof T>>(namespace: string) => Namespace<T>;

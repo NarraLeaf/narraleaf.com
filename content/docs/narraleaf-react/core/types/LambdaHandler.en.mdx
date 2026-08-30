@@ -1,5 +1,6 @@
 ---
 title: "LambdaHandler"
+description: "The function signature `(ctx: LambdaCtx) => T`, used to compute conditions, menu choice guards, and other context-dependent values."
 ---
 ```typescript
 type LambdaHandler<T = any> = (ctx: LambdaCtx) => T;

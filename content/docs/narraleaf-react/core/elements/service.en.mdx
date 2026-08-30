@@ -1,5 +1,6 @@
 ﻿---
 title: "Service"
+description: The `Service` abstract class for custom, story-registered logic shared across scenes, covering actions, serialization, and async handling.
 ---
 Service is a special abstract class that is used to create custom actions, behaviors, or any other custom logic that can be shared across multiple scenes.
 
@@ -150,7 +151,7 @@ this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
 
 ### Trigger Action
 
-To trigger an action, you can use the `action` method.
+To trigger an action, you can use the `trigger` method.
 
 ```typescript
 const service = new MyCustomService();

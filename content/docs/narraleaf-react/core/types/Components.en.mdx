@@ -1,5 +1,6 @@
 ---
 title: "Components"
+description: The generic function component type used to type a game's replaceable UI slots, such as the say and menu components.
 ---
 ```typescript
 type Components<T extends Record<string, any>> = (props: Readonly<T>) => React.JSX.Element;

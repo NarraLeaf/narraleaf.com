@@ -1,5 +1,6 @@
 ---
 title: "持久 Gallery（Service + localStorage）"
+description: 用 Service 与 localStorage 实现独立于存档的 CG 解锁记录
 ---
 这个版本把解锁记录放在普通游戏存档之外。开始新游戏或读取旧槽位后，CG 仍保持解锁。如果解锁记录应该跟随每个存档，直接使用 `narraleaf-react` 导出的内置 `Gallery`；已注册 Service 的数据本来就会写入 `SavedGame`
 

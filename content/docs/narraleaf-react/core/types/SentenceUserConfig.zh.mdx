@@ -1,5 +1,6 @@
 ---
 title: "SentenceUserConfig"
+description: 传给 `character.say` 的用户侧 `SentenceConfig` 精简形式，`voice` 可直接传字符串
 ---
 ```typescript
 type SentenceUserConfig = Partial<Omit<SentenceConfig, "voice"> & {

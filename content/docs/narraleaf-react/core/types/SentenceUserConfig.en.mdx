@@ -1,5 +1,6 @@
 ---
 title: "SentenceUserConfig"
+description: The user-facing, partial form of `SentenceConfig` passed to `character.say`, accepting a plain string for `voice`.
 ---
 ```typescript
 type SentenceUserConfig = Partial<Omit<SentenceConfig, "voice"> & {

@@ -1,5 +1,6 @@
 ---
 title: "ScriptCtx"
+description: "The base context object shared by scripts and lambdas: game, game state, live game, storable, and namespace access."
 ---
 ```typescript
 type NamespaceGetter = <T extends NameSpaceContent<keyof T>>(namespace: string) => Namespace<T>;
