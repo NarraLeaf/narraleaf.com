@@ -34,6 +34,15 @@ export const projectRoute = '/project';
 export const docsRoute = '/docs';
 export const downloadRoute = '/download';
 export const projectImageRoute = '/og/project';
+/**
+ * Card images for the pages outside the documentation tree.
+ *
+ * The docs pages already get one apiece from `/og/docs`; the home, download and
+ * project pages had none at all, so every link to them shared anywhere rendered
+ * as bare text. Generated rather than a checked-in picture, so the card always
+ * carries the same title the page does.
+ */
+export const siteImageRoute = '/og/site';
 export const docsImageRoute = '/og/docs';
 export const projectContentRoute = '/llms.mdx/project';
 export const docsContentRoute = '/llms.mdx/docs';

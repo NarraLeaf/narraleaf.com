@@ -9,6 +9,8 @@ import {
   STUDIO_RELEASES_PAGE,
   getStudioRelease,
 } from '@/lib/studio-release';
+import { jsonLdScript, landingMetadata } from '@/lib/seo';
+import { studioApplicationJsonLd } from '@/lib/structured-data';
 import { DownloadPanel, type DownloadPanelCopy } from './download-panel';
 import { DownloadPosterWall } from './download-poster-wall';
 
@@ -19,8 +21,6 @@ type RequirementRow = {
 };
 
 type DownloadPageCopy = {
-  metaTitle: string;
-  metaDescription: string;
   title: string;
   description: string;
   panel: DownloadPanelCopy;
@@ -42,9 +42,6 @@ type DownloadPageCopy = {
 
 const copyByLocale = {
   en: {
-    metaTitle: 'Download NarraLeaf Studio',
-    metaDescription:
-      'Download NarraLeaf Studio for Windows or macOS — the production editor for assets, interfaces, immersive narrative, and team collaboration.',
     title: 'Start creating now.',
     description:
       'Download NarraLeaf Studio and make your visual novel the best way there is. A journey of a thousand miles begins with a single step.',
@@ -81,9 +78,6 @@ const copyByLocale = {
     },
   },
   zh: {
-    metaTitle: '下载 NarraLeaf Studio',
-    metaDescription:
-      '下载适用于 Windows 或 macOS 的 NarraLeaf Studio——面向资产、界面、沉浸叙事与团队协作的制作编辑器。',
     title: '创作从现在开始',
     description:
       '下载 NarraLeaf Studio，用最棒的方式做出属于你的视觉小说 千里之行，始于足下',
@@ -121,14 +115,15 @@ const copyByLocale = {
   },
 } satisfies Record<Locale, DownloadPageCopy>;
 
+/**
+ * The title and summary a search result carries are written for the search
+ * result, not lifted from the page's own headline: `Start creating now.` says
+ * nothing about what is being downloaded, for which platform, or by whom.
+ * See `landing-seo`.
+ */
 export async function generateMetadata(props: PageProps<'/[lang]/download'>): Promise<Metadata> {
   const { lang } = await props.params;
-  const copy = copyByLocale[isLocale(lang) ? lang : 'en'];
-
-  return {
-    title: copy.metaTitle,
-    description: copy.metaDescription,
-  };
+  return landingMetadata('download', isLocale(lang) ? (lang as Locale) : 'en');
 }
 
 export default async function DownloadPage(props: PageProps<'/[lang]/download'>) {
@@ -145,6 +140,16 @@ export default async function DownloadPage(props: PageProps<'/[lang]/download'>)
     // page, and a second landmark inside it is one more than a screen reader can
     // make sense of.
     <div className="relative flex flex-1 flex-col">
+      {/*
+        The software listing belongs on the page that offers the download: it
+        names the platforms, the price and the version a visitor would get, and
+        those are the fields a result for "download visual novel editor" is
+        built from.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(studioApplicationJsonLd(locale, release.version))}
+      />
       <div className="mx-auto w-full max-w-6xl px-6 py-14 sm:py-20">
         {/*
           The content keeps the page's usual centred column; the wall is taken

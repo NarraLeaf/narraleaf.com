@@ -8,7 +8,11 @@ import desktopGameMenuImage from '@/assets/home/desktop-game-menu.webp';
 import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
 import { appName, docsRoute, downloadRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
+import { jsonLdScript, landingMetadata } from '@/lib/seo';
+import { studioApplicationJsonLd } from '@/lib/structured-data';
+import { getStudioRelease } from '@/lib/studio-release';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
 import { ProjectModelTabs, type ProjectModelTabCopy } from './project-model-tabs';
 import { DesktopDemoShowcase } from './desktop-demo-showcase';
@@ -602,6 +606,16 @@ function CtaLinks(props: {
   );
 }
 
+/**
+ * The home page is the one result most people see first, so it states its own
+ * title and summary rather than inheriting the site defaults, and it names the
+ * three products it leads to.
+ */
+export async function generateMetadata(props: PageProps<'/[lang]'>): Promise<Metadata> {
+  const { lang } = await props.params;
+  return landingMetadata('home', isLocale(lang) ? (lang as Locale) : 'en');
+}
+
 export default async function HomePage(props: PageProps<'/[lang]'>) {
   const { lang } = await props.params;
   // The proxy skips i18n rewriting for paths containing a dot, so requests for
@@ -617,9 +631,16 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
   const docsUrl = (path = '') => localizedPath(`${docsRoute}${path}`, locale);
   const downloadUrl = localizedPath(downloadRoute, locale);
   const githubUrl = `https://github.com/${gitConfig.user}/${gitConfig.repo}`;
+  // The version the page already fetches for the download button, reused so the
+  // software listing names the release a visitor would actually get.
+  const release = await getStudioRelease();
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(studioApplicationJsonLd(locale, release.version))}
+      />
       <main className="flex flex-1 flex-col">
       <section className="relative overflow-hidden border-b border-black/10 dark:border-white/10 lg:overflow-visible">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-20 sm:py-24 lg:min-h-[760px] lg:flex-row lg:items-center lg:gap-10 lg:py-24 xl:gap-16">
