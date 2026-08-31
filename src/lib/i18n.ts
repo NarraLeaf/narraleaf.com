@@ -42,7 +42,7 @@ export const i18nUI = defineI18nUI(i18n, {
   },
   ja: {
     displayName: '日本語',
-    search: 'ドキュメントを検索',
+    search: '検索',
     searchNoResult: '結果が見つかりません',
     toc: 'このページの目次',
     tocNoHeadings: '見出しがありません',
