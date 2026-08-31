@@ -44,7 +44,7 @@ const copyByLocale = {
   en: {
     title: 'Start creating now.',
     description:
-      'Download NarraLeaf Studio and make your visual novel the best way there is. A journey of a thousand miles begins with a single step.',
+      'Download NarraLeaf Studio and start building your visual novel.',
     panel: {
       detecting: 'Detecting your system…',
       pickPlatform: 'Choose a platform',
@@ -80,7 +80,7 @@ const copyByLocale = {
   zh: {
     title: '创作从现在开始',
     description:
-      '下载 NarraLeaf Studio，用最棒的方式做出属于你的视觉小说 千里之行，始于足下',
+      '下载 NarraLeaf Studio，开始制作你的视觉小说',
     panel: {
       detecting: '正在检测你的系统…',
       pickPlatform: '选择平台',
@@ -116,7 +116,7 @@ const copyByLocale = {
   ja: {
     title: '今日から作りはじめる',
     description:
-      'NarraLeaf Studio をダウンロードして、いちばんいい方法であなたのビジュアルノベルを作ってください。千里の道も一歩から。',
+      'NarraLeaf Studio をダウンロードして、ビジュアルノベルの制作を始めてください。',
     panel: {
       detecting: 'お使いの環境を確認しています…',
       pickPlatform: 'プラットフォームを選択',
