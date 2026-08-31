@@ -52,12 +52,47 @@ These paths are meant to be compatible parts of the same project ecosystem. A te
 
 ## Milestones
 
+### The project
+
 - **August 10, 2024.** The NarraLeaf Project is founded.
 - **September 2024.** NarraLeaf-React is published to npm, the first public release of the React player.
 - **February 2025.** The NarraLeaf desktop toolchain is published, and a story ships as a desktop application.
 - **October 2025.** The NarraLeaf command line interface is published, covering scaffolding, local development, and builds.
 - **May 2026.** narraleaf.com opens, with documentation for the three paths in one place.
 - **August 2026.** NarraLeaf Studio reaches its first public release, and a project builds for Windows, macOS, Android, iOS, and the web.
+
+### Studio releases
+
+- **0.1.0** (July 2026). The first version: the story editor, the UI editor and its blueprints, the asset library, the character editor, Dev Mode, and builds for desktop, mobile, and the web.
+- **0.1.1** (July 2026). An About entry in the Help menu.
+- **0.2.0** (July 2026). Layered character sprites imported from PSD, a dialog avatar per differential, one master icon baked for all six targets, and plugin sidecars with a capability-gated runtime API.
+- **0.3.0** (August 2026). The first release published for download. Live2D and Spine models through a guided import, an audio mixer with a bus per character, project lint, code signing and notarization, and rotating auto-saves.
+- **0.4.0** (August 2026). One command vocabulary in the story editor, a committed row that reads back as the line that wrote it, documentation inside Studio, and a localization export in the format a translator's tool speaks.
+- **0.5.0** (August 2026). An installer, updates from GitHub Releases, playability checks and conversion on import, blueprint breakpoints with a Dev Mode debugger, and a project palette a color can point at.
+- **0.6.0** (August 2026). Build variants: a variant states what its package contains and where its story ends, and the build reports what it dropped. Blueprint editors open in windows of their own, and a project keeps its own dictionary.
+- **0.7.0** (August 2026). Asset sets: one library entry standing for a family of files, resolved by language at runtime or by release at build time. Patches an author produces and a shipped game reads, weather, and skipping with an auto-forward wait.
+- **0.8.0** (August 2026). Blueprints authored as text against a catalog, a canvas toolbar with a graph overview, builds from the command line, DLC built into its own file, and a report of what each build carried.
+- **0.9.0** (August 2026). Live sessions: a host opens a room, and the files it carries travel over the session's own connection. Compression per track, protected builds that compile their codec for the title they protect, and plugin sidecars for every target a build produces.
+- **0.9.1** (August 2026). Project export handles packaged builds, and large packages are written and read a chunk at a time.
+- **0.9.2** (August 2026). A save opens in the story it was written in, a scene hands the screen back to a page, transform presets travel as files, and the translation and voice tables can be searched.
+
+### NarraLeaf-React releases
+
+Selected releases. The full record is in the [changelog](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
+
+- **0.1.0** (October 2024). Text on the stage, a voice per sentence, ruby text, and dialogue evaluated as it is read.
+- **0.3.0** (February 2025). React 19, and an appearance model where an image is selected by tags.
+- **0.4.0** (April 2025). Video playback, and an interruptible task graph behind the script.
+- **0.8.0** (September 2025). A built-in gallery service, and per-axis scaling on every displayable.
+- **0.13.0** (July 2026). Layered images: a character composed from one image per part.
+- **0.16.0** (July 2026). A camera that transforms the whole stage, and Vfx overlays for particles and ambience.
+- **0.19.0** (July 2026). The store reports when a value changes.
+- **0.20.0** (July 2026). `Puppet`, a displayable the engine draws none of, for Live2D and Spine runtimes.
+- **0.26.0** (August 2026). Undo and redo, including after a save is loaded.
+- **0.27.0** (August 2026). `Word.custom` and registered word renderers, so a word is drawn by a component of yours.
+- **0.30.0** (August 2026). `RuleReveal`, transitions driven by a rule image.
+- **0.39.0** (August 2026). A jump that comes back, and a call stack for scenes.
+- **0.42.0** (August 2026). `Sound.play` stops holding the script, and `preloadGate` decides how much of a scene is warm before the game is shown.
 
 ## Ecosystem direction
 
