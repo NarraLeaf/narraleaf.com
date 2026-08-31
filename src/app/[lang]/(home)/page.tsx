@@ -112,7 +112,7 @@ const homeCopy = {
     hero: {
       eyebrow: '',
       title: 'Visual novels, built like modern software.',
-      description: 'A genuinely professional visual novel editor.',
+      description: 'A truly professional visual novel editor.',
       primaryCta: 'Download Studio',
       secondaryCta: 'Browse the Docs',
       imageAlt: 'NarraLeaf Studio workspace with a visual novel project open',
