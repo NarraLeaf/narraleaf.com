@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ImageResponse } from 'next/og';
 import { generate as DefaultImage } from 'fumadocs-ui/og';
 import { appName } from '@/lib/shared';
+import { cardDescription } from '@/lib/seo';
 
 export const revalidate = false;
 
@@ -14,7 +15,11 @@ export async function GET(_req: Request, { params }: RouteContext<'/og/project/[
   if (!page) notFound();
 
   return new ImageResponse(
-    <DefaultImage title={page.data.title} description={page.data.description} site={appName} />,
+    <DefaultImage
+      title={page.data.title}
+      description={cardDescription(page.data.description)}
+      site={appName}
+    />,
     {
       width: 1200,
       height: 630,

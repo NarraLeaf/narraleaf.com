@@ -4,6 +4,7 @@ import { generate as DefaultImage } from 'fumadocs-ui/og';
 import { i18n, isLocale, type Locale } from '@/lib/i18n';
 import { landingPageSeo, type LandingPageKey } from '@/lib/landing-seo';
 import { appName } from '@/lib/shared';
+import { cardDescription } from '@/lib/seo';
 
 export const revalidate = false;
 
@@ -27,7 +28,11 @@ export async function GET(_req: Request, { params }: RouteContext<'/og/site/[...
   const copy = landingPageSeo(key, locale as Locale);
 
   return new ImageResponse(
-    <DefaultImage title={copy.title} description={copy.description} site={appName} />,
+    <DefaultImage
+      title={copy.title}
+      description={cardDescription(copy.description)}
+      site={appName}
+    />,
     {
       width: 1200,
       height: 630,

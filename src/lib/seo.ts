@@ -234,3 +234,60 @@ export function landingMetadata(key: LandingPageKey, locale: Locale): Metadata {
     }),
   };
 }
+
+/**
+ * How many columns of description the social card can show.
+ *
+ * The card lays the description out in a fixed box and draws a divider under
+ * it. A description longer than the box does not shrink or scroll: it runs on
+ * over the divider and the site name below it. Three lines of roughly twenty
+ * full-width columns is what fits, and the limit is set a little under that.
+ *
+ * This is not a Japanese problem, though Japanese is where it was noticed:
+ * 27% of the English descriptions and 17% of the Japanese ones are over it.
+ * Chinese is under it throughout, being the most compact of the three.
+ */
+const CARD_DESCRIPTION_COLUMNS = 56;
+
+/** Roughly how wide a character is on the card: full-width forms take twice the room. */
+function columns(text: string): number {
+  let total = 0;
+  for (const character of text) {
+    const code = character.codePointAt(0) ?? 0;
+    const wide =
+      (code >= 0x1100 && code <= 0x115f) ||
+      (code >= 0x2e80 && code <= 0xa4cf) ||
+      (code >= 0xac00 && code <= 0xd7a3) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0xfe30 && code <= 0xfe6f) ||
+      (code >= 0xff00 && code <= 0xff60) ||
+      (code >= 0xffe0 && code <= 0xffe6);
+    total += wide ? 1 : 0.5;
+  }
+  return total;
+}
+
+/**
+ * The description as the social card should draw it.
+ *
+ * Only the card is shortened. The page's own meta description keeps the full
+ * sentence, because a search result has room for far more than the card does.
+ * The cut lands on a clause boundary where there is one within reach, so the
+ * card ends on a phrase rather than mid-word.
+ */
+export function cardDescription(text: string | undefined): string | undefined {
+  if (!text || columns(text) <= CARD_DESCRIPTION_COLUMNS) return text;
+
+  let kept = '';
+  let lastBoundary = '';
+  for (const character of text) {
+    if (columns(kept + character) > CARD_DESCRIPTION_COLUMNS) break;
+    kept += character;
+    if ('。、．，,;:）)」』】 '.includes(character)) lastBoundary = kept;
+  }
+
+  // Only trust a boundary that is not so early it throws most of the sentence
+  // away; otherwise cut at the limit and let the ellipsis carry the break.
+  const cut = columns(lastBoundary) >= CARD_DESCRIPTION_COLUMNS * 0.6 ? lastBoundary : kept;
+  return cut.replace(/[、，,;:\s]+$/, '') + '…';
+}
