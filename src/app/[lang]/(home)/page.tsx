@@ -112,8 +112,7 @@ const homeCopy = {
     hero: {
       eyebrow: '',
       title: 'Visual novels, built like modern software.',
-      description:
-        'One project system for building, shipping, and embedding visual novels.',
+      description: 'A genuinely professional visual novel editor.',
       primaryCta: 'Download Studio',
       secondaryCta: 'Browse the Docs',
       imageAlt: 'NarraLeaf Studio workspace with a visual novel project open',
@@ -323,8 +322,7 @@ const homeCopy = {
     hero: {
       eyebrow: 'NarraLeaf Project',
       title: '像现代软件一样构建视觉小说',
-      description:
-        '一套视觉小说的项目系统，可发布为独立应用，也可嵌入现有网页',
+      description: '一个真正专业的视觉小说编辑器',
       primaryCta: '下载 Studio',
       secondaryCta: '浏览文档',
       imageAlt: '打开视觉小说项目的 NarraLeaf Studio 工作区',
@@ -530,8 +528,7 @@ const homeCopy = {
     hero: {
       eyebrow: 'NarraLeaf Project',
       title: '現代の手法で作るビジュアルノベル',
-      description:
-        'ビジュアルノベルのための制作基盤。単体アプリとして配布でき、既存のページにも組み込めます。',
+      description: '本格的なビジュアルノベルエディタ',
       primaryCta: 'Studio をダウンロード',
       secondaryCta: 'ドキュメントを見る',
       imageAlt: 'ビジュアルノベルのプロジェクトを開いた NarraLeaf Studio のワークスペース',
