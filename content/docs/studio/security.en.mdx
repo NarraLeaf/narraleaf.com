@@ -1,33 +1,33 @@
 ---
 title: Security
-description: The two project settings that decide what a built game may do and what ships inside it.
+description: The two project settings that decide what a built game may reach and what ships inside it.
 ---
 
-Two settings, both under **Security** in the project's settings, and both stored per project. They take effect in packaged and previewed builds; neither changes anything about Dev Mode.
+The **Security** section of the project's settings holds two settings. Both are stored per project and apply to packaged and previewed builds; neither affects Dev Mode.
 
 ## Network access
 
-How far the game may reach onto the network. Three positions, listed least reach first.
+Controls how far the game may reach onto the network. There are three positions, listed here from the narrowest reach to the widest.
 
-**Off** — the default in every new project. The game is confined to its own internal protocol, and every HTTP, HTTPS and WebSocket request it makes is cancelled.
+**Off** — the default in a new project. The game is confined to its own internal protocol, and every HTTP, HTTPS and WebSocket request it makes is cancelled.
 
-**Allowlist** — only the addresses the project lists, plus the hosts its plugins declared in `contributes.network`. Choosing it reveals the allowlist editor beneath the chooser; a plugin's own patterns are shown there attributed to that plugin, so the list can say why a host is reachable rather than silently making room for it.
+**Allowlist** — only the addresses the project lists, together with the hosts its plugins declared in `contributes.network`. Selecting it reveals the allowlist editor beneath the chooser; a plugin's own patterns are listed there attributed to that plugin, so the list can state why a host is reachable rather than granting it access silently.
 
-**Any host** — the game may request anything. This and Allowlist are what the [Network nodes](/docs/studio/blueprint/nodes/network) need in order to run.
+**Any host** — the game may request any address. The [Network nodes](/docs/studio/blueprint/nodes/network) require this position or Allowlist in order to run.
 
-A setting this build does not recognize — a word from a future version — reads as **Off** rather than as the widest position: a project whose setting cannot be understood is not one this build can vouch for, and refusing requests is the failure an author notices immediately rather than the one that ships.
+A value this build does not recognize — one originating in a later version — is read as **Off** rather than as the widest position. A project whose setting cannot be interpreted is not one this build can vouch for, and a refused request is a failure the author observes immediately rather than one that ships with the build.
 
-The setting is checked in three places: the project checks report a network node as an error while it is Off, a production build is refused, and the request itself is refused at run time.
+The setting is enforced in three places: while it is Off, the project checks report a network node as an error, a production build is refused, and the request itself is refused at run time.
 
 <Callout type="warn">
-Not enforced in the **Web export**. It works through mechanisms only a desktop build has, and a game served over HTTP(S) is on the network by construction. Network nodes run in a Web build. The build refusal still applies, so a project with this off cannot produce a Web build containing them either way.
+The setting is not enforced in the **Web export**. It is implemented through mechanisms specific to a desktop build, and a game served over HTTP(S) is on the network by nature, so network nodes do run in a Web build. The build refusal still applies, so a project with the setting Off cannot produce a Web build containing those nodes either.
 </Callout>
 
 ## Encrypt assets
 
-Whether the content inside a built game is protected.
+Controls whether the content inside a built game is protected.
 
-**Off** — the game's files ship as ordinary files. Anyone who opens the installed folder can read the images, audio and video, and can read the story text and plugin code.
+**Off** — the game's files ship as ordinary files. Anyone who opens the installed folder can read the images, audio and video, as well as the story text and plugin code.
 
 **On** — the following are encrypted inside packaged and previewed builds:
 
@@ -39,7 +39,7 @@ Whether the content inside a built game is protected.
 Encryption is provided by [NarraLeaf/Encryption](https://github.com/NarraLeaf), and the protection is comparable to KiriKiri's.
 
 <Callout type="info">
-Web builds always ship without it. A browser has to read the files directly, so there is nothing to hide them behind.
+Web builds are always shipped without encryption. A browser has to read the files directly, so there is no stage at which they can be concealed.
 </Callout>
 
-What it does and does not do: it stops the files from being opened with ordinary tools, which is what stops casual extraction. It is not a guarantee against a determined attacker, because the running game must be able to read its own content.
+The scope of the setting: it keeps the files from being opened with ordinary tools, which is what prevents casual extraction. It is not a guarantee against a determined attacker, because the running game must be able to read its own content.
