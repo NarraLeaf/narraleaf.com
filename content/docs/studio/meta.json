@@ -11,6 +11,7 @@
     "model-runtimes",
     "security",
     "patches",
+    "command-line-builds",
     "plugin",
     "third-party-licenses"
   ]

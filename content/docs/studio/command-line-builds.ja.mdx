@@ -1,0 +1,146 @@
+---
+title: コマンドラインビルド
+description: 画面を開かずにコマンドラインからリリースビルドを生成する。ビルドマシンとリリース作業のための手順
+---
+
+Studio はコマンドラインからプロジェクトをビルドし、終了コードを返します。この実行ではウィンドウを開かず、ビルドログは標準出力に書き出され、成果物は**Build for distribution**（配布用にビルド）ダイアログが生成するものと同じです。
+
+1 回の実行で 1 つのビルドを生成します。バリアント 1 つ、プラットフォーム 1 つ、フォーマット 1 つです。2 つ目のターゲットが必要な場合は、もう一度実行します。
+
+```sh
+narraleaf-studio --build /projects/my-game
+```
+
+このコマンドは Studio 自身の実行ファイルです。
+
+- Windows: インストールディレクトリの `NarraLeaf Studio.exe`
+- macOS: `NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio`
+- Linux: 展開先ディレクトリの `narraleaf-studio`
+
+以下の例では `narraleaf-studio` と書きます。
+
+## オプション
+
+| オプション | 値 | 既定 |
+| --- | --- | --- |
+| `--build` | プロジェクトフォルダ | 必須 |
+| `--build-variant` | ビルドバリアントの id | `main` |
+| `--build-target` | `windows`、`macos`、`linux`、`web`、`android`、`ios` | 実行中のシステム |
+| `--build-format` | そのプラットフォームのフォーマット 1 つ | デスクトップと Web は `zip`、Android は `apk`、iOS は `ipa` |
+| `--build-arch` | `x64`、`arm64`、`universal` | 自分と同じプラットフォームなら実行環境のアーキテクチャ、それ以外は `x64` |
+| `--build-output` | 出力ディレクトリ | プロジェクト内の `dist` |
+| `--build-report` | レポートの書き出し先 | レポートなし |
+| `--build-allow-unsigned` | 値なし | 署名できない場合はビルドを中止 |
+| `--build-user-data-dir` | この実行で使うプロファイルのディレクトリ | インストール済みのプロファイル |
+| `--build-signing` | この実行で使う認証情報のファイル | プロファイルに取り込み済みの認証情報 |
+| `--build-setting` | `key=value`、繰り返し可 | プロファイルの設定 |
+
+`--オプション 値` と `--オプション=値` のどちらの書き方も受け付けます。`--build-arch` はデスクトップのターゲットにのみ適用されます。`--build` を伴わないビルドオプションは拒否されます。
+
+デスクトップと Web のフォーマットは `zip`、`dir`、およびそのプラットフォームのインストーラー（Windows は `nsis`、macOS は `dmg`、Linux は `appimage`）です。Android は `apk` または `aab`、iOS は `ipa` を生成します。
+
+## 終了コード
+
+| コード | 意味 |
+| --- | --- |
+| `0` | ビルドが成果物を書き出した |
+| `1` | チェックは通り、ビルドが完了しなかった |
+| `2` | コマンドラインを実行できず、何も開かなかった |
+| `3` | チェックがこのプロジェクトを拒否した |
+| `4` | Studio がプロジェクトまたはワークスペースを開けなかった |
+
+`3` で終わった実行は、プロジェクトが変わるまで再試行しても同じ結果になります。
+
+## ビルドレポート
+
+`--build-report` は、何も開かずに終わった場合を含め、すべての結果について JSON ファイルを書き出します。
+
+```sh
+narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
+```
+
+このファイルには、結果と終了コード、解決されたプロジェクトとビルド要求、ビルド前チェックの全結果、成果物とそのサイズ、コード署名の有無とその認証情報の出どころ、そしてタイムスタンプ付きのビルドログ全体が記録されます。
+
+## ビルド前チェック
+
+コマンドラインビルドは、ダイアログと同じチェックを実行します。ブロッキングの項目があるとコード `3` で中止し、チェック結果はすべてレポートとログに残ります。
+
+コード署名を付けられるターゲットで認証情報が設定されていない場合、ビルドは中止します。署名のない成果物を受け入れる場合は `--build-allow-unsigned` を付けます。
+
+## ビルド用のプロファイル
+
+1 つのプロファイルにつき、同時に動く Studio は 1 つです。同じプロファイルで Studio を開いたままビルドを開始すると、コード `4` で中止します。
+
+`--build-user-data-dir` は、この実行に専用のプロファイルを与えます。
+
+```sh
+narraleaf-studio --build /projects/my-game --build-user-data-dir /var/lib/narraleaf-agent/profile
+```
+
+新しいプロファイルには署名の認証情報も、Studio で設定した内容もありません。ビルドに必要な認証情報は `--build-signing` で、設定は `--build-setting` で渡します。
+
+## 署名の認証情報
+
+ビルドダイアログの**Signing**（署名）セクションから取り込んだ認証情報は、そのプロファイルのコマンドラインビルドすべてで使われます。オプションは不要です。
+
+`--build-signing` は、その 1 回の実行のためだけに認証情報を渡します。ファイルに書かれたプラットフォームに適用され、プロジェクト側の選択より優先され、プロファイルには取り込まれません。
+
+```sh
+narraleaf-studio --build /projects/my-game --build-signing /run/secrets/signing.json
+```
+
+```json
+{
+  "windows": { "kind": "windows-pfx", "file": "certs/app.pfx", "passwordEnv": "PFX_PASSWORD" },
+  "macos": {
+    "kind": "macos-apple",
+    "p12File": "certs/developer-id.p12",
+    "p12PasswordEnv": "P12_PASSWORD",
+    "notaryKeyFile": "certs/notary.p8",
+    "notaryKeyId": "ABCD1234",
+    "notaryIssuerId": "6a0e1111-2222-3333-4444-555566667777"
+  }
+}
+```
+
+各項目はプラットフォーム名をキーにします。`windows`、`macos`、`linux`、`android`、`ios` です。ファイルのパスは、認証情報ファイルが置かれたフォルダを基準に解決されます。
+
+| `kind` | フィールド |
+| --- | --- |
+| `windows-pfx` | `file`、`password` |
+| `windows-store` | `subjectName` または `sha1` |
+| `windows-azure` | `endpoint`、`codeSigningAccountName`、`certificateProfileName`、`publisherName` |
+| `macos-keychain` | `identity` |
+| `macos-apple` | `p12File`、`p12Password` |
+| `android-keystore` | `file`、`alias`、`storePassword`、`keyPassword` |
+| `ios-apple` | `p12File`、`provisioningProfileFile`、`p12Password` |
+| `linux-gpg` | `keyId`。gpg が PATH にない場合は `gpgPath` も |
+
+macOS の 2 つの kind は、`notaryKeyFile`、`notaryKeyId`、`notaryIssuerId` を伴う場合に公証を行います。この 3 つは必ず揃えて指定します。
+
+パスワードのフィールドはいずれも `<フィールド>Env` に置き換えられます。値は、そのパスワードを保持する環境変数の名前です。`passwordEnv`、`p12PasswordEnv`、`storePasswordEnv`、`keyPasswordEnv` が使えます。同じフィールドに両方の書き方を指定すると拒否されます。
+
+<Callout type="warn">
+パスワードを含む認証情報ファイルは、隣に置かれた鍵と同じ重さを持ちます。Studio はこれを読み取るだけで、その内容をログにもレポートにも書き出しません。
+</Callout>
+
+## ビルド設定
+
+`--build-setting` は、その 1 回の実行のために設定を渡します。
+
+```sh
+narraleaf-studio --build /projects/my-game \
+  --build-setting build.electronMirror=https://mirror.example/electron/
+```
+
+このオプションは繰り返し指定でき、`build.` で始まる設定のみを受け付けます。値が空の場合は公式のソースを使います。ログにはその実行が受け取った設定の名前だけが出ます。値は出力されず、レポートにも書き込まれません。
+
+## ビルドマシンの条件
+
+選べるターゲットは実行中のシステムによって決まります。ダイアログと同じで、macOS の成果物は macOS 上、Linux の成果物は macOS または Linux 上、Windows、Web、Android、iOS の成果物はサポート対象のデスクトップシステム上でビルドします。
+
+ビルドマシンにディスプレイは不要で、ログイン済みのデスクトップセッションも要りません。リモートシェルがあれば足ります。
+
+あるプラットフォームの初回ビルドでは、そのプラットフォームに必要なファイルをダウンロードするため、以降の実行より時間がかかります。
+
+ダイアログとその他のビルド設定については、[実行とパッケージ化](/ja/docs/studio/getting-started/run-and-package)を参照してください。

@@ -1,0 +1,146 @@
+---
+title: Command-Line Builds
+description: Produce a release build from a command line, with no interface, for build machines and release jobs.
+---
+
+Studio builds a project from a command line and exits with a status code. The run opens no window, writes its console output to standard output, and produces the same artifacts the **Build for distribution** dialog produces.
+
+One invocation produces one build: one variant, one platform, one format. Run the command again for a second target.
+
+```sh
+narraleaf-studio --build /projects/my-game
+```
+
+The command is Studio's own executable:
+
+- Windows: `NarraLeaf Studio.exe` in the installation directory.
+- macOS: `NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio`.
+- Linux: `narraleaf-studio` in the unpacked directory.
+
+The examples below write it as `narraleaf-studio`.
+
+## Options
+
+| Option | Value | Default |
+| --- | --- | --- |
+| `--build` | Project folder | Required |
+| `--build-variant` | Build variant id | `main` |
+| `--build-target` | `windows`, `macos`, `linux`, `web`, `android`, `ios` | The host system |
+| `--build-format` | One format of that platform | `zip` for desktop and web, `apk` for Android, `ipa` for iOS |
+| `--build-arch` | `x64`, `arm64`, `universal` | The host architecture for a host build, `x64` otherwise |
+| `--build-output` | Output directory | `dist` inside the project |
+| `--build-report` | File to write the report to | No report |
+| `--build-allow-unsigned` | No value | The build stops when it would be unsigned |
+| `--build-user-data-dir` | Profile directory for this run | The installed profile |
+| `--build-signing` | Credentials file for this run | The credentials imported into the profile |
+| `--build-setting` | `key=value`, repeatable | The settings in the profile |
+
+Both `--option value` and `--option=value` are accepted. `--build-arch` applies to desktop targets only. A build option given without `--build` is refused.
+
+Desktop and web formats are `zip`, `dir`, and the platform's installer (`nsis` on Windows, `dmg` on macOS, `appimage` on Linux). Android produces `apk` or `aab`; iOS produces `ipa`.
+
+## Exit codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | The build wrote its artifacts. |
+| `1` | The checks passed and the build did not finish. |
+| `2` | The command line could not be acted on. Nothing was opened. |
+| `3` | A check refused the project. |
+| `4` | Studio could not open the project or the workspace. |
+
+Retrying a run that ended with `3` produces the same result until the project changes.
+
+## Build report
+
+`--build-report` writes a JSON file for every outcome, including the ones that open nothing:
+
+```sh
+narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
+```
+
+The file records the result and the exit code, the project and the request as they were resolved, every preflight finding, the artifacts with their sizes, whether the build carries a code signature and where its credential came from, and the whole build console with timestamps.
+
+## Preflight
+
+A command-line build runs the checks the dialog runs. Blocking findings stop it with code `3`, and every finding reaches the report and the console.
+
+A target that can carry a code signature and has no credential stops the build. Pass `--build-allow-unsigned` to accept an unsigned artifact.
+
+## A profile for the build
+
+One Studio runs per profile. A build started while Studio is open on the same profile stops with code `4`.
+
+`--build-user-data-dir` gives the run a profile of its own:
+
+```sh
+narraleaf-studio --build /projects/my-game --build-user-data-dir /var/lib/narraleaf-agent/profile
+```
+
+A new profile carries no signing credentials and none of the settings configured in Studio. Supply the credentials a build needs with `--build-signing`, and the settings with `--build-setting`.
+
+## Signing credentials
+
+Credentials imported through the **Signing** section of the build dialog are used by every command-line build on that profile. No option is needed.
+
+`--build-signing` supplies credentials for one run instead. They apply to the platforms the file names, they replace what the project selects, and they are not imported into the profile.
+
+```sh
+narraleaf-studio --build /projects/my-game --build-signing /run/secrets/signing.json
+```
+
+```json
+{
+  "windows": { "kind": "windows-pfx", "file": "certs/app.pfx", "passwordEnv": "PFX_PASSWORD" },
+  "macos": {
+    "kind": "macos-apple",
+    "p12File": "certs/developer-id.p12",
+    "p12PasswordEnv": "P12_PASSWORD",
+    "notaryKeyFile": "certs/notary.p8",
+    "notaryKeyId": "ABCD1234",
+    "notaryIssuerId": "6a0e1111-2222-3333-4444-555566667777"
+  }
+}
+```
+
+Each entry is keyed by platform: `windows`, `macos`, `linux`, `android`, or `ios`. File paths are resolved against the folder holding the credentials file.
+
+| `kind` | Fields |
+| --- | --- |
+| `windows-pfx` | `file`, `password` |
+| `windows-store` | `subjectName` or `sha1` |
+| `windows-azure` | `endpoint`, `codeSigningAccountName`, `certificateProfileName`, `publisherName` |
+| `macos-keychain` | `identity` |
+| `macos-apple` | `p12File`, `p12Password` |
+| `android-keystore` | `file`, `alias`, `storePassword`, `keyPassword` |
+| `ios-apple` | `p12File`, `provisioningProfileFile`, `p12Password` |
+| `linux-gpg` | `keyId`, and `gpgPath` where gpg is not on the path |
+
+Both macOS kinds notarize when they carry `notaryKeyFile`, `notaryKeyId`, and `notaryIssuerId`. All three are required together.
+
+Every password field accepts `<field>Env` in its place, naming an environment variable to read the value from: `passwordEnv`, `p12PasswordEnv`, `storePasswordEnv`, `keyPasswordEnv`. Giving both spellings for one field is refused.
+
+<Callout type="warn">
+A credentials file that holds passwords is as sensitive as the keys beside it. Studio reads it, and writes no part of it to the console or the report.
+</Callout>
+
+## Build settings
+
+`--build-setting` supplies a setting for one run:
+
+```sh
+narraleaf-studio --build /projects/my-game \
+  --build-setting build.electronMirror=https://mirror.example/electron/
+```
+
+The option is repeatable and accepts the `build.` settings only. An empty value selects the official source. The console names the settings a run was given; their values are not printed and are not written to the report.
+
+## Host requirements
+
+The host system decides which targets are available, exactly as it does in the dialog: macOS artifacts are built on macOS, Linux artifacts on macOS or Linux, and Windows, web, Android and iOS artifacts on any supported desktop system.
+
+A build machine needs no display and no signed-in desktop session. A remote shell is enough.
+
+The first build for a platform downloads the files that platform needs and takes longer than later ones.
+
+For the dialog and the rest of the build settings, see [Run and Package](/docs/studio/getting-started/run-and-package).

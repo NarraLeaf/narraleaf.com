@@ -1,0 +1,146 @@
+---
+title: 命令行构建
+description: 不打开界面，用命令行产出发行构建，供构建机与发版流程使用
+---
+
+Studio 可以从命令行构建工程，结束时返回状态码。这种方式不打开任何窗口，构建日志写到标准输出，产出的文件与**构建发行包**窗口产出的一致。
+
+一次调用产出一份构建：一个变体、一个平台、一种格式。要产出第二个目标，再调用一次。
+
+```sh
+narraleaf-studio --build /projects/my-game
+```
+
+这条命令就是 Studio 自己的可执行文件：
+
+- Windows：安装目录下的 `NarraLeaf Studio.exe`
+- macOS：`NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio`
+- Linux：解包目录下的 `narraleaf-studio`
+
+下面的示例一律写作 `narraleaf-studio`。
+
+## 选项
+
+| 选项 | 取值 | 默认 |
+| --- | --- | --- |
+| `--build` | 工程目录 | 必填 |
+| `--build-variant` | 构建变体 id | `main` |
+| `--build-target` | `windows`、`macos`、`linux`、`web`、`android`、`ios` | 当前系统 |
+| `--build-format` | 该平台的一种格式 | 桌面与 Web 为 `zip`，Android 为 `apk`，iOS 为 `ipa` |
+| `--build-arch` | `x64`、`arm64`、`universal` | 构建本机平台时取本机架构，否则取 `x64` |
+| `--build-output` | 输出目录 | 工程内的 `dist` |
+| `--build-report` | 写出报告的文件 | 不写报告 |
+| `--build-allow-unsigned` | 无取值 | 产物无法签名时中止构建 |
+| `--build-user-data-dir` | 本次运行使用的配置目录 | 已安装的配置 |
+| `--build-signing` | 本次运行使用的凭据文件 | 配置中已导入的凭据 |
+| `--build-setting` | `key=value`，可重复 | 配置中的设置 |
+
+`--选项 值` 与 `--选项=值` 两种写法都接受。`--build-arch` 只对桌面目标有效。给了构建选项却没给 `--build` 会被拒绝。
+
+桌面与 Web 的格式为 `zip`、`dir`，以及该平台的安装包（Windows 为 `nsis`，macOS 为 `dmg`，Linux 为 `appimage`）。Android 产出 `apk` 或 `aab`，iOS 产出 `ipa`。
+
+## 状态码
+
+| 状态码 | 含义 |
+| --- | --- |
+| `0` | 构建已写出产物 |
+| `1` | 检查通过，构建未能完成 |
+| `2` | 命令行无法执行，什么都没有打开 |
+| `3` | 检查拒绝了这个工程 |
+| `4` | Studio 无法打开工程或工作区 |
+
+以 `3` 结束的运行，在工程改动之前重试，结果不变。
+
+## 构建报告
+
+`--build-report` 对每一种结果都写出一个 JSON 文件，包括什么都没打开的那几种：
+
+```sh
+narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
+```
+
+文件里记录着结果与状态码、解析后的工程与构建请求、全部构建前检查结果、产物及其体积、这次构建是否带代码签名以及凭据来自哪里，还有带时间戳的完整构建日志。
+
+## 构建前检查
+
+命令行构建执行的检查与窗口里的一致。阻塞项会以状态码 `3` 中止构建，全部检查结果都会进入报告和日志。
+
+目标平台可以携带代码签名却没有配置凭据时，构建中止。要接受未签名的产物，加上 `--build-allow-unsigned`。
+
+## 为构建准备独立配置
+
+一份配置同一时间只运行一个 Studio。Studio 正开着同一份配置时启动构建，会以状态码 `4` 中止。
+
+`--build-user-data-dir` 让这次运行使用自己的配置目录：
+
+```sh
+narraleaf-studio --build /projects/my-game --build-user-data-dir /var/lib/narraleaf-agent/profile
+```
+
+新配置里没有任何签名凭据，也没有在 Studio 里配好的设置。构建需要的凭据用 `--build-signing` 给出，设置用 `--build-setting` 给出。
+
+## 签名凭据
+
+从构建窗口的**签名**一节导入的凭据，该配置下的每一次命令行构建都会使用，无需任何选项。
+
+`--build-signing` 改为只为这一次运行提供凭据。它对文件中列出的平台生效，覆盖工程自身的选择，并且不会被导入到配置中。
+
+```sh
+narraleaf-studio --build /projects/my-game --build-signing /run/secrets/signing.json
+```
+
+```json
+{
+  "windows": { "kind": "windows-pfx", "file": "certs/app.pfx", "passwordEnv": "PFX_PASSWORD" },
+  "macos": {
+    "kind": "macos-apple",
+    "p12File": "certs/developer-id.p12",
+    "p12PasswordEnv": "P12_PASSWORD",
+    "notaryKeyFile": "certs/notary.p8",
+    "notaryKeyId": "ABCD1234",
+    "notaryIssuerId": "6a0e1111-2222-3333-4444-555566667777"
+  }
+}
+```
+
+每一项按平台命名：`windows`、`macos`、`linux`、`android`、`ios`。文件路径相对于凭据文件所在目录解析。
+
+| `kind` | 字段 |
+| --- | --- |
+| `windows-pfx` | `file`、`password` |
+| `windows-store` | `subjectName` 或 `sha1` |
+| `windows-azure` | `endpoint`、`codeSigningAccountName`、`certificateProfileName`、`publisherName` |
+| `macos-keychain` | `identity` |
+| `macos-apple` | `p12File`、`p12Password` |
+| `android-keystore` | `file`、`alias`、`storePassword`、`keyPassword` |
+| `ios-apple` | `p12File`、`provisioningProfileFile`、`p12Password` |
+| `linux-gpg` | `keyId`；gpg 不在 PATH 上时另加 `gpgPath` |
+
+两种 macOS 凭据在带上 `notaryKeyFile`、`notaryKeyId`、`notaryIssuerId` 时会做公证，这三项必须同时给出。
+
+每个密码字段都可以换成 `<字段>Env`，值是存放该密码的环境变量名：`passwordEnv`、`p12PasswordEnv`、`storePasswordEnv`、`keyPasswordEnv`。同一个字段两种写法都给会被拒绝。
+
+<Callout type="warn">
+存有密码的凭据文件，其敏感程度等同于旁边的密钥文件。Studio 只读取它，不会把其中任何内容写进日志或报告。
+</Callout>
+
+## 构建设置
+
+`--build-setting` 为这一次运行提供设置：
+
+```sh
+narraleaf-studio --build /projects/my-game \
+  --build-setting build.electronMirror=https://mirror.example/electron/
+```
+
+该选项可重复，只接受 `build.` 开头的设置。取值为空表示使用官方源。日志只列出这次运行收到了哪些设置，取值既不打印也不写进报告。
+
+## 对构建机的要求
+
+可选目标由构建机的系统决定，与窗口里一致：macOS 产物在 macOS 上构建，Linux 产物在 macOS 或 Linux 上构建，Windows、Web、Android 与 iOS 产物在任意受支持的桌面系统上构建。
+
+构建机不需要显示器，也不需要已登录的桌面会话，一个远程 shell 就够。
+
+某个平台的首次构建会下载该平台需要的文件，比之后几次更慢。
+
+关于构建窗口与其余构建设置，见[运行与打包](/zh/docs/studio/getting-started/run-and-package)。
