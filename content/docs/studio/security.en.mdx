@@ -29,7 +29,7 @@ Controls whether the content inside a built game is protected.
 
 **Off** — the game's files ship as ordinary files. Anyone who opens the installed folder can read the images, audio and video, as well as the story text and plugin code.
 
-**On** — the following are encrypted inside packaged and previewed builds:
+**On** — the following are encrypted inside packaged and previewed desktop builds:
 
 - images, audio and video
 - the compiled story
@@ -39,7 +39,7 @@ Controls whether the content inside a built game is protected.
 Encryption is provided by [NarraLeaf/Encryption](https://github.com/NarraLeaf), and the protection is comparable to KiriKiri's.
 
 <Callout type="info">
-Web builds are always shipped without encryption. A browser has to read the files directly, so there is no stage at which they can be concealed.
+The setting applies to desktop builds only. Web builds are always shipped without encryption: a browser has to read the files directly, so there is no stage at which they can be concealed. Android and iOS builds are not protected either.
 </Callout>
 
 The scope of the setting: it keeps the files from being opened with ordinary tools, which is what prevents casual extraction. It is not a guarantee against a determined attacker, because the running game must be able to read its own content.
