@@ -3,9 +3,9 @@ title: Scripts
 description: A slot's logic written as a TypeScript file the project owns — where those files live, how one is entered, and what it may reach.
 ---
 
-The logic of a page, a component or a story row is written either as a **blueprint** — a graph on a canvas — or as a **script**, a TypeScript file the project owns. Both are revisions of the same slot, and only the active one runs.
+The logic of a page, a component or a story row is a list of **layers**, and each layer is either a **blueprint** — a graph on a canvas — or a **script**, a TypeScript file the project owns. Every layer in the list runs, so a script can sit beside a graph in the same place and both answer the same event.
 
-A script is not a kind of blueprint, and neither word ever modifies the other. A blueprint is a graph, edited on Studio's canvas; a script is a file on disk, edited in an editor of the author's own choosing. The revision list beside the canvas says which of the two each revision is.
+A script is not a kind of blueprint, and neither word ever modifies the other. A blueprint is a graph, edited on Studio's canvas; a script is a file on disk, edited in an editor of the author's own choosing. The layer list beside the canvas says which of the two each layer holds.
 
 ## Where the files live
 
@@ -29,19 +29,19 @@ An install would execute its dependencies' `postinstall` scripts, and a build th
 
 `.ts` and `.js` are both script sources. esbuild strips types and never checks them, so a `.js` file is a script that declined the type check. The two are told apart by extension and nowhere else.
 
-## Creating and removing a script
+## Adding and removing a script
 
-In a blueprint editor, the revision list beside the canvas offers **New script**, **Use an existing file** and **New blueprint**.
+In a blueprint editor, **New** above the layer list adds a layer and asks which of the two it is. Choosing **Script** lists every file under `scripts/`, with **New script…** first, and says what already runs each of the others — a file two layers share is a legitimate arrangement rather than a mistake.
 
-**New script** writes one starter file, named after the slot it fills — a control called `Key art` gets `scripts/key-art.ts` — and never writes that file again. **Use an existing file** is offered when `scripts/` holds a file nothing points at, and it writes nothing at all.
+**New script…** writes one starter file, named after the slot it fills — a control called `Key art` gets `scripts/key-art.ts` — and never writes that file again. Choosing a file that is already there writes nothing at all.
 
-A revision can be removed from its slot. The file is left on disk — Studio wrote it once, and the project owns it from then on — and it then appears in the **Scripts** section as a file nothing runs. The last revision of a slot cannot be removed.
+A layer can be removed from its slot. The file is left on disk — Studio wrote it once, and the project owns it from then on — and it then appears in the **Scripts** section as a file nothing runs.
 
-A script can also be pointed at a different file under `scripts/`, through **Use another file** on its row. That is how a file renamed in the author's own editor is reconnected.
+A script layer can also be pointed at a different file under `scripts/`, through **Use another file** on its row. That is how a file renamed in the author's own editor is reconnected.
 
 ## Editing
 
-Studio shows a read-only preview and has no editor of its own, because a second editor over files the disk owns would be a second writer.
+Selecting a script layer shows its source where a graph layer shows the canvas, read only. Studio has no editor of its own, because a second editor over files the disk owns would be a second writer.
 
 **Open in editor** opens the whole `scripts/` folder, with the file selected inside it, in every target — the detected editors, the file manager, or the system association. The folder rather than the file, because the types resolve from `tsconfig.json` and `.narraleaf/` sitting beside the script, and an editor opened on one file alone resolves none of them.
 
