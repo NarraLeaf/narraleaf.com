@@ -99,7 +99,7 @@ export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mo
 What a script may do is what its slot may do. The context carries the same capabilities the equivalent graph is given, never any of its own.
 
 - A page or widget script gets the host API, its own `vars` store, an `AbortSignal`, and — where the slot sits on a Surface — `broadcast` and the Surface transition readers.
-- A story script gets the story's own scene and saved variables and application persistence, and nothing else: no navigation, no game control, no widget access.
+- A story script gets the story's own scene and saved variables, application persistence, and `ctx.devtools` for a log line. This tier has no `ctx.host`, so what it may reach sits directly on the context. Nothing else: no navigation, no game control, no widget access.
 
 ## Blueprint Value
 
