@@ -1,0 +1,116 @@
+---
+title: Scripts
+description: A slot's logic written as a TypeScript file the project owns — where those files live, how one is entered, and what it may reach.
+---
+
+The logic of a page, a component or a story row is written either as a **blueprint** — a graph on a canvas — or as a **script**, a TypeScript file the project owns. Both are revisions of the same slot, and only the active one runs.
+
+A script is not a kind of blueprint, and neither word ever modifies the other. A blueprint is a graph, edited on Studio's canvas; a script is a file on disk, edited in an editor of the author's own choosing. The revision list beside the canvas says which of the two each revision is.
+
+## Where the files live
+
+`<project>/scripts/` is the one directory in a project that Studio does not own. Inside it the disk is authoritative: Studio reads and watches, and never holds a copy to write back. Outside it, Studio is authoritative.
+
+Studio claims exactly two names inside it, and generates one file beside them.
+
+| Inside `scripts/` | Owned by | What it is |
+| --- | --- | --- |
+| `.narraleaf/` | Studio | Generated declarations. |
+| `node_modules/` | the author | Their own install. |
+| `tsconfig.json` | Studio | Generated, and carries a do-not-edit header. |
+| `package.json` | the author | Read for its dependency list, never written. |
+| everything else | the author | Theirs to arrange: a script is `scripts/title.ts`, or `scripts/menus/title.ts` if a folder is wanted. |
+
+### Studio never runs a package manager
+
+An install would execute its dependencies' `postinstall` scripts, and a build that executes no third-party code is a guarantee this feature does not give up. Studio bundles what is already on disk — esbuild reads those bytes, it does not execute them — and a missing dependency is reported as a diagnostic naming the command to run.
+
+### TypeScript is not compulsory
+
+`.ts` and `.js` are both script sources. esbuild strips types and never checks them, so a `.js` file is a script that declined the type check. The two are told apart by extension and nowhere else.
+
+## Creating and removing a script
+
+In a blueprint editor, the revision list beside the canvas offers **New script**, **Use an existing file** and **New blueprint**.
+
+**New script** writes one starter file, named after the slot it fills — a control called `Key art` gets `scripts/key-art.ts` — and never writes that file again. **Use an existing file** is offered when `scripts/` holds a file nothing points at, and it writes nothing at all.
+
+A revision can be removed from its slot. The file is left on disk — Studio wrote it once, and the project owns it from then on — and it then appears in the **Scripts** section as a file nothing runs. The last revision of a slot cannot be removed.
+
+A script can also be pointed at a different file under `scripts/`, through **Use another file** on its row. That is how a file renamed in the author's own editor is reconnected.
+
+## Editing
+
+Studio shows a read-only preview and has no editor of its own, because a second editor over files the disk owns would be a second writer.
+
+**Open in editor** opens the whole `scripts/` folder, with the file selected inside it, in every target — the detected editors, the file manager, or the system association. The folder rather than the file, because the types resolve from `tsconfig.json` and `.narraleaf/` sitting beside the script, and an editor opened on one file alone resolves none of them.
+
+## Finding them
+
+The **Scripts** section of the [Assets panel](/docs/studio/workspace/resource-manager) lists every source under `scripts/`, which logic runs each one, and which of them nothing runs.
+
+It is not an asset category. A script has no id, no metadata, and no place in an asset set.
+
+## How a script is entered
+
+A script is entered through its exported functions. The export name follows from the event by one rule: `mouseClick` becomes `onMouseClick`.
+
+Which names a position calls follows from where it sits, and the first two lines of every starter file list them.
+
+| Where the logic sits | Exports it calls include |
+| --- | --- |
+| the project | `onAppBoot`, `onGameReady`, `onKeyDown`, `onKeyUp`, `onPreferenceChanged`, `onFullscreenChanged`, `onWindowFocusChanged`, `onWindowCloseRequested`, `onAction` |
+| a page | `onSurfaceInit`, `onSurfaceUnmount`, `onBeforeSurfaceExit`, `onAfterSurfaceEnter`, `onBroadcast`, `onElementClick` |
+| a widget | `onInit`, `onUnmount`, `onFlush`, `onMouseClick`, `onMouseEnter`, `onMouseLeave`, and the rest of its type's set |
+
+An export named anything a position does not call is simply never called.
+
+### A story row
+
+A story row is the exception: it enters its script through the **default export**, because a row has no events.
+
+An action may await. An inline value and a branch condition are evaluated where the story cannot wait, so they return a value rather than awaiting one, and a promise returned from either is refused with a diagnostic rather than rendered.
+
+## Types
+
+Types come from the generated declarations beside the script. They are imported from `@narraleaf/script`, with `import type`, so the build never looks for a package to resolve.
+
+| Context type | Handed to |
+| --- | --- |
+| `GlobalCtx` | a project script |
+| `SurfaceCtx` | a page script |
+| `WidgetCtx<W>` | a widget script |
+| `ComponentWidgetCtx<W>` | a widget script inside a component |
+| `StoryCtx` | a story action |
+| `StorySyncCtx` | an inline value or a branch condition |
+
+Each handler states its own types.
+
+```ts
+import type { WidgetCtx, ScriptEvent } from "@narraleaf/script";
+
+export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mouseClick">): void {
+    ctx.host.devtools.log("info", "clicked");
+}
+```
+
+## What a script may do
+
+What a script may do is what its slot may do. The context carries the same capabilities the equivalent graph is given, never any of its own.
+
+- A page or widget script gets the host API, its own `vars` store, an `AbortSignal`, and — where the slot sits on a Surface — `broadcast` and the Surface transition readers.
+- A story script gets the story's own scene and saved variables and application persistence, and nothing else: no navigation, no game control, no widget access.
+
+## Blueprint Value
+
+[Blueprint Value](/docs/studio/blueprint) is blueprints only. A value binding is re-evaluated whenever a dependency changes and must hand back a value, so that slot does not offer a script.
+
+## When something goes wrong
+
+A file that fails to compile, and a file that exports nothing the position calls, are both reported in Dev Mode, against the file where the problem is.
+
+The blueprint list in Dev Mode names the file a slot runs, says whether the module loaded, and lists what the file exports against what the position actually calls. That is the whole of "why did nothing happen", since a failed compile and a handler spelled `onClik` are otherwise indistinguishable.
+
+<Callout type="info">
+Scripts are compiled into the build like any other logic. Nothing about them is development-only.
+</Callout>

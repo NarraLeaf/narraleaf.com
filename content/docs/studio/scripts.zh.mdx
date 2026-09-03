@@ -1,0 +1,116 @@
+---
+title: 脚本
+description: 把一个槽位的逻辑写成项目自己拥有的 TypeScript 文件——这些文件放在哪里、脚本从哪里进入，以及它能触及什么
+---
+
+页面、控件或剧情行的逻辑，要么写成**蓝图**——画布上的一张图，要么写成**脚本**——项目自己拥有的一个 TypeScript 文件。两者是同一个槽位的修订版本，只有使用中的那一个会运行
+
+脚本不是蓝图的一种，这两个词之间也从不互相修饰。蓝图是一张图，在 Studio 的画布上编辑；脚本是磁盘上的一个文件，在作者自选的编辑器里编辑。画布旁边的修订版本列表会标明每一行是其中哪一种
+
+## 文件放在哪里
+
+`<project>/scripts/` 是项目中唯一一个不归 Studio 所有的目录。在这个目录里，磁盘说了算：Studio 只读取和监视，从不持有一份副本再写回去。在这个目录之外，Studio 说了算
+
+Studio 在这个目录里只占用两个名字，并在它们旁边生成一个文件
+
+| `scripts/` 中的名字 | 归属 | 是什么 |
+| --- | --- | --- |
+| `.narraleaf/` | Studio | 生成的类型声明 |
+| `node_modules/` | 作者 | 由作者自己安装 |
+| `tsconfig.json` | Studio | 生成的文件，带有「请勿编辑」的头注释 |
+| `package.json` | 作者 | 只读取其中的依赖清单，从不写入 |
+| 其余一切 | 作者 | 由作者自行安排：一个脚本就是 `scripts/title.ts`，想要分目录就是 `scripts/menus/title.ts` |
+
+### Studio 从不运行包管理器
+
+一次安装会执行各依赖的 `postinstall` 脚本，而「构建过程不执行任何第三方代码」是这项功能不会放弃的一条保证。Studio 只打包磁盘上已有的东西——esbuild 读取这些字节，并不执行它们——缺失的依赖会作为一条诊断报出，并写明该运行哪条命令
+
+### TypeScript 不是强制的
+
+`.ts` 和 `.js` 都是脚本源文件。esbuild 会剥掉类型，从不检查它们，所以一个 `.js` 文件就是一个放弃了类型检查的脚本。两者只靠扩展名区分，除此之外没有任何区别
+
+## 新建与移除脚本
+
+在蓝图编辑器中，画布旁边的修订版本列表提供**新建脚本**、**使用已有文件**和**新建蓝图**
+
+**新建脚本**会写出一个起始文件，以它所填的槽位命名——一个叫 `Key art` 的控件得到 `scripts/key-art.ts`——此后再也不会重写这个文件。**使用已有文件**只在 `scripts/` 下存在无人指向的文件时才出现，它完全不写任何文件
+
+修订版本可以从槽位上移除。文件会留在磁盘上——Studio 只写过它一次，从那一刻起它就归项目所有——随后它出现在**脚本**分区里，标为没有任何逻辑使用的文件。槽位的最后一个修订版本无法移除
+
+脚本也可以改指向 `scripts/` 下的另一个文件，入口是该行上的**改用其他文件**。在作者自己的编辑器里改过名的文件，就是这样重新接上的
+
+## 编辑
+
+Studio 只显示只读预览，没有自己的编辑器：在磁盘所有的文件上再放一个编辑器，等于放了第二个写入方
+
+**在编辑器中打开**会打开整个 `scripts/` 目录，并在其中选中该文件，每一种目标都是如此——已检测到的编辑器、文件管理器，或系统关联程序。打开的是目录而不是文件，因为类型是从脚本旁边的 `tsconfig.json` 和 `.narraleaf/` 解析出来的，只打开单个文件一个也解析不到
+
+## 在哪里找到它们
+
+[资产面板](/zh/docs/studio/workspace/resource-manager)的**脚本**分区列出 `scripts/` 下的全部源文件、每个文件由哪段逻辑运行，以及哪些文件没有任何逻辑使用
+
+它不是一个资产分类。脚本没有 id、没有元数据，也不进入任何资产集
+
+## 脚本从哪里进入
+
+脚本通过它导出的函数进入。导出名由事件按一条规则得出：`mouseClick` 对应 `onMouseClick`
+
+当前位置会调用哪些名称，取决于它所处的位置，而每个起始文件的头两行都列出了这些名称
+
+| 逻辑所在位置 | 它会调用的导出名包括 |
+| --- | --- |
+| 项目 | `onAppBoot`、`onGameReady`、`onKeyDown`、`onKeyUp`、`onPreferenceChanged`、`onFullscreenChanged`、`onWindowFocusChanged`、`onWindowCloseRequested`、`onAction` |
+| 页面 | `onSurfaceInit`、`onSurfaceUnmount`、`onBeforeSurfaceExit`、`onAfterSurfaceEnter`、`onBroadcast`、`onElementClick` |
+| 控件 | `onInit`、`onUnmount`、`onFlush`、`onMouseClick`、`onMouseEnter`、`onMouseLeave`，以及该类型的其余事件 |
+
+导出名如果不在当前位置会调用的名单里，它就只是永远不会被调用
+
+### 剧情行
+
+剧情行是例外：它通过**默认导出**进入脚本，因为一行没有事件
+
+动作可以 await。内联值和分支条件是在故事无法等待的地方求值的，所以它们返回一个值而不是等待一个值；从这两者中返回一个 promise 会被拒绝并报出诊断，而不是被渲染出来
+
+## 类型
+
+类型来自脚本旁边生成的声明文件。它们从 `@narraleaf/script` 导入，并且用 `import type`，因此构建过程从不去解析任何包
+
+| 上下文类型 | 交给谁 |
+| --- | --- |
+| `GlobalCtx` | 项目脚本 |
+| `SurfaceCtx` | 页面脚本 |
+| `WidgetCtx<W>` | 控件脚本 |
+| `ComponentWidgetCtx<W>` | 组件内的控件脚本 |
+| `StoryCtx` | 剧情动作 |
+| `StorySyncCtx` | 内联值或分支条件 |
+
+每个处理函数各自写明自己的类型
+
+```ts
+import type { WidgetCtx, ScriptEvent } from "@narraleaf/script";
+
+export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mouseClick">): void {
+    ctx.host.devtools.log("info", "clicked");
+}
+```
+
+## 脚本能做什么
+
+脚本能做什么，就是它所在的槽位能做什么。上下文给出的能力，和等价的那张图被给予的完全相同，不会多出任何一项
+
+- 页面脚本和控件脚本拿到宿主 API、它自己的 `vars` 存储、一个 `AbortSignal`，以及——当槽位位于某个界面上时——`broadcast` 和界面进出场状态的读取器
+- 剧情脚本拿到故事自己的场景变量、存档变量和应用持久化，除此之外什么也没有：没有导航、没有游戏控制、也接触不到控件
+
+## Blueprint Value
+
+[Blueprint Value](/zh/docs/studio/blueprint) 只支持蓝图。值绑定在任何一个依赖变化时都会重新求值，而且必须交回一个值，所以那个槽位不提供脚本
+
+## 出问题的时候
+
+编译失败的文件，以及没有导出当前位置会调用的任何名称的文件，都会在开发模式中报出，且报在出问题的那个文件上
+
+开发模式的蓝图列表会写明某个槽位运行的是哪个文件、模块是否已加载，并把该文件导出了什么与当前位置实际调用什么并排列出。这就是「为什么什么都没发生」的全部答案，因为编译失败和一个拼成 `onClik` 的处理函数，从别处是分辨不出来的
+
+<Callout type="info">
+脚本和其他逻辑一样会被编译进构建产物。它们身上没有任何东西是仅限开发期的
+</Callout>
