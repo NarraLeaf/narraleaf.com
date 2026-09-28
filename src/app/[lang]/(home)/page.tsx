@@ -770,6 +770,16 @@ type StudioSlideGroupId = keyof typeof studioSlideGroups;
 
 const desktopDemoSlideImages = [desktopGameDialogImage, desktopGameMenuImage] as const;
 
+/**
+ * The Studio video on YouTube. The embed goes through youtube-nocookie.com, the
+ * privacy-enhanced host, so the player stores nothing about a visitor who never
+ * presses play. `rel=0` keeps the suggestions at the end to this channel.
+ */
+const studioVideo = {
+  src: 'https://www.youtube-nocookie.com/embed/pLx5T0AdRHA?rel=0',
+  title: 'NarraLeaf Studio - All-in-One Visual Novel IDE',
+} as const;
+
 function SectionIntro(props: { title: string; description: string }) {
   const { title, description } = props;
 
@@ -918,6 +928,29 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/*
+        Below the first screen rather than in it, so the hero picture stays the
+        largest paint, and `loading="lazy"` keeps the player off the first load
+        until the visitor scrolls towards it. `strict-origin-when-cross-origin`
+        is the policy YouTube's own embed code carries: the player will not
+        start for a page that sends it no referrer.
+      */}
+      <section className="border-b border-black/10 dark:border-white/10">
+        <div className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
+          <div className="aspect-video overflow-hidden rounded-xl border border-black/10 bg-black shadow-sm dark:border-white/10">
+            <iframe
+              src={studioVideo.src}
+              title={studioVideo.title}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="size-full"
+            />
           </div>
         </div>
       </section>
