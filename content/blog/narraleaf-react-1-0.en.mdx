@@ -1,0 +1,69 @@
+---
+title: Two years on, NarraLeaf-React reaches 1.0
+description: How NarraLeaf-React grew from a prototype in August 2024 to 1.0, and the design principles behind it.
+date: 2026-09-30
+draft: false
+---
+
+NarraLeaf began with a visual novel game project in the summer of 2024. The mainstream visual novel engines of the time were built on dated technology. Most depended on a dedicated scripting language, offered limited control over the interface, and were difficult to bring under version control or into a team's workflow.
+
+On August 10, 2024, we separated the presentation layer of OtherSideProject into a standalone prototype named Elecnovel. Built on Electron, Elecnovel implemented a basic action system whose core design is still in use today. On August 14, Elecnovel was renamed NarraLeaf, from Narrator and Leaf, the latter standing for lightness. This is the earliest recorded use of the name.
+
+## From prototype to NarraLeaf-React
+
+As the project grew, Elecnovel was gradually split from a single Electron application into several independent solutions. The presentation layer was the first to be separated, and became a React library published on its own. The split kept this part lightweight and focused on its original job of presentation, and spared its users the weight of an entire Electron application.
+
+The narraleaf-react repository was created on September 8, 2024, and 0.0.1 was published to npm on September 30. Intuitive design is NarraLeaf-React's first principle. It was established when the interface system was first built, and it is the foundation of every technical detail across the NarraLeaf project. Dialogue, narration and choices are all written as actions, so the structure of the code follows the structure of the script. The following scene contains dialogue and a choice.
+
+```ts
+import { Character, Menu, Scene } from "narraleaf-react";
+
+const scene = new Scene("Prologue", { background: "/bg/park.jpg" });
+const emma = new Character("Emma");
+
+scene.action([
+  "Sunlight filters through the leaves.",
+  emma`Good morning!`,
+  Menu.prompt("Go get breakfast?")
+    .choose("Sure", [emma`Let's go, then.`])
+    .choose("Wait a little longer", [emma`All right, I'll wait here.`]),
+]);
+```
+
+The actions in a scene are built into a static action tree before the game starts. The engine runs the story from this tree, and can analyze it statically without running the game.
+
+Stories in NarraLeaf-React are written directly in TypeScript, with no purpose-built DSL. Developers keep their own editors, type checking and package managers, and a project can be brought under version control and CI like any other front-end codebase. We believe a tool should adapt to the workflow and technology stack developers already have.
+
+Lightness is what Leaf stands for in the NarraLeaf name, and a principle NarraLeaf-React has held since its first version. Everything on screen is rendered with React components and CSS, without a heavy Canvas- or WebGL-based rendering library. The choice puts compatibility first, so NarraLeaf-React runs on phones and on low-end devices without a dedicated graphics card.
+
+By the end of 2024, NarraLeaf-React had the basic capabilities of a visual novel engine, including per-line voiceover, ruby text, persistent data and jumps between scenes.
+
+## The interface takes shape
+
+In 2025 the interface took shape. Version 0.3, released in February, moved to React 19 and rebuilt the interfaces for images, text, transforms, scenes and audio. Version 0.4 in April opened up component customization. Dialog boxes, menus and other interface elements can be replaced entirely with a developer's own React components, styled with CSS alone and free of naming conventions. Version 0.7 in July introduced LayoutRouter, which manages the structure of layered in-game pages and the transitions between them.
+
+These changes made NarraLeaf-React's responsibilities explicit. Outwardly it offers intuitive interfaces that work as they are; inwardly it is a highly customizable system. Developers who only write the story can use the default interface, while those who need deeper customization can replace any part of it. Along the way, appearance settings moved from the global configuration to the components themselves.
+
+In mid-2025, NarraLeaf-React introduced StackModel, the core design of the entire library. The engine had previously tracked execution with a single reference to the action currently running. Once a story contained nesting, loops or branches, the execution state became hard to follow and could not be fully written to a save. StackModel organizes execution as a stack. Nested actions are pushed as child stacks, and asynchronous presentation is managed uniformly by interruptible Awaitables and Timelines. As a result the action tree stays static, and a game can be interrupted and serialized at any moment, then restored from a save to the same point. Saving, loading and history were all built on this model.
+
+## The foundation of NarraLeaf
+
+From 2025, NarraLeaf Desktop and NarraLeaf Studio were built on top of NarraLeaf-React in turn. Desktop adds the window management, saves and packaging a desktop application needs, and Studio runs NarraLeaf-React directly in the editor's story preview and Dev Mode. NarraLeaf-React thus grew from a standalone player into the foundation of the whole NarraLeaf project.
+
+In the summer of 2026, NarraLeaf-React went from 0.13 to 0.47 in seven weeks, with major expansions to presentation, text, audio and asset loading. Vertical text, emphasis marks, audio buses, and undo and redo all arrived in this period. Their design still follows the principles of lightness and customizability. Animated characters made with Live2D or Spine are one example. These runtimes come with their own licensing and distribution terms, and cannot be distributed with NarraLeaf-React. The Puppet element added for them handles only the character's position on stage, its layer, the camera and the save, and leaves the drawing to a backend the developer registers. NarraLeaf Studio's Live2D and Spine support is connected through this interface. Asset preloading follows the same approach. The engine provides the interface, and the developer decides the loading strategy.
+
+## 1.0 and beyond
+
+NarraLeaf-React 1.0 was released on September 30, 2026. It fixes several issues on top of 0.47.2 without changing any game behavior. APIs marked as deprecated remain available, and upgrading from 0.47 requires no code changes.
+
+Over two years, NarraLeaf-React's interfaces and implementation have been revised many times, but intuitive design, lightness and respect for developers' technology stacks have not changed. After 1.0, we will continue to extend NarraLeaf-React, refine its existing capabilities and make it more customizable.
+
+To get started, see the [NarraLeaf-React documentation](/docs/narraleaf-react). The source code is on [GitHub](https://github.com/NarraLeaf/narraleaf-react).
+
+```bash
+npm install narraleaf-react
+```
+
+## Acknowledgements
+
+Thanks to [MewBaka Studio](https://www.mewbaka.cn) for all of their support.

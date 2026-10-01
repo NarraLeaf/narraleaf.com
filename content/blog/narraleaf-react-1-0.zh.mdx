@@ -1,0 +1,69 @@
+---
+title: 两年时间，NarraLeaf-React 迎来 1.0
+description: 从 2024 年 8 月的原型到 1.0，NarraLeaf-React 两年来的发展历程与设计理念。
+date: 2026-09-30
+draft: false
+---
+
+NarraLeaf 起源于 2024 年夏天的一个视觉小说游戏项目。当时主流的视觉小说引擎技术陈旧，普遍依赖专用的脚本语言，界面定制能力有限，也难以纳入版本控制与团队协作流程。
+
+2024 年 8 月 10 日，我们将 OtherSideProject 中的演出部分独立出来，建立了原型 Elecnovel。Elecnovel 基于 Electron 构建，实现了最基础的 action 系统，这一系统的核心设计沿用至今。8 月 14 日，Elecnovel 更名为 NarraLeaf，取 Narrator（讲述者）与 Leaf（轻量）之意，这也是 NarraLeaf 一词最早可考的出处。
+
+## 从原型到 NarraLeaf-React
+
+随着项目推进，Elecnovel 由单一的 Electron 应用逐步拆分为多个独立的解决方案，其中演出部分最先独立，成为一个单独发布的 React 库。拆分的目的是让这一部分保持轻量，专注于演出这一最初的职责，使用者无需为此承担一整套 Electron 应用的体积。
+
+2024 年 9 月 8 日，narraleaf-react 仓库建立；9 月 30 日，0.0.1 发布到 npm。直观是 NarraLeaf-React 的首要原则，它在建立接口系统之初便已确立，是 NarraLeaf 项目中每一项技术细节的基础。剧本中的台词、旁白与选项都以动作的形式写出，代码的结构与剧本本身保持一致。下面是一个包含对话与选项的场景。
+
+```ts
+import { Character, Menu, Scene } from "narraleaf-react";
+
+const scene = new Scene("序章", { background: "/bg/park.jpg" });
+const emma = new Character("Emma");
+
+scene.action([
+  "阳光透过树叶洒落下来。",
+  emma`早上好！`,
+  Menu.prompt("要去吃早餐吗？")
+    .choose("好啊", [emma`那我们走吧。`])
+    .choose("再等一会儿", [emma`好，我在这里等你。`]),
+]);
+```
+
+场景中的动作在游戏开始前就被构建为一棵静态的动作树。引擎按照这棵树执行剧情，并能在不运行游戏的情况下对其进行静态分析。
+
+NarraLeaf-React 的剧本直接以 TypeScript 编写，不另行设计 DSL。开发者沿用自己熟悉的编辑器、类型检查与包管理器，项目可以像其他前端工程一样纳入版本控制与 CI。我们认为工具应当适应开发者已有的使用方式与技术栈。
+
+轻量既是 NarraLeaf 名字中 Leaf 的含义，也是 NarraLeaf-React 自第一个版本起始终坚持的原则。它的画面完全由 React 组件与 CSS 呈现，不依赖基于 Canvas 或 WebGL 的重型渲染库。这一选择优先考虑兼容性，使 NarraLeaf-React 能够运行在手机以及没有独立显卡的低端设备上。
+
+到 2024 年底，NarraLeaf-React 已经具备逐句配音、注音文本、持久化数据与跨场景跳转等视觉小说的基础能力。
+
+## 接口成形
+
+2025 年，NarraLeaf-React 的接口逐步成形。2 月发布的 0.3 改为依赖 React 19，并全面重构了图像、文本、变换、场景与音频的接口。4 月的 0.4 开放了组件定制，对话框、菜单等界面元素可以整体替换为开发者自己的 React 组件，样式完全由 CSS 决定，不受命名约定的约束。7 月的 0.7 引入了 LayoutRouter，用于管理游戏内多层页面的结构与切换。
+
+这些改动使 NarraLeaf-React 的职责更加明确，即对外提供可以直接使用的直观接口，对内提供高度可定制的系统。只编写剧本的开发者可以直接使用默认界面，需要深度定制的开发者则可以替换其中任意部分。在这一过程中，外观设置逐步从全局配置移交给组件本身。
+
+2025 年年中，NarraLeaf-React 引入了 StackModel，这是整个库的核心设计。此前的引擎仅用一个引用指向当前正在执行的动作，剧情一旦出现嵌套、循环或支线，执行状态便难以追踪，且无法完整写入存档。StackModel 将执行过程组织为栈，嵌套的动作作为子栈压入，异步的演出由可中断的 Awaitable 与 Timeline 统一管理。动作树因此得以保持静态，游戏可以在任意时刻中断、序列化，并从存档中恢复到同一位置。此后的存档、读档与历史记录功能都建立在这一模型之上。
+
+## 成为 NarraLeaf 的基础
+
+2025 年起，NarraLeaf Desktop 与 NarraLeaf Studio 相继建立在 NarraLeaf-React 之上。Desktop 在它的基础上提供桌面应用所需的窗口管理、存档与打包，Studio 则在编辑器的故事预览与开发模式中直接运行它。NarraLeaf-React 由此从一个独立的播放器成为整个 NarraLeaf 项目的基础。
+
+2026 年夏天，NarraLeaf-React 在七周内从 0.13 迭代至 0.47，演出、文本、音频与资源加载的能力均得到大幅扩展。竖排文字、着重号、音频总线、撤销与重做等功能都在这一阶段加入。这些功能的设计仍然遵循轻量与可定制的原则。以 Live2D 与 Spine 等动画角色为例，这类运行时有各自的授权与分发条款，无法随 NarraLeaf-React 一同分发。为此加入的 Puppet 只负责角色在舞台上的位置、图层、镜头与存档，绘制工作交由开发者注册的后端完成，NarraLeaf Studio 的 Live2D 与 Spine 支持即通过这一接口接入。资源预加载采用了相同的思路，引擎提供接口，加载策略由开发者决定。
+
+## 1.0 与之后
+
+2026 年 9 月 30 日，NarraLeaf-React 发布 1.0。1.0 在 0.47.2 的基础上修复了若干问题，没有改变任何游戏行为，已标记为弃用的接口仍然可用，从 0.47 升级无需修改代码。
+
+两年来，NarraLeaf-React 的接口与实现经历了多次调整，但直观、轻量以及对开发者技术栈的尊重始终没有改变。1.0 之后，我们将继续扩展 NarraLeaf-React 的功能，打磨已有的能力，并提供更好的可定制性。
+
+NarraLeaf-React 的使用方法见 [NarraLeaf-React 文档](/zh/docs/narraleaf-react)，源代码托管于 [GitHub](https://github.com/NarraLeaf/narraleaf-react)。
+
+```bash
+npm install narraleaf-react
+```
+
+## 致谢
+
+感谢 [MewBaka Studio](https://www.mewbaka.cn) 提供的所有支持。
