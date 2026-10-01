@@ -204,7 +204,7 @@ function createDemoStory(locale: Locale) {
       .say`${t({ en: 'This player runs NarraLeaf-React inside the current page.', zh: '这个播放器在当前页面内运行 NarraLeaf-React。', ja: 'このプレイヤーは、このページの中で NarraLeaf-React を動かしている。' })}`
       .say`${t({ en: 'Every line below is a story action, and a released build runs the same script.', zh: '下面的每一行都是故事动作，与发布版本执行的是同一份脚本。', ja: '以下の一行一行がストーリーアクションで、公開版もこのスクリプトをそのまま実行する。' })}`,
 
-    narra.say`${t({ en: 'The text box, the name tag and the option menu are React components the project supplies.', zh: '文本框、名牌和选项菜单由工程提供的 React 组件渲染。', ja: 'テキストボックス、名前タグ、選択肢メニューは、プロジェクトが用意した React コンポーネントだよ。' })}`,
+    narra.say`${t({ en: 'The text box, the name tag and the option menu are React components the project supplies.', zh: '文本框、名牌和选项菜单由项目提供的 React 组件渲染。', ja: 'テキストボックス、名前タグ、選択肢メニューは、プロジェクトが用意した React コンポーネントだよ。' })}`,
 
     Control.label(TOPICS),
     narra.say`${t({ en: 'Five topics below, each one a group of demonstrations.', zh: '下面五个方向，每一个是一组演示。', ja: '下にある五つのテーマ、それぞれがひとまとまりのデモになっているよ。' })}`,

@@ -44,7 +44,7 @@ const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
     zh: {
       title: 'NarraLeaf：视觉小说引擎、编辑器与 React 播放器',
       description:
-        'NarraLeaf 用做软件的方式做视觉小说。在 NarraLeaf Studio 里编写与预览工程，构建成 Windows、macOS、Android、iOS 或网页版本，也可以用 narraleaf-react 把剧情嵌进 React 应用。',
+        'NarraLeaf 用做软件的方式做视觉小说。在 NarraLeaf Studio 里编写与预览项目，构建成 Windows、macOS、Android、iOS 或网页版本，也可以用 narraleaf-react 把剧情嵌进 React 应用。',
       keywords: ['视觉小说', '视觉小说开发', '制作视觉小说', '视觉小说游戏引擎'],
     },
     ja: {

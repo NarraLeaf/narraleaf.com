@@ -3,7 +3,7 @@ title: 命令行构建
 description: 不打开界面，用命令行产出发行构建，供构建机与发版流程使用
 ---
 
-Studio 可以从命令行构建工程，结束时返回状态码。这种方式不打开任何窗口，构建日志写到标准输出，产出的文件与**构建发行包**窗口产出的一致。
+Studio 可以从命令行构建项目，结束时返回状态码。这种方式不打开任何窗口，构建日志写到标准输出，产出的文件与**构建发行包**窗口产出的一致。
 
 一次调用产出一份构建：一个变体、一个平台、一种格式。要产出第二个目标，再调用一次。
 
@@ -23,12 +23,12 @@ narraleaf-studio --build /projects/my-game
 
 | 选项 | 取值 | 默认 |
 | --- | --- | --- |
-| `--build` | 工程目录 | 必填 |
+| `--build` | 项目目录 | 必填 |
 | `--build-variant` | 构建变体 id | `main` |
 | `--build-target` | `windows`、`macos`、`linux`、`web`、`android`、`ios` | 当前系统 |
 | `--build-format` | 该平台的一种格式 | 桌面与 Web 为 `zip`，Android 为 `apk`，iOS 为 `ipa` |
 | `--build-arch` | `x64`、`arm64`、`universal` | 构建本机平台时取本机架构，否则取 `x64` |
-| `--build-output` | 输出目录 | 工程内的 `dist` |
+| `--build-output` | 输出目录 | 项目内的 `dist` |
 | `--build-report` | 写出报告的文件 | 不写报告 |
 | `--build-allow-unsigned` | 无取值 | 产物无法签名时中止构建 |
 | `--build-user-data-dir` | 本次运行使用的配置目录 | 已安装的配置 |
@@ -46,10 +46,10 @@ narraleaf-studio --build /projects/my-game
 | `0` | 构建已写出产物 |
 | `1` | 检查通过，构建未能完成 |
 | `2` | 命令行无法执行，什么都没有打开 |
-| `3` | 检查拒绝了这个工程 |
-| `4` | Studio 无法打开工程或工作区 |
+| `3` | 检查拒绝了这个项目 |
+| `4` | Studio 无法打开项目或工作区 |
 
-以 `3` 结束的运行，在工程改动之前重试，结果不变。
+以 `3` 结束的运行，在项目改动之前重试，结果不变。
 
 ## 构建报告
 
@@ -59,7 +59,7 @@ narraleaf-studio --build /projects/my-game
 narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
 ```
 
-文件里记录着结果与状态码、解析后的工程与构建请求、全部构建前检查结果、产物及其体积、这次构建是否带代码签名以及凭据来自哪里，还有带时间戳的完整构建日志。
+文件里记录着结果与状态码、解析后的项目与构建请求、全部构建前检查结果、产物及其体积、这次构建是否带代码签名以及凭据来自哪里，还有带时间戳的完整构建日志。
 
 ## 构建前检查
 
@@ -83,7 +83,7 @@ narraleaf-studio --build /projects/my-game --build-user-data-dir /var/lib/narral
 
 从构建窗口的**签名**一节导入的凭据，该配置下的每一次命令行构建都会使用，无需任何选项。
 
-`--build-signing` 改为只为这一次运行提供凭据。它对文件中列出的平台生效，覆盖工程自身的选择，并且不会被导入到配置中。
+`--build-signing` 改为只为这一次运行提供凭据。它对文件中列出的平台生效，覆盖项目自身的选择，并且不会被导入到配置中。
 
 ```sh
 narraleaf-studio --build /projects/my-game --build-signing /run/secrets/signing.json

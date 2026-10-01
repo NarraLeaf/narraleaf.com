@@ -61,7 +61,7 @@ export default defineRuntimePlugin({
 | `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素|
 | `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL|
 | `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言|
-| `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十项里最重的一项：一个 pass 会跑遍工程的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
+| `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十项里最重的一项：一个 pass 会跑遍项目的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
 
 这份列表是封闭的。无法识别的能力字符串会让清单校验失败，而不是被忽略，所以拼错永远不会被读成“什么都没申请”
 
