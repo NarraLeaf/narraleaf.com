@@ -1,0 +1,59 @@
+---
+title: NarraLeaf Studio reaches 1.0
+description: How NarraLeaf Studio grew from a new repository in October 2025 to 1.0, and how it organizes a visual novel as a piece of engineering.
+date: 2026-09-30
+draft: false
+---
+
+<StudioVideo lang="en" />
+
+NarraLeaf-React solved presentation for visual novels, but it asks its users to write TypeScript. Many visual novel authors do not write code, and a visual novel is rarely the work of one person. Writers, artists, programmers and translators need to work on the same project, and that project needs to be version-controlled, handed over and extended, organized the way a piece of software engineering is. NarraLeaf Studio is the editor built for that.
+
+The NarraLeaf Studio repository was created on October 17, 2025. NarraLeaf Studio 1.0 was released on September 30, 2026.
+
+## From player to editor
+
+Studio is a desktop application built on Electron. It does not bring an engine of its own: the story preview and Dev Mode in the editor run NarraLeaf-React directly, and the games it packages are built on it too. What an author sees in the editor is what a player will see.
+
+For its first half year or so, Studio moved slowly, laying the editor's foundations: windows, inter-process communication and property editors. The interface editor began to take shape in early 2026, design work on the blueprint system started in April, and in June the interface editor and the story editor were merged into the main line. Studio's first minor release, 0.1.0, came out on July 21, and 0.3.0 on August 2 was the first with installers to download.
+
+## A project, not a file
+
+Studio keeps NarraLeaf-React's principles. Intuitive design is still the first of them: every concept and every part of the interface is held to whether an author can understand it directly. On top of that, Studio treats a visual novel as a project that keeps growing.
+
+A project is readable, and it can be version-controlled. Characters, variables, localized text, asset metadata and stories are all stored as structured documents, and each kind of document has its own diff and three-way merge. Version control is built on Epic's [Lore](https://github.com/EpicGames/lore), so binary assets transfer incrementally as well. The words in the interface are not copied from git: what an author commits is a version, the remote is a server, and what Studio records on its own over time is a checkpoint.
+
+A project fits into the tools developers already use. TypeScript is always available underneath the logic: since 0.10, a piece of logic can be a TypeScript file in the project, written in the author's own editor and run alongside the visual blueprints. Builds, checks and tests can all run from the command line, so they can be part of CI.
+
+Both the interface and the logic have a way out. The interface editor is close to a prototyping tool, and a component can declare parameters of its own. Blueprints express logic as nodes and connections, and each blueprint belongs to a definite owner, the project, a page or a widget, which is also how it knows what it can reach.
+
+Extending Studio does not mean changing the editor. Plugins are first-class: they can add blueprint nodes, widgets, language packs and tests to Studio, and they are distributed through the plugin store built into it. A customization that used to belong only to whoever made it can now be published, and upgraded along with Studio.
+
+<Figure
+    src="/static/img/docs/studio/en/workspace-overview.webp"
+    alt="The NarraLeaf Studio workspace: the story tree on the left, a scene's direction and dialogue lines in the middle, and the properties panel on the right"
+/>
+
+## From 0.1 to 1.0
+
+July to September 2026 was when Studio moved fastest: more than 3,400 commits in three months, taking the version number from 0.1.0 to 1.0.
+
+0.3.0 brought the first version control, an expression language for use in stories, importing Live2D and Spine models, and code signing for Windows, Linux, Android and iOS. 0.4.0 and 0.5.0 turned back to the parts an author touches directly. Every line in the story editor reads in the author's own language, undo was brought together in one place, and the documentation moved into the editor; components in the interface editor gained parameters, and safe areas came from real devices.
+
+0.6.0 introduced build variants, which make a demo and a full game two cut points in one story rather than two projects. 0.8.0 and 0.9.0 let several authors open the same project at once, with the story, characters, interfaces, assets and translations kept in sync live, and the same period added DLC, protected builds and version control that merges item by item. 0.10.0 made scripts TypeScript files that belong to the project, required a project from an unknown source to be trusted by the author before it runs, and let plugin widgets appear on the canvas and in games.
+
+## 1.0 and beyond
+
+NarraLeaf Studio 1.0 was released on September 30, 2026. It is built on NarraLeaf-React 1.0, released the same day, and the mobile shell templates and native components Studio depends on directly reached 1.0 with it. A project created in 0.10 opens in 1.0 without any migration.
+
+From 1.0, `narraleaf-studio`, the types package for the plugin API, carries the same version number as Studio and is published automatically with every Studio release. The version range a plugin declares therefore says which Studio it was written for. Throughout 1.x, plugin APIs will be marked as deprecated rather than removed.
+
+Studio is available for Windows x64 and Apple Silicon Macs, and the games made with it can be packaged for Windows, macOS (Intel Macs included), Linux, the web, Android and iOS. Studio is open source under the MPL-2.0 license.
+
+Over this year, Studio's interface and implementation have been revised many times, but what we want it to do has not changed: to let authors focus on their work and leave the engineering to the tool. After 1.0, we will keep refining the editor's details, extend what plugins can do, and make Studio serve teams better.
+
+To download and get started, see the [NarraLeaf Studio documentation](/docs/studio). The source code is on [GitHub](https://github.com/NarraLeaf/NarraLeaf-Studio).
+
+## Acknowledgements
+
+Thanks to [MewBaka Studio](https://www.mewbaka.cn) for all of their support, and to everyone who has contributed code and feedback to Studio.
