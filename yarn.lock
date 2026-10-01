@@ -5956,6 +5956,7 @@ __metadata:
     tailwind-merge: "npm:^3.5.0"
     tailwindcss: "npm:^4.2.4"
     typescript: "npm:^6.0.3"
+    zod: "npm:^4.3.6"
   languageName: unknown
   linkType: soft
 

@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { pagesWrittenIn, projectSource, source } from '@/lib/source';
+import { blogPostLocales, publishedBlogSlugs } from '@/lib/blog';
 import { i18n, type Locale, localizedPath } from '@/lib/i18n';
 import { absoluteUrl } from '@/lib/seo';
-import { docsRoute, downloadRoute, projectRoute } from '@/lib/shared';
+import { blogRoute, docsRoute, downloadRoute, projectRoute } from '@/lib/shared';
 
 /**
  * Every URL on the site worth indexing, in both languages, each one paired with
@@ -98,6 +99,26 @@ function contentEntries(): MetadataRoute.Sitemap {
   );
 }
 
+/**
+ * The blog index in every language, and each post in the languages it has been
+ * published in. A translation still marked draft is served as the English post,
+ * so like an untranslated docs page it is left out here.
+ */
+function blogEntries(): MetadataRoute.Sitemap {
+  return [
+    ...localizedEntries(blogRoute, [...i18n.languages], {
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    }),
+    ...publishedBlogSlugs().flatMap((slug) =>
+      localizedEntries(`${blogRoute}/${slug}`, blogPostLocales(slug), {
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      }),
+    ),
+  ];
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...localizedEntries('/', [...i18n.languages], {
@@ -111,5 +132,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     }),
     ...contentEntries(),
+    ...blogEntries(),
   ];
 }

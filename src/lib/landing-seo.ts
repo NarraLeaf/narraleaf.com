@@ -1,5 +1,5 @@
 import { type Locale } from './i18n';
-import { downloadRoute, projectRoute } from './shared';
+import { blogRoute, downloadRoute, projectRoute } from './shared';
 
 /**
  * The pages outside the documentation tree: what each one is called in a search
@@ -11,7 +11,7 @@ import { downloadRoute, projectRoute } from './shared';
  * title that differs between the page and its card is the shape of a result
  * that reads as a redirect.
  */
-export type LandingPageKey = 'home' | 'download' | 'project';
+export type LandingPageKey = 'home' | 'download' | 'project' | 'blog';
 
 export type LandingPageSeo = {
   /** The full `<title>`, product name included: these pages set it outright. */
@@ -25,6 +25,7 @@ export const landingPaths: Record<LandingPageKey, string> = {
   home: '/',
   download: downloadRoute,
   project: projectRoute,
+  blog: blogRoute,
 };
 
 const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
@@ -121,6 +122,26 @@ const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
         'React ビジュアルノベル プレイヤー',
         'ビジュアルノベル エコシステム',
       ],
+    },
+  },
+  blog: {
+    en: {
+      title: 'NarraLeaf Blog',
+      description:
+        'Release announcements and news from the NarraLeaf Project: NarraLeaf Studio, NarraLeaf Desktop and NarraLeaf-React.',
+      keywords: ['NarraLeaf blog', 'NarraLeaf release', 'narraleaf-react release'],
+    },
+    zh: {
+      title: 'NarraLeaf 博客',
+      description:
+        'NarraLeaf Project 的版本发布与动态，涵盖 NarraLeaf Studio、NarraLeaf Desktop 与 NarraLeaf-React。',
+      keywords: ['NarraLeaf 博客', 'NarraLeaf 版本发布', 'narraleaf-react 更新'],
+    },
+    ja: {
+      title: 'NarraLeaf ブログ',
+      description:
+        'NarraLeaf Project のリリース情報とお知らせ。NarraLeaf Studio、NarraLeaf Desktop、NarraLeaf-React の最新情報を掲載しています。',
+      keywords: ['NarraLeaf ブログ', 'NarraLeaf リリース', 'narraleaf-react アップデート'],
     },
   },
 };

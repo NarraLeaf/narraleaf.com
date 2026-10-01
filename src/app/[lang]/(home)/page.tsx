@@ -6,7 +6,7 @@ import desktopCodeImage from '@/assets/home/desktop-code.webp';
 import desktopGameDialogImage from '@/assets/home/desktop-game-dialog.webp';
 import desktopGameMenuImage from '@/assets/home/desktop-game-menu.webp';
 import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
-import { appName, docsRoute, downloadRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
+import { appName, blogRoute, docsRoute, downloadRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { jsonLdScript, landingMetadata } from '@/lib/seo';
 import { studioApplicationJsonLd } from '@/lib/structured-data';
@@ -87,6 +87,7 @@ type FooterCopy = {
   navigationLabel: string;
   projectLabel: string;
   docsLabel: string;
+  blogLabel: string;
   sourceLabel: string;
   copyright: string;
 };
@@ -314,6 +315,7 @@ const homeCopy = {
       navigationLabel: 'Footer navigation',
       projectLabel: 'Project',
       docsLabel: 'Docs',
+      blogLabel: 'Blog',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -520,6 +522,7 @@ const homeCopy = {
       navigationLabel: '页脚导航',
       projectLabel: '项目',
       docsLabel: '文档',
+      blogLabel: '博客',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -727,6 +730,7 @@ const homeCopy = {
       navigationLabel: 'フッターナビゲーション',
       projectLabel: 'プロジェクト',
       docsLabel: 'ドキュメント',
+      blogLabel: 'ブログ',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -1151,6 +1155,9 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </Link>
             <Link href={docsUrl()} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
               {copy.footer.docsLabel}
+            </Link>
+            <Link href={localizedPath(blogRoute, locale)} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
+              {copy.footer.blogLabel}
             </Link>
             <a
               href={githubUrl}

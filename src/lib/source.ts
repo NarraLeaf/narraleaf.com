@@ -1,7 +1,9 @@
-import { docs, project } from 'collections/server';
+import { blog, docs, project } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
 import {
+  blogRoute,
   docsContentRoute,
   docsImageRoute,
   docsRoute,
@@ -24,6 +26,13 @@ export const projectSource = loader({
   i18n,
   source: project.toFumadocsSource(),
   plugins: [lucideIconsPlugin()],
+});
+
+/** Read posts through `@/lib/blog`, which keeps drafts out of production. */
+export const blogSource = loader({
+  baseUrl: blogRoute,
+  i18n,
+  source: toFumadocsSource(blog, []),
 });
 
 export function getPageImage(page: (typeof source)['$inferPage']) {

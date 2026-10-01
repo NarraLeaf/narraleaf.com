@@ -32,6 +32,7 @@ export const siteIconPath = '/narraleaf.ico';
 export const siteLogoPath = '/static/img/narraleaf-logo.webp';
 export const projectRoute = '/project';
 export const docsRoute = '/docs';
+export const blogRoute = '/blog';
 export const downloadRoute = '/download';
 export const projectImageRoute = '/og/project';
 /**
@@ -44,6 +45,7 @@ export const projectImageRoute = '/og/project';
  */
 export const siteImageRoute = '/og/site';
 export const docsImageRoute = '/og/docs';
+export const blogImageRoute = '/og/blog';
 export const projectContentRoute = '/llms.mdx/project';
 export const docsContentRoute = '/llms.mdx/docs';
 
