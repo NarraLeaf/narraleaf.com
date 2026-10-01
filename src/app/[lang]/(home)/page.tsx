@@ -11,6 +11,7 @@ import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { jsonLdScript, landingMetadata } from '@/lib/seo';
 import { studioApplicationJsonLd } from '@/lib/structured-data';
 import { getStudioRelease } from '@/lib/studio-release';
+import { StudioVideo } from '@/components/studio-video';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { UiEditorSlideshow } from './ui-editor-slideshow';
@@ -774,16 +775,6 @@ type StudioSlideGroupId = keyof typeof studioSlideGroups;
 
 const desktopDemoSlideImages = [desktopGameDialogImage, desktopGameMenuImage] as const;
 
-/**
- * The Studio video on YouTube. The embed goes through youtube-nocookie.com, the
- * privacy-enhanced host, so the player stores nothing about a visitor who never
- * presses play. `rel=0` keeps the suggestions at the end to this channel.
- */
-const studioVideo = {
-  src: 'https://www.youtube-nocookie.com/embed/pLx5T0AdRHA?rel=0',
-  title: 'NarraLeaf Studio - All-in-One Visual Novel IDE',
-} as const;
-
 function SectionIntro(props: { title: string; description: string }) {
   const { title, description } = props;
 
@@ -938,24 +929,11 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
 
       {/*
         Below the first screen rather than in it, so the hero picture stays the
-        largest paint, and `loading="lazy"` keeps the player off the first load
-        until the visitor scrolls towards it. `strict-origin-when-cross-origin`
-        is the policy YouTube's own embed code carries: the player will not
-        start for a page that sends it no referrer.
+        largest paint; the player itself loads lazily (see StudioVideo).
       */}
       <section className="border-b border-black/10 dark:border-white/10">
         <div className="mx-auto w-full max-w-6xl px-6 py-16 sm:py-20">
-          <div className="aspect-video overflow-hidden rounded-xl border border-black/10 bg-black shadow-sm dark:border-white/10">
-            <iframe
-              src={studioVideo.src}
-              title={studioVideo.title}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-              className="size-full"
-            />
-          </div>
+          <StudioVideo lang={locale} />
         </div>
       </section>
 

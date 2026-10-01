@@ -5,6 +5,7 @@ import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { StudioDownloads } from '@/components/studio-downloads';
+import { StudioVideo } from '@/components/studio-video';
 import { Figure, Gif } from '@/components/figure';
 import type { MDXComponents } from 'mdx/types';
 
@@ -22,6 +23,7 @@ export function getMDXComponents(components?: MDXComponents) {
     Step,
     Steps,
     StudioDownloads,
+    StudioVideo,
     Figure,
     Gif,
     ...components,
