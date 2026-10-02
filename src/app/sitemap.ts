@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { pagesWrittenIn, projectSource, source } from '@/lib/source';
+import { blogSource, pagesWrittenIn, projectSource, source } from '@/lib/source';
 import { blogPostLocales, publishedBlogSlugs } from '@/lib/blog';
 import { i18n, type Locale, localizedPath } from '@/lib/i18n';
 import { absoluteUrl } from '@/lib/seo';
@@ -22,6 +22,14 @@ import { blogRoute, docsRoute, downloadRoute, projectRoute } from '@/lib/shared'
 type Frequency = NonNullable<MetadataRoute.Sitemap[number]['changeFrequency']>;
 
 /**
+ * When each language's version of a page last changed: the last commit to its
+ * own file, so a fresh translation does not make the English page look edited.
+ * A language is missing when there is no date to trust, and its entry then
+ * goes out without `lastmod` - see src/lib/git-last-modified.ts.
+ */
+type LastModified = Partial<Record<Locale, Date>>;
+
+/**
  * One entry per language for the same page, each naming the other as its
  * alternate.
  *
@@ -34,6 +42,7 @@ function localizedEntries(
   path: string,
   locales: Locale[],
   options: { changeFrequency: Frequency; priority: number },
+  lastModified: LastModified = {},
 ): MetadataRoute.Sitemap {
   const languages: Record<string, string> = Object.fromEntries(
     locales.map((locale) => [locale, absoluteUrl(localizedPath(path, locale))]),
@@ -47,6 +56,7 @@ function localizedEntries(
 
   return locales.map((locale) => ({
     url: absoluteUrl(localizedPath(path, locale)),
+    lastModified: lastModified[locale],
     alternates: { languages },
     ...options,
   }));
@@ -62,16 +72,19 @@ function localizedEntries(
  */
 function contentEntries(): MetadataRoute.Sitemap {
   const localesByPath = new Map<string, Locale[]>();
+  const datesByPath = new Map<string, LastModified>();
   const ordered: string[] = [];
 
-  const record = (path: string, locale: Locale) => {
+  const record = (path: string, locale: Locale, date: Date | undefined) => {
     const known = localesByPath.get(path);
     if (known) {
       known.push(locale);
-      return;
+    } else {
+      localesByPath.set(path, [locale]);
+      datesByPath.set(path, {});
+      ordered.push(path);
     }
-    localesByPath.set(path, [locale]);
-    ordered.push(path);
+    if (date) datesByPath.get(path)![locale] = date;
   };
 
   for (const locale of i18n.languages) {
@@ -79,23 +92,28 @@ function contentEntries(): MetadataRoute.Sitemap {
       // `/docs/narraleaf` redirects into the library section; the pages beneath
       // it are listed on their own.
       if (page.slugs.length === 1 && page.slugs[0] === 'narraleaf') continue;
-      record(`${docsRoute}/${page.slugs.join('/')}`, locale);
+      record(`${docsRoute}/${page.slugs.join('/')}`, locale, page.data.lastModified);
     }
 
     for (const page of pagesWrittenIn(projectSource, locale)) {
       const slugs = page.slugs.join('/');
-      record(slugs ? `${projectRoute}/${slugs}` : projectRoute, locale);
+      record(slugs ? `${projectRoute}/${slugs}` : projectRoute, locale, page.data.lastModified);
     }
   }
 
   return ordered.flatMap((path) =>
-    localizedEntries(path, localesByPath.get(path)!, {
-      changeFrequency: 'weekly',
-      // A documentation page ranks below the landing pages it is reached from,
-      // except for the three section roots, which are the entry points readers
-      // are most often looking for.
-      priority: path.split('/').length <= 3 ? 0.8 : 0.6,
-    }),
+    localizedEntries(
+      path,
+      localesByPath.get(path)!,
+      {
+        changeFrequency: 'weekly',
+        // A documentation page ranks below the landing pages it is reached from,
+        // except for the three section roots, which are the entry points readers
+        // are most often looking for.
+        priority: path.split('/').length <= 3 ? 0.8 : 0.6,
+      },
+      datesByPath.get(path),
+    ),
   );
 }
 
@@ -110,12 +128,20 @@ function blogEntries(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.7,
     }),
-    ...publishedBlogSlugs().flatMap((slug) =>
-      localizedEntries(`${blogRoute}/${slug}`, blogPostLocales(slug), {
-        changeFrequency: 'monthly',
-        priority: 0.7,
-      }),
-    ),
+    ...publishedBlogSlugs().flatMap((slug) => {
+      const locales = blogPostLocales(slug);
+      const lastModified: LastModified = {};
+      for (const locale of locales) {
+        const date = blogSource.getPage([slug], locale)?.data.lastModified;
+        if (date) lastModified[locale] = date;
+      }
+      return localizedEntries(
+        `${blogRoute}/${slug}`,
+        locales,
+        { changeFrequency: 'monthly', priority: 0.7 },
+        lastModified,
+      );
+    }),
   ];
 }
 

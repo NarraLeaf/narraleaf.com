@@ -24,8 +24,8 @@ const withMDX = createMDX();
 const IMAGE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 /**
- * `yarn build` is `next build --webpack`, not Next 16's default Turbopack, for
- * memory. Vercel builds the site on a machine with 4 cores and 8 GB, and
+ * `yarn build` runs `next build --webpack`, not Next 16's default Turbopack,
+ * for memory. Vercel builds the site on a machine with 4 cores and 8 GB, and
  * Turbopack's compile of it - some 930 MDX pages, reached from most routes
  * through `@/lib/source` - peaks right at that ceiling, so whether a build
  * survives is chance: on a copy of that machine, the tree Vercel last built

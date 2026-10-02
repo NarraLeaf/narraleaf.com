@@ -1,6 +1,8 @@
 import { defineCollections, defineConfig, defineDocs } from 'fumadocs-mdx/config';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
+import lastModified from 'fumadocs-mdx/plugins/last-modified';
 import { z } from 'zod';
+import { gitLastModified } from './src/lib/git-last-modified';
 
 // You can customize Zod schemas for frontmatter and `meta.json` here
 // see https://fumadocs.dev/docs/mdx/collections
@@ -58,6 +60,9 @@ export const blog = defineCollections({
 });
 
 export default defineConfig({
+  // Every page gets `lastModified`, its last commit date, for the sitemap's
+  // `lastmod`. See src/lib/git-last-modified.ts for why the date can be absent.
+  plugins: [lastModified({ versionControl: gitLastModified })],
   mdxOptions: {
     // MDX options
   },

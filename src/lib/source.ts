@@ -109,9 +109,9 @@ export function translatedLocales(
 }
 
 /** The pages of one language, with the fallbacks for untranslated pages removed. */
-export function pagesWrittenIn(
-  from: { getPages: (locale?: string) => { path: string; slugs: string[] }[] },
+export function pagesWrittenIn<Page extends { path: string; slugs: string[] }>(
+  from: { getPages: (locale?: string) => Page[] },
   locale: Locale,
-): { path: string; slugs: string[] }[] {
+): Page[] {
   return from.getPages(locale).filter((page) => isWrittenIn(page, locale));
 }
