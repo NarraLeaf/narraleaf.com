@@ -1,0 +1,172 @@
+---
+title: 运行时的界面
+description: 游戏运行时屏幕上叠放的内容：页面、游戏 UI 与叠加页面各自出现在哪里，以及开始游戏、打开页面、退出游戏时屏幕的变化
+---
+
+游戏运行时，屏幕上的内容分层叠放。从下到上依次是游戏画面、游戏 UI、页面和叠加页面，上层盖住下层
+
+<ScreenStack lang="zh" caption="叠放次序固定不变。游戏画面与游戏 UI 只在游戏进行中出现">
+  <ScreenLayer kind="layer" note="叠加在当前屏幕之上，位于所有页面上方">确认、提示</ScreenLayer>
+  <ScreenLayer kind="page" note="同一时间只显示一个">标题、设置、存档、记录</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="开始游戏后自动显示">对话、选项、通知、快捷菜单</ScreenLayer>
+  <ScreenLayer kind="stage" note="开始游戏后显示，由故事控制">背景与角色</ScreenLayer>
+</ScreenStack>
+
+| 层 | 在 UI 面板中 | 如何出现 | 何时存在 |
+| --- | --- | --- | --- |
+| 叠加页面 | 任意一个页面 | `Show Layer`（叠加页面）或 `Show Confirm`（询问确认）打开 | 任何时候 |
+| 页面 | **界面类型**为**页面** | 入口页面在游戏启动时打开，其余由 `Go Page`（前往页面）打开 | 任何时候 |
+| 游戏 UI | **界面类型**为**游戏 UI** | 开始游戏时自动显示，不需要打开 | 游戏进行中 |
+| 游戏画面 | 不在 UI 面板中 | `Start Game`（开始游戏）或 `Load Save`（读取存档）显示 | 游戏进行中 |
+
+UI 面板中没有单独的叠加页面类型。任何页面都可以用 `Go Page` 打开，也可以用 `Show Layer` 叠加显示
+
+## 一次游玩中屏幕的变化
+
+下面以**骨架**模板创建的项目为例，跟随一次游玩，看屏幕上的内容如何变化
+
+<Steps>
+<Step>
+
+### 启动游戏
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="page" note="入口页面">标题</ScreenLayer>
+</ScreenStack>
+
+游戏启动后显示入口页面。入口页面在 UI 面板中标为**入口页面**，不能删除。此时还没有游戏画面，也没有游戏 UI
+
+</Step>
+<Step>
+
+### 打开另一个页面
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="page">设置</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden" note="「返回上一页」时回到这里">标题</ScreenLayer>
+</ScreenStack>
+
+`Go Page` 打开**设置**，它取代**标题**显示在屏幕上。**标题**不再显示，但仍被记住：`Go back`（返回上一页）关闭**设置**，**标题**重新播放进场动画并再次触发 `Surface Init`（界面初始化）
+
+连续使用 `Go Page` 会把页面逐个叠起来，`Go back` 每次关闭最上面一个。最底下的页面不会被关闭，在它上面使用 `Go back` 不执行任何操作。`Go Page` 的页面选择为 `None` 时，关闭最底下页面之上的所有页面
+
+</Step>
+<Step>
+
+### 开始游戏
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="gameUi" note="舞台位置">快捷菜单</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="对白、选项、通知位置">对话、选择、通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景与角色</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">标题</ScreenLayer>
+</ScreenStack>
+
+**标题**上的按钮执行 `Start Game`。所有页面隐藏，游戏画面显示出来，游戏 UI 显示在游戏画面之上。此时屏幕上没有页面，玩家看到的是故事和游戏 UI
+
+游戏 UI 不需要打开。游戏开始时，项目中的每个游戏 UI 显示在它所在的位置上，游戏结束时一并移除。没有游戏 UI 的位置使用内置的对话框、选项菜单和通知
+
+</Step>
+<Step>
+
+### 在游戏中打开页面
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="page" note="背景略透明，能看到下面的场景">记录</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">快捷菜单</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">对话、选择</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="通知位置保持显示">通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景与角色</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">标题</ScreenLayer>
+</ScreenStack>
+
+**快捷菜单**上的**记录**按钮执行 `Go Page`。游戏进行中打开的页面显示在游戏画面之上，页面自身的背景略微透明。页面显示期间：
+
+- 故事停在当前行，点击、推进键和自动播放都不会推进它
+- 对白、选项、NVL 和舞台位置的游戏 UI 暂时淡出，页面关闭后恢复。通知位置的游戏 UI 保持显示
+- 点击和按键交给页面
+
+`Go back` 关闭**记录**并回到游戏。在游戏中打开的页面之间继续使用 `Go Page` 会叠成多层，`Clear Page`（关闭全部页面）一次关闭游戏中打开的所有页面
+
+</Step>
+<Step>
+
+### 叠加一个页面
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="layer" note="模态">确认</ScreenLayer>
+  <ScreenLayer kind="page" note="仍然显示，不接收点击">记录</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">快捷菜单</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">对话、选择</ScreenLayer>
+  <ScreenLayer kind="gameUi">通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景与角色</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">标题</ScreenLayer>
+</ScreenStack>
+
+**记录**上的**标题**按钮执行 `Show Confirm`，询问是否回到标题。**确认**叠加在**记录**之上，**记录**继续显示在它下面
+
+</Step>
+<Step>
+
+### 退出游戏
+
+<ScreenStack lang="zh">
+  <ScreenLayer kind="page">标题</ScreenLayer>
+</ScreenStack>
+
+玩家确认后执行 `Quit Game`（退出游戏），节点上选择的页面是**标题**。游戏画面和游戏 UI 被移除，游戏开始前打开过的页面与所有叠加页面一并关闭，**标题**成为唯一的页面
+
+</Step>
+</Steps>
+
+## 页面
+
+- 同一时间只显示一个页面。被新页面取代的页面不显示，`Go back` 时重新进场
+- 最底下的页面不会被关闭。游戏启动时它是入口页面，退出游戏后它是 `Quit Game` 打开的页面
+- 游戏开始前，页面下面没有其他内容。游戏进行中打开的页面显示在游戏画面之上，背景略微透明，并让故事停在当前行
+- `Start Game` 与 `Load Save` 隐藏所有页面。游戏进行中，`Go back` 与 `Clear Page` 不会让这些页面重新显示，游戏结束后它们随 `Quit Game` 一并关闭
+- 页面也可以通过**页面**控件嵌在另一个页面中显示。嵌入的页面属于外层页面的一部分，不参与上面的叠放
+
+## 游戏 UI
+
+- 每个游戏 UI 创建在一个位置上：**对白**、**选项**、**通知**、**NVL** 或**舞台**。每个位置只有一个游戏 UI
+- 游戏 UI 只在游戏进行中存在。游戏开始时自动显示，游戏结束时自动移除，不需要用 `Go Page` 打开
+- 前四个位置替换游戏内置的对应界面。没有游戏 UI 的位置使用内置界面，因此删除对白位置的游戏 UI 后，游戏仍然有对话框
+- **舞台**位置不替换任何内置界面，用于快捷菜单、HUD 这类常驻在游戏画面上的内容。它空白的地方不拦截点击，点击会落到游戏画面上推进故事
+- **通知**位置只用于显示，不接收点击和按键
+- 游戏进行中打开页面时，除**通知**以外的位置暂时淡出
+
+## 叠加页面
+
+`Show Layer` 把一个页面叠加在当前屏幕之上，原来显示的内容保持不变
+
+- 叠加页面位于所有页面之上，包括在它之后才打开的页面
+- 打开时可以设为**模态**：它下面的一切都不再接收点击，按键交给它。不是模态的叠加页面不影响下面的页面
+- 模态的叠加页面让故事停在当前行。叠加页面不会让游戏 UI 淡出
+- 打开叠加页面的那个页面关闭时，叠加页面随之关闭
+- `Go back` 先关闭最上面一个**可关闭**的叠加页面，没有时才关闭页面。`Hide Layer`（移除叠加页面）关闭指定的叠加页面，`Close This Layer`（关闭本叠加页面）关闭它所在的那一个
+- 设为同一分组的叠加页面依次显示，前一个关闭后才显示下一个
+- `Show Confirm` 打开的确认页面是模态、可关闭的叠加页面
+- 开始游戏、读取存档和退出游戏都会关闭所有叠加页面
+
+## 点击和按键
+
+同一时间可以有多处接收点击，但按键只交给一处。按下表从上往下，第一条符合的情况为准：
+
+| 屏幕上 | 接收点击 | 接收按键 |
+| --- | --- | --- |
+| 有模态的叠加页面 | 最上面的模态叠加页面，以及它上方的叠加页面 | 最上面的模态叠加页面 |
+| 有页面 | 当前页面与所有叠加页面 | 当前页面 |
+| 游戏进行中，没有页面 | 游戏 UI、叠加页面与游戏画面 | 游戏 UI |
+
+按键先交给全局蓝图，再交给上表中的那一处
+
+## 故事结束时
+
+故事播放完最后一行时，显示构建变体中**剧本结束后显示的页面**所选的页面，效果与 `Quit Game` 相同。选择**不显示任何页面**时，画面停在最后一帧
+
+## 另请参阅
+
+- [UI](/zh/docs/studio/workspace/ui-editor)：创建页面与游戏 UI
+- [Surface](/zh/docs/studio/blueprint/surfaces)：页面的生命周期与蓝图事件
+- [应用节点](/zh/docs/studio/blueprint/nodes/app)：`Go Page`、`Go back`、`Show Layer` 等节点的引脚

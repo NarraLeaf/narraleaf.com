@@ -1,4 +1,7 @@
 {
   "title": "UI Editor",
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "runtime"
+  ]
 }

@@ -7,6 +7,7 @@ import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { StudioDownloads } from '@/components/studio-downloads';
 import { StudioVideo } from '@/components/studio-video';
 import { Figure, Gif } from '@/components/figure';
+import { ScreenLayer, ScreenStack } from '@/components/screen-stack';
 import type { MDXComponents } from 'mdx/types';
 
 export function getMDXComponents(components?: MDXComponents) {
@@ -26,6 +27,8 @@ export function getMDXComponents(components?: MDXComponents) {
     StudioVideo,
     Figure,
     Gif,
+    ScreenLayer,
+    ScreenStack,
     ...components,
   } satisfies MDXComponents;
 }

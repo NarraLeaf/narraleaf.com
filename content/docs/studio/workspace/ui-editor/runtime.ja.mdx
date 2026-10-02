@@ -1,0 +1,172 @@
+---
+title: 実行時のインターフェース
+description: ゲームの実行中に画面に重なっているもの。ページ、ゲーム UI、レイヤーがそれぞれどこに現れ、ゲームの開始、ページを開いたとき、ゲームの終了で画面がどう変わるか
+---
+
+ゲームの実行中、画面の内容は層になって重なっています。下から順に舞台、ゲーム UI、ページ、レイヤーで、上の層が下の層を覆います。
+
+<ScreenStack lang="ja" caption="重なる順序は常に同じです。舞台とゲーム UI はゲームの進行中にだけ存在します">
+  <ScreenLayer kind="layer" note="現在の画面の上に重なり、すべてのページより上にある">確認、通知ダイアログ</ScreenLayer>
+  <ScreenLayer kind="page" note="一度に 1 つだけ表示される">タイトル、設定、セーブ、ログ</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="ゲームの開始時に自動で表示される">会話、選択、通知、クイックメニュー</ScreenLayer>
+  <ScreenLayer kind="stage" note="ゲームの開始時に表示され、ストーリーが制御する">背景とキャラクター</ScreenLayer>
+</ScreenStack>
+
+| 層 | UI パネルでは | 現れ方 | 存在する時期 |
+| --- | --- | --- | --- |
+| レイヤー | 任意のページ | `Show Layer`（レイヤーを表示）または `Show Confirm`（確認を求める）で開く | いつでも |
+| ページ | **Interface Type**（インターフェースの種類）が **Page**（ページ） | 入口ページはゲームの起動時に開き、ほかは `Go Page`（ページへ移動）で開く | いつでも |
+| ゲーム UI | **Interface Type** が **Game UI**（ゲーム UI） | ゲームの開始時に自動で表示され、開く操作はいらない | ゲームの進行中 |
+| 舞台 | UI パネルにはない | `Start Game`（ゲームを始める）または `Load Save`（セーブを読み込む）で表示される | ゲームの進行中 |
+
+UI パネルにレイヤー専用の種類はありません。どのページも、`Go Page` で開くことも、`Show Layer` で画面の上に重ねて表示することもできます。
+
+## 1 回のプレイで画面がどう変わるか
+
+ここでは **Skeleton**（スケルトン）テンプレートから作成したプロジェクトを例に、1 回のプレイを追います。
+
+<Steps>
+<Step>
+
+### ゲームの起動
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="page" note="入口ページ">タイトル</ScreenLayer>
+</ScreenStack>
+
+ゲームは入口ページから始まります。UI パネルではこのページに **Entry page**（入口ページ）と表示され、削除できません。この時点では舞台もゲーム UI もありません。
+
+</Step>
+<Step>
+
+### 別のページを開く
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="page">設定</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden" note="Go back でここに戻る">タイトル</ScreenLayer>
+</ScreenStack>
+
+`Go Page` で**設定**を開くと、**タイトル**に代わって画面に表示されます。**タイトル**は描画されなくなりますが、記憶されています。`Go back`（前のページに戻る）で**設定**を閉じると、**タイトル**が入場アニメーションを再生し、`Surface Init`（サーフェスの初期化）がもう一度発生します。
+
+`Go Page` を使うたびにページが 1 つずつ積み重なり、`Go back` は一番上のページを 1 つ閉じます。一番下のページは閉じられず、その上で `Go back` を使っても何も起きません。ページを `None` にした `Go Page` は、一番下のページより上のページをすべて閉じます。
+
+</Step>
+<Step>
+
+### ゲームの開始
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="gameUi" note="On Stage（舞台上）スロット">クイックメニュー</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="Dialog、Choice、Notification スロット">会話、選択、通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景とキャラクター</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">タイトル</ScreenLayer>
+</ScreenStack>
+
+**タイトル**のボタンが `Start Game` を実行します。すべてのページが非表示になり、舞台が現れ、その上にゲーム UI が描画されます。このとき画面にページはなく、プレイヤーが見ているのはストーリーとゲーム UI です。
+
+ゲーム UI を開く必要はありません。ゲームが始まると、プロジェクト内の各ゲーム UI がそれぞれのスロットに表示され、ゲームが終わるとまとめて取り除かれます。ゲーム UI のないスロットでは、組み込みのダイアログボックス、選択肢メニュー、通知が使われます。
+
+</Step>
+<Step>
+
+### ゲーム中にページを開く
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="page" note="背景がわずかに透け、下の場面が見える">ログ</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">クイックメニュー</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">会話、選択</ScreenLayer>
+  <ScreenLayer kind="gameUi" note="Notification スロットは表示されたまま">通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景とキャラクター</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">タイトル</ScreenLayer>
+</ScreenStack>
+
+**クイックメニュー**の**ログ**ボタンが `Go Page` を実行します。ゲームの進行中に開いたページは舞台の上に描画され、ページ自身の背景はわずかに透けます。ページが表示されている間は次のようになります。
+
+- ストーリーは現在の行で止まります。クリック、送りキー、オートモードのいずれでも先に進みません。
+- Dialog、Choice、NVL、On Stage スロットのゲーム UI は一時的にフェードアウトし、ページを閉じると戻ります。Notification スロットのゲーム UI は表示されたままです。
+- クリックとキー入力はページが受け取ります。
+
+`Go back` で**ログ**を閉じるとゲームに戻ります。ゲーム中に開いたページからさらに `Go Page` を使うと、ゲーム開始前と同じようにページが積み重なります。`Clear Page`（ページをすべて閉じる）は、ゲーム中に開いたページをまとめて閉じます。
+
+</Step>
+<Step>
+
+### レイヤーを重ねる
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="layer" note="モーダル">確認</ScreenLayer>
+  <ScreenLayer kind="page" note="表示されたまま、クリックは受け取らない">ログ</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">クイックメニュー</ScreenLayer>
+  <ScreenLayer kind="gameUi" state="faded">会話、選択</ScreenLayer>
+  <ScreenLayer kind="gameUi">通知</ScreenLayer>
+  <ScreenLayer kind="stage">背景とキャラクター</ScreenLayer>
+  <ScreenLayer kind="page" state="hidden">タイトル</ScreenLayer>
+</ScreenStack>
+
+**ログ**の**タイトル**ボタンが `Show Confirm` を実行し、タイトルに戻るかどうかを尋ねます。**確認**は**ログ**の上に重なり、**ログ**はその下に表示されたままです。
+
+</Step>
+<Step>
+
+### ゲームの終了
+
+<ScreenStack lang="ja">
+  <ScreenLayer kind="page">タイトル</ScreenLayer>
+</ScreenStack>
+
+プレイヤーが確認すると、ページに**タイトル**を選んだ `Quit Game`（ゲームを終了）が実行されます。舞台とゲーム UI が取り除かれ、ゲーム開始前に開いていたページとすべてのレイヤーが閉じられ、**タイトル**が唯一のページになります。
+
+</Step>
+</Steps>
+
+## ページ
+
+- 画面に表示されるページは一度に 1 つです。別のページに置き換えられたページは描画されず、`Go back` で再び入場します。
+- 一番下のページは閉じられません。ゲームの起動時は入口ページ、`Quit Game` の後は `Quit Game` が開いたページです。
+- ゲームの開始前、ページの下には何も描画されません。ゲームの進行中に開いたページは背景がわずかに透けた状態で舞台の上に描画され、ストーリーは現在の行で止まります。
+- `Start Game` と `Load Save` はすべてのページを非表示にします。ゲームの進行中、`Go back` と `Clear Page` でこれらのページが再び表示されることはなく、ゲームの終了時に `Quit Game` によって閉じられます。
+- ページは **Page**（ページ）コンポーネントを使って別のページの中に表示することもできます。埋め込まれたページは外側のページの一部であり、上で説明した重なりには加わりません。
+
+## ゲーム UI
+
+- ゲーム UI はスロットに作成します。スロットは **Dialog**（ダイアログ）、**Choice**（選択肢）、**Notification**（通知）、**NVL**、**On Stage**（舞台上）の 5 つで、各スロットにゲーム UI は 1 つだけです。
+- ゲーム UI はゲームの進行中にだけ存在します。ゲームの開始時に表示され、終了時に取り除かれます。`Go Page` で開くものではありません。
+- 最初の 4 つのスロットは、ゲームに組み込まれた対応するインターフェースを置き換えます。ゲーム UI のないスロットでは組み込みのものが使われるため、Dialog スロットのゲーム UI を削除してもダイアログボックスはなくなりません。
+- **On Stage** スロットは何も置き換えません。クイックメニューや HUD のように舞台の上に常に置いておくものに使います。空いている部分はクリックを受け止めないため、そこをクリックすると舞台に届き、ストーリーが進みます。
+- **Notification** スロットは表示専用で、クリックもキー入力も受け取りません。
+- ゲームの進行中にページを開くと、**Notification** 以外のスロットは一時的にフェードアウトします。
+
+## レイヤー
+
+`Show Layer` はページを現在の画面の上に重ねて表示し、それまで表示されていたものはそのまま残します。
+
+- レイヤーは、後から開いたページも含め、すべてのページより上に表示されます。
+- レイヤーは **Modal**（モーダル）として開くことができます。その場合、下にあるものはクリックを受け取らず、キー入力はレイヤーが受け取ります。モーダルでないレイヤーは、下のページの操作を妨げません。
+- モーダルのレイヤーが表示されている間、ストーリーは現在の行で止まります。レイヤーがゲーム UI をフェードアウトさせることはありません。
+- レイヤーは、それを開いたページが閉じると一緒に閉じます。
+- `Go back` は一番上の **Dismissible**（閉じられる）レイヤーを先に閉じ、そのようなレイヤーがないときにだけページを閉じます。`Hide Layer`（レイヤーを隠す）は指定したレイヤーを、`Close This Layer`（このレイヤーを閉じる）は自分が属するレイヤーを閉じます。
+- 同じグループのレイヤーは順番に表示され、前のレイヤーが閉じてから次のレイヤーが現れます。
+- `Show Confirm` が開く確認は、モーダルで閉じられるレイヤーです。
+- ゲームの開始、セーブの読み込み、ゲームの終了では、すべてのレイヤーが閉じます。
+
+## クリックとキー入力
+
+クリックは複数の場所が同時に受け取れますが、キー入力を受け取るのは常に 1 か所です。表を上から読み、最初に当てはまる行が適用されます。
+
+| 画面の状態 | クリックを受け取るもの | キー入力を受け取るもの |
+| --- | --- | --- |
+| モーダルのレイヤーがある | 一番上のモーダルのレイヤーと、それより上のレイヤー | 一番上のモーダルのレイヤー |
+| ページがある | 現在のページとすべてのレイヤー | 現在のページ |
+| ゲームの進行中で、ページがない | ゲーム UI、レイヤー、舞台 | ゲーム UI |
+
+キー入力はまずグローバルブループリントに届き、その後で表の 1 か所に届きます。
+
+## ストーリーが終わったとき
+
+ストーリーが最後の行まで進むと、ビルドバリアントの **Page shown when the story ends**（ストーリーが終わったときに出すページ）で選んだページが、`Quit Game` と同じように表示されます。**Show nothing**（何も出さない）を選んだ場合は、最後のフレームが画面に残ります。
+
+## 関連項目
+
+- [UI](/ja/docs/studio/workspace/ui-editor)：ページとゲーム UI の作成
+- [Surface](/ja/docs/studio/blueprint/surfaces)：ページのライフサイクルとブループリントのイベント
+- [App ノード](/ja/docs/studio/blueprint/nodes/app)：`Go Page`、`Go back`、`Show Layer` などのピン
