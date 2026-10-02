@@ -7,9 +7,9 @@ A fn is a named stretch of graph that other graphs can run. `Fn` declares one an
 
 ## Conventions
 
-- **All three nodes belong to `event` graphs.** A fn body is *not* a `function` graph. `function` is a separate [graph kind](/docs/studio/blueprint) — entered by `Function Entry`, no effectful nodes, no latent nodes — while a fn body is ordinary event-graph territory and may do anything an event graph may do.
+- **All three nodes belong to `event` graphs.** A fn body is *not* a `function` graph. `function` is a separate [graph kind](/docs/studio/blueprint) (entered by `Function entry`, with no effectful nodes and no latent nodes), while a fn body is ordinary event-graph territory and may do anything an event graph may do.
 - **A fn is identified by its head node, not by its name.** Rename it on the card and every caller re-labels itself without breaking. Two fns sharing a name in one scope still resolve correctly, and the editor flags the collision, because the name is for you and the binding is by id.
-- **Visibility follows the owner.** A fn declared on a `globalMain` blueprint is callable everywhere. One declared on a `surfaceMain` or `widgetMain` blueprint is callable only from the same [Surface](/docs/studio/blueprint/surfaces). A Blueprint Value can call but never declare; `componentWidgetMain` and `sharedAsset` blueprints do neither.
+- **Visibility follows the owner.** A fn declared on a `globalMain` blueprint is callable everywhere. One declared on a `surfaceMain` or `widgetMain` blueprint is callable only from the same [Surface](/docs/studio/blueprint/surfaces), including from a Blueprint Value on that Surface. One declared on a `componentWidgetMain` blueprint is callable only from inside the same component definition. One declared on a `storyAction` blueprint is offered to every Story Action blueprint, and a call reaches it only while the running scene has a row that uses the declaring blueprint. A Blueprint Value can call but never declare.
 - **Parameter and result pins are authored, not fixed.** `Fn` and `Fn Return` grow their data pins from buttons on the card, and each pin carries a name and a type chosen from `string`, `integer`, `float`, `boolean`, `json`, or `any`.
 - **Recursion is capped at 32 frames.** Past that the call fails outright. The editor warns as soon as it can see that a fn calls itself, directly or through another fn.
 
@@ -62,9 +62,11 @@ Invokes a visible fn and waits for it to finish. Pick the target in `Function` a
 | --- | --- |
 | `fnRef` | The fn to call. The dropdown lists every fn visible from here, labelled `name (scope)`. |
 
-Those argument and result pins are rebuilt from a signature snapshot stored on the node itself, so the card can render without loading the callee's blueprint. Argument pins accept on-card literals where the type allows it. When the callee's signature changes, the snapshot goes stale and validation asks you to re-select the fn to resync the pins — the call keeps working against the old shape until you do.
+Those argument and result pins are rebuilt from a copy of the fn's signature (its name, parameters and results) stored on the node itself, so the card can render without loading the callee's blueprint. Argument pins accept on-card literals where the type allows it.
 
-The body runs as part of the caller's execution: cancelling the caller cancels the fn, and an error thrown inside the body surfaces on the `Call Fn` node.
+The copy follows the fn. A `Call Fn` in the same graph as the fn's head updates as soon as you change the head or its `Fn Return`. A `Call Fn` anywhere else updates when its blueprint is next opened in the editor; until then it keeps the old pins, passes only the arguments those pins carry, and the editor shows a warning on it. Re-selecting the fn in `Function` updates it at once.
+
+The body runs as part of the caller's execution: cancelling the caller cancels the fn, and an error thrown inside the body surfaces on the `Call Fn` node. The body reads and writes the variables of the blueprint that declares the fn, and runs where the caller runs: called from an event in a list row, it reads that row, and called inside a placed component, it reads that placement's params and acts on that placement's elements.
 
 <Callout type="info">
 `Call Fn` is latent, and a Blueprint Value graph refuses latent nodes — with this one exception. A value provider may call a fn, which runs with the host widget's identity; whatever the body does to the world is yours to own.

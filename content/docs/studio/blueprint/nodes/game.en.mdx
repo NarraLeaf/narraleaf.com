@@ -6,14 +6,15 @@ description: Nodes that drive the running game — start and quit it, advance di
 The Game category is the seam between a blueprint and the running story. Everything here talks to the live NarraLeaf runtime: the playthrough itself, the dialog on screen, the player's preferences, the project's local saves, and the dialogue history. A title screen, a config screen, a save/load grid and a backlog are all built out of this page.
 
 <Callout type="warn">
-Every node here needs the running game. The editor canvas has none — a Game node placed there fails with `Host API unavailable (use Dev Mode)`, and a Blueprint Value that reads one previews as empty. Verify all of it in Dev Mode.
+Every node here needs the running game. The editor canvas has none: a Game node placed there fails with `This node runs only in a running game. Open Dev Mode to run it.`, and a Blueprint Value that reads one previews as empty. Verify all of it in Dev Mode.
 </Callout>
 
 ## Conventions
 
-- **Pure or latent, near enough.** Forty-one getters are `Pure` and may appear in `event`, `function` and `macro` graphs, and back a Blueprint Value. Forty-seven are `Latent`, so `event` and `macro` only — a latent node has nowhere to hand a pending result inside a `function`. `Clear Visited` is the eighty-ninth and the odd one: effectful but synchronous, so it is `event` and `macro` like a latent node without being one.
-- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Playtime`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. So do the endings, visited, DLC and build-variant readers — an endings gallery is opened from the title screen, before any game exists. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
-- **State getters degrade; preference getters do not.** Every pure state read — `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Speaker Color`, `Get Dialog Text`, `Is Narrator`, `Is Dialog Waiting`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode`, `Is Text Read`, `Has Read Text`, `Can Undo History`, `Can Redo History`, `Get Track Volume`, both playtime reads, and the endings, visited, DLC, build-variant and character readers — answers with a neutral value when nothing is playing: `false`, `null`, `0`, an empty array, opaque white for a colour, unity for a track volume. That is what lets one shared Page branch on them, and what lets a gallery row bind a locked look straight to a pin. The sixteen preference getters are the exception: they read the live `GamePreference` and fail when there is no game. `Is Dialog Shown` is one of them — it reads the `showDialog` preference and is named for the question rather than the key.
+- **Pure or latent, near enough.** Forty-four nodes are `Pure` and may appear in `event`, `function` and `macro` graphs, and back a Blueprint Value. Fifty-one are `Latent`, so `event` and `macro` only: a latent node has nowhere to hand a pending result inside a `function`. `Clear Visited` is the ninety-sixth and the odd one: effectful but synchronous, so it is `event` and `macro` like a latent node without being one.
+- **Not offered to Story Action blueprints.** A blueprint called from a story row has no game host, so its palette leaves out every node here except `Get Build Variant`.
+- **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Line`, `Get Save Story`, `Get Save Playtime`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. So do the endings, visited, DLC and build-variant readers — an endings gallery is opened from the title screen, before any game exists. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
+- **State getters degrade; preference getters do not.** Every pure state read — `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Speaker Color`, `Get Dialog Text`, `Is Narrator`, `Is Dialog Waiting`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode`, `Is Text Read`, `Has Read Text`, `Can Undo History`, `Can Redo History`, `Get Track Volume`, both playtime reads, and the endings, visited, DLC, build-variant and character readers — answers with a neutral value when nothing is playing: `false`, `null`, `0`, an empty array, opaque white for a colour, unity for a track volume. That is what lets one shared Page branch on them, and what lets a gallery row bind a locked look straight to a pin. The eighteen preference getters are the exception: they read the live `GamePreference` and fail when there is no game. `Is Dialog Shown` is one of them — it reads the `showDialog` preference and is named for the question rather than the key.
 - **Initialise preferences from `On Game Ready`, not `App Boot`.** `App Boot` can run before the `LiveGame` exists, and a preference write with no live game fails. See [Events](/docs/studio/blueprint/nodes/events).
 - **Save ids are validated.** An id is trimmed, may not be empty, and may not contain path separators or control characters. The file on disk is named from a hash of it; the id you chose is kept inside the record's metadata.
 
@@ -33,6 +34,7 @@ Starts the Story and Scene picked on the card and switches to the game stage. On
 | `storyId` | in · data | `string` | Optional. Wired wins over the card. |
 | `sceneId` | in · data | `string` | Optional. Wired wins over the card — this is the pin `Import Progress` hands its `Scene` to. |
 | `startBlockId` | in · data | `string` | Optional, labelled **From Row** and wire-only. Enters the scene at that row instead of at its start. |
+| `inheritFrom` | in · data | `SaveSlot` | Optional. A save whose progress the new game starts with; see below. |
 
 **On-card fields**
 
@@ -43,21 +45,24 @@ Starts the Story and Scene picked on the card and switches to the game stage. On
 
 The picker is what an author reaches for nine times in ten: it lists the project's own stories and cannot be spelled wrong. The pins are for the tenth, where the target is not known when the graph is written — a Continue button that resumes wherever the player was.
 
+With `inheritFrom` wired the game still starts new, at the chosen scene, and then takes the slot's [saved variables](/docs/studio/blueprint/variables#saved-variables) and its visited scenes (the record `Is Scene Visited` reads). The stage, the backlog and the story position are not carried; restoring those is `Load Save`. A [`Save Slot`](#save-slot) carries a save from the store, for a New Game+ that starts from a finished playthrough. [`Current Game`](#current-game) carries the playthrough in progress, for a route that continues in another story. A slot that names nothing fails the node before the story starts.
+
 ### Quit Game
 
 `blueprint.game.quit` · Latent
 
-Ends the playthrough and opens the Page picked on the card. One call does all of it: drop the live game and its session, cancel any start request still pending, clear the dialog nametag, restore the ordinary Page display, then navigate — you do not wire a `Go Page` after it.
+Ends the playthrough and opens the Page picked on the card. One call does all of it: drop the live game and its session, cancel any start request still pending, open the Page, then clear the dialog nametag and restore the ordinary Page display. You do not wire a `Go Page` after it. The game's last frame stays on screen until the Page is up, while `Is In Game` already reports `false`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | Optional, labelled **Page Id**. Wired wins over the card. |
 
 **On-card fields**
 
 | Field | What |
 | --- | --- |
-| `Page` | The [Surface](/docs/studio/blueprint/surfaces) to open once the game is gone. Required. |
+| `Page` | The [Surface](/docs/studio/blueprint/surfaces) to open once the game is gone. Required unless `surfaceId` is wired. |
 
 ### Is In Game
 
@@ -147,7 +152,7 @@ The current speaker's name. `null` for narration, for a line with no speaker, an
 | --- | --- | --- | --- |
 | `nametag` | out · data | `string` | `null` when there is no speaker. |
 
-The default dialog template drives a plain `nl.text` nametag from that widget's own blueprint — `Init` and `On Flush` into `Get Nametag`, then a null check onto the text and its opacity. No special nametag widget is involved.
+The default dialog template binds the `text` of a plain `nl.text` nametag to a Blueprint Value: `Init` and `On Flush` into `Return Value`, fed by `Get Nametag`. No special nametag widget is involved.
 
 ### Get Speaker Avatar
 
@@ -323,6 +328,28 @@ Writes `cps`. Must be a finite number greater than `0`.
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `cps` | in · data | `float` | Accepts an on-card literal. |
+
+### Get Text Fade In
+
+`blueprint.game.getTextRevealDuration` · Pure
+
+Reads `textRevealDuration` in milliseconds: how long each newly typed character takes to fade in. `0` draws each character at full strength at once. At high sentence speeds the fade is shortened to keep pace with the typing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `textRevealDuration` | out · data | `float` | Labelled **Text Fade In** on the card. |
+
+### Set Text Fade In
+
+`blueprint.game.setTextRevealDuration` · Latent
+
+Writes `textRevealDuration`. Must be a finite number greater than or equal to `0`, in milliseconds.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textRevealDuration` | in · data | `float` | Labelled **Text Fade In** on the card. Accepts an on-card literal. |
 
 ### Get Auto Forward
 
@@ -628,6 +655,28 @@ Writes `voiceEndMode`. Must be exactly `"fade"`, `"stop"` or `"none"`.
 | `next` | out · exec | — | |
 | `voiceEndMode` | in · data | `string` | Accepts an on-card literal. |
 
+### Get Mute When Unfocused
+
+`blueprint.game.getMuteOnWindowBlur` · Pure
+
+Reads `muteOnWindowBlur`: whether the game falls silent while its window is not the one the player is working in. The sound comes back at the same volume when the player returns, and no volume preference changes in between.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `muteOnWindowBlur` | out · data | `boolean` | Labelled **Mute When Unfocused** on the card. |
+
+### Set Mute When Unfocused
+
+`blueprint.game.setMuteOnWindowBlur` · Latent
+
+Writes `muteOnWindowBlur`. Must be a boolean.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muteOnWindowBlur` | in · data | `boolean` | Labelled **Mute When Unfocused** on the card. |
+
 ### Get Track Volume
 
 `blueprint.game.getTrackVolume` · Pure
@@ -668,6 +717,8 @@ It is the odd one in this section: the value comes off the engine's bus mixer ra
 
 Saves are project-local and keyed by an id you choose. Writing the same id twice overwrites.
 
+Every node below that acts on one save takes it two ways: as an id on its `id` pin, or as a `SaveSlot` on its optional `slot` pin. A wired `slot` wins over `id`. [`Save Slot`](#save-slot) makes a slot from an id, so one id can feed several nodes. [`Current Game`](#current-game) makes a slot for the playthrough in progress, which only `Start Game` accepts; every other save node fails when handed one.
+
 <Callout type="warn">
 `List Saves` returns player slots only. Autosaves live in a reserved id namespace — `@autosave.<n>` — and are listed by `List Auto Saves` instead; the two sets never overlap. That is deliberate: a save/load grid built on `List Saves` never has to filter Studio's own bookkeeping rows out, and an autosave screen never has to hide the player's slots. An autosave id is still an ordinary save id everywhere else, so it feeds `Load Save`, `Get Save Preview`, `Get Save Metadata` and `Delete Save` unchanged.
 </Callout>
@@ -694,13 +745,14 @@ The `metadata` pin stays on both nodes. On `Save Game` the declared fields are w
 
 `blueprint.game.save.write` · Latent
 
-Serializes the live game into the project's local save store. With `Capture` set to `true` it also takes a PNG of the stage and stores it as that save's preview; a capture that fails is reported but does not lose the save.
+Serializes the live game into the project's local save store. With `Capture` set to `true` it also takes a picture of the stage, scaled down to thumbnail size, and stores it as that save's preview; a capture that fails is reported but does not lose the save.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `metadata` | in · data | `json` | Optional. Anything [JSON](/docs/studio/blueprint/nodes/data) — object, array, string, number, boolean or `null`. Written as `null` when unwired. |
 | `screenshot` | in · data | `boolean` | Optional. Labelled **Capture** on the card. Accepts an on-card literal. |
 | one per declared field | in · data | the field's type | Named after the field. Accepts an on-card literal for the types that take one. |
@@ -711,13 +763,14 @@ Fails when no game session is active.
 
 `blueprint.game.save.load` · Latent
 
-Reads a save and abandons the current progress for it: the router and its history are cleared, a fresh game instance is created and deserialized, and once the router has exited the Page stack is hidden beneath the stage again — so a `Go Page` after this opens an overlay above the game.
+Reads a save and abandons the current progress for it: the router and its history are cleared, a fresh game instance is created and deserialized, and once the router has exited the Page stack is hidden beneath the stage again — so a `Go Page` after this opens an overlay above the game. A save written in another of the project's stories opens in that story.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
-| `failed` | out · exec | — | Runs when the save is missing or unreadable, or when no game runtime is active. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
+| `failed` | out · exec | — | Runs when the save is missing or unreadable, when this build's story no longer has the place the save names, or when the project's **Older saves** setting declines it. With no game runtime the node fails instead. |
 
 There is no `next`: a load that succeeds replaces the running game, so there is nothing left of this graph to carry on with. `failed` is the only way out, and it is the branch where a game says so.
 
@@ -732,12 +785,13 @@ Removes one save. Deleting an id that is not there still counts as success, so a
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 
 ### List Saves
 
 `blueprint.game.save.listIds` · Latent
 
-The ids of the project's player saves. Order is not guaranteed. Files that are corrupt, or whose metadata is not a player save, are skipped rather than reported.
+The ids of the project's player saves. Order is not guaranteed. Files that are corrupt, or whose metadata is not a player save, are skipped rather than reported. Saves the project's **Older saves** setting would not restore are left out too, so every id listed is one `Load Save` accepts.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -756,6 +810,7 @@ Reads a save's author data. Each declared field comes out on its own pin; the `m
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `metadata` | out · data | `json` | `null` when the save is missing or carries no user metadata. |
 | one per declared field | out · data | the field's type | Named after the field. The field's default value when the save does not carry it. |
 
@@ -770,6 +825,7 @@ When a slot was written. The save store stamps every record it writes, and this 
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `savedAt` | out · data | `float` | When the slot was last written. `0` when the save is missing. |
 | `createdAt` | out · data | `float` | When the slot was first written. `0` when the save is missing. |
 | `exists` | out · data | `boolean` | |
@@ -791,6 +847,7 @@ The line a save resumes from, and who spoke it. The engine records both every ti
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `line` | out · data | `string` | Empty when the save is missing, or when it was taken before any line played. |
 | `speaker` | out · data | `string` | Empty for narration, and for a save with no line yet. |
 | `exists` | out · data | `boolean` | |
@@ -798,6 +855,24 @@ The line a save resumes from, and who spoke it. The engine records both every ti
 <Callout type="warn">
 This is not the newest backlog entry. The backlog holds the last line shown; these two fields hold the line the save resumes from. Saving from an overlay, or from a point where non-dialogue actions followed the last line, moves the two apart.
 </Callout>
+
+### Get Save Story
+
+`blueprint.game.save.getStory` · Latent
+
+Which of the project's stories a save was written in. A load screen uses it to group slots by route, to leave one story's slots out, or to mark a slot that comes from another story.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
+| `storyName` | out · data | `string` | The story's name in this build, so a story renamed after the save reads as its current name. Empty when this build does not ship that story. |
+| `storyId` | out · data | `string` | The story's generated id. Stays the same across a rename, so group and compare on it, and feed it to `Start Game`'s `storyId`. |
+| `exists` | out · data | `boolean` | |
+
+Put `storyName` on screen, never `storyId`. Both are empty when the save is missing, and when it was written before saves recorded their story; read `exists` to tell those two apart.
 
 ### Get Save Playtime
 
@@ -810,6 +885,7 @@ How long the playthrough in a slot had been played when it was written — the "
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `playtimeSeconds` | out · data | `float` | |
 | `playtimeMilliseconds` | out · data | `float` | |
 | `recorded` | out · data | `boolean` | `false` for a save written before playtime was tracked — the slot exists, the number does not. |
@@ -828,7 +904,35 @@ Turns a save's stored screenshot into an `ImageAsset` for the current session. T
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | Accepts an on-card literal. |
+| `slot` | in · data | `SaveSlot` | Optional. Wired wins over `id`. |
 | `preview` | out · data | `ImageAsset\|null` | `null` when the save is missing or has no screenshot. |
+
+### Save Slot
+
+`blueprint.game.save.slot` · Pure
+
+Names a slot in the save store by its id. Wire it into the `slot` pin of the save nodes: a save screen row that reads a time, a line and a preview off the same slot writes the id once.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `id` | in · data | `string` | Accepts an on-card literal. An empty id fails the node. |
+| `slot` | out · data | `SaveSlot` | |
+
+### Current Game
+
+`blueprint.game.save.currentRun` · Latent
+
+Captures the playthrough in progress as a slot, without writing anything to the save store. It is for `Start Game`'s `inheritFrom` pin: capture the run, then start the next story with it, and the player's saved variables and visited scenes carry across.
+
+The capture lasts as long as the event run that took it. A `Start Game` further along the same chain can use it; a graph run by a later event cannot. Every save node other than `Start Game` fails when handed one.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `slot` | out · data | `SaveSlot` | |
+
+Fails when no playthrough is running, and when the same run of the graph has already captured eight times.
 
 ## Auto saves
 
@@ -868,6 +972,9 @@ Every autosave in the reserved namespace, **newest first**. Slots left behind af
 | `slot` | Index of the slot within the ring. |
 | `timestamp` | Last written, epoch milliseconds. |
 | `createdAt` | First written, epoch milliseconds. |
+| `preview` | The slot's picture, the same image `Get Save Preview` returns. `null` when it has none. |
+| `line` | The line the slot was left on, as `Get Save Line` reads it. Empty for a save taken before any line played. |
+| `speaker` | Who spoke that line. Empty for narration and for a save with no line yet. |
 | `metadata` | Whatever the writer attached, `null` when none. |
 
 An entry carries the **id, not the serialized game**: a `SavedGameData` blob is inert inside a graph, whereas an id feeds straight into the save nodes that already exist.
@@ -913,7 +1020,9 @@ The backlog as a flat array, oldest first, ready to bind to a list widget.
 | `type` | `"say"` for a spoken line, `"menu"` for a resolved choice. |
 | `text` | The sentence, or the menu's prompt. Empty string when the source had none. |
 | `character` | Speaker nametag for a say entry; `null` for menus and narration. |
-| `voice` | Voice clip id for a say entry; `null` when absent. |
+| `avatar` | The speaker's dialog avatar, from the character's own picture rather than the differential worn on that line. `null` for menus, narration and a speaker the project has no character for. |
+| `voice` | Voice clip URL for a say entry; `null` when absent. Nothing in a graph accepts it; replay a line with `voiceId`. |
+| `voiceId` | The line's voice id, for [`Play Voice`](/docs/studio/blueprint/nodes/voice). `null` when the line was not voiced from the project's voice takes. |
 | `selected` | The chosen option's text for a menu entry; `null` for say entries and unresolved menus. |
 | `isPending` | True for the line currently on screen, which has not been committed yet. |
 

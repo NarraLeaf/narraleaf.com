@@ -7,7 +7,7 @@ description: 接続された nl.text 要素の内容・タイポグラフィ・�
 
 ## Text
 
-Text ノードは `element:nl.text` ピンを持つため、グラフが `nl.text` 要素をバインドしたときにのみパレットに提供されます。Self 形態は [Text](/ja/docs/studio/blueprint/nodes/text) にあります。
+Text ノードは `element:nl.text` ピンを持つため、グラフが `nl.text` 要素をバインドしたときにのみパレットに提供されます。テキスト要素の文字が **Translation key**（翻訳キー）から来ているとき、ゲームはそのキーのテキストを表示します。`Get Text`、`Set Text`、`Append Text`、`Clear Text` が読み書きするのは要素自身の文字であり、キーが設定されている間、ゲームはそれを表示しません。Self 形態は [Text](/ja/docs/studio/blueprint/nodes/text) にあります。
 
 ### Get Text
 
@@ -121,7 +121,7 @@ Text ノードは `element:nl.text` ピンを持つため、グラフが `nl.tex
 
 `blueprint.element.text.setFontWeight` · Latent
 
-フォントウェイトを設定します:`normal`、`600`、`bold` のいずれか。それ以外の値は現在の値をそのまま残します。
+フォントウェイトを設定します:`normal`、`600`、`bold` のいずれか。それ以外の値はすべて `normal` にフォールバックします。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |

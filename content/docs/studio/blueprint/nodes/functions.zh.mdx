@@ -7,9 +7,9 @@ fn 是一段有名字、可以被别的图运行的图。`Fn`声明它并持有�
 
 ## 约定
 
-- **三个节点都属于`event`图。** fn 的函数体**不是**`function`图。`function`是另一种[图类型](/zh/docs/studio/blueprint)——由`Function Entry`进入，不允许有副作用的节点，也不允许 latent（会挂起执行）节点——而 fn 的函数体就是普通的 event 图，event 图能做的它都能做
+- **三个节点都属于`event`图。** fn 的函数体**不是**`function`图。`function`是另一种[图类型](/zh/docs/studio/blueprint)（由`Function entry`进入，不允许有副作用的节点，也不允许 latent（会挂起执行）节点），而 fn 的函数体就是普通的 event 图，event 图能做的它都能做
 - **fn 的身份是它的头节点，不是它的名字。** 在卡片上改名，所有调用方会跟着改标签而不会断掉。同一作用域里两个 fn 同名也仍然解析正确，编辑器会提示这次撞名，因为名字是给你看的，绑定走的是 id
-- **可见性由宿主决定。** 声明在`globalMain`蓝图上的 fn 处处可调用；声明在`surfaceMain`或`widgetMain`蓝图上的 fn 只能被同一 [Surface](/zh/docs/studio/blueprint/surfaces) 调用。Blueprint Value 能调用但永远不能声明；`componentWidgetMain`和`sharedAsset`蓝图两样都不行
+- **可见性由宿主决定。** 声明在`globalMain`蓝图上的 fn 处处可调用；声明在`surfaceMain`或`widgetMain`蓝图上的 fn 只能被同一 [Surface](/zh/docs/studio/blueprint/surfaces) 调用，该 Surface 上的 Blueprint Value 也包括在内；声明在`componentWidgetMain`蓝图上的 fn 只能在同一个组件定义内部调用；声明在`storyAction`蓝图上的 fn 会提供给每一份 Story Action 蓝图，但只有当运行中的场景里有一行用到声明它的蓝图时，调用才能到达它。Blueprint Value 能调用但永远不能声明
 - **参数和结果引脚是作者写出来的，不是固定的。** `Fn`和`Fn Return`的数据引脚由卡片上的按钮生成，每个引脚带一个名字和一个类型，类型从`string`、`integer`、`float`、`boolean`、`json`、`any`中选
 - **递归上限为 32 层。** 超过就直接失败。编辑器一旦能看出某个 fn 直接或间接调用了自己，就会给出警告
 
@@ -62,9 +62,11 @@ Call Fn（调用函数）调用一个可见的 fn 并等它跑完。在`Function
 | --- | --- |
 | `fnRef` | 要调用的 fn。下拉列出此处可见的全部 fn，标签形如`name (scope)`|
 
-这些参数和结果引脚是按节点上存的签名快照重建的，所以卡片不必加载被调用方的蓝图就能渲染。类型允许时，参数引脚可以在卡上填字面量。被调用方的签名发生变化后，快照就过期了，graph validation 会要求你重新选一次该 fn 来同步引脚——在你重选之前，这次调用一直按旧的形状运行
+这些参数和结果引脚是按节点上存的一份 fn 签名副本（名字、参数和结果）重建的，所以卡片不必加载被调用方的蓝图就能渲染。类型允许时，参数引脚可以在卡上填字面量
 
-函数体是作为调用方执行的一部分跑的：取消调用方就会取消这个 fn，函数体里抛出的错误会落在`Call Fn`节点上
+这份副本会跟着 fn 走。和 fn 头节点在同一张图里的`Call Fn`，在你改动头节点或它的`Fn Return`后立即更新。其它位置的`Call Fn`在它所在的蓝图下次在编辑器中打开时更新；在那之前它保留旧引脚，只传递这些引脚带着的参数，编辑器会在它上面显示一条警告。在`Function`里重新选一次该 fn 会立即更新它
+
+函数体是作为调用方执行的一部分跑的：取消调用方就会取消这个 fn，函数体里抛出的错误会落在`Call Fn`节点上。函数体读写的是声明该 fn 的那份蓝图的变量，并在调用方所在的位置运行：从列表某一行的事件中调用时，它读到的是那一行；在一个已摆放的组件内部调用时，它读到的是这次摆放的参数，操作的也是这次摆放里的元素
 
 <Callout type="info">
 `Call Fn`是 latent 节点，而 Blueprint Value 图拒绝 latent 节点——只有这一个例外。取值器可以调用 fn，函数体以宿主控件的身份运行；它对世界做了什么，由你自己负责

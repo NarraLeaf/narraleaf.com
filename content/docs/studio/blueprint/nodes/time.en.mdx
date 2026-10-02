@@ -9,7 +9,7 @@ The common use is a save screen. To show when a slot was written, take [`Get Sav
 
 ## Conventions
 
-- **Every node on this page is `Pure`.** None of them has an exec pin. Each is legal in `event`, `function` and `macro` graphs, and inside a [Blueprint Value](/docs/studio/blueprint). A save slot's label is a Blueprint Value.
+- **Every node on this page is `Pure`.** None of them has an exec pin. Each is legal in `event`, `function` and `macro` graphs, and inside a [Blueprint Value](/docs/studio/blueprint).
 - **A moment is a number: milliseconds since 1 January 1970 UTC, on a `float` pin.** This is the unit `Get Save Time` and `Get Latest Auto Save` produce, so a save's stamp wires straight into any node here.
 - **There is no Time comparison node.** A later moment is a larger number, so `<`, `>`, `Min` and `Max` in [Math](/docs/studio/blueprint/nodes/math) already order two moments.
 - **The calendar is the player's local one.** `Make Time`, `Get Time Parts`, `Add Time`, `Time Difference`, `Start Of Day`, `Is Same Day` and `Format Time` all read local time. `To ISO String` is the exception and outputs UTC.
@@ -289,7 +289,7 @@ The time zone the game is running in.
 
 ## Showing when a save was written
 
-A slot's label is a Blueprint Value, and [`Get Save Time`](/docs/studio/blueprint/nodes/game#get-save-time) supplies the moment:
+[`Get Save Time`](/docs/studio/blueprint/nodes/game#get-save-time) supplies the moment. It is latent, so it runs in an event graph and cannot be used inside a Blueprint Value. Write the formatted result to the slot's text from that graph:
 
 - **An absolute date** — `Get Save Time` → `savedAt` → `Format Time`, or `Format Time Localized` to follow the player's language.
 - **A relative date** — `Now` into `from`, `savedAt` into `to`, then `Format Relative Time`.

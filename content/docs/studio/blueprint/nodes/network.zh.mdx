@@ -15,7 +15,7 @@ description: 在游戏运行时发起 HTTP 请求，并读取返回的内容
 - **请求由游戏的主进程发出，不由页面发出。** 所以普通的第三方 API 在这里无需发送 CORS 头也能工作。Web 导出是例外，它和任何页面一样受 CORS 约束
 - **不发送 cookie。** 游戏和任何人都没有会话，携带隐含凭证是作者没有要求过的意外
 - **响应上限 8 MiB**，超出即拒绝，而不是截断。**请求 10 秒后超时**，除非 `Timeout (s)` 引脚另有指定，上限 60 秒
-- **编辑器画布跑不了它们。** 作者时画布上没有宿主，`Fetch` 在那里报告网络错误，不会够到任何东西
+- **编辑器画布跑不了它们。** 作者时画布上没有宿主，`Fetch` 在那里会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败。在故事编辑器的游戏界面预览里，它不发出请求，直接走 `networkError`
 
 ## 项目不允许 HTTP 时
 
@@ -42,10 +42,10 @@ Fetch（发起请求）发送请求并等待其完成。从哪个执行引脚离
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `url` | in · data | `string` | 标注为 `URL`。必须是 `http` 或 `https`|
+| `url` | in · data | `string` | 标注为 `URL`。必须是 `http` 或 `https`。可填字面量|
 | `headers` | in · data | `json` | 可选。标注为 `Headers`|
-| `body` | in · data | `string` | 可选。标注为 `Request Body`|
-| `timeoutSeconds` | in · data | `float` | 可选。标注为 `Timeout (s)`|
+| `body` | in · data | `string` | 可选。标注为 `Request Body`。可填字面量|
+| `timeoutSeconds` | in · data | `float` | 可选。标注为 `Timeout (s)`。可填字面量|
 | `success` | out · exec | — | 服务器以 2xx 状态码回应|
 | `httpError` | out · exec | — | 服务器有回应，但状态码不是 2xx|
 | `networkError` | out · exec | — | 完全没有收到回应|

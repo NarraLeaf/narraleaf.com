@@ -11,34 +11,95 @@ Each `type` must be declared in `contributes.widgets`, prefixed with your plugin
 
 | Method | Signature | Notes |
 | --- | --- | --- |
-| `register` | `(module: UIWidgetModule) => PluginCleanup` | |
-| `registerMany` | `(modules: UIWidgetModule[]) => PluginCleanup` | |
-| `get` | `(type: string) => UIWidgetModule \| undefined` | |
-| `list` | `() => UIWidgetModule[]` | |
+| `register` | `(module: PluginWidgetModule) => PluginCleanup` | |
+| `registerMany` | `(modules: PluginWidgetModule[]) => PluginCleanup` | |
+| `get` | `(type: string) => PluginWidgetTypeInfo \| undefined` | |
+| `list` | `() => PluginWidgetTypeInfo[]` | |
 | `has` | `(type: string) => boolean` | |
 
-## UIWidgetModule
+`get` and `list` describe a widget type rather than return its module. `PluginWidgetTypeInfo` is `{ type, displayName, extends?, ownerPluginId? }`; `ownerPluginId` is absent for Studio's own widgets.
 
-The same interface Studio's built-in widgets implement.
+## PluginWidgetModule
+
+The editor callbacks receive `documentService`, which reads the interface document and writes elements, and, for the docker bar, `stateService`, which reads and moves the selection. Nothing else in the workspace is reachable from them.
 
 | Member | Type | Notes |
 | --- | --- | --- |
 | `type` | `string` | Unique type id, e.g. `"yourname.plugin.badge"`. |
-| `displayName` | `string` | Shown in the element palette. |
+| `extends` | `string` | Optional. The widget type this one specializes. |
+| `displayName` | `string` | Shown in the element palette's overflow menu, beside the plugin's name. |
 | `icon` | `LucideIcon` | Palette icon. |
 | `createDefaultElement` | `() => Partial<UIElement>` | The element inserted when the user adds this widget; merged with system defaults. |
-| `render` | `(props: WidgetRendererProps) => ReactElement \| null` | Canvas rendering. |
-| `logicApi` | `WidgetLogicApi` | Optional. Declares the widget's blueprint events and logic capabilities. |
+| `render` | `(props: RuntimeWidgetRendererProps) => ReactElement \| null` | Canvas rendering. Takes the same props as the game-side renderer, so one function serves both entries; see [Render props](#render-props). |
+| `logicApi` | `WidgetLogicApi` | Optional. Declares the widget's blueprint events; see [Widget events](#widget-events). |
+| `acceptsChildren` | `boolean` | Optional. Lets the author place other elements inside the widget, as in a Container. `render` receives them, already drawn, as `children`. |
+| `partSlots` | `string[]` | Optional. Slot names for the parts the widget builds for itself. A widget with parts holds those and nothing else, as a Slider holds its track and handle. Each part that `createDefaultChildElements` builds names its slot with `extra: { partSlot: "<slot>" }`. A widget with parts ignores `acceptsChildren`. |
 | `createInspector` | `(context) => PropertyEditorSchema \| undefined` | Optional. Extra fields appended after the common layout fields. |
-| `createDefaultChildElements` | `(context) => …` | Optional. Structural children created with the widget. |
+| `createDefaultChildElements` | `(context) => { elementPatch?, children }` | Optional. Structural children created with the widget. |
+| `listEditorStates` | `(element) => { id: string \| null; name: string }[]` | Optional. States the widget can be shown in on the canvas; `id: null` is its resting state. |
 | `createDockerBarItems` | `(context) => DockerBarItem[]` | Optional. Controls shown when the widget is selected. |
 | `createContextMenuItems`, `createFloatingToolbarItems`, `createMultiSelectDockerBarItems`, `createLayoutSizeField` | | Optional editor affordances. |
-| `registerBlueprintNodes` | `() => void` | Optional. Registers extra blueprint nodes when the module loads; keep it idempotent. |
+
+A module has no `registerBlueprintNodes`. Register a widget's nodes with [`app.services.blueprintNodes`](/docs/studio/plugin/studio/blueprint-nodes).
 
 ```ts
 app.services.widgets.register(myWidgetModule);
 ```
 
 <Callout type="info">
-A widget that must render in shipped games needs both halves: this module for the editor, and a game-side renderer registered from the runtime entry with `app.game.widgets`. Registering only the editor module shows the widget on the canvas but leaves it blank once the game is exported.
+A widget that must render in shipped games needs both halves: this module for the editor, and a game-side renderer registered from the runtime entry with `app.game.widgets`. Registering only the editor module shows the widget on the canvas, but Dev Mode and the game draw an **Unknown widget** block in its place.
 </Callout>
+
+## Render props
+
+`render` receives `RuntimeWidgetRendererProps` on the canvas and in the game:
+
+| Prop | Type | Notes |
+| --- | --- | --- |
+| `element` | `UIElement` | The element being drawn: its props, layout and `extra`. |
+| `surface` | `UISurface` | The surface it is drawn on. |
+| `document` | `UIDocument` | The whole interface document, for resolving the widget's own parts. |
+| `children` | `ReactNode` | Optional. The element's children, already drawn. |
+| `instanceKey` | `string` | Optional. Tells apart repeated drawings of one element. |
+| `listItemScope` | `UIListItemScope \| null` | Optional. The list row this drawing belongs to. |
+| `renderChildren` | `(options?) => ReactNode[]` | Optional. Draws the children with a given row scope and instance key, for a widget that repeats a template. |
+| `runtimeData` | `{ surfaceState?, globalState?, pageProps? }` | Optional. Read-only views of the state the author's blueprints write, and the props the current page was opened with. |
+| `dispatchEvent` | `(eventName, payload?, options?) => Promise<void>` | Optional. Raises one of this element's events; see [Widget events](#widget-events). On the editor canvas it does nothing. |
+| `game` | `RuntimePluginGame` | Optional. In the game, the same object `setup(app)` received as `app.game`. On the editor canvas every capability-gated namespace on it is absent. |
+
+A `render` that throws draws a **Widget failed to draw** block for that element only; the rest of the page draws as usual.
+
+## Widget events
+
+With `supportsPrivateBlueprint: true` in its `logicApi`, the element gets a blueprint of its own, opened from the **Interaction** tab Studio adds after the plugin's fields in the properties panel. Each entry in `events` starts the graphs whose head is listed in its `headNodeTypes`.
+
+```ts
+// shared.ts, imported by both entries
+import type { WidgetLogicApi } from "narraleaf-studio/runtime";
+
+export const RATING_LOGIC: WidgetLogicApi = {
+    supportsPrivateBlueprint: true,
+    events: [
+        { id: "mouseClick", displayName: "Mouse click", dispatchKind: "interaction",
+          headNodeTypes: ["blueprint.event.head.mouseClick"] },
+        { id: "rated", displayName: "Rated", dispatchKind: "interaction",
+          headNodeTypes: ["yourname.plugin.onRated"] },
+    ],
+    commands: [],
+    readableState: [],
+    writableProps: [],
+};
+
+// in render:
+props.dispatchEvent?.("rated", { stars: 4 });
+```
+
+- **A head is one of two kinds:** a head a built-in widget uses for the same event (`blueprint.event.head.mouseClick`, `blueprint.event.head.init`, `blueprint.event.head.onBroadcast`, and so on), or an [event head](/docs/studio/plugin/studio/blueprint-nodes#event-heads) this plugin registers. Any other head is dropped, and an event left with no head is dropped; the console names the event either way.
+- **Studio raises the pointer, keyboard and lifecycle events** that `logicApi` declares, as it does for its own widgets, and pointer events follow the same [event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling). An event only the widget knows about is raised from `render` with `dispatchEvent(eventId, payload)`; the head's data output pins read the payload fields of the same name.
+- **Ambient events need no declaration.** A widget with its own blueprint hears key presses, broadcasts and the two window events (`keyDown`, `keyUp`, `onAnyBroadcast`, `onBroadcast`, `windowFullscreenChanged`, `windowFocusChanged`) as built-in widgets do, unless it declares an event with the same id itself.
+- **The runtime entry needs the same declaration.** Pass the same `logicApi` to `app.game.widgets.register({ type, render, logicApi })`. Without it, the widget's events reach no graph in Dev Mode or in the game. `WidgetLogicApi` and `WidgetLogicEventDef` are exported from `narraleaf-studio/runtime`.
+- **Script layers answer these events too.** An event that starts on a built-in head is answered by the built-in export name (`onMouseClick`); one that starts on the plugin's own head by `on` and the event id (`rated` → `onRated`), with the payload as its event. An id that cannot be an export name, or that another event of the widget already answers to, works in graphs only. See [Scripts](/docs/studio/scripts).
+
+## When the plugin is missing
+
+A project keeps a plugin's widgets when the plugin is uninstalled, switched off, fails to load, or is [skipped for the project](/docs/studio/plugin/project-dependencies#what-being-skipped-means). Each element stays in the document with its children and its blueprint, and the canvas draws an **Unknown widget** block naming its type. The project check reports it as **Unknown widget type**, an error that stops the build. Once the plugin loads again, the widget draws as before.

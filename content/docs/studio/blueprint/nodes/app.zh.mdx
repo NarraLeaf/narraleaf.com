@@ -7,19 +7,19 @@ App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一�
 
 ## 约定
 
-- **这里的每个节点都只支持 `event` 和 `macro`**，只有 `Is Layer Mounted` 例外：它是 pure，也能用于 `function` 图和蓝图值。本分类再没有第二个
+- **这里的每个节点都只支持 `event` 和 `macro`**，只有 `Is Layer Mounted` 例外：它是 pure，也能用于 `function` 图。本分类再没有第二个
 - **其中两个是尾节点。** `Go Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
 - **type id 并不都写 `app`。** 这一组在长出窗口、叠层和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*`、`blueprint.frame.*`、`blueprint.layer.*` 和 `blueprint.app.*` 全都属于这同一个分类
-- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航、叠层、窗口、指针与链接节点没有宿主限制
-- **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `Host API unavailable (use Dev Mode)` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
+- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于全局与 Surface 蓝图
+- **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
 
 ## Go Page
 
 `blueprint.page.go` · Latent
 
-Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时切换 Page 时的同一条导航路径——同样的进退场动画、同样的 Surface 生命周期、同样的控件蓝图。选择 `None` 则改为关闭当前顶层 Page 叠层
+Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时切换 Page 时的同一条导航路径——同样的进退场动画、同样的 Surface 生命周期、同样的控件蓝图。选择 `None` 则改为关闭第一个 Page 之上的所有 Page
 
-`Go Page` 是**替换**玩家眼前的东西。要把一页压在当前这一页**之上**并拿到一个句柄，用 [Show Layer](#show-layer)。要关掉一层，优先用 [Go back](#go-back)：导航是一个栈，对着玩家**来时的**那一页再 `Go Page`，是在已有的两页上再压上第三页，而不是回到它。带 `None` 的 `Go Page` 则关闭当前顶层 Page 叠层
+`Go Page` 是**替换**玩家眼前的东西。要把一页压在当前这一页**之上**并拿到一个句柄，用 [Show Layer](#show-layer)。要关掉一层，优先用 [Go back](#go-back)：导航是一个栈，对着玩家**来时的**那一页再 `Go Page`，是在已有的两页上再压上第三页，而不是回到它。带 `None` 的 `Go Page` 则关闭第一个 Page 之上的所有 Page
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -31,15 +31,15 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 
 | 字段 | 说明 |
 | --- | --- |
-| `Page` | 要打开的 Surface，从项目的 app Surface 中选择。选`None`则改为关闭当前顶层 Page 叠层|
+| `Page` | 要打开的 Surface，从项目的 app Surface 中选择。选`None`则改为关闭第一个 Page 之上的所有 Page|
 
-游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭该叠层、重新露出舞台。要离开游戏本身，请用 [Game](/zh/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page
+游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭舞台之上的这些 Page、重新露出舞台。要离开游戏本身，请用 [Game](/zh/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page
 
 ## Go back
 
 `blueprint.page.back` · Latent
 
-弹出顶层 Page 叠层，回到它下面的那一层。
+关闭玩家可以关掉的最上面一层：顶上是用 [Show Layer](#show-layer) 打开的可关闭叠层时关它，否则关闭顶层 Page，回到它下面的那一层。
 
 游戏在运行中的故事上打开的每一个页面 —— 存档、读档、设置、回顾 —— 都需要一条出路，而 `Go Page` 不是：导航是一个栈，“去我来时那一页”会在已有的两页上再压上第三页，游戏依旧埋在底下。
 
@@ -56,7 +56,7 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 
 把运行中的游戏身上披着的每一页都摘掉，只留下舞台 —— 在任何页面上按 Escape 都成立，图不必知道玩家现在有多深。
 
-三种“关闭”并不能互换。`Go back` 只弹一层，所以在两页深的游戏上按 Escape 只会落到下面那一页。带 `None` 的 `Go Page` 会清空整个栈，在标题界面上那会把标题本身也关掉。`Clear Page` 只清掉一次游戏会话叠上去的那些页面，而在游戏之外它什么也不做 —— 这正是 `Clear Page → Go back` 能当作一个通用 Escape 处理的原因：读起来就是“在游戏里就离开游戏，否则退一步”。
+三种“关闭”并不能互换。`Go back` 只关一层，所以在两页深的游戏上按 Escape 只会落到下面那一页。带 `None` 的 `Go Page` 回到第一个 Page，关闭它之上的一切。`Clear Page` 只清掉一次游戏会话叠上去的那些页面，而在游戏之外它什么也不做 —— 这正是 `Clear Page → Go back` 能当作一个通用 Escape 处理的原因：读起来就是“在游戏里就离开游戏，否则退一步”。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -132,7 +132,7 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 
 `blueprint.layer.isMounted` · Pure
 
-句柄指代的那一层是否还在屏幕上。本分类里唯一的 pure 节点，也就是唯一能支撑蓝图值的一个 —— 比如一个在自己的菜单开着时把自己禁用掉的暂停按钮。
+句柄指代的那一层是否还在屏幕上。它是本分类里唯一也能用于 `function` 图的节点。蓝图值中不提供它。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -297,6 +297,52 @@ Get Fullscreen（获取全屏状态）读取应用窗口当前是否处于全屏
 **空是一个答案，不是失败。** 没有自己窗口可调的宿主 —— Web 导出、开发模式、故事预览 —— 在这里什么也不返回，据此搭出来的那一行在那里也就什么都不画。这正是要的效果：一个动不了窗口的尺寸控件比没有更糟。
 </Callout>
 
+## Is Window Focused
+
+`blueprint.app.isWindowFocused` · Latent
+
+游戏窗口是否就是玩家当前正在使用的那个窗口。[`On Window Focus Changed`](/zh/docs/studio/blueprint/nodes/events#on-window-focus-changed) 在它变化时运行；这个节点读取的是当前状态，供因别的原因运行的图使用，或者供玩家已经切到别的窗口之后才打开的 Page 使用。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `isFocused` | out · data | `boolean` | 在没有自己窗口的宿主里为 `true`，例如故事编辑器的游戏界面预览 |
+
+## Save Screenshot
+
+`blueprint.app.saveScreenshot` · Latent
+
+截下玩家眼前的画面，写成一个 PNG 文件。这个节点不接收文件夹或文件名，返回它写入的那个文件的路径。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 文件写入成功时走这里 |
+| `failed` | out · exec | — | |
+| `path` | out · data | `string` | 写入的文件。走 `failed` 时为空 |
+| `error` | out · data | `string` | 没有写入的原因 |
+
+桌面构建写入玩家存档旁边的 `screenshots` 文件夹。开发模式写入 Studio 自己的数据目录，每个项目一个文件夹，因此测试时截的图不会落进项目目录。每个文件按截图时间命名，精确到毫秒。
+
+`failed` 同时覆盖“这个平台没有截图功能”（Web 导出、移动端构建、故事编辑器的游戏界面预览）和“截取或写入没有成功”，`error` 说明是哪一种。与 `Move Mouse To` 一样，含有这个节点的项目被导出到非桌面目标时，构建控制台会给出警告。
+
+## Open Screenshots Folder
+
+`blueprint.app.openScreenshotsFolder` · Latent
+
+在玩家的文件管理器里打开 `Save Screenshot` 写入的那个文件夹。文件夹不存在时会先创建，所以设置界面可以在玩家还没截过图时就提供这一项。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | 文件夹已打开时走这里 |
+| `failed` | out · exec | — | |
+| `path` | out · data | `string` | 打开的文件夹。走 `failed` 时为空 |
+| `error` | out · data | `string` | 没有打开的原因 |
+
+在 `Save Screenshot` 走 `failed` 的那些平台上，它同样走 `failed`。
+
 ## Open Link
 
 `blueprint.app.openExternal` · Latent
@@ -370,6 +416,8 @@ Get Fullscreen（获取全屏状态）读取应用窗口当前是否处于全屏
 | --- | --- |
 | `Duration (s)` | 同上 |
 | `Easing` | 同上 |
+
+与 [Element](/zh/docs/studio/blueprint/nodes/element) 里的节点一样，只有当图中已经有一个绑定到同一 Surface（在组件自己的蓝图里则是同一组件）上某个控件的 `Element` 字面量，或 `Element Flush` / `Element Click` 事件 Head 时，创建浮窗才会提供它。这样的绑定恰好只有一个时，放置节点会自动把 `element` 接到它上面。
 
 ## Get Page Props
 

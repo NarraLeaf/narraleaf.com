@@ -83,7 +83,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 
 `blueprint.element.displayable.stopAnimation` · Latent
 
-这个分类里唯一没有元素目标的节点：token 本身已经定位到某个元素上的某段动画。它只停止 token 对应的那一段，并让正在等待它的 `Animate Element Property` 提前进入 `next`。传入缺失值、非 `AnimationToken`、或者已经不再 pending 的 token 时静默 no-op 并继续执行。也正因为它不需要绑定，它是创建浮窗中唯一无条件出现的 Element 节点
+这个分类里唯一没有元素目标的节点：token 本身已经定位到某个元素上的某段动画。它只停止 token 对应的那一段，并让正在等待它的 `Animate Element Property` 提前进入 `next`。传入缺失值、非 `AnimationToken`、或者已经不再 pending 的 token 时静默 no-op 并继续执行。也正因为它不需要绑定，除 `Element` 本身之外，它是创建浮窗中唯一无条件出现的 Element 节点
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -230,7 +230,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 
 ## Visible 与 Enabled
 
-八种控件带同样的四个节点：读写 `visible`、读写 `enabled`。它们是 Button、Container、Frame、Image、List、Slider、Switch 和 Text——`nl.textInput` 是唯一没有这一对 Element 节点的内建控件，要改它请用 `Get Element Property` / `Set Element Property`。它们各自的目标引脚按自己的控件类型定型，所以创建浮窗提供哪四个，取决于当前图绑定了哪些控件类型。`Set … Enabled` 传 `false` 会映射到渲染器的禁用交互机制；节点面上刻意不暴露 `interactionDisabled`
+八种控件带同样的四个节点：读写 `visible`、读写 `enabled`。它们是 Button、Container、Frame、Image、List、Slider、Switch 和 Text。其它控件类型（包括 `nl.textInput`）没有这一对 Element 节点，它们的 `visible` 要通过 `Get Element Property` / `Set Element Property` 读写。它们各自的目标引脚按自己的控件类型定型，所以创建浮窗提供哪四个，取决于当前图绑定了哪些控件类型。`Set … Enabled` 传 `false` 会映射到渲染器的禁用交互机制；节点面上刻意不暴露 `interactionDisabled`
 
 要隐藏元素但不卸载它，用 `Set Element Display`——`visible` 和 `display` 是两个开关，只有 `display` 会折叠整棵子树
 

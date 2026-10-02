@@ -11,7 +11,7 @@ These nodes are the only way a graph touches a variable. Which scopes exist, how
 - **A later type change keeps your edges.** Change a `Var`'s Data type and any edge that no longer fits stays exactly where it is; validation reports a type mismatch instead of the editor quietly deleting the connection. You decide what to rewire.
 - **Purity decides where a node is offered.** `Var` and `Get Var` are pure and are the only Variables nodes available in `function` graphs. The rest are exec nodes for `event` and `macro` graphs, and the Persistent pair is latent on top of that, which also keeps it out of [Blueprint Value](/docs/studio/blueprint).
 - **Blueprint Value cannot declare.** A `widgetValue` owner has no `Var` node at all. It can still read and write the variables it can reach, through `Get Var` and `Set Var`.
-- **The Scene and Saved nodes belong to Story Action blueprints** and fail at runtime anywhere there is no running story.
+- **The Scene nodes belong to Story Action blueprints.** `Get Scene Var` and `Set Scene Var` are offered nowhere else. The Saved pair is offered to every blueprint except a Blueprint Value: in a Story Action blueprint it reaches the running story, and anywhere else it reaches the game being played.
 
 ## Var
 
@@ -141,13 +141,14 @@ Writes a Scene variable, then continues through `next`.
 
 `blueprint.saved.get`
 
-Reads a Saved variable from the running story's saved store — the one a save file carries.
+Reads a Saved variable from the saved store of the game being played, the one a save file carries. A screen can read one before any game has started, for example on the title screen: `value` is then the variable's declared default and `found` is `false`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | The variable's current value. |
+| `value` | out · data | `any` | The variable's current value, or its declared default when `found` is `false`. |
+| `found` | out · data | `boolean` | `false` when no running game holds the variable. Always `true` in a Story Action blueprint. |
 
 **On-card fields**
 
@@ -160,6 +161,8 @@ Reads a Saved variable from the running story's saved store — the one a save f
 `blueprint.saved.set`
 
 Writes a Saved variable, then continues through `next`.
+
+Outside a Story Action blueprint it writes into the game being played, and fails when no game is running, when the variable is not declared, or when the value cannot be stored in a save. The value is in the next save. The story's undo does not take the write back, and story lines already on screen do not change because of it.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

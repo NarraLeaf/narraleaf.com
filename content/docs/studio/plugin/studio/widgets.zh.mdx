@@ -11,34 +11,95 @@ description: 注册 UI 编辑器的控件模块——自定义控件的编辑器
 
 | 方法 | 签名 | 说明 |
 | --- | --- | --- |
-| `register` | `(module: UIWidgetModule) => PluginCleanup` | |
-| `registerMany` | `(modules: UIWidgetModule[]) => PluginCleanup` | |
-| `get` | `(type: string) => UIWidgetModule \| undefined` | |
-| `list` | `() => UIWidgetModule[]` | |
+| `register` | `(module: PluginWidgetModule) => PluginCleanup` | |
+| `registerMany` | `(modules: PluginWidgetModule[]) => PluginCleanup` | |
+| `get` | `(type: string) => PluginWidgetTypeInfo \| undefined` | |
+| `list` | `() => PluginWidgetTypeInfo[]` | |
 | `has` | `(type: string) => boolean` | |
 
-## UIWidgetModule
+`get` 和 `list` 返回的是对控件类型的描述，而不是它的模块。`PluginWidgetTypeInfo` 为 `{ type, displayName, extends?, ownerPluginId? }`；Studio 自带的控件没有 `ownerPluginId`
 
-与 Studio 内置控件实现的是同一套接口
+## PluginWidgetModule
+
+编辑器回调收到的是 `documentService`（读取界面文档、写入元素），docker 栏回调另外收到 `stateService`（读取和移动选中项）。从它们出发触及不到工作区里的其他任何东西
 
 | 成员 | 类型 | 说明 |
 | --- | --- | --- |
 | `type` | `string` | 唯一类型 id，例如 `"yourname.plugin.badge"`|
-| `displayName` | `string` | 显示在元素调板中|
+| `extends` | `string` | 可选。该控件所特化的控件类型|
+| `displayName` | `string` | 显示在元素调板的溢出菜单中，旁边写着插件名|
 | `icon` | `LucideIcon` | 调板图标|
 | `createDefaultElement` | `() => Partial<UIElement>` | 用户添加控件时插入的元素；与系统默认值合并|
-| `render` | `(props: WidgetRendererProps) => ReactElement \| null` | 画布渲染|
-| `logicApi` | `WidgetLogicApi` | 可选。声明控件的蓝图事件与逻辑能力|
+| `render` | `(props: RuntimeWidgetRendererProps) => ReactElement \| null` | 画布渲染。收到的 props 与游戏侧渲染器相同，所以一个函数可以同时用于两个入口；见 [渲染 props](#render-props)|
+| `logicApi` | `WidgetLogicApi` | 可选。声明控件的蓝图事件；见 [控件事件](#widget-events)|
+| `acceptsChildren` | `boolean` | 可选。允许作者像在 Container 里一样把其他元素放进这个控件。`render` 通过 `children` 收到已经画好的它们|
+| `partSlots` | `string[]` | 可选。控件为自己造出的部件所设的槽位名。有部件的控件只装这些部件，别的什么都不收，就像 Slider 装着它的轨道和滑块。`createDefaultChildElements` 造出的每个部件用 `extra: { partSlot: "<slot>" }` 说明自己填哪个槽位。有部件的控件忽略 `acceptsChildren`|
 | `createInspector` | `(context) => PropertyEditorSchema \| undefined` | 可选。追加在通用布局字段之后的额外字段|
-| `createDefaultChildElements` | `(context) => …` | 可选。随控件一同创建的结构性子元素|
+| `createDefaultChildElements` | `(context) => { elementPatch?, children }` | 可选。随控件一同创建的结构性子元素|
+| `listEditorStates` | `(element) => { id: string \| null; name: string }[]` | 可选。控件在画布上可以显示的状态；`id: null` 是它的常态|
 | `createDockerBarItems` | `(context) => DockerBarItem[]` | 可选。控件被选中时显示的控制项|
 | `createContextMenuItems`、`createFloatingToolbarItems`、`createMultiSelectDockerBarItems`、`createLayoutSizeField` | | 可选的编辑器功能|
-| `registerBlueprintNodes` | `() => void` | 可选。模块加载时注册额外的蓝图节点；保持幂等|
+
+模块上没有 `registerBlueprintNodes`。控件要用的节点请通过 [`app.services.blueprintNodes`](/zh/docs/studio/plugin/studio/blueprint-nodes) 注册
 
 ```ts
 app.services.widgets.register(myWidgetModule);
 ```
 
 <Callout type="info">
-需要在发布游戏中渲染的控件需要两半：编辑器用的这个模块，以及从 runtime 入口用 `app.game.widgets` 注册的游戏侧渲染器。只注册编辑器模块会让控件出现在画布上，但导出游戏后一片空白
+需要在发布游戏中渲染的控件需要两半：编辑器用的这个模块，以及从 runtime 入口用 `app.game.widgets` 注册的游戏侧渲染器。只注册编辑器模块会让控件出现在画布上，但 Dev Mode 和游戏会在它的位置画一块**未知控件**
 </Callout>
+
+## 渲染 props [#render-props]
+
+`render` 在画布上和游戏里收到的都是 `RuntimeWidgetRendererProps`：
+
+| Prop | 类型 | 说明 |
+| --- | --- | --- |
+| `element` | `UIElement` | 正在绘制的元素：它的 props、布局和 `extra`|
+| `surface` | `UISurface` | 它所在的 Surface|
+| `document` | `UIDocument` | 整个界面文档，用于找到控件自己的部件|
+| `children` | `ReactNode` | 可选。元素的子元素，已经画好|
+| `instanceKey` | `string` | 可选。区分同一元素的多次绘制|
+| `listItemScope` | `UIListItemScope \| null` | 可选。这次绘制所属的列表行|
+| `renderChildren` | `(options?) => ReactNode[]` | 可选。以指定的行作用域和实例键绘制子元素，供重复同一模板的控件使用|
+| `runtimeData` | `{ surfaceState?, globalState?, pageProps? }` | 可选。作者的蓝图所写状态的只读视图，以及当前页面打开时带的 props|
+| `dispatchEvent` | `(eventName, payload?, options?) => Promise<void>` | 可选。触发该元素自己的一个事件；见 [控件事件](#widget-events)。在编辑器画布上它什么都不做|
+| `game` | `RuntimePluginGame` | 可选。在游戏里，它就是 `setup(app)` 收到的那个 `app.game`。在编辑器画布上，它上面每个受能力把关的命名空间都缺席|
+
+`render` 抛错时，只有那一个元素画成一块**控件绘制失败**，页面上其余部分照常绘制
+
+## 控件事件 [#widget-events]
+
+在 `logicApi` 里写了 `supportsPrivateBlueprint: true` 的控件，元素会有自己的蓝图，从 Studio 在属性面板里插件字段之后加上的**交互**页打开。`events` 中的每一项会启动头节点列在它 `headNodeTypes` 里的那些图
+
+```ts
+// shared.ts，两个入口都 import 这一份
+import type { WidgetLogicApi } from "narraleaf-studio/runtime";
+
+export const RATING_LOGIC: WidgetLogicApi = {
+    supportsPrivateBlueprint: true,
+    events: [
+        { id: "mouseClick", displayName: "Mouse click", dispatchKind: "interaction",
+          headNodeTypes: ["blueprint.event.head.mouseClick"] },
+        { id: "rated", displayName: "Rated", dispatchKind: "interaction",
+          headNodeTypes: ["yourname.plugin.onRated"] },
+    ],
+    commands: [],
+    readableState: [],
+    writableProps: [],
+};
+
+// render 里：
+props.dispatchEvent?.("rated", { stars: 4 });
+```
+
+- **头节点只有两种：**内置控件为同一件事使用的头（`blueprint.event.head.mouseClick`、`blueprint.event.head.init`、`blueprint.event.head.onBroadcast` 等），或者本插件注册的[事件头](/zh/docs/studio/plugin/studio/blueprint-nodes#event-heads)。其他头会被丢掉，一个头都不剩的事件也会被丢掉；两种情况控制台都会写出是哪个事件
+- **指针、键盘和生命周期事件由 Studio 触发**，只要 `logicApi` 声明了它们，和内置控件一样；指针事件遵循同样的[事件冒泡](/zh/docs/studio/blueprint/nodes/events#event-bubbling)。只有控件自己知道发生了的事件，由 `render` 用 `dispatchEvent(eventId, payload)` 触发；头节点的数据输出引脚读取载荷中同名的字段
+- **环境事件无需声明。**有自己蓝图的控件和内置控件一样能听到按键、广播和两个窗口事件（`keyDown`、`keyUp`、`onAnyBroadcast`、`onBroadcast`、`windowFullscreenChanged`、`windowFocusChanged`），除非它自己声明了同 id 的事件
+- **runtime 入口需要同一份声明。**把同一份 `logicApi` 传给 `app.game.widgets.register({ type, render, logicApi })`。漏了它，控件的事件在 Dev Mode 和游戏里接不到任何图。`WidgetLogicApi` 与 `WidgetLogicEventDef` 从 `narraleaf-studio/runtime` 导出
+- **脚本图层也能响应这些事件。**从内置头开始的事件按内置导出名响应（`onMouseClick`）；从插件自己的头开始的事件按 `on` 加事件 id 响应（`rated` → `onRated`），载荷就是它的事件参数。无法作为导出名的 id，或同一控件上已被另一个事件占用的导出名，只能在图中使用。参见 [脚本](/zh/docs/studio/scripts)
+
+## 插件缺失时 [#when-the-plugin-is-missing]
+
+插件被卸载、被关闭、加载失败，或[在这个项目中被跳过](/zh/docs/studio/plugin/project-dependencies#被跳过意味着什么)时，项目仍保留它的控件。每个元素连同它的子元素和蓝图都留在文档里，画布上画一块写着其类型的**未知控件**。项目检查把它报为**未知的控件类型**，这是一个会阻止构建的 error。插件重新加载后，控件照常绘制

@@ -3,12 +3,13 @@ title: 数学
 description: 四则运算、取整、随机数、布尔逻辑与比较——全部纯值节点
 ---
 
-Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。创建浮窗把 Boolean 与 Compare 两个节点组也并入本分类，因此三者都写在这一页
+Math 分类负责算出一个值，而不是存下一个值：四则运算、取整、最小值与最大值、随机数、布尔逻辑和比较。只要下游需要一个数字或一个条件，就用这里的节点——[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`If`分支、控件尺寸、计数器的下一个值。Boolean 与 Compare 两个节点组也属于本分类，因此三者都写在这一页
 
 ## 约定
 
 - **本页每个节点都是`Pure`。** 它们都没有执行引脚。下游读取`result`时才计算，并且在`event`、`function`和`macro`图中都合法，也可用于 Blueprint Value
-- **不缓存。** 每次读取都会重新算一遍，所以从同一个节点拉出两条连线就会求值两次。这对`+`无所谓，对`Random Float`就不是
+- **不缓存。** 每次读取都会重新算一遍，所以被循环体读取的节点每轮都会算一次。这对`+`无所谓，对`Random Float`就不是
+- **每个`result`只接一个输入。** 从它再拉第二条连线会替换掉第一条。同一个结果要送到多个引脚时，先用 [`Memo`](/zh/docs/studio/blueprint/nodes/data#memo) 把它按住
 - **接了线就不看卡片。** 说明栏标注「接受卡片内联字面量」的引脚会在节点卡上画出输入框，而这个输入框只在该引脚没有连线时才被读取
 - **凡不是有限数字，一律按 NaN 处理。** 数值引脚原样接受有限数字，把`true`和`false`当作`1`和`0`，并解析数字字符串。其余一切——`null`、留空的卡片输入框、`Infinity`——都是 NaN，而拿到 NaN 的节点输出 NaN。少接一个操作数，它下游的每个结果都会变成 NaN
 - **`integer`能流入`float`，反过来不行。** `Round`、`Floor`和`Ceil`输出`integer`，可以接到任何`float`输入；`float`输出则接不进`integer`输入。两者都能接入`string`输入，算出的数字就是这样送进[`Log`](/zh/docs/studio/blueprint/nodes/debug)的
@@ -97,7 +98,7 @@ Random Float（随机浮点数）在`[min, max)`上均匀取值：`min`可能取
 Random Integer（随机整数）在`min`到`max`之间的整数上均匀取值，**两端都包含**——`1`和`6`就是一颗骰子，不是五面的。边界先排序，再向内收成整数（`min`向上，`max`向下）；如果收完中间什么都不剩，结果就是向上取整后的`min`
 
 <Callout type="info">
-两个随机节点都不接受种子，结果也不会被记住。每次读取都重新掷一次：一个`Random Integer`接到两个引脚上，两边拿到的是不同的数字，过一会儿再读又是另一个。同一个数字要用两次，就先写进变量
+两个随机节点都不接受种子，结果也不会被记住。每次读取都重新掷一次：同一个`Random Integer`在循环的下一轮或之后的事件里再读，就是另一个数字。同一个数字要用两次，就先用 [`Memo`](/zh/docs/studio/blueprint/nodes/data#memo) 按住，或者写进变量
 </Callout>
 
 ## Boolean

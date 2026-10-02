@@ -18,7 +18,7 @@ Slider ノードは、編集中のプライベートブループリントが属�
 
 - **`step` が `0` のときは snap が無効になります。** その場合、値は範囲内を連続的に変化します。負の `step` は `0` として扱われます。
 - **範囲は使用される前に修正されます。** `max` が `min` 以下のときは常に `min + 1` に強制されるため、スライダーの範囲が幅ゼロになることはありません。有限数でない値はフォールバックします——壊れた範囲を読み取る場合はウィジェットの既定値（`min` 0、`max` 100、`step` 1）に、`Set Slider Range` の場合はその項目の現在の実行時の値にフォールバックします。
-- **読み取りは pure、書き込みは latent です。** `Get Value`、`Get Normalized Value`、`Get Slider Range` は `event`、`function`、`macro` グラフで実行でき、Blueprint Value グラフでも使用できます。2つの書き込みノードは latent で、`event` と `macro` に限られます——function は呼び出し元に同期的に値を返すため、保留中の書き込みを置いておく場所がありません。
+- **読み取りは pure、書き込みは latent です。** `Get Value`、`Get Normalized Value`、`Get Slider Range` は `event`、`function`、`macro` グラフで実行できます。Blueprint Value のオーナーは `widgetValue` であり、これらのノードは提供されません。Blueprint Value からスライダーを読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。2つの書き込みノードは latent で、`event` と `macro` に限られます——function は呼び出し元に同期的に値を返すため、保留中の書き込みを置いておく場所がありません。
 - **これらは Self ノードです。** グラフを所有する Slider に対して作用し、ターゲットピンを持ちません。別の Slider を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある `blueprint.element.slider.*` の対をなすノードを使用してください。これらは `slider` 入力を持ち、グラフに `nl.slider` へのバインディングノードがある場合にのみ現れます。
 
 <Callout type="warn">

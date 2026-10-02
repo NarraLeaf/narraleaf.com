@@ -12,7 +12,7 @@ A Surface is one screen: a root element, a design size, and the element tree und
 | `appSurface` | `app` | as a layer on the navigation stack | you need a screen the player opens and leaves: title, settings, saves, gallery. |
 | `stageSurface` | `player` | in one slot of the running game stage | you need to replace part of the running game's own interface: the dialog box, the choice menu, the notification stack. |
 
-There is no third kind. Both records carry `id`, `name`, `designSize`, `rootElementId`, and optional `settings` (background colour and page animation); a `stageSurface` additionally carries a `mount` naming its slot, and is created with a transparent background because it sits over the stage.
+There is no third kind. Both records carry `id`, `name`, `designSize`, `rootElementId`, optional `settings` (background color, background image and page animation) and optional `actions` (the project's input actions it answers); a `stageSurface` additionally carries a `mount` naming its slot, and is created with a transparent background because it sits over the stage.
 
 Studio's UI manager labels them **Page** and **Game UI**, and the node names follow that labelling — `Go Page` opens an `appSurface`.
 
@@ -32,9 +32,10 @@ The NarraLeaf stage is built at the design size of whichever Surface is active a
 The runtime keeps one stack of **layers**. A layer is an *instance* of a Surface, not the Surface itself: it carries its own props, its own runtime scope, and its own presentation. Open the same Surface twice and you get two independent layers that share nothing.
 
 - On boot the stack is reset to a single layer — the host's entry Surface, or the first `appSurface` in the document.
-- **Opening pushes.** `Go Page` pushes the selected Page with whatever you wired into its `props` input. `Show Layer` pushes one too, and hands back a **handle** naming that showing of it — the value `Hide Layer`, `Wait For Layer` and `Is Layer Mounted` address. Nothing else names a layer: stacking order is mount order, and no screen can be written to depend on sitting at a particular depth.
-- **Four ways to close.** `Go back` pops exactly one layer. `Go Page` with its Page selector set to `None` empties the stack. `Clear Page` removes only the overlay pages a running game put up, and does nothing outside a game. `Hide Layer` closes the one its handle names, and `Close This Layer` closes the layer the running blueprint is *inside*, optionally with a result for whoever is waiting on it.
-- **The floor is permanent.** A close is refused when only one layer is left, so the entry Surface is always underneath something, and `Go back` at the bottom of the stack is a no-op rather than an error. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
+- **Opening pushes.** `Go Page` pushes the selected Page with whatever you wired into its `props` input. `Show Layer` pushes one too, and hands back a **handle** naming that showing of it — the value `Hide Layer`, `Wait For Layer` and `Is Layer Mounted` address. Nothing else names a layer: stacking order is mount order, and no screen can be written to depend on sitting at a particular depth. A layer from `Show Layer` sits above every Page that `Go Page` opens, including Pages opened after it.
+- **Modal layers.** A modal layer from `Show Layer` takes input from everything beneath it and holds the keyboard. A layer that is not modal leaves the Page beneath it working. Layers that claim the same group queue rather than stack, and a layer closes on its own when the Surface that showed it closes.
+- **Five ways to close.** `Go back` closes the top layer from `Show Layer` when that layer is dismissible, and otherwise pops exactly one Page. `Go Page` with its Page selector set to `None` empties the stack down to its first Page. `Clear Page` removes only the overlay pages a running game put up, and does nothing outside a game. `Hide Layer` closes the one its handle names, and `Close This Layer` closes the layer the running blueprint is *inside*, optionally with a result for whoever is waiting on it.
+- **The floor is permanent.** The first Page on the stack is never closed, so the entry Surface is always underneath something, and `Go back` at the bottom of the stack is a no-op rather than an error. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
 
 ### Presentation
 
@@ -42,7 +43,7 @@ Every layer is either `appPage` or `gameOverlay`. The runtime picks, not the aut
 
 - Before a game is running, `Go Page` opens `appPage` layers. What shows through underneath is the previous Page.
 - `Start Game` and `Load Save` **hide** every layer currently on the stack and reveal the game stage. The stack still holds them; they simply stop rendering.
-- While the stack is hidden, `Go Page` opens `gameOverlay` layers, drawn above the stage. Underneath one of these is the game, not the Pages you came from — this is what a pause menu, an in-game save screen, or mid-scene settings are.
+- While the stack is hidden, `Go Page` opens `gameOverlay` layers, drawn above the stage. Underneath one of these is the game, not the Pages you came from — this is what a pause menu, an in-game save screen, or mid-scene settings are. While one of these Pages is on screen, the `dialog`, `nvl`, `choice` and `onStage` slot Surfaces fade out, staying mounted, and fade back when it closes; the `notification` slot stays on screen. A layer from `Show Layer` does not hide them.
 - `Quit Game` tears down the session and opens its return Page as `appPage` again — it sits with the other [Game nodes](/docs/studio/blueprint/nodes/game). `Quit Application` ends the runtime instead; in Dev Mode it stops the Dev Mode session rather than closing Studio, and it deliberately does not fire the window-close event, which is only for the player closing the window.
 
 `Is Game Overlay` reads this flag. It is fixed to the layer instance, so an exiting pause menu keeps its overlay answer through its whole exit animation even though the session is already being cleared. Every stage-slot Surface answers `true`, and a Page embedded inside an overlay inherits the answer from the layer holding it.
@@ -73,7 +74,7 @@ The state flips **before** the matching event head runs. Inside `After Surface E
 `Before Surface Exit` and `After Surface Enter` also reach the private blueprints of mounted widgets — only those alive at that instant. `Surface Init` and `Surface Unmount` do not; they belong to the Surface. A widget's own pair is `Init` and `Unmount`. All the heads are listed under [Events nodes](/docs/studio/blueprint/nodes/events).
 
 <Callout type="warn">
-Pointer input and keyboard input are not held back alike during a transition. Clicks are blocked until the enter animation completes and dropped again at `Before Surface Exit`, but key presses keep arriving from the end of prepaint straight through both animations. A graph that must ignore keys mid-transition has to branch on `Is Surface Transitioning` itself.
+A layer takes pointer and keyboard input from the moment it is revealed, through its enter animation, and stops taking both when its exit animation begins. A graph that must ignore input while the layer is still entering has to branch on `Is Surface Entering` itself. While a layer plays its exit, a press that no other Page or layer takes is dropped rather than reaching the game stage; see [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling).
 </Callout>
 
 ## Surface, Page, and Frame
@@ -109,6 +110,8 @@ A slot you leave empty keeps NarraLeaf's own built-in component, so deleting you
 
 `onStage` is the exception in the list. NarraLeaf has no injection point for it, so it mounts as a child of the Player, above the stage. It renders only while the stage is visible, and its shell is click-through on purpose — empty space must still advance the story. A full-screen interactive container placed in it will swallow those clicks.
 
+The `notification` slot is display-only: nothing on it takes a press, a press over a toast goes to what is beneath it, and its Surface blueprint hears no keys or input actions.
+
 Each slot Surface runs in its own runtime scope, keyed by the game session, the slot, and the Surface, and `Is Game Overlay` is `true` inside all of them.
 
 ## The Surface blueprint
@@ -122,12 +125,12 @@ What it can reach:
 - **Its own props**, through `Get Page Props`.
 - Everything that is not per-Surface anyway: persistent variables, global state, saves, the running game.
 
-Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Action`, the keyboard heads, the game-preference heads, fullscreen changes, the window-close request, the broadcast receivers, and the two bound-element heads.
+Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Action`, the keyboard heads, the game-preference heads, fullscreen and window focus changes, the window-close request, the broadcast receivers, and the two bound-element heads.
 
-`Mouse Click` and `Right Click` behave differently here than on a widget: on a Surface they fire for **any** click inside it and output coordinates in that Surface's design space, where the widget version only fires for its own element. A Page embedded in a Frame gets its own Surface click before the parent Surface sees one.
+`Mouse Click` and `Right Click` behave differently here than on a widget: on a Surface they fire for **any** click that lands on it and output coordinates in that Surface's design space, where the widget version fires for its own element and the elements inside it. A Page takes a press only where one of its elements is drawn, so a click on an empty part of a Page is not the Page's. A Page shown in a Frame does not run its own Surface `Mouse Click` or `Right Click`; the Surface holding the Frame hears the click instead.
 
 Against widget-level blueprints:
 
 - A `widgetMain` blueprint belongs to one widget instance and mounts and unmounts with it. `Init` and `Unmount` are its lifecycle; the Surface's is `Surface Init` and `Surface Unmount`.
-- Keyboard heads dispatch to the global blueprint, the active Surface blueprint, **and** every mounted widget that declares one. Put the same head in all three and all three run.
+- Keyboard heads dispatch to the global blueprint, then to the Surface that owns the keyboard **and** every widget on it that declares one. Put the same head in all three and all three run. Which Surface owns the keyboard is described under [Keyboard](/docs/studio/blueprint/nodes/events#keyboard).
 - Element nodes are how a Surface blueprint acts on a widget it does not own — that is the whole reason the Self/Element split exists.

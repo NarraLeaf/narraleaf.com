@@ -6,14 +6,15 @@ description: 驱动运行中游戏的节点——开始与退出、推进对话�
 Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和活着的 NarraLeaf 运行时说话：游玩本身、屏幕上的对话、玩家的偏好、项目的本地存档，以及对话历史。标题画面、设置画面、存读档网格和回顾界面，都由本页的节点搭起来
 
 <Callout type="warn">
-本页每一个节点都需要运行中的游戏。编辑器画布没有游戏——放在那里的 Game 节点会以`Host API unavailable (use Dev Mode)`失败，读取它的 Blueprint Value 预览为空。这些行为一律在开发模式中验证
+本页每一个节点都需要运行中的游戏。编辑器画布没有游戏：放在那里的 Game 节点会以`该节点仅在游戏运行时可用，需在开发模式中运行`失败，读取它的 Blueprint Value 预览为空。这些行为一律在开发模式中验证
 </Callout>
 
 ## 约定
 
-- **基本上要么 pure 要么 latent。** 四十一个取值节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。四十七个是`Latent`，因此只能用于`event`和`macro`——latent 节点在`function`图里没有地方安放一个待定的结果。第八十九个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以它和 latent 节点一样只能用于`event`和`macro`，自己却不是 latent
-- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。结局、走过的路线、DLC 与构建变体那几组读取节点同样如此——结局画廊本来就是从标题界面打开的，那时还没有任何游戏。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
-- **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十六个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起
+- **基本上要么 pure 要么 latent。** 四十四个节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。五十一个是`Latent`，因此只能用于`event`和`macro`：latent 节点在`function`图里没有地方安放一个待定的结果。第九十六个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以它和 latent 节点一样只能用于`event`和`macro`，自己却不是 latent
+- **Story Action 蓝图不提供。** 由剧情行调用的蓝图没有游戏宿主，因此它的创建浮窗里没有本页的节点，`Get Build Variant` 除外
+- **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Line`、`Get Save Story`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。结局、走过的路线、DLC 与构建变体那几组读取节点同样如此——结局画廊本来就是从标题界面打开的，那时还没有任何游戏。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
+- **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十八个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起
 - **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)
 - **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里
 
@@ -33,6 +34,7 @@ Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并
 | `storyId` | in · data | `string` | 可选。连线优先于卡片 |
 | `sceneId` | in · data | `string` | 可选。连线优先于卡片——`Import Progress` 的 `Scene` 就接到这里 |
 | `startBlockId` | in · data | `string` | 可选，卡片上标作 **From Row**，只能连线。从该行进入场景，而不是从场景开头 |
+| `inheritFrom` | in · data | `SaveSlot` | 可选。新游戏要继承其进度的存档，见下文|
 
 **卡片字段**
 
@@ -43,21 +45,24 @@ Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并
 
 十次里有九次作者要的是选择器：它列出项目自己的剧本，也拼不错。这几个引脚是为第十次准备的——写图的时候还不知道目标是哪一个，比如一个「继续」按钮要从玩家上次的位置接着走
 
+接上 `inheritFrom` 时，游戏仍然从选中的场景开始新的一局，然后取入该存档的[存档变量](/zh/docs/studio/blueprint/variables#存档变量)和其中走过的场景（即 `Is Scene Visited` 读取的那份记录）。舞台、回顾记录和剧情位置不会被带过来；恢复这些是 `Load Save` 的事。[`Save Slot`](#save-slot) 带来存档库里的一份存档，用于从通关存档开始的二周目。[`Current Game`](#current-game) 带来正在进行的这一局，用于在另一个故事里继续的路线。存档槽指向的存档不存在时，节点在剧情开始之前就失败
+
 ### Quit Game
 
 `blueprint.game.quit` · Latent
 
-Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page。一次调用做完全部事情：丢弃活动游戏与会话、取消仍在等待的启动请求、清空对话名牌、恢复普通 Page 显示，然后导航——不需要再接一个`Go Page`
+Quit Game（退出游戏）结束当前游玩，并打开卡片上选中的 Page。一次调用做完全部事情：丢弃活动游戏与会话、取消仍在等待的启动请求、打开 Page，然后清空对话名牌并恢复普通 Page 显示。不需要再接一个`Go Page`。Page 打开之前，屏幕上保留游戏的最后一帧，而 `Is In Game` 此时已经返回 `false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | 可选，卡片上标为 **页面 Id**。连线优先于卡片|
 
 **卡片字段**
 
 | 字段 | 含义 |
 | --- | --- |
-| `Page` | 游戏结束后打开的 [Surface](/zh/docs/studio/blueprint/surfaces)。必填|
+| `Page` | 游戏结束后打开的 [Surface](/zh/docs/studio/blueprint/surfaces)。除非 `surfaceId` 已连线，否则必填|
 
 ### Is In Game
 
@@ -147,7 +152,7 @@ Get Nametag（获取名牌）：当前说话人的名字。旁白、没有说话
 | --- | --- | --- | --- |
 | `nametag` | out · data | `string` | 没有说话人时为 `null`|
 
-默认对话模板用普通`nl.text`做名牌，并在该控件自己的蓝图里驱动它——`Init`与`On Flush`接到`Get Nametag`，再用一次判空控制文本和不透明度。这里没有任何特殊的名牌控件
+默认对话模板把普通`nl.text`名牌的 `text` 绑定到一个 Blueprint Value：`Init`与`On Flush`接到`Return Value`，值由`Get Nametag`提供。这里没有任何特殊的名牌控件
 
 ### Get Speaker Avatar
 
@@ -323,6 +328,28 @@ Set Sentence Speed（设置文字速度）写入`cps`。必须是大于 `0` 的�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `cps` | in · data | `float` | 支持卡片字面量|
+
+### Get Text Fade In
+
+`blueprint.game.getTextRevealDuration` · Pure
+
+Get Text Fade In（获取文字渐入）读取`textRevealDuration`，单位毫秒：每个新打出的字淡入所需的时间。`0` 表示每个字一出现就完整显示。文字速度很快时，淡入会被缩短以跟上打字
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `textRevealDuration` | out · data | `float` | 卡片上标为 **文字渐入**|
+
+### Set Text Fade In
+
+`blueprint.game.setTextRevealDuration` · Latent
+
+Set Text Fade In（设置文字渐入）写入`textRevealDuration`。必须是大于等于 `0` 的有限数字，单位毫秒
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textRevealDuration` | in · data | `float` | 卡片上标为 **文字渐入**。支持卡片字面量|
 
 ### Get Auto Forward
 
@@ -628,6 +655,28 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 | `next` | out · exec | — | |
 | `voiceEndMode` | in · data | `string` | 支持卡片字面量|
 
+### Get Mute When Unfocused
+
+`blueprint.game.getMuteOnWindowBlur` · Pure
+
+Get Mute When Unfocused（获取失去焦点时静音）读取`muteOnWindowBlur`：游戏窗口不是玩家正在使用的窗口时，游戏是否静音。玩家回来时声音按原来的音量恢复，期间任何音量偏好都不会改变
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `muteOnWindowBlur` | out · data | `boolean` | 卡片上标为 **失去焦点时静音**|
+
+### Set Mute When Unfocused
+
+`blueprint.game.setMuteOnWindowBlur` · Latent
+
+Set Mute When Unfocused（设置失去焦点时静音）写入`muteOnWindowBlur`。必须是布尔值
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muteOnWindowBlur` | in · data | `boolean` | 卡片上标为 **失去焦点时静音**|
+
 ### Get Track Volume
 
 `blueprint.game.getTrackVolume` · Pure
@@ -668,6 +717,8 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 
 存档是项目本地的，以你自己选的 id 为键。同一个 id 写第二次就是覆盖
 
+下面每个针对单份存档的节点都有两种指定方式：`id` 引脚上的 id，或可选的 `slot` 引脚上的 `SaveSlot`。`slot` 连线时优先于 `id`。[`Save Slot`](#save-slot) 用 id 做出一个存档槽，一个 id 就能接给多个节点。[`Current Game`](#current-game) 为正在进行的这一局做出存档槽，只有 `Start Game` 接受它；其他存档节点收到它都会失败
+
 <Callout type="warn">
 `List Saves`只返回玩家存档。自动存档住在保留 id 命名空间里——`@autosave.<n>`——由`List Auto Saves`列出；两个集合永不重叠。这是刻意的：基于`List Saves`做的存读档网格从不需要过滤掉 Studio 自己的簿记条目，自动存档界面也从不需要藏起玩家的存档位。在别的地方，自动存档 id 就是一个普通存档 id，可以原样喂给`Load Save`、`Get Save Preview`、`Get Save Metadata`和`Delete Save`
 </Callout>
@@ -694,13 +745,14 @@ Set Voice End Mode（设置语音结束模式）写入`voiceEndMode`。必须恰
 
 `blueprint.game.save.write` · Latent
 
-Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台 PNG 存为该存档的预览图；截图失败会被上报，但不会连累存档本身
+Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台画面，缩小到缩略图尺寸后存为该存档的预览图；截图失败会被上报，但不会连累存档本身
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 | `metadata` | in · data | `json` | 可选。任意 [JSON](/zh/docs/studio/blueprint/nodes/data)——对象、数组、字符串、数字、布尔或 `null`。未接线时写入 `null`|
 | `screenshot` | in · data | `boolean` | 可选。卡片上标为 **Capture**。支持卡片字面量|
 | 每个声明字段一个 | in · data | 该字段的类型 | 以字段名标注。类型支持时可用卡片字面量|
@@ -711,13 +763,14 @@ Save Game（保存游戏）把活动游戏序列化进项目的本地存档库�
 
 `blueprint.game.save.load` · Latent
 
-Load Save（读取存档）读入一份存档并为它放弃当前进度：清空 router 及其历史，创建新的游戏实例并反序列化；等 router 退出后，Page 栈重新被藏到舞台之下——所以这之后的`Go Page`打开的是游戏之上的叠层
+Load Save（读取存档）读入一份存档并为它放弃当前进度：清空 router 及其历史，创建新的游戏实例并反序列化；等 router 退出后，Page 栈重新被藏到舞台之下，所以这之后的`Go Page`打开的是游戏之上的叠层。在项目另一个故事里写下的存档，会在那个故事里打开
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
-| `failed` | out · exec | — | 存档缺失、损坏，或没有活动游戏运行时走这一支|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
+| `failed` | out · exec | — | 存档缺失或损坏、当前构建的剧情里已没有存档所指的位置，或项目的**旧存档**设置拒绝它时走这一支。没有游戏运行时，节点直接失败|
 
 没有 `next`：读档成功就把正在跑的游戏整个换掉了，这张图也就没什么好接着跑的。`failed` 是它唯一的出口，也是游戏把这件事告诉玩家的那一支
 
@@ -732,12 +785,13 @@ Delete Save（删除存档）删掉一份存档。删一个本来就不存在的
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 
 ### List Saves
 
 `blueprint.game.save.listIds` · Latent
 
-List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证。损坏的、或 metadata 不是玩家存档的文件会被跳过，而不是报错
+List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证。损坏的、或 metadata 不是玩家存档的文件会被跳过，而不是报错。项目的**旧存档**设置不会恢复的存档也不列出，因此列出的每个 id 都能被 `Load Save` 接受
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -756,6 +810,7 @@ Get Save Metadata（获取存档元数据）读取一份存档的作者数据。
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 | `metadata` | out · data | `json` | 存档不存在或没有用户 metadata 时为 `null`|
 | 每个声明字段一个 | out · data | 该字段的类型 | 以字段名标注。存档中没有该字段时给出它的默认值|
 
@@ -770,6 +825,7 @@ Get Save Time（获取存档时间）读取一个槽位的写入时间。存档�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 | `savedAt` | out · data | `float` | 槽位最后一次写入的时间。存档不存在时为 `0`|
 | `createdAt` | out · data | `float` | 槽位首次写入的时间。存档不存在时为 `0`|
 | `exists` | out · data | `boolean` | |
@@ -791,6 +847,7 @@ Get Save Line（获取存档语句）读取一份存档将从哪一句继续，�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 | `line` | out · data | `string` | 存档不存在，或存档写于任何对话播放之前时为空串|
 | `speaker` | out · data | `string` | 旁白，以及尚无对话的存档为空串|
 | `exists` | out · data | `boolean` | |
@@ -798,6 +855,24 @@ Get Save Line（获取存档语句）读取一份存档将从哪一句继续，�
 <Callout type="warn">
 它不是 backlog 的最后一条。backlog 记的是最后显示过的那一句，这两个字段记的是存档将从哪一句继续。从叠层界面存档，或在最后一句之后还执行了非对话动作时，两者并不相同
 </Callout>
+
+### Get Save Story
+
+`blueprint.game.save.getStory` · Latent
+
+Get Save Story（获取存档故事）读取一份存档是在项目的哪个故事里写下的。读档界面用它按路线给存档位分组、排除某个故事的存档位，或标出来自另一个故事的存档位
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
+| `storyName` | out · data | `string` | 该故事在当前构建里的名称，因此存档之后改过名的故事读出的是现在的名称。当前构建不包含该故事时为空|
+| `storyId` | out · data | `string` | 该故事的生成 id。改名后保持不变，因此分组与比较都用它，也可以接给 `Start Game` 的 `storyId`|
+| `exists` | out · data | `boolean` | |
+
+显示在屏幕上的应当是 `storyName`，不要显示 `storyId`。存档不存在，或存档写于存档开始记录故事之前，两者都为空；用 `exists` 区分这两种情况
 
 ### Get Save Playtime
 
@@ -810,6 +885,7 @@ Get Save Line（获取存档语句）读取一份存档将从哪一句继续，�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量 |
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id` |
 | `playtimeSeconds` | out · data | `float` | |
 | `playtimeMilliseconds` | out · data | `float` | |
 | `recorded` | out · data | `boolean` | 在开始记录游玩时长之前写下的存档为 `false`——槽在，数字不在 |
@@ -828,7 +904,35 @@ Get Save Preview（获取存档预览）把存档里的截图变成当前会话�
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | 支持卡片字面量|
+| `slot` | in · data | `SaveSlot` | 可选。连线时优先于 `id`|
 | `preview` | out · data | `ImageAsset\|null` | 存档不存在或没有截图时为 `null`|
+
+### Save Slot
+
+`blueprint.game.save.slot` · Pure
+
+Save Slot（存档槽）按 id 指定存档库里的一个存档槽。把它接到各存档节点的 `slot` 引脚上：存档界面的一行要从同一个存档槽读取时间、语句和预览图时，id 只需写一次
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `id` | in · data | `string` | 支持卡片字面量。id 为空时节点失败|
+| `slot` | out · data | `SaveSlot` | |
+
+### Current Game
+
+`blueprint.game.save.currentRun` · Latent
+
+Current Game（当前游戏）把正在进行的这一局捕获为一个存档槽，不往存档库写任何东西。它是给 `Start Game` 的 `inheritFrom` 引脚用的：捕获这一局，再用它开始下一个故事，玩家的存档变量与走过的场景就会被带过去
+
+捕获只在捕获它的那次事件执行期间有效。同一条执行链后面的 `Start Game` 可以使用它，之后由别的事件运行的图则不能。除 `Start Game` 外，其他存档节点收到它都会失败
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `slot` | out · data | `SaveSlot` | |
+
+没有正在进行的游戏时失败；同一次图执行里已经捕获过八次时也会失败
 
 ## 自动存档
 
@@ -868,6 +972,9 @@ List Auto Saves（列出自动存档）列出保留命名空间里的全部自�
 | `slot` | 在环内的槽位序号|
 | `timestamp` | 最后写入时间，Unix 毫秒|
 | `createdAt` | 首次写入时间，Unix 毫秒|
+| `preview` | 该存档位的图片，与 `Get Save Preview` 返回的相同。没有时为 `null`|
+| `line` | 该存档位停在的那一句，与 `Get Save Line` 读到的相同。存档写于任何对话播放之前时为空串|
+| `speaker` | 那句话由谁说出。旁白，以及尚无对话的存档为空串|
 | `metadata` | 写入方附带的内容，没有时为 `null`|
 
 条目带的是 **id，而不是序列化后的存档**：`SavedGameData` 那样的数据块在图里毫无用处，而 id 能直接接进既有的存档节点
@@ -913,7 +1020,9 @@ Get History（获取历史）把回顾记录作为一个扁平数组给出，从
 | `type` | 台词为 `"say"`，已确定的选择为 `"menu"`|
 | `text` | 句子文本，或菜单的提示语。源里没有时为空字符串|
 | `character` | say 条目的说话人名牌；菜单与旁白为 `null`|
-| `voice` | say 条目的语音 id；没有时为 `null`|
+| `avatar` | 说话人的对话头像，取自角色本身的图片，而不是那一句时所穿的差分。菜单、旁白，以及项目里没有对应角色的说话人为 `null`|
+| `voice` | say 条目的语音文件 URL；没有时为 `null`。图里没有节点接受它；要重播一句，用 `voiceId`|
+| `voiceId` | 这一句的 voice id，可接给 [`Play Voice`](/zh/docs/studio/blueprint/nodes/voice)。这一句的语音不是来自项目的录音时为 `null`|
 | `selected` | menu 条目里被选中的选项文本；say 条目与未确定的菜单为 `null`|
 | `isPending` | 当前还在屏幕上、尚未提交的那一条为 true|
 

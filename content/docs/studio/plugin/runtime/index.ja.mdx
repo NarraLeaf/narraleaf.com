@@ -23,7 +23,7 @@ export default defineRuntimePlugin({
 | メンバー | 内容 |
 | --- | --- |
 | `game.blueprintNodes` | あなたのノード種別のゲーム側 `execute` を `register` / `registerMany` する。 |
-| `game.widgets` | あなたのウィジェット種別のゲーム側レンダラーを `register` / `registerMany` する。 |
+| `game.widgets` | あなたのウィジェット種別のゲーム側レンダラーとイベント宣言(`logicApi`)を `register` / `registerMany` する。 |
 | `game.data` | `readJson(namespace)` — ゲームとともに公開されたプラグインのストレージを読む。 |
 | `game.config` | `get(key)` — あなたの `contributes.buildConfig` フィールドに作者が入力した値。`game.data` と同じ理由で常に存在します。フィールドを宣言してもプラグインに何かが付与されるわけではないため、そこには制御すべき機能フラグがありません。 |
 | `game.log` | ホストのログに `log(level, message)` を書き込む。 |
@@ -120,7 +120,7 @@ execute: async ctx => {
 
 <Cards>
   <Card title="store" href="/ja/docs/studio/plugin/runtime/store" description="新しいゲームを始めても失われない、プラグイン単位の永続的なキー・バリューストレージ。" />
-  <Card title="events" href="/ja/docs/studio/plugin/runtime/events" description="環境ごとの利用可否を伴う、十三のゲームおよびストーリーのイベント。" />
+  <Card title="events" href="/ja/docs/studio/plugin/runtime/events" description="環境ごとの利用可否を伴う、十六のゲームおよびストーリーのイベント。" />
   <Card title="state" href="/ja/docs/studio/plugin/runtime/state" description="scene / saved / persistent のストーリー変数を読み取り、書き込み、観察する。" />
   <Card title="saves" href="/ja/docs/studio/plugin/runtime/saves" description="セーブスロットを一覧表示し読み取る。より重い機能でスロットを上書きまたはロードする。" />
   <Card title="ui.overlay" href="/ja/docs/studio/plugin/runtime/overlay" description="ゲームの上に要素を描画する — そして、それが決して届かない唯一の場所。" />

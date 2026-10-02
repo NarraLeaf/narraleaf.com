@@ -33,7 +33,7 @@ An edge between two data pins is allowed when the types are identical, or when o
 | `any` | anything | `any` matches in both directions. |
 | anything | `any` | |
 
-Types from other categories widen the same way and nowhere else: `element` connects to any `element:nl.…` pin and back, and `ImageAsset` and `string` both reach an `ImageAsset|null` input.
+Types from other categories widen the same way and nowhere else: `element` connects to any `element:nl.…` pin and back, element pins do not connect to `any` in either direction, and `ImageAsset` and `string` both reach an `ImageAsset|null` input.
 
 Everything else is refused, including the reverses authors expect to work:
 
@@ -49,7 +49,7 @@ Everything else is refused, including the reverses authors expect to work:
 </Callout>
 
 <Callout type="info">
-`array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array — `Split`'s result, `Parse JSON`, `Get JSON Field` — will not connect to an `array` input such as `Array Length` or List's `Set Items`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
+`array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array (`Split`'s result, `Parse JSON`, `Get JSON Field`) will not connect to an `array` input such as `Array Length` or List's `Set List Content`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
 </Callout>
 
 ## Conventions
@@ -62,7 +62,7 @@ Everything else is refused, including the reverses authors expect to work:
 - **A chain of pure nodes resolves at most 32 links deep.** Past that the read returns nothing, silently.
 
 <Callout type="warn">
-`Array Push`, `Set JSON Field`, `Object Set Field`, and every other writer on this page hand you a **new** value and leave the input untouched. Wiring `Get Var → Array Push` changes nothing on its own — you have to wire the result back into `Set Var`. See [Variables](/docs/studio/blueprint/variables).
+`Array Push`, `Set JSON Field`, `Remove JSON Field`, and every other writer on this page hand you a **new** value and leave the input untouched. Wiring `Get Var → Array Push` changes nothing on its own — you have to wire the result back into `Set Var`. See [Variables](/docs/studio/blueprint/variables).
 </Callout>
 
 ## Literals
@@ -981,7 +981,7 @@ Drops later duplicates, keeping the first of each. Items are compared by value, 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `start` | in · data | `integer` | Accepts an on-card literal. Defaults to `0`. |
-| `count` | in · data | `integer` | Accepts an on-card literal. Clamped to `0` or above. |
+| `count` | in · data | `integer` | Accepts an on-card literal. Clamped to `0`–`10000`. |
 | `step` | in · data | `integer` | Accepts an on-card literal. Defaults to `1`, and a `step` of `0` is read as `1` — it would otherwise be `count` copies of `start` wearing the shape of a range. |
 | `result` | out · data | `array` | |
 
@@ -1031,7 +1031,7 @@ Numbers compare as numbers, booleans as `false` before `true`, and everything el
 
 `blueprint.data.jsonArrayLength` · Pure
 
-The older name for `Array Length`, kept so existing graphs keep resolving. A value that is not an array gives `0`. Use `Array Length` in new graphs.
+The older name for `Array Length`, hidden from the palette and kept so existing graphs keep resolving. A value that is not an array gives `0`. Use `Array Length` in new graphs.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1103,7 +1103,7 @@ The point equidistant from the rectangle's four edges.
 
 ## Objects
 
-These act on one field at a time, by name. They take no path — for a nested write use `Set JSON Field`. An input that is not an object is read as `{}`.
+`Object Keys` and `Object Values` read an object's top level, and `Object Merge` combines two objects. To write or remove a field, use `Set JSON Field` or `Remove JSON Field` under [JSON](#json), which take a path. An input that is not an object is read as `{}`.
 
 ### Object Keys
 
@@ -1129,7 +1129,7 @@ Field names in insertion order. An array or any other non-object gives an empty 
 
 `blueprint.collection.objectSetField` · Pure
 
-`field` is a plain name, and a dot in it is part of the name rather than a path step. A blank name returns the copy unchanged.
+Superseded by `Set JSON Field`, which takes a path and so also reaches nested fields; hidden from the palette but still runs in graphs that hold it. `field` is a plain name, and a dot in it is part of the name rather than a path step. A blank name returns the copy unchanged.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1141,6 +1141,8 @@ Field names in insertion order. An array or any other non-object gives an empty 
 ### Object Remove Field
 
 `blueprint.collection.objectRemoveField` · Pure
+
+Superseded by `Remove JSON Field`; hidden from the palette but still runs in graphs that hold it.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1227,7 +1229,7 @@ Builds an object from dynamic pin pairs, so the signature below is only the outp
 
 `blueprint.data.jsonMakeArray` · Pure
 
-Builds an array from dynamic `Item` inputs in pin order, so the signature below is only the output. A new node starts with none — add them on the card. This is the node that produces the `array` type, and therefore the way to hand a built array to `Array Length` or List's `Set Items`.
+Builds an array from dynamic `Item` inputs in pin order, so the signature below is only the output. A new node starts with none — add them on the card. This is the node that produces the `array` type, and therefore the way to hand a built array to `Array Length` or List's `Set List Content`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1237,7 +1239,7 @@ Builds an array from dynamic `Item` inputs in pin order, so the signature below 
 
 `blueprint.data.jsonMergeObject` · Pure
 
-Shallow merge with `b` winning, identical to `Object Merge`. A non-object input is treated as `{}`.
+Shallow merge with `b` winning, identical to `Object Merge`. A non-object input is treated as `{}`. Superseded by `Object Merge`; hidden from the palette but still runs in graphs that hold it.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1262,15 +1264,15 @@ A deep, JSON-safe copy. The writer nodes already copy their input, so you only n
 
 `blueprint.data.memo`
 
-Reads its input once, when execution passes through, and keeps that value on its output until the next time execution passes through.
+Reads its input once, when execution passes through, and keeps that value on its output until the next time execution passes through. Before the first pass the output reads `null`. The value is kept in the same store as the blueprint's [variables](/docs/studio/blueprint/variables#blueprint-variables): one held during `Init` is still there for a later `Mouse Click`, and it starts over when that owner instance does.
 
-It is the one data output in the catalogue that may feed **several** consumers. Everything else is single-consumer, and for two different reasons: a pure node re-evaluates at every read, so one `Random Float` wired to three pins gives three numbers; and an exec node's output belongs to the pulse that produced it. A Memo has exactly one writer — itself — so every read returns what that write left, and fanning it out cannot surprise anybody.
+Its output may feed **several** consumers. A computed data output feeds only one, and a second wire from it replaces the first, for two different reasons: a pure node re-evaluates at every read, so the same `Random Float` read twice gives two numbers; and an exec node's output belongs to the pulse that produced it. A Memo has exactly one writer — itself — so every read returns what that write left, and fanning it out cannot surprise anybody. The literals on this page, `Element` bindings and the parameter pins of an [`Fn`](/docs/studio/blueprint/nodes/functions#fn) fan out as well, because every read of them gives the same value.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `next` | out · exec | — | |
 | `value` | in · data | `any` | Read once, as execution passes. |
+| `next` | out · exec | — | |
 | `result` | out · data | `any` | Labelled Value on the card. |
 
 Synchronous rather than latent on purpose: there is nothing to await, and a latent node would be barred from an inline story value. `function` graphs stay pure, so a Memo cannot go in one.

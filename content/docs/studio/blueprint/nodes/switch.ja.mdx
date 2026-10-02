@@ -8,15 +8,15 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 ## 規約
 
 - **ウィジェットのブループリント専用で、しかも Switch 上でのみ使用できます。** これらは `nl.switch` にスコープされているため、そのウィジェット自身のブループリントにのみ提供され、他では提供されません。別のグラフから Switch にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) の対応バージョンを使用してください。
-- **3つの読み取りノードは pure です**。そのため `function` グラフに置くことも、Blueprint Value のバックエンドにすることもできます。6つの書き込みノードは latent です。
+- **3つの読み取りノードは pure です**。そのため `function` グラフに置くことができます。Blueprint Value のオーナーは `widgetValue` であり、これらのノードは提供されません。Blueprint Value から Switch を読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。6つの書き込みノードは latent です。
 
 ## Get Checked
 
 `blueprint.switch.getChecked` · Pure
 
-| ピン | 方向 | 型 |
-| --- | --- | --- |
-| `checked` | out · data | `boolean` |
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `checked` | out · data | `boolean` | |
 
 ## Set Checked
 
@@ -25,8 +25,8 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `checked` | in · data | `boolean` | リテラル。 |
 | `next` | out · exec | — | |
+| `checked` | in · data | `boolean` | リテラル。 |
 
 ## Turn On
 
@@ -34,19 +34,19 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 
 `true` を渡す `Set Checked` を、よくある使い方が一語で読み取れるように独立したカードにしたものです。
 
-| ピン | 方向 | 型 |
-| --- | --- | --- |
-| `in` | in · exec | — |
-| `next` | out · exec | — |
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
 
 ## Turn Off
 
 `blueprint.switch.turnOff` · Latent
 
-| ピン | 方向 | 型 |
-| --- | --- | --- |
-| `in` | in · exec | — |
-| `next` | out · exec | — |
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
 
 ## Toggle
 
@@ -62,9 +62,9 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 
 `blueprint.switch.getEnabled` · Pure
 
-| ピン | 方向 | 型 |
-| --- | --- | --- |
-| `enabled` | out · data | `boolean` |
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
 
 ## Set Enabled
 
@@ -73,16 +73,16 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `enabled` | in · data | `boolean` | |
 | `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
 
 ## Get Visible
 
 `blueprint.switch.getVisible` · Pure
 
-| ピン | 方向 | 型 |
-| --- | --- | --- |
-| `visible` | out · data | `boolean` |
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
 
 ## Set Visible
 
@@ -91,5 +91,5 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `visible` | in · data | `boolean` | |
 | `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |

@@ -9,7 +9,7 @@ description: Frame がどの Page を表示するか、そしてその Page に�
 
 - **読み取りは pure、書き込みは latent です。** このページの `Get` ノードはすべて `Pure` で、`event`・`function`・`macro` のいずれのグラフでも使えます。`Set` ノードはすべて `Latent` で、`event` と `macro` でのみ使えます——書き込みはホストを経由して非同期に解決され、`function` グラフは呼び出し元に同期的に戻るため、保留中の結果を置く場所がありません。
 - **Frame が持つのは 2 つだけです：対象の Page と `params` オブジェクトです。** 対象は Page でなければなりません。カードのドロップダウンには Page だけが並び、この Frame が置かれている Page と、入れ子になって自分に戻ってきてしまう Page は除外されます。Page とは何か、ゲーム UI の Surface とどう違うかは [Surface と Page](/ja/docs/studio/blueprint/surfaces) を参照してください。
-- **`params` は組み込まれた Page の Page props です。** Frame の内側の Page は [App](/ja/docs/studio/blueprint/nodes/app) の `Get Page Props` でオブジェクト全体を読み取り、存在しないフィールドには `null` が返ります。Page 側は `Emit Page Event` で応答でき、それはこの Frame の [Events](/ja/docs/studio/blueprint/nodes/events) にある `Page Event` ヘッドに届きます。
+- **`params` は組み込まれた Page の Page props です。** Frame の内側の Page は [App](/ja/docs/studio/blueprint/nodes/app) の `Get Page Props` でオブジェクト全体を、[Data](/ja/docs/studio/blueprint/nodes/data) の `Get JSON Field` で1つのフィールドを読み取ります。存在しないフィールドには `null` が返ります。Page 側は `Emit Page Event` で応答でき、それはこの Frame の [Events](/ja/docs/studio/blueprint/nodes/events) にある `Page Event` ヘッドに届きます。
 - **何も変えない書き込みは何もしません。** 2 つの書き込みノードはいずれも、渡された対象と params を現在の値と比較します（params は JSON としての等価性で比較されます）。両方が一致していれば早期に処理を終えます。再実行しても Page が再マウントされることはなく、入場アニメーションが再生されることもありません。
 - **これらのノードはいずれも Blueprint Value の中では動作しません。** `Get` ノードは pure ですが、Blueprint Value は `widgetValue` オーナー上で評価され、このページのすべてのノードは Frame のメインブループリントにスコープされています。Blueprint Value の中からこの Frame を読み取るには、それを指す `Element` リテラルを置き、Element カテゴリーの読み取りノードを使ってください。
 
@@ -29,11 +29,13 @@ description: Frame がどの Page を表示するか、そしてその Page に�
 
 | フィールド | 内容 |
 | --- | --- |
-| `targetSurfaceId` | 表示する Page。空の選択肢 `None` を選ぶと Frame をクリアします。 |
+| `Page` | 表示する Page。空の選択肢 `None` を選ぶと Frame をクリアします。 |
 
 <Callout type="warn">
 カード上の Page 選択は、変更したときだけでなく実行のたびに書き込まれます。`Page props` だけを接続していても、`Set Frame Page` が `None` のままであれば Frame はクリアされます。対象を変えずに props だけを変更したい場合は `Set Params` を使ってください。
 </Callout>
+
+Frame が Page を切り替えている間、その内側でのクリックなどのポインター入力は Frame で止まります。離れていく Page は入力を受け付けず、新しく来る Page の要素はいつもどおり応答します。Frame 自身のヘッド、周囲の要素、Surface、グローバルブループリントには何も届きません。切り替えが終わると、ポインター入力は再び Frame から上へ渡されます。詳しくは[イベントのバブリング](/ja/docs/studio/blueprint/nodes/events#event-bubbling)を参照してください。
 
 ## Get Target Page
 
@@ -68,7 +70,7 @@ Frame が現在表示している Page の id を読み取ります。これは�
 | `params` | out · data | `json` | 常にオブジェクトです。Frame に params がない場合は `{}` になります。 |
 
 <Callout type="info">
-`props.params` は Blueprint Value で駆動できるプロパティの一つです。これに束縛された Blueprint Value は JSON オブジェクトを返さなければなりません——配列、`null`、数値を含むそれ以外の結果は、Page に渡される前に `{}` へ正規化されます。バインディングが有効な間、その結果はレンダリング時にのみ保存済みの params を上書きします。`Set Params` と `Set Frame Page` の `Page props` は依然として保存された値を書き込み、`Get Params` も依然としてその値を返すため、これらの書き込みが Page に届くことはありません。
+Frame の `params` は Blueprint Value で駆動できるプロパティの一つです。これに束縛された Blueprint Value は JSON オブジェクトを返さなければなりません——配列、`null`、数値を含むそれ以外の結果は、Page に渡される前に `{}` へ正規化されます。バインディングが有効な間、その結果はレンダリング時にのみ保存済みの params を上書きします。`Set Params` と `Set Frame Page` の `Page props` は依然として保存された値を書き込み、`Get Params` も依然としてその値を返すため、これらの書き込みが Page に届くことはありません。
 </Callout>
 
 ## Set Enabled
@@ -103,7 +105,7 @@ Frame が現在表示している Page の id を読み取ります。これは�
 | `next` | out · exec | — | |
 | `visible` | in · data | `boolean` | |
 
-`visible` を false にすると、この Frame と内側の Page 全体がランタイムの要素ツリーから取り除かれます——CSS で隠すのとは違います。組み込まれた Page はアンマウントされ、その中のすべてのブループリントが停止し、Frame が戻ってくると `Init` が再び実行されます。非表示になった Frame は自分自身を再表示できません。どこか別の場所から `Set Element Visible` を呼び出す必要があります。非表示にしつつマウントは維持したい場合は、[Displayable](/ja/docs/studio/blueprint/nodes/displayable) の `Set Display` を使ってください。
+`visible` を false にすると、この Frame と内側の Page 全体がランタイムの要素ツリーから取り除かれます——CSS で隠すのとは違います。組み込まれた Page はアンマウントされ、その中のすべてのブループリントが停止し、Frame が戻ってくると `Init` が再び実行されます。非表示になった Frame は自分自身を再表示できません。どこか別の場所から [`Set Frame Visible`](/ja/docs/studio/blueprint/nodes/element/displayable#set-frame-visible) を呼び出す必要があります。非表示にしつつマウントは維持したい場合は、[Displayable](/ja/docs/studio/blueprint/nodes/displayable) の `Set Display` を使ってください。
 
 ## Get Visible
 

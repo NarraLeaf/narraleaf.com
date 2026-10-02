@@ -36,7 +36,7 @@ Get Label（读取标签）读取存储的 `props.label`
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
 
-当 `props.label` 由 Blueprint Value 驱动时，该值只在渲染时覆盖存储值。`Set Label` 仍然写入存储值，`Get Label` 也仍然读回它，于是这一对节点操作的是玩家根本看不到的那个值
+当 `props.label` 由 Blueprint Value 驱动时，该值只在渲染时覆盖存储值。`Set Label` 仍然写入存储值，`Get Label` 也仍然读回它，于是这一对节点操作的是玩家根本看不到的那个值。标签来源为**翻译键**时同样如此：游戏显示的是该键的文本
 
 ## Set Pointer
 
@@ -92,7 +92,7 @@ Set Visible（设置可见性）
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible` 传 false 会把按钮及其子树从运行时元素树上摘掉——这不是 CSS 隐藏。控件会卸载，本蓝图随之停止，回来时 `Init` 会重新执行，因此隐藏后的按钮无法自己再现身：必须由别的地方对它调用 `Set Element Visible`。想要隐藏但保持挂载，请使用 Displayable `Set Display`
+`visible` 传 false 会把按钮及其子树从运行时元素树上摘掉——这不是 CSS 隐藏。控件会卸载，本蓝图随之停止，回来时 `Init` 会重新执行，因此隐藏后的按钮无法自己再现身：必须由别的地方对它调用 [`Set Button Visible`](/zh/docs/studio/blueprint/nodes/element/displayable#set-button-visible)。想要隐藏但保持挂载，请使用 Displayable `Set Display`
 </Callout>
 
 ## Get Visible
@@ -126,4 +126,4 @@ Get Variant（读取变体）出于同样的原因在创建浮窗中隐藏，而
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | 按钮处于默认变体时为空|
+| `variantId` | out · data | `string` | 有运行时覆盖时返回覆盖值，否则返回 authored 默认变体，再否则返回第一个变体。按钮没有变体时为`""`|

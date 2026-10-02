@@ -3,7 +3,7 @@ title: ノード
 description: 組み込みノードカタログ。パレットの分類ごとに1ページ、各ノードのシグネチャを収録
 ---
 
-組み込みカタログには、27 の分類にまたがる 610 個のノードがあります。分類とは、パレット内でナビゲートするためのグループ分けのことで、これらのページもエディターと同じ構成になっています。
+組み込みカタログには、27 の分類にまたがる 621 個のノードがあります。分類とは、パレット内でナビゲートするためのグループ分けのことで、これらのページもエディターと同じ構成になっています。
 
 ## ノードの読み方
 
@@ -20,7 +20,7 @@ description: 組み込みノードカタログ。パレットの分類ごとに1
 | `Pure` | 副作用がありません。`function` グラフで使用できます。 |
 | `Latent` | 解決するまでグラフを一時停止します。`function` グラフでは決して使用できません。 |
 
-`Pure` であること自体は、そのノードが [Blueprint Value](/ja/docs/studio/blueprint) の中で使えることを意味**しません**。それは別の、より狭い規則です：ノードは pure であり、かつ latent でなく、かつ許可された分類——Data、List、Math、Time、Text、Slider、Displayable、Element、Game——のいずれかに属していなければなりません。これに加えて、少数の個別の例外（`Init` と `On Flush` のヘッド、latent でない Flow、ローカル変数へのアクセス、`Call Fn`、コメント、`Return Value`、および 4 つの Page 状態読み取り）があります。`widgetMain` にスコープされた Self ノードは、フラグに関係なく除外されます。Blueprint Value の中からウィジェットに到達するには、`Element` リテラルと Element カテゴリーの読み取りノードを使います。
+`Pure` であること自体は、そのノードが [Blueprint Value](/ja/docs/studio/blueprint) の中で使えることを意味**しません**。それは別の、より狭い規則です：ノードは pure であり、かつ latent でなく、かつ許可された分類（Data、List、Math、Time、Text、Slider、Displayable、Element、Game）のいずれかに属していなければなりません。これに加えて、少数の個別の例外（`Init` と `On Flush` のヘッド、`Skip Delay` を除く latent でない Flow、ローカル変数へのアクセス、`Memo`、`Call Fn`、コメント、`Return Value`、および 4 つの Page 状態読み取り）があります。`widgetMain` にスコープされた Self ノードは、フラグに関係なく除外されます。Blueprint Value の中からウィジェットに到達するには、`Element` リテラルと Element カテゴリーの読み取りノードを使います。
 
 続いて、ピン表が示されます。
 
@@ -35,11 +35,13 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。*カ
 
 ## 利用可否
 
-このカタログに載っているノードが、必ずしもパレットに表示されるとは限りません。次の 3 つのフィルターが適用されます。
+このカタログに載っているノードが、必ずしもパレットに表示されるとは限りません。次のフィルターが適用されます。
 
 - **グラフの種類。** `function` グラフは、副作用のあるノードと latent ノードを受け付けません。
 - **オーナーとウィジェットの能力。** Self ノードは、その能力を持つウィジェットのブループリントにのみ表示されます。たとえば `Set Slider Value` は、Text ウィジェットのブループリントには提供されません。
 - **既存のバインディング。** Element ノードは、接続先となる互換性のある `Element`、`Element Flush`、`Element Click` のいずれかのノードがすでにグラフにある場合にのみ表示されます。
+- **項目コンテキスト。** `Get Item Field`、`Get List Item Index`、`Get List Item Key`、`Get List Item Count`、`Get List Item Props` はエレメントがレンダリングしている項目を読み取るため、List の項目テンプレート内にあるエレメントのブループリントにのみ表示されます。
+- **Story Action ブループリント。** ストーリー行から呼び出されるブループリントには、実行中のゲームやそのインターフェースを操作するノードは提供されません。App、Localization、Network、Sound、Voice のノードはなく、Game のノードもほぼすべて提供されません。
 
 <Callout type="info">
 互換性のある接続元が複数存在する場合でも、パレットにはそのノードが1つだけ表示されます。追加すると、接続元が1つだけならそこへ自動的に接続されます。複数ある場合は、対象の入力を未接続のまま残し、選択できるようにします。
@@ -49,15 +51,15 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。*カ
 
 | 分類 | ノード数 | 内容 |
 | --- | --- | --- |
-| [Events](/ja/docs/studio/blueprint/nodes/events) | 52 | エントリーポイント：ライフサイクル、入力、Surface の遷移、Broadcast。 |
+| [Events](/ja/docs/studio/blueprint/nodes/events) | 53 | エントリーポイント：ライフサイクル、入力、Surface の遷移、Broadcast。 |
 | [Flow](/ja/docs/studio/blueprint/nodes/flow) | 13 | 分岐、ループ、順序制御、遅延。 |
 | [Functions](/ja/docs/studio/blueprint/nodes/functions) | 3 | 関数のエントリー、呼び出し、リターン。 |
 | [Variables](/ja/docs/studio/blueprint/nodes/variables) | 9 | ブループリント変数と永続変数の宣言と読み取り。 |
 | [Data](/ja/docs/studio/blueprint/nodes/data) | 95 | リテラル、変換、述語、JSON、文字列、配列。 |
 | [Math](/ja/docs/studio/blueprint/nodes/math) | 31 | 算術、丸め、ブール論理、比較。 |
 | [Time](/ja/docs/studio/blueprint/nodes/time) | 15 | 時刻、カレンダー、テキストとしての日付。 |
-| [Game](/ja/docs/studio/blueprint/nodes/game) | 89 | ストーリー制御、ダイアログ、設定、セーブ、バックログ。 |
-| [App](/ja/docs/studio/blueprint/nodes/app) | 26 | Surface のナビゲーション、ウィンドウ、アプリケーションのライフタイム。 |
+| [Game](/ja/docs/studio/blueprint/nodes/game) | 96 | ストーリー制御、ダイアログ、設定、セーブ、バックログ。 |
+| [App](/ja/docs/studio/blueprint/nodes/app) | 29 | Surface のナビゲーション、ウィンドウ、アプリケーションのライフタイム。 |
 | [Localization](/ja/docs/studio/blueprint/nodes/localization) | 6 | ゲームのプレイヤー向けロケール。 |
 | [Network](/ja/docs/studio/blueprint/nodes/network) | 3 | HTTP リクエストとレスポンスの読み取り。 |
 | [Displayable](/ja/docs/studio/blueprint/nodes/displayable) | 9 | ジオメトリ、外観バリアント、プロパティアニメーション。 |

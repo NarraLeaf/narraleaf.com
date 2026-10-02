@@ -20,9 +20,10 @@ Those counts are what the palette offers. A handful of superseded nodes are docu
 
 These hold for every Element node, on this page and the four above.
 
-- **The target arrives on a data pin.** Displayable, Text, Button, Container, Image and Frame nodes call it `element`; List nodes use `list`, Slider nodes use `slider`, Text Input nodes use `textInput`. Its `valueType` is bare `element` for the Displayable family and `element:<widgetType>` everywhere else, which is what stops you feeding a Slider into a Text node.
+- **The target arrives on a data pin.** Displayable, Text, Button, Container, Image and Frame nodes call it `element`; List nodes use `list`, Slider nodes use `slider`, Switch nodes use `switch`, Text Input nodes use `textInput`. The `visible` / `enabled` pair calls it `element` on every widget type. Its `valueType` is bare `element` for the Displayable family and `element:<widgetType>` everywhere else, which is what stops you feeding a Slider into a Text node.
 - **One palette entry per node type, never one per element.** If the graph holds exactly one compatible binding, placing the node wires the target pin to it for you. With two or more the pin is left empty and you pick.
-- **Same Surface only.** An `Element` literal can only name an element on its own Surface, and the runtime checks again at execution time — a reference whose Surface differs from the executing owner's is rejected. See [Surfaces](/docs/studio/blueprint/surfaces).
+- **Same Surface or component only.** An `Element` literal can only name an element on its own Surface or, in a component's own blueprint, an element of that component. The runtime checks again at execution time and rejects a reference to anything else. See [Surfaces](/docs/studio/blueprint/surfaces).
+- **Inside a list row or a component placement, the target is that drawing's copy.** A graph running for one row of a list, or for one placement of a component, reaches that row's or that placement's copy of an element inside the item template or the component. An element outside them is the element itself, so an `Item Click` that shows a panel beside the list shows that panel. Readers read the same copy that writers write.
 - **Readers are `Pure`, writers are `Latent`.** Readers are legal in `event`, `function` and `macro` graphs and may back a Blueprint Value; writers are legal in `event` and `macro` only, because they await the host.
 - **Writes land on the runtime patch layer**, not on the authored UI document. A write that actually changes a value queues a flush for the target element; writing the value that is already there does not, and neither do reads or scroll requests.
 - **Inside a Blueprint Value, a read records what it read.** The binding re-evaluates when one of the element properties it actually touched changes, rather than on every flush.
@@ -39,7 +40,7 @@ The one node that is about the wiring itself rather than about a widget's proper
 
 `blueprint.element.ref` · Pure
 
-The binding every other Element node waits for. Click the card and Studio switches to the UI editor for the same Surface; pick a non-root element, confirm, and the node stores `surfaceId`, `elementId` and `elementType` before returning you to the blueprint. One `Element` node can fan out to as many readers and writers as you want.
+The binding every other Element node waits for. Click the card and Studio switches to the UI editor for the same Surface (in a component's own blueprint, to that component); pick a non-root element, confirm, and the node stores `surfaceId`, `elementId` and `elementType` before returning you to the blueprint. One `Element` node can fan out to as many readers and writers as you want.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

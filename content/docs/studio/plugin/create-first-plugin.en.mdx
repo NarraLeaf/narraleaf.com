@@ -95,7 +95,7 @@ Each entry is a prebundled ESM file. They are physically isolated: importing `na
 Declare only what you need. A UI-only plugin needs just `studio`. A plugin whose blueprint node must run in shipped games needs **both** — the `studio` entry for the editor, the `runtime` entry for the game.
 
 <Callout type="warn">
-A blueprint node registered only from the `studio` entry appears in the editor palette but has no code in a shipped game. It runs in the in-editor preview (the studio entry carries `execute` too), then silently does nothing once the game is exported. Register it from the runtime entry as well.
+A blueprint node registered only from the `studio` entry appears in the editor palette but has no code in a shipped game. It runs in the in-editor preview (the studio entry carries `execute` too), but in Dev Mode and in the game the graph stops at that node with an error. Register it from the runtime entry as well.
 </Callout>
 
 ## A blueprint node, registered from both entries
@@ -104,11 +104,11 @@ Write the node definition once in a shared module, then register the same array 
 
 ```ts
 // src/nodes.ts
-import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+import type { PluginBlueprintNodeDef } from "narraleaf-studio/plugin";
 
 export const PLUGIN_ID = "yourname.hello";
 
-export function createNodes(): BlueprintNodeDef[] {
+export function createNodes(): PluginBlueprintNodeDef[] {
     return [
         {
             type: `${PLUGIN_ID}.log`,
@@ -163,7 +163,7 @@ export default defineRuntimePlugin({
 });
 ```
 
-Both `registerMany` calls accept the same `BlueprintNodeDef[]`; the runtime side uses only `type`, `displayName` and `execute` and ignores the editor metadata. This one-definition-two-entries shape is why the types package bundles both surfaces together — a `BlueprintNodeDef` from `/plugin` is assignable to what the `/runtime` register expects.
+Both `registerMany` calls accept the same `PluginBlueprintNodeDef[]`; the runtime side uses only `type`, `displayName` and `execute` and ignores the editor metadata. This one-definition-two-entries shape is why the types package bundles both surfaces together: a `PluginBlueprintNodeDef` from `/plugin` is assignable to what the `/runtime` register expects.
 
 ### Reading config
 

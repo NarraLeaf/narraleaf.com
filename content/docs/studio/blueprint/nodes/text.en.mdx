@@ -3,14 +3,14 @@ title: Text
 description: Self nodes for the nl.text widget — reading and writing content, typography, colour, and static effects.
 ---
 
-The Text category is the Self node set of the `nl.text` widget: the string it shows, the typeface and metrics it shows it in, and the static effects layered on top. These nodes appear only in the palette of an `nl.text` element's own `widgetMain` blueprint, and every one of them acts on that element. To reach a *different* text element, use the `blueprint.element.text.*` node of the same name from the [Element](/docs/studio/blueprint/nodes/element) category — the same properties, plus an `element:nl.text` input to aim it.
+The Text category is the Self node set of the `nl.text` widget: the string it shows, the typeface and metrics it shows it in, and the static effects layered on top. These nodes appear only in the palette of an `nl.text` element's own blueprint (`widgetMain` or `componentWidgetMain`), and every one of them acts on that element. The two widgets built on `nl.text`, `nl.dialog.sentence` and `nl.nvl.texts`, offer them too. To reach a *different* text element, use the `blueprint.element.text.*` node of the same name from the [Element](/docs/studio/blueprint/nodes/element) category — the same properties, plus an `element:nl.text` input to aim it.
 
 ## Conventions
 
 - **No target pin.** A Self node has no `Element` input; it resolves its target from the blueprint's execution owner. There is nothing to wire, and nothing to aim at the wrong element.
 - **Reads are `Pure`, writes are `Latent`.** Every getter is side-effect free and legal in `event`, `function` and `macro` graphs. Every setter suspends the graph while the host applies the patch, which bars it from `function` graphs — a function returns synchronously to its caller and has nowhere to hold a pending write.
-- **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain`, so the getters never appear in that palette even though they are pure. To read text properties from a Blueprint Value, use the Element-targeted getters with an `Element` literal.
-- **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a setter fails with `Host API unavailable (use Dev Mode)`, and a getter produces nothing at all.
+- **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain` and `componentWidgetMain`, so the getters never appear in that palette even though they are pure. To read text properties from a Blueprint Value, use the Element-targeted getters with an `Element` literal.
+- **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a setter fails with `This node runs only in a running game. Open Dev Mode to run it.`, and a getter produces nothing at all.
 - **A write that changes nothing does nothing.** Each setter normalizes its patch, compares it against the element's current properties, and returns early when they match — no repaint and no `On Flush` for that element. Getters never queue a flush either, so a graph can poll properties without driving itself in a loop.
 - **An unwired or unrecognised input is not "leave it alone".** With no edge, nothing typed on the card, or a value outside the allowed set, most setters write a fixed fallback instead of keeping the current value: `Set Text` writes an empty string, `Set Font` clears the font, `Set Font Size` writes `16`, `Set Line Height` writes `1.4`, and each enum setter writes the first value of its list. Nothing is rejected and nothing throws. Only `Set Text Color`, `Set Effects`, and every pin of `Set All Properties` fall back to what the element already has.
 
@@ -37,7 +37,7 @@ Replaces the whole string.
 | `text` | in · data | `string` | Writes an empty string when nothing resolves. Accepts an on-card literal. |
 
 <Callout type="warn">
-If the element's `props.text` is bound to a [Blueprint Value](/docs/studio/blueprint), the binding wins. The computed value is layered over `props.text` on every render and is never written back, so `Set Text` stores a string nobody sees and `Get Text` reads the stored string rather than the one on screen. Change the data the value graph reads instead.
+If the element's `props.text` is bound to a [Blueprint Value](/docs/studio/blueprint), the binding wins. The computed value is layered over `props.text` on every render and is never written back, so `Set Text` stores a string nobody sees and `Get Text` reads the stored string rather than the one on screen. Change the data the value graph reads instead. A text whose source is **Translation key** behaves the same way: the game shows the key's text, and the string `Set Text` writes is not displayed.
 </Callout>
 
 ## Append Text

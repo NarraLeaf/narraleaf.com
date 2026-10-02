@@ -6,14 +6,15 @@ description: 実行中のゲームを操作するノード——開始と終了�
 Game 分類は、ブループリントと実行中のストーリーをつなぐ接合部です。ここにあるものはすべて、稼働中の NarraLeaf ランタイムと話します：プレイそのもの、画面上のダイアログ、プレイヤーの環境設定、プロジェクトのローカルセーブ、そしてダイアログの履歴です。タイトル画面、設定画面、セーブ/ロードのグリッド、バックログは、いずれもこのページのノードから組み立てられます。
 
 <Callout type="warn">
-ここにあるすべてのノードは、実行中のゲームを必要とします。エディターのキャンバスにはそれがありません——そこに置かれた Game ノードは `Host API unavailable (use Dev Mode)` で失敗し、それを読む Blueprint Value は空としてプレビューされます。すべて Dev Mode で確認してください。
+ここにあるすべてのノードは、実行中のゲームを必要とします。エディターのキャンバスにはそれがありません。そこに置かれた Game ノードは `This node runs only in a running game. Open Dev Mode to run it.`（`このノードはゲームの実行中にしか使えない。開発モードで実行する`）で失敗し、それを読む Blueprint Value は空としてプレビューされます。すべて Dev Mode で確認してください。
 </Callout>
 
 ## 規約
 
-- **ほぼ pure か latent のどちらかです。** 41 個の取得系ノードは `Pure` で、`event`・`function`・`macro` のいずれのグラフにも現れ、Blueprint Value を支えることができます。47 個は `Latent` で、そのため `event` と `macro` に限られます——latent ノードは `function` の中に保留中の結果を渡す場所がありません。89 個目にあたる `Clear Visited` は例外です：副作用はありますが同期的であるため、latent ではないのに latent ノードと同じく `event` と `macro` に属します。
-- **ホスト API を使えることと、プレイ中であることは別です。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`、`Get Latest Auto Save` はプロジェクトのセーブストアを読み取るもので、ゲームが実行されていなくても、プレイとプレイの間で機能します。エンディング、訪問済み、DLC、ビルドバリアントの読み取りノードも同様です——エンディングギャラリーは、まだゲームが存在しないタイトル画面から開かれます。一方、稼働中のゲームをシリアライズ・デシリアライズ・操作するものはすべて実行中のゲームを必要とし、それがなければ失敗します。
-- **状態を読み取るノードは緩やかに縮退しますが、環境設定を読み取るノードはそうしません。** pure な状態読み取りノード——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、2 つのプレイ時間読み取り、そしてエンディング・訪問済み・DLC・ビルドバリアント・キャラクターの各読み取りノード——はすべて、何も再生されていないときには中立の値で答えます：`false`、`null`、`0`、空の配列、色ならば不透明な白、トラック音量ならば等倍です。これにより、1 つの共有 Page がこれらの値で分岐でき、ギャラリーの行がロック状態の見た目をピンに直接束縛できます。16 個の環境設定取得ノードはこの例外です：稼働中の `GamePreference` を読み取り、ゲームがなければ失敗します。`Is Dialog Shown` もその 1 つです——`showDialog` の設定を読み取るもので、キーではなく問いにちなんで名付けられています。
+- **ほぼ pure か latent のどちらかです。** 44 個のノードは `Pure` で、`event`・`function`・`macro` のいずれのグラフにも現れ、Blueprint Value を支えることができます。51 個は `Latent` で、そのため `event` と `macro` に限られます。latent ノードは `function` の中に保留中の結果を渡す場所がありません。96 個目にあたる `Clear Visited` は例外です：副作用はありますが同期的であるため、latent ではないのに latent ノードと同じく `event` と `macro` に属します。
+- **Story Action ブループリントには提供されません。** ストーリー行から呼び出されるブループリントにはゲームのホストがないため、そのパレットには `Get Build Variant` を除き、このページのノードは表示されません。
+- **ホスト API を使えることと、プレイ中であることは別です。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Line`、`Get Save Story`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`、`Get Latest Auto Save` はプロジェクトのセーブストアを読み取るもので、ゲームが実行されていなくても、プレイとプレイの間で機能します。エンディング、訪問済み、DLC、ビルドバリアントの読み取りノードも同様です——エンディングギャラリーは、まだゲームが存在しないタイトル画面から開かれます。一方、稼働中のゲームをシリアライズ・デシリアライズ・操作するものはすべて実行中のゲームを必要とし、それがなければ失敗します。
+- **状態を読み取るノードは緩やかに縮退しますが、環境設定を読み取るノードはそうしません。** pure な状態読み取りノード——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、2 つのプレイ時間読み取り、そしてエンディング・訪問済み・DLC・ビルドバリアント・キャラクターの各読み取りノード——はすべて、何も再生されていないときには中立の値で答えます：`false`、`null`、`0`、空の配列、色ならば不透明な白、トラック音量ならば等倍です。これにより、1 つの共有 Page がこれらの値で分岐でき、ギャラリーの行がロック状態の見た目をピンに直接束縛できます。18 個の環境設定取得ノードはこの例外です：稼働中の `GamePreference` を読み取り、ゲームがなければ失敗します。`Is Dialog Shown` もその 1 つです——`showDialog` の設定を読み取るもので、キーではなく問いにちなんで名付けられています。
 - **環境設定の初期化は `App Boot` ではなく `On Game Ready` から行ってください。** `App Boot` は `LiveGame` が存在する前に実行されることがあり、稼働中のゲームがない状態での環境設定への書き込みは失敗します。[Events](/ja/docs/studio/blueprint/nodes/events) を参照してください。
 - **セーブ id は検証されます。** id は前後の空白が取り除かれ、空であってはならず、パス区切り文字や制御文字を含んではいけません。ディスク上のファイル名はその id のハッシュから付けられ、選んだ id 自体はレコードのメタデータの中に保持されます。
 
@@ -33,6 +34,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `storyId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます。 |
 | `sceneId` | in · data | `string` | 省略可能です。接続されている場合はカードより優先されます——これは `Import Progress` がその `Scene` を渡すピンです。 |
 | `startBlockId` | in · data | `string` | 省略可能で、**From Row** というラベルが付き、接続専用です。シーンの先頭ではなく、指定した行から開始します。 |
+| `inheritFrom` | in · data | `SaveSlot` | 省略可能です。新しいゲームが進行状況を引き継ぐセーブです。下記を参照してください。 |
 
 **カード上のフィールド**
 
@@ -43,21 +45,24 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 
 このピッカーは、作者が 10 回のうち 9 回まで使うものです：プロジェクト自身の story を列挙し、綴りを間違えることがありません。ピンは残りの 1 割のため——グラフを書いている時点では対象がわからない場合です。プレイヤーがいた場所から再開する Continue ボタンなどがこれにあたります。
 
+`inheritFrom` を接続した場合も、ゲームは選んだ scene から新しく始まり、そのうえでそのセーブの[セーブ変数](/ja/docs/studio/blueprint/variables#セーブ変数)と訪問済みの scene（`Is Scene Visited` が読み取る記録）を引き継ぎます。ステージ、バックログ、ストーリーの位置は引き継がれません。それらを復元するのは `Load Save` です。[`Save Slot`](#save-slot) はセーブストアにあるセーブを渡すもので、クリア済みのセーブから始める周回プレイに使います。[`Current Game`](#current-game) は進行中のプレイを渡すもので、別の story へ続くルートに使います。何も指していないスロットを渡すと、ストーリーが始まる前にノードが失敗します。
+
 ### Quit Game
 
 `blueprint.game.quit` · Latent
 
-プレイを終了し、カードで選んだ Page を開きます。この呼び出し 1 つですべてを行います：稼働中のゲームとそのセッションを破棄し、保留中の開始リクエストをキャンセルし、ダイアログのネームタグをクリアし、通常の Page 表示を復元してから遷移します——このノードの後に `Go Page` を接続する必要はありません。
+プレイを終了し、カードで選んだ Page を開きます。この呼び出し 1 つですべてを行います：稼働中のゲームとそのセッションを破棄し、保留中の開始リクエストをキャンセルし、Page を開いてから、ダイアログのネームタグをクリアして通常の Page 表示を復元します。このノードの後に `Go Page` を接続する必要はありません。Page が表示されるまではゲームの最後のフレームが画面に残りますが、`Is In Game` はその時点ですでに `false` を返します。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | 省略可能で、**Page Id**（ページ Id）というラベルが付きます。接続されている場合はカードより優先されます。 |
 
 **カード上のフィールド**
 
 | フィールド | 内容 |
 | --- | --- |
-| `Page` | ゲームが終了した後に開く [Surface](/ja/docs/studio/blueprint/surfaces)。必須です。 |
+| `Page` | ゲームが終了した後に開く [Surface](/ja/docs/studio/blueprint/surfaces)。`surfaceId` が接続されていない限り必須です。 |
 
 ### Is In Game
 
@@ -147,7 +152,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | --- | --- | --- | --- |
 | `nametag` | out · data | `string` | 話者がいない場合は `null` です。 |
 
-デフォルトのダイアログテンプレートは、そのウィジェット自身のブループリントから普通の `nl.text` のネームタグを駆動します——`Init` と `On Flush` を `Get Nametag` につなぎ、その結果の null チェックをテキストと不透明度に反映させます。特別なネームタグ用ウィジェットは関与しません。
+デフォルトのダイアログテンプレートは、普通の `nl.text` のネームタグの `text` を Blueprint Value に束縛します：`Init` と `On Flush` を `Return Value` につなぎ、その値を `Get Nametag` から渡します。特別なネームタグ用ウィジェットは関与しません。
 
 ### Get Speaker Avatar
 
@@ -323,6 +328,28 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `cps` | in · data | `float` | カード上にリテラル値を入力できます。 |
+
+### Get Text Fade In
+
+`blueprint.game.getTextRevealDuration` · Pure
+
+新しく表示される各文字がフェードインするのにかかる時間をミリ秒で表す `textRevealDuration` を読み取ります。`0` の場合、各文字は最初から完全に表示されます。文字送りの速度が速いときは、文字送りに追いつくようにフェードが短くなります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `textRevealDuration` | out · data | `float` | カード上では **Text Fade In**（文字のフェードイン）というラベルが付きます。 |
+
+### Set Text Fade In
+
+`blueprint.game.setTextRevealDuration` · Latent
+
+`textRevealDuration` をミリ秒で書き込みます。`0` 以上の有限数でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `textRevealDuration` | in · data | `float` | カード上では **Text Fade In**（文字のフェードイン）というラベルが付きます。カード上にリテラル値を入力できます。 |
 
 ### Get Auto Forward
 
@@ -628,6 +655,28 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `next` | out · exec | — | |
 | `voiceEndMode` | in · data | `string` | カード上にリテラル値を入力できます。 |
 
+### Get Mute When Unfocused
+
+`blueprint.game.getMuteOnWindowBlur` · Pure
+
+ゲームのウィンドウがプレイヤーの操作しているウィンドウでない間、ゲームを無音にするかどうかを表す `muteOnWindowBlur` を読み取ります。プレイヤーが戻ると音は元の音量で戻り、その間に音量の設定が変わることはありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `muteOnWindowBlur` | out · data | `boolean` | カード上では **Mute When Unfocused**（非アクティブ時にミュート）というラベルが付きます。 |
+
+### Set Mute When Unfocused
+
+`blueprint.game.setMuteOnWindowBlur` · Latent
+
+`muteOnWindowBlur` を書き込みます。真偽値でなければなりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muteOnWindowBlur` | in · data | `boolean` | カード上では **Mute When Unfocused**（非アクティブ時にミュート）というラベルが付きます。 |
+
 ### Get Track Volume
 
 `blueprint.game.getTrackVolume` · Pure
@@ -668,6 +717,8 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 
 セーブはプロジェクトローカルであり、選んだ id をキーとします。同じ id に 2 回書き込むと上書きされます。
 
+下記のノードのうち 1 件のセーブを対象とするものは、それを 2 通りの方法で受け取ります：`id` ピンの id か、省略可能な `slot` ピンの `SaveSlot` です。`slot` が接続されている場合は `id` より優先されます。[`Save Slot`](#save-slot) は id からスロットを作るため、1 つの id を複数のノードに渡せます。[`Current Game`](#current-game) は進行中のプレイのスロットを作りますが、これを受け付けるのは `Start Game` だけです。他のセーブ系ノードはこれを渡されると失敗します。
+
 <Callout type="warn">
 `List Saves` はプレイヤーのスロットのみを返します。オートセーブは予約済みの id 名前空間——`@autosave.<n>`——に存在し、代わりに `List Auto Saves` で一覧できます。この 2 つの集合が重なることはありません。これは意図的な設計です：`List Saves` で組み立てたセーブ/ロードのグリッドは、Studio 自身の管理用の行を除外する必要が一切なく、オートセーブ画面もプレイヤーのスロットを隠す必要が一切ありません。オートセーブの id は、それ以外の場面では普通のセーブ id として扱われるため、変更なしで `Load Save`、`Get Save Preview`、`Get Save Metadata`、`Delete Save` に渡せます。
 </Callout>
@@ -694,13 +745,14 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 
 `blueprint.game.save.write` · Latent
 
-稼働中のゲームを、プロジェクトのローカルセーブストアへシリアライズします。`Capture` が `true` の場合は、ステージの PNG も撮影し、そのセーブのプレビューとして保存します。キャプチャに失敗しても、それは報告されますがセーブ自体は失われません。
+稼働中のゲームを、プロジェクトのローカルセーブストアへシリアライズします。`Capture` が `true` の場合は、ステージの画像も撮影してサムネイルサイズに縮小し、そのセーブのプレビューとして保存します。キャプチャに失敗しても、それは報告されますがセーブ自体は失われません。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `metadata` | in · data | `json` | 省略可能です。[JSON](/ja/docs/studio/blueprint/nodes/data) であれば何でも構いません——オブジェクト、配列、文字列、数値、真偽値、または `null`。未接続の場合は `null` として書き込まれます。 |
 | `screenshot` | in · data | `boolean` | 省略可能です。カード上では **Capture** というラベルが付きます。カード上にリテラル値を入力できます。 |
 | 宣言済みフィールドごとに 1 つ | in · data | そのフィールドの型 | フィールドの名前が付きます。リテラル入力に対応する型では、カード上にリテラル値を入力できます。 |
@@ -711,13 +763,14 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 
 `blueprint.game.save.load` · Latent
 
-セーブを読み込み、現在の進行状況をそのために破棄します：ルーターとその履歴がクリアされ、新しいゲームインスタンスが作成されてデシリアライズされ、ルーターが抜けると Page スタックは再びステージの下に隠れます——そのため、この後の `Go Page` はゲームの上にオーバーレイを開きます。
+セーブを読み込み、現在の進行状況をそのために破棄します：ルーターとその履歴がクリアされ、新しいゲームインスタンスが作成されてデシリアライズされ、ルーターが抜けると Page スタックは再びステージの下に隠れます——そのため、この後の `Go Page` はゲームの上にオーバーレイを開きます。プロジェクトの別の story で書かれたセーブは、その story で開かれます。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
-| `failed` | out · exec | — | セーブが存在しない、読み取れない、またはゲームのランタイムが稼働していない場合に実行されます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
+| `failed` | out · exec | — | セーブが存在しない、読み取れない、このビルドのストーリーにセーブが指す位置がもうない、またはプロジェクトの **Older saves**（以前のセーブ）の設定がそれを拒否した場合に実行されます。ゲームのランタイムが稼働していない場合は、ノード自体が失敗します。 |
 
 `next` はありません：ロードが成功すると稼働中のゲームが置き換えられるため、このグラフの続きとして残るものは何もないからです。`failed` だけが唯一の出口であり、それはゲーム側がそう告げる分岐です。
 
@@ -732,12 +785,13 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 
 ### List Saves
 
 `blueprint.game.save.listIds` · Latent
 
-プロジェクトのプレイヤーセーブの id 一覧です。順序は保証されません。破損しているファイルや、メタデータがプレイヤーセーブでないファイルは、報告されるのではなくスキップされます。
+プロジェクトのプレイヤーセーブの id 一覧です。順序は保証されません。破損しているファイルや、メタデータがプレイヤーセーブでないファイルは、報告されるのではなくスキップされます。プロジェクトの **Older saves**（以前のセーブ）の設定で復元されないセーブも除外されるため、一覧に含まれる id はすべて `Load Save` が受け付けるものです。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
@@ -756,6 +810,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `metadata` | out · data | `json` | セーブが存在しない、またはユーザーのメタデータを持たない場合は `null` です。 |
 | 宣言済みフィールドごとに 1 つ | out · data | そのフィールドの型 | フィールドの名前が付きます。セーブがそれを持たない場合は、そのフィールドのデフォルト値です。 |
 
@@ -770,6 +825,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `savedAt` | out · data | `float` | スロットが最後に書き込まれた時刻。セーブが存在しない場合は `0` です。 |
 | `createdAt` | out · data | `float` | スロットが最初に書き込まれた時刻。セーブが存在しない場合は `0` です。 |
 | `exists` | out · data | `boolean` | |
@@ -791,6 +847,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `line` | out · data | `string` | セーブが存在しない場合、または行が一つも再生される前に取られた場合は空です。 |
 | `speaker` | out · data | `string` | ナレーションの場合、および行がまだないセーブの場合は空です。 |
 | `exists` | out · data | `boolean` | |
@@ -798,6 +855,24 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 <Callout type="warn">
 これはバックログの最新のエントリーではありません。バックログは最後に表示された行を保持しますが、この 2 つのフィールドはセーブが再開する行を保持します。オーバーレイからセーブした場合や、最後の行の後にダイアログ以外のアクションが続いた地点からセーブした場合、この 2 つはずれます。
 </Callout>
+
+### Get Save Story
+
+`blueprint.game.save.getStory` · Latent
+
+セーブがプロジェクトのどの story で書かれたかです。ロード画面はこれを使って、スロットをルートごとにまとめたり、ある story のスロットを除外したり、別の story から来たスロットに印を付けたりします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
+| `storyName` | out · data | `string` | このビルドにおけるその story の名前です。そのため、セーブ後に名前が変わった story は現在の名前で読み取られます。このビルドがその story を含まない場合は空です。 |
+| `storyId` | out · data | `string` | その story の生成された id です。名前を変えても変わらないため、グループ化や比較にはこちらを使い、`Start Game` の `storyId` に渡します。 |
+| `exists` | out · data | `boolean` | |
+
+画面に表示するのは `storyName` にし、`storyId` は表示しないでください。セーブが存在しない場合と、セーブが story を記録するようになる前に書かれた場合は、どちらも空になります。この 2 つは `exists` で見分けてください。
 
 ### Get Save Playtime
 
@@ -810,6 +885,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `playtimeSeconds` | out · data | `float` | |
 | `playtimeMilliseconds` | out · data | `float` | |
 | `recorded` | out · data | `boolean` | プレイ時間の記録が始まる前に書かれたセーブでは `false` です——スロット自体は存在しますが、数値は存在しません。 |
@@ -828,7 +904,35 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `id` | in · data | `string` | カード上にリテラル値を入力できます。 |
+| `slot` | in · data | `SaveSlot` | 省略可能です。接続されている場合は `id` より優先されます。 |
 | `preview` | out · data | `ImageAsset\|null` | セーブが存在しない、またはスクリーンショットがない場合は `null` です。 |
+
+### Save Slot
+
+`blueprint.game.save.slot` · Pure
+
+セーブストア内のスロットを id で指定します。セーブ系ノードの `slot` ピンに接続してください。同じスロットから時刻、行、プレビューを読み取るセーブ画面の行では、id を 1 回書くだけで済みます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `id` | in · data | `string` | カード上にリテラル値を入力できます。id が空の場合はノードが失敗します。 |
+| `slot` | out · data | `SaveSlot` | |
+
+### Current Game
+
+`blueprint.game.save.currentRun` · Latent
+
+進行中のプレイを、セーブストアに何も書き込まずにスロットとして取り込みます。`Start Game` の `inheritFrom` ピンのためのノードです：プレイを取り込み、それを使って次の story を開始すると、プレイヤーのセーブ変数と訪問済みの scene が引き継がれます。
+
+取り込んだものは、それを取り込んだイベントの実行が続く間だけ有効です。同じ実行の流れの先にある `Start Game` はそれを使えますが、後のイベントで実行されるグラフは使えません。`Start Game` 以外のセーブ系ノードは、これを渡されると失敗します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `slot` | out · data | `SaveSlot` | |
+
+プレイが進行していない場合、および同じグラフの実行ですでに 8 回取り込んでいる場合は失敗します。
 
 ## オートセーブ
 
@@ -868,6 +972,9 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `slot` | リング内でのスロットのインデックス。 |
 | `timestamp` | 最後に書き込まれた時刻。エポックミリ秒。 |
 | `createdAt` | 最初に書き込まれた時刻。エポックミリ秒。 |
+| `preview` | スロットの画像。`Get Save Preview` が返すものと同じ。ない場合は `null`。 |
+| `line` | スロットが止まった行。`Get Save Line` が読み取るものと同じ。行が一つも再生される前に取られたセーブでは空。 |
+| `speaker` | その行を話した人物。ナレーション、および行がまだないセーブでは空。 |
 | `metadata` | 書き込み側が付けたもの。何もない場合は `null`。 |
 
 エントリーが持つのは**シリアライズされたゲームではなく id** です：`SavedGameData` の塊はグラフの中では何もできませんが、id ならすでにあるセーブ系ノードにそのまま渡せます。
@@ -913,7 +1020,9 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | `type` | 発言された行は `"say"`、確定した選択は `"menu"`。 |
 | `text` | 文、またはメニューのプロンプト。元がなかった場合は空文字列。 |
 | `character` | say エントリーでは話者のネームタグ、メニューとナレーションでは `null`。 |
-| `voice` | say エントリーではボイスクリップの id、ない場合は `null`。 |
+| `avatar` | 話者のダイアログアバター。その行で着ていた差分ではなく、キャラクター自身の画像から取られる。メニュー、ナレーション、プロジェクトに対応するキャラクターがいない話者では `null`。 |
+| `voice` | say エントリーではボイスクリップの URL、ない場合は `null`。グラフ内にこれを受け付けるノードはなく、行を再生し直すには `voiceId` を使う。 |
+| `voiceId` | その行の voice id。[`Play Voice`](/ja/docs/studio/blueprint/nodes/voice) に渡せる。プロジェクトのテイクから再生された行でない場合は `null`。 |
 | `selected` | メニューエントリーでは選ばれた選択肢のテキスト、say エントリーと未確定のメニューでは `null`。 |
 | `isPending` | 現在画面にあり、まだ確定していない行の場合は true。 |
 

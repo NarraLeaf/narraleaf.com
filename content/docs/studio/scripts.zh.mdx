@@ -63,7 +63,11 @@ Studio 在这个目录里只占用两个名字，并在它们旁边生成一个�
 | 页面 | `onSurfaceInit`、`onSurfaceUnmount`、`onBeforeSurfaceExit`、`onAfterSurfaceEnter`、`onBroadcast`、`onElementClick` |
 | 控件 | `onInit`、`onUnmount`、`onFlush`、`onMouseClick`、`onMouseEnter`、`onMouseLeave`，以及该类型的其余事件 |
 
+插件添加的控件，其自身的事件遵循同一条规则：id 为 `rated` 的事件由 `onRated` 响应
+
 导出名如果不在当前位置会调用的名单里，它就只是永远不会被调用
+
+同一个槽位里的脚本图层和蓝图图层响应同一个事件时，脚本图层先运行
 
 ### 剧情行
 
@@ -98,7 +102,8 @@ export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mo
 
 脚本能做什么，就是它所在的槽位能做什么。上下文给出的能力，和等价的那张图被给予的完全相同，不会多出任何一项
 
-- 页面脚本和控件脚本拿到宿主 API、它自己的 `vars` 存储、一个 `AbortSignal`，以及——当槽位位于某个界面上时——`broadcast` 和界面进出场状态的读取器
+- 页面脚本和控件脚本拿到宿主 API、它自己的 `vars` 存储、一个 `AbortSignal` 和 `stopPropagation()`；槽位位于某个界面上时，还有 `broadcast` 和界面进出场状态的读取器。在指针事件上，`stopPropagation()` 让事件不再传到上层元素（见[事件冒泡](/zh/docs/studio/blueprint/nodes/events#event-bubbling)）；在窗口关闭请求上，它让窗口保持打开
+- 为列表某一行运行、或在一个已摆放的组件内部运行的控件脚本，就在那一行或那次摆放中运行。`ctx.self` 带着这一行以及这次摆放的参数，交给 `ctx.host` 的元素 id 指的是这一行或这次摆放里的那一份元素
 - 剧情脚本拿到故事自己的场景变量、存档变量、应用持久化，以及写一行日志用的 `ctx.devtools`。这一档没有 `ctx.host`，能触及的成员都直接挂在上下文上。除此之外什么也没有：没有导航、没有游戏控制、也接触不到控件
 
 ## Blueprint Value
@@ -110,6 +115,8 @@ export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mo
 编译失败的文件，以及没有导出当前位置会调用的任何名称的文件，都会在开发模式中报出，且报在出问题的那个文件上
 
 开发模式的蓝图列表会写明某个槽位运行的是哪个文件、模块是否已加载，并把该文件导出了什么与当前位置实际调用什么并排列出。这就是「为什么什么都没发生」的全部答案，因为编译失败和一个拼成 `onClik` 的处理函数，从别处是分辨不出来的
+
+有脚本编译失败时，打包构建会停止，并列出每个文件及出错的行号和列号。类型错误不会让任何东西停下，因为类型从不被检查
 
 <Callout type="info">
 脚本和其他逻辑一样会被编译进构建产物。它们身上没有任何东西是仅限开发期的

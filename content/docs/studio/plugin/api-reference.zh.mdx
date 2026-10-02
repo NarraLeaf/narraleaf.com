@@ -166,7 +166,7 @@ app.services.widgets.list();
 app.services.widgets.has(type);
 ```
 
-`register` / `registerMany` 返回清理函数。控件的 `type` 必须在 `contributes.widgets` 中声明
+`register` / `registerMany` 返回清理函数。控件的 `type` 必须在 `contributes.widgets` 中声明。模块的 `logicApi` 声明控件的蓝图事件；见 [控件事件](/zh/docs/studio/plugin/studio/widgets#widget-events)
 
 ### services.story.actions
 
@@ -195,7 +195,7 @@ const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
 app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 ```
 
-- `register` / `registerMany` 添加编辑器定义（以及它们用于编辑器内预览的 `execute`）。它们返回 `void`：节点定义一旦注册就无法移除。每个类型都必须在 `contributes.blueprintNodes` 中声明
+- `register` / `registerMany` 添加编辑器定义（以及它们用于编辑器内预览的 `execute`）。它们返回 `void`：节点定义一旦注册就无法移除。每个类型都必须在 `contributes.blueprintNodes` 中声明。定义的类型是 `PluginBlueprintNodeDef`，字段见 [blueprintNodes](/zh/docs/studio/plugin/studio/blueprint-nodes)
 - `registerDynamicSelectOptionsSource(id, provider)` 为某个 `kind: "select"` 的检查器参数提供支持，其选项来自实时的插件状态；它返回一个清理函数。当该状态变化时，调用 `notifyDynamicSelectOptionsChanged()`，以便已打开的节点卡片刷新
 
 ### `ui` 套件
@@ -235,7 +235,7 @@ app.game.blueprintNodes.register({ type, execute });
 app.game.blueprintNodes.registerMany(defs);
 ```
 
-为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `BlueprintNodeDef[]`（一个共享模块）——只会用到 `type`、`displayName` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`
+为每个节点类型注册游戏侧的 `execute`。传入你在 studio 侧注册的同一份 `PluginBlueprintNodeDef[]`（一个共享模块）；只会用到 `type`、`displayName` 和 `execute`。每个类型都必须在 `contributes.blueprintNodes` 中声明。返回 `void`
 
 #### 节点上下文
 
@@ -262,6 +262,8 @@ execute: async ctx => {
 }
 ```
 
+`execute` 返回 `{ nextPort?, nextPorts?, outputValues? }`，或者什么都不返回；见 [返回值](/zh/docs/studio/plugin/studio/blueprint-nodes#return-value)
+
 <Callout type="warn">
 没有 `ctx.hostAdapter` 这个东西。早期版本通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 把宿主完整的内部 API 泄漏了出去——存档、本地化、退出应用——清单里什么都没声明，安装时也什么都没展示给作者。那条路径已经没有了。节点触及的任何东西，都要经由 `ctx.game`，而它恰好就是 `contributes` 声明的那组能力
 </Callout>
@@ -269,11 +271,11 @@ execute: async ctx => {
 ### game.widgets
 
 ```ts
-app.game.widgets.register({ type, render });
+app.game.widgets.register({ type, render, logicApi });
 app.game.widgets.registerMany(defs);
 ```
 
-为某个控件类型注册游戏侧渲染器。`render` 收到的 props 与 Studio 传给内置元素渲染器的相同。每个类型都必须在 `contributes.widgets` 中声明。返回 `void`
+为某个控件类型注册游戏侧渲染器。`render` 收到 `RuntimeWidgetRendererProps`，与 studio 控件模块的 `render` 收到的 props 相同；见 [渲染 props](/zh/docs/studio/plugin/studio/widgets#render-props)。传入 studio 模块声明的同一份 `logicApi`，否则控件的事件在 Dev Mode 和游戏里接不到任何图。每个类型都必须在 `contributes.widgets` 中声明。返回 `void`
 
 ### game.data
 
@@ -317,7 +319,7 @@ runtime 入口运行在游戏中——在生产环境里没有编辑器，也没
 ## 注意事项
 
 - **把宿主模块标记为 external。** `narraleaf-studio/plugin`、`narraleaf-studio/runtime` 和 React 相关包都由宿主提供。打包进你自己的副本会破坏加载。模板的 esbuild 配置已经列出了它们
-- **蓝图节点需要两个入口**才能在发布游戏中工作——studio 用于选板，runtime 用于执行。只在 studio 注册的话，只会在编辑器预览中运行，一旦导出就什么都不做
+- **蓝图节点需要两个入口**才能在发布游戏中工作——studio 用于选板，runtime 用于执行。只在 studio 注册的话，它在编辑器预览中运行，而在 Dev Mode 和游戏里，图会在这个节点处报错停止
 - **检查命名空间是否存在，不要去 catch。** 未声明或不可用的能力在 `app.game` 上是缺失的，所以 `app.game.store?.set(...)` 就是全部的防护。没有什么可以 `try`
 - **编辑器无法支撑任何能力。** 同一个 `execute` 也会在编辑器画布上运行，那里每一个受控命名空间都不存在。假定有游戏在跑的节点在那里什么都不会做——请把它写成这件事无所谓的样子
 - **节点定义在整个会话中是永久的。** `blueprintNodes.register` 按设计返回 `void`；你无法注销某个节点类型

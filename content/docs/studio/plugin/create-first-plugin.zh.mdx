@@ -95,7 +95,7 @@ Studio 会从 `contributes` **派生**出安装时的权限提示。不要把 `r
 只声明你需要的部分。纯 UI 插件只需要 `studio`。如果插件的蓝图节点必须在发布游戏中运行，则**两者都需要**——`studio` 入口用于编辑器，`runtime` 入口用于游戏
 
 <Callout type="warn">
-只从 `studio` 入口注册的蓝图节点会出现在编辑器的节点选板中，但在发布游戏里没有对应代码。它能在编辑器内预览中运行（studio 入口同样携带 `execute`），可一旦游戏被导出就会悄无声息地什么都不做。请同时从 runtime 入口注册它
+只从 `studio` 入口注册的蓝图节点会出现在编辑器的节点选板中，但在发布游戏里没有对应代码。它能在编辑器内预览中运行（studio 入口同样携带 `execute`），但在 Dev Mode 和游戏里，图会在这个节点处报错停止。请同时从 runtime 入口注册它
 </Callout>
 
 ## 从两个入口注册同一个蓝图节点
@@ -104,11 +104,11 @@ Studio 会从 `contributes` **派生**出安装时的权限提示。不要把 `r
 
 ```ts
 // src/nodes.ts
-import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+import type { PluginBlueprintNodeDef } from "narraleaf-studio/plugin";
 
 export const PLUGIN_ID = "yourname.hello";
 
-export function createNodes(): BlueprintNodeDef[] {
+export function createNodes(): PluginBlueprintNodeDef[] {
     return [
         {
             type: `${PLUGIN_ID}.log`,
@@ -163,7 +163,7 @@ export default defineRuntimePlugin({
 });
 ```
 
-两处 `registerMany` 调用接受相同的 `BlueprintNodeDef[]`；runtime 侧只使用 `type`、`displayName` 和 `execute`，忽略编辑器元数据。正是这种“一次定义、两个入口”的形态，决定了类型包要把两个接口打包在一起——来自 `/plugin` 的 `BlueprintNodeDef` 可以赋值给 `/runtime` 的 register 所期望的类型
+两处 `registerMany` 调用接受相同的 `PluginBlueprintNodeDef[]`；runtime 侧只使用 `type`、`displayName` 和 `execute`，忽略编辑器元数据。正是这种“一次定义、两个入口”的形态，决定了类型包要把两个接口打包在一起：来自 `/plugin` 的 `PluginBlueprintNodeDef` 可以赋值给 `/runtime` 的 register 所期望的类型
 
 ### 读取配置
 

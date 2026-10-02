@@ -3,12 +3,13 @@ title: Math
 description: Arithmetic, rounding, randomness, boolean logic, and comparison — the pure value nodes.
 ---
 
-Math is where a value gets worked out rather than stored: arithmetic, rounding, min and max, random numbers, boolean logic, and comparison. You reach for these whenever something downstream needs a number or a condition — an `If` branch in [Flow](/docs/studio/blueprint/nodes/flow), a widget size, the next value of a counter. The palette folds the Boolean and Compare node groups into this category as well, so all three are documented here.
+Math is where a value gets worked out rather than stored: arithmetic, rounding, min and max, random numbers, boolean logic, and comparison. You reach for these whenever something downstream needs a number or a condition — an `If` branch in [Flow](/docs/studio/blueprint/nodes/flow), a widget size, the next value of a counter. The Boolean and Compare node groups belong to this category as well, so all three are documented here.
 
 ## Conventions
 
 - **Every node on this page is `Pure`.** None of them has an exec pin. Each computes when something reads its `result`, and each is legal in `event`, `function` and `macro` graphs, and inside a Blueprint Value.
-- **Nothing is cached.** A node runs again on every read, so two edges out of one node evaluate it twice. Harmless for `+`; not harmless for `Random Float`.
+- **Nothing is cached.** A node runs again on every read, so a node read from the body of a loop runs once per pass. Harmless for `+`; not harmless for `Random Float`.
+- **Each `result` feeds one input.** Connecting a second wire from it replaces the first. When one result has to reach several pins, hold it in a [`Memo`](/docs/studio/blueprint/nodes/data#memo).
 - **A wired edge beats the card field.** Pins marked *Accepts an on-card literal* draw a field on the node card, and that field is read only while the pin has no edge.
 - **Anything that is not a finite number reads as NaN.** A numeric pin takes a finite number as-is, `true` and `false` as `1` and `0`, and a numeric string by parsing it. Everything else — `null`, an empty card field, `Infinity` — is NaN, and a node handed NaN outputs NaN. One missing operand turns every result downstream of it into NaN.
 - **`integer` flows into `float`, never the reverse.** `Round`, `Floor` and `Ceil` output `integer`, which connects to any `float` input; a `float` output will not connect to an `integer` input. Both connect to a `string` input, which is how a computed number reaches [`Log`](/docs/studio/blueprint/nodes/debug).
@@ -97,7 +98,7 @@ Uniform over `[min, max)`: `min` can come out, `max` cannot. The two bounds are 
 Uniform over the whole numbers from `min` to `max`, **both ends included** — `1` and `6` is a die, not a five-sided one. The bounds are sorted, then pulled inward to whole numbers (`min` up, `max` down); if that leaves nothing between them, the result is `min` rounded up.
 
 <Callout type="info">
-Neither random node takes a seed, and neither result is remembered. Every read re-rolls: one `Random Integer` wired to two pins hands each of them a different number, and reading it again later gives another. Write the roll into a variable when the same number has to be used twice.
+Neither random node takes a seed, and neither result is remembered. Every read re-rolls: reading the same `Random Integer` again, on the next pass of a loop or in a later event, gives another number. Hold the roll in a [`Memo`](/docs/studio/blueprint/nodes/data#memo) or write it into a variable when the same number has to be used twice.
 </Callout>
 
 ## Boolean

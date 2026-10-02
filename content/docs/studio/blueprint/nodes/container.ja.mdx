@@ -73,7 +73,7 @@ Set Visible（表示状態の設定）
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible`に false を渡すと、コンテナと**その内部のすべて**がランタイムの要素ツリーから取り除かれます——これは CSS による非表示ではありません。すべての子ウィジェットがアンマウントされ、それらのブループリントは停止し、コンテナが戻ってきたときに`Init`が再び実行されます。隠れたコンテナは自分自身を再表示できません——別の何かがそれに対して`Set Element Visible`を呼び出す必要があります。サブツリーを非表示のままマウントしておきたい場合は、Displayable の`Set Display`を使ってください。
+`visible`に false を渡すと、コンテナと**その内部のすべて**がランタイムの要素ツリーから取り除かれます——これは CSS による非表示ではありません。すべての子ウィジェットがアンマウントされ、それらのブループリントは停止し、コンテナが戻ってきたときに`Init`が再び実行されます。隠れたコンテナは自分自身を再表示できません。別の何かがそれに対して[`Set Container Visible`](/ja/docs/studio/blueprint/nodes/element/displayable#set-container-visible)を呼び出す必要があります。サブツリーを非表示のままマウントしておきたい場合は、Displayable の`Set Display`を使ってください。
 </Callout>
 
 ## Get Visible
@@ -107,4 +107,4 @@ Get Variant（バリアントの取得）も同じ理由でパレットから非
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | コンテナが既定のバリアントである間は空。 |
+| `variantId` | out · data | `string` | 設定されていればランタイムオーバーライドの値、なければ作成時の既定値、それもなければ最初のバリアント。コンテナにバリアントがない場合は`""`。 |

@@ -9,7 +9,7 @@ Five nodes for the game's voice tracks: playing a take, playing the take attache
 
 - **All five are latent.** They declare `event` and `macro`, so none can appear in a `function` graph or back a Blueprint Value.
 - **A take is addressed by voice id**, which is the line's stable text id — the same key the translation table uses.
-- **Setting the language restarts the game.** See [Language](/docs/studio/workspace/localization) for what a language switch does.
+- **Setting the language takes effect from the next spoken line.** The game does not restart, and the text language is unaffected; that one is set with the nodes in [Localization](/docs/studio/blueprint/nodes/localization).
 
 ## Play Voice
 
@@ -20,21 +20,21 @@ Plays the take recorded for one line, in the dub language currently in force.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `voiceId` | in · data | `string` | The line's voice id. |
 | `next` | out · exec | — | |
+| `voiceId` | in · data | `string` | The line's voice id. |
 | `value` | out · data | `boolean` | Whether a take was found and played. |
 
 ## Play Choice Voice
 
 `blueprint.voice.playChoice` · Latent
 
-Plays the take attached to the choice option this graph is running for. Used inside a choice row, where the row is the only thing that knows which option it is.
+Plays the take attached to the choice option this graph is running for. Used inside a choice row, where the row is the only thing that knows which option it is. Anywhere else it is an execution error.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `interruptOthers` | in · data | `boolean` | Optional, literal. Stops the take another option is already speaking, so hovering down a list does not stack voices. |
 | `next` | out · exec | — | |
+| `interruptOthers` | in · data | `boolean` | Optional, literal. Stops the take another option is already speaking, so hovering down a list does not stack voices. |
 | `value` | out · data | `boolean` | Whether a take was found and played. |
 
 ## Get Voice Language
@@ -54,8 +54,10 @@ Plays the take attached to the choice option this graph is running for. Used ins
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `language` | in · data | `string` | |
 | `next` | out · exec | — | |
+| `language` | in · data | `string` | |
+
+An unknown or empty code is an execution error, and so is running this node in a project with no voice languages.
 
 ## Get Available Voice Languages
 

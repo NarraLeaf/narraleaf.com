@@ -8,8 +8,8 @@ description: あらゆるビジュアルウィジェットが共有するジオ�
 ## 規約
 
 - **Self ノードのみ。** このカテゴリのノードはいずれも`Element`入力を取りません——対象は常にブループリントを所有するウィジェットです。配線された要素に作用するバージョンは、[Element](/ja/docs/studio/blueprint/nodes/element)に`Get Element Property`、`Set Element Variant`などとして存在します。`Stop Element Animation`も`Element`入力を取らないにもかかわらずそちらに分類されています——`AnimationToken`がすでに1つのウィジェット上の1つのアニメーションを指名しているため、他に対象を指定する必要がないからです。
-- **現れる場所。** displayable なウィジェットすべての`widgetMain`ブループリントに現れます——`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`、および5つのステージウィジェット`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`。`Set Variant`と`Get Variant`はより限定的です——Appearance Variant を持つのは`nl.container`、`nl.text`、`nl.image`、`nl.button`のみです。
-- **グラフの種類。** Getter は純粋であり、Blueprint Value の内部を含め`event`、`function`、`macro`のいずれのグラフでも実行できます。Setter は latent であり、`event`と`macro`でのみ実行できます。
+- **現れる場所。** displayable なウィジェットすべての`widgetMain`または`componentWidgetMain`ブループリントに現れます。対象は`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`、および5つのステージウィジェット`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`です。`Set Variant`と`Get Variant`はより限定的です——Appearance Variant を持つのは`nl.container`、`nl.text`、`nl.image`、`nl.button`のみです。
+- **グラフの種類。** Getter は純粋であり、`event`、`function`、`macro`のいずれのグラフでも実行できます。Blueprint Value のオーナーは`widgetValue`であり、これらのノードは提供されません。Blueprint Value からウィジェットを読み取るには、Element のバージョンを`Element`リテラルとともに使用してください。Setter は latent であり、`event`と`macro`でのみ実行できます。
 - **書き込みはランタイムのパッチレイヤーに反映される**のであって、作成済みの UI ドキュメントには反映されません。何も変えない書き込みは flush をキューしません。
 - **座標は Surface のデザインピクセルです**——インスペクタの Position の`X` / `Y`が示すのと同じ数値です。
 - **単位。** カードは各数値フィールドの横に単位を表示します——`x` / `y` / `offsetX` / `offsetY` / `width` / `height`は`px`、`rotation`は`deg`、`scale`は`x`、時間は`s`、`opacity`は`%`。不透明度を除くすべては入力されたとおりに保存されます。不透明度はカード上ではパーセンテージですが、実行時には`0`–`1`の小数であり、すべての Getter が返すのも`0`–`1`です。

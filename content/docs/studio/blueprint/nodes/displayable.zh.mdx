@@ -8,8 +8,8 @@ description: 每个可视控件共有的几何与外观接口——属性、Appe
 ## 约定
 
 - **只有 Self 节点。** 本分类下没有任何节点带`Element`输入，目标永远是拥有该蓝图的控件。作用于连入元素的版本放在 [Element](/zh/docs/studio/blueprint/nodes/element) 分类，叫`Get Element Property`、`Set Element Variant`等。`Stop Element Animation`也归在那里，尽管它没有`Element`输入——一个`AnimationToken`已经指明了某个控件上的某个动画，没有别的目标可指
-- **出现位置。** 出现在每一种可显示控件的`widgetMain`蓝图中：`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`，以及五个舞台控件`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant
-- **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图，也可用于 Blueprint Value。写入节点是 latent（会挂起执行），只能用于`event`和`macro`
+- **出现位置。** 出现在每一种可显示控件的`widgetMain`或`componentWidgetMain`蓝图中：`nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.textInput`、`nl.switch`、`nl.slider`、`nl.list`、`nl.frame`、`nl.video`、`nl.puppet`，以及五个舞台控件`nl.dialog.sentence`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`、`nl.nvl.texts`。`Set Variant`和`Get Variant`更窄：只有`nl.container`、`nl.text`、`nl.image`和`nl.button`拥有 Appearance Variant
+- **图类型。** 读取节点是纯节点，可用于`event`、`function`和`macro`图。Blueprint Value 的宿主是`widgetValue`，不提供这些节点；要在 Blueprint Value 中读取控件，请配合`Element`字面量使用 Element 版本。写入节点是 latent（会挂起执行），只能用于`event`和`macro`
 - **写入落在运行时 patch 层**，不改 authored UI document。没有真正改变任何值的写入不会排队 flush
 - **坐标使用 Surface 设计坐标系**——和检视器 Position `X` / `Y` 显示的是同一组数字
 - **单位。** 卡片会在每个数字输入框旁标出单位：`x` / `y` / `offsetX` / `offsetY` / `width` / `height`用`px`，`rotation`用`deg`，`scale`用`x`，时长用`s`，`opacity`用`%`。除不透明度外，其它属性按输入原样保存。不透明度在卡片上是百分比，在运行时是`0`–`1`的小数，所有读取节点返回的也是`0`–`1`

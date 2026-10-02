@@ -3,14 +3,14 @@ title: テキスト
 description: nl.text ウィジェットの Self ノード——内容、タイポグラフィ、色、静的エフェクトの読み書きです
 ---
 
-Text 分類は `nl.text` ウィジェットの Self ノード集合です。表示する文字列、表示に使う書体と字形の各種数値、そしてその上に重ねる静的エフェクトを扱います。これらのノードは `nl.text` 要素自身の `widgetMain` ブループリントのパレットにのみ現れ、いずれもその要素に対して作用します。**別の**テキスト要素にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) 分類にある同名の `blueprint.element.text.*` ノードを使用してください——プロパティは同一で、対象を指定するための `element:nl.text` 入力が追加されているだけです。
+Text 分類は `nl.text` ウィジェットの Self ノード集合です。表示する文字列、表示に使う書体と字形の各種数値、そしてその上に重ねる静的エフェクトを扱います。これらのノードは `nl.text` 要素自身のブループリント（`widgetMain` または `componentWidgetMain`）のパレットにのみ現れ、いずれもその要素に対して作用します。`nl.text` を基にした 2 つのウィジェット、`nl.dialog.sentence` と `nl.nvl.texts` でも同じノードが提供されます。**別の**テキスト要素にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) 分類にある同名の `blueprint.element.text.*` ノードを使用してください——プロパティは同一で、対象を指定するための `element:nl.text` 入力が追加されているだけです。
 
 ## 規約
 
 - **ターゲットピンはありません。** Self ノードには `Element` 入力がなく、ブループリントの実行元からターゲットを解決します。接続するものがない以上、誤った要素を指定してしまうこともありません。
 - **読み取りは `Pure`、書き込みは `Latent` です。** 各 getter は副作用がなく、`event`、`function`、`macro` グラフで合法です。各 setter はホストがパッチを適用する間グラフを一時停止させるため、`function` グラフには置けません——function は呼び出し元に同期的に戻るため、保留中の書き込みを置いておく場所がありません。
-- **Blueprint Value では使用できません。** Blueprint Value の宿主は `widgetValue` であり、これらのノードのスコープは `widgetMain` であるため、getter が pure であっても、そのパレットには現れません。Blueprint Value からテキストのプロパティを読み取るには、Element を対象とした getter を `Element` のリテラルとともに使用してください。
-- **書き込みにはゲームの実行が必要です。** ホスト API はブループリントの実行時の下でのみ存在します。エディターのキャンバス上では、setter は `Host API unavailable (use Dev Mode)` で失敗し、getter は何も生成しません。
+- **Blueprint Value では使用できません。** Blueprint Value の宿主は `widgetValue` であり、これらのノードのスコープは `widgetMain` と `componentWidgetMain` であるため、getter が pure であっても、そのパレットには現れません。Blueprint Value からテキストのプロパティを読み取るには、Element を対象とした getter を `Element` のリテラルとともに使用してください。
+- **書き込みにはゲームの実行が必要です。** ホスト API はブループリントの実行時の下でのみ存在します。エディターのキャンバス上では、setter は `This node runs only in a running game. Open Dev Mode to run it.`（このノードはゲームの実行中にしか使えない。開発モードで実行する）で失敗し、getter は何も生成しません。
 - **何も変わらない書き込みは何もしません。** 各 setter はパッチを正規化したうえで要素の現在のプロパティと比較し、一致する場合は早期に処理を終えます——その要素の再描画も `On Flush` も発生しません。getter も flush をキューに入れることはないため、グラフは自分自身をループに追い込むことなくプロパティをポーリングできます。
 - **未接続または認識されない入力は「そのままにする」ことを意味しません。** エッジがない、カード上に何も入力されていない、あるいは許可された集合の外の値である場合、ほとんどの setter は現在の値を保持するのではなく、固定のフォールバック値を書き込みます。`Set Text` は空文字列を、`Set Font` はフォントをクリアし、`Set Font Size` は `16` を、`Set Line Height` は `1.4` を書き込み、各列挙型 setter はそのリストの先頭の値を書き込みます。何も拒否されず、何もスローされません。現在の値にフォールバックするのは、`Set Text Color`、`Set Effects`、そして `Set All Properties` のすべてのピンだけです。
 
@@ -37,7 +37,7 @@ Text 分類は `nl.text` ウィジェットの Self ノード集合です。表�
 | `text` | in · data | `string` | 何にも解決できない場合は空文字列を書き込みます。カード上での直接入力に対応します。 |
 
 <Callout type="warn">
-要素の `props.text` が [Blueprint Value](/ja/docs/studio/blueprint) にバインドされている場合、そのバインディングが優先されます。算出された値は毎回の描画時に `props.text` の上に重ねられ、書き戻されることはありません。そのため `Set Text` が保存する文字列は誰の目にも触れず、`Get Text` が読み取るのも画面上のものではなく保存されたその文字列です。値グラフが読んでいるデータそのものを変更してください。
+要素の `props.text` が [Blueprint Value](/ja/docs/studio/blueprint) にバインドされている場合、そのバインディングが優先されます。算出された値は毎回の描画時に `props.text` の上に重ねられ、書き戻されることはありません。そのため `Set Text` が保存する文字列は誰の目にも触れず、`Get Text` が読み取るのも画面上のものではなく保存されたその文字列です。値グラフが読んでいるデータそのものを変更してください。テキストのソースが **Translation key**（翻訳キー）の場合も同様です。ゲームはそのキーのテキストを表示し、`Set Text` が書き込む文字列は表示されません。
 </Callout>
 
 ## Append Text

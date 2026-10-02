@@ -7,7 +7,7 @@ description: 按钮文本与指针、容器裁剪、Switch 的开合状态，以
 
 ## Button
 
-Button 节点带 `element:nl.button` 引脚。Self 形态见 [Button](/zh/docs/studio/blueprint/nodes/button)
+Button 节点带 `element:nl.button` 引脚。按钮的文本来自**翻译键**时，游戏显示的是这个键的文本；`Get Button Label` 和 `Set Button Label` 读写的是按钮自己的文本，只要设置着键，游戏就不会显示它。Self 形态见 [Button](/zh/docs/studio/blueprint/nodes/button)
 
 ### Get Button Label
 
@@ -205,7 +205,7 @@ Frame 节点带 `element:nl.frame` 引脚，操作的是该 Frame 自己的目�
 
 `blueprint.element.frame.setTargetPage` · Latent
 
-把 Frame 切到另一个 Page。下拉框会过滤掉该 Frame 所在的 Page 以及会形成循环嵌套的 Page——Element 形态是靠读取连入的 `Element` 节点所在 Surface 来判断的，所以引用没接上时列表是空的。切换后由 Frame 控件走它原有的进场/出场动画
+把 Frame 切到另一个 Page。下拉框会过滤掉该 Frame 所在的 Page，以及直接或经由组件绕回到它的 Page。Element 形态是通过连入的 `Element` 节点找到这个 Frame 的，所以引用没接上时，下拉框列出全部 Page。切换后由 Frame 控件走它原有的进场/出场动画
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

@@ -7,7 +7,7 @@ description: 读写连入的 nl.text 元素的内容、排版与效果，以及�
 
 ## Text
 
-Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)
+Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。文本元素的文字来自**翻译键**时，游戏显示的是这个键的文本；`Get Text`、`Set Text`、`Append Text` 和 `Clear Text` 读写的是元素自己的文字，只要设置着键，游戏就不会显示这些文字。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)
 
 ### Get Text
 
@@ -121,7 +121,7 @@ Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.tex
 
 `blueprint.element.text.setFontWeight` · Latent
 
-设置字重，可选 `normal`、`600`、`bold`。其它值不会改变当前值
+设置字重，可选 `normal`、`600`、`bold`。其它值一律回退为 `normal`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

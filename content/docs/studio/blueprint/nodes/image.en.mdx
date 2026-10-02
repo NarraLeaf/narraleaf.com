@@ -8,7 +8,7 @@ These nodes drive the interface image widget `nl.image` — the picture in a tit
 ## Conventions
 
 - **Self nodes only.** Nothing here takes an `Element` input; the target is always the `nl.image` that owns the blueprint. The versions that act on a wired element are `blueprint.element.image.*` in [Element](/docs/studio/blueprint/nodes/element), each with an `element:nl.image` input, and they appear only once the graph already holds a compatible binding.
-- **Graph kinds.** The getters are pure and run in `event`, `function`, and `macro` graphs, including inside a Blueprint Value. The writers are latent and run in `event` and `macro` only.
+- **Graph kinds.** The getters are pure and run in `event`, `function`, and `macro` graphs. A Blueprint Value is owned by `widgetValue` and does not offer them; read an image from one with the Element versions and an `Element` literal. The writers are latent and run in `event` and `macro` only.
 - **`ImageAsset` is a structured value**, `{ kind: "imageAsset", assetId }` — not a bare id string. The nullable form `ImageAsset|null` accepts `null` to mean *no image*. A plain `string` on one of these pins is still read as an asset id, which is how graphs saved before the type existed keep running.
 - **Writes rewrite the widget's `imageFill`** (`mode`, `assetId`, `cropPlacement`) or its `imageFlipX` / `imageFlipY`, then queue a flush of the element. A write whose values match what is already there does nothing at all — no patch, no flush.
 - **An unusable input falls back to the current value.** An unrecognised or empty fit mode, a non-numeric crop percentage, and an unwired boolean all leave that property as it was, rather than resetting it.

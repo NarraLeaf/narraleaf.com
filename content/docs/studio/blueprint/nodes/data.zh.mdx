@@ -33,7 +33,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 | `any` | 任意类型 | `any`在两个方向上都匹配|
 | 任意类型 | `any` | |
 
-其它分类的类型也只在同样的地方放宽：`element`能接到任意`element:nl.…`引脚上、也能反过来；`ImageAsset`与`string`都能接进`ImageAsset|null`输入
+其它分类的类型也只在同样的地方放宽：`element`能接到任意`element:nl.…`引脚上、也能反过来，`element`类引脚与`any`则在两个方向上都接不上；`ImageAsset`与`string`都能接进`ImageAsset|null`输入
 
 其余一律拒绝，包括那些作者以为能反过来用的：
 
@@ -49,7 +49,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 </Callout>
 
 <Callout type="info">
-`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值——`Split`的结果、`Parse JSON`、`Get JSON Field`——不能接到`Array Length`或 List 的`Set Items`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
+`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值（`Split`的结果、`Parse JSON`、`Get JSON Field`）不能接到`Array Length`或 List 的`Set List Content`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
 </Callout>
 
 ## 约定
@@ -62,7 +62,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 - **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到
 
 <Callout type="warn">
-`Array Push`、`Set JSON Field`、`Object Set Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)
+`Array Push`、`Set JSON Field`、`Remove JSON Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)
 </Callout>
 
 ## 常量
@@ -1025,7 +1025,7 @@ Array Length（数组长度）
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `start` | in · data | `integer` | 可填字面量。默认 `0` |
-| `count` | in · data | `integer` | 可填字面量。会被夹到 `0` 及以上 |
+| `count` | in · data | `integer` | 可填字面量。会被夹到 `0`–`10000` |
 | `step` | in · data | `integer` | 可填字面量。默认 `1`；`step` 为 `0` 时按 `1` 读——否则那会是 `count` 份 `start`，一个披着 range 外形却永远不前进的循环 |
 | `result` | out · data | `array` | |
 
@@ -1075,7 +1075,7 @@ Array Length（数组长度）
 
 `blueprint.data.jsonArrayLength` · Pure
 
-`Array Length`的旧名字，保留下来让已有的图继续解析。输入不是数组时给出`0`。新图请用`Array Length`
+`Array Length`的旧名字，在创建浮窗中隐藏，保留下来让已有的图继续解析。输入不是数组时给出`0`。新图请用`Array Length`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1147,7 +1147,7 @@ Array Length（数组长度）
 
 ## 对象
 
-这几个节点一次按名字处理一个字段。它们不接受路径——嵌套写入请用`Set JSON Field`。不是 object 的输入按`{}`读取
+`Object Keys` 与 `Object Values` 读取对象的顶层，`Object Merge` 合并两个对象。写入或删除字段请用下方 JSON 一节的 `Set JSON Field` 或 `Remove JSON Field`，它们接受路径。不是 object 的输入按`{}`读取
 
 ### Object Keys
 
@@ -1175,7 +1175,7 @@ Object Values（对象值）
 
 `blueprint.collection.objectSetField` · Pure
 
-`field`是一个纯粹的名字，其中的点是名字的一部分而不是路径分隔。名字为空时原样返回那份副本
+已由`Set JSON Field`取代，它接受路径，因此也能写到嵌套字段；在创建浮窗中隐藏，但已有该节点的图仍能运行。`field`是一个纯粹的名字，其中的点是名字的一部分而不是路径分隔。名字为空时原样返回那份副本
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1188,7 +1188,7 @@ Object Values（对象值）
 
 `blueprint.collection.objectRemoveField` · Pure
 
-Object Remove Field（对象移除字段）
+Object Remove Field（对象移除字段）已由`Remove JSON Field`取代；在创建浮窗中隐藏，但已有该节点的图仍能运行
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1275,7 +1275,7 @@ Object Remove Field（对象移除字段）
 
 `blueprint.data.jsonMakeArray` · Pure
 
-按引脚顺序由动态`Item`输入构造数组，所以下面的签名只有输出。新建节点一个都没有——在卡片上添加。它是产出`array`类型的那个节点，因此也是把构造好的数组交给`Array Length`或 List 的`Set Items`的办法
+按引脚顺序由动态`Item`输入构造数组，所以下面的签名只有输出。新建节点一个都没有——在卡片上添加。它是产出`array`类型的那个节点，因此也是把构造好的数组交给`Array Length`或 List 的`Set List Content`的办法
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1285,7 +1285,7 @@ Object Remove Field（对象移除字段）
 
 `blueprint.data.jsonMergeObject` · Pure
 
-浅合并、`b`为准，与`Object Merge`完全一致。非 object 的输入按`{}`处理
+浅合并、`b`为准，与`Object Merge`完全一致。非 object 的输入按`{}`处理。已由`Object Merge`取代；在创建浮窗中隐藏，但已有该节点的图仍能运行
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1310,15 +1310,15 @@ Object Remove Field（对象移除字段）
 
 `blueprint.data.memo`
 
-执行经过它时读一次输入，把那个值留在输出上，直到执行下一次经过。
+执行经过它时读一次输入，把那个值留在输出上，直到执行下一次经过。第一次经过之前，输出读作 `null`。这个值和蓝图的[变量](/zh/docs/studio/blueprint/variables#蓝图变量)存在同一个 store 里：在 `Init` 里按住的值，之后的 `Mouse Click` 仍然读得到；宿主实例重新开始时，它也跟着重新开始。
 
-它是整份目录里唯一一个可以喂给**多个**下游的数据输出。其余全都是单消费者，而且是两个不同的理由：纯节点每次被读都会重新求值，一个 `Random Float` 接到三个引脚上就是三个数字；执行节点的输出则属于产生它的那一次脉冲。Memo 只有一个写入方——它自己——所以每次读到的都是那次写入留下的东西，扇出去也不会让任何人意外。
+它的输出可以喂给**多个**下游。算出来的数据输出只能接一个下游，从它再拉第二条连线会替换掉第一条，而且是两个不同的理由：纯节点每次被读都会重新求值，同一个 `Random Float` 读两次就是两个数字；执行节点的输出则属于产生它的那一次脉冲。Memo 只有一个写入方——它自己——所以每次读到的都是那次写入留下的东西，扇出去也不会让任何人意外。本页的常量节点、`Element` 绑定和 [`Fn`](/zh/docs/studio/blueprint/nodes/functions#fn) 的参数引脚同样可以扇出，因为每次读到的都是同一个值。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `next` | out · exec | — | |
 | `value` | in · data | `any` | 执行经过时读一次 |
+| `next` | out · exec | — | |
 | `result` | out · data | `any` | 卡片上标作 Value |
 
 它是同步的而不是 latent，这是刻意的：这里没有什么可等的，而 latent 节点会被内联故事值挡在门外。`function` 图保持纯净，所以 Memo 不能放进去。

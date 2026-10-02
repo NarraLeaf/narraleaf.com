@@ -7,7 +7,7 @@ description: Reading and writing the content, typography and effects of a wired 
 
 ## Text
 
-Text nodes carry an `element:nl.text` pin, so the palette offers them only once the graph binds an `nl.text` element. The Self forms are in [Text](/docs/studio/blueprint/nodes/text).
+Text nodes carry an `element:nl.text` pin, so the palette offers them only once the graph binds an `nl.text` element. When a text element takes its words from a **Translation key**, the game shows the key's text; `Get Text`, `Set Text`, `Append Text` and `Clear Text` read and write the element's own words, which the game does not show while the key is set. The Self forms are in [Text](/docs/studio/blueprint/nodes/text).
 
 ### Get Text
 
@@ -121,7 +121,7 @@ Reads the font weight.
 
 `blueprint.element.text.setFontWeight` · Latent
 
-Sets the font weight: `normal`, `600` or `bold`. Anything else leaves the current value alone.
+Sets the font weight: `normal`, `600` or `bold`. Anything else falls back to `normal`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

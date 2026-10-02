@@ -7,7 +7,7 @@ Four small property surfaces: a Button's label and cursor, a Container's clippin
 
 ## Button
 
-Button nodes take an `element:nl.button` pin. The Self forms are in [Button](/docs/studio/blueprint/nodes/button).
+Button nodes take an `element:nl.button` pin. When a button takes its label from a **Translation key**, the game shows the key's text; `Get Button Label` and `Set Button Label` read and write the button's own label, which the game does not show while the key is set. The Self forms are in [Button](/docs/studio/blueprint/nodes/button).
 
 ### Get Button Label
 
@@ -205,7 +205,7 @@ Reads the target Page's surface id, or an empty string when the Frame shows noth
 
 `blueprint.element.frame.setTargetPage` · Latent
 
-Switches the Frame to another Page. The dropdown filters out the Page the Frame itself sits on and any Page that would nest cyclically — and for this Element form it works that out by reading the wired `Element` node's own Surface, so the list only populates once the reference is connected. The Frame then plays its normal enter and exit animation.
+Switches the Frame to another Page. The dropdown filters out the Page the Frame itself sits on and any Page that leads back to it, directly or through a component. This Element form finds the Frame through the wired `Element` node, so until the reference is connected the dropdown lists every Page. The Frame then plays its normal enter and exit animation.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

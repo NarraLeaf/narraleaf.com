@@ -67,7 +67,7 @@ This is independent of a scrolling layout. A container in scroll mode already cl
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible` false removes the container **and everything inside it** from the runtime element tree — it is not a CSS hide. Every child widget unmounts, their blueprints stop, and their `Init` runs again when the container comes back. A hidden container cannot show itself: something else has to call `Set Element Visible` on it. Use Displayable `Set Display` when you want the subtree hidden but mounted.
+`visible` false removes the container **and everything inside it** from the runtime element tree — it is not a CSS hide. Every child widget unmounts, their blueprints stop, and their `Init` runs again when the container comes back. A hidden container cannot show itself: something else has to call [`Set Container Visible`](/docs/studio/blueprint/nodes/element/displayable#set-container-visible) on it. Use Displayable `Set Display` when you want the subtree hidden but mounted.
 </Callout>
 
 ## Get Visible
@@ -99,4 +99,4 @@ Hidden from the palette for the same reason, and it has no supported replacement
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | Empty while the container is on its default variant. |
+| `variantId` | out · data | `string` | The runtime override if one is set, else the authored default, else the first variant. `""` when the container has no variants. |

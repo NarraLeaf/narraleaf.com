@@ -36,7 +36,7 @@ Reads the stored `props.label`.
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
 
-When a Blueprint Value drives `props.label`, it overrides the stored value at render time only. `Set Label` still writes the stored value and `Get Label` still returns it, so the pair keeps working on a value the player is not looking at.
+When a Blueprint Value drives `props.label`, it overrides the stored value at render time only. `Set Label` still writes the stored value and `Get Label` still returns it, so the pair keeps working on a value the player is not looking at. The same holds for a label whose source is **Translation key**: the game shows the key's text.
 
 ## Set Pointer
 
@@ -88,7 +88,7 @@ Sets the button's default mouse pointer — the same field the Mouse section of 
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible` false removes the button and its subtree from the runtime element tree — it is not a CSS hide. The widget unmounts, this blueprint stops, and `Init` runs again when it comes back, so a hidden button cannot show itself: something else has to call `Set Element Visible` on it. Use Displayable `Set Display` when you want it hidden but mounted.
+`visible` false removes the button and its subtree from the runtime element tree — it is not a CSS hide. The widget unmounts, this blueprint stops, and `Init` runs again when it comes back, so a hidden button cannot show itself: something else has to call [`Set Button Visible`](/docs/studio/blueprint/nodes/element/displayable#set-button-visible) on it. Use Displayable `Set Display` when you want it hidden but mounted.
 </Callout>
 
 ## Get Visible
@@ -120,4 +120,4 @@ Hidden from the palette for the same reason, and it has no supported replacement
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | Empty while the button is on its default variant. |
+| `variantId` | out · data | `string` | The runtime override if one is set, else the authored default, else the first variant. `""` when the button has no variants. |

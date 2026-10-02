@@ -36,7 +36,7 @@ Get Label（ラベルの取得）は保存されている`props.label`を読み�
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
 
-Blueprint Value が`props.label`を駆動している場合、それはレンダリング時にのみ保存値を上書きします。`Set Label`は引き続き保存値へ書き込み、`Get Label`も引き続きそれを返すため、この2つのノードはプレイヤーには見えていない値に対して動作し続けます。
+Blueprint Value が`props.label`を駆動している場合、それはレンダリング時にのみ保存値を上書きします。`Set Label`は引き続き保存値へ書き込み、`Get Label`も引き続きそれを返すため、この2つのノードはプレイヤーには見えていない値に対して動作し続けます。ラベルのソースが **Translation key**（翻訳キー）の場合も同様で、ゲームはそのキーのテキストを表示します。
 
 ## Set Pointer
 
@@ -92,7 +92,7 @@ Set Visible（表示状態の設定）
 | `visible` | in · data | `boolean` | |
 
 <Callout type="warn">
-`visible`に false を渡すと、ボタンとそのサブツリーがランタイムの要素ツリーから取り除かれます——これは CSS による非表示ではありません。ウィジェットはアンマウントされ、このブループリントは停止し、戻ってきたときに`Init`が再び実行されます。そのため、隠れたボタンは自分自身を再表示できません——別の何かがそれに対して`Set Element Visible`を呼び出す必要があります。非表示のままマウントしておきたい場合は、Displayable の`Set Display`を使ってください。
+`visible`に false を渡すと、ボタンとそのサブツリーがランタイムの要素ツリーから取り除かれます——これは CSS による非表示ではありません。ウィジェットはアンマウントされ、このブループリントは停止し、戻ってきたときに`Init`が再び実行されます。そのため、隠れたボタンは自分自身を再表示できません。別の何かがそれに対して[`Set Button Visible`](/ja/docs/studio/blueprint/nodes/element/displayable#set-button-visible)を呼び出す必要があります。非表示のままマウントしておきたい場合は、Displayable の`Set Display`を使ってください。
 </Callout>
 
 ## Get Visible
@@ -126,4 +126,4 @@ Get Variant（バリアントの取得）も同じ理由でパレットから非
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `variantId` | out · data | `string` | ボタンが既定のバリアントである間は空。 |
+| `variantId` | out · data | `string` | 設定されていればランタイムオーバーライドの値、なければ作成時の既定値、それもなければ最初のバリアント。ボタンにバリアントがない場合は`""`。 |

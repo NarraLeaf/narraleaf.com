@@ -30,7 +30,6 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 | `widgetMain` | 单个控件实例 | 该控件实例 |
 | `widgetValue` | 单个控件的单个属性 | 拥有它的绑定 |
 | `componentWidgetMain` | 可复用的组件控件 | 组件的每个实例 |
-| `sharedAsset` | 共享蓝图资源 | 引用它的一方 |
 | `storyAction` | 一张故事蓝图，处于 `action`、`value` 或 `condition` 模式 | 调用它的那一行 |
 
 `widgetMain` 蓝图通过 **Self 节点**操作自己所属的控件，这类节点没有 `Element` 输入。要操作**别的**控件，则把一个 `Element` 引用接进 **Element 节点**。这条区分贯穿整个节点目录，也是理解创建浮窗的第一件事
@@ -41,17 +40,17 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 
 | 类型 | 副作用节点 | 入口节点 | 可从控件 UI 绑定 |
 | --- | --- | --- | --- |
-| `event` | 允许 | 事件头（`Init`、`On Click`……）；非强制 | 是 |
-| `function` | **不允许** | `Function Entry`，必需 | 否 |
+| `event` | 允许 | 事件头（`Init`、`Mouse Click`……）；非强制 | 是 |
+| `function` | **不允许** | `Function entry`，必需 | 否 |
 | `macro` | 允许 | 不需要 | 否 |
 
 latent（会挂起执行）节点——例如 `Delay` 或一次存档写入——不能出现在 `function` 图中。函数要同步把结果返回给调用方，没有地方安放一个待定的结果
 
 ## Blueprint Value
 
-**Blueprint Value** 是绑定到单个属性上的 `widgetValue` 蓝图，属性因此由计算得出而非直接填写。当前支持的目标是 `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.frame` → `props.params`、`nl.slider` → `props.value`
+**Blueprint Value** 是绑定到单个属性上的 `widgetValue` 蓝图，属性因此由计算得出而非直接填写。当前支持的目标是 `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.image` → `props.imageFill.assetId`、`nl.switch` → `props.checked`、`nl.frame` → `props.params`、`nl.slider` → `props.value`
 
-它的创建浮窗被刻意收窄：事件头、非 latent 的流程节点、纯 Data 与 Math、本地变量读写、`Element` 字面量，以及纯读取节点。没有改写、没有导航、没有持久变量、没有 latent 节点。一个能改变世界的取值器，会在世界改变的那一刻重新进入自己
+它的创建浮窗被刻意收窄：`Init` 与 `On Flush` 两个事件头、非 latent 的流程节点、纯 Data 与 Math、本地变量读写、`Element` 字面量，以及纯读取节点。没有改写、没有导航、没有持久变量，除 `Call Fn` 以外也没有 latent 节点。一个能改变世界的取值器，会在世界改变的那一刻重新进入自己
 
 <Callout type="info">
 编辑器画布是排版工具。它会解析蓝图到足以预览一个值绑定的程度，但并不运行游戏——需要活动游玩的节点在那里没有对话对象。蓝图行为请在开发模式中验证

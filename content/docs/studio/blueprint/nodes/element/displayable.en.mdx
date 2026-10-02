@@ -83,7 +83,7 @@ Starts a property tween. The `animation` token is written out the moment the ani
 
 `blueprint.element.displayable.stopAnimation` · Latent
 
-The one node in this category with no element target: the token already identifies one animation on one element. It stops exactly that animation and lets the `Animate Element Property` waiting on it reach `next` early. A missing value, a value that is not an `AnimationToken`, or a token that is no longer pending is a silent no-op. Because it needs no binding, it is also the only Element node the palette offers unconditionally.
+The one node in this category with no element target: the token already identifies one animation on one element. It stops exactly that animation and lets the `Animate Element Property` waiting on it reach `next` early. A missing value, a value that is not an `AnimationToken`, or a token that is no longer pending is a silent no-op. Because it needs no binding, it is the only Element node besides `Element` itself that the palette offers unconditionally.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -230,7 +230,7 @@ Reads the active Variant's internal UUID. Nothing in the current editor asks an 
 
 ## Visible and Enabled
 
-Eight widget types carry the same four nodes: read and write `visible`, read and write `enabled`. They are Button, Container, Frame, Image, List, Slider, Switch and Text — `nl.textInput` is the one built-in with no Element pair, and is reached through `Get Element Property` / `Set Element Property` instead. Each takes a target pin typed to its own widget, so which four the palette offers depends on which widget types the graph binds. `Set … Enabled` mapped to `false` goes through the renderer's interaction-disable path; the node surface deliberately never exposes `interactionDisabled`.
+Eight widget types carry the same four nodes: read and write `visible`, read and write `enabled`. They are Button, Container, Frame, Image, List, Slider, Switch and Text. The other widget types, `nl.textInput` among them, have no Element pair; their `visible` is reached through `Get Element Property` / `Set Element Property` instead. Each takes a target pin typed to its own widget, so which four the palette offers depends on which widget types the graph binds. `Set … Enabled` mapped to `false` goes through the renderer's interaction-disable path; the node surface deliberately never exposes `interactionDisabled`.
 
 To hide an element without unmounting it, reach for `Set Element Display` instead — `visible` and `display` are different switches, and only `display` collapses the subtree.
 

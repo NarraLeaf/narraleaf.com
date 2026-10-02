@@ -9,7 +9,7 @@ description: 读取当前时间、处理日期，以及把一个时刻格式化�
 
 ## 约定
 
-- **本页每个节点都是 `Pure`。** 它们都没有执行引脚，可用于 `event`、`function`、`macro` 图，也可用于 [Blueprint Value](/zh/docs/studio/blueprint)。存档槽位的标签属于 Blueprint Value
+- **本页每个节点都是 `Pure`。** 它们都没有执行引脚，可用于 `event`、`function`、`macro` 图，也可用于 [Blueprint Value](/zh/docs/studio/blueprint)
 - **一个时刻是一个数：1970 年 1 月 1 日 UTC 以来的毫秒数，走 `float` 引脚。** `Get Save Time` 与 `Get Latest Auto Save` 产出的即为这个单位，因此存档时间可以直接接进本页任何节点
 - **本页没有时间比较节点。** 时刻越晚数值越大，因此 [Math](/zh/docs/studio/blueprint/nodes/math) 里的 `<`、`>`、`Min`、`Max` 已可用于比较与排序两个时刻
 - **日历取玩家本地时区。** `Make Time`、`Get Time Parts`、`Add Time`、`Time Difference`、`Start Of Day`、`Is Same Day` 与 `Format Time` 都读本地时间。`To ISO String` 是例外，输出 UTC
@@ -289,7 +289,7 @@ Get Time Zone（获取时区）读取游戏运行所在的时区
 
 ## 显示存档的写入时间
 
-槽位的标签是一个 Blueprint Value，时刻由 [`Get Save Time`](/zh/docs/studio/blueprint/nodes/game#get-save-time) 提供：
+时刻由 [`Get Save Time`](/zh/docs/studio/blueprint/nodes/game#get-save-time) 提供。它是 latent 节点，只能在事件图里运行，不能用在 Blueprint Value 中。在那张图里把格式化后的结果写进槽位的文本：
 
 - **绝对时间**——`Get Save Time` → `savedAt` → `Format Time`，或用 `Format Time Localized` 跟随玩家语言
 - **相对时间**——`Now` 接 `from`，`savedAt` 接 `to`，再接 `Format Relative Time`

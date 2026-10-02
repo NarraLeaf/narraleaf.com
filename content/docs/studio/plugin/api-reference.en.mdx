@@ -166,7 +166,7 @@ app.services.widgets.list();
 app.services.widgets.has(type);
 ```
 
-`register` / `registerMany` return cleanups. The widget `type` must be declared in `contributes.widgets`.
+`register` / `registerMany` return cleanups. The widget `type` must be declared in `contributes.widgets`. A module's `logicApi` declares the widget's blueprint events; see [widget events](/docs/studio/plugin/studio/widgets#widget-events).
 
 ### services.story.actions
 
@@ -195,7 +195,7 @@ const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
 app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 ```
 
-- `register` / `registerMany` add editor definitions (and their in-editor-preview `execute`). They return `void`: node defs cannot be removed once registered. Each type must be declared in `contributes.blueprintNodes`.
+- `register` / `registerMany` add editor definitions (and their in-editor-preview `execute`). They return `void`: node defs cannot be removed once registered. Each type must be declared in `contributes.blueprintNodes`. A definition is a `PluginBlueprintNodeDef`; see [blueprintNodes](/docs/studio/plugin/studio/blueprint-nodes) for its fields.
 - `registerDynamicSelectOptionsSource(id, provider)` backs a `kind: "select"` inspector param whose options come from live plugin state; it returns a cleanup. Call `notifyDynamicSelectOptionsChanged()` when that state changes so open node cards refresh.
 
 ### The `ui` kit
@@ -235,7 +235,7 @@ app.game.blueprintNodes.register({ type, execute });
 app.game.blueprintNodes.registerMany(defs);
 ```
 
-Registers the game-side `execute` for each node type. Pass the same `BlueprintNodeDef[]` you register on the studio side (a shared module) — only `type`, `displayName`, and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
+Registers the game-side `execute` for each node type. Pass the same `PluginBlueprintNodeDef[]` you register on the studio side (a shared module); only `type`, `displayName`, and `execute` are used. Each type must be declared in `contributes.blueprintNodes`. Returns `void`.
 
 #### The node context
 
@@ -262,6 +262,8 @@ execute: async ctx => {
 }
 ```
 
+`execute` returns `{ nextPort?, nextPorts?, outputValues? }` or nothing; see [Return value](/docs/studio/plugin/studio/blueprint-nodes#return-value).
+
 <Callout type="warn">
 There is no `ctx.hostAdapter`. Earlier builds leaked the host's full internal API through `ctx.hostAdapter.blueprintRuntime.hostApi` — saves, localization, quitting the app — with nothing declared in the manifest and nothing shown to the author at install. That path is gone. Whatever a node touches, it touches through `ctx.game`, which is exactly the capability set `contributes` declared.
 </Callout>
@@ -269,11 +271,11 @@ There is no `ctx.hostAdapter`. Earlier builds leaked the host's full internal AP
 ### game.widgets
 
 ```ts
-app.game.widgets.register({ type, render });
+app.game.widgets.register({ type, render, logicApi });
 app.game.widgets.registerMany(defs);
 ```
 
-Registers the game-side renderer for a widget type. `render` receives the same props Studio passes built-in element renderers. Each type must be declared in `contributes.widgets`. Returns `void`.
+Registers the game-side renderer for a widget type. `render` receives `RuntimeWidgetRendererProps`, the same props the studio widget module's `render` receives; see [render props](/docs/studio/plugin/studio/widgets#render-props). Pass the same `logicApi` the studio module declares, or the widget's events reach no graph in Dev Mode or in the game. Each type must be declared in `contributes.widgets`. Returns `void`.
 
 ### game.data
 
@@ -317,7 +319,7 @@ The runtime entry runs in the game — in Production there is no editor and no e
 ## Gotchas
 
 - **Mark host modules external.** `narraleaf-studio/plugin`, `narraleaf-studio/runtime`, and the React packages are provided by the host. Bundling your own copies breaks loading. The template's esbuild config lists them.
-- **A blueprint node needs both entries** to work in a shipped game — studio for the palette, runtime for execution. Studio-only registration runs in the editor preview and then does nothing once exported.
+- **A blueprint node needs both entries** to work in a shipped game — studio for the palette, runtime for execution. Studio-only registration runs in the editor preview, and in Dev Mode and the game the graph stops at that node with an error.
 - **Check for a namespace, do not catch.** An undeclared or unavailable capability is missing from `app.game`, so `app.game.store?.set(...)` is the guard. There is nothing to `try`.
 - **The editor cannot back any capability.** The same `execute` runs on the editor canvas, where every gated namespace is absent. A node that assumes a game will do nothing there — write it so that is fine.
 - **Node defs are permanent for the session.** `blueprintNodes.register` returns `void` by design; you cannot unregister a node type.

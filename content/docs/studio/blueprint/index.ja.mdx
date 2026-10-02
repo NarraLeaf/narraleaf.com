@@ -30,7 +30,6 @@ description: ビジュアルプログラミング層——ブループリント�
 | `widgetMain` | 1つのウィジェットインスタンス | そのウィジェットインスタンス |
 | `widgetValue` | 1つのウィジェットの1つのプロパティ | それを所有するバインディング |
 | `componentWidgetMain` | 再利用可能なコンポーネントウィジェット | コンポーネントの各インスタンス |
-| `sharedAsset` | 共有ブループリントアセット | それをインポートするもの |
 | `storyAction` | `action`、`value`、`condition` いずれかのモードの1つのストーリーブループリント | それを呼び出す行 |
 
 `widgetMain` ブループリントは、`Element` 入力を取らない **Self ノード**を通じて自分自身のウィジェットに作用します。*別の*ウィジェットに作用させるには、`Element` 参照を **Element ノード**に接続します。この区別はノードカタログ全体を貫いており、パレットについて最初に理解すべきことです。
@@ -41,17 +40,17 @@ description: ビジュアルプログラミング層——ブループリント�
 
 | 種類 | 副作用のあるノード | エントリーノード | ウィジェット UI からバインド可能か |
 | --- | --- | --- | --- |
-| `event` | 可 | イベントヘッド（`Init`、`On Click` など）。必須ではない | はい |
-| `function` | **不可** | `Function Entry`。必須 | いいえ |
+| `event` | 可 | イベントヘッド（`Init`、`Mouse Click` など）。必須ではない | はい |
+| `function` | **不可** | `Function entry`。必須 | いいえ |
 | `macro` | 可 | 不要 | いいえ |
 
 latent（グラフの実行を一時停止させるもの）ノード——`Delay` や一度のセーブ書き込みなど——は `function` グラフには置けません。function は呼び出し元に同期的に値を返すため、保留中の結果を渡す先がありません。
 
 ## Blueprint Value
 
-**Blueprint Value** とは、1つのプロパティにバインドされた `widgetValue` ブループリントのことで、プロパティは直接記述する代わりに計算によって得られます。現在対応しているのは `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.frame` → `props.params`、`nl.slider` → `props.value` です。
+**Blueprint Value** とは、1つのプロパティにバインドされた `widgetValue` ブループリントのことで、プロパティは直接記述する代わりに計算によって得られます。現在対応しているのは `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.image` → `props.imageFill.assetId`、`nl.switch` → `props.checked`、`nl.frame` → `props.params`、`nl.slider` → `props.value` です。
 
-そのパレットは意図的に狭く絞られています——イベントヘッド、latent でないフロー、純粋な Data と Math、ローカル変数へのアクセス、`Element` リテラル、そして純粋な読み取りだけです。書き換えも、ナビゲーションも、持続変数も、latent ノードもありません。世界を変えられる値プロバイダーは、世界が変わった瞬間に自分自身へ再入してしまうからです。
+そのパレットは意図的に狭く絞られています。含まれるのは、`Init` と `On Flush` のイベントヘッド、latent でないフロー、純粋な Data と Math、ローカル変数へのアクセス、`Element` リテラル、そして純粋な読み取りだけです。書き換えも、ナビゲーションも、持続変数もなく、`Call Fn` 以外の latent ノードもありません。世界を変えられる値プロバイダーは、世界が変わった瞬間に自分自身へ再入してしまうからです。
 
 <Callout type="info">
 エディタのキャンバスはレイアウトツールです。値バインディングをプレビューできる程度にはブループリントを解決しますが、ゲームは実行しません——実行中のプレイスルーを必要とするノードには、そこで対話する相手がありません。ブループリントの挙動は Dev Mode で確認してください。

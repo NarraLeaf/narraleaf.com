@@ -8,15 +8,15 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 ## Conventions
 
 - **Widget blueprints only, and only on a Switch.** These are scoped to `nl.switch`, so they are offered on that widget's own blueprint and nowhere else. To reach a Switch from another graph, use the [Element](/docs/studio/blueprint/nodes/element) versions.
-- **The three readers are pure**, so they can appear in a `function` graph and back a Blueprint Value. The six writers are latent.
+- **The three readers are pure**, so they can appear in a `function` graph. A Blueprint Value is owned by `widgetValue` and does not offer them; read a Switch from one with the Element versions and an `Element` literal. The six writers are latent.
 
 ## Get Checked
 
 `blueprint.switch.getChecked` · Pure
 
-| Pin | Direction | Type |
-| --- | --- | --- |
-| `checked` | out · data | `boolean` |
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `checked` | out · data | `boolean` | |
 
 ## Set Checked
 
@@ -25,8 +25,8 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `checked` | in · data | `boolean` | Literal. |
 | `next` | out · exec | — | |
+| `checked` | in · data | `boolean` | Literal. |
 
 ## Turn On
 
@@ -34,19 +34,19 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 
 `Set Checked` with `true`, as its own card so the common case reads as one word.
 
-| Pin | Direction | Type |
-| --- | --- | --- |
-| `in` | in · exec | — |
-| `next` | out · exec | — |
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
 
 ## Turn Off
 
 `blueprint.switch.turnOff` · Latent
 
-| Pin | Direction | Type |
-| --- | --- | --- |
-| `in` | in · exec | — |
-| `next` | out · exec | — |
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
 
 ## Toggle
 
@@ -62,9 +62,9 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 
 `blueprint.switch.getEnabled` · Pure
 
-| Pin | Direction | Type |
-| --- | --- | --- |
-| `enabled` | out · data | `boolean` |
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `enabled` | out · data | `boolean` | |
 
 ## Set Enabled
 
@@ -73,16 +73,16 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `enabled` | in · data | `boolean` | |
 | `next` | out · exec | — | |
+| `enabled` | in · data | `boolean` | |
 
 ## Get Visible
 
 `blueprint.switch.getVisible` · Pure
 
-| Pin | Direction | Type |
-| --- | --- | --- |
-| `visible` | out · data | `boolean` |
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `visible` | out · data | `boolean` | |
 
 ## Set Visible
 
@@ -91,5 +91,5 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
-| `visible` | in · data | `boolean` | |
 | `next` | out · exec | — | |
+| `visible` | in · data | `boolean` | |

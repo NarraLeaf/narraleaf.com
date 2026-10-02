@@ -95,7 +95,7 @@ Studio はインストール時の権限プロンプトを `contributes` から*
 必要なものだけを宣言してください。UI のみのプラグインには `studio` だけが必要です。ブループリントノードが公開したゲームの中で動かなければならないプラグインには、**両方**が必要です――エディター用の `studio` エントリーと、ゲーム用の `runtime` エントリーです。
 
 <Callout type="warn">
-`studio` エントリーからのみ登録されたブループリントノードは、エディターのノードパレットには表示されますが、公開したゲームには対応するコードがありません。編集器内プレビューでは動作します(studio エントリーも `execute` を持つため)が、いったんゲームがエクスポートされると、何も起こらないまま静かに失敗します。runtime エントリーからも同じノードを登録してください。
+`studio` エントリーからのみ登録されたブループリントノードは、エディターのノードパレットには表示されますが、公開したゲームには対応するコードがありません。編集器内プレビューでは動作します(studio エントリーも `execute` を持つため)が、Dev Mode とゲームではグラフがそのノードでエラーになって止まります。runtime エントリーからも同じノードを登録してください。
 </Callout>
 
 ## 両方のエントリーから登録するブループリントノード
@@ -104,11 +104,11 @@ Studio はインストール時の権限プロンプトを `contributes` から*
 
 ```ts
 // src/nodes.ts
-import type { BlueprintNodeDef } from "narraleaf-studio/plugin";
+import type { PluginBlueprintNodeDef } from "narraleaf-studio/plugin";
 
 export const PLUGIN_ID = "yourname.hello";
 
-export function createNodes(): BlueprintNodeDef[] {
+export function createNodes(): PluginBlueprintNodeDef[] {
     return [
         {
             type: `${PLUGIN_ID}.log`,
@@ -163,7 +163,7 @@ export default defineRuntimePlugin({
 });
 ```
 
-2 つの `registerMany` 呼び出しはどちらも同じ `BlueprintNodeDef[]` を受け取ります。runtime 側は `type`、`displayName`、`execute` だけを使い、エディターメタデータは無視します。この「1 つの定義、2 つのエントリー」という形こそが、型パッケージが両方のサーフェスを 1 つにまとめている理由です――`/plugin` の `BlueprintNodeDef` は `/runtime` の register が期待する型に代入できます。
+2 つの `registerMany` 呼び出しはどちらも同じ `PluginBlueprintNodeDef[]` を受け取ります。runtime 側は `type`、`displayName`、`execute` だけを使い、エディターメタデータは無視します。この「1 つの定義、2 つのエントリー」という形こそが、型パッケージが両方のサーフェスを 1 つにまとめている理由です。`/plugin` の `PluginBlueprintNodeDef` は `/runtime` の register が期待する型に代入できます。
 
 ### 設定を読み取る
 

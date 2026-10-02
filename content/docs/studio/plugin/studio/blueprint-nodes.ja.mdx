@@ -11,12 +11,12 @@ description: エディター側でブループリントノードの定義と動�
 
 | メソッド | シグネチャ | 備考 |
 | --- | --- | --- |
-| `register` | `(def: BlueprintNodeDef) => void` | セッションを通じて永続します――`void` を返し、一度登録したノード型は取り除けません。 |
-| `registerMany` | `(defs: BlueprintNodeDef[]) => void` | 同上。 |
-| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | `kind: "select"` の検査パネルパラメーターに、生きた選択肢を供給します。クリーンアップを返します。 |
+| `register` | `(def: PluginBlueprintNodeDef) => void` | セッションを通じて永続します――`void` を返し、一度登録したノード型は取り除けません。 |
+| `registerMany` | `(defs: PluginBlueprintNodeDef[]) => void` | 同上。 |
+| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | `kind: "select"` の検査パネルパラメーターに、生きた選択肢を供給します。ソース id には、あなたのプラグイン id を前置しなければなりません。クリーンアップを返します。 |
 | `notifyDynamicSelectOptionsChanged` | `() => void` | provider のデータが変化したあと、開いているノードカードを更新します。 |
 
-## BlueprintNodeDef
+## PluginBlueprintNodeDef
 
 主要なフィールドです。
 
@@ -26,14 +26,19 @@ description: エディター側でブループリントノードの定義と動�
 | `displayName` | `string` | パレットのラベル。 |
 | `category` | `string` | パレットのグループ分け。 |
 | `keywords` | `string[]` | パレットの検索語。 |
-| `graphKinds` | `BlueprintGraphKind[]` | ノードが現れてよい場所、例えば `["event", "macro"]`。 |
-| `isPure` | `boolean` | 純粋なノードは副作用を持ちません。 |
+| `graphKinds` | `BlueprintGraphKind[]` | ノードが現れてよい場所、例えば `["event", "macro"]`。`function` グラフが受け付けるのは、純粋で latent でないノードだけです。 |
+| `isPure` | `boolean` | 純粋なノードは副作用を持ちません。プラグインのノードが値を出力するのは実行の流れがそのノードを実行したときだけなので、純粋なプラグインノードは値を出力できません。[戻り値](#return-value)を参照してください。 |
 | `isLatent` | `boolean` | 非同期 / await を伴う実行。関数グラフでは許可されません。 |
+| `role` | `BlueprintNodeRole` | 任意。`"eventHead"` にすると、そのノードはプラグインウィジェットのイベントヘッドになります。[イベントヘッド](#event-heads)を参照してください。 |
+| `allowInBlueprintValueGraph` | `boolean` | 任意。ノードを [Blueprint Value](/ja/docs/studio/blueprint#blueprint-value) のグラフに表示します。これを使ったバインディングは、Studio 自身のノードを通じて読み取った要素とプロパティが変化したときに更新され、プラグイン自身のデータが変化しても更新されません。 |
+| `assetNames` | `"forward" \| "written" \| "assembled"` | 任意。ノードの文字列出力の出どころです。入力から来るもの、プロジェクトに書かれたテキスト、ゲームの実行中に作られる値のいずれかです。宣言しない場合は `"assembled"` として扱われるため、これらの出力のいずれかがアセットを選ぶプロジェクトはビルドが拒否されます。 |
 | `pins` | `BlueprintNodePinDef[]` | 実行ピンとデータピン。 |
 | `inspectorParams` | `BlueprintInspectorParamDef[]` | カード上のフィールドで、実行時に `ctx.params` から読み取られます。 |
-| `execute` | `BlueprintNodeExecuteFn` | ノード本体。下記参照。 |
+| `execute` | `(ctx: PluginBlueprintNodeContext) => …` | ノード本体。下記参照。 |
 
-ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。
+ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。`allowInlineLiteral` を指定できるのは、`valueType` が `string`、`integer`、`float`、`boolean`、`ImageAsset` のいずれかであるデータ入力だけです。それ以外の組み合わせは登録時に例外を投げます。
+
+ノードがどこに現れるかは Studio が決めます。プラグインのノードは、その `graphKinds` のいずれかのグラフを持つすべてのブループリントに、上記の制限の範囲で表示されます。`scope` フィールドはありません。定義に残っている `scope` や `requiresHostApi` は、登録時に取り除かれます。唯一の例外はイベントヘッドで、[後述](#event-heads)します。
 
 ## execute とノードのコンテキスト
 
@@ -53,6 +58,51 @@ execute: async ctx => {
 
 `ctx.game` から到達できるものはすべて[Runtime API リファレンス](/ja/docs/studio/plugin/runtime)に文書化されています。
 
+## 戻り値 [#return-value]
+
+`execute` は、次のフィールドのいずれかを持つオブジェクトを返すか、何も返しません。
+
+| フィールド | 型 | 効果 |
+| --- | --- | --- |
+| `nextPort` | `string \| null` | フローがどの実行出力ピンから続くか。既定は `next` で、`null` は実行をそこで終えます。 |
+| `nextPorts` | `string[]` | 複数の実行出力ピン。順にたどられます。 |
+| `outputValues` | `Record<string, unknown>` | ノードのデータ出力ピンの値で、ピン id をキーとします。それらのピンに配線されたノードがこの値を読み取ります。 |
+
+```ts
+execute: async ctx => {
+    const rows = await loadRows(ctx);
+    return { nextPort: "next", outputValues: { entries: rows, count: rows.length } };
+}
+```
+
+プラグインのノードがデータ出力を公開するのは `outputValues` を通じてだけで、それも実行の流れがそのノードに到達したときに限られます。値を出力するノードには実行ピンを持たせ、`isPure: false` にしてください。
+
+## イベントヘッド [#event-heads]
+
+プラグインウィジェット独自のイベントは、そのプラグインが登録したイベントヘッドから始まります([ウィジェットのイベント](/ja/docs/studio/plugin/studio/widgets#widget-events)を参照してください)。イベントヘッドとは、次の条件を満たすノードです。
+
+- `role: "eventHead"` と `graphKinds: ["event"]` を持ちます。
+- id が `then` の実行出力ピンを持ちます。グラフはそこから始まります。
+- 公開するペイロードのフィールドごとに 1 つのデータ出力ピンを持ち、そのピン id はフィールド名と同じです。
+
+Studio がこのヘッドを提供するのは、`logicApi` の `headNodeTypes` でそれを名指ししているプラグインウィジェットのブループリントだけで、ページやグローバルのブループリントには提供しません。その `execute` は実行されないため、プレースホルダーとして `{ nextPort: "then" }` を返せば十分です。他のノードと同じく、両方のエントリーから登録してください。
+
+```ts
+export const ON_RATED: PluginBlueprintNodeDef = {
+    type: `${PLUGIN_ID}.onRated`,
+    displayName: "On Rated",
+    category: "Events",
+    graphKinds: ["event"],
+    isPure: false,
+    role: "eventHead",
+    pins: [
+        { id: "then", kind: "output", semantic: "exec", label: "Then" },
+        { id: "stars", kind: "output", semantic: "data", valueType: "integer", label: "Stars" },
+    ],
+    execute: () => ({ nextPort: "then" }),
+};
+```
+
 ## 動的な選択肢
 
 ```ts
@@ -69,3 +119,7 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 <Callout type="info">
 配線された**データ入力ピン**を読み取るには、`execute` の中で `ctx.resolveInput?.(pinId)` を呼び出します。これは配線されたエッジに沿って遅延評価され、ピンが未配線または未宣言の場合は `undefined` を返します。カード上の静的なフィールドは、引き続き `inspectorParams` と `ctx.params` から来ます。
 </Callout>
+
+## プラグインがないとき [#when-the-plugin-is-missing]
+
+プラグインがアンインストールされた、無効にされた、読み込みに失敗した、あるいは[このプロジェクトでスキップされた](/ja/docs/studio/plugin/project-dependencies#スキップされるとはどういうことか)場合も、プロジェクトはそのノードを保持します。そうしたノードは **Unknown node**（不明なノード）カードとして描かれ、その型と、プラグインが読み込まれていた間に Studio が記録したピンを表示し、接続もそのまま残ります。プロジェクトチェックはこれを **Unknown node type**（不明なノード型）として報告し、これはビルドを止めるエラーです。プラグインが再び読み込まれれば、ノードは元どおり動作します。

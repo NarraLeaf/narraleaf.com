@@ -23,7 +23,7 @@ export default defineRuntimePlugin({
 | Member | What |
 | --- | --- |
 | `game.blueprintNodes` | `register` / `registerMany` the game-side `execute` for your node types. |
-| `game.widgets` | `register` / `registerMany` the game-side renderer for your widget types. |
+| `game.widgets` | `register` / `registerMany` the game-side renderer and event declaration (`logicApi`) for your widget types. |
 | `game.data` | `readJson(namespace)` — read plugin storage published with the game. |
 | `game.config` | `get(key)` — what the author filled in for your `contributes.buildConfig` fields. Always present for the same reason `game.data` is: declaring a field grants the plugin nothing, so there is no capability to gate on. |
 | `game.log` | `log(level, message)` into the host log. |
@@ -120,7 +120,7 @@ execute: async ctx => {
 
 <Cards>
   <Card title="store" href="/docs/studio/plugin/runtime/store" description="Plugin-scoped persistent key/value storage that survives a new game." />
-  <Card title="events" href="/docs/studio/plugin/runtime/events" description="Thirteen game and story events, with per-environment availability." />
+  <Card title="events" href="/docs/studio/plugin/runtime/events" description="Sixteen game and story events, with per-environment availability." />
   <Card title="state" href="/docs/studio/plugin/runtime/state" description="Read, write, and observe scene / saved / persistent story variables." />
   <Card title="saves" href="/docs/studio/plugin/runtime/saves" description="List and read save slots; overwrite or load one with the heavier capability." />
   <Card title="ui.overlay" href="/docs/studio/plugin/runtime/overlay" description="Draw an element above the game — and the one place it will not go." />

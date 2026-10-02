@@ -23,7 +23,7 @@ export default defineRuntimePlugin({
 | 成员 | 说明 |
 | --- | --- |
 | `game.blueprintNodes` | 为你的节点类型 `register` / `registerMany` 游戏侧的 `execute`|
-| `game.widgets` | 为你的控件类型 `register` / `registerMany` 游戏侧的渲染器|
+| `game.widgets` | 为你的控件类型 `register` / `registerMany` 游戏侧的渲染器与事件声明（`logicApi`）|
 | `game.data` | `readJson(namespace)`——读取随游戏一同发布的插件存储|
 | `game.config` | `get(key)` —— 作者为你的 `contributes.buildConfig` 字段填了什么。与 `game.data` 同理始终存在：声明一个字段不会给插件任何能力，所以这里没有可把关的能力|
 | `game.log` | 向宿主日志写入 `log(level, message)`|
@@ -120,7 +120,7 @@ execute: async ctx => {
 
 <Cards>
   <Card title="store" href="/zh/docs/studio/plugin/runtime/store" description="插件作用域的持久键值存储，开新游戏也不会丢" />
-  <Card title="events" href="/zh/docs/studio/plugin/runtime/events" description="十三个游戏与故事事件，以及各环境下的可用性" />
+  <Card title="events" href="/zh/docs/studio/plugin/runtime/events" description="十六个游戏与故事事件，以及各环境下的可用性" />
   <Card title="state" href="/zh/docs/studio/plugin/runtime/state" description="读取、写入并观察 scene / saved / persistent 故事变量" />
   <Card title="saves" href="/zh/docs/studio/plugin/runtime/saves" description="列出并读取存档槽位；用更重的能力覆盖或载入某一个" />
   <Card title="ui.overlay" href="/zh/docs/studio/plugin/runtime/overlay" description="在游戏之上绘制元素——以及它唯一去不了的地方" />

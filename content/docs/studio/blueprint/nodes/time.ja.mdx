@@ -9,7 +9,7 @@ description: 時刻を読み取り、日付を扱い、ある瞬間をテキス�
 
 ## 規約
 
-- **このページのすべてのノードは `Pure` です。** いずれも exec ピンを持ちません。`event`、`function`、`macro` グラフのいずれでも合法であり、[Blueprint Value](/ja/docs/studio/blueprint) の内部でも使用できます。セーブスロットのラベルは Blueprint Value です。
+- **このページのすべてのノードは `Pure` です。** いずれも exec ピンを持ちません。`event`、`function`、`macro` グラフのいずれでも合法であり、[Blueprint Value](/ja/docs/studio/blueprint) の内部でも使用できます。
 - **ある瞬間は1つの数値です。1970年1月1日 UTC からのミリ秒数を、`float` ピンで表します。** これは `Get Save Time` と `Get Latest Auto Save` が生成する単位であるため、セーブのタイムスタンプはこのページのどのノードにもそのまま接続できます。
 - **時刻を比較するノードはありません。** より遅い瞬間ほど大きな数値になるため、[Math](/ja/docs/studio/blueprint/nodes/math) の `<`、`>`、`Min`、`Max` だけで2つの瞬間の順序を判定できます。
 - **カレンダーはプレイヤーのローカルのものです。** `Make Time`、`Get Time Parts`、`Add Time`、`Time Difference`、`Start Of Day`、`Is Same Day`、`Format Time` はすべてローカル時刻を読みます。`To ISO String` は例外で、UTC を出力します。
@@ -289,7 +289,7 @@ description: 時刻を読み取り、日付を扱い、ある瞬間をテキス�
 
 ## セーブの書き込み時刻を表示する
 
-スロットのラベルは Blueprint Value であり、瞬間は [`Get Save Time`](/ja/docs/studio/blueprint/nodes/game#get-save-time) が提供します。
+瞬間は [`Get Save Time`](/ja/docs/studio/blueprint/nodes/game#get-save-time) が提供します。これは latent ノードなので event グラフで実行され、Blueprint Value の中では使えません。そのグラフから、整形した結果をスロットのテキストに書き込みます。
 
 - **絶対的な日付** —— `Get Save Time` → `savedAt` → `Format Time`、またはプレイヤーの言語に追従させるなら `Format Time Localized` です。
 - **相対的な日付** —— `Now` を `from` に、`savedAt` を `to` に接続し、`Format Relative Time` に渡します。

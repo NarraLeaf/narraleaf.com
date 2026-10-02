@@ -47,4 +47,6 @@ The card *is* the comment — there is no inspector for it. What you edit is the
 | `width` | The width of the box. Drag the handle in its bottom-right corner. |
 | `height` | The height of the box, dragged from the same handle. |
 
+A group is a `Comment` drawn as a frame. **Group selection**, on the canvas toolbar or in a card's right-click menu, draws one around the selected cards. The frame shows its name in the header (double-click to rename) and has no text box and no background switch. It always sits behind the cards, clicks in its middle reach the cards inside it, and dragging it by the header moves the cards it encloses. Dropping a card into a frame stretches the frame around it; **Fit group to its nodes**, on the frame's header or in its right-click menu, shrinks it to what it holds. **Ungroup** in the right-click menu deletes the frame and leaves the cards in place.
+
 The type id still reads `blueprint.flow.comment`. It is kept unchanged so graphs authored before the node moved into the Debug category keep loading; the category is where you will find it in the palette.

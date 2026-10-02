@@ -63,7 +63,11 @@ Which names a position calls follows from where it sits, and the first two lines
 | a page | `onSurfaceInit`, `onSurfaceUnmount`, `onBeforeSurfaceExit`, `onAfterSurfaceEnter`, `onBroadcast`, `onElementClick` |
 | a widget | `onInit`, `onUnmount`, `onFlush`, `onMouseClick`, `onMouseEnter`, `onMouseLeave`, and the rest of its type's set |
 
+A widget that a plugin adds follows the same rule for its own events: an event with the id `rated` is answered by `onRated`.
+
 An export named anything a position does not call is simply never called.
+
+When a script layer and a graph layer in the same slot answer one event, the script layer runs first.
 
 ### A story row
 
@@ -98,7 +102,8 @@ export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mo
 
 What a script may do is what its slot may do. The context carries the same capabilities the equivalent graph is given, never any of its own.
 
-- A page or widget script gets the host API, its own `vars` store, an `AbortSignal`, and — where the slot sits on a Surface — `broadcast` and the Surface transition readers.
+- A page or widget script gets the host API, its own `vars` store, an `AbortSignal` and `stopPropagation()`, plus `broadcast` and the Surface transition readers where the slot sits on a Surface. On a pointer event, `stopPropagation()` keeps the event from reaching the elements above (see [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling)); on a window close request, it keeps the window open.
+- A widget script that runs for a list row, or inside a placed component, runs in that row or placement. `ctx.self` carries the row and the placement's params, and an element id handed to `ctx.host` means that row's or that placement's copy of the element.
 - A story script gets the story's own scene and saved variables, application persistence, and `ctx.devtools` for a log line. This tier has no `ctx.host`, so what it may reach sits directly on the context. Nothing else: no navigation, no game control, no widget access.
 
 ## Blueprint Value
@@ -110,6 +115,8 @@ What a script may do is what its slot may do. The context carries the same capab
 A file that fails to compile, and a file that exports nothing the position calls, are both reported in Dev Mode, against the file where the problem is.
 
 The blueprint list in Dev Mode names the file a slot runs, says whether the module loaded, and lists what the file exports against what the position actually calls. That is the whole of "why did nothing happen", since a failed compile and a handler spelled `onClik` are otherwise indistinguishable.
+
+A package build stops when a script fails to compile, and names each file with the line and column of the error. A type error stops nothing, because types are never checked.
 
 <Callout type="info">
 Scripts are compiled into the build like any other logic. Nothing about them is development-only.

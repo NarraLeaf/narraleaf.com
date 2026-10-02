@@ -3,9 +3,9 @@ title: Input
 description: 玩家在用哪一类设备，以及某个输入动作此刻是不是被按住的
 ---
 
-两个 pure 节点，读的是**图跑到那一刻**玩家的输入状态。两个都声明 `event`、`function` 与 `macro`，所以都能给蓝图值当后端。
+两个 pure 节点，读的是**图跑到那一刻**玩家的输入状态。两个都声明 `event`、`function` 与 `macro`，但都不在蓝图值中提供。
 
-两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头，或者用 `On Action` 头——它对应的正是这两个节点读的那套动作词表；这两个回答的是「此刻是什么」，正是控件外观上的绑定想要的东西。
+两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头，或者用 `On Action` 头——它对应的正是这两个节点读的那套动作词表；这两个回答的是「此刻是什么」。
 
 ## Get Input Device
 

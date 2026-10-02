@@ -83,7 +83,7 @@ description: 接続された要素のジオメトリ・不透明度・Variant・
 
 `blueprint.element.displayable.stopAnimation` · Latent
 
-このカテゴリの中で唯一、要素ターゲットを持たないノードです——トークンだけで、ある要素上のある1つのアニメーションを特定できるからです。それはまさにそのアニメーションを停止させ、それを待っている `Animate Element Property` を早期に `next` へ到達させます。値が欠けている、`AnimationToken` でない値、あるいはもう pending でないトークンの場合は、静かに何もしません。バインディングを必要としないため、これはパレットが無条件に提供する唯一の Element ノードでもあります。
+このカテゴリの中で唯一、要素ターゲットを持たないノードです——トークンだけで、ある要素上のある1つのアニメーションを特定できるからです。それはまさにそのアニメーションを停止させ、それを待っている `Animate Element Property` を早期に `next` へ到達させます。値が欠けている、`AnimationToken` でない値、あるいはもう pending でないトークンの場合は、静かに何もしません。バインディングを必要としないため、これは `Element` 自身を除けば、パレットが無条件に提供する唯一の Element ノードでもあります。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
@@ -230,7 +230,7 @@ description: 接続された要素のジオメトリ・不透明度・Variant・
 
 ## Visible と Enabled
 
-8種類のウィジェット型が同じ4つのノードを持ちます——`visible` の読み書き、`enabled` の読み書きです。それらは Button、Container、Frame、Image、List、Slider、Switch、Text です——`nl.textInput` は、この Element の対を持たない唯一の組み込みウィジェットであり、代わりに `Get Element Property` / `Set Element Property` を通して扱います。それぞれ自分自身のウィジェットに型付けされたターゲットピンを取るため、パレットがどの4つを提供するかは、グラフがどのウィジェット型をバインドしているかによって決まります。`Set … Enabled` に `false` を渡すと、レンダラーの操作無効化経路を通ります——ノード面は `interactionDisabled` を意図的に一切公開しません。
+8種類のウィジェット型が同じ4つのノードを持ちます——`visible` の読み書き、`enabled` の読み書きです。それらは Button、Container、Frame、Image、List、Slider、Switch、Text です。`nl.textInput` をはじめとする他のウィジェット型はこの Element の対を持たず、その `visible` は代わりに `Get Element Property` / `Set Element Property` を通して扱います。それぞれ自分自身のウィジェットに型付けされたターゲットピンを取るため、パレットがどの4つを提供するかは、グラフがどのウィジェット型をバインドしているかによって決まります。`Set … Enabled` に `false` を渡すと、レンダラーの操作無効化経路を通ります——ノード面は `interactionDisabled` を意図的に一切公開しません。
 
 要素をアンマウントせずに隠すには、代わりに `Set Element Display` を使ってください——`visible` と `display` は別のスイッチであり、子孫を折りたたむのは `display` だけです。
 

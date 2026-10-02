@@ -166,7 +166,7 @@ app.services.widgets.list();
 app.services.widgets.has(type);
 ```
 
-`register` / `registerMany` はクリーンアップを返します。ウィジェットの `type` は `contributes.widgets` に宣言されていなければなりません。
+`register` / `registerMany` はクリーンアップを返します。ウィジェットの `type` は `contributes.widgets` に宣言されていなければなりません。モジュールの `logicApi` はウィジェットのブループリントイベントを宣言します。[ウィジェットのイベント](/ja/docs/studio/plugin/studio/widgets#widget-events)を参照してください。
 
 ### services.story.actions
 
@@ -195,7 +195,7 @@ const off = app.services.blueprintNodes.registerDynamicSelectOptionsSource(
 app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 ```
 
-- `register` / `registerMany` はエディター側の定義(と、編集器内プレビュー用の `execute`)を追加します。これらは `void` を返します。ノード定義は一度登録されると取り除けません。各型は `contributes.blueprintNodes` に宣言されていなければなりません。
+- `register` / `registerMany` はエディター側の定義(と、編集器内プレビュー用の `execute`)を追加します。これらは `void` を返します。ノード定義は一度登録されると取り除けません。各型は `contributes.blueprintNodes` に宣言されていなければなりません。定義の型は `PluginBlueprintNodeDef` で、そのフィールドは [blueprintNodes](/ja/docs/studio/plugin/studio/blueprint-nodes) にあります。
 - `registerDynamicSelectOptionsSource(id, provider)` は、選択肢が生きたプラグインの状態から来る `kind: "select"` の検査パネルパラメーターを支えます。クリーンアップを返します。その状態が変化したら `notifyDynamicSelectOptionsChanged()` を呼び、開いているノードカードを更新させてください。
 
 ### `ui` キット
@@ -235,7 +235,7 @@ app.game.blueprintNodes.register({ type, execute });
 app.game.blueprintNodes.registerMany(defs);
 ```
 
-各ノード型についてゲーム側の `execute` を登録します。studio 側で登録したのと同じ `BlueprintNodeDef[]`(共有モジュール)を渡してください――使われるのは `type`、`displayName`、`execute` だけです。各型は `contributes.blueprintNodes` に宣言されていなければなりません。`void` を返します。
+各ノード型についてゲーム側の `execute` を登録します。studio 側で登録したのと同じ `PluginBlueprintNodeDef[]`(共有モジュール)を渡してください。使われるのは `type`、`displayName`、`execute` だけです。各型は `contributes.blueprintNodes` に宣言されていなければなりません。`void` を返します。
 
 #### ノードのコンテキスト
 
@@ -262,6 +262,8 @@ execute: async ctx => {
 }
 ```
 
+`execute` は `{ nextPort?, nextPorts?, outputValues? }` を返すか、何も返しません。[戻り値](/ja/docs/studio/plugin/studio/blueprint-nodes#return-value)を参照してください。
+
 <Callout type="warn">
 `ctx.hostAdapter` というものは存在しません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体――セーブ、ローカライゼーション、アプリの終了――が漏れ出しており、マニフェストには何も宣言されておらず、インストール時に作者へ示されるものも何もありませんでした。その経路はもうありません。ノードが触れるものは何であれ `ctx.game` を経由し、それはまさに `contributes` が宣言した能力の集合そのものです。
 </Callout>
@@ -269,11 +271,11 @@ execute: async ctx => {
 ### game.widgets
 
 ```ts
-app.game.widgets.register({ type, render });
+app.game.widgets.register({ type, render, logicApi });
 app.game.widgets.registerMany(defs);
 ```
 
-あるウィジェット型についてゲーム側のレンダラーを登録します。`render` は、Studio が組み込みの要素レンダラーに渡すのと同じ props を受け取ります。各型は `contributes.widgets` に宣言されていなければなりません。`void` を返します。
+あるウィジェット型についてゲーム側のレンダラーを登録します。`render` は `RuntimeWidgetRendererProps` を受け取ります。これは studio のウィジェットモジュールの `render` が受け取るのと同じ props です。[レンダリングの props](/ja/docs/studio/plugin/studio/widgets#render-props) を参照してください。studio のモジュールが宣言するのと同じ `logicApi` を渡してください。渡さないと、Dev Mode でもゲームでも、ウィジェットのイベントはどのグラフにも届きません。各型は `contributes.widgets` に宣言されていなければなりません。`void` を返します。
 
 ### game.data
 
@@ -317,7 +319,7 @@ runtime エントリーはゲームの中で実行されます――Production �
 ## 落とし穴
 
 - **ホストのモジュールを external としてマークしてください。** `narraleaf-studio/plugin`、`narraleaf-studio/runtime`、そして React 関連パッケージはホストが提供します。自分のコピーをバンドルすると読み込みが壊れます。テンプレートの esbuild 設定はすでにこれらを列挙しています。
-- **ブループリントノードは公開したゲームで動くために両方のエントリーを必要とします**――studio はパレット用、runtime は実行用です。studio だけに登録すると、エディタープレビューでは動きますが、エクスポートすると何もしなくなります。
+- **ブループリントノードは公開したゲームで動くために両方のエントリーを必要とします**――studio はパレット用、runtime は実行用です。studio だけに登録すると、エディタープレビューでは動きますが、Dev Mode とゲームではグラフがそのノードでエラーになって止まります。
 - **名前空間の有無を確認してください。catch はしません。** 宣言されていない、あるいは利用できない能力は `app.game` から欠落しているだけなので、`app.game.store?.set(...)` がガードのすべてです。`try` するものは何もありません。
 - **エディターはどの能力も支えられません。** 同じ `execute` はエディターのキャンバス上でも実行され、そこではゲートされた名前空間がすべて欠落しています。ゲームがあることを前提とするノードはそこで何もしません――それで問題ないように書いてください。
 - **ノード定義はセッションを通じて永久です。** `blueprintNodes.register` は設計上 `void` を返します。ノード型を登録解除することはできません。

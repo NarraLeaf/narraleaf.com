@@ -11,12 +11,12 @@ Each node `type` must be declared in `contributes.blueprintNodes`, prefixed with
 
 | Method | Signature | Notes |
 | --- | --- | --- |
-| `register` | `(def: BlueprintNodeDef) => void` | Session-persistent — returns `void`, a node type cannot be removed once registered. |
-| `registerMany` | `(defs: BlueprintNodeDef[]) => void` | Same. |
-| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | Backs a `kind: "select"` inspector param with live options. Returns a cleanup. |
+| `register` | `(def: PluginBlueprintNodeDef) => void` | Session-persistent — returns `void`, a node type cannot be removed once registered. |
+| `registerMany` | `(defs: PluginBlueprintNodeDef[]) => void` | Same. |
+| `registerDynamicSelectOptionsSource` | `(sourceId: string, provider: () => BlueprintInspectorParamSelectOption[]) => PluginCleanup` | Backs a `kind: "select"` inspector param with live options. The source id must be prefixed with your plugin id. Returns a cleanup. |
 | `notifyDynamicSelectOptionsChanged` | `() => void` | Refresh open node cards after the provider's data changes. |
 
-## BlueprintNodeDef
+## PluginBlueprintNodeDef
 
 The essential fields:
 
@@ -26,14 +26,19 @@ The essential fields:
 | `displayName` | `string` | Palette label. |
 | `category` | `string` | Palette grouping. |
 | `keywords` | `string[]` | Palette search terms. |
-| `graphKinds` | `BlueprintGraphKind[]` | Where the node may appear, e.g. `["event", "macro"]`. |
-| `isPure` | `boolean` | Pure nodes have no side effects. |
+| `graphKinds` | `BlueprintGraphKind[]` | Where the node may appear, e.g. `["event", "macro"]`. A `function` graph accepts only pure, non-latent nodes. |
+| `isPure` | `boolean` | Pure nodes have no side effects. A plugin node outputs values only when the exec flow runs it, so a pure plugin node cannot output values; see [Return value](#return-value). |
 | `isLatent` | `boolean` | Async / awaited execution; disallowed in function graphs. |
+| `role` | `BlueprintNodeRole` | Optional. `"eventHead"` makes the node an event head for a plugin widget; see [Event heads](#event-heads). |
+| `allowInBlueprintValueGraph` | `boolean` | Optional. Offers the node in [Blueprint Value](/docs/studio/blueprint#blueprint-value) graphs. A binding built on it updates when the elements and properties it reads through Studio's own nodes change, never when the plugin's own data changes. |
+| `assetNames` | `"forward" \| "written" \| "assembled"` | Optional. Where the node's string outputs come from: its inputs, text written down in the project, or values made while the game runs. Undeclared counts as `"assembled"`, so a build refuses a project in which one of these outputs picks an asset. |
 | `pins` | `BlueprintNodePinDef[]` | Exec and data pins. |
 | `inspectorParams` | `BlueprintInspectorParamDef[]` | On-card fields, read at runtime from `ctx.params`. |
-| `execute` | `BlueprintNodeExecuteFn` | The node body; see below. |
+| `execute` | `(ctx: PluginBlueprintNodeContext) => …` | The node body; see below. |
 
-A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`.
+A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`. `allowInlineLiteral` is accepted only on a data input whose `valueType` is `string`, `integer`, `float`, `boolean` or `ImageAsset`; anything else throws at registration.
+
+Studio decides where a node appears. A plugin node is offered in every blueprint that has a graph of one of its `graphKinds`, within the limits above. There is no `scope` field: a `scope` or `requiresHostApi` left on a definition is dropped at registration. Event heads are the one exception, described [below](#event-heads).
 
 ## execute and the node context
 
@@ -53,6 +58,51 @@ Registering a node from the **studio** entry means it also runs in the editor's 
 
 Everything reachable from `ctx.game` is documented in the [Runtime API reference](/docs/studio/plugin/runtime).
 
+## Return value
+
+`execute` returns an object with any of these fields, or nothing:
+
+| Field | Type | Effect |
+| --- | --- | --- |
+| `nextPort` | `string \| null` | The exec output pin the flow continues from. Defaults to `next`; `null` ends the run. |
+| `nextPorts` | `string[]` | Several exec output pins, followed in order. |
+| `outputValues` | `Record<string, unknown>` | Values for the node's data output pins, keyed by pin id. Nodes wired to those pins read them. |
+
+```ts
+execute: async ctx => {
+    const rows = await loadRows(ctx);
+    return { nextPort: "next", outputValues: { entries: rows, count: rows.length } };
+}
+```
+
+A plugin node publishes data outputs only through `outputValues`, and only when the exec flow reaches it. Give a node that outputs values exec pins and `isPure: false`.
+
+## Event heads
+
+A plugin widget's own events start on event heads the plugin registers (see [widget events](/docs/studio/plugin/studio/widgets#widget-events)). An event head is a node with:
+
+- `role: "eventHead"` and `graphKinds: ["event"]`;
+- an exec output pin with the id `then`, where the graph starts;
+- one data output pin per payload field it exposes, with the field's name as the pin id.
+
+Studio offers the head only in the blueprints of plugin widgets whose `logicApi` names it in `headNodeTypes`, never in page or global blueprints. Its `execute` never runs; return `{ nextPort: "then" }` as a placeholder. Register it from both entries like any other node.
+
+```ts
+export const ON_RATED: PluginBlueprintNodeDef = {
+    type: `${PLUGIN_ID}.onRated`,
+    displayName: "On Rated",
+    category: "Events",
+    graphKinds: ["event"],
+    isPure: false,
+    role: "eventHead",
+    pins: [
+        { id: "then", kind: "output", semantic: "exec", label: "Then" },
+        { id: "stars", kind: "output", semantic: "data", valueType: "integer", label: "Stars" },
+    ],
+    execute: () => ({ nextPort: "then" }),
+};
+```
+
 ## Dynamic select options
 
 ```ts
@@ -69,3 +119,7 @@ An inspector param declared as `{ kind: "select", dynamicOptionsSource: "yournam
 <Callout type="info">
 To read a wired **data input pin**, call `ctx.resolveInput?.(pinId)` inside `execute`. It resolves lazily along the wired edge and returns `undefined` for an unwired or undeclared pin. Static on-card fields still come from `inspectorParams` + `ctx.params`.
 </Callout>
+
+## When the plugin is missing
+
+A project keeps a plugin's nodes when the plugin is uninstalled, switched off, fails to load, or is [skipped for the project](/docs/studio/plugin/project-dependencies#what-being-skipped-means). Each such node draws as an **Unknown node** card that shows its type and the pins Studio recorded while the plugin was loaded, and its connections stay in place. The project check reports it as **Unknown node type**, an error that stops the build. Once the plugin loads again, the nodes work as before.

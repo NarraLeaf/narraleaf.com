@@ -8,7 +8,7 @@ description: nl.image ウィジェットのアセット、フィルモード、�
 ## 規約
 
 - **Self ノードのみです。** ここには `Element` 入力を取るノードはありません。対象は常に、そのブループリントを所有する `nl.image` です。接続されたエレメントに対して働くバージョンは [Element](/ja/docs/studio/blueprint/nodes/element) の `blueprint.element.image.*` で、それぞれ `element:nl.image` 入力を持ち、グラフにすでに互換性のあるバインディングがある場合にのみ現れます。
-- **グラフの種類。** 取得系ノードは pure で、`event`・`function`・`macro` のいずれのグラフでも、Blueprint Value の中でも動作します。書き込み系ノードは latent で、`event` と `macro` でのみ動作します。
+- **グラフの種類。** 取得系ノードは pure で、`event`・`function`・`macro` のいずれのグラフでも動作します。Blueprint Value のオーナーは `widgetValue` であり、これらのノードは提供されません。Blueprint Value から画像を読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。書き込み系ノードは latent で、`event` と `macro` でのみ動作します。
 - **`ImageAsset` は構造化された値です**（`{ kind: "imageAsset", assetId }`）。単なる id 文字列ではありません。`null` 許容形の `ImageAsset|null` は、`null` を*画像なし*として受け付けます。これらのピンに渡された素の `string` も、依然としてアセット id として読み取られます。これにより、この型が存在する前に保存されたグラフも動作し続けます。
 - **書き込みはウィジェットの `imageFill`**（`mode`、`assetId`、`cropPlacement`）**または `imageFlipX` / `imageFlipY` を書き換え**、その後エレメントの flush をキューに入れます。書き込む値がすでにある値と一致する場合は、何も起きません——パッチも flush も発生しません。
 - **利用できない入力は現在の値にフォールバックします。** 認識できない、または空のフィットモード、数値でない切り抜きパーセンテージ、未接続の真偽値は、いずれもそのプロパティをリセットせず、そのままにします。

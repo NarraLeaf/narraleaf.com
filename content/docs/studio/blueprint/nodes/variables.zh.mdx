@@ -11,7 +11,7 @@ description: 声明变量、读取变量、写入变量，以及访问 Persisten
 - **之后改类型不会动你的连线。** 改掉某个`Var`的 Data type 后，已不再匹配的连线原地保留；graph validation 报告类型不匹配，而不是由编辑器悄悄删掉这条连线。重接哪一根由你决定
 - **纯不纯决定节点在哪里可用。** `Var`和`Get Var`是纯节点，也是 Variables 分类里唯二能出现在`function`图中的节点。其余都是`event`和`macro`图的执行节点，Persistent 那一对还额外是 latent（会挂起执行）节点，因此也进不了 [Blueprint Value](/zh/docs/studio/blueprint)
 - **Blueprint Value 不能声明变量。** `widgetValue`宿主根本没有`Var`节点，但它仍然可以用`Get Var`和`Set Var`读写自己够得到的变量
-- **Scene 与 Saved 这几个节点属于 Story Action 蓝图**，在没有运行中剧情的地方执行会直接失败
+- **Scene 这两个节点属于 Story Action 蓝图。** `Get Scene Var`和`Set Scene Var`在别处都不提供。Saved 这一对提供给除 Blueprint Value 之外的所有蓝图：在 Story Action 蓝图里它访问运行中的剧情，在其它地方访问运行中的游戏
 
 ## Var
 
@@ -141,13 +141,14 @@ Set Scene Var（设置场景变量）写入一个 Scene 变量，然后从`next`
 
 `blueprint.saved.get`
 
-Get Saved Var（获取存档变量）从运行中剧情的存档存储读取一个 Saved 变量——也就是存档文件会带走的那一份
+Get Saved Var（获取存档变量）从运行中的游戏的存档存储读取一个 Saved 变量，也就是存档文件会带走的那一份。界面可以在任何游戏开始之前读取它，例如在标题画面上：这时`value`是该变量声明的默认值，`found`为`false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 该变量的当前值|
+| `value` | out · data | `any` | 该变量的当前值；`found`为`false`时是它声明的默认值|
+| `found` | out · data | `boolean` | 没有运行中的游戏持有该变量时为`false`。在 Story Action 蓝图里恒为`true`|
 
 **卡上字段**
 
@@ -160,6 +161,8 @@ Get Saved Var（获取存档变量）从运行中剧情的存档存储读取一�
 `blueprint.saved.set`
 
 Set Saved Var（设置存档变量）写入一个 Saved 变量，然后从`next`继续
+
+在 Story Action 蓝图之外，它写入运行中的游戏；没有游戏在运行、该变量未声明，或者值无法存进存档时，它会失败。写入的值会出现在下一次存档里。剧情的撤销不会撤回这次写入，屏幕上已经显示的剧情内容也不会因此改变
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
