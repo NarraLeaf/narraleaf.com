@@ -1,0 +1,339 @@
+---
+title: Gallery
+description: ゲームの鑑賞画面（CG、回想、音楽、ボイス）の内容とプレイヤーの解除記録を読み取る、Gallery プラグインのノード
+---
+
+Gallery プラグインは、ゲームの鑑賞画面のためのものです。CG ギャラリー、シーン回想、音楽鑑賞、ボイス鑑賞を扱います。鑑賞画面に載せるものを Studio のギャラリーエディターで一覧にしておくと、このページのノードがその一覧とプレイヤーが解除した内容を合わせて、List ウィジェットがそのまま描ける行として返します。このプラグインは出荷時に無効です。[組み込みプラグイン](/ja/docs/studio/blueprint/nodes/built-in-plugins#switching-a-plugin-on)を参照してください。
+
+**Skeleton**（スケルトン）テンプレートから作成したプロジェクトの鑑賞画面は、これらのノードで組み立てられています。列ごとに `Get Gallery` が 1 つ、進捗の行に `Get Gallery Progress`、CG ビューアーに `Get Gallery Variants` と `Get Gallery Variant At` を使っています。
+
+## カタログ [#the-catalog]
+
+- **エントリー（entry）。** 鑑賞画面の 1 項目です。1 枚の CG、1 つの回想、1 枚のアルバム、1 組のボイスのいずれかです。どのエントリーにも**種類**があり、`cg`、`scene`、`music`、`voice` のいずれかで、Studio では **CG**、**Recollection**（回想）、**Music**（音楽）、**Voice**（ボイス）と表示されます。種類はエントリーが属する列を決めます。ノードのカードとピンはエントリーを artwork と呼びます。カードの `Artwork` フィールドと `artworkId` ピンがそれです。
+- **バリアント（variant）。** エントリーの 1 メンバーです。CG の差分、回想の画像、アルバムの曲、ボイスの組の 1 行がこれにあたります。プレイヤーが解除するのはバリアントです。エントリーは、いずれかのバリアントが解除された時点で解除済みとみなされます。
+- **カバー。** エントリーを代表するバリアントです。星を付けたもの、なければ最初のものです。
+- **グループ。** すべての種類にまたがる任意の分類で、タブバーに使います。エントリーはグループに 1 つ属するか、どれにも属しません。
+- **ロック中の見た目。** エントリーがロックされている間、その行は元の画像の代わりにプレースホルダー画像を、名前の代わりにロック中のタイトルを持ち、説明、音声、ボイス、シーンのフィールドは空になります。プレースホルダーはエントリー自身のもの、なければカタログの既定のものです。ロック中のタイトルは変更するまで `???` で、空にすると本当の名前が表示されます。
+- **非表示のエントリー。** 非表示に設定したエントリーは、プレイヤーが解除するまで `Get Gallery` の行にも進捗の合計にも含まれません。そのため、秘密のエントリーが空の枠として見えることはありません。
+
+プラグインを有効にすると、アクティビティバーに **Gallery**（ギャラリー）ツールが現れ、エントリーを一覧表示します。エントリーを選ぶか、ツールのヘッダーにある展開ボタンを押すと、ギャラリーエディターがタブとして開きます。
+
+エディターは種類ごとに列を持ちます。追加ボタンは列によって変わります。**Import CGs**（CG を読み込む）は選んだ画像 1 枚ごとにエントリーを 1 つ作り、**Import Tracks**（トラックを読み込む）は選んだ曲で 1 枚のアルバムを作り、**Add Recollection**（回想を追加）と **Add Voice Lines**（ボイスの行を追加）は空のエントリーを作ります。そのシーンや行はインスペクターで選びます。グループは列の下に並ぶチップで、**New group**（新規グループ）で追加します。インスペクターでは、エントリーの名前、説明、グループ、バリアント、**Shown as a locked slot**（ロックされた枠として表示）か **Hidden until unlocked**（解除まで非表示）か、そしてエントリー自身のロック中のプレースホルダーを編集します。ヘッダーの **How locked entries look in game**（ゲーム内でのロック中の見た目）ボタンで、カタログの **Default placeholder**（既定のプレースホルダー）と **Locked title**（ロック中のタイトル）を設定します。
+
+カタログはプロジェクトとともに保存され、ゲームに同梱されます。
+
+## 解除 [#unlocking]
+
+バリアントを解除するものは種類によって異なります。何も選択していないとき、エディターのインスペクターも列ごとに同じことを示します。
+
+| 種類 | 解除するもの |
+| --- | --- |
+| CG | `Unlock Gallery` または `Unlock Whole Gallery` だけです。 |
+| Recollection | プレイヤーがエントリーのシーンに到達したとき。エントリーのすべてのバリアントが一度に解除されます。 |
+| Music | ストーリーがその曲を再生したとき。`/bgm` 行や `/sound` 行、またはシーンの開始時に流れるそのシーン自身の BGM です。Page が `Play Sound` で再生するクリップは数えないため、音楽鑑賞画面自身のプレイヤーでは曲を解除できません。 |
+| Voice | プレイヤーが、そのバリアントの元になったストーリーの行を読み終えたとき。 |
+
+解除記録はプレイヤーの持続データに、[持続変数](/ja/docs/studio/blueprint/variables#持続変数)と並んで保存され、どのセーブファイルにも入りません。新しいゲームを始めてもリセットされず、セーブをロードしても変わりません。`Lock Whole Gallery` で消去されます。Studio では、**Reset player data**（プレイヤーデータをリセット）が Dev Mode または Preview の解除記録を、それぞれのセーブとともに消去します。
+
+解除記録が保持するのはバリアントの id で、id はエディターが割り当てます。バリアントの名前を変えたり並べ替えたりしても解除状態は保たれます。バリアントを削除して同じ画像を追加し直すと、新しいバリアントになり、ロックされた状態から始まります。
+
+バリアントのないエントリーには解除するものがなく、ロックされたままです。回想は作成時にバリアントを持ちません。画像を 1 枚加えないと、そのシーンに到達しても何も解除されません。
+
+## 規約 [#conventions]
+
+- **どのノードにも exec ピンがあります。** `Pure` なものはなく、Blueprint Value ではどれも提供されません。イベントグラフから実行し、返された値を List や変数に渡してください。`Get Gallery Groups` 以外はすべて `Latent` です。
+- **接続したピンがカードより優先されます。** `artworkId`、`variantId`、`groupId` に空でない文字列が来ると、カードの `Artwork`、`Variant`、`Group` を上書きします。作成時にはカードで名前から選び、ピンには行が持つ id を渡します。プレイヤーがクリックした行がビューアーを動かすのはこの仕組みです。
+- **行はすでにロック状態を反映しています。** ロック状態は各行の中で適用済みなので、項目テンプレートは受け取ったものをそのまま描けばよく、ロック中のエントリーの画像を誤って見せることはありません。
+- **行は List に渡します。** `entries` を [`Set List Content`](/ja/docs/studio/blueprint/nodes/list#set-list-content) に接続します。項目テンプレートでは、[`Get List Item Props`](/ja/docs/studio/blueprint/nodes/list#get-list-item-props) と [`Get JSON Field`](/ja/docs/studio/blueprint/nodes/data#get-json-field) でフィールドを読みます。
+- **エントリーが見つからないとノードは失敗します。** カードでエントリーを選んでおらず `artworkId` にも何もないと、ノードは `Pick a gallery artwork` で失敗します。カタログにない id では `Gallery artwork not found: <id>` で失敗します。
+- **実行される場所。** エディターのキャンバスでは、ノードは編集中のカタログを読み、何も解除されていない状態として扱い、解除やロックは何も変えません。Dev Mode、Preview、ビルドしたゲームでは、ゲームに同梱されたカタログを読みます。
+- **カタログのないゲーム。** ゲームがギャラリーのカタログを持たない場合（プロジェクトがカタログを一度も保存していない場合）、プラグインは `No gallery catalog was published with this game.` を一度だけ記録します。`Get Gallery` と `Get Gallery Groups` は空の配列を返し、`Get Gallery Progress` はすべて 0 を返し、エントリーを指定するノードはすべて失敗します。
+
+## Get Gallery
+
+`narraleaf.gallery.getEntries` · Latent
+
+カタログのエントリーを、エディターでの順序のまま、種類とグループで絞り込んだ行として返します。プレイヤーがまだ解除していない非表示のエントリーは含まれません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Group` より優先されます。 |
+| `onlyUnlocked` | in · data | `boolean` | 省略可能です。カード上にリテラル値を入力できます。`true` ではロック中のエントリーをすべて除きます。 |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `count` | out · data | `integer` | `entries` の行数です。 |
+| `unlockedCount` | out · data | `integer` | `entries` のうち解除済みの行数です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Kind` | `CG`、`Recollection`、`Music`、`Voice` のいずれか。空（**All kinds**（すべての種類））ではすべての種類を読みます。 |
+| `Group` | カタログのグループの 1 つ。空（**All groups**（すべてのグループ））ではすべてのグループを読みます。 |
+
+**エントリーフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `index` | `entries` の中での位置。絞り込みの後に数えます。 |
+| `id` | エントリーの id。`artworkId` ピンに渡します。 |
+| `name` | エントリーの名前。ロック中はロック中のタイトル。 |
+| `description` | ロック中は空。 |
+| `kind` | `"cg"`、`"scene"`、`"music"`、`"voice"` のいずれか。 |
+| `groupId`、`groupName` | どのグループにも属さないエントリーでは空。 |
+| `unlocked`、`locked` | いずれかのバリアントが解除済みかどうかと、その反転。`Not` を使わずにロック中の見た目を束縛できます。 |
+| `variantCount`、`unlockedCount` | エントリーのバリアント数と、そのうち解除済みの数。 |
+| `image`、`assetId` | 描く画像を、`ImageAsset` と素のアセット id で。解除済みなら、プレイヤーがカバーを持っていればカバー、なければプレイヤーが持つ最初のバリアント。ロック中はロック中のプレースホルダー。画像がなければ `null` と `""`。 |
+| `thumbnail`、`thumbnailAssetId` | 同じ画像。ギャラリーエディターは別のサムネイルを設定しません。 |
+| `coverVariantId` | 解除済みのとき `image` の元になっているバリアント。ビューアーはこれから開けます。ロック中はカバー。 |
+| `audioAssetId` | `music`：表示している曲のクリップ。[`Play Sound`](/ja/docs/studio/blueprint/nodes/sound#play-sound) に渡します。ロック中は空。 |
+| `durationSec` | 長さが分かっていれば秒数、分からなければ `0`。プロジェクトのボイスのテイクから選んだ行は長さを持ち、読み込んだ曲は持ちません。 |
+| `voiceUnitId` | `voice`：表示している行の voice id。[`Play Voice`](/ja/docs/studio/blueprint/nodes/voice#play-voice) に渡します。ロック中は空。 |
+| `storyId`、`sceneId`、`startBlockId` | `scene`：[`Start Game`](/ja/docs/studio/blueprint/nodes/game#start-game) が再生を始める場所。ロック中は空。ギャラリーエディターはストーリーとシーンしか設定しないため、`startBlockId` は空です。 |
+
+## Get Gallery Variants
+
+`narraleaf.gallery.getVariants` · Latent
+
+1 つのエントリーのバリアントを、エディターでの順序のまま行として返します。CG ビューアーの差分の帯、アルバムの曲目、ボイスの組の各行に使います。エントリーが非表示かどうかはここでは関係しません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `onlyUnlocked` | in · data | `boolean` | 省略可能です。カード上にリテラル値を入力できます。`true` ではロック中のバリアントをすべて除きます。 |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `count` | out · data | `integer` | `entries` の行数です。 |
+| `unlockedCount` | out · data | `integer` | `entries` のうち解除済みの行数です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Artwork` | エントリー。名前で選びます。 |
+
+**バリアントフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `index` | `entries` の中での位置。絞り込みの後に数えます。 |
+| `id` | バリアントの id。`variantId` ピンに渡します。 |
+| `artworkId` | バリアントが属するエントリー。 |
+| `name` | バリアントの名前。ロック中はロック中のタイトル。 |
+| `unlocked`、`locked` | このバリアントが解除済みかどうかと、その反転。 |
+| `image`、`assetId` | 解除済みならバリアントの画像、ロック中ならロック中のプレースホルダー。なければ `null` と `""`。 |
+| `thumbnail`、`thumbnailAssetId` | 同じ画像。 |
+| `isCover` | このバリアントがエントリーのカバーかどうか。 |
+| `audioAssetId` | 曲のクリップ。ロック中は空。 |
+| `durationSec` | 長さが分かっていれば秒数、分からなければ `0`。 |
+| `voiceUnitId` | 行の voice id。`Play Voice` に渡します。ロック中は空。 |
+| `lineText` | 選んだ時点での行のテキスト。字幕に使います。ロック中は空。 |
+
+## Get Gallery Groups
+
+`narraleaf.gallery.getGroups`
+
+カタログのグループをエディターでの順序で返します。タブバーに使います。行の `id` は `Get Gallery` または `Get Gallery Progress` の `groupId` ピンに戻します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `groups` | out · data | `array` | `{ index, id, name }` の配列です。 |
+| `count` | out · data | `integer` | |
+
+## Get Gallery Progress
+
+`narraleaf.gallery.getStats` · Latent
+
+画面のヘッダーに使う達成度の数字を返します。種類とグループによる絞り込みは `Get Gallery` と同じです。非表示のエントリーは解除されてはじめて数えられるため、秘密のエントリーが合計に現れることはありません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Group` より優先されます。 |
+| `next` | out · exec | — | |
+| `total` | out · data | `integer` | 数えたエントリーの数です。 |
+| `unlocked` | out · data | `integer` | 解除済みのバリアントを 1 つ以上持つエントリーの数です。 |
+| `percent` | out · data | `integer` | `total` に対する `unlocked` の割合を、`0` から `100` の整数に丸めたものです。`total` が `0` のときは `0` です。 |
+| `variantTotal` | out · data | `integer` | 数えたエントリーのバリアント数です。 |
+| `variantUnlocked` | out · data | `integer` | そのうち解除済みの数です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Kind` | `Get Gallery` と同じ。空（**All kinds**（すべての種類））ではすべての種類を数えます。 |
+| `Group` | `Get Gallery` と同じ。空（**All groups**（すべてのグループ））ではすべてのグループを数えます。 |
+
+## Unlock Gallery
+
+`narraleaf.gallery.add` · Latent
+
+エントリーのバリアントを 1 つ解除します。バリアントを指定しないときは、そのすべてのバリアントを解除します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `variantId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Variant` より優先されます。 |
+| `next` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Artwork` | エントリー。名前で選びます。 |
+| `Variant` | そのエントリーのバリアントの 1 つ。空（**All variants**（すべてのバリアント））ではすべてを解除します。 |
+
+そのエントリーのバリアントではない id を渡しても、何も変わりません。
+
+## Lock Gallery
+
+`narraleaf.gallery.remove` · Latent
+
+エントリーのバリアントを 1 つ再びロックします。バリアントを指定しないときは、そのすべてのバリアントをロックします。ピンとフィールドは `Unlock Gallery` と同じです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `variantId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Variant` より優先されます。 |
+| `next` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Artwork` | エントリー。名前で選びます。 |
+| `Variant` | そのエントリーのバリアントの 1 つ。空（**All variants**（すべてのバリアント））ではすべてをロックします。 |
+
+## Unlock Whole Gallery
+
+`narraleaf.gallery.unlockAll` · Latent
+
+すべてのエントリーのすべてのバリアントを、非表示のエントリーも含めて解除します。クリア後のご褒美に使えるほか、鑑賞画面を作りながら埋まった状態を手早く確認するのにも使えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Lock Whole Gallery
+
+`narraleaf.gallery.clear` · Latent
+
+解除記録を消去し、すべてのエントリーを再びロックします。解除記録はどのセーブファイルにも入っていないため、セーブをロードしても解除状態は戻りません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Is Gallery Unlocked
+
+`narraleaf.gallery.isUnlocked` · Latent
+
+バリアントを指定したときは、そのバリアントが解除済みかどうかを返します。指定しないときは、エントリーのいずれかのバリアントが解除済みかどうかを返します。グリッドのセルが知りたいのはこちらです。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `variantId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Variant` より優先されます。 |
+| `next` | out · exec | — | |
+| `unlocked` | out · data | `boolean` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Artwork` | エントリー。名前で選びます。 |
+| `Variant` | そのエントリーのバリアントの 1 つ。空（**Any variant**（いずれかのバリアント））ではエントリー全体について問います。 |
+
+## Get Gallery Variant At
+
+`narraleaf.gallery.getVariant` · Latent
+
+位置を指定してバリアントを 1 つ取り出します。ビューアーで前後の差分に切り替えるのに使います。位置はエディターでの順序ですべてのバリアントを数え、ロック中のものも含みます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `index` | in · data | `integer` | 位置で、`0` から数えます。カード上にリテラル値を入力できます。 |
+| `image` | out · data | `ImageAsset\|null` | 解除済みならバリアントの画像です。ロック中は `null` で、このノードはプレースホルダーを返しません。 |
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | バリアントの名前です。ロック中のタイトルはここでは適用されません。 |
+| `variantId` | out · data | `string` | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Artwork` | エントリー。名前で選びます。 |
+
+エントリーの範囲外の位置では、`null`、`false`、空文字列を返します。
+
+## 非表示のノード [#hidden-nodes]
+
+古いノードが 4 つあり、カタログを 1 項目ずつ読み取ります。これらは上の配列を返すノードに取って代わられ、パレットからは非表示ですが、このノードを持つグラフでは引き続き実行されます。
+
+### Get Gallery Variant Count
+
+`narraleaf.gallery.getVariantCount`
+
+`Get Gallery Variants` の `count` に取って代わられています。エントリーのすべてのバリアントを、ロック中のものも含めて数えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Cover
+
+`narraleaf.gallery.getCover` · Latent
+
+`Get Gallery` の行の `image` と `name` フィールドに取って代わられています。読み取るのはエントリーのカバーだけで、カバーのバリアント自体が解除されるまで `image` は `null`、`unlocked` は `false` です。`name` はロック中のタイトルに置き換わりません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
+| `image` | out · data | `ImageAsset\|null` | |
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | |
+
+### Get Gallery Artwork Count
+
+`narraleaf.gallery.getArtworkCount`
+
+`Get Gallery` の `count` に取って代わられています。カタログのすべてのエントリーを、種類を問わず、非表示のものも含めて数えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Artwork At
+
+`narraleaf.gallery.getArtworkAt` · Latent
+
+`Get Gallery` に取って代わられています。カタログ全体から位置を指定してエントリーを 1 つ取り出します。非表示のエントリーも含み、名前はロック中のタイトルに置き換わりません。カタログの範囲外の位置では、空文字列、`false`、`0` を返します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `index` | in · data | `integer` | 位置で、`0` から数えます。カード上にリテラル値を入力できます。 |
+| `next` | out · exec | — | |
+| `artworkId` | out · data | `string` | |
+| `name` | out · data | `string` | |
+| `unlocked` | out · data | `boolean` | |
+| `variantCount` | out · data | `integer` | |

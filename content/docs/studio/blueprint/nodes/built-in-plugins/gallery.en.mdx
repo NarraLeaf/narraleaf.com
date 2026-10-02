@@ -1,0 +1,339 @@
+---
+title: Gallery
+description: The Gallery plugin's nodes, which read a game's EXTRA screens (CG, recollection, music and voice) and the player's unlock record.
+---
+
+The Gallery plugin is for a game's EXTRA screens: a CG gallery, scene recollection, music appreciation and voice extras. You list what those screens hold in Studio's Gallery editor, and these nodes return that list, combined with what the player has unlocked, as rows a List widget draws directly. The plugin ships disabled; see [Built-in plugins](/docs/studio/blueprint/nodes/built-in-plugins#switching-a-plugin-on).
+
+The Extra screen of a project created from the **Skeleton** template is built from these nodes: one `Get Gallery` per column, `Get Gallery Progress` for its progress line, and `Get Gallery Variants` with `Get Gallery Variant At` for its CG viewer.
+
+## The catalog
+
+- **Entry.** One item on an EXTRA screen: a CG, a recollection, an album or a voice set. Every entry has a **kind**, `cg`, `scene`, `music` or `voice`, shown in Studio as **CG**, **Recollection**, **Music** and **Voice**. The kind is the column the entry belongs to. Node cards and pins call an entry an artwork: the `Artwork` field, the `artworkId` pin.
+- **Variant.** One member of an entry: a differential of a CG, a picture of a recollection, a track of an album, a line of a voice set. The player unlocks variants. An entry counts as unlocked as soon as any of its variants is.
+- **Cover.** The variant that stands for the entry: the one you star, otherwise the first.
+- **Group.** An optional category across all kinds, for a tab bar. An entry belongs to one group or to none.
+- **Locked look.** While an entry is locked, its rows carry a placeholder picture instead of its art and the locked title instead of its name, and its description, audio, voice and scene fields are empty. The placeholder is the entry's own, or the catalog's default. The locked title is `???` until you change it; an empty title shows the real name.
+- **Hidden entry.** An entry marked hidden is left out of `Get Gallery` rows and progress totals until the player unlocks it, so a secret entry does not show as an empty slot.
+
+With the plugin on, the activity bar has a **Gallery** tool that lists the entries. Choosing an entry, or the expand button in the tool's header, opens the Gallery editor as a tab.
+
+The editor has one column per kind. The add button changes with the column: **Import CGs** makes one entry per picked image, **Import Tracks** makes one album of the picked tracks, and **Add Recollection** and **Add Voice Lines** make an empty entry whose scene or lines you pick in the inspector. Groups are the chips under the columns; **New group** adds one. The inspector edits an entry's name, description, group and variants, whether it is **Shown as a locked slot** or **Hidden until unlocked**, and its own locked placeholder. The header button **How locked entries look in game** sets the catalog's **Default placeholder** and **Locked title**.
+
+The catalog is saved with the project and packed with the game.
+
+## Unlocking
+
+What unlocks a variant depends on its kind. The editor's inspector says the same for each column while nothing is selected.
+
+| Kind | Unlocked by |
+| --- | --- |
+| CG | `Unlock Gallery` or `Unlock Whole Gallery`, and nothing else. |
+| Recollection | The player reaching the entry's scene. Every variant of the entry unlocks at once. |
+| Music | The story playing the track: a `/bgm` or `/sound` row, or a scene's own background music as the scene starts. A clip a Page plays with `Play Sound` does not count, so the music screen's own player cannot unlock a track. |
+| Voice | The player finishing the story line the variant was picked from. |
+
+The unlock record is kept in the player's persistent data, beside [persistent variables](/docs/studio/blueprint/variables#persistent-variables), and in no save file. Starting a new game does not reset it, and loading a save does not change it. `Lock Whole Gallery` clears it. In Studio, **Reset player data** clears it for Dev Mode or for Preview, together with their saves.
+
+The record holds variant ids, which the editor assigns. Renaming or reordering a variant keeps its unlock. Deleting a variant and adding the same picture again makes a new variant, which starts locked.
+
+An entry with no variants has nothing to unlock and stays locked. A recollection starts with none: give it a picture, or reaching its scene unlocks nothing.
+
+## Conventions
+
+- **Every node has exec pins.** None is `Pure`, and a Blueprint Value offers none of them. Run them from an event graph and hand what they return to a List or a variable. All but `Get Gallery Groups` are `Latent`.
+- **A wired pin wins over the card.** `artworkId`, `variantId` and `groupId` override the card's `Artwork`, `Variant` and `Group` when they carry a non-empty string. The card picks by name while you author; the pins take the ids rows carry, which is how a row the player clicks drives a viewer.
+- **Rows are masked already.** Lock state is applied inside each row, so an item template draws whatever it is given and cannot show a locked entry's art by mistake.
+- **Rows feed a List.** Wire `entries` into [`Set List Content`](/docs/studio/blueprint/nodes/list#set-list-content). In the item template, read a field with [`Get List Item Props`](/docs/studio/blueprint/nodes/list#get-list-item-props) and [`Get JSON Field`](/docs/studio/blueprint/nodes/data#get-json-field).
+- **An entry the node cannot find fails it.** With no entry picked on the card and nothing on `artworkId`, a node fails with `Pick a gallery artwork`. An id the catalog does not hold fails with `Gallery artwork not found: <id>`.
+- **Where they run.** In the editor canvas the nodes read the catalog as you are editing it, with nothing unlocked, and an unlock or lock changes nothing. In Dev Mode, Preview and the built game they read the catalog packed with the game.
+- **A game with no catalog.** When the game carries no gallery catalog (the project never saved one), the plugin logs `No gallery catalog was published with this game.` once. `Get Gallery` and `Get Gallery Groups` return empty arrays, `Get Gallery Progress` returns zeros, and every node that names an entry fails.
+
+## Get Gallery
+
+`narraleaf.gallery.getEntries` · Latent
+
+The catalog's entries as rows, in the editor's order, narrowed by kind and group. A hidden entry the player has not unlocked is left out.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | Optional. Wired wins over the card's `Group`. |
+| `onlyUnlocked` | in · data | `boolean` | Optional. Accepts an on-card literal. `true` leaves out every locked entry. |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | Array of objects; fields below. |
+| `count` | out · data | `integer` | Rows in `entries`. |
+| `unlockedCount` | out · data | `integer` | Unlocked rows in `entries`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Kind` | `CG`, `Recollection`, `Music` or `Voice`. Empty (**All kinds**) reads every kind. |
+| `Group` | One of the catalog's groups. Empty (**All groups**) reads every group. |
+
+**Entry fields**
+
+| Field | What |
+| --- | --- |
+| `index` | Position in `entries`, counted after filtering. |
+| `id` | The entry's id. Feed it to an `artworkId` pin. |
+| `name` | The entry's name, or the locked title while locked. |
+| `description` | Empty while locked. |
+| `kind` | `"cg"`, `"scene"`, `"music"` or `"voice"`. |
+| `groupId`, `groupName` | Empty for an entry in no group. |
+| `unlocked`, `locked` | Whether any variant is unlocked, and the inverse, for binding a locked look without a `Not`. |
+| `variantCount`, `unlockedCount` | Variants in the entry, and how many of them are unlocked. |
+| `image`, `assetId` | The picture to draw, as an `ImageAsset` and as a bare asset id. While unlocked: the cover if the player has it, otherwise the first variant they have. While locked: the locked placeholder. `null` and `""` when there is no picture. |
+| `thumbnail`, `thumbnailAssetId` | The same picture. The Gallery editor sets no separate thumbnail. |
+| `coverVariantId` | The variant `image` comes from while unlocked, so a viewer can open on it. The cover while locked. |
+| `audioAssetId` | `music`: the shown track's clip, for [`Play Sound`](/docs/studio/blueprint/nodes/sound#play-sound). Empty while locked. |
+| `durationSec` | Length in seconds when it is known, otherwise `0`. A line picked from the project's voice takes carries its length; an imported track does not. |
+| `voiceUnitId` | `voice`: the shown line's voice id, for [`Play Voice`](/docs/studio/blueprint/nodes/voice#play-voice). Empty while locked. |
+| `storyId`, `sceneId`, `startBlockId` | `scene`: where [`Start Game`](/docs/studio/blueprint/nodes/game#start-game) replays from. Empty while locked. The Gallery editor sets a story and a scene only, so `startBlockId` is empty. |
+
+## Get Gallery Variants
+
+`narraleaf.gallery.getVariants` · Latent
+
+One entry's variants as rows, in the editor's order: the differential strip of a CG viewer, an album's track list, a voice set's lines. Whether the entry is hidden does not matter here.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `onlyUnlocked` | in · data | `boolean` | Optional. Accepts an on-card literal. `true` leaves out every locked variant. |
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | Array of objects; fields below. |
+| `count` | out · data | `integer` | Rows in `entries`. |
+| `unlockedCount` | out · data | `integer` | Unlocked rows in `entries`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Artwork` | The entry, picked by name. |
+
+**Variant fields**
+
+| Field | What |
+| --- | --- |
+| `index` | Position in `entries`, counted after filtering. |
+| `id` | The variant's id. Feed it to a `variantId` pin. |
+| `artworkId` | The entry the variant belongs to. |
+| `name` | The variant's name, or the locked title while locked. |
+| `unlocked`, `locked` | Whether this variant is unlocked, and the inverse. |
+| `image`, `assetId` | The variant's picture while unlocked, the locked placeholder while locked. `null` and `""` when there is none. |
+| `thumbnail`, `thumbnailAssetId` | The same picture. |
+| `isCover` | Whether this variant is the entry's cover. |
+| `audioAssetId` | The track's clip. Empty while locked. |
+| `durationSec` | Length in seconds when it is known, otherwise `0`. |
+| `voiceUnitId` | The line's voice id, for `Play Voice`. Empty while locked. |
+| `lineText` | The line's text as it read when it was picked, for a subtitle. Empty while locked. |
+
+## Get Gallery Groups
+
+`narraleaf.gallery.getGroups`
+
+The catalog's groups in the editor's order, for a tab bar. A row's `id` goes into the `groupId` pin of `Get Gallery` or `Get Gallery Progress`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `groups` | out · data | `array` | Array of `{ index, id, name }`. |
+| `count` | out · data | `integer` | |
+
+## Get Gallery Progress
+
+`narraleaf.gallery.getStats` · Latent
+
+Completion figures for a screen's header, narrowed by kind and group the way `Get Gallery` is. A hidden entry counts only once it is unlocked, so a secret entry does not show in the total.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | Optional. Wired wins over the card's `Group`. |
+| `next` | out · exec | — | |
+| `total` | out · data | `integer` | Entries counted. |
+| `unlocked` | out · data | `integer` | Entries with at least one unlocked variant. |
+| `percent` | out · data | `integer` | `unlocked` out of `total`, rounded to a whole number from `0` to `100`. `0` when `total` is `0`. |
+| `variantTotal` | out · data | `integer` | Variants in the counted entries. |
+| `variantUnlocked` | out · data | `integer` | How many of those are unlocked. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Kind` | As on `Get Gallery`. Empty (**All kinds**) counts every kind. |
+| `Group` | As on `Get Gallery`. Empty (**All groups**) counts every group. |
+
+## Unlock Gallery
+
+`narraleaf.gallery.add` · Latent
+
+Unlocks one variant of an entry, or every variant of it when no variant is named.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `variantId` | in · data | `string` | Optional. Wired wins over the card's `Variant`. |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Artwork` | The entry, picked by name. |
+| `Variant` | One of that entry's variants. Empty (**All variants**) unlocks all of them. |
+
+A variant id that is not one of the entry's variants changes nothing.
+
+## Lock Gallery
+
+`narraleaf.gallery.remove` · Latent
+
+Locks one variant of an entry again, or every variant of it when no variant is named. The pins and fields are those of `Unlock Gallery`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `variantId` | in · data | `string` | Optional. Wired wins over the card's `Variant`. |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Artwork` | The entry, picked by name. |
+| `Variant` | One of that entry's variants. Empty (**All variants**) locks all of them. |
+
+## Unlock Whole Gallery
+
+`narraleaf.gallery.unlockAll` · Latent
+
+Unlocks every variant of every entry, hidden entries included: the reward for finishing the game, and a quick way to see a gallery screen filled while you build it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Lock Whole Gallery
+
+`narraleaf.gallery.clear` · Latent
+
+Clears the unlock record, which locks every entry again. The record is in no save file, so loading a save does not bring the unlocks back.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Is Gallery Unlocked
+
+`narraleaf.gallery.isUnlocked` · Latent
+
+With a variant named, whether that variant is unlocked. With none, whether any variant of the entry is, which is the question a grid cell asks.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `variantId` | in · data | `string` | Optional. Wired wins over the card's `Variant`. |
+| `next` | out · exec | — | |
+| `unlocked` | out · data | `boolean` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Artwork` | The entry, picked by name. |
+| `Variant` | One of that entry's variants. Empty (**Any variant**) asks about the entry as a whole. |
+
+## Get Gallery Variant At
+
+`narraleaf.gallery.getVariant` · Latent
+
+One variant by position, for a viewer that steps to the previous or next differential. The position counts every variant in the editor's order, locked ones included.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `index` | in · data | `integer` | Position, from `0`. Accepts an on-card literal. |
+| `image` | out · data | `ImageAsset\|null` | The variant's picture while unlocked. `null` while locked; this node gives no placeholder. |
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | The variant's name. The locked title does not apply here. |
+| `variantId` | out · data | `string` | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Artwork` | The entry, picked by name. |
+
+A position outside the entry gives `null`, `false` and empty strings.
+
+## Hidden nodes
+
+Four older nodes read the catalog one item at a time. They are hidden from the palette, superseded by the array nodes above, and still run in graphs that hold them.
+
+### Get Gallery Variant Count
+
+`narraleaf.gallery.getVariantCount`
+
+Superseded by the `count` of `Get Gallery Variants`. Counts every variant of the entry, locked ones included.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Cover
+
+`narraleaf.gallery.getCover` · Latent
+
+Superseded by the `image` and `name` fields of a `Get Gallery` row. Reads the entry's cover only: `image` is `null` and `unlocked` is `false` until the cover variant itself is unlocked, and `name` is never masked.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
+| `image` | out · data | `ImageAsset\|null` | |
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | |
+
+### Get Gallery Artwork Count
+
+`narraleaf.gallery.getArtworkCount`
+
+Superseded by the `count` of `Get Gallery`. Counts every entry in the catalog, of every kind, hidden entries included.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Artwork At
+
+`narraleaf.gallery.getArtworkAt` · Latent
+
+Superseded by `Get Gallery`. One entry by position over the whole catalog, hidden entries included, with its name never masked. A position outside the catalog gives empty strings, `false` and `0`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `index` | in · data | `integer` | Position, from `0`. Accepts an on-card literal. |
+| `next` | out · exec | — | |
+| `artworkId` | out · data | `string` | |
+| `name` | out · data | `string` | |
+| `unlocked` | out · data | `boolean` | |
+| `variantCount` | out · data | `integer` | |

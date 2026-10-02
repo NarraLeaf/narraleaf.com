@@ -7,7 +7,7 @@ description: Frame がどの Page を表示するか、そしてその Page に�
 
 ## 規約
 
-- **読み取りは pure、書き込みは latent です。** このページの `Get` ノードはすべて `Pure` で、`event`・`function`・`macro` のいずれのグラフでも使えます。`Set` ノードはすべて `Latent` で、`event` と `macro` でのみ使えます——書き込みはホストを経由して非同期に解決され、`function` グラフは呼び出し元に同期的に戻るため、保留中の結果を置く場所がありません。
+- **読み取りは pure、書き込みは latent です。** このページの `Get` ノードはすべて `Pure` です。`Set` ノードはすべて `Latent` で、書き込みはホストを経由して非同期に解決されます。
 - **Frame が持つのは 2 つだけです：対象の Page と `params` オブジェクトです。** 対象は Page でなければなりません。カードのドロップダウンには Page だけが並び、この Frame が置かれている Page と、入れ子になって自分に戻ってきてしまう Page は除外されます。Page とは何か、ゲーム UI の Surface とどう違うかは [Surface と Page](/ja/docs/studio/blueprint/surfaces) を参照してください。
 - **`params` は組み込まれた Page の Page props です。** Frame の内側の Page は [App](/ja/docs/studio/blueprint/nodes/app) の `Get Page Props` でオブジェクト全体を、[Data](/ja/docs/studio/blueprint/nodes/data) の `Get JSON Field` で1つのフィールドを読み取ります。存在しないフィールドには `null` が返ります。Page 側は `Emit Page Event` で応答でき、それはこの Frame の [Events](/ja/docs/studio/blueprint/nodes/events) にある `Page Event` ヘッドに届きます。
 - **何も変えない書き込みは何もしません。** 2 つの書き込みノードはいずれも、渡された対象と params を現在の値と比較します（params は JSON としての等価性で比較されます）。両方が一致していれば早期に処理を終えます。再実行しても Page が再マウントされることはなく、入場アニメーションが再生されることもありません。

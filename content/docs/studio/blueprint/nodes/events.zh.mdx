@@ -1,16 +1,16 @@
 ---
 title: 事件
-description: 启动 event 图的事件 Head、它们各自携带的 payload，以及在蓝图之间传递消息的 Broadcast 节点
+description: 启动一张图的事件 Head、它们各自携带的 payload，以及在蓝图之间传递消息的 Broadcast 节点
 ---
 
-事件 Head 是一张`event`图的起点。它没有执行入口——运行时从 Head 进入这张图，执行链从`then`开始。本页其余内容都由这一点展开：Head 的数据输出就是这次事件的 payload，而你能用到哪些 Head，取决于蓝图挂在什么宿主上
+事件 Head 是一张图的起点。它没有执行入口——运行时从 Head 进入这张图，执行链从`then`开始。本页其余内容都由这一点展开：Head 的数据输出就是这次事件的 payload，而你能用到哪些 Head，取决于蓝图挂在什么宿主上
 
 ## 约定
 
 - **Head 没有执行入口。** 没有任何东西可以连进去。一张图里可以放多个 Head，各自的事件到达时各跑各的执行链
 - **数据输出就是 payload。** 除`then`以外的每个输出引脚，都按引脚 id 读取本次运行时事件 payload 的一个字段。派发没有设置的字段读到`null`——不是`0`，也不是`""`
 - **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；因事件从后代元素[向上传递](#event-bubbling)而执行的 Head，使用指针下那个元素的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
-- **图类型。** 本页节点都只允许`event`图，只有`Send Broadcast`和`Get Listener Count`同时允许`macro`图。Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
+- **Blueprint Value 的 Head。** Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
 - **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head
 
 ## 哪些 Head 可用

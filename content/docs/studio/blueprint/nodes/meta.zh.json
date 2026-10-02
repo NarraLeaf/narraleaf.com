@@ -28,6 +28,7 @@
     "list",
     "slider",
     "switch",
-    "debug"
+    "debug",
+    "built-in-plugins"
   ]
 }

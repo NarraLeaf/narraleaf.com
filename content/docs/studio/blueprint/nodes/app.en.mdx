@@ -7,7 +7,6 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 ## Conventions
 
-- **Every node here is `event` and `macro` only**, except `Is Layer Mounted`, which is pure and also runs in a `function` graph. Nothing else in the category does.
 - **Two of them are tail nodes.** `Go Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
 - **The type ids do not all say `app`.** This group was called Page before it grew window, layer and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*`, `blueprint.frame.*`, `blueprint.layer.*` and `blueprint.app.*` are all this one category.
 - **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in a global blueprint, which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in global and Surface blueprints.
@@ -132,7 +131,7 @@ Closes the layer the running blueprint is *inside*, optionally with an answer fo
 
 `blueprint.layer.isMounted` · Pure
 
-Whether the layer a handle names is still on screen. It is the one node in this category that also runs in a `function` graph. It is not offered inside a Blueprint Value.
+Whether the layer a handle names is still on screen. It is not offered inside a Blueprint Value.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

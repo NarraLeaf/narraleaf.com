@@ -3,7 +3,7 @@ title: Nodes
 description: The built-in node catalog, one page per palette category, with every node's signature.
 ---
 
-The built-in catalog is 621 nodes across 27 categories. A category is the grouping you navigate in the palette, so these pages are organised the way the editor is.
+The built-in catalog is 620 nodes across 27 categories. A category is the grouping you navigate in the palette, so these pages are organised the way the editor is. The nodes that Studio's built-in plugins add are listed separately, under [Built-in plugins](/docs/studio/blueprint/nodes/built-in-plugins).
 
 ## How to read a node
 
@@ -17,8 +17,8 @@ The first line under the heading is the node's **type id** — the value stored 
 
 | Flag | Means |
 | --- | --- |
-| `Pure` | No side effects. Usable in `function` graphs. |
-| `Latent` | Suspends the graph until it resolves. Never available in a `function` graph. |
+| `Pure` | No side effects and no exec pins. It computes its outputs when something reads them, and it is one of the conditions for use inside a Blueprint Value. |
+| `Latent` | Suspends the graph until it resolves. Not offered in a Blueprint Value (except `Call Fn`), an inline story value or a branch condition. |
 
 `Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories (Data, List, Math, Time, Text, Slider, Displayable, Element, Game), plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow other than `Skip Delay`, local variable access, `Memo`, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
 
@@ -31,13 +31,14 @@ Then the pin table:
 | `completed` | out · exec | — | Fires after the wait. |
 | `token` | out · data | `Timer` | Feed to `Skip Delay` to cut the wait short. |
 
-Exec pins carry execution; data pins carry values. *Accepts an on-card literal* means you can type the value into the node card instead of wiring an edge. Some nodes have **dynamic pins** — projected from a selected variable, a chosen function signature, or a case you appended — and those are described in prose, because there is no fixed table to print.
+Exec pins carry execution; data pins carry values. *Accepts an on-card literal* means you can type the value into the node card instead of wiring an edge. Some nodes have **dynamic pins**, projected from a selected variable, a chosen fn's signature, or a case you appended. Those are described in prose, because there is no fixed table to print.
 
 ## Availability
 
 A node appearing in this catalog does not mean it appears in your palette. These filters apply:
 
-- **Graph kind.** `function` graphs refuse effectful and latent nodes.
+- **Blueprint Value.** A Blueprint Value offers only the nodes the rule above allows.
+- **Inline story values.** An inline story value or a branch condition refuses latent nodes.
 - **Owner and widget capability.** Self nodes only show in the blueprint of a widget that has that capability; a `Set Slider Value` is not offered inside a Text widget's blueprint.
 - **Present bindings.** An Element node only appears once the graph already holds a compatible `Element`, `Element Flush`, or `Element Click` node to wire it to.
 - **List item context.** `Get Item Field`, `Get List Item Index`, `Get List Item Key`, `Get List Item Count` and `Get List Item Props` read the item an element is rendered for, so they appear only in the blueprint of an element inside a List item template.
@@ -52,8 +53,8 @@ When several compatible sources exist, the palette lists the node once. Adding i
 | Category | Nodes | Covers |
 | --- | --- | --- |
 | [Events](/docs/studio/blueprint/nodes/events) | 53 | Entry points: lifecycle, input, Surface transitions, Broadcast. |
-| [Flow](/docs/studio/blueprint/nodes/flow) | 13 | Branching, loops, sequencing, delays. |
-| [Functions](/docs/studio/blueprint/nodes/functions) | 3 | Function entry, call, return. |
+| [Flow](/docs/studio/blueprint/nodes/flow) | 12 | Branching, loops, sequencing, delays. |
+| [Functions](/docs/studio/blueprint/nodes/functions) | 3 | Declaring a fn, calling it, returning from it. |
 | [Variables](/docs/studio/blueprint/nodes/variables) | 9 | Declaring and reading blueprint and persistent variables. |
 | [Data](/docs/studio/blueprint/nodes/data) | 95 | Literals, conversion, predicates, JSON, strings, arrays. |
 | [Math](/docs/studio/blueprint/nodes/math) | 31 | Arithmetic, rounding, boolean logic, comparison. |

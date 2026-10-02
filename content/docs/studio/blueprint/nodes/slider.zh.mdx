@@ -18,7 +18,7 @@ Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行
 
 - **`step` 为 `0` 时关闭 snap。** 此时值在范围内连续变化。负的 `step` 按 `0` 处理
 - **范围在被使用之前会先被修正。** 只要 `max` 不大于 `min`，它就会被强制成 `min + 1`，因此滑块永远不会有一个零宽度的范围。不是有限数字的值会走回退——读到损坏的范围时回退到控件默认值（`min` 0、`max` 100、`step` 1），而 `Set Slider Range`（设置滑块范围）回退到该字段当前的运行时值
-- **读取是纯节点，写入是 latent。** `Get Value`、`Get Normalized Value` 和 `Get Slider Range`（获取滑块范围）可用于 `event`、`function` 和 `macro` 图。Blueprint Value 的宿主是 `widgetValue`，不提供这些节点；要在 Blueprint Value 中读取滑块，请配合 `Element` 字面量使用 Element 版本。两个写入节点是 latent（会挂起执行），只能用于 `event` 和 `macro`——function 图要同步把值返回给调用者，没有地方去接一次待完成的写入
+- **读取是纯节点，写入是 latent。** Blueprint Value 的宿主是 `widgetValue`，不提供 `Get Value`、`Get Normalized Value` 和 `Get Slider Range`（获取滑块范围）；要在 Blueprint Value 中读取滑块，请配合 `Element` 字面量使用 Element 版本。两个写入节点会挂起执行，直到写入完成
 - **这些都是 Self 节点。** 它们作用于拥有当前图的那个 Slider，并且没有目标引脚。要操作另一个 Slider，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.slider.*` 对应节点，它们带有 `slider` 输入，且只在当前图中已存在绑定到 `nl.slider` 的节点时才出现
 
 <Callout type="warn">

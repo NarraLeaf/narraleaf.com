@@ -23,7 +23,7 @@ The line lands in the **Console** panel on the [Blueprint channel](/docs/studio/
 
 When none of its inputs resolves to a value at all, the line reads `Log node reached` — that default exists so `Init` wired straight into `Log` proves a path executes without you typing anything into it. An empty string still counts as a value, and logs an empty line.
 
-`Log` is available in `event` and `macro` graphs only. It has an effect on the world outside the graph, and a `function` graph is not allowed to.
+`Log` has an effect on the world outside the graph, so it is not pure, and a Blueprint Value does not offer it.
 
 <Callout type="info">
 The Console panel is fed by a running game. On the editor canvas there is no runtime host to receive the line, so only the window's developer console gets it — check `Log` output in Dev Mode.
@@ -33,7 +33,7 @@ The Console panel is fed by a running game. On the editor canvas there is no run
 
 `blueprint.flow.comment` · Pure
 
-A resizable note on the canvas. It declares no pins at all: nothing connects to it, it never executes, and it produces no value. Legal in `event`, `function` and `macro` graphs, and inside a Blueprint Value, because there is nothing in it that could misbehave.
+A resizable note on the canvas. It declares no pins at all: nothing connects to it, it never executes, and it produces no value. Legal in every graph, a Blueprint Value included, because there is nothing in it that could misbehave.
 
 The card *is* the comment — there is no inspector for it. What you edit is the box:
 

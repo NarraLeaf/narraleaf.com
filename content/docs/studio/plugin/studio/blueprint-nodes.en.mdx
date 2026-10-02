@@ -26,9 +26,9 @@ The essential fields:
 | `displayName` | `string` | Palette label. |
 | `category` | `string` | Palette grouping. |
 | `keywords` | `string[]` | Palette search terms. |
-| `graphKinds` | `BlueprintGraphKind[]` | Where the node may appear, e.g. `["event", "macro"]`. A `function` graph accepts only pure, non-latent nodes. |
+| `graphKinds` | `BlueprintGraphKind[]` | Where the node may appear. Use `["event"]`: every graph an author builds is an event graph, so a node whose list leaves out `"event"` is never offered. |
 | `isPure` | `boolean` | Pure nodes have no side effects. A plugin node outputs values only when the exec flow runs it, so a pure plugin node cannot output values; see [Return value](#return-value). |
-| `isLatent` | `boolean` | Async / awaited execution; disallowed in function graphs. |
+| `isLatent` | `boolean` | Async / awaited execution. An inline story value or a branch condition does not offer a latent node. |
 | `role` | `BlueprintNodeRole` | Optional. `"eventHead"` makes the node an event head for a plugin widget; see [Event heads](#event-heads). |
 | `allowInBlueprintValueGraph` | `boolean` | Optional. Offers the node in [Blueprint Value](/docs/studio/blueprint#blueprint-value) graphs. A binding built on it updates when the elements and properties it reads through Studio's own nodes change, never when the plugin's own data changes. |
 | `assetNames` | `"forward" \| "written" \| "assembled"` | Optional. Where the node's string outputs come from: its inputs, text written down in the project, or values made while the game runs. Undeclared counts as `"assembled"`, so a build refuses a project in which one of these outputs picks an asset. |
@@ -38,7 +38,7 @@ The essential fields:
 
 A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`. `allowInlineLiteral` is accepted only on a data input whose `valueType` is `string`, `integer`, `float`, `boolean` or `ImageAsset`; anything else throws at registration.
 
-Studio decides where a node appears. A plugin node is offered in every blueprint that has a graph of one of its `graphKinds`, within the limits above. There is no `scope` field: a `scope` or `requiresHostApi` left on a definition is dropped at registration. Event heads are the one exception, described [below](#event-heads).
+Studio decides where a node appears. A plugin node that lists `"event"` in its `graphKinds` is offered in every blueprint, within the limits above. There is no `scope` field: a `scope` or `requiresHostApi` left on a definition is dropped at registration. Event heads are the one exception, described [below](#event-heads).
 
 ## execute and the node context
 

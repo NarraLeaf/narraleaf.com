@@ -1,0 +1,59 @@
+---
+title: Quick Save
+description: 実行中のゲームを予約済みのセーブスロット 1 つに書き込み、それを読み戻し、存在するかを問う、Quick Save プラグインの 3 つのノード
+---
+
+Quick Save プラグインは、スロット 1 つのクイックセーブとクイックロードを追加します。クイックメニューによくある一対のボタンです。このプラグインは出荷時に有効です。パレットでは、3 つのノードは **Game**（ゲーム）カテゴリにあり、コアの[セーブ用ノード](/ja/docs/studio/blueprint/nodes/game#セーブ)と並んでいます。
+
+## クイックセーブのスロット [#the-quick-save-slot]
+
+- **スロットは 1 つです。** 3 つのノードはすべて、id が `narraleaf.quick-save.slot` のセーブを対象にします。`Quick Save` のたびに上書きされるため、プレイヤーが持てるクイックセーブは常に 1 つです。
+- **普通のセーブです。** クイックセーブはプロジェクトのセーブストアに置かれ、[`Save Game`](/ja/docs/studio/blueprint/nodes/game#save-game) と同じ方法で書き込まれますが、画像もメタデータも持ちません。[`Get Save Preview`](/ja/docs/studio/blueprint/nodes/game#get-save-preview) はこれに対して `null` を返し、宣言した [Save fields](/ja/docs/studio/blueprint/nodes/game#save-fields) は既定値を読みます。
+- **プレイヤーのセーブと一緒に一覧されます。** [`List Saves`](/ja/docs/studio/blueprint/nodes/game#list-saves) はクイックセーブの id をプレイヤーのスロットと一緒に返します。そのため、一覧されたすべての id を描くセーブ画面やロード画面には、クイックセーブも描かれます。そうした画面から外すには、配列を List に渡す前に `narraleaf.quick-save.slot` を取り除いてください。`Load Save`、`Delete Save`、各セーブ読み取りノードは、この id をほかの id と同じように受け付けます。
+- **ロードは普通のセーブと同じです。** `Quick Read` は [`Load Save`](/ja/docs/studio/blueprint/nodes/game#load-save) と同じ経路でロードし、プロジェクトの **Older saves**（以前のセーブ）の設定にも従います。
+- **プレイヤーデータとともに保存されます。** Dev Mode と Preview はそれぞれ別のセーブストアを持ち、**Reset player data**（プレイヤーデータをリセット）はクイックセーブをほかのセーブと一緒に消去します。
+
+## 規約 [#conventions]
+
+- **3 つとも `Latent` です。** どれも Blueprint Value を支えることはできません。
+- **Story Action ブループリントにも提供されます。** コアのセーブ用ノードとは異なり、3 つともストーリー行から呼び出されるブループリントのパレットに現れます。
+- **実行中のゲームが必要です。** エディターのキャンバスでは、`Quick Save` と `Quick Read` は `Quick Save needs the "saves.write" capability, and an environment that can serve it.` で失敗し、`Has Quick Save` は `false` を返します。Dev Mode で確認してください。
+
+## Quick Save
+
+`narraleaf.quick-save.save` · Latent
+
+実行中のゲームをクイックセーブのスロットに書き込み、そこにあったものを置き換えます。`Save Game` と同じく、ゲームセッションが稼働していない場合は失敗します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Quick Read
+
+`narraleaf.quick-save.load` · Latent
+
+クイックセーブをロードし、`Load Save` と同じく現在の進行を破棄します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+`next` はありません。ロードが成功すると実行中のゲームが置き換わり、このグラフの続きは残らないためです。
+
+クイックセーブがない場合や、**Older saves**（以前のセーブ）の設定がそれを受け付けない場合、実行中のゲームはそのまま残り、プレイヤーにはセーブを読み込めなかったことを伝えるゲームの通知が表示されます。その後、ノードはスロットを名指しするエラーで失敗します。クイックセーブがない場合に備えるには、`Quick Read` の前に `Has Quick Save` で確認してください。
+
+## Has Quick Save
+
+`narraleaf.quick-save.has` · Latent
+
+クイックセーブのスロットにセーブがあるかどうかを返します。セーブストアを読み取るだけで進行中のゲームを必要としないため、タイトル画面でクイックロードのボタンを無効にするのに使えます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `hasQuickSave` | out · data | `boolean` | カード上では **Has Save** というラベルが付きます。 |
+
+返すのはスロットが存在するかどうかです。**Older saves**（以前のセーブ）の設定が受け付けないクイックセーブでも `true` になり、その後 `Quick Read` がそれを拒否します。

@@ -1,0 +1,39 @@
+---
+title: Built-in plugins
+description: The plugins that ship with Studio, the two that add blueprint nodes, how to switch one on, and what a project that uses their nodes depends on.
+---
+
+Studio ships three plugins of its own: Gallery, Quick Save and Menu Bar. They are installed with Studio, and the plugin list marks each of them **Built-in**. A built-in plugin cannot be uninstalled, and its permissions are granted with it, so switching one on shows no permission prompt.
+
+Two of them add blueprint nodes. Those nodes are documented here, apart from the core categories, because a project has them only while the plugin is on.
+
+| Plugin | Nodes | Ships | Covers |
+| --- | --- | --- | --- |
+| [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) | 10 | Disabled | The EXTRA screens: CG gallery, scene recollection, music and voice, and the player's unlock record. |
+| [Quick Save](/docs/studio/blueprint/nodes/built-in-plugins/quick-save) | 3 | Enabled | One save slot for quick save and quick read. |
+
+The Gallery count is what the palette offers. Four older Gallery nodes are hidden from the palette and documented at the end of its page; they are not counted.
+
+Menu Bar, the third built-in plugin, adds no nodes. It authors the menu bar of the desktop game, and each of its rows runs a built-in action or a function of the global blueprint.
+
+## Switching a plugin on
+
+Quick Save ships enabled. Gallery and Menu Bar ship disabled. The switch belongs to Studio on this machine and applies to every project.
+
+Switch a plugin on from the Launcher's **Plugins** page: find it on the **Installed** list and choose **Enable**. See [Install a Plugin](/docs/studio/plugin/install-plugin#enable-disable-and-uninstall) for when the change takes effect.
+
+Creating a project from the **Skeleton** template switches Gallery on, because the template's Extra screen is built from Gallery nodes.
+
+With Gallery on, the activity bar gains a **Gallery** tool and the palette gains a **Gallery** category. Quick Save's three nodes appear in the palette's **Game** category.
+
+## What a project depends on
+
+A project that holds one of these nodes depends on the plugin that provides it. The project records the plugin as a hard dependency in its [dependency table](/docs/studio/plugin/project-dependencies). Studio rescans that table before every run and every export, so placing the node is enough. A project created from the **Skeleton** template declares Gallery from its first open.
+
+Dev Mode, Preview and a built game run the plugins the table names as hard dependencies, and no others. A built-in plugin that is enabled but not declared by the project does not run there and is not packed into the game. Dev Mode's **Issues** panel lists each such plugin as installed but not among the project's plugin dependencies.
+
+## When the plugin is off
+
+Opening a project that depends on a switched-off built-in plugin raises a warning that a plugin the project needs is not available, naming it. Its **Open dependencies** button opens the project's dependency list, where the plugin's row reads **Disabled** and offers **Enable**.
+
+Until the plugin is on again, its nodes stay in their graphs and draw as **Unknown node** cards, the project check reports each one as **Unknown node type**, an error that stops the build, and Preview and export stop with a message naming the plugin and the node types. See [When the plugin is missing](/docs/studio/plugin/studio/blueprint-nodes#when-the-plugin-is-missing). Switching the plugin on restores the nodes with their connections.

@@ -1,0 +1,59 @@
+---
+title: Quick Save
+description: The Quick Save plugin's three nodes, which write the running game to one reserved save slot, load it back, and ask whether it exists.
+---
+
+The Quick Save plugin adds a one-slot quick save and quick read, the pair a quick menu offers. It ships enabled. In the palette its three nodes sit in the **Game** category, beside the core [save nodes](/docs/studio/blueprint/nodes/game#saves).
+
+## The quick save slot
+
+- **One slot.** All three nodes work on the save whose id is `narraleaf.quick-save.slot`. Every `Quick Save` overwrites it, so a player has one quick save at a time.
+- **An ordinary save.** The quick save sits in the project's save store and is written the way [`Save Game`](/docs/studio/blueprint/nodes/game#save-game) writes a save, with no picture and no metadata. [`Get Save Preview`](/docs/studio/blueprint/nodes/game#get-save-preview) returns `null` for it, and declared [save fields](/docs/studio/blueprint/nodes/game#save-fields) read their default values.
+- **Listed with the player's saves.** [`List Saves`](/docs/studio/blueprint/nodes/game#list-saves) returns the quick save's id along with the player's slots, so a save or load screen that draws every listed id draws the quick save too. Leave `narraleaf.quick-save.slot` out of the array to keep it off such a screen. `Load Save`, `Delete Save` and the save readers accept the id like any other.
+- **Loaded like any save.** `Quick Read` loads through the same path as [`Load Save`](/docs/studio/blueprint/nodes/game#load-save), including the project's **Older saves** setting.
+- **Kept with the player's data.** Dev Mode and Preview keep separate save stores, and **Reset player data** clears the quick save with the other saves.
+
+## Conventions
+
+- **All three are `Latent`.** None can back a Blueprint Value.
+- **Offered to Story Action blueprints.** Unlike the core save nodes, all three appear in the palette of a blueprint that a story row calls.
+- **They need a running game.** In the editor canvas `Quick Save` and `Quick Read` fail with `Quick Save needs the "saves.write" capability, and an environment that can serve it.`, and `Has Quick Save` returns `false`. Verify them in Dev Mode.
+
+## Quick Save
+
+`narraleaf.quick-save.save` · Latent
+
+Writes the running game to the quick save slot, replacing whatever was there. Like `Save Game`, it fails when no game session is active.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Quick Read
+
+`narraleaf.quick-save.load` · Latent
+
+Loads the quick save and abandons the current progress for it, as `Load Save` does.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+There is no `next`: a load that succeeds replaces the running game, so nothing of this graph is left to continue.
+
+With no quick save, or one the **Older saves** setting declines, the running game stays as it was and the player sees the game's notice that the save could not be loaded. The node then fails with an error naming the slot. Check `Has Quick Save` before `Quick Read` to handle the case where there is no quick save.
+
+## Has Quick Save
+
+`narraleaf.quick-save.has` · Latent
+
+Whether the quick save slot holds a save. It reads the save store and needs no game in progress, so a title screen can use it to disable a quick read button.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `hasQuickSave` | out · data | `boolean` | Labelled **Has Save** on the card. |
+
+It answers whether the slot exists. A quick save the **Older saves** setting declines still gives `true`, and `Quick Read` then refuses it.

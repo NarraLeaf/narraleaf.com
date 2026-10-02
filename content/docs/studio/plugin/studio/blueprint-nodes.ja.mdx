@@ -26,9 +26,9 @@ description: エディター側でブループリントノードの定義と動�
 | `displayName` | `string` | パレットのラベル。 |
 | `category` | `string` | パレットのグループ分け。 |
 | `keywords` | `string[]` | パレットの検索語。 |
-| `graphKinds` | `BlueprintGraphKind[]` | ノードが現れてよい場所、例えば `["event", "macro"]`。`function` グラフが受け付けるのは、純粋で latent でないノードだけです。 |
+| `graphKinds` | `BlueprintGraphKind[]` | ノードが現れてよい場所。`["event"]` を指定してください。作者が組むグラフはすべて event グラフなので、`"event"` を含まないノードはどこにも提供されません。 |
 | `isPure` | `boolean` | 純粋なノードは副作用を持ちません。プラグインのノードが値を出力するのは実行の流れがそのノードを実行したときだけなので、純粋なプラグインノードは値を出力できません。[戻り値](#return-value)を参照してください。 |
-| `isLatent` | `boolean` | 非同期 / await を伴う実行。関数グラフでは許可されません。 |
+| `isLatent` | `boolean` | 非同期 / await を伴う実行。インラインのストーリー値と分岐条件では、latent なノードは提供されません。 |
 | `role` | `BlueprintNodeRole` | 任意。`"eventHead"` にすると、そのノードはプラグインウィジェットのイベントヘッドになります。[イベントヘッド](#event-heads)を参照してください。 |
 | `allowInBlueprintValueGraph` | `boolean` | 任意。ノードを [Blueprint Value](/ja/docs/studio/blueprint#blueprint-value) のグラフに表示します。これを使ったバインディングは、Studio 自身のノードを通じて読み取った要素とプロパティが変化したときに更新され、プラグイン自身のデータが変化しても更新されません。 |
 | `assetNames` | `"forward" \| "written" \| "assembled"` | 任意。ノードの文字列出力の出どころです。入力から来るもの、プロジェクトに書かれたテキスト、ゲームの実行中に作られる値のいずれかです。宣言しない場合は `"assembled"` として扱われるため、これらの出力のいずれかがアセットを選ぶプロジェクトはビルドが拒否されます。 |
@@ -38,7 +38,7 @@ description: エディター側でブループリントノードの定義と動�
 
 ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。`allowInlineLiteral` を指定できるのは、`valueType` が `string`、`integer`、`float`、`boolean`、`ImageAsset` のいずれかであるデータ入力だけです。それ以外の組み合わせは登録時に例外を投げます。
 
-ノードがどこに現れるかは Studio が決めます。プラグインのノードは、その `graphKinds` のいずれかのグラフを持つすべてのブループリントに、上記の制限の範囲で表示されます。`scope` フィールドはありません。定義に残っている `scope` や `requiresHostApi` は、登録時に取り除かれます。唯一の例外はイベントヘッドで、[後述](#event-heads)します。
+ノードがどこに現れるかは Studio が決めます。`graphKinds` に `"event"` を含むプラグインのノードは、すべてのブループリントに、上記の制限の範囲で表示されます。`scope` フィールドはありません。定義に残っている `scope` や `requiresHostApi` は、登録時に取り除かれます。唯一の例外はイベントヘッドで、[後述](#event-heads)します。
 
 ## execute とノードのコンテキスト
 

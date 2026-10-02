@@ -62,7 +62,7 @@ store 在**编辑器内预览中不可用**，那里节点跑在编辑器画布�
 
 ## 异步，这会影响你的节点
 
-每个方法都返回 promise。等待 store 的蓝图节点必须声明 `isLatent: true`，而 latent 节点不能用在内联故事表达式里——请把它放进事件图或宏图
+每个方法都返回 promise。等待 store 的蓝图节点必须声明 `isLatent: true`，而 latent 节点不能用在内联故事值和分支条件里
 
 ```ts
 {

@@ -62,7 +62,7 @@ const unlocked = await app.game.store?.get<string[]>("unlocked");
 
 ## 非同期であること、そしてそれがノードに与える影響
 
-すべてのメソッドは promise を返します。store を await するブループリントノードは `isLatent: true` と宣言しなければならず、latent なノードはインラインのストーリー式の中では使えません — イベントグラフかマクログラフの中に置いてください。
+すべてのメソッドは promise を返します。store を await するブループリントノードは `isLatent: true` と宣言しなければならず、latent なノードはインラインのストーリー値と分岐条件の中では使えません。
 
 ```ts
 {

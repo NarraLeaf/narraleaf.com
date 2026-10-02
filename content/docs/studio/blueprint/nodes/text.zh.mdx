@@ -8,7 +8,7 @@ Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、�
 ## 约定
 
 - **没有目标引脚。** Self 节点没有 `Element` 输入，它从蓝图的执行宿主解析目标。没有东西要接，也就不会接错元素
-- **读取是 `Pure`，写入是 `Latent`。** 每个 getter 都无副作用，在 `event`、`function` 和 `macro` 图中都合法。每个 setter 都会在宿主应用补丁期间挂起执行，因此不能出现在 `function` 图中——函数要同步把结果返回给调用方，没有地方安放一次待定的写入
+- **读取是 `Pure`，写入是 `Latent`。** 每个 getter 都无副作用。每个 setter 都会在宿主应用补丁期间挂起执行
 - **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain` 和 `componentWidgetMain`，所以即便 getter 是纯节点，它们也不会出现在那份创建浮窗里。要在 Blueprint Value 中读取文本属性，请配合 `Element` 字面量使用 Element 形态的 getter
 - **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，setter 会以`该节点仅在游戏运行时可用，需在开发模式中运行`失败，而 getter 什么都取不到
 - **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环

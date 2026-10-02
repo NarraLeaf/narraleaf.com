@@ -1,16 +1,16 @@
 ---
 title: Events
-description: Event heads that start an event graph, the payload each one carries, and the broadcast nodes that pass messages between blueprints.
+description: Event heads that start a graph, the payload each one carries, and the broadcast nodes that pass messages between blueprints.
 ---
 
-An event head is where an `event` graph begins. It has no execution input — the runtime enters the graph at the head and the chain runs from `then`. Everything else on this page hangs off that: a head's data outputs are the event's payload, and which heads you are even offered depends on where the blueprint lives.
+An event head is where a graph begins. It has no execution input — the runtime enters the graph at the head and the chain runs from `then`. Everything else on this page hangs off that: a head's data outputs are the event's payload, and which heads you are even offered depends on where the blueprint lives.
 
 ## Conventions
 
 - **A head has no exec input.** There is nothing to wire into it. A graph may hold several heads, and each one runs its own chain when its event arrives.
 - **Data outputs are the payload.** Every output pin other than `then` reads one field of the runtime event payload, keyed by the pin id. A field the dispatch did not set reads `null` — not `0`, not `""`.
 - **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. A head that runs because a press [climbed](#event-bubbling) from a descendant reports the local design space of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
-- **Graph kinds.** Every node here is `event`-only, except `Send Broadcast` and `Get Listener Count`, which also run in `macro` graphs. A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
+- **Blueprint Value heads.** A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
 - **A disabled element stays silent.** A widget that is disabled, or in text-editing state, does not dispatch its interaction heads at all.
 
 ## Where a head is offered

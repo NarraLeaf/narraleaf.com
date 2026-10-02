@@ -18,7 +18,7 @@ Pin-by-pin signatures are on [Variables](/docs/studio/blueprint/nodes/variables)
 
 ### Blueprint variables
 
-Drop a `Var` node anywhere in a blueprint and it declares a variable for the whole blueprint. `Var` has no pins and never runs: the runtime scans every graph in the blueprint — events, functions, and macros alike — before the first event fires, and each `Var` it finds becomes a slot in that blueprint's store. Give it a `Name`, a `Data type`, and a `Default`. Every owner except `widgetValue` can declare them.
+Drop a `Var` node anywhere in a blueprint and it declares a variable for the whole blueprint. `Var` has no pins and never runs: the runtime scans every graph in the blueprint before the first event fires, and each `Var` it finds becomes a slot in that blueprint's store. Give it a `Name`, a `Data type`, and a `Default`. Every owner except `widgetValue` can declare them.
 
 The value lives in a store attached to the **owner instance**, not to the graph and not to the event chain. Two clicks on the same button read the same counter. What counts as an instance depends on the owner:
 
@@ -57,7 +57,7 @@ Definitions live in the project's variable registry (`editor/variables.json`) an
 
 Values live in host-managed storage keyed by the entry's `storageKey`, and never inside the project folder. While you author, they sit in Studio's own user data under a per-project key; in a shipped game they sit in the game's user data. Copying a project to another machine does not carry them.
 
-`Get Persistent` and `Set Persistent` are latent, because the host read and write are asynchronous — which is also why they cannot appear in a `function` graph. `Get Persistent` falls back to the authored default when nothing has ever been stored under that key, and hands you a deep copy of it, so mutating what you read cannot edit the definition.
+`Get Persistent` and `Set Persistent` are latent, because the host read and write are asynchronous, which is also why a Blueprint Value, an inline story value and a branch condition do not offer them. `Get Persistent` falls back to the authored default when nothing has ever been stored under that key, and hands you a deep copy of it, so mutating what you read cannot edit the definition.
 
 <Callout type="warn">
 `storageKey` is minted once and never changes when you rename the variable — that is what keeps a player's stored value resolving after a rename. The flip side: deleting a persistent variable does **not** delete the value already stored under its key, and a replacement created with the same name gets a *new* key and reads the default. Rename; do not delete and re-create.

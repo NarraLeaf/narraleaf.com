@@ -7,7 +7,7 @@ Self nodes for `nl.frame`. A Frame is a rectangle on one Page that renders anoth
 
 ## Conventions
 
-- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure`. Every `Set` node is `Latent`: the write goes through the host and resolves asynchronously.
 - **A Frame holds two things: a target Page and a `params` object.** The target must be a Page; the card's dropdown lists Pages only, minus the Page this Frame lives on and any Page that would nest its way back to it. See [Surfaces and Pages](/docs/studio/blueprint/surfaces) for what a Page is and how it differs from a Game UI Surface.
 - **`params` is the embedded Page's Page props.** The Page inside the Frame reads the whole object with `Get Page Props` in [App](/docs/studio/blueprint/nodes/app), and one field with `Get JSON Field` in [Data](/docs/studio/blueprint/nodes/data), which gives `null` for a field that is not there. It answers back with `Emit Page Event`, which arrives at this Frame's `Page Event` head in [Events](/docs/studio/blueprint/nodes/events).
 - **A write that changes nothing does nothing.** Both writers compare the incoming target and params against the current ones, params by JSON equality, and return early when both match. Re-running them does not remount the Page or replay its enter animation.

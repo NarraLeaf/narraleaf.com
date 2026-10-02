@@ -1,0 +1,59 @@
+---
+title: Quick Save
+description: Quick Save 插件的三个节点：把运行中的游戏写入一个保留存档位、把它读回来，以及询问它是否存在
+---
+
+Quick Save 插件提供一个存档位的快速存档与快速读档，也就是快捷菜单上常见的那一对按钮。它出厂即启用。在创建浮窗中，它的三个节点位于**游戏**分类，和核心的[存档节点](/zh/docs/studio/blueprint/nodes/game#存档)放在一起
+
+## 快速存档位 [#the-quick-save-slot]
+
+- **一个存档位。** 三个节点都作用于 id 为 `narraleaf.quick-save.slot` 的那份存档。每次 `Quick Save` 都会覆盖它，所以玩家同一时间只有一份快速存档
+- **一份普通存档。** 快速存档放在项目的存档库里，写入方式与 [`Save Game`](/zh/docs/studio/blueprint/nodes/game#save-game) 相同，但不带截图，也不带 metadata。[`Get Save Preview`](/zh/docs/studio/blueprint/nodes/game#get-save-preview) 对它返回 `null`，声明过的[存档字段](/zh/docs/studio/blueprint/nodes/game#save-fields)读到的是默认值
+- **和玩家存档一起列出。** [`List Saves`](/zh/docs/studio/blueprint/nodes/game#list-saves) 会把快速存档的 id 和玩家存档位一起返回，所以把列出的每个 id 都画出来的存读档界面也会画出快速存档。要让它不出现在这样的界面上，就在数组交给列表之前去掉 `narraleaf.quick-save.slot`。`Load Save`、`Delete Save` 以及各个存档读取节点都像对待其他 id 一样接受它
+- **读档方式和普通存档一样。** `Quick Read` 走的是 [`Load Save`](/zh/docs/studio/blueprint/nodes/game#load-save) 的同一条路径，包括项目的**旧存档**设置
+- **随玩家数据保存。** 开发模式和预览各有一个存档库，**重置玩家数据**会把快速存档和其他存档一起清空
+
+## 约定 [#conventions]
+
+- **三个都是 `Latent`。** 都不能给 Blueprint Value 供值
+- **Story Action 蓝图也提供。** 与核心存档节点不同，这三个节点会出现在由剧情行调用的蓝图的创建浮窗里
+- **需要运行中的游戏。** 在编辑器画布中，`Quick Save` 和 `Quick Read` 以 `Quick Save needs the "saves.write" capability, and an environment that can serve it.` 失败，`Has Quick Save` 返回 `false`。这些行为在开发模式中验证
+
+## Quick Save
+
+`narraleaf.quick-save.save` · Latent
+
+Quick Save（快速存档）把运行中的游戏写入快速存档位，替换原有内容。与 `Save Game` 一样，没有活动游戏会话时会失败
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Quick Read
+
+`narraleaf.quick-save.load` · Latent
+
+Quick Read（快速读档）读取快速存档，并像 `Load Save` 一样放弃当前进度
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+
+没有 `next`：读档成功后运行中的游戏被替换，这张图里已没有可以继续的东西
+
+没有快速存档，或者快速存档被**旧存档**设置拒绝时，运行中的游戏保持原样，玩家会看到游戏关于存档无法读取的提示，随后节点以一条指明该存档位的错误失败。在 `Quick Read` 之前先用 `Has Quick Save` 检查，就能处理没有快速存档的情况
+
+## Has Quick Save
+
+`narraleaf.quick-save.has` · Latent
+
+Has Quick Save（是否有快速存档）回答快速存档位里是否有存档。它读取的是存档库，不需要正在进行的游戏，所以标题界面可以用它来禁用快速读档按钮
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `hasQuickSave` | out · data | `boolean` | 卡片上标为 **Has Save**|
+
+它回答的是存档位是否存在。被**旧存档**设置拒绝的快速存档仍然给出 `true`，之后 `Quick Read` 会拒绝它

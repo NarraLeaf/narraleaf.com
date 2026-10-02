@@ -7,7 +7,7 @@ A fn is a named stretch of graph that other graphs can run. `Fn` declares one an
 
 ## Conventions
 
-- **All three nodes belong to `event` graphs.** A fn body is *not* a `function` graph. `function` is a separate [graph kind](/docs/studio/blueprint) (entered by `Function entry`, with no effectful nodes and no latent nodes), while a fn body is ordinary event-graph territory and may do anything an event graph may do.
+- **A fn body has no rules of its own.** It may use any node its blueprint offers.
 - **A fn is identified by its head node, not by its name.** Rename it on the card and every caller re-labels itself without breaking. Two fns sharing a name in one scope still resolve correctly, and the editor flags the collision, because the name is for you and the binding is by id.
 - **Visibility follows the owner.** A fn declared on a `globalMain` blueprint is callable everywhere. One declared on a `surfaceMain` or `widgetMain` blueprint is callable only from the same [Surface](/docs/studio/blueprint/surfaces), including from a Blueprint Value on that Surface. One declared on a `componentWidgetMain` blueprint is callable only from inside the same component definition. One declared on a `storyAction` blueprint is offered to every Story Action blueprint, and a call reaches it only while the running scene has a row that uses the declaring blueprint. A Blueprint Value can call but never declare.
 - **Parameter and result pins are authored, not fixed.** `Fn` and `Fn Return` grow their data pins from buttons on the card, and each pin carries a name and a type chosen from `string`, `integer`, `float`, `boolean`, `json`, or `any`.

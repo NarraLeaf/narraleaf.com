@@ -7,7 +7,7 @@ Math is where a value gets worked out rather than stored: arithmetic, rounding, 
 
 ## Conventions
 
-- **Every node on this page is `Pure`.** None of them has an exec pin. Each computes when something reads its `result`, and each is legal in `event`, `function` and `macro` graphs, and inside a Blueprint Value.
+- **Every node on this page is `Pure`.** None of them has an exec pin. Each computes when something reads its `result`, and each is legal inside a Blueprint Value.
 - **Nothing is cached.** A node runs again on every read, so a node read from the body of a loop runs once per pass. Harmless for `+`; not harmless for `Random Float`.
 - **Each `result` feeds one input.** Connecting a second wire from it replaces the first. When one result has to reach several pins, hold it in a [`Memo`](/docs/studio/blueprint/nodes/data#memo).
 - **A wired edge beats the card field.** Pins marked *Accepts an on-card literal* draw a field on the node card, and that field is read only while the pin has no edge.

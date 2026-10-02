@@ -26,9 +26,9 @@ description: 在编辑器侧注册蓝图节点定义与动态下拉选项
 | `displayName` | `string` | 调板标签|
 | `category` | `string` | 调板分组|
 | `keywords` | `string[]` | 调板搜索词|
-| `graphKinds` | `BlueprintGraphKind[]` | 节点可出现的位置，例如 `["event", "macro"]`。`function` 图只接受纯的、非 latent 的节点|
+| `graphKinds` | `BlueprintGraphKind[]` | 节点可出现的位置。写 `["event"]`：作者搭建的每一张图都是 event 图，列表里没有 `"event"` 的节点永远不会被提供|
 | `isPure` | `boolean` | 纯节点无副作用。插件节点只有在执行流运行到它时才输出值，因此纯插件节点无法输出值；见 [返回值](#return-value)|
-| `isLatent` | `boolean` | 异步 / 需等待的执行；在函数图中不允许|
+| `isLatent` | `boolean` | 异步 / 需等待的执行。内联故事值和分支条件不提供 latent 节点|
 | `role` | `BlueprintNodeRole` | 可选。设为 `"eventHead"` 时，节点成为插件控件的事件头；见 [事件头](#event-heads)|
 | `allowInBlueprintValueGraph` | `boolean` | 可选。让节点出现在 [Blueprint Value](/zh/docs/studio/blueprint#blueprint-value) 图中。基于它的绑定只在它经由 Studio 自身节点读取的元素与属性变化时更新，插件自己的数据变化不会让它更新|
 | `assetNames` | `"forward" \| "written" \| "assembled"` | 可选。节点的字符串输出从哪里来：来自它的输入、来自项目里写明的文本，或来自游戏运行时生成的值。未声明按 `"assembled"` 处理，因此只要其中某个输出被用来选取资产，构建就会拒绝该项目|
@@ -38,7 +38,7 @@ description: 在编辑器侧注册蓝图节点定义与动态下拉选项
 
 引脚（`BlueprintNodePinDef`）为 `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`。`allowInlineLiteral` 只能用在 `valueType` 为 `string`、`integer`、`float`、`boolean` 或 `ImageAsset` 的数据输入上，其他组合在注册时抛错
 
-节点出现在哪里由 Studio 决定。插件节点会出现在每一个拥有其 `graphKinds` 中某种图的蓝图里，并受上述限制约束。定义里没有 `scope` 字段：定义上残留的 `scope` 或 `requiresHostApi` 会在注册时被丢弃。唯一的例外是事件头，见 [下文](#event-heads)
+节点出现在哪里由 Studio 决定。插件节点只要在 `graphKinds` 中列出 `"event"`，就会出现在每一份蓝图里，并受上述限制约束。定义里没有 `scope` 字段：定义上残留的 `scope` 或 `requiresHostApi` 会在注册时被丢弃。唯一的例外是事件头，见 [下文](#event-heads)
 
 ## execute 与节点上下文
 

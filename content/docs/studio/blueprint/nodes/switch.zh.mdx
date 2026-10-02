@@ -8,7 +8,7 @@ description: Switch 控件的选中状态，以及每个控件都有的启用与
 ## 约定
 
 - **只能用于控件蓝图，且只在 Switch 上。** 它们的 scope 就是 `nl.switch`，所以只在那个控件自己的蓝图里出现，别处没有。要从别的图里够到一个 Switch，用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的对应版本
-- **三个读取节点是 pure**，所以能出现在 `function` 图里。Blueprint Value 的宿主是 `widgetValue`，不提供这些节点；要在 Blueprint Value 中读取 Switch，请配合 `Element` 字面量使用 Element 版本。六个写入节点是 latent
+- **三个读取节点是 pure。** Blueprint Value 的宿主是 `widgetValue`，不提供这些节点；要在 Blueprint Value 中读取 Switch，请配合 `Element` 字面量使用 Element 版本。六个写入节点是 latent
 
 ## Get Checked
 

@@ -7,7 +7,7 @@ These six nodes are how a game changes its own language: a settings screen lists
 
 ## Conventions
 
-- **All six are latent, none is pure.** Each one returns asynchronously, so none of them can appear in a `function` graph or back a Blueprint Value. All six declare `event` and `macro`.
+- **All six are latent, none is pure.** Each one returns asynchronously, so none of them can back a Blueprint Value.
 - **This is the game's language, not the editor's.** Studio's own interface language is a separate setting that no node here reads or writes. The two are free to differ, and normally do — you author in your language while the game runs in the player's.
 - **Where the choice lives.** `Set Language` writes to the host's persistent store under the key `nls.locale`, one record per project, on the same channel as persistent variables. It survives quitting the game and is *not* part of a save file, so loading a save never changes the language. On first launch, when nothing valid is stored, the player's system language is matched against the configured locales and persisted; from then on the stored choice wins.
 - **Lookup walks a fallback chain.** Text is looked up in the current locale, then in that locale's configured fallback, and so on — stopping before the source language, whose text is the compiled default rather than a table entry. Falling off the end of the chain means the source text renders.

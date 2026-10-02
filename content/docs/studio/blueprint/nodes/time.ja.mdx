@@ -9,7 +9,7 @@ description: 時刻を読み取り、日付を扱い、ある瞬間をテキス�
 
 ## 規約
 
-- **このページのすべてのノードは `Pure` です。** いずれも exec ピンを持ちません。`event`、`function`、`macro` グラフのいずれでも合法であり、[Blueprint Value](/ja/docs/studio/blueprint) の内部でも使用できます。
+- **このページのすべてのノードは `Pure` です。** いずれも exec ピンを持ちません。[Blueprint Value](/ja/docs/studio/blueprint) の内部でも使用できます。
 - **ある瞬間は1つの数値です。1970年1月1日 UTC からのミリ秒数を、`float` ピンで表します。** これは `Get Save Time` と `Get Latest Auto Save` が生成する単位であるため、セーブのタイムスタンプはこのページのどのノードにもそのまま接続できます。
 - **時刻を比較するノードはありません。** より遅い瞬間ほど大きな数値になるため、[Math](/ja/docs/studio/blueprint/nodes/math) の `<`、`>`、`Min`、`Max` だけで2つの瞬間の順序を判定できます。
 - **カレンダーはプレイヤーのローカルのものです。** `Make Time`、`Get Time Parts`、`Add Time`、`Time Difference`、`Start Of Day`、`Is Same Day`、`Format Time` はすべてローカル時刻を読みます。`To ISO String` は例外で、UTC を出力します。

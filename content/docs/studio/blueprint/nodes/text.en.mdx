@@ -8,7 +8,7 @@ The Text category is the Self node set of the `nl.text` widget: the string it sh
 ## Conventions
 
 - **No target pin.** A Self node has no `Element` input; it resolves its target from the blueprint's execution owner. There is nothing to wire, and nothing to aim at the wrong element.
-- **Reads are `Pure`, writes are `Latent`.** Every getter is side-effect free and legal in `event`, `function` and `macro` graphs. Every setter suspends the graph while the host applies the patch, which bars it from `function` graphs — a function returns synchronously to its caller and has nowhere to hold a pending write.
+- **Reads are `Pure`, writes are `Latent`.** Every getter is side-effect free. Every setter suspends the graph while the host applies the patch.
 - **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain` and `componentWidgetMain`, so the getters never appear in that palette even though they are pure. To read text properties from a Blueprint Value, use the Element-targeted getters with an `Element` literal.
 - **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a setter fails with `This node runs only in a running game. Open Dev Mode to run it.`, and a getter produces nothing at all.
 - **A write that changes nothing does nothing.** Each setter normalizes its patch, compares it against the element's current properties, and returns early when they match — no repaint and no `On Flush` for that element. Getters never queue a flush either, so a graph can poll properties without driving itself in a loop.

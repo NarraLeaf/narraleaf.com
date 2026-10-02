@@ -7,7 +7,7 @@ description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params
 
 ## 约定
 
-- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`，可用于 `event`、`function` 和 `macro` 图。每个 `Set` 节点都是 `Latent`，只能用于 `event` 和 `macro`——写入要经过宿主并异步完成，而 `function` 图会同步返回给调用者，没有地方安放一个待定结果
+- **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`。每个 `Set` 节点都是 `Latent`：写入要经过宿主并异步完成
 - **一个 Frame 持有两样东西：目标 Page 和一个 `params` 对象。** 目标必须是 Page；卡片下拉框只列出 Page，并排除该 Frame 所在的 Page 以及任何会绕回自身形成嵌套循环的 Page。Page 是什么、它和游戏界面 Surface 有何区别，见 [Surface 与 Page](/zh/docs/studio/blueprint/surfaces)
 - **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/zh/docs/studio/blueprint/nodes/app) 分类的 `Get Page Props` 读取整个对象，用 [Data](/zh/docs/studio/blueprint/nodes/data) 分类的 `Get JSON Field` 读取单个字段，读取不存在的字段得到 `null`。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/zh/docs/studio/blueprint/nodes/events)
 - **没有改变任何东西的写入什么都不做。** 两个写入节点都会把传入的目标和 params 与当前值比对（params 按 JSON 相等比对），两者都相同时直接返回。重复执行它们不会重新挂载 Page，也不会重放进场动画

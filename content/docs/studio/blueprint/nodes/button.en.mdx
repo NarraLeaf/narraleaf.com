@@ -7,7 +7,7 @@ Self nodes for `nl.button`. Each one acts on the button whose blueprint it sits 
 
 ## Conventions
 
-- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure`. Every `Set` node is `Latent`: the write goes through the host and resolves asynchronously, and the graph waits for it.
 - **A write that changes nothing does nothing.** The host compares the incoming value against the current one and returns early when they match, so no redraw is queued and no `On Flush` fires.
 - **Boolean inputs fall back to the current value.** `enabled` and `visible` take no on-card literal; if nothing is wired, or the edge resolves to `null`, the property is left as it is. A wired non-boolean counts as true only when it is the string `"true"` or `"1"`.
 - **Appearance lives in [Displayable](/docs/studio/blueprint/nodes/displayable).** Geometry, opacity, and appearance variants are set there, for every widget, not here.

@@ -55,7 +55,7 @@ Everything else is refused, including the reverses authors expect to work:
 ## Conventions
 
 - **Every node here is pure but one.** There are no exec pins to connect, so a Data node cannot sit on the execution path. Its output is computed when a consumer reads it, and recomputed on the next read. `Memo` is the exception: it is an exec node, because holding a value still is exactly what a pure node cannot do.
-- **All three graph kinds accept them** — `event`, `function`, and `macro` — and so does a Blueprint Value graph. `Memo` again excepted: `event` and `macro` only.
+- **A Blueprint Value graph accepts all of them**, `Memo` included.
 - **Nothing is modified in place.** A node that writes returns a new value on its output pin and leaves its input alone.
 - **On-card literals exist for `string`, `integer`, `float`, and `boolean` pins only.** A `json` or `array` input has no on-card editor; feed it a `JSON` literal or a `Make Object` / `Make Array` node.
 - **An unwired input is not an error.** It reads the pin's on-card literal, or nothing when there is none, and each node normalizes: a missing array reads as empty, a missing string as `""`, a missing number as `0`.
@@ -1275,4 +1275,4 @@ Its output may feed **several** consumers. A computed data output feeds only one
 | `next` | out · exec | — | |
 | `result` | out · data | `any` | Labelled Value on the card. |
 
-Synchronous rather than latent on purpose: there is nothing to await, and a latent node would be barred from an inline story value. `function` graphs stay pure, so a Memo cannot go in one.
+Synchronous rather than latent on purpose: there is nothing to await, and a latent node would be barred from an inline story value.

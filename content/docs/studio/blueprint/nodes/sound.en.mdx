@@ -7,7 +7,7 @@ Seven nodes for the sound an *interface* makes: the click of a button, a hover t
 
 ## Conventions
 
-- **Every one of them is latent.** They declare `event` and `macro`, so none can appear in a `function` graph or back a Blueprint Value.
+- **Every one of them is latent.** None can back a Blueprint Value, and none is offered to a Story Action blueprint, which has no game host.
 - **`Play Sound` hands back a handle, and the other six take it.** The handle names the playing clip, not the asset — start the same clip twice and you have two handles that stop, seek and fade independently.
 - **The clip is chosen on the card.** `Audio Clip` picks the asset and `Track` picks the audio track it plays on, so the player's volume for that track applies. The `Asset Id` pin is for the case where the clip is decided at run time. The name it receives has to be one the project holds: picked in an asset picker, or read from a variable or list row that holds one. A name put together at run time, with `Concat` for example, is reported by the `blueprint/assembled-asset-name` project check and refused by a production build, because the game package does not carry that clip.
 

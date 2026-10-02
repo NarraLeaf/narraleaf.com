@@ -8,7 +8,7 @@ description: Switch ウィジェットのチェック状態と、すべてのウ
 ## 規約
 
 - **ウィジェットのブループリント専用で、しかも Switch 上でのみ使用できます。** これらは `nl.switch` にスコープされているため、そのウィジェット自身のブループリントにのみ提供され、他では提供されません。別のグラフから Switch にアクセスするには、[Element](/ja/docs/studio/blueprint/nodes/element) の対応バージョンを使用してください。
-- **3つの読み取りノードは pure です**。そのため `function` グラフに置くことができます。Blueprint Value のオーナーは `widgetValue` であり、これらのノードは提供されません。Blueprint Value から Switch を読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。6つの書き込みノードは latent です。
+- **3つの読み取りノードは pure です。** Blueprint Value のオーナーは `widgetValue` であり、これらのノードは提供されません。Blueprint Value から Switch を読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。6つの書き込みノードは latent です。
 
 ## Get Checked
 

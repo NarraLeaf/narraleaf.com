@@ -8,7 +8,7 @@ Nine nodes for a `nl.switch` element: the checked state in every form an interfa
 ## Conventions
 
 - **Widget blueprints only, and only on a Switch.** These are scoped to `nl.switch`, so they are offered on that widget's own blueprint and nowhere else. To reach a Switch from another graph, use the [Element](/docs/studio/blueprint/nodes/element) versions.
-- **The three readers are pure**, so they can appear in a `function` graph. A Blueprint Value is owned by `widgetValue` and does not offer them; read a Switch from one with the Element versions and an `Element` literal. The six writers are latent.
+- **The three readers are pure.** A Blueprint Value is owned by `widgetValue` and does not offer them; read a Switch from one with the Element versions and an `Element` literal. The six writers are latent.
 
 ## Get Checked
 

@@ -62,7 +62,7 @@ The store is **not available in the in-editor preview**, where a node runs on th
 
 ## Asynchronous, which affects your nodes
 
-Every method returns a promise. A blueprint node that awaits the store must be declared `isLatent: true`, and a latent node cannot be used inside an inline story expression — put it in an event or macro graph.
+Every method returns a promise. A blueprint node that awaits the store must be declared `isLatent: true`, and a latent node cannot be used inside an inline story value or a branch condition.
 
 ```ts
 {

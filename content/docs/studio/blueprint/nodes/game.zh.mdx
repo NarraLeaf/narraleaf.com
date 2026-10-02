@@ -11,7 +11,7 @@ Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和
 
 ## 约定
 
-- **基本上要么 pure 要么 latent。** 四十四个节点是`Pure`，可用于`event`、`function`、`macro` 图，也可以支撑 Blueprint Value。五十一个是`Latent`，因此只能用于`event`和`macro`：latent 节点在`function`图里没有地方安放一个待定的结果。第九十六个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以它和 latent 节点一样只能用于`event`和`macro`，自己却不是 latent
+- **基本上要么 pure 要么 latent。** 四十四个节点是`Pure`，可以支撑 Blueprint Value。五十一个是`Latent`，Blueprint Value 一个都不提供。第九十六个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以 Blueprint Value 和对待 latent 节点一样不提供它，它自己却不是 latent
 - **Story Action 蓝图不提供。** 由剧情行调用的蓝图没有游戏宿主，因此它的创建浮窗里没有本页的节点，`Get Build Variant` 除外
 - **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Line`、`Get Save Story`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。结局、走过的路线、DLC 与构建变体那几组读取节点同样如此——结局画廊本来就是从标题界面打开的，那时还没有任何游戏。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
 - **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十八个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起

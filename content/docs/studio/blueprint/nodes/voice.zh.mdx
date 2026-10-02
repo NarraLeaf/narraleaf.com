@@ -7,7 +7,7 @@ description: 从蓝图里播放一条录好的语音，以及游戏当前的配�
 
 ## 约定
 
-- **五个都是 latent。** 它们声明 `event` 与 `macro`，所以都不能出现在 `function` 图里，也不能给蓝图值当后端
+- **五个都是 latent。** 所以都不能给蓝图值当后端。Story Action 蓝图没有游戏宿主，也不提供它们
 - **一条录音按 voice id 寻址**，也就是那一行稳定的文本 id——与翻译表用的是同一个键
 - **设置语言从下一句语音起生效。** 游戏不会重启，文本语言也不受影响；文本语言用 [Localization](/zh/docs/studio/blueprint/nodes/localization) 里的节点设置
 

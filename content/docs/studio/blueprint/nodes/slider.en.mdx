@@ -18,7 +18,7 @@ Slider nodes read and write the runtime value and range of the `nl.slider` whose
 
 - **A `step` of `0` disables snapping.** The value then moves continuously inside the range. A negative `step` is treated as `0`.
 - **The range is repaired before it is used.** `max` is forced to `min + 1` whenever it is not greater than `min`, so a slider can never have a zero-width range. Values that are not finite numbers fall back — to the widget defaults (`min` 0, `max` 100, `step` 1) when reading a broken range, and to the current runtime field on `Set Slider Range`.
-- **Reads are pure, writes are latent.** `Get Value`, `Get Normalized Value` and `Get Slider Range` run in `event`, `function`, and `macro` graphs. A Blueprint Value is owned by `widgetValue` and does not offer them; read a slider from one with the Element versions and an `Element` literal. The two write nodes are latent and limited to `event` and `macro` — a function returns synchronously to its caller and has nowhere to hand a pending write.
+- **Reads are pure, writes are latent.** A Blueprint Value is owned by `widgetValue` and does not offer `Get Value`, `Get Normalized Value` or `Get Slider Range`; read a slider from one with the Element versions and an `Element` literal. The two write nodes suspend the graph until their write resolves.
 - **These are Self nodes.** They act on the Slider that owns the graph and take no target pin. To drive a different Slider, use the `blueprint.element.slider.*` twins in [Element](/docs/studio/blueprint/nodes/element), which carry a `slider` input and only appear once the graph holds a binding node for an `nl.slider`.
 
 <Callout type="warn">

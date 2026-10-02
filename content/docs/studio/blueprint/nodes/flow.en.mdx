@@ -7,7 +7,6 @@ Flow nodes decide where execution goes next. Every other node computes or change
 
 ## Conventions
 
-- **Graph kinds.** Every Flow node but one is available in `event` graphs, and all but `Return Value` in `macro` graphs. None of those appears in a `function` graph: that kind is offered only pure, non-latent nodes, and each of them is declared effectful. `Function entry` at the bottom of this page is the exception in both directions: it exists in a `function` graph and nowhere else.
 - **Pin names.** `in` is the exec entry. `next`, `true`, `false`, `then`, `else`, `then0`…, `case0`…, `default`, `loop`, and `completed` are exec exits. Everything else on the card is a data pin.
 - **On-card literals are granted per pin, not per type.** Where a table row below says a pin accepts one, you can type the value onto the card instead of wiring it. No `condition` pin does: `If`, `If Else`, and `While` always want a wired boolean.
 - **Loops advance on one cursor.** `For Loop`, `For Each`, and `While` take one step per entry. Wire the end of the loop body back into the *same* node's `in` pin; the node then hands you the next iteration through `loop` and eventually leaves through `completed`. A body that never returns to `in` runs exactly once.
@@ -125,7 +124,7 @@ Fires `loop` for as long as `condition` holds. The condition is re-read on every
 
 `blueprint.flow.delay` · Latent
 
-Waits, then continues through `completed`. It is the only latent Flow node: it suspends the chain that entered it, which is why it cannot appear in a `function` graph — a function returns synchronously to its caller and has nowhere to park a pending wait.
+Waits, then continues through `completed`. It is the only latent Flow node: it suspends the chain that entered it, which is why a Blueprint Value, an inline story value and a branch condition do not offer it. Each of those hands back a value without waiting, and has nowhere to park a pending wait.
 
 `token` is published *before* the wait begins, so another chain can read it while this one is suspended and cut the wait short with `Skip Delay`. A duration of `0` or less does not suspend at all. If the graph run is cancelled while the wait is pending, the wait ends as a cancellation and `completed` never fires.
 
@@ -166,7 +165,7 @@ Ends the current execution chain. It has no exec output, and it also drops any b
 
 `blueprint.data.returnValue`
 
-Hands a value back to whatever asked for it, and ends the chain. This is the terminal of a Blueprint Value graph — the node that decides what the bound property is. It belongs to `event` graphs only, and only on owners that produce a value; validation says so if you place it elsewhere. If a value graph finishes without reaching it, the previously resolved value stands.
+Hands a value back to whatever asked for it, and ends the chain. This is the terminal of a Blueprint Value graph — the node that decides what the bound property is. It belongs only on owners that produce a value; validation says so if you place it elsewhere. If a value graph finishes without reaching it, the previously resolved value stands.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -185,16 +184,3 @@ Passes execution straight through, changing nothing. Useful as a junction where 
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-
-## Function entry
-
-`blueprint.function.entry` · Pure
-
-Where a `function` graph starts. It is the only node in this category that a `function` graph offers, and the only one that no other kind of graph does.
-
-| Pin | Direction | Type | Notes |
-| --- | --- | --- | --- |
-| `in` | in · exec | — | |
-| `then` | out · exec | — | |
-
-A `function` graph is not the body of a fn — that is an ordinary event graph, and its head is `Fn` in [Functions](/docs/studio/blueprint/nodes/functions). `function` is the graph kind that backs a computed value, and it is offered only pure, non-latent nodes.

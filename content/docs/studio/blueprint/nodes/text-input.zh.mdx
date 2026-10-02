@@ -11,7 +11,7 @@ Text Input 分类是 `nl.textInput` 控件的 Self 节点集合。一共三个�
 
 - **没有目标引脚。** Self 节点没有 `Element` 输入，它从蓝图的执行宿主解析目标
 - **这个值是会话状态。** 玩家输入的内容存活在本次会话的运行时存储中，永远不会写回项目文档。`Get Text` 读的是这份存储，`Set Text` 和 `Clear Text` 写的也是它，而作者填写的 `props.value` 只是它回退时使用的起始值
-- **`Get Text` 是 `Pure`，两个写入节点是 `Latent`。** 读取在 `event`、`function` 和 `macro` 图中都合法。写入会挂起执行，因此不能出现在 `function` 图中——函数要同步返回，没有地方安放一次待定的写入
+- **`Get Text` 是 `Pure`，两个写入节点是 `Latent`。** 写入会挂起执行，直到写入完成
 - **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain` 和 `componentWidgetMain`，所以 `Get Text` 不会出现在那份创建浮窗里。要在 Blueprint Value 中读取某个输入框，请配合 `Element` 字面量使用 Element 形态的 `Get Text`
 - **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，写入节点会以`该节点仅在游戏运行时可用，需在开发模式中运行`失败，而 `Get Text` 什么都取不到
 - **写入的值同样会被钳制。** 换行会被压成一个空格——单行输入框不允许从图里夹带换行符进来——并且在 `maxLength` 不为零时按它截断。但 `inputMode` 过滤不会生效：它是在键盘输入处拦截非法按键的，所以蓝图可以往 `number` 输入框里写字母

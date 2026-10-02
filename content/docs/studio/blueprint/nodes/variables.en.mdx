@@ -9,7 +9,7 @@ These nodes are the only way a graph touches a variable. Which scopes exist, how
 
 - **`Get Var` and `Set Var` project their `value` pin type from the selected variable.** The pin is declared `any`, but on the card it takes the type of whatever you picked in `Variable`, and the editor uses that projected type for the pin label, the connection preview, and validation.
 - **A later type change keeps your edges.** Change a `Var`'s Data type and any edge that no longer fits stays exactly where it is; validation reports a type mismatch instead of the editor quietly deleting the connection. You decide what to rewire.
-- **Purity decides where a node is offered.** `Var` and `Get Var` are pure and are the only Variables nodes available in `function` graphs. The rest are exec nodes for `event` and `macro` graphs, and the Persistent pair is latent on top of that, which also keeps it out of [Blueprint Value](/docs/studio/blueprint).
+- **The Persistent pair is latent.** `Get Persistent` and `Set Persistent` suspend the graph until the read or write finishes, which keeps them out of a [Blueprint Value](/docs/studio/blueprint), an inline story value and a branch condition.
 - **Blueprint Value cannot declare.** A `widgetValue` owner has no `Var` node at all. It can still read and write the variables it can reach, through `Get Var` and `Set Var`.
 - **The Scene nodes belong to Story Action blueprints.** `Get Scene Var` and `Set Scene Var` are offered nowhere else. The Saved pair is offered to every blueprint except a Blueprint Value: in a Story Action blueprint it reaches the running story, and anywhere else it reaches the game being played.
 

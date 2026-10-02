@@ -1,0 +1,339 @@
+---
+title: Gallery
+description: Gallery 插件的节点，读取游戏鉴赏界面的内容（CG、回想、音乐与语音）以及玩家的解锁记录
+---
+
+Gallery 插件用于游戏的鉴赏界面：CG 画廊、场景回想、音乐鉴赏和语音鉴赏。你在 Studio 的画廊编辑器里列出这些界面要放的内容，本页的节点把这份清单和玩家已解锁的部分合在一起，以行的形式给出，列表控件可以直接画出来。该插件出厂为禁用，参见[内置插件](/zh/docs/studio/blueprint/nodes/built-in-plugins#switching-a-plugin-on)
+
+用**骨架**模板创建的项目，其鉴赏界面就是用这些节点搭的：每一栏一个 `Get Gallery`，进度那一行用 `Get Gallery Progress`，CG 查看器用 `Get Gallery Variants` 和 `Get Gallery Variant At`
+
+## 目录 [#the-catalog]
+
+- **条目（entry）。** 鉴赏界面上的一项：一张 CG、一段回想、一张专辑或一组语音。每个条目都有一个**种类**：`cg`、`scene`、`music` 或 `voice`，在 Studio 里显示为 **CG**、**Recollection**、**Music** 和 **Voice**。种类决定条目属于哪一栏。节点卡片和引脚把条目叫作 artwork：卡上的 `Artwork` 字段、`artworkId` 引脚
+- **变体（variant）。** 条目中的一个成员：CG 的一张差分、回想的一张图、专辑的一首曲目、语音组的一句台词。玩家解锁的是变体。条目只要有任意一个变体解锁，就算已解锁
+- **封面。** 代表条目的那个变体：你加星的那个，没有就是第一个
+- **分组。** 跨所有种类的可选分类，用于标签栏。一个条目属于一个分组，或不属于任何分组
+- **锁定外观。** 条目锁定时，它的行带的是占位图而不是原图，名字换成锁定标题，描述、音频、语音和场景字段都为空。占位图是条目自己的，没有就用目录的默认占位图。锁定标题默认是 `???`；标题留空则显示真实名字
+- **隐藏条目。** 标为隐藏的条目在玩家解锁之前不出现在 `Get Gallery` 的行里，也不计入进度总数，因此秘密条目不会显示成一个空位
+
+启用插件后，活动栏里有一个**画廊**工具，列出所有条目。选择其中一个条目，或点击工具标题栏上的展开按钮，会以标签页打开画廊编辑器
+
+编辑器按种类分栏。添加按钮随栏目变化：**Import CGs** 为每张选中的图片建一个条目，**Import Tracks** 把选中的曲目做成一张专辑，**Add Recollection** 和 **Add Voice Lines** 建一个空条目，场景或台词在检查器里选。分组是栏目下方的标签；**New group** 新建一个。检查器编辑条目的名字、描述、分组和变体，设置它是 **Shown as a locked slot** 还是 **Hidden until unlocked**，以及它自己的锁定占位图。标题栏上的 **How locked entries look in game** 按钮设置目录的 **Default placeholder** 和 **Locked title**
+
+目录随项目保存，并打包进游戏
+
+## 解锁 [#unlocking]
+
+变体靠什么解锁取决于它的种类。未选中任何内容时，编辑器的检查器也会为每一栏写明这一点
+
+| 种类 | 解锁方式 |
+| --- | --- |
+| CG | 只有 `Unlock Gallery` 或 `Unlock Whole Gallery`|
+| Recollection | 玩家进入条目的场景。条目的所有变体一起解锁|
+| Music | 剧情播放该曲目：`/bgm` 或 `/sound` 行，或场景开始时它自己的背景音乐。Page 用 `Play Sound` 播放的音频不算，所以音乐鉴赏界面自己的播放器解锁不了曲目|
+| Voice | 玩家读完该变体所选自的那一句剧情台词|
+
+解锁记录保存在玩家的持久数据中，和[持久变量](/zh/docs/studio/blueprint/variables#持久变量)放在一起，不在任何存档文件里。开始新游戏不会重置它，读档也不会改变它。`Lock Whole Gallery` 会清空它。在 Studio 里，**重置玩家数据**会为开发模式或预览清空它，连同它们的存档
+
+解锁记录保存的是变体 id，由编辑器分配。重命名或调整变体顺序不影响它的解锁；删掉一个变体再加回同一张图，得到的是一个新变体，从锁定状态开始
+
+没有变体的条目没有东西可解锁，会一直锁着。回想条目创建时没有变体：给它加一张图，否则进入它的场景什么也不会解锁
+
+## 约定 [#conventions]
+
+- **每个节点都有 exec 引脚。** 没有一个是 `Pure`，Blueprint Value 也一个都不提供。在事件图里运行它们，把结果交给列表或变量。除 `Get Gallery Groups` 外都是 `Latent`
+- **连线的引脚优先于卡片。** `artworkId`、`variantId` 和 `groupId` 带着非空字符串时，会覆盖卡上的 `Artwork`、`Variant` 和 `Group`。卡片在编写时按名字挑选；引脚接收行里带的 id，玩家点击的那一行就是这样驱动查看器的
+- **行已经处理好锁定。** 锁定状态在每一行内部就已应用，条目模板拿到什么画什么，不会因为疏忽露出锁定条目的原图
+- **行直接喂给列表。** 把 `entries` 接到 [`Set List Content`](/zh/docs/studio/blueprint/nodes/list#set-list-content)。在条目模板里，用 [`Get List Item Props`](/zh/docs/studio/blueprint/nodes/list#get-list-item-props) 和 [`Get JSON Field`](/zh/docs/studio/blueprint/nodes/data#get-json-field) 读取字段
+- **找不到条目时节点失败。** 卡上没有选条目、`artworkId` 也没有接值时，节点以 `Pick a gallery artwork` 失败。目录里没有的 id 以 `Gallery artwork not found: <id>` 失败
+- **运行的地方。** 在编辑器画布中，节点读取你正在编辑的目录，什么都没解锁，解锁和锁定都不产生任何变化。在开发模式、预览和构建出的游戏中，节点读取打包进游戏的目录
+- **游戏里没有目录时。** 游戏没有带画廊目录（项目从未保存过目录）时，插件会记录一次 `No gallery catalog was published with this game.`。`Get Gallery` 和 `Get Gallery Groups` 返回空数组，`Get Gallery Progress` 返回全零，所有指定条目的节点都会失败
+
+## Get Gallery
+
+`narraleaf.gallery.getEntries` · Latent
+
+Get Gallery（获取画廊）把目录中的条目按编辑器里的顺序作为行给出，并按种类和分组筛选。玩家尚未解锁的隐藏条目不在其中
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | 可选。连线时优先于卡上的 `Group`|
+| `onlyUnlocked` | in · data | `boolean` | 可选。支持卡片字面量。为 `true` 时去掉所有锁定的条目|
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | 对象数组，字段见下|
+| `count` | out · data | `integer` | `entries` 的行数|
+| `unlockedCount` | out · data | `integer` | `entries` 中已解锁的行数|
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Kind` | `CG`、`Recollection`、`Music` 或 `Voice`。留空（**All kinds**）读取所有种类|
+| `Group` | 目录中的一个分组。留空（**All groups**）读取所有分组|
+
+**条目字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `index` | 在 `entries` 中的位置，筛选之后计数|
+| `id` | 条目的 id。接给 `artworkId` 引脚|
+| `name` | 条目的名字；锁定时为锁定标题|
+| `description` | 锁定时为空|
+| `kind` | `"cg"`、`"scene"`、`"music"` 或 `"voice"`|
+| `groupId`、`groupName` | 不属于任何分组的条目为空|
+| `unlocked`、`locked` | 是否有任意变体已解锁，以及它的反值，绑定锁定外观时不用再接 `Not`|
+| `variantCount`、`unlockedCount` | 条目中的变体数，以及其中已解锁的数量|
+| `image`、`assetId` | 要画的图，分别是 `ImageAsset` 和裸资源 id。已解锁时：玩家拥有封面就是封面，否则是玩家拥有的第一个变体。锁定时：锁定占位图。没有图时为 `null` 和 `""`|
+| `thumbnail`、`thumbnailAssetId` | 同一张图。画廊编辑器不设置单独的缩略图|
+| `coverVariantId` | 已解锁时 `image` 所取自的变体，查看器可以从它打开。锁定时为封面|
+| `audioAssetId` | `music`：当前显示曲目的音频，用于 [`Play Sound`](/zh/docs/studio/blueprint/nodes/sound#play-sound)。锁定时为空|
+| `durationSec` | 已知时为秒数，否则为 `0`。从项目语音录音中选的台词带有时长；导入的曲目不带|
+| `voiceUnitId` | `voice`：当前显示台词的 voice id，用于 [`Play Voice`](/zh/docs/studio/blueprint/nodes/voice#play-voice)。锁定时为空|
+| `storyId`、`sceneId`、`startBlockId` | `scene`：[`Start Game`](/zh/docs/studio/blueprint/nodes/game#start-game) 从哪里重播。锁定时为空。画廊编辑器只设置故事和场景，所以 `startBlockId` 为空|
+
+## Get Gallery Variants
+
+`narraleaf.gallery.getVariants` · Latent
+
+Get Gallery Variants（获取画廊变体）把一个条目的变体按编辑器里的顺序作为行给出：CG 查看器的差分条、专辑的曲目列表、语音组的台词。条目是否隐藏在这里不起作用
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `onlyUnlocked` | in · data | `boolean` | 可选。支持卡片字面量。为 `true` 时去掉所有锁定的变体|
+| `next` | out · exec | — | |
+| `entries` | out · data | `array` | 对象数组，字段见下|
+| `count` | out · data | `integer` | `entries` 的行数|
+| `unlockedCount` | out · data | `integer` | `entries` 中已解锁的行数|
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Artwork` | 条目，按名字选择|
+
+**变体字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `index` | 在 `entries` 中的位置，筛选之后计数|
+| `id` | 变体的 id。接给 `variantId` 引脚|
+| `artworkId` | 变体所属的条目|
+| `name` | 变体的名字；锁定时为锁定标题|
+| `unlocked`、`locked` | 这个变体是否已解锁，以及它的反值|
+| `image`、`assetId` | 已解锁时为变体的图，锁定时为锁定占位图。没有时为 `null` 和 `""`|
+| `thumbnail`、`thumbnailAssetId` | 同一张图|
+| `isCover` | 这个变体是否是条目的封面|
+| `audioAssetId` | 曲目的音频。锁定时为空|
+| `durationSec` | 已知时为秒数，否则为 `0`|
+| `voiceUnitId` | 台词的 voice id，用于 `Play Voice`。锁定时为空|
+| `lineText` | 选取时那一句台词的文字，用作字幕。锁定时为空|
+
+## Get Gallery Groups
+
+`narraleaf.gallery.getGroups`
+
+Get Gallery Groups（获取画廊分组）按编辑器里的顺序给出目录的分组，用于标签栏。行里的 `id` 接回 `Get Gallery` 或 `Get Gallery Progress` 的 `groupId` 引脚
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `groups` | out · data | `array` | `{ index, id, name }` 的数组|
+| `count` | out · data | `integer` | |
+
+## Get Gallery Progress
+
+`narraleaf.gallery.getStats` · Latent
+
+Get Gallery Progress（获取画廊进度）给出界面标题栏用的完成度数字，按种类和分组筛选的方式与 `Get Gallery` 相同。隐藏条目解锁之后才计入，所以秘密条目不会出现在总数里
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `groupId` | in · data | `string` | 可选。连线时优先于卡上的 `Group`|
+| `next` | out · exec | — | |
+| `total` | out · data | `integer` | 计入的条目数|
+| `unlocked` | out · data | `integer` | 至少有一个变体已解锁的条目数|
+| `percent` | out · data | `integer` | `unlocked` 占 `total` 的比例，取整到 `0` 至 `100`。`total` 为 `0` 时为 `0`|
+| `variantTotal` | out · data | `integer` | 计入条目中的变体数|
+| `variantUnlocked` | out · data | `integer` | 其中已解锁的数量|
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Kind` | 同 `Get Gallery`。留空（**All kinds**）统计所有种类|
+| `Group` | 同 `Get Gallery`。留空（**All groups**）统计所有分组|
+
+## Unlock Gallery
+
+`narraleaf.gallery.add` · Latent
+
+Unlock Gallery（解锁画廊）解锁条目的一个变体；没有指定变体时解锁它的全部变体
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `variantId` | in · data | `string` | 可选。连线时优先于卡上的 `Variant`|
+| `next` | out · exec | — | |
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Artwork` | 条目，按名字选择|
+| `Variant` | 该条目的一个变体。留空（**All variants**）解锁全部变体|
+
+不属于该条目的变体 id 不会改变任何东西
+
+## Lock Gallery
+
+`narraleaf.gallery.remove` · Latent
+
+Lock Gallery（锁定画廊）把条目的一个变体重新锁上；没有指定变体时锁上它的全部变体。引脚和字段与 `Unlock Gallery` 相同
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `variantId` | in · data | `string` | 可选。连线时优先于卡上的 `Variant`|
+| `next` | out · exec | — | |
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Artwork` | 条目，按名字选择|
+| `Variant` | 该条目的一个变体。留空（**All variants**）锁上全部变体|
+
+## Unlock Whole Gallery
+
+`narraleaf.gallery.unlockAll` · Latent
+
+Unlock Whole Gallery（解锁整个画廊）解锁每个条目的每个变体，隐藏条目也包括在内：通关奖励，也是制作鉴赏界面时快速看到满屏效果的办法
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Lock Whole Gallery
+
+`narraleaf.gallery.clear` · Latent
+
+Lock Whole Gallery（锁定整个画廊）清空解锁记录，所有条目重新锁上。解锁记录不在任何存档文件里，所以读档不会把解锁带回来
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Is Gallery Unlocked
+
+`narraleaf.gallery.isUnlocked` · Latent
+
+Is Gallery Unlocked（画廊是否已解锁）在指定了变体时回答这个变体是否已解锁；没有指定时回答条目是否有任意变体已解锁，也就是网格单元要问的问题
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `variantId` | in · data | `string` | 可选。连线时优先于卡上的 `Variant`|
+| `next` | out · exec | — | |
+| `unlocked` | out · data | `boolean` | |
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Artwork` | 条目，按名字选择|
+| `Variant` | 该条目的一个变体。留空（**Any variant**）询问整个条目|
+
+## Get Gallery Variant At
+
+`narraleaf.gallery.getVariant` · Latent
+
+Get Gallery Variant At（按位置获取画廊变体）按位置取一个变体，用于在查看器里切到上一张或下一张差分。位置按编辑器里的顺序数全部变体，锁定的也算在内
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `index` | in · data | `integer` | 位置，从 `0` 开始。支持卡片字面量|
+| `image` | out · data | `ImageAsset\|null` | 已解锁时为变体的图。锁定时为 `null`；这个节点不给占位图|
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | 变体的名字。锁定标题在这里不适用|
+| `variantId` | out · data | `string` | |
+
+**卡上字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Artwork` | 条目，按名字选择|
+
+位置超出条目范围时，给出 `null`、`false` 和空字符串
+
+## 隐藏的节点 [#hidden-nodes]
+
+四个较早的节点一次只读目录里的一项。它们已由上面那些数组节点取代，在创建浮窗中隐藏，但已有这些节点的图仍能运行
+
+### Get Gallery Variant Count
+
+`narraleaf.gallery.getVariantCount`
+
+已由 `Get Gallery Variants` 的 `count` 取代。统计条目的全部变体，锁定的也算在内
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Cover
+
+`narraleaf.gallery.getCover` · Latent
+
+已由 `Get Gallery` 行里的 `image` 和 `name` 字段取代。只读条目的封面：封面变体本身解锁之前，`image` 为 `null`、`unlocked` 为 `false`；`name` 从不替换为锁定标题
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
+| `image` | out · data | `ImageAsset\|null` | |
+| `unlocked` | out · data | `boolean` | |
+| `name` | out · data | `string` | |
+
+### Get Gallery Artwork Count
+
+`narraleaf.gallery.getArtworkCount`
+
+已由 `Get Gallery` 的 `count` 取代。统计目录中的全部条目，不分种类，隐藏条目也算在内
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `count` | out · data | `integer` | |
+
+### Get Gallery Artwork At
+
+`narraleaf.gallery.getArtworkAt` · Latent
+
+已由 `Get Gallery` 取代。在整个目录中按位置取一个条目，隐藏条目也算在内，名字从不替换为锁定标题。位置超出目录范围时，给出空字符串、`false` 和 `0`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `index` | in · data | `integer` | 位置，从 `0` 开始。支持卡片字面量|
+| `next` | out · exec | — | |
+| `artworkId` | out · data | `string` | |
+| `name` | out · data | `string` | |
+| `unlocked` | out · data | `boolean` | |
+| `variantCount` | out · data | `integer` | |

@@ -7,7 +7,7 @@ Self nodes for `nl.container`. Each one acts on the container whose blueprint it
 
 ## Conventions
 
-- **Reads are pure, writes are latent.** Every `Get` node here is `Pure` and legal in `event`, `function`, and `macro` graphs. Every `Set` node is `Latent` and legal in `event` and `macro` only — the write goes through the host and resolves asynchronously, and a `function` graph returns to its caller with nowhere to put a pending result.
+- **Reads are pure, writes are latent.** Every `Get` node here is `Pure`. Every `Set` node is `Latent`: the write goes through the host and resolves asynchronously, and the graph waits for it.
 - **A write that changes nothing does nothing.** The host compares the incoming value against the current one and returns early when they match, so no redraw is queued and no `On Flush` fires.
 - **Boolean inputs fall back to the current value.** `clipContent`, `enabled`, and `visible` take no on-card literal; if nothing is wired, or the edge resolves to `null`, the property is left as it is. A wired non-boolean counts as true only when it is the string `"true"` or `"1"`.
 - **Layout is author-time only.** Layout mode, stack direction, gap, and padding have no nodes — clipping is the one box property a running graph can change. Position and size come from [Displayable](/docs/studio/blueprint/nodes/displayable), which also owns opacity and appearance variants.
