@@ -18,12 +18,13 @@ export default defineRuntimePlugin({
 });
 ```
 
-## 五个成员始终存在
+## 六个成员始终存在
 
 | 成员 | 说明 |
 | --- | --- |
 | `game.blueprintNodes` | 为你的节点类型 `register` / `registerMany` 游戏侧的 `execute`|
 | `game.widgets` | 为你的控件类型 `register` / `registerMany` 游戏侧的渲染器与事件声明（`logicApi`）|
+| `game.storyActions` | `register` / `registerMany` 故事走到你的故事动作插入的行时要运行的处理，故事等它结束。见 [game.storyActions](/zh/docs/studio/plugin/api-reference#gamestoryactions)|
 | `game.data` | `readJson(namespace)`——读取随游戏一同发布的插件存储|
 | `game.config` | `get(key)` —— 作者为你的 `contributes.buildConfig` 字段填了什么。与 `game.data` 同理始终存在：声明一个字段不会给插件任何能力，所以这里没有可把关的能力|
 | `game.log` | 向宿主日志写入 `log(level, message)`|
@@ -32,7 +33,7 @@ export default defineRuntimePlugin({
 
 ## 其余一切都由能力把关
 
-除这四项之外，`app.game` 上的每个命名空间**只有在你的清单于 `contributes.runtimeCapabilities` 中声明过它**时才存在：
+除这六项之外，`app.game` 上的每个命名空间**只有在你的清单于 `contributes.runtimeCapabilities` 中声明过它**时才存在：
 
 ```json
 {

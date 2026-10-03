@@ -18,12 +18,13 @@ export default defineRuntimePlugin({
 });
 ```
 
-## 常に存在する五つのメンバー
+## 常に存在する六つのメンバー
 
 | メンバー | 内容 |
 | --- | --- |
 | `game.blueprintNodes` | あなたのノード種別のゲーム側 `execute` を `register` / `registerMany` する。 |
 | `game.widgets` | あなたのウィジェット種別のゲーム側レンダラーとイベント宣言(`logicApi`)を `register` / `registerMany` する。 |
+| `game.storyActions` | あなたのストーリーアクションが挿入した行にストーリーが来たときに実行する処理を `register` / `registerMany` する。ストーリーはその終了を待ちます。[game.storyActions](/ja/docs/studio/plugin/api-reference#gamestoryactions)を参照してください。 |
 | `game.data` | `readJson(namespace)` — ゲームとともに公開されたプラグインのストレージを読む。 |
 | `game.config` | `get(key)` — あなたの `contributes.buildConfig` フィールドに作者が入力した値。`game.data` と同じ理由で常に存在します。フィールドを宣言してもプラグインに何かが付与されるわけではないため、そこには制御すべき機能フラグがありません。 |
 | `game.log` | ホストのログに `log(level, message)` を書き込む。 |
@@ -32,7 +33,7 @@ export default defineRuntimePlugin({
 
 ## それ以外はすべて機能フラグで制御される
 
-上記の四つを除き、`app.game` 上の各名前空間は、**マニフェストが `contributes.runtimeCapabilities` でそれを宣言した場合に限って**存在します。
+上記の六つを除き、`app.game` 上の各名前空間は、**マニフェストが `contributes.runtimeCapabilities` でそれを宣言した場合に限って**存在します。
 
 ```json
 {

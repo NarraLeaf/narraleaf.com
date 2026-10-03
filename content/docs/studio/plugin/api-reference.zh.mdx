@@ -170,7 +170,7 @@ app.services.widgets.has(type);
 
 ### services.story.actions
 
-场景编辑器选板中用于插入故事块的操作。这些块是标准的故事块——插入后文档不再依赖该插件
+场景编辑器选板中用于插入故事块的操作。块可以是标准的故事块，插件不在之后文档照样保留它；也可以是插件自己的行（`action: "plugin"`），由 runtime 入口经 [`game.storyActions`](#gamestoryactions) 运行
 
 ```ts
 app.services.story.actions.register({
@@ -180,7 +180,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` 和 `registerMany` 返回清理函数
+`register` 和 `registerMany` 返回清理函数。`createBlock` 以 `initialText` 收到作者在命令后面输入的文字，可选的 `describe(params)` 决定插件行显示的文字。见 [story](/zh/docs/studio/plugin/studio/story)
 
 ### services.blueprintNodes
 
@@ -226,7 +226,7 @@ export default defineRuntimePlugin({
 
 `app` 携带 `app.plugin`、`app.manifest` 和 `app.game`
 
-`app.game` 有四个始终存在的成员——`blueprintNodes`、`widgets`、`data`、`log`——以及一组受能力控制的命名空间，它们只在 `contributes.runtimeCapabilities` 声明过之后才存在。未声明的命名空间是 `undefined`，而不是一个会抛错的方法。完整模型见 [Runtime API](/zh/docs/studio/plugin/runtime)
+`app.game` 有六个始终存在的成员（`blueprintNodes`、`widgets`、`storyActions`、`data`、`config`、`log`），以及一组受能力控制的命名空间，它们只在 `contributes.runtimeCapabilities` 声明过之后才存在。未声明的命名空间是 `undefined`，而不是一个会抛错的方法。完整模型见 [Runtime API](/zh/docs/studio/plugin/runtime)
 
 ### game.blueprintNodes
 
@@ -267,6 +267,42 @@ execute: async ctx => {
 <Callout type="warn">
 没有 `ctx.hostAdapter` 这个东西。早期版本通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 把宿主完整的内部 API 泄漏了出去——存档、本地化、退出应用——清单里什么都没声明，安装时也什么都没展示给作者。那条路径已经没有了。节点触及的任何东西，都要经由 `ctx.game`，而它恰好就是 `contributes` 声明的那组能力
 </Callout>
+
+### game.storyActions
+
+```ts
+app.game.storyActions.register({ id, run });
+app.game.storyActions.registerMany(defs);
+```
+
+注册故事走到插件的故事动作所插入的行时要运行的处理。`id` 就是 studio 入口注册这个动作时用的 id。返回 `void`
+
+`run(ctx)` 收到：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | 这一行的 `params`，即 `createBlock` 写入的内容。每次运行都是一份新的拷贝 |
+| `ctx.signal` | `AbortSignal` | `run` 还没结束时，玩家回退到这一行之前或读取了存档，它就会被中止 |
+| `ctx.game` | `RuntimePluginGame` | 与 `setup(app)` 收到的 `app.game` 是同一个对象 |
+
+```ts
+app.game.storyActions.register({
+    id: `${PLUGIN_ID}.play`,
+    run: async ({ params, signal, game }) => {
+        // Show something, wait for the player, write the result.
+        game.state?.set?.("saved", String(params.variable), "win");
+    },
+});
+```
+
+- **故事等待。** `run` 返回后，或者它返回的 promise 结束后，下一行才开始。点击、推进键、自动模式和跳过都不会越过这一行
+- **`run` 进行中存的档**，读取时会重新执行这一行。`run` 必须能从头开始
+- **`signal` 中止时**，撤下 `run` 放到屏幕上的东西并停止。之后它做的任何事都不会回到故事里
+- **抛出的错误**会写进游戏日志，故事继续
+- id 必须以插件 id 开头。不需要任何能力：只有作者放下的行才会运行它，而且只是这个插件自己的行
+- 在编辑器里 `app.game.storyActions` 会抛错，因为编辑器不运行故事
+
+完整的例子见[示例：石头剪刀布](/zh/docs/studio/plugin/rock-paper-scissors)
 
 ### game.widgets
 

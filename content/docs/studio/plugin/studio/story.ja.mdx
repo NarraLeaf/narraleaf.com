@@ -1,9 +1,9 @@
 ---
 title: story
-description: ストーリーブロックを挿入する、シーンエディターのパレットアクション
+description: シーンエディターのストーリーアクションと、それが挿入するプラグインの行
 ---
 
-`app.services.story.actions` は、シーンエディターの挿入パレットに、Plugin カテゴリの下でアクションを登録します。各アクションはストーリーブロックを組み立てて挿入します。そのブロックは標準のストーリーブロックであり、挿入後にドキュメントがあなたのプラグインに依存することはありません。
+`app.services.story.actions` は、シーンエディターの挿入パレットに、Plugin カテゴリの下でアクションを登録します。各アクションはストーリーブロックを組み立てて挿入します。そのブロックは、プラグインがなくなってもドキュメントに残る標準のストーリーブロックか、ストーリーがその行に来たときに runtime エントリーが実行する、プラグイン独自の行のどちらかです。
 
 ## プロジェクトのストーリーを読み取る
 
@@ -32,10 +32,13 @@ type StoryPluginActionRegistration = {
     detail?: string;            // パレット内の副次的な行
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+    describe?: (params: Record<string, unknown>) => string | null | undefined;
 };
 ```
 
-`createBlock` は `generateId()` を受け取ります――ブロックが必要とする任意の id にはこれを使ってください――また、パレットに保留中のテキストがある場合には `initialText` を受け取ります。`StoryBlock` を返してください。
+`createBlock` は `generateId()` を受け取ります――ブロックが必要とする任意の id にはこれを使ってください――また、作者がコマンドの後に入力したテキストを `initialText` として受け取ります。`StoryBlock` を返してください。
+
+作者がこのアクションに届く方法は 2 つあります。コマンドメニューから選ぶか、ラベルの先頭の語を入力して Enter を押すかです。`/rock rpsResult` は **Rock, Paper, Scissors** というラベルのアクションを、`initialText` を `rpsResult` として挿入します。組み込みコマンドの名前である語は、常に組み込みコマンドを指します。
 
 ```ts
 app.services.story.actions.register({
@@ -49,3 +52,34 @@ app.services.story.actions.register({
 ```
 
 `StoryBlock`、`StoryBlockId`、`StoryBlockKind` は `narraleaf-studio/plugin` からエクスポートされています。
+
+## プラグイン独自の行
+
+`kind: "action"` で、payload が `action: "plugin"` のブロックは、あなたのプラグイン独自の行です。
+
+```ts
+createBlock: ({ generateId, initialText }) => ({
+    id: generateId(),
+    kind: "action",
+    parentId: null,
+    childrenIds: [],
+    payload: {
+        action: "plugin",
+        pluginId: PLUGIN_ID,
+        actionId: `${PLUGIN_ID}.play`,
+        params: { variable: (initialText ?? "").trim() },
+    },
+}),
+```
+
+- `params` には、その行が必要とするものを JSON で入れます。Studio はそれを保存するだけで、読み取りません。
+- この行はエディターでは何もしません。ゲームの中では、runtime エントリーが同じ `actionId` で [`app.game.storyActions`](/ja/docs/studio/plugin/api-reference#gamestoryactions) に登録した処理がそれを実行し、ストーリーはその終了を待ちます。
+- シーンにこの行がある間、プロジェクトはあなたのプラグインに依存し、すべての実行とビルドにプラグインが含まれます。プラグインがないとき、この行は何もせず、プロジェクトはプラグインが足りないことを報告します。
+
+`describe` は、その行が自身の `params` からシーンエディターに表示するテキストです。指定しない場合、何も返さない場合、または例外を投げた場合、行には `label` が表示されます。パラメーターが行の動作を変える場合に指定し、作者がそれを読めるようにします。
+
+```ts
+describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
+```
+
+アクションから、それが実行するゲームまでの一式は、[例：じゃんけん](/ja/docs/studio/plugin/rock-paper-scissors)にあります。

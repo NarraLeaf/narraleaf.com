@@ -170,7 +170,7 @@ app.services.widgets.has(type);
 
 ### services.story.actions
 
-Scene-editor palette actions that insert story blocks. The blocks are standard story blocks — the document does not depend on the plugin after insertion.
+Scene-editor palette actions that insert story blocks. A block is either a standard story block, which the document keeps without the plugin, or the plugin's own row (`action: "plugin"`), which the runtime entry runs through [`game.storyActions`](#gamestoryactions).
 
 ```ts
 app.services.story.actions.register({
@@ -180,7 +180,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` and `registerMany` return cleanups.
+`register` and `registerMany` return cleanups. `createBlock` receives the text the author typed after the command as `initialText`, and an optional `describe(params)` sets the text a plugin row shows. See [story](/docs/studio/plugin/studio/story).
 
 ### services.blueprintNodes
 
@@ -226,7 +226,7 @@ export default defineRuntimePlugin({
 
 `app` carries `app.plugin`, `app.manifest`, and `app.game`.
 
-`app.game` has four members that are always present — `blueprintNodes`, `widgets`, `data`, `log` — and a set of capability-gated namespaces that exist only when `contributes.runtimeCapabilities` declared them. An undeclared namespace is `undefined`, not a thrower. See the [Runtime API](/docs/studio/plugin/runtime) for the full model.
+`app.game` has six members that are always present (`blueprintNodes`, `widgets`, `storyActions`, `data`, `config`, `log`) and a set of capability-gated namespaces that exist only when `contributes.runtimeCapabilities` declared them. An undeclared namespace is `undefined`, not a thrower. See the [Runtime API](/docs/studio/plugin/runtime) for the full model.
 
 ### game.blueprintNodes
 
@@ -267,6 +267,42 @@ execute: async ctx => {
 <Callout type="warn">
 There is no `ctx.hostAdapter`. Earlier builds leaked the host's full internal API through `ctx.hostAdapter.blueprintRuntime.hostApi` — saves, localization, quitting the app — with nothing declared in the manifest and nothing shown to the author at install. That path is gone. Whatever a node touches, it touches through `ctx.game`, which is exactly the capability set `contributes` declared.
 </Callout>
+
+### game.storyActions
+
+```ts
+app.game.storyActions.register({ id, run });
+app.game.storyActions.registerMany(defs);
+```
+
+Registers what runs when the story reaches a row one of the plugin's story actions inserted. `id` is the id the studio entry registered the action under. Returns `void`.
+
+`run(ctx)` receives:
+
+| Field | Type | What |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | The row's `params`, as `createBlock` wrote them. A fresh copy on every run. |
+| `ctx.signal` | `AbortSignal` | Aborted when the player rolls back past the row, or loads a save, while `run` is still going. |
+| `ctx.game` | `RuntimePluginGame` | The same object `setup(app)` received as `app.game`. |
+
+```ts
+app.game.storyActions.register({
+    id: `${PLUGIN_ID}.play`,
+    run: async ({ params, signal, game }) => {
+        // Show something, wait for the player, write the result.
+        game.state?.set?.("saved", String(params.variable), "win");
+    },
+});
+```
+
+- **The story waits.** The next row starts when `run` has returned, or when the promise it returns has settled. Clicks, the advance keys, auto mode and skipping do not move past the row.
+- **A save taken while `run` is going** runs the row again when it is loaded. `run` has to be able to start from the beginning.
+- **When `signal` aborts,** take down whatever `run` put on screen and stop. Nothing it does afterwards reaches the story.
+- **A throw** is written to the game log and the story continues.
+- The id must start with the plugin id. No capability is needed: a run only happens on a row the author placed, and only on the plugin's own rows.
+- In the editor `app.game.storyActions` throws, because the editor does not run the story.
+
+A complete example is [Example: Rock, Paper, Scissors](/docs/studio/plugin/rock-paper-scissors).
 
 ### game.widgets
 

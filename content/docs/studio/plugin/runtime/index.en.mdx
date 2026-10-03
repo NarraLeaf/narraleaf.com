@@ -18,12 +18,13 @@ export default defineRuntimePlugin({
 });
 ```
 
-## Five members are always there
+## Six members are always there
 
 | Member | What |
 | --- | --- |
 | `game.blueprintNodes` | `register` / `registerMany` the game-side `execute` for your node types. |
 | `game.widgets` | `register` / `registerMany` the game-side renderer and event declaration (`logicApi`) for your widget types. |
+| `game.storyActions` | `register` / `registerMany` what runs when the story reaches a row your story actions inserted. The story waits for it. See [game.storyActions](/docs/studio/plugin/api-reference#gamestoryactions). |
 | `game.data` | `readJson(namespace)` — read plugin storage published with the game. |
 | `game.config` | `get(key)` — what the author filled in for your `contributes.buildConfig` fields. Always present for the same reason `game.data` is: declaring a field grants the plugin nothing, so there is no capability to gate on. |
 | `game.log` | `log(level, message)` into the host log. |
@@ -32,7 +33,7 @@ Every type you register must be declared in `contributes.blueprintNodes` / `cont
 
 ## Everything else is capability-gated
 
-Beyond those four, each namespace on `app.game` exists **only if your manifest declared it** in `contributes.runtimeCapabilities`:
+Beyond those six, each namespace on `app.game` exists **only if your manifest declared it** in `contributes.runtimeCapabilities`:
 
 ```json
 {

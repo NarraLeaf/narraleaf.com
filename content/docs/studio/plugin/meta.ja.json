@@ -3,6 +3,7 @@
   "pages": [
     "index",
     "create-first-plugin",
+    "rock-paper-scissors",
     "manifest",
     "api-reference",
     "studio",

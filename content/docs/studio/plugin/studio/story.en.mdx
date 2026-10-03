@@ -1,9 +1,9 @@
 ---
 title: story
-description: Scene-editor palette actions that insert story blocks.
+description: Story actions in the scene editor, and the plugin rows they insert.
 ---
 
-`app.services.story.actions` registers actions in the scene editor's insert palette, under the Plugin category. Each action builds a story block and inserts it. The block is a standard story block — the document does not depend on your plugin after insertion.
+`app.services.story.actions` registers actions in the scene editor's insert palette, under the Plugin category. Each action builds a story block and inserts it. The block is either a standard story block, which the document keeps after your plugin is gone, or a row of your plugin's own, which your runtime entry runs when the story reaches it.
 
 ## Reading the project's stories
 
@@ -32,10 +32,13 @@ type StoryPluginActionRegistration = {
     detail?: string;            // secondary line in the palette
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+    describe?: (params: Record<string, unknown>) => string | null | undefined;
 };
 ```
 
-`createBlock` receives `generateId()` — use it for any ids the block needs — and `initialText` when the palette has pending text to seed the block with. Return a `StoryBlock`.
+`createBlock` receives `generateId()` — use it for any ids the block needs — and `initialText`, the text the author typed after the command. Return a `StoryBlock`.
+
+An author reaches the action two ways: by picking it from the command menu, or by typing a word its label starts with and pressing Enter. `/rock rpsResult` inserts an action labelled **Rock, Paper, Scissors** with `initialText` set to `rpsResult`. A word that is a built-in command's name always means the built-in command.
 
 ```ts
 app.services.story.actions.register({
@@ -49,3 +52,34 @@ app.services.story.actions.register({
 ```
 
 `StoryBlock`, `StoryBlockId`, and `StoryBlockKind` are exported from `narraleaf-studio/plugin`.
+
+## A row of your own
+
+A block with `kind: "action"` and an `action: "plugin"` payload is your plugin's own row:
+
+```ts
+createBlock: ({ generateId, initialText }) => ({
+    id: generateId(),
+    kind: "action",
+    parentId: null,
+    childrenIds: [],
+    payload: {
+        action: "plugin",
+        pluginId: PLUGIN_ID,
+        actionId: `${PLUGIN_ID}.play`,
+        params: { variable: (initialText ?? "").trim() },
+    },
+}),
+```
+
+- `params` holds anything the row needs, as JSON. Studio stores it and never reads it.
+- The row does nothing in the editor. In the game, the runtime entry's [`app.game.storyActions`](/docs/studio/plugin/api-reference#gamestoryactions) registration with the same `actionId` runs it, and the story waits until it finishes.
+- While a scene contains the row, the project depends on your plugin, and every run and build includes it. Without the plugin the row does nothing and the project reports the missing plugin.
+
+`describe` is the text the row shows in the scene editor, from its own `params`. Without it, or when it returns nothing or throws, the row shows `label`. Use it when the params change what the row does, so the author can read them:
+
+```ts
+describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
+```
+
+The whole pair, from the action to the game it runs, is on [Example: Rock, Paper, Scissors](/docs/studio/plugin/rock-paper-scissors).

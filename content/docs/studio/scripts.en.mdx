@@ -73,7 +73,7 @@ When a script layer and a graph layer in the same slot answer one event, the scr
 
 A story row is the exception: it enters its script through the **default export**, because a row has no events.
 
-An action may await. An inline value and a branch condition are evaluated where the story cannot wait, so they return a value rather than awaiting one, and a promise returned from either is refused with a diagnostic rather than rendered.
+An action may await, and the story waits for it before the next row. An inline value and a branch condition are evaluated where the story cannot wait, so they return a value rather than awaiting one, and a promise returned from either is refused with a diagnostic rather than rendered.
 
 ## Types
 

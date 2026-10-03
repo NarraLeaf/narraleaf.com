@@ -170,7 +170,7 @@ app.services.widgets.has(type);
 
 ### services.story.actions
 
-ストーリーブロックを挿入する、シーンエディターのパレットアクションです。これらのブロックは標準のストーリーブロックであり、挿入後にドキュメントがそのプラグインに依存することはありません。
+ストーリーブロックを挿入する、シーンエディターのパレットアクションです。ブロックは、プラグインがなくてもドキュメントに残る標準のストーリーブロックか、runtime エントリーが [`game.storyActions`](#gamestoryactions) で実行するプラグイン独自の行(`action: "plugin"`)のどちらかです。
 
 ```ts
 app.services.story.actions.register({
@@ -180,7 +180,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` と `registerMany` はクリーンアップを返します。
+`register` と `registerMany` はクリーンアップを返します。`createBlock` は作者がコマンドの後に入力したテキストを `initialText` として受け取り、任意の `describe(params)` がプラグインの行に表示されるテキストを決めます。[story](/ja/docs/studio/plugin/studio/story)を参照してください。
 
 ### services.blueprintNodes
 
@@ -226,7 +226,7 @@ export default defineRuntimePlugin({
 
 `app` は `app.plugin`、`app.manifest`、`app.game` を持ちます。
 
-`app.game` には常に存在する 4 つのメンバー――`blueprintNodes`、`widgets`、`data`、`log`――と、`contributes.runtimeCapabilities` が宣言した場合にのみ存在する、能力によってゲートされた名前空間の集合があります。宣言されていない名前空間は `undefined` であり、エラーを投げるメソッドではありません。完全なモデルは[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
+`app.game` には常に存在する 6 つのメンバー(`blueprintNodes`、`widgets`、`storyActions`、`data`、`config`、`log`)と、`contributes.runtimeCapabilities` が宣言した場合にのみ存在する、能力によってゲートされた名前空間の集合があります。宣言されていない名前空間は `undefined` であり、エラーを投げるメソッドではありません。完全なモデルは[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
 
 ### game.blueprintNodes
 
@@ -267,6 +267,42 @@ execute: async ctx => {
 <Callout type="warn">
 `ctx.hostAdapter` というものは存在しません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体――セーブ、ローカライゼーション、アプリの終了――が漏れ出しており、マニフェストには何も宣言されておらず、インストール時に作者へ示されるものも何もありませんでした。その経路はもうありません。ノードが触れるものは何であれ `ctx.game` を経由し、それはまさに `contributes` が宣言した能力の集合そのものです。
 </Callout>
+
+### game.storyActions
+
+```ts
+app.game.storyActions.register({ id, run });
+app.game.storyActions.registerMany(defs);
+```
+
+プラグインのストーリーアクションが挿入した行にストーリーが来たときに実行する処理を登録します。`id` は、studio エントリーがそのアクションを登録したときの id です。`void` を返します。
+
+`run(ctx)` が受け取るもの:
+
+| フィールド | 型 | 内容 |
+| --- | --- | --- |
+| `ctx.params` | `Record<string, unknown>` | その行の `params`。`createBlock` が書き込んだものです。実行のたびに新しいコピーが渡されます。 |
+| `ctx.signal` | `AbortSignal` | `run` がまだ終わっていないうちに、プレイヤーがこの行より前に巻き戻したとき、またはセーブを読み込んだときに中断されます。 |
+| `ctx.game` | `RuntimePluginGame` | `setup(app)` が `app.game` として受け取ったものと同じオブジェクトです。 |
+
+```ts
+app.game.storyActions.register({
+    id: `${PLUGIN_ID}.play`,
+    run: async ({ params, signal, game }) => {
+        // Show something, wait for the player, write the result.
+        game.state?.set?.("saved", String(params.variable), "win");
+    },
+});
+```
+
+- **ストーリーは待ちます。** `run` が返ったとき、またはそれが返した promise が確定したときに、次の行が始まります。クリック、送りキー、オートモード、スキップでは、この行を越えません。
+- **`run` の途中で取ったセーブ**を読み込むと、この行がもう一度実行されます。`run` は最初からやり直せる必要があります。
+- **`signal` が中断されたら**、`run` が画面に出したものを取り除いて止まります。その後に行ったことはストーリーに届きません。
+- **投げられたエラー**はゲームのログに書き込まれ、ストーリーは続きます。
+- id はプラグイン id で始まる必要があります。能力は必要ありません。実行されるのは作者が置いた行だけで、しかもそのプラグイン自身の行だけです。
+- エディターでは `app.game.storyActions` は例外を投げます。エディターはストーリーを実行しないためです。
+
+完全な例は[例：じゃんけん](/ja/docs/studio/plugin/rock-paper-scissors)にあります。
 
 ### game.widgets
 

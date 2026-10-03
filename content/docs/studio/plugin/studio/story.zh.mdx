@@ -1,9 +1,9 @@
 ---
 title: story
-description: 向场景编辑器插入故事块的调板操作
+description: 场景编辑器里的故事动作，以及它们插入的插件行
 ---
 
-`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。该块是标准故事块——插入后文档不再依赖你的插件
+`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。这个块可以是标准故事块，插件不在之后文档照样保留它；也可以是插件自己的行，故事走到这一行时由你的 runtime 入口运行
 
 ## 读取项目里的故事
 
@@ -32,10 +32,13 @@ type StoryPluginActionRegistration = {
     detail?: string;            // 调板中的次要行
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
+    describe?: (params: Record<string, unknown>) => string | null | undefined;
 };
 ```
 
-`createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及在调板有待处理文本时的 `initialText`。返回一个 `StoryBlock`
+`createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及 `initialText`，即作者在命令后面输入的文字。返回一个 `StoryBlock`
+
+作者有两种方式用到这个动作：从命令菜单里选中它，或者输入一个它的标签以之开头的词再按 Enter。`/rock rpsResult` 会插入标签为 **Rock, Paper, Scissors** 的动作，`initialText` 为 `rpsResult`。内置命令的名字永远指内置命令
 
 ```ts
 app.services.story.actions.register({
@@ -49,3 +52,34 @@ app.services.story.actions.register({
 ```
 
 `StoryBlock`、`StoryBlockId` 和 `StoryBlockKind` 由 `narraleaf-studio/plugin` 导出
+
+## 插件自己的行
+
+`kind: "action"`、payload 为 `action: "plugin"` 的块，是你的插件自己的行：
+
+```ts
+createBlock: ({ generateId, initialText }) => ({
+    id: generateId(),
+    kind: "action",
+    parentId: null,
+    childrenIds: [],
+    payload: {
+        action: "plugin",
+        pluginId: PLUGIN_ID,
+        actionId: `${PLUGIN_ID}.play`,
+        params: { variable: (initialText ?? "").trim() },
+    },
+}),
+```
+
+- `params` 以 JSON 存放这一行需要的任何内容。Studio 只保存它，从不读取
+- 这一行在编辑器里不做任何事。在游戏里，runtime 入口用同一个 `actionId` 在 [`app.game.storyActions`](/zh/docs/studio/plugin/api-reference#gamestoryactions) 注册的处理会运行它，故事等它结束
+- 只要场景里还有这一行，工程就依赖你的插件，每次运行和构建都会带上它。没有这个插件时，这一行什么都不做，工程会报告缺少插件
+
+`describe` 是这一行在场景编辑器里显示的文字，根据它自己的 `params` 得出。不提供、返回空或者抛错时，这一行显示 `label`。参数会改变这一行的行为时就提供它，让作者能读到参数：
+
+```ts
+describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
+```
+
+从动作到它运行的小游戏，完整的一对见[示例：石头剪刀布](/zh/docs/studio/plugin/rock-paper-scissors)
