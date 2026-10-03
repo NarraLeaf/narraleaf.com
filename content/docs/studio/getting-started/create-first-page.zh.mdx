@@ -65,7 +65,7 @@ UI 大纲显示控件层级。容器可以包含其他控件，子控件随父�
 
 - `Ctrl+Z` 撤销，`Ctrl+Shift+Z` 重做
 - `Ctrl+C`、`Ctrl+V` 复制和粘贴控件
-- 删除页面会一并删除其中的控件；`Main Page` 不能删除
+- 删除页面会一并删除其中的控件；入口页面不能删除，需先将其他页面设为入口页面
 - 页面数据写入项目的 UI 文档，没有单独的保存步骤
 
 ## 检查页面
@@ -77,6 +77,6 @@ UI 大纲显示控件层级。容器可以包含其他控件，子控件随父�
     duration="8s"
 />
 
-`Main Page` 是项目的入口页面，游戏启动时首先显示它。页面、游戏 UI 与叠加页面在游戏运行时如何叠放，参阅[运行时的界面](/zh/docs/studio/workspace/ui-editor/runtime)
+`Main Page` 是项目的入口页面，游戏启动时首先显示它。其他页面可以通过**设为入口页面**取代它，参阅 [UI](/zh/docs/studio/workspace/ui-editor)。页面、游戏 UI 与叠加页面在游戏运行时如何叠放，参阅[运行时的界面](/zh/docs/studio/workspace/ui-editor/runtime)
 
 下一步参阅[运行与打包](/zh/docs/studio/getting-started/run-and-package)

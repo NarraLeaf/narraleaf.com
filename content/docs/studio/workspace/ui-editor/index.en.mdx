@@ -14,7 +14,9 @@ A Game UI is created into a slot, and each slot holds one interface. When every 
 
 The game opens on the **Entry page**, and blueprints open the other pages. Game UI appears over the stage on its own once the game starts. How the two are stacked at run time is covered in [Interfaces at run time](/docs/studio/workspace/ui-editor/runtime).
 
-Pages and Game UI can be renamed, duplicated, and deleted. Deleting one removes the elements in it.
+Any page can be the entry page. Right-click its card and choose **Set as Entry Page**, or select the page and click **Set as Entry Page** in Properties. The card then reads **Entry page**, and the page that was the entry becomes an ordinary page. Blueprints and `Go Page` nodes that name either page keep working.
+
+Pages and Game UI can be renamed, duplicated, and deleted. Deleting one removes the elements in it. The entry page cannot be deleted; make another page the entry page first.
 
 ## The canvas
 
