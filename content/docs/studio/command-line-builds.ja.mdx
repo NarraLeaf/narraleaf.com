@@ -27,7 +27,7 @@ narraleaf-studio --build /projects/my-game
 | `--build-variant` | ビルドバリアントの id | `main` |
 | `--build-target` | `windows`、`macos`、`linux`、`web`、`android`、`ios` | 実行中のシステム |
 | `--build-format` | そのプラットフォームのフォーマット 1 つ | デスクトップと Web は `zip`、Android は `apk`、iOS は `ipa` |
-| `--build-arch` | `x64`、`arm64`、`universal` | 自分と同じプラットフォームなら実行環境のアーキテクチャ、それ以外は `x64` |
+| `--build-arch` | `x64`、`arm64`、`universal` | 自分と同じプラットフォームなら実行環境のアーキテクチャ、ほかのシステムで macOS 向けにビルドする場合は `universal`、それ以外は `x64` |
 | `--build-output` | 出力ディレクトリ | プロジェクト内の `dist` |
 | `--build-report` | レポートの書き出し先 | レポートなし |
 | `--build-allow-unsigned` | 値なし | 署名できない場合はビルドを中止 |
@@ -37,7 +37,7 @@ narraleaf-studio --build /projects/my-game
 
 `--オプション 値` と `--オプション=値` のどちらの書き方も受け付けます。`--build-arch` はデスクトップのターゲットにのみ適用されます。`--build` を伴わないビルドオプションは拒否されます。
 
-デスクトップと Web のフォーマットは `zip`、`dir`、およびそのプラットフォームのインストーラー（Windows は `nsis`、macOS は `dmg`、Linux は `appimage`）です。Android は `apk` または `aab`、iOS は `ipa` を生成します。
+デスクトップと Web のフォーマットは `zip`、`dir`、およびそのプラットフォームのインストーラー（Windows は `nsis`、macOS は `dmg`、Linux は `appimage`）です。Android は `apk` または `aab`、iOS は `ipa` を生成します。各システムで作れるデスクトップのフォーマットは[ビルドマシンの条件](#ビルドマシンの条件)にまとめています。
 
 ## 終了コード
 
@@ -137,7 +137,16 @@ narraleaf-studio --build /projects/my-game \
 
 ## ビルドマシンの条件
 
-選べるターゲットは実行中のシステムによって決まります。ダイアログと同じで、macOS の成果物は macOS 上、Linux の成果物は macOS または Linux 上、Windows、Web、Android、iOS の成果物はサポート対象のデスクトップシステム上でビルドします。
+すべてのターゲットは Windows でも macOS でもビルドできますが、作れるデスクトップのフォーマットは実行中のシステムによって決まります。ダイアログと同じです。
+
+| ビルドマシン | Windows | macOS | Linux |
+|---|---|---|---|
+| Windows | `zip`、`nsis`、`dir` | `zip` | `zip`、`appimage` |
+| macOS | `zip`、`nsis`、`dir` | `zip`、`dmg`、`dir` | `zip`、`appimage`、`dir` |
+
+Windows 上では、macOS と Linux のパッケージはアーカイブに直接書き込まれます。Windows のフォルダは macOS アプリを構成するリンクも、Linux のプログラムに必要な権限も保持できず、ディスクイメージは macOS でしか作れないためです。ビルドマシンで作れないフォーマットは、プロジェクトを開く前に拒否されます。
+
+Windows でビルドした macOS アプリには証明書の署名を付けられません。プレイヤーは初回起動時に**システム設定 → プライバシーとセキュリティ**で**このまま開く**を選びます。署名のない Mac アプリを開くときと同じです。証明書による署名と公証には、引き続き Mac が必要です。
 
 ビルドマシンにディスプレイは不要で、ログイン済みのデスクトップセッションも要りません。リモートシェルがあれば足ります。
 

@@ -27,7 +27,7 @@ narraleaf-studio --build /projects/my-game
 | `--build-variant` | 构建变体 id | `main` |
 | `--build-target` | `windows`、`macos`、`linux`、`web`、`android`、`ios` | 当前系统 |
 | `--build-format` | 该平台的一种格式 | 桌面与 Web 为 `zip`，Android 为 `apk`，iOS 为 `ipa` |
-| `--build-arch` | `x64`、`arm64`、`universal` | 构建本机平台时取本机架构，否则取 `x64` |
+| `--build-arch` | `x64`、`arm64`、`universal` | 构建本机平台时取本机架构；在其他系统上构建 macOS 时取 `universal`，其余取 `x64` |
 | `--build-output` | 输出目录 | 项目内的 `dist` |
 | `--build-report` | 写出报告的文件 | 不写报告 |
 | `--build-allow-unsigned` | 无取值 | 产物无法签名时中止构建 |
@@ -37,7 +37,7 @@ narraleaf-studio --build /projects/my-game
 
 `--选项 值` 与 `--选项=值` 两种写法都接受。`--build-arch` 只对桌面目标有效。给了构建选项却没给 `--build` 会被拒绝。
 
-桌面与 Web 的格式为 `zip`、`dir`，以及该平台的安装包（Windows 为 `nsis`，macOS 为 `dmg`，Linux 为 `appimage`）。Android 产出 `apk` 或 `aab`，iOS 产出 `ipa`。
+桌面与 Web 的格式为 `zip`、`dir`，以及该平台的安装包（Windows 为 `nsis`，macOS 为 `dmg`，Linux 为 `appimage`）。Android 产出 `apk` 或 `aab`，iOS 产出 `ipa`。每种系统能产出哪些桌面格式，见[对构建机的要求](#对构建机的要求)。
 
 ## 状态码
 
@@ -137,7 +137,16 @@ narraleaf-studio --build /projects/my-game \
 
 ## 对构建机的要求
 
-可选目标由构建机的系统决定，与窗口里一致：macOS 产物在 macOS 上构建，Linux 产物在 macOS 或 Linux 上构建，Windows、Web、Android 与 iOS 产物在任意受支持的桌面系统上构建。
+所有目标在 Windows 和 macOS 上都能构建，但能产出哪些桌面格式由构建机的系统决定，与窗口里一致：
+
+| 构建机 | Windows | macOS | Linux |
+|---|---|---|---|
+| Windows | `zip`、`nsis`、`dir` | `zip` | `zip`、`appimage` |
+| macOS | `zip`、`nsis`、`dir` | `zip`、`dmg`、`dir` | `zip`、`appimage`、`dir` |
+
+在 Windows 上，macOS 和 Linux 的包会直接写进压缩包：Windows 的文件夹存不下 macOS 应用所需的链接，也存不下 Linux 程序所需的权限，而磁盘映像只能在 macOS 上制作。构建机产不出的格式，会在打开项目之前就被拒绝。
+
+在 Windows 上构建的 macOS 应用无法带上证书签名。玩家第一次打开时，要在**系统设置 → 隐私与安全性**中选择**仍要打开**，和打开任何未签名的 Mac 应用一样。用证书签名和公证仍然需要 Mac。
 
 构建机不需要显示器，也不需要已登录的桌面会话，一个远程 shell 就够。
 

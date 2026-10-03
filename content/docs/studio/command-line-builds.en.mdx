@@ -27,7 +27,7 @@ The examples below write it as `narraleaf-studio`.
 | `--build-variant` | Build variant id | `main` |
 | `--build-target` | `windows`, `macos`, `linux`, `web`, `android`, `ios` | The host system |
 | `--build-format` | One format of that platform | `zip` for desktop and web, `apk` for Android, `ipa` for iOS |
-| `--build-arch` | `x64`, `arm64`, `universal` | The host architecture for a host build, `x64` otherwise |
+| `--build-arch` | `x64`, `arm64`, `universal` | The host architecture for a host build, `universal` for macOS built elsewhere, `x64` otherwise |
 | `--build-output` | Output directory | `dist` inside the project |
 | `--build-report` | File to write the report to | No report |
 | `--build-allow-unsigned` | No value | The build stops when it would be unsigned |
@@ -37,7 +37,7 @@ The examples below write it as `narraleaf-studio`.
 
 Both `--option value` and `--option=value` are accepted. `--build-arch` applies to desktop targets only. A build option given without `--build` is refused.
 
-Desktop and web formats are `zip`, `dir`, and the platform's installer (`nsis` on Windows, `dmg` on macOS, `appimage` on Linux). Android produces `apk` or `aab`; iOS produces `ipa`.
+Desktop and web formats are `zip`, `dir`, and the platform's installer (`nsis` on Windows, `dmg` on macOS, `appimage` on Linux). Android produces `apk` or `aab`; iOS produces `ipa`. Which desktop formats a host can produce is listed under [Host requirements](#host-requirements).
 
 ## Exit codes
 
@@ -137,7 +137,16 @@ The option is repeatable and accepts the `build.` settings only. An empty value 
 
 ## Host requirements
 
-The host system decides which targets are available, exactly as it does in the dialog: macOS artifacts are built on macOS, Linux artifacts on macOS or Linux, and Windows, web, Android and iOS artifacts on any supported desktop system.
+Every target can be built on Windows and on macOS, but the host system decides which desktop formats are available, exactly as it does in the dialog:
+
+| Host | Windows | macOS | Linux |
+|---|---|---|---|
+| Windows | `zip`, `nsis`, `dir` | `zip` | `zip`, `appimage` |
+| macOS | `zip`, `nsis`, `dir` | `zip`, `dmg`, `dir` | `zip`, `appimage`, `dir` |
+
+On Windows, a macOS or Linux package is written straight into its archive: a Windows folder cannot keep the links a macOS app is made of or the permissions a Linux program needs, and a disk image needs macOS itself. A format the host cannot produce is refused before the project opens.
+
+A macOS app built on Windows cannot carry a certificate signature. Its players allow the first launch with **Open Anyway** under **System Settings → Privacy & Security**, as they do for any unsigned Mac app. Signing with a certificate and notarizing still need a Mac.
 
 A build machine needs no display and no signed-in desktop session. A remote shell is enough.
 

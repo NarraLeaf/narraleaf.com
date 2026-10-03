@@ -54,8 +54,8 @@ Its rail has up to seven sections — **Variant**, **Targets**, **Identity**, **
 Choose a platform, format, and architecture. The available targets depend on the host system:
 
 - Windows artifacts can be built on any supported desktop system.
-- macOS artifacts must be built on macOS. Both architectures are offered: Studio itself runs only on Apple Silicon, and packages for Intel Mac players just the same.
-- Linux artifacts can be built on macOS or Linux.
+- macOS artifacts can be built on any supported desktop system. On a Mac every format and architecture is offered: Studio itself runs only on Apple Silicon, and packages for Intel Mac players just the same. On Windows only `zip` is offered, built as a universal app by default so that it runs on every Mac. It cannot carry a certificate signature, so players allow its first launch under **System Settings → Privacy & Security**.
+- Linux artifacts can be built on any supported desktop system. On Windows, `zip` and `appimage` are offered.
 - Web, Android, and iOS artifacts can be built on any supported desktop system.
 
 Android produces an APK for direct installation, an AAB for the Play Store upload, or both. iOS produces an IPA.
