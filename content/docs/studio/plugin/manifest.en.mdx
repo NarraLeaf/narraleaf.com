@@ -55,8 +55,9 @@ Entry paths cannot be absolute or contain `..`, `.`, null bytes, `?`, or `#`.
 | `buildConfig` | object[] | Build-configuration fields this plugin adds to the build dialog. |
 | `externalLinks` | `string[]` | Address patterns the runtime entry may open in the player's browser. |
 | `network` | `string[]` | Host patterns the runtime entry may fetch bytes from. |
+| `reservedSaveIds` | `string[]` | Save ids this plugin keeps for itself, left out of the player's save list. |
 
-Every node type, widget type, storage namespace, sidecar id, and build-dependency id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
+Every node type, widget type, storage namespace, sidecar id, build-dependency id and reserved save id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
 
 ### blueprintNodes and widgets
 
@@ -91,6 +92,16 @@ The two heavy declarations. A [sidecar](/docs/studio/plugin/runtime/sidecar) is 
 ### locales
 
 A Studio language pack — a locale the plugin adds, or gaps it fills in a built-in one. See [Make a plugin](/docs/studio/plugin/create-first-plugin#ship-a-studio-language-pack). A manifest with only `contributes.locales` and no entry code is a valid plugin.
+
+### reservedSaveIds
+
+A save the plugin writes under its own id, such as a quick save slot or a checkpoint, sits in the project's save store beside the player's saves. List those ids here to keep them off the player's save list: [`List Saves`](/docs/studio/blueprint/nodes/game#list-saves), every save screen built on it and the Dev Mode saves panel leave them out, as they leave out autosaves. Everything else still reaches them: the plugin's own [`app.game.saves`](/docs/studio/plugin/runtime/saves), whose `listIds` returns the store as it is, and the save nodes that take an id, such as `Load Save`, `Delete Save` and the save readers.
+
+```json
+{ "contributes": { "reservedSaveIds": ["yourname.quicksave.slot"] } }
+```
+
+Each id must start with your plugin id, so a plugin cannot hide a slot the author's own `Save Game` wrote. The ids are reserved while the plugin runs in the game; in a game that does not run it, those saves are listed like any other.
 
 ## Permissions are derived
 
@@ -144,6 +155,6 @@ This is what keeps the install prompt honest: a capability is declared in exactl
 
 ### Contributions that derive no permission
 
-`tests` and `buildConfig` are the two contribution kinds that produce no install permission, and in both cases the absence is a decision rather than an omission.
+`tests`, `buildConfig` and `reservedSaveIds` are the three contribution kinds that produce no install permission, and in each case the absence is a decision rather than an omission.
 
-Every other code-backed contribution gains a power the moment the plugin loads. A **test** only ever runs because the author opened Run > Test, picked it out of the dialog and pressed Start; there is no ambient capability to consent to at install time, and what a test may reach while running is gated separately by its own `requires`. A **build-configuration field** is a blank the author fills in, and filling it in gives the plugin no reach it did not already have.
+Every other code-backed contribution gains a power the moment the plugin loads. A **test** only ever runs because the author opened Run > Test, picked it out of the dialog and pressed Start; there is no ambient capability to consent to at install time, and what a test may reach while running is gated separately by its own `requires`. A **build-configuration field** is a blank the author fills in, and filling it in gives the plugin no reach it did not already have. A **reserved save id** only takes ids in the plugin's own namespace out of the player's save list.

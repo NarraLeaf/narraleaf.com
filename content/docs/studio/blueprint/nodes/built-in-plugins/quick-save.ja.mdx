@@ -9,7 +9,7 @@ Quick Save プラグインは、スロット 1 つのクイックセーブとク
 
 - **スロットは 1 つです。** 3 つのノードはすべて、id が `narraleaf.quick-save.slot` のセーブを対象にします。`Quick Save` のたびに上書きされるため、プレイヤーが持てるクイックセーブは常に 1 つです。
 - **普通のセーブです。** クイックセーブはプロジェクトのセーブストアに置かれ、[`Save Game`](/ja/docs/studio/blueprint/nodes/game#save-game) と同じ方法で書き込まれますが、画像もメタデータも持ちません。[`Get Save Preview`](/ja/docs/studio/blueprint/nodes/game#get-save-preview) はこれに対して `null` を返し、宣言した [Save fields](/ja/docs/studio/blueprint/nodes/game#save-fields) は既定値を読みます。
-- **プレイヤーのセーブと一緒に一覧されます。** [`List Saves`](/ja/docs/studio/blueprint/nodes/game#list-saves) はクイックセーブの id をプレイヤーのスロットと一緒に返します。そのため、一覧されたすべての id を描くセーブ画面やロード画面には、クイックセーブも描かれます。そうした画面から外すには、配列を List に渡す前に `narraleaf.quick-save.slot` を取り除いてください。`Load Save`、`Delete Save`、各セーブ読み取りノードは、この id をほかの id と同じように受け付けます。
+- **プレイヤーのセーブ一覧には出ません。** プラグインがこのスロットを予約しているため（[`reservedSaveIds`](/ja/docs/studio/plugin/manifest#reservedsaveids) を参照）、[`List Saves`](/ja/docs/studio/blueprint/nodes/game#list-saves) はクイックセーブを返しません。それを使うセーブ画面やロード画面、Dev Mode のセーブパネルにも出ません。`Load Save`、`Delete Save`、各セーブ読み取りノードは、引き続きこの id をほかの id と同じように受け付けます。
 - **ロードは普通のセーブと同じです。** `Quick Read` は [`Load Save`](/ja/docs/studio/blueprint/nodes/game#load-save) と同じ経路でロードし、プロジェクトの **Older saves**（以前のセーブ）の設定にも従います。
 - **プレイヤーデータとともに保存されます。** Dev Mode と Preview はそれぞれ別のセーブストアを持ち、**Reset player data**（プレイヤーデータをリセット）はクイックセーブをほかのセーブと一緒に消去します。
 

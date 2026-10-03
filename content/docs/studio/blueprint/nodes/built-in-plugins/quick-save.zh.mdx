@@ -9,7 +9,7 @@ Quick Save 插件提供一个存档位的快速存档与快速读档，也就是
 
 - **一个存档位。** 三个节点都作用于 id 为 `narraleaf.quick-save.slot` 的那份存档。每次 `Quick Save` 都会覆盖它，所以玩家同一时间只有一份快速存档
 - **一份普通存档。** 快速存档放在项目的存档库里，写入方式与 [`Save Game`](/zh/docs/studio/blueprint/nodes/game#save-game) 相同，但不带截图，也不带 metadata。[`Get Save Preview`](/zh/docs/studio/blueprint/nodes/game#get-save-preview) 对它返回 `null`，声明过的[存档字段](/zh/docs/studio/blueprint/nodes/game#save-fields)读到的是默认值
-- **和玩家存档一起列出。** [`List Saves`](/zh/docs/studio/blueprint/nodes/game#list-saves) 会把快速存档的 id 和玩家存档位一起返回，所以把列出的每个 id 都画出来的存读档界面也会画出快速存档。要让它不出现在这样的界面上，就在数组交给列表之前去掉 `narraleaf.quick-save.slot`。`Load Save`、`Delete Save` 以及各个存档读取节点都像对待其他 id 一样接受它
+- **不出现在玩家的存档列表里。** 插件保留了这个存档位（见 [`reservedSaveIds`](/zh/docs/studio/plugin/manifest#reservedsaveids)），所以 [`List Saves`](/zh/docs/studio/blueprint/nodes/game#list-saves) 不会列出快速存档，基于它的存读档界面和 Dev Mode 的存档面板也都不会显示它。`Load Save`、`Delete Save` 以及各个存档读取节点仍像对待其他 id 一样接受它
 - **读档方式和普通存档一样。** `Quick Read` 走的是 [`Load Save`](/zh/docs/studio/blueprint/nodes/game#load-save) 的同一条路径，包括项目的**旧存档**设置
 - **随玩家数据保存。** 开发模式和预览各有一个存档库，**重置玩家数据**会把快速存档和其他存档一起清空
 

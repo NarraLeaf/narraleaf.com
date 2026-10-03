@@ -9,7 +9,7 @@ The Quick Save plugin adds a one-slot quick save and quick read, the pair a quic
 
 - **One slot.** All three nodes work on the save whose id is `narraleaf.quick-save.slot`. Every `Quick Save` overwrites it, so a player has one quick save at a time.
 - **An ordinary save.** The quick save sits in the project's save store and is written the way [`Save Game`](/docs/studio/blueprint/nodes/game#save-game) writes a save, with no picture and no metadata. [`Get Save Preview`](/docs/studio/blueprint/nodes/game#get-save-preview) returns `null` for it, and declared [save fields](/docs/studio/blueprint/nodes/game#save-fields) read their default values.
-- **Listed with the player's saves.** [`List Saves`](/docs/studio/blueprint/nodes/game#list-saves) returns the quick save's id along with the player's slots, so a save or load screen that draws every listed id draws the quick save too. Leave `narraleaf.quick-save.slot` out of the array to keep it off such a screen. `Load Save`, `Delete Save` and the save readers accept the id like any other.
+- **Kept off the player's save list.** The plugin reserves the slot (see [`reservedSaveIds`](/docs/studio/plugin/manifest#reservedsaveids)), so [`List Saves`](/docs/studio/blueprint/nodes/game#list-saves) leaves the quick save out, and so do every save or load screen built on it and the Dev Mode saves panel. `Load Save`, `Delete Save` and the save readers still accept the id like any other.
 - **Loaded like any save.** `Quick Read` loads through the same path as [`Load Save`](/docs/studio/blueprint/nodes/game#load-save), including the project's **Older saves** setting.
 - **Kept with the player's data.** Dev Mode and Preview keep separate save stores, and **Reset player data** clears the quick save with the other saves.
 

@@ -22,6 +22,8 @@ description: セーブスロットを一覧表示し読み取る。そして —
 | `write` | `(id: string, metadata?: unknown) => Promise<void>` | `saves.write` |
 | `load` | `(id: string) => Promise<void>` | `saves.write` |
 
+`listIds` は、プラグインが [`contributes.reservedSaveIds`](/ja/docs/studio/plugin/manifest#reservedsaveids) で予約した id も含め、セーブストアのすべての id を返します。ゲームの `List Saves` はそれらを除外します。
+
 ```ts
 type RuntimePluginSaveMetadata = {
     id: string;

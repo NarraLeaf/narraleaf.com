@@ -22,6 +22,8 @@ description: List and read save slots, and — with the heavier capability — o
 | `write` | `(id: string, metadata?: unknown) => Promise<void>` | `saves.write` |
 | `load` | `(id: string) => Promise<void>` | `saves.write` |
 
+`listIds` returns every id in the save store, including ids a plugin reserved with [`contributes.reservedSaveIds`](/docs/studio/plugin/manifest#reservedsaveids). The game's `List Saves` leaves those out.
+
 ```ts
 type RuntimePluginSaveMetadata = {
     id: string;

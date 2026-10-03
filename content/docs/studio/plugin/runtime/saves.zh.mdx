@@ -22,6 +22,8 @@ description: 列出并读取存档槽位，以及——在更重的能力下—�
 | `write` | `(id: string, metadata?: unknown) => Promise<void>` | `saves.write` |
 | `load` | `(id: string) => Promise<void>` | `saves.write` |
 
+`listIds` 返回存档库里的每一个 id，包括插件用 [`contributes.reservedSaveIds`](/zh/docs/studio/plugin/manifest#reservedsaveids) 保留的 id；游戏里的 `List Saves` 会略过这些 id
+
 ```ts
 type RuntimePluginSaveMetadata = {
     id: string;
