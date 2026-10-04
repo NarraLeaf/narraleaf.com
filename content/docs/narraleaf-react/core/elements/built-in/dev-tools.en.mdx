@@ -16,7 +16,7 @@ import {DevTools} from "narraleaf-react/built-in";
 
 ## Action Identity
 
-Every action in a story receives an id when the story is constructed: a generated one (`a-0`, `a-1`, ...) unless a **static id** was assigned to it, in which case that id is used instead. A static id is what makes an action addressable across rebuilds of the story, for example as the target of [fastForward](/docs/narraleaf-react/core/game/live-game). Duplicate static ids are rejected at story construction.
+Every action in a story receives an id when the story is constructed: a generated one (`a-0`, `a-1`, ...) unless a **static id** was assigned to it, in which case that id is used instead. A static id is what makes an action addressable across rebuilds of the story, for example as the target of [fastForward](/docs/narraleaf-react/core/game/live-game). Duplicate static ids are rejected at story construction. The actions a scene builds for itself are the one exception: since `1.2.1` a named scene names them after itself, see [setElementStaticId](#setelementstaticid).
 
 ### getActionId
 
@@ -273,6 +273,8 @@ DevTools.setElementId(ghost, "preview:ghost");
 Give an element a name that story construction keeps.
 
 Without one, an element's id is generated at construction and changes when the story around it changes. A save restores element state by id, so name every element whose state has to survive edits to the script.
+
+Naming a scene also names the actions it builds for itself each time it is entered: its root, and the steps that put the scene, its layers, its background and its elements on the stage. No script can reach those to give them a static id, so since `1.2.1` the scene does it: the root is `<scene>:root` and each step `<scene>:root:<type>:<subject>`, where the subject is `self` for the scene's own step and otherwise the name of the element the step acts on. Some of these steps wait (for the scene's first frame, for the previous music to fade), so a save can stop on one - name a scene whose saves have to survive edits. Action ids are part of the story's [hash](/docs/narraleaf-react/core/elements/story#hash), so in a story with named scenes, a save written before `1.2.1` carries a different hash from the one the story has now.
 
 [setElementId](#setelementid) assigns an id directly, and construction replaces it for every element the scene's action tree reaches. Pass `null` here to drop a name and use the generated id.
 
