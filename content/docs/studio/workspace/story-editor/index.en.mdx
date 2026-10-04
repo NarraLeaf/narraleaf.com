@@ -36,7 +36,7 @@ A scene opens as a tab and is edited as a list of rows. A row is either a line o
 
 ## Putting something on stage
 
-It takes two directions. **Image**, **Text**, **Video** and **Ambience** declare an object: the direction names it, gives it a source, and puts it where it starts. Nothing appears until **Show** reveals it, and **Hide** takes it away again. Both address the object by name.
+It takes two directions. **Image**, **Text** and **Ambience** declare an object: the direction names it, gives it a source, and puts it where it starts. Nothing appears until **Show** reveals it, and **Hide** takes it away again. Both address the object by name.
 
 **Layer** is the exception. A layer exists visible from the direction that creates it.
 
@@ -47,6 +47,23 @@ Declaring an object a few lines before showing it also loads its picture or clip
 A **Show** of an ambience overlay can carry its own opacity and speed, which apply to that showing only.
 
 The **Project check** reports an object that nothing shows, under **Unshown stage object**.
+
+## Playing a video
+
+A video reaches the stage only through **Play**. A **Play** direction names the video file and the clip, shows the clip, plays it, and fades it off the stage when it ends. Later rows address the clip by that name: **Pause**, **Resume**, **Seek**, **Stop** and **Hide**. A second **Play** of the same name plays the clip again from the start.
+
+Settings on a **Play** row:
+
+- **Wait for the video**: on by default; the story continues once the video ends. The player can end the video early by clicking or pressing the skip key. Turned off, the story continues at once and the video plays under the rows that follow; clicks that advance the dialogue do not interrupt it.
+- **Hide when finished**: on by default. Turned off, the video holds its last frame until a **Hide** takes it away.
+- **Exit** and its duration: the video fades out or cuts when it leaves the stage.
+- **Muted**: the video plays without sound.
+
+**Stop** treats the video as having reached its end: it then fades out or holds its current frame, as its **Play** row says.
+
+The video file loads from the start of the scene, so a **Play** row needs nothing declared ahead of it.
+
+The **Project check** reports, under **Video already finished**, a row that pauses, resumes, seeks or stops a video after a **Play** of it that waits for the video to end.
 
 ## Branching and variables
 
