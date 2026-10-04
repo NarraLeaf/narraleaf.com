@@ -16,7 +16,7 @@ description: 界面：两种 Surface、导航栈、进出场生命周期，以�
 | `appSurface` | `app` | 作为页面栈上的一个页面，或作为页面之上的叠加页面 | 你需要一块玩家会打开、也会离开的界面：标题、设置、存档、画廊|
 | `stageSurface` | `player` | 挂在运行中游戏舞台的某个插槽里 | 你需要替换掉运行中游戏自带界面的一部分：对话框、选项菜单、通知堆栈|
 
-没有第三种。两者的记录都带有 `id`、`name`、`designSize`、`rootElementId`、可选的 `settings`（背景色、背景图与页面动画），以及可选的 `actions`（它回应的项目输入动作）；`stageSurface` 另外带一个指明插槽的 `mount`，并且创建时背景是透明的——它压在舞台之上
+没有第三种。两者的记录都带有 `id`、`name`、`designSize`、`rootElementId`、可选的 `settings`（背景色、背景图与页面动画），以及可选的 `actions`（它回应的项目输入意图）；`stageSurface` 另外带一个指明插槽的 `mount`，并且创建时背景是透明的——它压在舞台之上
 
 Studio 的 UI 管理器把它们标为 **Page** 和 **游戏界面**，节点名沿用了这套叫法——`Go Page` 打开的是一个 `appSurface`
 
@@ -116,7 +116,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 
 `onStage` 是这张表里的例外。NarraLeaf 没有给它留注入点，所以它作为 Player 的子节点挂载，位于舞台之上。它只在舞台可见时渲染，并且它的外壳刻意是点击穿透的——空白处必须仍然能推进剧情。放一个全屏可交互容器进去，就会把这些点击吃掉
 
-`notification` 插槽只用于显示：它上面没有任何东西接收点击，落在通知上的点击会交给它下面的东西，它的 Surface 蓝图也收不到按键和输入动作
+`notification` 插槽只用于显示：它上面没有任何东西接收点击，落在通知上的点击会交给它下面的东西，它的 Surface 蓝图也收不到按键和输入意图
 
 每个插槽 Surface 都跑在自己的运行时 scope 里，由游戏会话、插槽和 Surface 三者作键，并且 `Is Game Overlay` 在它们内部一律为 `true`
 
