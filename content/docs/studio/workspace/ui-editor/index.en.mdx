@@ -42,6 +42,23 @@ A **Text** widget can shrink its content until it fits the box it is drawn in. T
 
 The **Sentence** widget has **Auto fit** on to begin with: a dialogue line is written once and read in every language the game ships in. It is set at the size on the widget until the text reaches the end of the box, and comes down from there as the rest of the line is typed.
 
+## Sound
+
+Every element except the interface's root has a **Sound** section in Properties, above **Animation**. The section is folded until the element has a sound.
+
+| Sound | Plays when |
+| --- | --- |
+| **Hover** | The pointer moves onto the element. A tap on a touchscreen does not play it. |
+| **Click** | The element is clicked, or activated from the keyboard. |
+
+Choose an audio asset or an asset set for either one; **No sound** means none is set. The line under a chosen sound, such as **Volume 1 · SFX**, opens its playback options: **Volume**, from 0 to 1, and **Track**. A sound plays on the SFX track unless **Track** names another, so the player's volume for that track applies. It plays once per hover or click and never loops, whichever track it is on.
+
+One hover or click plays one sound. When elements with a sound are nested, the innermost one plays: a button with its own click sound inside a card plays the button's sound, and a click anywhere else on the card plays the card's. A disabled element plays neither sound.
+
+Sounds play in Dev Mode and in the game. The editor canvas plays none.
+
+An instance of a linked component has no **Sound** section and plays the sounds set in the component. For a sound that depends on a condition, use the [Sound nodes](/docs/studio/blueprint/nodes/sound) in a blueprint.
+
 ## Components
 
 A selection can be saved to the **Component Library** and placed again elsewhere. Use a component when a group of widgets is ready to be reused rather than copied.
