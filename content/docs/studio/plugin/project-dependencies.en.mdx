@@ -5,7 +5,7 @@ description: How a project records the plugins it uses, what happens when one is
 
 A project records which plugins its documents actually use. The table lives in the `.nlproj` manifest, is derived by scanning the project, and is never hand-authored. It answers two questions: what a machine needs installed to open this project, and which plugins belong inside the game you build from it.
 
-Open it at **Project → Dependencies** in the workspace sidebar.
+Open it at **Project → App → Dependencies** in the workspace sidebar.
 
 ## Hard and soft
 
@@ -28,19 +28,25 @@ A scan only re-derives entries for plugins that are loaded and contributing type
 
 ## Status
 
+A plugin installed at a compatible version shows no status. Any other state is written beside the plugin's name:
+
 | Status | Meaning |
 | --- | --- |
-| Ready | Installed at a compatible version. |
-| Outdated | Same major version, but older than the one the project was authored against. Still loads. |
-| Missing | Not installed on this machine. |
-| Incompatible | Installed at a different major version than the project was authored against. |
-| Disabled | A hard dependency that is Missing or Incompatible. The plugin is skipped for this project. |
+| **Missing** | Not installed on this machine. |
+| **Off for this project** | A hard dependency installed at a different major version than the project was authored against. The plugin is skipped for this project until **Rescan**. |
+| **Needs authorization** | Installed, and its permissions have not been approved. Authorize it in the plugins panel. |
+| **Disabled** | Switched off in the plugins panel. |
+| **Failed to load** | Switched on, and it failed to load. The plugins panel shows the error. |
+| **Outdated** | Same major version, but older than the one the project was authored against. Still loads. |
+| **Incompatible** | A soft dependency installed at a different major version. Still loads. |
 
 Compatibility is major-version only: `2.4.0` satisfies a project authored against `2.1.0`, and `3.0.0` does not. An unparseable version counts as incompatible.
 
 ## What being skipped means
 
-A hard dependency that is Missing or Incompatible suppresses that plugin **for this project**. Studio never imports its entry, so `setup` never runs and its nodes, widgets, and actions never register — a node type registered by the wrong major version could rewrite documents it no longer understands. You get a warning naming the plugin, and the project opens.
+A hard dependency that is missing, or installed at a different major version, suppresses that plugin **for this project**. Studio never imports its entry, so `setup` never runs and its nodes, widgets, and actions never register — a node type registered by the wrong major version could rewrite documents it no longer understands. You get a warning naming the plugin, and the project opens.
+
+**Rescan** releases a plugin held back for its version: the table records the installed version, and the plugin starts in the open window.
 
 Suppression is per project. The plugin stays installed and enabled everywhere else.
 
@@ -58,6 +64,6 @@ Packing follows the table, not the installed list:
 
 For plugin authors, this is the part that reaches your users:
 
-- **A major bump breaks every project authored against the old major.** Those projects mark your plugin Incompatible and skip it. Bump major when you mean to break, not to signal that a release is significant.
+- **A major bump breaks every project authored against the old major.** Those projects mark your plugin **Off for this project** and skip it until their author chooses **Rescan**. Bump major when you mean to break, not to signal that a release is significant.
 - **Keep type ids stable.** A project stores node and widget types by string. Renaming one is a break that no version number can describe — add the new type and leave the old one registered.
-- **Built-in plugins are versioned with Studio.** A Studio update can be what flips a project to Incompatible; that is the case the whole mechanism was built for.
+- **Built-in plugins are versioned with Studio.** A Studio update can be what turns a built-in plugin **Off for this project**; that is the case the whole mechanism was built for.
