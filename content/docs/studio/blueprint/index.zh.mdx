@@ -9,7 +9,7 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 
 <Figure
     src="/static/img/docs/studio/zh/blueprint.webp"
-    alt="编辑器中打开的全局蓝图：两个节点由一条连线相接，旁边列出该图的图层与变量"
+    alt="编辑器中打开的应用逻辑蓝图：两个节点由一条连线相接，旁边列出该图的图层与变量"
 />
 
 在放下第一个节点之前，每份蓝图都先回答一个问题：谁是它的宿主。答案决定了创建浮窗会给你哪些节点
@@ -25,7 +25,7 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 
 | 宿主 | 归属于 | 存活时长 |
 | --- | --- | --- |
-| `globalMain` | 项目 | 整个应用 |
+| `globalMain` | 项目，在 **UI** 面板中显示为**应用逻辑** | 整个应用 |
 | `surfaceMain` | 单个 [Surface](/zh/docs/studio/blueprint/surfaces) | 该 Surface 实例 |
 | `widgetMain` | 单个控件实例 | 该控件实例 |
 | `widgetValue` | 单个控件的单个属性 | 拥有它的绑定 |

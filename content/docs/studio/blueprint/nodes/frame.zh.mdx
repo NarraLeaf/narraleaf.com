@@ -35,7 +35,7 @@ Set Frame Page（设置 Frame 的目标 Page）切换该 Frame 展示的 Page，
 卡片上的 Page 选择在每次执行时都会被写入，而不是只在你改动过它时才写。停留在 `None` 的 `Set Frame Page` 即使你只接了 `Page props`，也会把 Frame 清空。想只改 props 而不动目标，请使用 `Set Params`
 </Callout>
 
-Frame 切换 Page 期间，在它内部的点击等指针输入到 Frame 为止。正在离开的那一页不接收输入，即将到来的那一页上的元素照常响应，而 Frame 自己的事件 Head、它周围的元素、所在的 Surface 以及全局蓝图都收不到。切换结束后，指针输入会重新从 Frame 向上传递，见[事件冒泡](/zh/docs/studio/blueprint/nodes/events#event-bubbling)
+Frame 切换 Page 期间，在它内部的点击等指针输入到 Frame 为止。正在离开的那一页不接收输入，即将到来的那一页上的元素照常响应，而 Frame 自己的事件 Head、它周围的元素、所在的 Surface 以及全局蓝图（**应用逻辑**）都收不到。切换结束后，指针输入会重新从 Frame 向上传递，见[事件冒泡](/zh/docs/studio/blueprint/nodes/events#event-bubbling)
 
 ## Get Target Page
 

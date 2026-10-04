@@ -19,7 +19,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 | 宿主 | 提供的 Head |
 | --- | --- |
-| 全局蓝图（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
+| 全局蓝图（`globalMain`），显示为**应用逻辑** | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
 | Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
 | 控件私有蓝图（`widgetMain`） | 由该控件类型声明的能力决定，见下表 |
 | 组件定义内的控件（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`，以及下表中该控件类型声明的 Head。没有键盘、窗口、广播和绑定元素的 Head |

@@ -62,7 +62,7 @@ export default defineRuntimePlugin({
 | `ui.overlay` | [`app.game.ui.overlay`](/ja/docs/studio/plugin/runtime/overlay) | ゲームの上に要素を描画する。 |
 | `assets` | [`app.game.assets`](/ja/docs/studio/plugin/runtime/assets-locale) | パッケージ化されたアセット id を URL に解決する。 |
 | `locale` | [`app.game.locale`](/ja/docs/studio/plugin/runtime/assets-locale) | ゲームの表示言語を読み取り、観察する。 |
-| `menu` | `app.game.menu` — `set` | デスクトップ版ゲームの上にあるメニューバー全体を宣言する。`set(spec)` はメニューバーを丸ごと置き換え、空の spec を渡すとメニューバーがなくなる。各行は、ページを開く、自動送りを切り替えるといった組み込みのアクションか、グローバルブループリントの関数を実行する。 |
+| `menu` | `app.game.menu` — `set` | デスクトップ版ゲームの上にあるメニューバー全体を宣言する。`set(spec)` はメニューバーを丸ごと置き換え、空の spec を渡すとメニューバーがなくなる。各行は、ページを開く、自動送りを切り替えるといった組み込みのアクションか、グローバルブループリント **App logic**（アプリロジック）の関数を実行する。 |
 | `story.compile` | `app.game.story` | 各シーンを観察し、その行の周囲にエンジンのアクションを注入するコンパイルパスを登録する。十三個の中で最も重いもの: このパスはプロジェクトの*すべての*シーンにわたって実行され、各シーンで誰が話しているかを見て、自分が書いていない行の周囲にアクションを置くことができます。これは `state.write` の変装ではなく、それを含意もしません — パスはアクションを組み立てるだけで、それを実行はしません。 |
 | `diagnostics` | `app.game.diagnostics` — `imageCache` | エンジンの画像キャッシュが保持している内容と、それに適用されている予算を読み取る。読み取り専用。ゲームのセッションが動き出すまで、`imageCache()` は `null` を返す。 |
 | `process.memory` | `app.game.process` — `memory` | ゲームの各プロセスが使っているメモリを、オペレーティングシステムの集計どおりに読み取る。読み取り専用で、`memory()` は Promise を返す。 |

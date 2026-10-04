@@ -24,7 +24,7 @@ The value lives in a store attached to the **owner instance**, not to the graph 
 
 | Owner | One store per | What starts it over |
 | --- | --- | --- |
-| `globalMain` | the global blueprint | nothing, while the application runs |
+| `globalMain` | the global blueprint (**App logic**) | nothing, while the application runs |
 | `surfaceMain` | each push of that [Surface](/docs/studio/blueprint/surfaces) onto the navigation stack | leaving the Surface and opening it again |
 | `widgetMain` · `componentWidgetMain` | widget instance: each placement of a component is its own instance, and so is each row's copy of a widget inside a list's row template. A list's own variables belong to the list and are shared by all its rows. | the widget unmounting |
 | `storyAction` | one call of the graph | every call |

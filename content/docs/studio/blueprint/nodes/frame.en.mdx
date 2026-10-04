@@ -35,7 +35,7 @@ Switches the Page this Frame shows, and optionally replaces its params in the sa
 The card's Page selection is written on every execution, not only when you changed it. A `Set Frame Page` left on `None` clears the Frame even if the only thing you wired was `Page props`. To change the props without touching the target, use `Set Params`.
 </Callout>
 
-While the Frame is changing page, presses inside it stop at the Frame. The page that is leaving takes no input, the arriving page's elements answer presses as usual, and nothing reaches the Frame's own heads, the elements around it, the Surface or the global blueprint. Once the change has finished, presses pass up from the Frame again, as described in [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling).
+While the Frame is changing page, presses inside it stop at the Frame. The page that is leaving takes no input, the arriving page's elements answer presses as usual, and nothing reaches the Frame's own heads, the elements around it, the Surface or the global blueprint (**App logic**). Once the change has finished, presses pass up from the Frame again, as described in [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling).
 
 ## Get Target Page
 

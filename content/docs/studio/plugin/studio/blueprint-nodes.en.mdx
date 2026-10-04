@@ -85,7 +85,7 @@ A plugin widget's own events start on event heads the plugin registers (see [wid
 - an exec output pin with the id `then`, where the graph starts;
 - one data output pin per payload field it exposes, with the field's name as the pin id.
 
-Studio offers the head only in the blueprints of plugin widgets whose `logicApi` names it in `headNodeTypes`, never in page or global blueprints. Its `execute` never runs; return `{ nextPort: "then" }` as a placeholder. Register it from both entries like any other node.
+Studio offers the head only in the blueprints of plugin widgets whose `logicApi` names it in `headNodeTypes`, never in page blueprints or the global blueprint (**App logic**). Its `execute` never runs; return `{ nextPort: "then" }` as a placeholder. Register it from both entries like any other node.
 
 ```ts
 export const ON_RATED: PluginBlueprintNodeDef = {

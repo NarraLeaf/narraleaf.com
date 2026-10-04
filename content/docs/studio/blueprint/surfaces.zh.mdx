@@ -52,7 +52,7 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 - `gameOverlay` 页面或叠加页面把自己的背景画成略微透明，让场景透出来。它上面的控件保持原有的不透明度
 - `Quit Game`（退出游戏）拆掉会话，把它的返回 Page 重新以 `appPage` 打开，并关闭它下面的所有页面。它和其余 [Game 节点](/zh/docs/studio/blueprint/nodes/game)放在一起。`Quit Application`（退出应用）则结束运行时；在开发模式中它停止的是开发模式会话，而不是关掉 Studio，并且它刻意不触发窗口关闭事件，那个事件只属于玩家自己关窗口
 
-在页面或叠加页面自己的蓝图里，`Is Game Overlay` 读的就是这个标记。它锁定在实例上，所以一个正在退出的暂停菜单在整段退出动画里都保持 overlay 的答案，哪怕会话已经在被清理。每个插槽 Surface 都回答 `true`；嵌在 overlay 里的 Page 则继承持有它的那个页面的答案。全局蓝图不属于任何页面，在那里该节点回答的是运行中的游戏是否被页面或模态叠加页面盖住，见 [Is Game Overlay](/zh/docs/studio/blueprint/nodes/game#is-game-overlay)
+在页面或叠加页面自己的蓝图里，`Is Game Overlay` 读的就是这个标记。它锁定在实例上，所以一个正在退出的暂停菜单在整段退出动画里都保持 overlay 的答案，哪怕会话已经在被清理。每个插槽 Surface 都回答 `true`；嵌在 overlay 里的 Page 则继承持有它的那个页面的答案。全局蓝图（**应用逻辑**）不属于任何页面，在那里该节点回答的是运行中的游戏是否被页面或模态叠加页面盖住，见 [Is Game Overlay](/zh/docs/studio/blueprint/nodes/game#is-game-overlay)
 
 当底下那个页面正是被游戏隐藏的页面之一时，关闭一个 `gameOverlay` 只会播放退出动画并显出舞台。没有东西进场，因为底下没有东西在渲染
 

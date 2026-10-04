@@ -62,7 +62,7 @@ export default defineRuntimePlugin({
 | `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素|
 | `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL|
 | `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言|
-| `menu` | `app.game.menu`——`set` | 声明桌面版游戏上方的整个菜单栏。`set(spec)` 替换整个菜单栏，传入空的 spec 会移除它。每一行运行一个内置动作（例如打开页面、开关自动前进）或全局蓝图中的一个函数|
+| `menu` | `app.game.menu`——`set` | 声明桌面版游戏上方的整个菜单栏。`set(spec)` 替换整个菜单栏，传入空的 spec 会移除它。每一行运行一个内置动作（例如打开页面、开关自动前进）或全局蓝图（**应用逻辑**）中的一个函数|
 | `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十三项里最重的一项：一个 pass 会跑遍项目的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
 | `diagnostics` | `app.game.diagnostics`——`imageCache` | 读取引擎图片缓存当前持有的内容，以及它所受的预算。只读。游戏会话开始运行之前，`imageCache()` 返回 `null`|
 | `process.memory` | `app.game.process`——`memory` | 读取游戏各进程按操作系统统计占用的内存。只读，`memory()` 返回一个 Promise|

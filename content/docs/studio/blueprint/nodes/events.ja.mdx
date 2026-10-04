@@ -19,7 +19,7 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 
 | オーナー | 提供される Head |
 | --- | --- |
-| グローバルブループリント（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head |
+| グローバルブループリント（`globalMain`）。表示名は **App logic**（アプリロジック） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head |
 | Surface ブループリント（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head、2つの broadcast Head、`Element Flush`、`Element Click` |
 | ウィジェットブループリント（`widgetMain`） | そのウィジェット型が宣言する内容による。下表を参照 |
 | コンポーネント定義内のウィジェット（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`と、下表でそのウィジェット型が宣言する Head。キーボード、ウィンドウ、broadcast、紐づけ要素の Head はありません。 |

@@ -24,7 +24,7 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域
 
 | 宿主 | 每份 store 对应 | 什么会让它重新开始 |
 | --- | --- | --- |
-| `globalMain` | 该全局蓝图 | 应用运行期间不会 |
+| `globalMain` | 该全局蓝图（**应用逻辑**） | 应用运行期间不会 |
 | `surfaceMain` | 该 [Surface](/zh/docs/studio/blueprint/surfaces) 每一次被压入导航栈 | 离开该 Surface 后再次打开 |
 | `widgetMain` · `componentWidgetMain` | 控件实例：组件的每一次摆放都是自己的实例，列表行模板里的控件在每一行中的那一份也是。列表自己的变量属于列表本身，由它的所有行共用 | 控件卸载 |
 | `storyAction` | 该图的一次调用 | 每一次调用 |

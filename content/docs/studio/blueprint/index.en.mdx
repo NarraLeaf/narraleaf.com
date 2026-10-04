@@ -9,7 +9,7 @@ A blueprint is not the only way to fill a slot. A slot holds a list of layers, a
 
 <Figure
     src="/static/img/docs/studio/en/blueprint.webp"
-    alt="The global blueprint open in the editor: two nodes joined by an edge, with the graph's layers and variables listed beside it"
+    alt="The App logic blueprint open in the editor: two nodes joined by an edge, with the graph's layers and variables listed beside it"
 />
 
 <Gif
@@ -25,7 +25,7 @@ The **owner** is where a blueprint lives. It decides the blueprint's lifetime an
 
 | Owner | Belongs to | Lives as long as |
 | --- | --- | --- |
-| `globalMain` | the project | the application |
+| `globalMain` | the project, listed in the **UI** panel as **App logic** | the application |
 | `surfaceMain` | one [Surface](/docs/studio/blueprint/surfaces) | that Surface's instance |
 | `widgetMain` | one widget instance | that widget instance |
 | `widgetValue` | one property of one widget | the binding that owns it |

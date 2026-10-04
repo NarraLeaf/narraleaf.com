@@ -85,7 +85,7 @@ execute: async ctx => {
 - 有一个 id 为 `then` 的执行输出引脚，图从这里开始
 - 它暴露的每个载荷字段各对应一个数据输出引脚，引脚 id 就是字段名
 
-Studio 只在 `logicApi` 的 `headNodeTypes` 点名了它的插件控件的蓝图里提供这个事件头，页面蓝图和全局蓝图里都没有。它的 `execute` 永远不会运行；返回 `{ nextPort: "then" }` 作为占位即可。和其他节点一样，从两个入口各注册一次
+Studio 只在 `logicApi` 的 `headNodeTypes` 点名了它的插件控件的蓝图里提供这个事件头，页面蓝图和全局蓝图（**应用逻辑**）里都没有。它的 `execute` 永远不会运行；返回 `{ nextPort: "then" }` 作为占位即可。和其他节点一样，从两个入口各注册一次
 
 ```ts
 export const ON_RATED: PluginBlueprintNodeDef = {
