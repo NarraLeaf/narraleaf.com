@@ -9,7 +9,7 @@ description: The `Vfx` element for full-screen looping video overlays such as ra
 
 Vfx plays a **looping video as a full-screen stage overlay** for particle and ambience effects (falling petals, light dust, rain, snow, fog, light flares) without canvas or WebGL.
 
-The overlay renders above the scenes and any playing [Video](/docs/narraleaf-react/core/elements/video), inside the stage camera boundary: [Camera](/docs/narraleaf-react/core/elements/camera) pan/zoom/shake moves the weather with the shot while the dialog UI stays fixed.
+The overlay renders over the scene that shows it and any [Video](/docs/narraleaf-react/core/elements/video) that scene is playing, inside the stage camera boundary: [Camera](/docs/narraleaf-react/core/elements/camera) pan/zoom/shake moves the weather with the shot while the dialog UI stays fixed.
 
 ```ts
 import {Vfx} from "narraleaf-react";
@@ -69,6 +69,7 @@ ffmpeg -i frames_%04d.png -c:v libvpx-vp9 -pix_fmt yuv420p -b:v 0 -crf 34 fx-bla
 - Overlays on the stage are captured by save/load and re-appear without a fade, playing or frozen if paused. Since `0.33.0` this covers preloaded overlays as well, which restore hidden. Saves created before `0.16.0` load fine.
 - A save naming an overlay the story no longer has loads without it, and logs a warning.
 - Undo restores the overlay's previous visibility.
+- Since `1.2.0` an overlay belongs to the scene that shows it, like the scene's images and videos. A plain `jumpTo` takes it off the stage with that scene, and a scene that should keep the weather shows its own overlay. A scene called with `returnable: true` keeps its overlays hidden and paused until the call returns. Stepping back across either puts the overlay back. Before `1.2.0` an overlay stayed on the stage across every scene until it was hidden.
 
 ## Public Methods
 
@@ -137,7 +138,7 @@ petals.show({opacity: 0.35, rate: 2});   // faint and fast, this time only
 
 Fade the overlay out and stop playback. The action waits for the fade-out to finish. Calling it while the overlay is not shown is a no-op.
 
-Since `0.33.0` the overlay stays on the stage, invisible and not playing, and a later `show` resumes from the frame it stopped on rather than restarting. Only a new game or a load clears the stage.
+Since `0.33.0` the overlay stays on the stage, invisible and not playing, and a later `show` resumes from the frame it stopped on rather than restarting. It leaves the stage with its scene.
 
 ```ts
 petals.hide({duration: 1200});
