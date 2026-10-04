@@ -8,7 +8,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 ## 约定
 
 - **List 渲染的是运行时条目数组。** `Set List Content`（设置列表内容）写入的是实例级的运行时数组；`Append`、`Insert`、`Remove`、`Clear` 和 `Refresh` 更新的是同一份存储。条目按 JSON-safe 形式保存，因此撑不过一次 JSON 往返的东西在写入时就会丢掉
-- **`itemsBinding` 只是 fallback。** 没有写入过运行时条目时才读取元素的 items binding；连 binding 也没有时，由检视器里的预览条目顶上。对运行时存储的第一次写入就终结了这条 fallback
+- **`itemsBinding` 只是 fallback。** 没有写入过运行时条目时才读取元素的 items binding；连 binding 也没有时，由检视器里**列表内容**写好的行顶上；那里也没有行时，按**占位行数**生成字段取默认值的行。对运行时存储的第一次写入就终结了这条 fallback
 - **改写节点会把 fallback 固化下来。** 除 `Set List Content` 和 `Clear List` 之外的每个改写节点都会先读当前条目、再把整个数组写回去。在一个从未被写入过的 List 上，这次读取取自 fallback，而这次写回把该快照变成了运行时条目——从此 binding 不再生效
 - **卸载会清空实例。** List 实例完全卸载时，运行时条目、选中项和待处理的滚动指令都会被丢弃。系统不会替你持久化；把内容写进变量或状态，并在 List 回来时显式恢复
 - **读取是纯节点，改写是 latent。** 每个改写节点都会挂起执行，直到改写完成
@@ -229,7 +229,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 `blueprint.list.getItems` · Pure
 
-`Get List Content`（获取列表内容）输出运行时条目数组；还没有写入过时，输出 `itemsBinding` / 预览 fallback
+`Get List Content`（获取列表内容）输出运行时条目数组；还没有写入过时，输出 `itemsBinding` / **列表内容** / **占位行数** fallback
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

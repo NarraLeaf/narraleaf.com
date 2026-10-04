@@ -8,7 +8,7 @@ List nodes drive the runtime content, selection, and scroll position of the list
 ## Conventions
 
 - **The runtime item array is what the List renders.** `Set List Content` writes an instance-level runtime array; `Append`, `Insert`, `Remove`, `Clear` and `Refresh` update that same store. Items are stored JSON-safe, so anything that does not survive a JSON round trip is dropped on the way in.
-- **`itemsBinding` is only a fallback.** The element's items binding is read while no runtime items have been written, and the inspector's preview items stand in when there is no binding either. The first write to the runtime store ends that.
+- **`itemsBinding` is only a fallback.** The element's items binding is read while no runtime items have been written. With no binding, the rows written in the inspector's **List content** stand in, and with no rows there either, as many rows of default field values as **Placeholder rows** sets. The first write to the runtime store ends that.
 - **Mutations promote the fallback.** Every mutation except `Set List Content` and `Clear List` reads the current items first and writes the whole array back. On a List that has never been written to, that read comes from the fallback and the write turns the snapshot into runtime items — the binding stops applying from then on.
 - **Unmount clears the instance.** When the List instance fully unmounts, runtime items, selection, and pending scroll commands are dropped. Nothing is persisted for you; write the content to a variable or to state and restore it explicitly when the List comes back.
 - **Reads are pure, mutations are latent.** Every mutation suspends the graph until it resolves.
@@ -229,7 +229,7 @@ Reorders the runtime items by one of their fields and writes the result back. So
 
 `blueprint.list.getItems` · Pure
 
-Outputs the runtime item array, or the `itemsBinding` / preview fallback while nothing has been written.
+Outputs the runtime item array, or the `itemsBinding` / **List content** / **Placeholder rows** fallback while nothing has been written.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
