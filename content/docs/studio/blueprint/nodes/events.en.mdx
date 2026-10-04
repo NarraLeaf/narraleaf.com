@@ -7,7 +7,7 @@ An event head is where a graph begins. It has no execution input — the runtime
 
 ## Conventions
 
-- **A head has no exec input.** There is nothing to wire into it. A graph may hold several heads, and each one runs its own chain when its event arrives.
+- **A head has no exec input.** There is nothing to wire into it. A graph may hold several heads, and each one runs its own chain when its event arrives. Every head listening for the same event, in one graph or in several, starts when the event arrives; none waits for another to finish, and one that fails does not stop the rest. Where the game waits for an event, as start-up waits for [`On Game Ready`](#on-game-ready), it waits for all of them.
 - **Data outputs are the payload.** Every output pin other than `then` reads one field of the runtime event payload, keyed by the pin id. A field the dispatch did not set reads `null` — not `0`, not `""`.
 - **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. A head that runs because a press [climbed](#event-bubbling) from a descendant reports the local design space of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
 - **Blueprint Value heads.** A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
@@ -51,7 +51,7 @@ Six pointer events climb the element tree: `Mouse Click`, `Mouse Double Click`, 
 - **Leaving a component.** From the root of a component, the event continues at the element that placed the component, so a container holding a placed component hears presses on it.
 - **The Surface.** A click that reaches the Surface also runs the Surface blueprint's own `Mouse Click` or `Right Click`.
 
-A graph cannot end the climb early. A [script](/docs/studio/scripts) layer can, with `ctx.stopPropagation()`. The nodes that used to steer bubbling, `Continue Event Bubble` and `Stop Event Bubble`, were removed. The one thing they were reliably used for, holding a window close open, is now [`Keep Window Open`](/docs/studio/blueprint/nodes/app) in the App category, which does that and nothing else.
+A graph cannot end the climb early. A [script](/docs/studio/scripts) layer can, with `ctx.stopPropagation()`: the elements above do not hear the event, and the other heads on the same element still run. The heads of one element start together, and the climb moves on to its parent once they have finished. The nodes that used to steer bubbling, `Continue Event Bubble` and `Stop Event Bubble`, were removed. The one thing they were reliably used for, holding a window close open, is now [`Keep Window Open`](/docs/studio/blueprint/nodes/app) in the App category, which does that and nothing else.
 
 The global blueprint has no mouse heads. It hears pointer input through [`On Action`](#on-action), wherever the gesture lands, including where no interface takes it: a Page takes a press only where one of its elements is drawn, so a press on an empty part of a Page, or on a stage with nothing on it, still reaches the global blueprint's `On Action` heads.
 

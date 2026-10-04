@@ -3,7 +3,7 @@ title: Scripts
 description: A slot's logic written as a TypeScript file the project owns — where those files live, how one is entered, and what it may reach.
 ---
 
-The logic of a page, a component or a story row is a list of **layers**, and each layer is either a **blueprint** — a graph on a canvas — or a **script**, a TypeScript file the project owns. Every layer in the list runs, so a script can sit beside a graph in the same place and both answer the same event.
+The logic of a page, a component or a story row is a list of **layers**, and each layer is either a **blueprint** — a graph on a canvas — or a **script**, a TypeScript file the project owns. Every layer in the list runs, so a script can sit beside a graph in the same place and both answer the same event. They start together, and neither waits for the other to finish.
 
 A script is not a kind of blueprint, and neither word ever modifies the other. A blueprint is a graph, edited on Studio's canvas; a script is a file on disk, edited in an editor of the author's own choosing. The layer list beside the canvas says which of the two each layer holds.
 
@@ -102,7 +102,7 @@ export function onMouseClick(ctx: WidgetCtx<"nl.button">, event: ScriptEvent<"mo
 
 What a script may do is what its slot may do. The context carries the same capabilities the equivalent graph is given, never any of its own.
 
-- A page or widget script gets the host API, its own `vars` store, an `AbortSignal` and `stopPropagation()`, plus `broadcast` and the Surface transition readers where the slot sits on a Surface. On a pointer event, `stopPropagation()` keeps the event from reaching the elements above (see [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling)); on a window close request, it keeps the window open.
+- A page or widget script gets the host API, its own `vars` store, an `AbortSignal` and `stopPropagation()`, plus `broadcast` and the Surface transition readers where the slot sits on a Surface. On a pointer event, `stopPropagation()` keeps the event from reaching the elements above (see [Event bubbling](/docs/studio/blueprint/nodes/events#event-bubbling)); on a window close request, it keeps the window open. It does not stop the other layers and heads that heard the event in the same place.
 - A widget script that runs for a list row, or inside a placed component, runs in that row or placement. `ctx.self` carries the row and the placement's params, and an element id handed to `ctx.host` means that row's or that placement's copy of the element.
 - A story script gets the story's own scene and saved variables, application persistence, and `ctx.devtools` for a log line. This tier has no `ctx.host`, so what it may reach sits directly on the context. Nothing else: no navigation, no game control, no widget access.
 
