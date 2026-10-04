@@ -16,7 +16,7 @@ import {DevTools} from "narraleaf-react/built-in";
 
 ## 动作标识
 
-故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址，例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝
+故事构造时，每个动作都会得到一个 id：默认是生成的（`a-0`、`a-1`……），除非它被指定了**静态 id**，此时使用该静态 id。静态 id 让一个动作在故事重建之后仍然可被寻址，例如作为 [fastForward](/zh/docs/narraleaf-react/core/game/live-game) 的目标。重复的静态 id 会在故事构造时被拒绝。唯一的例外是场景为自己构建的动作：自 `1.2.1` 起，有名字的场景会用自己的名字为它们命名，见 [setElementStaticId](#setelementstaticid)
 
 ### getActionId
 
@@ -267,6 +267,8 @@ DevTools.setElementId(ghost, "preview:ghost");
 给元素一个在故事构建后仍然保留的名字
 
 没有这个名字时，元素的 id 在构建时生成，并随故事的改动而改变。存档按 id 还原元素状态，因此凡是状态需要在剧本改动后继续可用的元素，都要命名
+
+给场景命名，也会为它每次进入时自己构建的动作命名：它的根，以及把场景、图层、背景和场景里的元素放上舞台的步骤。脚本触及不到这些动作，没法给它们静态 id，所以自 `1.2.1` 起由场景来命名：根是 `<scene>:root`，每个步骤是 `<scene>:root:<type>:<subject>`；场景自身的步骤 subject 为 `self`，其余为该步骤作用的元素的名字。其中有些步骤会等待（等场景的第一帧、等上一段音乐淡出），存档可能正好停在这里，所以存档需要在剧本改动后继续可用的场景都要命名。动作 id 计入故事的[哈希](/zh/docs/narraleaf-react/core/elements/story#hash)，因此在场景有名字的故事里，`1.2.1` 之前写的存档记录的哈希与故事现在的哈希不同
 
 [setElementId](#setelementid) 直接赋一个 id，场景动作树能到达的元素在构建时会被覆盖。这里传 `null` 可以去掉名字，改用生成的 id
 
