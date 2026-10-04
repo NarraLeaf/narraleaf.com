@@ -1,0 +1,36 @@
+---
+title: Asset names
+description: Which asset names a game package carries, and the project check that reports an asset chosen by a name assembled at run time.
+---
+
+A production build carries every asset whose name is written in the project: picked in an asset picker on a story row, a node card or a widget property, or held in a variable or a list row that was set from one. An asset that the game chooses by a name it puts together while it runs is not in the package, and whatever should show or play it shows or plays nothing in the released game. Dev Mode reads the whole asset library, so there the asset still appears.
+
+The `blueprint/assembled-asset-name` project check reports every such use before a build does.
+
+## Names that reach the package
+
+A name reaches the package when it comes from something written in the project and is passed along unchanged:
+
+- An asset picker: a field on a node card, such as `Audio Clip` on `Play Sound`, an `Image Asset` literal, or a property in Properties.
+- A variable or a list row that holds a picked name, whether a blueprint or a story row wrote it.
+- A node that hands out names the project holds, such as the Gallery nodes.
+
+## Names assembled at run time
+
+A name is assembled when anything on its way puts text together or takes it from outside the project: `Concat`, `Format Text`, what the player typed into a Text Input, or a response from `Fetch`. A value the check cannot follow back to where it was written counts as assembled as well, such as a variable whose name is itself wired in.
+
+## The check
+
+The rule is `blueprint/assembled-asset-name`, titled **Asset name assembled at run time**, and its default severity is **Error**. It looks at every input that takes an asset, such as `Asset Id` on `Play Sound`, `Asset` on `Set Image Asset` and `Font` on `Set Font`, and at every Blueprint Value bound to a property that shows an asset, such as an Image's picture. It follows a value through the whole project, including a variable a story row writes and list rows another blueprint sets.
+
+| Where | What appears |
+| --- | --- |
+| Blueprint editor | An error on the node that takes the name. When the name is used in another blueprint or by a property, the node that assembles it carries the error. |
+| **Problems** | One row for each use, after the **Check project** command or the check that runs before a build. |
+| Production build | The build stops with the same message. It stops whatever severity the rule is set to under **Project → Project → Project check**, and also when **Check before building** is off. |
+
+## Fixing it
+
+Choose the asset in an asset picker, or keep the chosen asset in a variable or a list row and read it from there. To play a different clip for each character, for example, store each character's clip in a list row and wire the row's value into `Asset Id`.
+
+When the name comes from a node type that is not loaded, because the plugin that provides it is missing or disabled, the message names that node type instead. Install or enable the plugin, then build again.
