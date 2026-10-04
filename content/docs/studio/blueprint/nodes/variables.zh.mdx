@@ -69,7 +69,7 @@ Set Var（设置变量）写入当前蓝图够得到的变量，然后从`next`�
 
 `blueprint.persistent.get` · Latent
 
-Get Persistent（获取持久化变量）从宿主管理的存储中读取项目级 Persistent 变量。它是 latent 节点，因为那份存储是异步的；也正因如此它是执行节点而不是纯读取——它站在链上，读到结果后把值发到`value`上。该变量还没有存过值时，你拿到的是它在定义中写下的默认值，而不是空值
+Get Persistent（获取持久变量）从宿主管理的存储中读取项目级 Persistent 变量。它是 latent 节点，因为那份存储是异步的；也正因如此它是执行节点而不是纯读取——它站在链上，读到结果后把值发到`value`上。该变量还没有存过值时，你拿到的是它在定义中写下的默认值，而不是空值
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -87,7 +87,7 @@ Get Persistent（获取持久化变量）从宿主管理的存储中读取项目
 
 `blueprint.persistent.set` · Latent
 
-Set Persistent（设置持久化变量）经宿主管理的存储写入 Persistent 变量，然后从`next`继续。写入是被等待的，所以走到`next`就意味着值已经落盘
+Set Persistent（设置持久变量）经宿主管理的存储写入 Persistent 变量，然后从`next`继续。写入是被等待的，所以走到`next`就意味着值已经落盘
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

@@ -23,7 +23,7 @@ Desktop builds read patches. Web, Android and iOS builds do not.
 
 ## Distribution key
 
-A build accepts patches only if the project had a distribution key when that build was made. Create the key before the build that ships to players.
+A build accepts patches only if the project had a distribution key when that build was made. Create the key before the build that ships to players. While the project has no key, the build dialog warns on its **Content** page that the game a desktop build produces will not accept patches. **Create** beside the warning creates the key, as the button on the **Project** page does. The warning does not stop the build.
 
 Open the **Project** panel, choose **Project**, and select **Create** under **Distribution key**. The key is stored with the project and travels with it in version control, so everyone who builds the project builds under the same key. The page reports whether a key exists and the date it was last replaced. The key itself is never displayed.
 
@@ -50,7 +50,7 @@ Choose **Export Patch…** from the **Run and build** dropdown in the top bar.
 
 **Variant** is the build variant the patch is for. The patch opens only in builds of that variant.
 
-**Build this patch updates** is the released build the patch is measured against. **Browse…** selects the desktop build folder the packager wrote. Only the files that differ from it are included; an empty field includes the whole game.
+**Build this patch updates** is the released build the patch is measured against. **Browse…** selects the desktop build folder the packager wrote. Only the files that differ from it are included; an empty field includes the whole game. A build made without a distribution key is reported under the field: the game ignores every patch exported for it, and the export still runs.
 
 **Save as** is where the patch is written. The export writes into a `patch` folder at the location chosen here.
 

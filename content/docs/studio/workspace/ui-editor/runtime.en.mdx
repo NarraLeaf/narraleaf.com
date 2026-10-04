@@ -31,10 +31,12 @@ The steps below follow one playthrough of a project created from the **Skeleton*
 ### The game launches
 
 <ScreenStack lang="en">
-  <ScreenLayer kind="page" note="Entry page">Title</ScreenLayer>
+  <ScreenLayer kind="page" note="Took the place of Splash, the entry page">Title</ScreenLayer>
 </ScreenStack>
 
-The game opens on its entry page. The UI panel marks it **Entry page**, and it cannot be deleted. Any page can be made the entry page with **Set as Entry Page**. There is no stage and no Game UI yet.
+The game opens on its entry page, **Splash**. The UI panel marks it **Entry page**, and it cannot be deleted. Any page can be made the entry page with **Set as Entry Page**. There is no stage and no Game UI yet.
+
+**Splash** shows a logo and a disclaimer, then runs `Replace Page` with **Title**. **Title** takes the place of **Splash** at the bottom of the stack, so nothing later returns to **Splash**.
 
 </Step>
 <Step>
@@ -48,7 +50,7 @@ The game opens on its entry page. The UI panel marks it **Entry page**, and it c
 
 `Go Page` opens **Config**, which replaces **Title** on screen. **Title** is no longer drawn but is kept: `Go back` closes **Config**, and **Title** plays its enter animation and fires `Surface Init` again.
 
-Each `Go Page` stacks one more page, and each `Go back` closes the top one. The bottom page is never closed, and `Go back` on it does nothing. `Go Page` with its page set to `None` closes every page above the bottom one.
+Each `Go Page` stacks one more page, and each `Go back` closes the top one. `Go back` on the bottom page does nothing. `Go Page` with its page set to `None` closes every page above the bottom one.
 
 </Step>
 <Step>
@@ -122,7 +124,8 @@ When the player confirms, `Quit Game` runs with **Title** as its page. The stage
 ## Pages
 
 - One page is on screen at a time. A page replaced by another is not drawn, and enters again on `Go back`.
-- The bottom page is never closed. When the game launches it is the entry page; after `Quit Game` it is the page `Quit Game` opened.
+- `Go back`, `Go Page` and `Clear Page` never close the bottom page. When the game launches it is the entry page; after `Quit Game` it is the page `Quit Game` opened.
+- `Replace Page` opens a page and closes the page it replaces. Run on the bottom page, it puts the new page in its place, which is how a splash page hands over to the title page.
 - Before the game starts, nothing is drawn beneath a page. A page opened during a game is drawn over the stage with a slightly transparent background, and the story holds on the current line.
 - `Start Game` and `Load Save` hide every page. During the game, `Go back` and `Clear Page` do not bring those pages back, and `Quit Game` closes them when the game ends.
 - A page can also be shown inside another page through the **Page** component. An embedded page is part of the page that holds it and does not take part in the stacking above.
@@ -143,6 +146,7 @@ When the player confirms, `Quit Game` runs with **Title** as its page. The stage
 - A layer sits above every page, including pages opened after it.
 - A layer can be opened **Modal**: nothing beneath it takes clicks, and it takes the keys. A layer that is not modal leaves the page beneath it working.
 - A modal layer holds the story on the current line. A layer does not fade Game UI out.
+- A layer shown during a game is drawn with a slightly transparent background, as a page opened during a game is.
 - A layer closes when the page that opened it closes.
 - `Go back` closes the top **Dismissible** layer first, and closes a page only when there is none. `Hide Layer` closes the layer it names, and `Close This Layer` closes the layer it runs in.
 - Layers in the same group are shown one after another: the next one appears when the previous one closes.
@@ -163,7 +167,7 @@ Keys reach the global blueprint first, then the one place in the table.
 
 ## The Layers panel in Dev Mode
 
-The **Layers** panel in Dev Mode lists what is on screen at this moment, from the bottom up: the stage, Game UI, the page and layers. It marks what takes clicks and where the keys go, and shows faded-out Game UI and pages that are not on screen separately. Open it from the debug tools menu in Dev Mode by choosing **Layers**.
+The **Layers** panel in Dev Mode lists what is on screen at this moment, from the bottom up: the stage, Game UI, the page and layers. It marks what takes clicks and where the keys go, shows faded-out Game UI and pages that are not on screen separately, and marks the dialogue box **Hidden** while the player has hidden it. Open it from the debug tools menu in Dev Mode by choosing **Layers**.
 
 ## When the story ends
 

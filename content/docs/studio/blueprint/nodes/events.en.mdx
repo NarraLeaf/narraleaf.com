@@ -9,7 +9,7 @@ An event head is where a graph begins. It has no execution input — the runtime
 
 - **A head has no exec input.** There is nothing to wire into it. A graph may hold several heads, and each one runs its own chain when its event arrives. Every head listening for the same event, in one graph or in several, starts when the event arrives; none waits for another to finish, and one that fails does not stop the rest. Where the game waits for an event, as start-up waits for [`On Game Ready`](#on-game-ready), it waits for all of them.
 - **Data outputs are the payload.** Every output pin other than `then` reads one field of the runtime event payload, keyed by the pin id. A field the dispatch did not set reads `null` — not `0`, not `""`.
-- **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. A head that runs because a press [climbed](#event-bubbling) from a descendant reports the local design space of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
+- **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. So does a head that runs because a press [climbed](#event-bubbling) from a descendant: it reads the point the press landed on in its own element's box, not in the box of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
 - **Blueprint Value heads.** A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
 - **A disabled element stays silent.** A widget that is disabled, or in text-editing state, does not dispatch its interaction heads at all.
 
@@ -50,6 +50,7 @@ Six pointer events climb the element tree: `Mouse Click`, `Mouse Double Click`, 
 - **Leaving a list.** Inside an item template, a head runs for the row under the pointer. When the event climbs out of the list, that row is left behind: the elements above the list run with their own variables and read no row item.
 - **Leaving a component.** From the root of a component, the event continues at the element that placed the component, so a container holding a placed component hears presses on it.
 - **The Surface.** A click that reaches the Surface also runs the Surface blueprint's own `Mouse Click` or `Right Click`.
+- **A Page in a Frame.** A press on an element of a Page shown in a Frame climbs to the root of that Page and no further: the Frame and the elements around it do not hear it. The shown Page runs its own Surface `Mouse Click` or `Right Click` for the press, in its own design space, and then the Surface holding the Frame runs its own. A press on an empty part of the shown Page belongs to the Frame and climbs from there.
 
 A graph cannot end the climb early. A [script](/docs/studio/scripts) layer can, with `ctx.stopPropagation()`: the elements above do not hear the event, and the other heads on the same element still run. The heads of one element start together, and the climb moves on to its parent once they have finished. The nodes that used to steer bubbling, `Continue Event Bubble` and `Stop Event Bubble`, were removed. The one thing they were reliably used for, holding a window close open, is now [`Keep Window Open`](/docs/studio/blueprint/nodes/app) in the App category, which does that and nothing else.
 
@@ -214,7 +215,7 @@ Available on the displayable widgets. `Mouse Click` and `Right Click` are additi
 
 `blueprint.event.head.mouseClick`
 
-Fires on a completed click on the element. On a Surface blueprint it means any click inside the Surface, and reports Surface design coordinates.
+Fires on a completed click on the element. On a Surface blueprint it means any click inside the Surface, and reports Surface design coordinates. A Page shown in a Frame runs its own for a click on one of its elements, before the Surface holding the Frame.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -314,7 +315,7 @@ Fires when the wheel scrolls over the element.
 
 `blueprint.event.head.rightClick`
 
-Fires on the element's context-menu event. On a Surface blueprint it means any right click inside the Surface, in Surface design coordinates. When the event dispatches successfully, the default context menu is suppressed.
+Fires on the element's context-menu event. On a Surface blueprint it means any right click inside the Surface, in Surface design coordinates; a Page shown in a Frame runs its own first, as with `Mouse Click`. When the event dispatches successfully, the default context menu is suppressed.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -476,8 +477,8 @@ Listens to the bound target's `mouseClick`. A real click on the target runs this
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `element` | out · data | `element` | The bound element that was clicked. |
-| `x` | out · data | `float` | In the local design coordinates of the element under the pointer. |
-| `y` | out · data | `float` | In the local design coordinates of the element under the pointer. |
+| `x` | out · data | `float` | In the local design coordinates of the bound element. |
+| `y` | out · data | `float` | In the local design coordinates of the bound element. |
 | `button` | out · data | `integer` | Mouse button number. |
 
 ## List

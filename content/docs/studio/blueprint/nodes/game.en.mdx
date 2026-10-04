@@ -78,13 +78,15 @@ True while the game stage is showing and a session exists — including when a P
 
 `blueprint.game.isGameOverlay` · Pure
 
-Whether this Surface instance is running as a UI layer above the game. A Page opened with `Go Page` after `Start Game` or `Load Save` reports `true`, as do the built-in game UI Surfaces such as the dialog slot; a Page embedded through `nl.frame` inherits its parent's answer. Ordinary application Pages, Page previews and the Page that `Quit Game` opens report `false`.
+Whether this Surface instance is running as a UI layer above the game. A Page opened with `Go Page` after `Start Game` or `Load Save` reports `true`, and so does a page shown with `Show Layer` while that game runs, as do the built-in game UI Surfaces such as the dialog slot; a Page embedded through `nl.frame` inherits its parent's answer. Ordinary application Pages, layers shown outside a game, Page previews and the Page that `Quit Game` opens report `false`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `isGameOverlay` | out · data | `boolean` | |
 
-The answer is locked when the Page instance is created, so a pause menu still playing its exit animation reports `true` even though `Quit Game` has already begun tearing the session down. Ask `Is In Game` whether the runtime is still there; ask this one what a shared Page should show.
+The answer is locked when the Page or layer instance is created, so a pause menu still playing its exit animation reports `true` even though `Quit Game` has already begun tearing the session down. Ask `Is In Game` whether the runtime is still there; ask this one what a shared Page should show.
+
+The global blueprint belongs to no Surface, and there the node answers for the game rather than for a page. During a game it reports `true` while a page is drawn over the stage or a modal layer is shown over it, and `false` while the stage is covered by nothing or only by layers that are not modal, such as a HUD or a notice. It is read when the node is evaluated, and a `Call Fn` made from the global blueprint gets the same answer. Outside a game the global blueprint reads the current page's own answer.
 
 ## Advancing the story
 
@@ -271,6 +273,8 @@ Fails when no game runtime is active.
 
 Sets `showDialog` to `false`. The dialog wrapper keeps its interaction semantics while hidden, so `Next`, `Skip` and a later `Show Dialog` still work.
 
+`showDialog` belongs to the playthrough. A new game and every loaded save start it as **Show the dialogue box** in **Project → Game** sets it, and the next launch does not keep a box the player hid.
+
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
@@ -305,7 +309,7 @@ The read half of those three. It is a preference getter under a state getter's n
 
 Each pair below maps to one field of the engine's `GamePreference` on the live game. The getter is pure and safe inside a Blueprint Value; the setter is latent and validates before it writes — a bad value fails the node rather than being clamped. `showDialog` has no pair here; `Show Dialog`, `Hide Dialog`, `Toggle Dialog Display` and `Is Dialog Shown` cover it.
 
-Every setter here fails when no game runtime is active, and so does every getter except `Get Track Volume`, which reads the engine's bus mixer rather than `GamePreference`. To seed a new playthrough's preferences, hang the setters off `On Game Ready`, which runs after the `LiveGame` exists and before the first line plays.
+Every setter here fails when no game runtime is active, and so does every getter except `Get Track Volume`, which reads the engine's mixer rather than `GamePreference`. To seed a new playthrough's preferences, hang the setters off `On Game Ready`, which runs after the `LiveGame` exists and before the first line plays.
 
 ### Get Sentence Speed
 
@@ -681,9 +685,9 @@ Writes `muteOnWindowBlur`. Must be a boolean.
 
 `blueprint.game.getTrackVolume` · Pure
 
-The player's volume for one of the project's audio tracks. The mixer is a tree of tracks the project declares — a bus per character if you want one — and this pair is what a settings screen with a row per track is built from.
+The player's volume for one of the project's audio tracks. The mixer is a tree of tracks the project declares — a track per character if you want one — and this pair is what a settings screen with a row per track is built from.
 
-It is the odd one in this section: the value comes off the engine's bus mixer rather than out of `GamePreference`, so it does not fail without a live game. Nothing picked, or nothing to ask, reads as unity — a slider bound to it sits at the top rather than collapsing to zero while the page is still being wired.
+It is the odd one in this section: the value comes off the engine's mixer rather than out of `GamePreference`, so it does not fail without a live game. Nothing picked, or nothing to ask, reads as unity — a slider bound to it sits at the top rather than collapsing to zero while the page is still being wired.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -745,7 +749,7 @@ The `metadata` pin stays on both nodes. On `Save Game` the declared fields are w
 
 `blueprint.game.save.write` · Latent
 
-Serializes the live game into the project's local save store. With `Capture` set to `true` it also takes a picture of the stage, scaled down to thumbnail size, and stores it as that save's preview; a capture that fails is reported but does not lose the save.
+Serializes the live game into the project's local save store. With `Capture` set to `true` it also takes a picture of the stage, scaled down to thumbnail size, and stores it as that save's preview; a capture that fails is reported but does not lose the save. While a page covers the stage, such as the Save page opened from the quick menu, the picture is the screen as it was when that page opened, dialogue box and quick menu included.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

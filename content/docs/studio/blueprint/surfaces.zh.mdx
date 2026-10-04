@@ -36,10 +36,10 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 导航由两个栈组成：`Go Page` 打开的**页面**，与 `Show Layer` 显示的**叠加页面**。叠加页面总是画在所有页面之上。两个栈上的每一项都是某个 Surface 的一个*实例*，而不是 Surface 本身：它带着自己的 props 和自己的运行时 scope。同一个 Surface 打开两次，就得到两个互不相干的实例
 
 - 启动时页面栈只有一个页面：入口页面
-- **打开即入栈。** `Go Page`（前往页面）把选中的 Page 压入页面栈，并带上你接到它 `props` 输入上的值，新页面取代屏幕上原来的页面。`Show Layer`（叠加页面）压入叠加页面栈，并交回一个指代**这一次显示**的**句柄**：`Hide Layer`、`Wait For Layer` 与 `Is Layer Mounted` 寻址的就是它。除此之外没有任何东西能指代某个叠加页面：叠放次序就是挂载次序，任何界面都无法被写成依赖于自己在第几层。叠加页面位于所有页面之上，包括在它之后打开的页面
+- **打开即入栈。** `Go Page`（前往页面）把选中的 Page 压入页面栈，并带上你接到它 `props` 输入上的值，新页面取代屏幕上原来的页面。`Replace Page`（替换页面）以同样的方式打开页面，然后把被它替换的页面移出栈，所以 `Go back` 和设为 `None` 的 `Go Page` 都不会回到那个页面。`Show Layer`（叠加页面）压入叠加页面栈，并交回一个指代**这一次显示**的**句柄**：`Hide Layer`、`Wait For Layer` 与 `Is Layer Mounted` 寻址的就是它。除此之外没有任何东西能指代某个叠加页面：叠放次序就是挂载次序，任何界面都无法被写成依赖于自己在第几层。叠加页面位于所有页面之上，包括在它之后打开的页面
 - **模态叠加页面。** 模态的叠加页面会让它下面的一切都不再接收输入，并持有键盘。非模态的叠加页面不影响它下面的页面。声明同一分组的叠加页面排队而不叠放，并且显示某个叠加页面的那个 Surface 关闭时，该叠加页面也随之关闭
 - **五种关闭方式。** `Go back`（返回上一页）在最上面的叠加页面可关闭时关掉它，否则只弹出一个页面。把 `Go Page` 的 Page 选择器设为 `None` 会把页面栈清空到只剩第一个页面。`Clear Page`（关闭全部页面）只关闭运行中的游戏里打开的那些页面，在游戏之外什么也不做。`Hide Layer` 关掉句柄指代的那个叠加页面，`Close This Layer` 则关掉当前蓝图**所在**的那个叠加页面，并可以带上一个结果给等着它的人
-- **栈底是拆不掉的。** 页面栈上的第一个页面永远不会被关闭。游戏启动时它是入口页面，`Quit Game` 之后是 `Quit Game` 打开的页面。在栈底调用 `Go back` 是空操作而不是错误。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)
+- **栈底保持不动。** `Go back`、设为 `None` 的 `Go Page` 和 `Clear Page` 都不会关闭页面栈上的第一个页面。游戏启动时它是入口页面，`Quit Game` 之后是 `Quit Game` 打开的页面。在它显示于屏幕上时运行 `Replace Page`，该节点打开的页面会取代它成为第一个页面，启动画面就是这样把游戏交给标题页面的。在栈底调用 `Go back` 是空操作而不是错误。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)
 
 ### 呈现方式
 
@@ -48,9 +48,11 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 - 游戏尚未运行时，`Go Page` 打开的是 `appPage` 页面。屏幕上只画最上面的页面，下面的页面留在栈上，供 `Go back` 返回
 - `Start Game`（开始游戏）和 `Load Save`（读取存档）会**隐藏**当前栈上的所有页面、关闭所有叠加页面，并显出游戏舞台。栈仍然持有这些页面，只是它们不再渲染
 - 栈被隐藏期间，`Go Page` 打开的是 `gameOverlay` 页面，画在舞台之上。这类页面底下是游戏，而不是你来时的那些页面：暂停菜单、游戏内存档界面、剧情中途调出的设置都属于这一类。这类页面显示在屏幕上时，`dialog`、`nvl`、`choice` 和 `onStage` 插槽的 Surface 会淡出（仍保持挂载），并在它关闭时淡入回来；`notification` 插槽保持显示。叠加页面不会隐藏它们
+- 叠加页面在显示时以同样的方式打上标记：栈被隐藏期间用 `Show Layer` 显示的是 `gameOverlay` 叠加页面，其他时候显示的是 `appPage` 叠加页面
+- `gameOverlay` 页面或叠加页面把自己的背景画成略微透明，让场景透出来。它上面的控件保持原有的不透明度
 - `Quit Game`（退出游戏）拆掉会话，把它的返回 Page 重新以 `appPage` 打开，并关闭它下面的所有页面。它和其余 [Game 节点](/zh/docs/studio/blueprint/nodes/game)放在一起。`Quit Application`（退出应用）则结束运行时；在开发模式中它停止的是开发模式会话，而不是关掉 Studio，并且它刻意不触发窗口关闭事件，那个事件只属于玩家自己关窗口
 
-`Is Game Overlay` 读的就是这个标记。它锁定在页面实例上，所以一个正在退出的暂停菜单在整段退出动画里都保持 overlay 的答案，哪怕会话已经在被清理。每个插槽 Surface 都回答 `true`；嵌在 overlay 里的 Page 则继承持有它的那个页面的答案
+在页面或叠加页面自己的蓝图里，`Is Game Overlay` 读的就是这个标记。它锁定在实例上，所以一个正在退出的暂停菜单在整段退出动画里都保持 overlay 的答案，哪怕会话已经在被清理。每个插槽 Surface 都回答 `true`；嵌在 overlay 里的 Page 则继承持有它的那个页面的答案。全局蓝图不属于任何页面，在那里该节点回答的是运行中的游戏是否被页面或模态叠加页面盖住，见 [Is Game Overlay](/zh/docs/studio/blueprint/nodes/game#is-game-overlay)
 
 当底下那个页面正是被游戏隐藏的页面之一时，关闭一个 `gameOverlay` 只会播放退出动画并显出舞台。没有东西进场，因为底下没有东西在渲染
 
@@ -131,7 +133,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 
 它的事件 Head：`Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`（鼠标点击）、`Right Click`（鼠标右键点击）、`On Action`、键盘事件 Head、Game Preference 变化事件 Head、全屏变化与窗口焦点变化、窗口关闭请求、广播接收 Head，以及两个绑定元素的 Head
 
-`Mouse Click` 和 `Right Click` 在这里的行为和在控件上不同：在 Surface 上，它们对落在该 Surface 上的**任意**点击触发，并按该 Surface 的设计坐标输出坐标；而控件版对自己那个元素以及它内部的元素触发。Page 只在绘有它的元素的地方接收点击，所以点在 Page 空白处的点击不属于这个 Page。显示在 Frame 里的 Page 不会执行自己的 Surface `Mouse Click` 或 `Right Click`，听到这次点击的是持有该 Frame 的 Surface
+`Mouse Click` 和 `Right Click` 在这里的行为和在控件上不同：在 Surface 上，它们对落在该 Surface 上的**任意**点击触发，并按该 Surface 的设计坐标输出坐标；而控件版对自己那个元素以及它内部的元素触发。Page 只在绘有它的元素的地方接收点击，所以点在 Page 空白处的点击不属于这个 Page。显示在 Frame 里的 Page 在点击落在它的元素上时，以自己的设计坐标执行自己的 Surface `Mouse Click` 与 `Right Click`，随后持有该 Frame 的 Surface 也会收到这次点击。点在被显示 Page 空白处的点击只有持有该 Frame 的 Surface 收到
 
 与控件级蓝图的关系：
 

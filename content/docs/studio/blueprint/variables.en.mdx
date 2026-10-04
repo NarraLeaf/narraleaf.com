@@ -53,7 +53,7 @@ Saved and persistent values must be serializable; a write of a function, a symbo
 
 A persistent variable is project-level: one definition, visible to every blueprint and every story, with its value outside the save file entirely. Language choice, "has seen the intro", gallery unlocks.
 
-Definitions live in the project's variable registry (`editor/variables.json`) and are authored from the **Global variables** section of the **Variables** panel, or from the **Persistent variables** group in the blueprint editor's member panel. An edit in the member panel rides the same undo stack as the blueprint you are editing, so one Ctrl+Z takes back the variable change and the node change together. The registry travels baked into the Dev Mode bundle and the game pack; the runtime reads it and never writes to it.
+Definitions live in the project's variable registry (`editor/variables.json`) and are authored from the **Persistent variables** section of the **Variables** panel, or from the **Persistent variables** group in the blueprint editor's member panel. An edit in the member panel rides the same undo stack as the blueprint you are editing, so one Ctrl+Z takes back the variable change and the node change together. The registry travels baked into the Dev Mode bundle and the game pack; the runtime reads it and never writes to it.
 
 Values live in host-managed storage keyed by the entry's `storageKey`, and never inside the project folder. While you author, they sit in Studio's own user data under a per-project key; in a shipped game they sit in the game's user data. Copying a project to another machine does not carry them.
 

@@ -7,7 +7,7 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 ## Conventions
 
-- **Two of them are tail nodes.** `Go Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
+- **Three of them are tail nodes.** `Go Page`, `Replace Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
 - **The type ids do not all say `app`.** This group was called Page before it grew window, layer and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*`, `blueprint.frame.*`, `blueprint.layer.*` and `blueprint.app.*` are all this one category.
 - **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in a global blueprint, which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in global and Surface blueprints.
 - **The editor canvas has no application to talk to.** On the author-time canvas every effectful node here fails with `This node runs only in a running game. Open Dev Mode to run it.`; the pure reads degrade quietly instead, so `Get Page Props` reads `{}` and the three `Is Surface …` reads report `false`. In the story editor's Game UI preview, navigation and quit reach stubs and do nothing, and the two fullscreen nodes report that they are not available there. Verify all of it in Dev Mode.
@@ -33,6 +33,26 @@ Opens the Surface picked on the card, through the same navigation path the runti
 | `Page` | The Surface to open, chosen from the project's app Surfaces. `None` closes every Page above the first one instead. |
 
 Once a game is running, the Page stack is hidden beneath the stage. `Go Page` then opens its target as a UI layer *above* the stage, and `None` closes the Pages over the stage to reveal it again. To leave the game itself, use `Quit Game` from [Game](/docs/studio/blueprint/nodes/game) — it names the Page to return to.
+
+## Replace Page
+
+`blueprint.page.replace` · Latent
+
+Opens a page in place of the current page, and closes the current page. Use it for a page the player does not come back to, such as a splash or a disclaimer: after `Go Page`, that page would stay beneath the next one, and `Go back` and `Go Page` with `None` would land on it again.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | Optional. Wire it to choose the target at run time; the card's `Page` field is what is used when it is unwired. |
+| `props` | in · data | `json` | Handed to the target Page as its Page props, where `Get Page Props` reads it. Optional; unwired it is `{}`. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Page` | The Surface to open, chosen from the project's app Surfaces. There is no `None`: with no page picked and nothing wired, the node fails with `“Replace Page”: pick a page.` |
+
+The new page arrives through the same transition as `Go Page`, and the replaced page leaves the stack once it has. Replacing the entry page makes the new page the first page on the stack. While a game is running and no page is over the stage, there is nothing to replace, and the node opens its target above the stage as `Go Page` does.
 
 ## Go back
 

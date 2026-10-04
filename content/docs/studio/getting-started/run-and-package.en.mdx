@@ -95,6 +95,7 @@ The dialog separates blocking findings from warnings:
 - No targets, an invalid version, or an unwritable output directory blocks the build.
 - A missing icon does not block the build. The default Electron icon is used instead.
 - Desktop artifacts are not signed unless signing is configured, and players may see a system security warning on first launch.
+- A project with no distribution key gets a warning on the **Content** page for a desktop build: the game it produces will not accept patches. **Create** beside the warning creates the key. See [Patches](/docs/studio/patches#distribution-key).
 - The first build for a platform downloads the files that platform needs and takes longer than later ones.
 
 ## Export the Studio project

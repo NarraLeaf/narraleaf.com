@@ -7,7 +7,7 @@ App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一�
 
 ## 约定
 
-- **其中两个是尾节点。** `Go Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
+- **其中三个是尾节点。** `Go Page`、`Replace Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
 - **type id 并不都写 `app`。** 这一组在长出窗口、叠层和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*`、`blueprint.frame.*`、`blueprint.layer.*` 和 `blueprint.app.*` 全都属于这同一个分类
 - **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图中——全局蓝图没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于全局与 Surface 蓝图
 - **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
@@ -34,13 +34,33 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 
 游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭舞台之上的这些 Page、重新露出舞台。要离开游戏本身，请用 [Game](/zh/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page
 
+## Replace Page
+
+`blueprint.page.replace` · Latent
+
+Replace Page（替换页面）打开页面以代替当前页面，并关闭当前页面。用于玩家不会再回来的页面，例如启动画面或声明页面：用 `Go Page` 时，这个页面会留在下一个页面底下，`Go back` 和设为 `None` 的 `Go Page` 都会再次回到它
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `surfaceId` | in · data | `string` | 可选。连线即在运行时决定目标；未连线时用卡片上的 `Page` 字段 |
+| `props` | in · data | `json` | 作为目标 Page 的 Page props 传入，在那边由`Get Page Props`读取。可选，未连线时为`{}`|
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Page` | 要打开的 Surface，从项目的 app Surface 中选择。没有 `None`：未选页面也未连线时，节点以 `“替换页面”：选择页面` 失败|
+
+新页面与 `Go Page` 走同样的过渡动画出现，过渡完成后被替换的页面离开页面栈。替换入口页面时，新页面成为栈上的第一个页面。游戏运行中且舞台上方没有页面时，没有可替换的页面，该节点像 `Go Page` 一样把目标打开在舞台之上
+
 ## Go back
 
 `blueprint.page.back` · Latent
 
 关闭玩家可以关掉的最上面一层：顶上是用 [Show Layer](#show-layer) 打开的可关闭叠层时关它，否则关闭顶层 Page，回到它下面的那一层。
 
-游戏在运行中的故事上打开的每一个页面 —— 存档、读档、设置、回顾 —— 都需要一条出路，而 `Go Page` 不是：导航是一个栈，“去我来时那一页”会在已有的两页上再压上第三页，游戏依旧埋在底下。
+游戏在运行中的故事上打开的每一个页面 —— 存档、读档、设置、对话记录 —— 都需要一条出路，而 `Go Page` 不是：导航是一个栈，“去我来时那一页”会在已有的两页上再压上第三页，游戏依旧埋在底下。
 
 关掉最后一页是空操作而不是错误。从标题界面进来的那一页就是栈底，如果在那里抛错，同一个返回按钮就会因为玩家怎么走过来的而时灵时不灵。
 

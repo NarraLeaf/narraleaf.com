@@ -9,7 +9,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 - **Head 没有执行入口。** 没有任何东西可以连进去。一张图里可以放多个 Head，各自的事件到达时各跑各的执行链。监听同一事件的所有 Head，不论在一张图还是多张图里，都在事件到达时同时开始，彼此不等待，其中一个出错也不会让其余的停下。游戏等待某个事件时（例如启动时等待 [`On Game Ready`](#on-game-ready)），等待的是全部 Head
 - **数据输出就是 payload。** 除`then`以外的每个输出引脚，都按引脚 id 读取本次运行时事件 payload 的一个字段。派发没有设置的字段读到`null`——不是`0`，也不是`""`
-- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；因事件从后代元素[向上传递](#event-bubbling)而执行的 Head，使用指针下那个元素的本地设计坐标系；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
+- **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；因事件从后代元素[向上传递](#event-bubbling)而执行的 Head 也是如此，它读到的是这次按下在自己元素框内的位置，而不是在指针下那个元素框内的位置；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
 - **Blueprint Value 的 Head。** Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
 - **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head
 
@@ -50,6 +50,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 - **离开 List。** 在 item 模板内部，Head 针对指针所在的那一行执行。事件向上离开 List 时，那一行就被留下了：List 之上的元素使用自己的变量，也读不到条目数据
 - **离开组件。** 事件到达组件的根元素后，从摆放该组件的那个元素继续向上，所以容纳组件的容器能收到组件上的点击
 - **Surface。** 到达 Surface 的点击还会执行 Surface 蓝图自己的`Mouse Click`或`Right Click`
+- **Frame 中的 Page。** 落在 Frame 所显示 Page 的元素上的点击，向上传递到该 Page 的根元素为止：Frame 及其周围的元素收不到它。被显示的 Page 先以自己的设计坐标执行自己 Surface 的`Mouse Click`或`Right Click`，随后持有该 Frame 的 Surface 执行它自己的。落在被显示 Page 空白处的点击属于 Frame，并从 Frame 开始向上传递
 
 图无法提前结束这次传递，[脚本](/zh/docs/studio/scripts)图层可以，用`ctx.stopPropagation()`：上层元素收不到这次事件，同一元素上的其他 Head 照常执行。同一元素上的 Head 同时开始，全部结束后事件才传到父元素。曾经用来控制冒泡的两个节点`Continue Event Bubble`与`Stop Event Bubble`已经被删除。它们真正被稳定用到的那一件事，也就是把窗口关闭挂住，现在由 App 分类下的 [`Keep Window Open`](/zh/docs/studio/blueprint/nodes/app) 负责，它只做这一件事
 
@@ -214,7 +215,7 @@ Flush 是属性提交后的批处理通知。运行时按帧合并同一元素�
 
 `blueprint.event.head.mouseClick`
 
-Mouse Click（鼠标点击）在元素上完成一次点击时触发。用于 Surface 蓝图时表示当前 Surface 内任意点击，并输出 Surface 设计坐标
+Mouse Click（鼠标点击）在元素上完成一次点击时触发。用于 Surface 蓝图时表示当前 Surface 内任意点击，并输出 Surface 设计坐标。Frame 中显示的 Page 在点击落在它的元素上时执行自己的这个 Head，先于持有该 Frame 的 Surface
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -314,7 +315,7 @@ Mouse Wheel（鼠标滚轮）在滚轮于元素上滚动时触发
 
 `blueprint.event.head.rightClick`
 
-Right Click（右键点击）在元素触发上下文菜单事件时触发。用于 Surface 蓝图时表示当前 Surface 内任意右键点击，输出 Surface 设计坐标。事件成功派发时，默认上下文菜单会被阻止
+Right Click（右键点击）在元素触发上下文菜单事件时触发。用于 Surface 蓝图时表示当前 Surface 内任意右键点击，输出 Surface 设计坐标；与`Mouse Click`相同，Frame 中显示的 Page 先执行自己的。事件成功派发时，默认上下文菜单会被阻止
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -476,8 +477,8 @@ Element Click（元素点击）监听绑定目标的`mouseClick`。目标控件�
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `element` | out · data | `element` | 被点击的绑定元素引用|
-| `x` | out · data | `float` | 使用指针下那个元素的本地设计坐标 |
-| `y` | out · data | `float` | 使用指针下那个元素的本地设计坐标 |
+| `x` | out · data | `float` | 使用绑定元素的本地设计坐标 |
+| `y` | out · data | `float` | 使用绑定元素的本地设计坐标 |
 | `button` | out · data | `integer` | 鼠标按键编号|
 
 ## List
@@ -797,7 +798,7 @@ Get Listener Count（获取监听器数量）读取当前 Surface 上某个广�
 
 `blueprint.event.head.onCall`
 
-On Call（被调用时）是 Story Action Blueprint——与某个剧情动作一一绑定的蓝图——的唯一入口，在其他任何地方都不提供。Story Action 图会被编译成 NarraLeaf 的`Script`动作并经剧情编译器执行，永远不走 UI 事件派发路径，因此本页其余 Head 在该 owner 中都不出现
+On Call（被调用时）是 Story Action Blueprint——与某个故事动作一一绑定的蓝图——的唯一入口，在其他任何地方都不提供。Story Action 图会被编译成 NarraLeaf 的`Script`动作并经剧情编译器执行，永远不走 UI 事件派发路径，因此本页其余 Head 在该 owner 中都不出现
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

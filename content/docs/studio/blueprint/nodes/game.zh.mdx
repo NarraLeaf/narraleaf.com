@@ -3,7 +3,7 @@ title: 游戏
 description: 驱动运行中游戏的节点——开始与退出、推进对话、读写玩家偏好，以及管理存档与历史
 ---
 
-Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和活着的 NarraLeaf 运行时说话：游玩本身、屏幕上的对话、玩家的偏好、项目的本地存档，以及对话历史。标题画面、设置画面、存读档网格和回顾界面，都由本页的节点搭起来
+Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和活着的 NarraLeaf 运行时说话：游玩本身、屏幕上的对话、玩家的偏好、项目的本地存档，以及对话历史。标题画面、设置画面、存读档网格和对话记录界面，都由本页的节点搭起来
 
 <Callout type="warn">
 本页每一个节点都需要运行中的游戏。编辑器画布没有游戏：放在那里的 Game 节点会以`该节点仅在游戏运行时可用，需在开发模式中运行`失败，读取它的 Blueprint Value 预览为空。这些行为一律在开发模式中验证
@@ -12,7 +12,7 @@ Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和
 ## 约定
 
 - **基本上要么 pure 要么 latent。** 四十四个节点是`Pure`，可以支撑 Blueprint Value。五十一个是`Latent`，Blueprint Value 一个都不提供。第九十六个是 `Clear Visited`，也是唯一的怪例：有副作用但同步，所以 Blueprint Value 和对待 latent 节点一样不提供它，它自己却不是 latent
-- **Story Action 蓝图不提供。** 由剧情行调用的蓝图没有游戏宿主，因此它的创建浮窗里没有本页的节点，`Get Build Variant` 除外
+- **Story Action 蓝图不提供。** 由故事行调用的蓝图没有游戏宿主，因此它的创建浮窗里没有本页的节点，`Get Build Variant` 除外
 - **有 Host API 不等于有一局游戏。** `List Saves`、`Get Save Metadata`、`Get Save Time`、`Get Save Line`、`Get Save Story`、`Get Save Playtime`、`Get Save Preview`、`Delete Save`、`List Auto Saves`和`Get Latest Auto Save`读取项目的存档库，在两局游戏之间、没有游戏运行时也能工作。结局、走过的路线、DLC 与构建变体那几组读取节点同样如此——结局画廊本来就是从标题界面打开的，那时还没有任何游戏。凡是序列化、反序列化或指挥活动游戏的节点都需要一局游戏，没有就失败
 - **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十八个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起
 - **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)
@@ -45,7 +45,7 @@ Start Game（开始游戏）启动节点卡片上选中的 Story 与 Scene，并
 
 十次里有九次作者要的是选择器：它列出项目自己的剧本，也拼不错。这几个引脚是为第十次准备的——写图的时候还不知道目标是哪一个，比如一个「继续」按钮要从玩家上次的位置接着走
 
-接上 `inheritFrom` 时，游戏仍然从选中的场景开始新的一局，然后取入该存档的[存档变量](/zh/docs/studio/blueprint/variables#存档变量)和其中走过的场景（即 `Is Scene Visited` 读取的那份记录）。舞台、回顾记录和剧情位置不会被带过来；恢复这些是 `Load Save` 的事。[`Save Slot`](#save-slot) 带来存档库里的一份存档，用于从通关存档开始的二周目。[`Current Game`](#current-game) 带来正在进行的这一局，用于在另一个故事里继续的路线。存档槽指向的存档不存在时，节点在剧情开始之前就失败
+接上 `inheritFrom` 时，游戏仍然从选中的场景开始新的一局，然后取入该存档的[存档变量](/zh/docs/studio/blueprint/variables#存档变量)和其中走过的场景（即 `Is Scene Visited` 读取的那份记录）。舞台、对话记录和剧情位置不会被带过来；恢复这些是 `Load Save` 的事。[`Save Slot`](#save-slot) 带来存档库里的一份存档，用于从通关存档开始的二周目。[`Current Game`](#current-game) 带来正在进行的这一局，用于在另一个故事里继续的路线。存档槽指向的存档不存在时，节点在剧情开始之前就失败
 
 ### Quit Game
 
@@ -78,13 +78,15 @@ Is In Game（是否在游戏中）：只要游戏舞台可见且存在会话就�
 
 `blueprint.game.isGameOverlay` · Pure
 
-Is Game Overlay（是否为游戏覆盖层）：当前 Surface 实例是否以游戏之上的 UI 叠层身份运行。`Start Game`或`Load Save`之后用`Go Page`打开的 Page 返回 `true`，内建的游戏 UI Surface（例如对话槽位）也返回 `true`；通过`nl.frame`嵌入的子 Page 继承父级的答案。普通应用 Page、Page 预览，以及`Quit Game`打开的那个 Page 返回 `false`
+Is Game Overlay（是否为游戏覆盖层）：当前 Surface 实例是否以游戏之上的 UI 叠层身份运行。`Start Game`或`Load Save`之后用`Go Page`打开的 Page 返回 `true`，游戏进行中用`Show Layer`显示的页面同样返回 `true`，内建的游戏 UI Surface（例如对话槽位）也返回 `true`；通过`nl.frame`嵌入的子 Page 继承父级的答案。普通应用 Page、游戏之外显示的叠加页面、Page 预览，以及`Quit Game`打开的那个 Page 返回 `false`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `isGameOverlay` | out · data | `boolean` | |
 
-答案在 Page 实例创建时就锁定，所以正在播放退出动画的暂停菜单仍返回 `true`，哪怕`Quit Game`已经开始拆掉会话。要问运行时是否还在，用`Is In Game`；要问一个共享 Page 该显示成什么样，用这个
+答案在 Page 或叠加页面实例创建时就锁定，所以正在播放退出动画的暂停菜单仍返回 `true`，哪怕`Quit Game`已经开始拆掉会话。要问运行时是否还在，用`Is In Game`；要问一个共享 Page 该显示成什么样，用这个
+
+全局蓝图不属于任何 Surface，在全局蓝图中该节点回答的是游戏的状态，而不是某个页面的答案。游戏进行中，舞台上方画着页面或显示着模态叠加页面时返回 `true`；舞台上什么都没有，或只有非模态叠加页面（HUD、提示）时返回 `false`。答案在节点被求值的那一刻读取，全局蓝图发起的`Call Fn`得到同样的答案。不在游戏中时，全局蓝图读到的是当前页面自己的答案
 
 ## 推进剧情
 
@@ -271,6 +273,8 @@ Show Dialog（显示对话框）把`showDialog`偏好设为 `true`，让对话 U
 
 Hide Dialog（隐藏对话框）把`showDialog`设为 `false`。隐藏期间对话包装层仍保留自己的交互语义，所以`Next`、`Skip`和之后的`Show Dialog`照常工作
 
+`showDialog`只属于当前这次游玩。新游戏和每一次读档都按 **项目 → 游戏** 中 **显示对话框** 的设置开始，玩家隐藏的对话框不会带到下一次启动
+
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
@@ -305,7 +309,7 @@ Toggle Dialog Display（切换对话框显示）读取`showDialog`并写入相�
 
 下面每一对都对应活动游戏上引擎`GamePreference`的一个字段。取值节点是 pure 的，可安全放进 Blueprint Value；设值节点是 latent 的，写入前先校验——值不合法时节点失败，而不是被夹到范围内。`showDialog`在这里没有配对节点，由`Show Dialog`、`Hide Dialog`、`Toggle Dialog Display`和`Is Dialog Shown`覆盖
 
-本节的设值节点在没有活动游戏运行时都会失败，取值节点也一样，只有 `Get Track Volume` 例外——它读的是引擎的总线混音器而不是`GamePreference`。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行
+本节的设值节点在没有活动游戏运行时都会失败，取值节点也一样，只有 `Get Track Volume` 例外——它读的是引擎的混音器而不是`GamePreference`。要为新一局游戏播种偏好，把设值节点接在`On Game Ready`上——它在`LiveGame`已存在之后、第一句剧情之前运行
 
 ### Get Sentence Speed
 
@@ -527,7 +531,7 @@ Set Game Speed（设置游戏速度）写入`gameSpeed`。必须是大于 `0` �
 
 `blueprint.game.getGlobalVolume` · Pure
 
-Get Global Volume（获取全局音量）读取`globalVolume`，即其它所有声道都要乘上的总音量
+Get Global Volume（获取总音量）读取`globalVolume`，即其它所有声道都要乘上的总音量
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -537,7 +541,7 @@ Get Global Volume（获取全局音量）读取`globalVolume`，即其它所有�
 
 `blueprint.game.setGlobalVolume` · Latent
 
-Set Global Volume（设置全局音量）写入`globalVolume`。必须是大于等于 `0` 的有限数字
+Set Global Volume（设置总音量）写入`globalVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -549,7 +553,7 @@ Set Global Volume（设置全局音量）写入`globalVolume`。必须是大于�
 
 `blueprint.game.getBgmVolume` · Pure
 
-Get BGM Volume（获取背景音乐音量）读取`bgmVolume`，即背景音乐声道
+Get BGM Volume（获取音乐音量）读取`bgmVolume`，即音乐声道
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -559,7 +563,7 @@ Get BGM Volume（获取背景音乐音量）读取`bgmVolume`，即背景音乐�
 
 `blueprint.game.setBgmVolume` · Latent
 
-Set BGM Volume（设置背景音乐音量）写入`bgmVolume`。必须是大于等于 `0` 的有限数字
+Set BGM Volume（设置音乐音量）写入`bgmVolume`。必须是大于等于 `0` 的有限数字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -681,9 +685,9 @@ Set Mute When Unfocused（设置失去焦点时静音）写入`muteOnWindowBlur`
 
 `blueprint.game.getTrackVolume` · Pure
 
-玩家给项目某一条音轨设的音量。混音器是项目自己声明的一棵音轨树——需要的话可以给每个角色一条总线——而这一对正是「一条音轨一行」的设置界面的搭法
+玩家给项目某一条音轨设的音量。混音器是项目自己声明的一棵音轨树——需要的话可以给每个角色一条音轨——而这一对正是「一条音轨一行」的设置界面的搭法
 
-它是本节里的异类：值来自引擎的总线混音器而不是`GamePreference`，所以没有活动游戏它也不失败。没选音轨、或者没有东西可问时读作 1——绑在它上面的滑块会停在顶端，而不是在页面还没连完的时候塌到零
+它是本节里的异类：值来自引擎的混音器而不是`GamePreference`，所以没有活动游戏它也不失败。没选音轨、或者没有东西可问时读作 1——绑在它上面的滑块会停在顶端，而不是在页面还没连完的时候塌到零
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -745,7 +749,7 @@ Set Mute When Unfocused（设置失去焦点时静音）写入`muteOnWindowBlur`
 
 `blueprint.game.save.write` · Latent
 
-Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台画面，缩小到缩略图尺寸后存为该存档的预览图；截图失败会被上报，但不会连累存档本身
+Save Game（保存游戏）把活动游戏序列化进项目的本地存档库。`Capture`为 `true` 时还会截一张舞台画面，缩小到缩略图尺寸后存为该存档的预览图；截图失败会被上报，但不会连累存档本身。页面盖住舞台时（例如从快捷菜单打开的存档页面），截下的是该页面打开那一刻的画面，包括对话框和快捷菜单
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -995,15 +999,15 @@ Get Latest Auto Save（获取最新自动存档）取最新的一条自动存档
 
 ## 历史
 
-对话历史——也就是回顾记录——是引擎自己保存的、已经过去的台词与选择菜单，并且可以回放到其中任意一点
+对话历史——也就是对话记录——是引擎自己保存的、已经过去的台词与选择菜单，并且可以回放到其中任意一点
 
-它是一条带播放头的时间线，这七个节点就是它的两侧。`Get History` 是播放头之前的一切：已经读过的台词，按顺序。往回退会移动播放头，被它退过去的那些台词就成了**未来**，`Get Future History` 返回它们，`Redo Next History Entry` 再走回去。`Can Undo History` 与 `Can Redo History` 则是一对回顾按钮据以禁用自己的东西
+它是一条带播放头的时间线，这七个节点就是它的两侧。`Get History` 是播放头之前的一切：已经读过的台词，按顺序。往回退会移动播放头，被它退过去的那些台词就成了**未来**，`Get Future History` 返回它们，`Redo Next History Entry` 再走回去。`Can Undo History` 与 `Can Redo History` 则是对话记录界面上那两个按钮据以禁用自己的东西
 
 ### Get History
 
 `blueprint.game.history.get` · Latent
 
-Get History（获取历史）把回顾记录作为一个扁平数组给出，从旧到新，可以直接绑到列表控件上
+Get History（获取历史）把对话记录作为一个扁平数组给出，从旧到新，可以直接绑到列表控件上
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1032,7 +1036,7 @@ Get History（获取历史）把回顾记录作为一个扁平数组给出，从
 
 `blueprint.game.history.restore` · Latent
 
-Restore From History（从历史恢复）把游戏跳回某一条回顾记录，丢弃它之后的一切。引擎允许时按该条目的快照恢复，否则退回到 undo——正因如此，它在刚刚读档、undo 栈是空的游戏上依然有效
+Restore From History（从历史恢复）把游戏跳回某一条对话记录，丢弃它之后的一切。引擎允许时按该条目的快照恢复，否则退回到 undo——正因如此，它在刚刚读档、undo 栈是空的游戏上依然有效
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1046,7 +1050,7 @@ Restore From History（从历史恢复）把游戏跳回某一条回顾记录，
 
 `blueprint.game.history.undoLast` · Latent
 
-Undo Last History Entry（撤销上一条历史）回退一条——即不带目标的`Restore From History`。它就是回顾界面上的「返回」按钮
+Undo Last History Entry（撤销上一条历史）回退一条——即不带目标的`Restore From History`。它就是对话记录界面上的「返回」按钮
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1072,7 +1076,7 @@ Undo Last History Entry（撤销上一条历史）回退一条——即不带目
 
 `blueprint.game.history.getFuture` · Latent
 
-播放头之前方的那些条目，形状与 `Get History` 给出的相同。想让玩家看见自己退回来之前走到哪的回顾界面，把它绑到第二个列表上
+播放头之前方的那些条目，形状与 `Get History` 给出的相同。想让玩家看见自己退回来之前走到哪的对话记录界面，把它绑到第二个列表上
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

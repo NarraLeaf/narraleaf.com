@@ -35,9 +35,9 @@ What unlocks a variant depends on its kind. The editor's inspector says the same
 
 The unlock record is kept in the player's persistent data, beside [persistent variables](/docs/studio/blueprint/variables#persistent-variables), and in no save file. Starting a new game does not reset it, and loading a save does not change it. `Lock Whole Gallery` clears it. In Studio, **Reset player data** clears it for Dev Mode or for Preview, together with their saves.
 
-The record holds variant ids, which the editor assigns. Renaming or reordering a variant keeps its unlock. Deleting a variant and adding the same picture again makes a new variant, which starts locked.
+The record holds variant ids, which the editor assigns, and the entry's own id for an entry that has no variants yet. Renaming or reordering a variant keeps its unlock. Deleting a variant and adding the same picture again makes a new variant, which starts locked.
 
-An entry with no variants has nothing to unlock and stays locked. A recollection starts with none: give it a picture, or reaching its scene unlocks nothing.
+An entry with no variants yet is unlocked and locked as a whole: reaching a recollection's scene, `Unlock Gallery`, `Lock Gallery` and `Unlock Whole Gallery` all reach it. A recollection starts with no pictures, so reaching its scene unlocks it before it has one, and the pictures added to it later count as unlocked for that player.
 
 ## Conventions
 
@@ -82,7 +82,7 @@ The catalog's entries as rows, in the editor's order, narrowed by kind and group
 | `description` | Empty while locked. |
 | `kind` | `"cg"`, `"scene"`, `"music"` or `"voice"`. |
 | `groupId`, `groupName` | Empty for an entry in no group. |
-| `unlocked`, `locked` | Whether any variant is unlocked, and the inverse, for binding a locked look without a `Not`. |
+| `unlocked`, `locked` | Whether any variant is unlocked (for an entry with no variants yet, whether the entry is), and the inverse, for binding a locked look without a `Not`. |
 | `variantCount`, `unlockedCount` | Variants in the entry, and how many of them are unlocked. |
 | `image`, `assetId` | The picture to draw, as an `ImageAsset` and as a bare asset id. While unlocked: the cover if the player has it, otherwise the first variant they have. While locked: the locked placeholder. `null` and `""` when there is no picture. |
 | `thumbnail`, `thumbnailAssetId` | The same picture. The Gallery editor sets no separate thumbnail. |
@@ -90,6 +90,7 @@ The catalog's entries as rows, in the editor's order, narrowed by kind and group
 | `audioAssetId` | `music`: the shown track's clip, for [`Play Sound`](/docs/studio/blueprint/nodes/sound#play-sound). Empty while locked. |
 | `durationSec` | Length in seconds when it is known, otherwise `0`. A line picked from the project's voice takes carries its length; an imported track does not. |
 | `voiceUnitId` | `voice`: the shown line's voice id, for [`Play Voice`](/docs/studio/blueprint/nodes/voice#play-voice). Empty while locked. |
+| `lineText` | `voice`: the shown line's text as it read when it was picked, for a subtitle. Empty while locked. |
 | `storyId`, `sceneId`, `startBlockId` | `scene`: where [`Start Game`](/docs/studio/blueprint/nodes/game#start-game) replays from. Empty while locked. The Gallery editor sets a story and a scene only, so `startBlockId` is empty. |
 
 ## Get Gallery Variants
@@ -236,7 +237,7 @@ Clears the unlock record, which locks every entry again. The record is in no sav
 
 `narraleaf.gallery.isUnlocked` · Latent
 
-With a variant named, whether that variant is unlocked. With none, whether any variant of the entry is, which is the question a grid cell asks.
+With a variant named, whether that variant is unlocked. With none, whether any variant of the entry is (for an entry with no variants yet, whether the entry is), which is the question a grid cell asks.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -267,7 +268,7 @@ One variant by position, for a viewer that steps to the previous or next differe
 | `index` | in · data | `integer` | Position, from `0`. Accepts an on-card literal. |
 | `image` | out · data | `ImageAsset\|null` | The variant's picture while unlocked. `null` while locked; this node gives no placeholder. |
 | `unlocked` | out · data | `boolean` | |
-| `name` | out · data | `string` | The variant's name. The locked title does not apply here. |
+| `name` | out · data | `string` | The variant's name, or the locked title while it is locked. |
 | `variantId` | out · data | `string` | |
 
 **On-card fields**
@@ -299,7 +300,7 @@ Superseded by the `count` of `Get Gallery Variants`. Counts every variant of the
 
 `narraleaf.gallery.getCover` · Latent
 
-Superseded by the `image` and `name` fields of a `Get Gallery` row. Reads the entry's cover only: `image` is `null` and `unlocked` is `false` until the cover variant itself is unlocked, and `name` is never masked.
+Superseded by the `image` and `name` fields of a `Get Gallery` row. Reads the entry's cover only: `image` is `null` and `unlocked` is `false` until the cover variant itself is unlocked, and `name` is the locked title until then.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -326,7 +327,7 @@ Superseded by the `count` of `Get Gallery`. Counts every entry in the catalog, o
 
 `narraleaf.gallery.getArtworkAt` · Latent
 
-Superseded by `Get Gallery`. One entry by position over the whole catalog, hidden entries included, with its name never masked. A position outside the catalog gives empty strings, `false` and `0`.
+Superseded by `Get Gallery`. One entry by position over the whole catalog, hidden entries included, with the locked title for its name while it is locked. A position outside the catalog gives empty strings, `false` and `0`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

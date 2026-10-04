@@ -35,9 +35,9 @@ Gallery 插件用于游戏的鉴赏界面：CG 画廊、场景回想、音乐鉴
 
 解锁记录保存在玩家的持久数据中，和[持久变量](/zh/docs/studio/blueprint/variables#持久变量)放在一起，不在任何存档文件里。开始新游戏不会重置它，读档也不会改变它。`Lock Whole Gallery` 会清空它。在 Studio 里，**重置玩家数据**会为开发模式或预览清空它，连同它们的存档
 
-解锁记录保存的是变体 id，由编辑器分配。重命名或调整变体顺序不影响它的解锁；删掉一个变体再加回同一张图，得到的是一个新变体，从锁定状态开始
+解锁记录保存的是变体 id，由编辑器分配；还没有变体的条目保存的是条目自己的 id。重命名或调整变体顺序不影响它的解锁；删掉一个变体再加回同一张图，得到的是一个新变体，从锁定状态开始
 
-没有变体的条目没有东西可解锁，会一直锁着。回想条目创建时没有变体：给它加一张图，否则进入它的场景什么也不会解锁
+还没有变体的条目作为整体解锁和锁定：进入回想条目的场景、`Unlock Gallery`、`Lock Gallery` 和 `Unlock Whole Gallery` 都作用于它。回想条目创建时没有图，进入它的场景时即使还没有图也会解锁，之后加入的图对这名玩家都算已解锁
 
 ## 约定 [#conventions]
 
@@ -82,7 +82,7 @@ Get Gallery（获取画廊）把目录中的条目按编辑器里的顺序作为
 | `description` | 锁定时为空|
 | `kind` | `"cg"`、`"scene"`、`"music"` 或 `"voice"`|
 | `groupId`、`groupName` | 不属于任何分组的条目为空|
-| `unlocked`、`locked` | 是否有任意变体已解锁，以及它的反值，绑定锁定外观时不用再接 `Not`|
+| `unlocked`、`locked` | 是否有任意变体已解锁（还没有变体的条目则看条目本身），以及它的反值，绑定锁定外观时不用再接 `Not`|
 | `variantCount`、`unlockedCount` | 条目中的变体数，以及其中已解锁的数量|
 | `image`、`assetId` | 要画的图，分别是 `ImageAsset` 和裸资源 id。已解锁时：玩家拥有封面就是封面，否则是玩家拥有的第一个变体。锁定时：锁定占位图。没有图时为 `null` 和 `""`|
 | `thumbnail`、`thumbnailAssetId` | 同一张图。画廊编辑器不设置单独的缩略图|
@@ -90,6 +90,7 @@ Get Gallery（获取画廊）把目录中的条目按编辑器里的顺序作为
 | `audioAssetId` | `music`：当前显示曲目的音频，用于 [`Play Sound`](/zh/docs/studio/blueprint/nodes/sound#play-sound)。锁定时为空|
 | `durationSec` | 已知时为秒数，否则为 `0`。从项目语音录音中选的台词带有时长；导入的曲目不带|
 | `voiceUnitId` | `voice`：当前显示台词的 voice id，用于 [`Play Voice`](/zh/docs/studio/blueprint/nodes/voice#play-voice)。锁定时为空|
+| `lineText` | `voice`：当前显示台词在选取时的文字，用作字幕。锁定时为空|
 | `storyId`、`sceneId`、`startBlockId` | `scene`：[`Start Game`](/zh/docs/studio/blueprint/nodes/game#start-game) 从哪里重播。锁定时为空。画廊编辑器只设置故事和场景，所以 `startBlockId` 为空|
 
 ## Get Gallery Variants
@@ -236,7 +237,7 @@ Lock Whole Gallery（锁定整个画廊）清空解锁记录，所有条目重�
 
 `narraleaf.gallery.isUnlocked` · Latent
 
-Is Gallery Unlocked（画廊是否已解锁）在指定了变体时回答这个变体是否已解锁；没有指定时回答条目是否有任意变体已解锁，也就是网格单元要问的问题
+Is Gallery Unlocked（画廊是否已解锁）在指定了变体时回答这个变体是否已解锁；没有指定时回答条目是否有任意变体已解锁（还没有变体的条目则看条目本身），也就是网格单元要问的问题
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -267,7 +268,7 @@ Get Gallery Variant At（按位置获取画廊变体）按位置取一个变体�
 | `index` | in · data | `integer` | 位置，从 `0` 开始。支持卡片字面量|
 | `image` | out · data | `ImageAsset\|null` | 已解锁时为变体的图。锁定时为 `null`；这个节点不给占位图|
 | `unlocked` | out · data | `boolean` | |
-| `name` | out · data | `string` | 变体的名字。锁定标题在这里不适用|
+| `name` | out · data | `string` | 变体的名字；锁定时为锁定标题|
 | `variantId` | out · data | `string` | |
 
 **卡上字段**
@@ -299,7 +300,7 @@ Get Gallery Variant At（按位置获取画廊变体）按位置取一个变体�
 
 `narraleaf.gallery.getCover` · Latent
 
-已由 `Get Gallery` 行里的 `image` 和 `name` 字段取代。只读条目的封面：封面变体本身解锁之前，`image` 为 `null`、`unlocked` 为 `false`；`name` 从不替换为锁定标题
+已由 `Get Gallery` 行里的 `image` 和 `name` 字段取代。只读条目的封面：封面变体本身解锁之前，`image` 为 `null`、`unlocked` 为 `false`，`name` 为锁定标题
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -326,7 +327,7 @@ Get Gallery Variant At（按位置获取画廊变体）按位置取一个变体�
 
 `narraleaf.gallery.getArtworkAt` · Latent
 
-已由 `Get Gallery` 取代。在整个目录中按位置取一个条目，隐藏条目也算在内，名字从不替换为锁定标题。位置超出目录范围时，给出空字符串、`false` 和 `0`
+已由 `Get Gallery` 取代。在整个目录中按位置取一个条目，隐藏条目也算在内，条目锁定时名字为锁定标题。位置超出目录范围时，给出空字符串、`false` 和 `0`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
