@@ -49,7 +49,7 @@ An undeclared domain is **absent from the object**, not a method that throws. `a
 
 That is the whole contract. The install prompt lists exactly the domains present on `app.game`, so what the author approved at install and what your plugin can do are the same set by construction. You never write these permissions by hand — Studio derives them from `contributes`, and a hand-written one is a [manifest error](/docs/studio/plugin/manifest#permissions-are-derived).
 
-### The ten capabilities
+### The thirteen capabilities
 
 | Capability | Grants | What it is for |
 | --- | --- | --- |
@@ -62,7 +62,10 @@ That is the whole contract. The install prompt lists exactly the domains present
 | `ui.overlay` | [`app.game.ui.overlay`](/docs/studio/plugin/runtime/overlay) | Draw an element on top of the game. |
 | `assets` | [`app.game.assets`](/docs/studio/plugin/runtime/assets-locale) | Resolve a packaged asset id to a URL. |
 | `locale` | [`app.game.locale`](/docs/studio/plugin/runtime/assets-locale) | Read and observe the game's display language. |
-| `story.compile` | `app.game.story` | Register a compile pass that observes each scene and injects engine actions around its rows. The heaviest of the ten: a pass runs over *every* scene of the project, sees who speaks in each, and can put actions around lines it did not write. It is not `state.write` in disguise and does not imply it — a pass builds actions, it does not run them. |
+| `menu` | `app.game.menu` — `set` | Declare the whole menu bar above the desktop game. `set(spec)` replaces the bar, and an empty spec removes it. Each row runs a built-in action, such as opening a page or turning auto forward on and off, or a function of the global blueprint. |
+| `story.compile` | `app.game.story` | Register a compile pass that observes each scene and injects engine actions around its rows. The heaviest of the thirteen: a pass runs over *every* scene of the project, sees who speaks in each, and can put actions around lines it did not write. It is not `state.write` in disguise and does not imply it — a pass builds actions, it does not run them. |
+| `diagnostics` | `app.game.diagnostics` — `imageCache` | Read what the engine's image cache holds and the budgets it is held against. Read-only. `imageCache()` returns `null` until a game session is running. |
+| `process.memory` | `app.game.process` — `memory` | Read how much memory the game's processes hold, as the operating system counts it. Read-only, and `memory()` returns a promise. |
 
 The list is closed. An unrecognized capability string fails manifest validation rather than being ignored, so a typo can never read as "asked for nothing".
 
@@ -91,9 +94,12 @@ When a declared capability has no backing here, the namespace is absent and the 
 | `assets` | yes | yes | yes | yes | **no** | no |
 | `locale` | yes | yes | yes | yes | yes | no |
 | `sidecar` | yes | **never** | **never** | yes | **no** | no |
+| `menu` | yes | **no** | **no** | yes | **no** | no |
+| `diagnostics` | yes | yes | yes | yes | yes | no |
+| `process` | yes | **no** | **no** | yes | the Dev Mode window only | no |
 
 - `events.closeRequested` never fires on the web — there is no window to close. Use [`events.available(name)`](/docs/studio/plugin/runtime/events) rather than assuming a desktop shell.
-- **Dev Mode is not Preview.** Preview runs the same shell a shipped game runs; the Dev Mode window is a Studio window driving the project directly. Two capabilities differ there: `assets` is absent because asset resolution goes through async IPC while the capability's signature is a synchronous `url()`, and `sidecar` is absent because the Dev Mode window hosts no child processes. Test either of those in Preview.
+- **Dev Mode is not Preview.** Preview runs the same shell a shipped game runs; the Dev Mode window is a Studio window driving the project directly. Four capabilities differ there: `assets` is absent because asset resolution goes through async IPC while the capability's signature is a synchronous `url()`, `sidecar` is absent because the Dev Mode window hosts no child processes, `menu` is absent because the Dev Mode window has no game menu bar, and `process.memory` reports the Dev Mode window's own process only. Test those in Preview.
 - The **in-editor preview** (running a node on the editor canvas) has no game at all, so every gated domain is absent. `game.data.readJson` returns `null` there too, and calling `game.blueprintNodes.register` throws — registration belongs to `app.services.*` on the studio entry. The same `execute` runs in both places, which is why a node must degrade rather than assume.
 
 ## Write nodes that degrade

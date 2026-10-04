@@ -49,7 +49,7 @@ export default defineRuntimePlugin({
 
 整份契约就这么多。安装提示列出的正是 `app.game` 上存在的那些域，所以作者批准的内容和你的插件能做的事，在构造上就是同一个集合。这些权限永远不用你手写——Studio 会从 `contributes` 派生它们，手写的权限是一种 [清单错误](/zh/docs/studio/plugin/manifest#permissions-are-derived)
 
-### 十项能力
+### 十三项能力
 
 | 能力 | 授予 | 用途 |
 | --- | --- | --- |
@@ -62,7 +62,10 @@ export default defineRuntimePlugin({
 | `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素|
 | `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL|
 | `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言|
-| `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十项里最重的一项：一个 pass 会跑遍项目的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
+| `menu` | `app.game.menu`——`set` | 声明桌面版游戏上方的整个菜单栏。`set(spec)` 替换整个菜单栏，传入空的 spec 会移除它。每一行运行一个内置动作（例如打开页面、开关自动前进）或全局蓝图中的一个函数|
+| `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十三项里最重的一项：一个 pass 会跑遍项目的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
+| `diagnostics` | `app.game.diagnostics`——`imageCache` | 读取引擎图片缓存当前持有的内容，以及它所受的预算。只读。游戏会话开始运行之前，`imageCache()` 返回 `null`|
+| `process.memory` | `app.game.process`——`memory` | 读取游戏各进程按操作系统统计占用的内存。只读，`memory()` 返回一个 Promise|
 
 这份列表是封闭的。无法识别的能力字符串会让清单校验失败，而不是被忽略，所以拼错永远不会被读成“什么都没申请”
 
@@ -91,9 +94,12 @@ export default defineRuntimePlugin({
 | `assets` | 是 | 是 | 是 | 是 | **否** | 否 |
 | `locale` | 是 | 是 | 是 | 是 | 是 | 否 |
 | `sidecar` | 是 | **从不** | **从不** | 是 | **否** | 否 |
+| `menu` | 是 | **否** | **否** | 是 | **否** | 否 |
+| `diagnostics` | 是 | 是 | 是 | 是 | 是 | 否 |
+| `process` | 是 | **否** | **否** | 是 | 仅开发模式窗口 | 否 |
 
 - `events.closeRequested` 在 Web 上从不触发——那里没有窗口可关。请用 [`events.available(name)`](/zh/docs/studio/plugin/runtime/events)，而不是假定存在桌面外壳
-- **开发模式不等于预览。** 预览跑的是发行游戏跑的同一套外壳；开发模式窗口是一个直接驱动项目的 Studio 窗口。两项能力在那里不同：`assets` 缺席，因为那里的资源解析要走异步 IPC，而这项能力的签名是同步的 `url()`；`sidecar` 缺席，因为开发模式窗口不托管任何子进程。这两项都请在预览里验证
+- **开发模式不等于预览。** 预览跑的是发行游戏跑的同一套外壳；开发模式窗口是一个直接驱动项目的 Studio 窗口。四项能力在那里不同：`assets` 缺席，因为那里的资源解析要走异步 IPC，而这项能力的签名是同步的 `url()`；`sidecar` 缺席，因为开发模式窗口不托管任何子进程；`menu` 缺席，因为开发模式窗口没有游戏菜单栏；`process.memory` 只报告开发模式窗口自身的进程。这几项都请在预览里验证
 - **编辑器内预览**（在编辑器画布上运行节点）根本没有游戏，所以每个受把关的域都缺席。那里 `game.data.readJson` 也返回 `null`，调用 `game.blueprintNodes.register` 会抛错——注册属于 studio 入口的 `app.services.*`。同一份 `execute` 会在两处运行，这正是节点必须降级、而不能想当然的原因
 
 ## 写会降级的节点
