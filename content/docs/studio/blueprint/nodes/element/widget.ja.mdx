@@ -7,13 +7,13 @@ description: ボタンのラベルとポインタ、コンテナのクリッピ�
 
 ## Button
 
-Button ノードは `element:nl.button` ピンを取ります。ボタンのラベルが **Translation key**（翻訳キー）から来ているとき、ゲームはそのキーのテキストを表示します。`Get Button Label` と `Set Button Label` が読み書きするのはボタン自身のラベルであり、キーが設定されている間、ゲームはそれを表示しません。Self 形態は [Button](/ja/docs/studio/blueprint/nodes/button) にあります。
+Button ノードは `element:nl.button` ピンを取ります。`Get Button Label` は画面に表示されているラベルを読み取ります。`Set Button Label` が書き込んだラベルは、ページを開き直すまですべての言語で書き込んだとおりに表示され、**Translation key**（翻訳キー）や Blueprint Value より優先されます。Self 形態は [Button](/ja/docs/studio/blueprint/nodes/button) にあります。
 
 ### Get Button Label
 
 `blueprint.element.button.getLabel` · Pure
 
-ボタンのラベルテキストを読み取ります。
+画面に表示されているラベルを、プレイヤーの現在の言語で読み取ります。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |

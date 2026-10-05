@@ -11,14 +11,15 @@ Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、�
 - **读取是 `Pure`，写入是 `Latent`。** 每个 getter 都无副作用。每个 setter 都会在宿主应用补丁期间挂起执行
 - **不能在 Blueprint Value 中使用。** Blueprint Value 的宿主是 `widgetValue`，而这些节点的作用域是 `widgetMain` 和 `componentWidgetMain`，所以即便 getter 是纯节点，它们也不会出现在那份创建浮窗里。要在 Blueprint Value 中读取文本属性，请配合 `Element` 字面量使用 Element 形态的 getter
 - **写入需要正在运行的游戏。** Host API 只在蓝图运行时之下存在。在编辑器画布上，setter 会以`该节点仅在游戏运行时可用，需在开发模式中运行`失败，而 getter 什么都取不到
-- **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环
+- **写入的文字优先。** `Set Text`、`Append Text`、`Clear Text` 以及 `Set All Properties` 的 `text` 引脚在游戏运行时写入的文字，在所有语言中都按写入的内容显示，优先于翻译键、元素自身文字的译文和 Blueprint Value，直到页面重新打开。脚本图层的写入同样如此。首次写入之前，元素自身的文字是它的默认值，见[界面文本](/zh/docs/studio/workspace/localization#interface-text)
+- **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。第一次写入文字是例外：即使与屏幕上的文字相同也算一次变化，因为此后这些文字在所有语言中都按写入的内容显示。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环
 - **未接线的输入不等于「保持原样」。** 没有连线、卡片上也没有填值，或者填的值不在允许集合内时，多数 setter 会写入一个固定的兜底值而不是保留当前值：`Set Text` 写入空字符串，`Set Font` 清除字体，`Set Font Size` 写入 `16`，`Set Line Height` 写入 `1.4`，各个枚举 setter 写入其列表中的第一个值。什么都不会被拒绝，也不会抛错。只有 `Set Text Color`、`Set Effects` 以及 `Set All Properties` 的每一个引脚会回退到元素已有的值
 
 ## Get Text
 
 `blueprint.text.getText` · Pure
 
-Get Text（获取文本）读取元素当前持有的字符串
+Get Text（获取文本）读取屏幕上显示的文字：游戏运行时写入过的文字；否则是元素的翻译键的文字或它自身的文字在玩家当前语言中的文本；或者是 Blueprint Value、列表行字段给出的文字
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -36,15 +37,15 @@ Set Text（设置文本）替换整个字符串
 | `next` | out · exec | — | |
 | `text` | in · data | `string` | 什么都解析不到时写入空字符串。可在卡片上直接填值|
 
-<Callout type="warn">
-如果元素的 `props.text` 绑定了 [Blueprint Value](/zh/docs/studio/blueprint)，则以绑定为准。计算出的值会在每次渲染时覆盖到 `props.text` 上，且不会写回，因此 `Set Text` 存下的字符串没有人看得见，而 `Get Text` 读到的是存下的那个字符串，不是屏幕上的那个。请改为修改值图所读取的数据。文本来源为**翻译键**时同样如此：游戏显示的是该键的文本，`Set Text` 写入的字符串不会显示
+<Callout type="info">
+`Set Text` 写入的文字在所有语言中都按写入的内容显示，文本来源为**翻译键**或 [Blueprint Value](/zh/docs/studio/blueprint) 时也是如此，直到页面重新打开。要显示译文，写入 [`Get Text`](/zh/docs/studio/blueprint/nodes/localization#get-text) 的结果，并在玩家切换语言后再写一次，或者改用 Blueprint Value 显示
 </Callout>
 
 ## Append Text
 
 `blueprint.text.appendText` · Latent
 
-Append Text（追加文本）读取当前字符串，把 `text` 接在末尾后写回。追加空字符串会得到同一个字符串，因此是一次空操作
+Append Text（追加文本）读取屏幕上显示的文字，把 `text` 接在末尾后写回
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -301,7 +302,7 @@ Get All Properties（获取全部属性）在一张卡片上给出全部文本�
 
 `blueprint.text.setAllProperties` · Latent
 
-Set All Properties（设置全部属性）在一次补丁里写入全部文本属性，元素只重绘一次而不是十次。它会先读取当前属性，并把它们作为**每一个**引脚的兜底值——这使它成为唯一一个「引脚不接就保留当前值」的 setter，与各个单属性 setter 恰好相反
+Set All Properties（设置全部属性）在一次补丁里写入全部文本属性，元素只重绘一次而不是十次。它会先读取当前属性，并把它们作为**每一个**引脚的兜底值——这使它成为唯一一个「引脚不接就保留当前值」的 setter，与各个单属性 setter 恰好相反。`text` 不接线也不填时不写入文字，使用翻译键或绑定的文本因此继续跟随玩家的语言
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

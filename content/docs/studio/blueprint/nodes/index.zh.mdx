@@ -20,7 +20,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | `Pure` | 无副作用，没有执行引脚。有东西读取它的输出时才计算，也是能进入 Blueprint Value 的条件之一|
 | `Latent` | 会挂起执行直到完成。Blueprint Value（`Call Fn` 除外）、内联故事值和分支条件都不提供它|
 
-`Pure` 本身**并不**意味着该节点能在 [Blueprint Value](/zh/docs/studio/blueprint) 里使用。那是另一条更窄的规则：节点必须同时是纯节点、非 latent，且属于允许的分类（Data、List、Math、Time、Text、Slider、Displayable、Element、Game），外加一小串特例（`Init` 与 `On Flush` 事件头、除 `Skip Delay` 以外非 latent 的 Flow、本地变量读写、`Memo`、`Call Fn`、注释、`Return Value`，以及四个 Page 状态读取节点）。scope 限定为 `widgetMain` 的 Self 节点无论标记如何都被排除；在 Blueprint Value 里要触及某个控件，走 `Element` 字面量加 Element 分类的读取节点
+`Pure` 本身**并不**意味着该节点能在 [Blueprint Value](/zh/docs/studio/blueprint) 里使用。那是另一条更窄的规则：节点必须同时是纯节点、非 latent，且属于允许的分类（Data、List、Math、Time、Text、Slider、Displayable、Element、Game、Localization），外加一小串特例（`Init` 与 `On Flush` 事件头、除 `Skip Delay` 以外非 latent 的 Flow、本地变量读写、`Memo`、`Call Fn`、注释、`Return Value`，以及四个 Page 状态读取节点）。scope 限定为 `widgetMain` 的 Self 节点无论标记如何都被排除；在 Blueprint Value 里要触及某个控件，走 `Element` 字面量加 Element 分类的读取节点
 
 然后是引脚表：
 
@@ -63,7 +63,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | [Time](/zh/docs/studio/blueprint/nodes/time) | 15 | 当前时间、日历，以及日期文本|
 | [Game](/zh/docs/studio/blueprint/nodes/game) | 96 | 剧情控制、对话、偏好、存档、对话记录|
 | [App](/zh/docs/studio/blueprint/nodes/app) | 30 | Surface 导航、窗口、应用生命周期|
-| [Localization](/zh/docs/studio/blueprint/nodes/localization) | 6 | 游戏面向玩家的语言|
+| [Localization](/zh/docs/studio/blueprint/nodes/localization) | 6 | 游戏面向玩家的语言，以及项目的翻译键|
 | [Network](/zh/docs/studio/blueprint/nodes/network) | 3 | HTTP 请求与响应读取|
 | [Displayable](/zh/docs/studio/blueprint/nodes/displayable) | 9 | 几何、外观变体、属性动画|
 | [Element](/zh/docs/studio/blueprint/nodes/element) | 123 | 以上各类的 Element 版本：作用于接入的 `Element` 而非自身|

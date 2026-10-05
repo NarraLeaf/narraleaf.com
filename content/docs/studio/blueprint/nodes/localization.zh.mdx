@@ -1,18 +1,19 @@
 ---
 title: 本地化
-description: 读取和切换游戏面向玩家的语言，并解析命名文本 key
+description: 读取和切换游戏面向玩家的语言，并读取翻译键
 ---
 
-这六个节点是游戏切换自己语言的方式：设置界面列出项目配置的语言，玩家挑一个，这个选择会被记住。语言、翻译表和命名 key 都在 [Localization](/zh/docs/studio/workspace/localization) 里配置——节点只读取那里已有的东西
+这六个节点是游戏切换自己语言、读取翻译键的方式：设置界面列出项目配置的语言，玩家挑一个，这个选择会被记住。语言、翻译表和翻译键都在 [Localization](/zh/docs/studio/workspace/localization) 里配置——节点只读取那里已有的东西。第七个节点 [`Format Text`](#format-text) 已不在创建浮窗中提供，已有图里的这个节点照常运行
 
-## 约定
+## 约定 [#conventions]
 
-- **六个全是 latent，没有一个是 pure。** 它们都异步返回，所以都不能支撑 Blueprint Value
+- **一个是 pure，其余都是 latent。** `Translation Key Text` 在被读取时计算结果，所以能用于 Blueprint Value 和函数。另外五个异步返回，只能用于事件图和宏图
 - **这是游戏的语言，不是编辑器的语言。** Studio 自身的界面语言是另一个设置，这里没有任何节点会读它或写它。两者可以不同，通常也确实不同——你用自己的语言创作，游戏跑在玩家的语言上
 - **这个选择存在哪里。** `Set Language` 写入宿主持久化存储的 `nls.locale`，每个项目一条记录，和持久变量走同一条通道。它能挺过退出游戏，而且*不*属于存档的一部分，所以读档永远不会改变语言。首次启动时若没有存下任何有效值，会把玩家的系统语言与项目配置的语言做匹配并存下来；此后以存下来的选择为准
-- **查找会走一条回退链。** 文本先在当前语言里查，再查该语言配置的 fallback，依此类推——在源语言之前停下，因为源语言的文本是编译进去的默认值，而不是表里的一条。走到链尾就意味着渲染源语言文本
+- **同一个翻译键处处读出同样的结果。** `Get Text`、`Translation Key Text` 与文字来自翻译键的控件，对同一个键给出同一个结果：当前语言的译文；然后沿该语言配置的回退语言逐个查找译文；然后是键的源文本；项目中没有这个键时是键名本身——这样删掉或写错的键会在跑起来的游戏里显形，而不是渲染成一片空白。无论项目是否设置了源语言，键都能读取
+- **Blueprint Value 跟随语言。** 读取玩家语言的 Blueprint Value——通过 `Translation Key Text`，或通过它调用的函数里的 `Get Text`、`Get Current Language`——会在玩家切换语言时重新求值
 - **配音语言是分开的。** 配音语言和字幕语言是刻意区分的两个设置；这里没有任何东西会碰语音轨
-- **编辑器画布跑不了它们。** 作者时画布上没有宿主，除 `Format Text` 之外的节点在那里都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败，而画布本就按设计渲染源语言文本
+- **编辑器画布跑不了 latent 节点。** 作者时画布上没有宿主，除 `Format Text` 之外的 latent 节点在那里都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败，而画布本就按设计渲染源语言文本
 
 ## Get Current Language
 
@@ -43,7 +44,8 @@ Set Language（设置语言）切换游戏语言并记住这个选择
 没有进行中的游戏时（例如在标题画面），切换立即生效：
 
 - 控件上的文本——Text 的内容、Button 的标签、Text Input 的占位符——会立刻重新解析并重绘。什么都不需要重新挂载
-- 图已经产出的字符串——比如某个写出去的 `Get Text` 结果——到那时就是一个普通字符串了。它不会重新解析。请重新跑一次图
+- 读取语言的 Blueprint Value 会重新求值，显示新的语言
+- 图已经用 `Set Text` 或 `Set Label` 写入的文字，在所有语言中都按写入的内容显示，直到页面重新打开。要换成新语言，请重新跑一次图
 
 游戏进行中切换时会发生什么，由项目在**项目 → 游戏 → 语言**的**游戏进行中切换语言**里设定：
 
@@ -67,55 +69,78 @@ Get Available Languages（获取可用语言）给出项目配置的每一种语
 
 每一项带有 `code`、`displayName` 和 `isSource`。`displayName` 是作者填写的语言自称——日本語，而不是 Japanese——这正是语言选择器要展示给玩家的东西；`code` 则是交回给 `Set Language` 的东西。这个引脚类型是 `any`，因为它的值是一组对象，而不是蓝图的某种标量类型
 
+## Translation Key Text
+
+`blueprint.localization.keyText` · Pure
+
+Translation Key Text（翻译键文本）给出一个翻译键在玩家当前语言中的文字。结果与 `Get Text` 相同，但没有执行引脚，所以 Blueprint Value 和函数也能显示译文
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `key` | in · data | `string` | 接线时覆盖卡片上的字段|
+| `value` | out · data | `string` | 标注为`Text`。没有选键时为空字符串|
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Key` | 翻译键，从项目的翻译键中选择|
+
+显示它的 Blueprint Value 与文字来自翻译键的控件在同一帧换成新语言
+
+要把值填进译文，把它接到 [`Format`](/zh/docs/studio/blueprint/nodes/data#format) 的 `template`。例如键 `settings.seconds` 的源文本是 `{0} s`、中文译文是 `{0} 秒`：`Translation Key Text` 接到 `template`，装着 `3` 的 `Make Array` 接到 `values`，英文显示 `3 s`，中文显示 `3 秒`
+
 ## Get Text
 
 `blueprint.localization.getText` · Latent
 
-Get Text（获取文本）把一个命名 key 解析为当前语言下的文本。命名 key 是项目里由开发者撰写的字符串：既不是故事行，也不是直接填在控件卡片上的那些
+Get Text（获取文本）把一个翻译键解析为当前语言下的文字。翻译键是用到它的所有控件和图共用的同一段文字，只翻译一次
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `key` | in · data | `string` | 接线时覆盖卡片上的字段。key 为空是执行错误|
+| `key` | in · data | `string` | 接线时覆盖卡片上的字段。键为空是执行错误|
 | `value` | out · data | `string` | 标注为`Text`|
 
 **卡片字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `Key` | 命名 key，从项目的 key 登记表中选择。每个选项显示其源文本、key 名跟在后面，所以你是按这句话说了什么来挑的|
+| `Key` | 翻译键，从项目的翻译键中选择。每个选项显示其源文本、键名跟在后面，所以你是按这句话说了什么来挑的|
 
-解析顺序是：当前语言的翻译（沿回退链）；然后是该 key 自己的源文本；最后，当这个 key 根本不在登记表里时，是 key 名本身——这样你删掉或写错的 key 会在跑起来的游戏里显形，而不是渲染成一片空白
+结果按[约定](#conventions)中的顺序得出：沿回退链的译文，然后是键的源文本，项目中没有这个键时是键名
 
-直接填在控件卡片上的文本不需要这个节点：带文本的控件会自己按当前语言解析要显示的文本。当这个字符串是由图决定的，才轮到 `Get Text`
+控件上的文字不需要这个节点：直接写的文字和来自翻译键的文字，控件都会按玩家的语言显示。文字由图决定时用 `Get Text`，在 Blueprint Value 里用 `Translation Key Text`
 
 ## Has Text
 
 `blueprint.localization.hasText` · Latent
 
-Has Text（是否有文本）判断某个命名 key 在项目中是否存在
+Has Text（是否有文本）判断某个翻译键在项目中是否存在，与项目是否设置了源语言无关
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `key` | in · data | `string` | 接线时覆盖卡片上的字段。key 为空时读到`false`，而不是报错|
+| `key` | in · data | `string` | 接线时覆盖卡片上的字段。键为空时读到`false`，而不是报错|
 | `value` | out · data | `boolean` | 标注为`Exists`|
 
 **卡片字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `Key` | 命名 key，从项目的 key 登记表中选择|
+| `Key` | 翻译键，从项目的翻译键中选择|
 
 <Callout type="warn">
-它回答的是*这个 key 有没有定义*，不是*它有没有被翻译*。一个在当前语言下没有翻译的 key 依然报告 `true`，因为届时渲染出来的就是它的源文本。翻译覆盖率是本地化编辑器的问题，不是跑起来的游戏该问的问题
+它回答的是*这个键有没有定义*，不是*它有没有被翻译*。一个在当前语言下没有翻译的键依然报告 `true`，因为届时渲染出来的就是它的源文本。翻译覆盖率是本地化编辑器的问题，不是跑起来的游戏该问的问题
 </Callout>
 
 ## Format Text
 
 `blueprint.localization.formatText` · Latent
+
+已不在创建浮窗中提供；已有图里的这个节点照常运行。请改用 [`Format`](/zh/docs/studio/blueprint/nodes/data#format)：它同样用数组填 `{0}`、`{1}`……占位符，还能用对象填 `{name}`，并且可用于 Blueprint Value 与函数
 
 Format Text（格式化文本）按位置把值填进模板的 `{0}`、`{1}`……占位符
 

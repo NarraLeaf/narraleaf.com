@@ -25,7 +25,7 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 
 | 宿主 | 归属于 | 存活时长 |
 | --- | --- | --- |
-| `globalMain` | 项目，在 **UI** 面板中显示为**应用逻辑** | 整个应用 |
+| `globalMain` | 项目，在 **UI** 面板中显示为**应用逻辑**，早期版本称作全局蓝图 | 整个应用 |
 | `surfaceMain` | 单个 [Surface](/zh/docs/studio/blueprint/surfaces) | 该 Surface 实例 |
 | `widgetMain` | 单个控件实例 | 该控件实例 |
 | `widgetValue` | 单个控件的单个属性 | 拥有它的绑定 |
@@ -39,6 +39,10 @@ description: 可视化编程层——什么是蓝图、一份蓝图归属于谁�
 **Blueprint Value** 是绑定到单个属性上的 `widgetValue` 蓝图，属性因此由计算得出而非直接填写。当前支持的目标是 `nl.text` → `props.text`、`nl.button` → `props.label`、`nl.image` → `props.imageFill.assetId`、`nl.switch` → `props.checked`、`nl.frame` → `props.params`、`nl.slider` → `props.value`
 
 它的创建浮窗被刻意收窄：`Init` 与 `On Flush` 两个事件头、非 latent 的流程节点、纯 Data 与 Math、本地变量读写、`Element` 字面量，以及纯读取节点。没有改写、没有导航、没有持久变量，除 `Call Fn` 以外也没有 latent 节点（会挂起整张图的节点，例如 `Delay` 或一次存档写入）。一个能改变世界的取值器，会在世界改变的那一刻重新进入自己
+
+要显示玩家语言中的文字，用 [`Translation Key Text`](/zh/docs/studio/blueprint/nodes/localization#translation-key-text) 取翻译键的文字，再用 [`Format`](/zh/docs/studio/blueprint/nodes/data#format) 把值填进去。读取玩家语言的 Blueprint Value 会在玩家切换语言时更新，无论它是通过 `Translation Key Text` 或按语言区分的资产读取，还是通过它调用的函数里的 `Get Text`、`Get Current Language` 或 `Get Save Metadata` 读取
+
+文本的内容或按钮的文字绑定之后，控件自身的文字是示例文字：只在编辑器中显示，不进入构建出的游戏，也不参与翻译。见[界面文本](/zh/docs/studio/workspace/localization#interface-text)
 
 <Callout type="info">
 编辑器画布是排版工具。它会解析蓝图到足以预览一个值绑定的程度，但并不运行游戏——需要活动游玩的节点在那里没有对话对象。蓝图行为请在开发模式中验证

@@ -1,18 +1,19 @@
 ---
 title: Localization
-description: Reading and switching the game's player-facing language, and resolving named text keys.
+description: Reading and switching the game's player-facing language, and reading translation keys.
 ---
 
-These six nodes are how a game changes its own language: a settings screen lists the project's locales, the player picks one, and the choice is remembered. The languages, the translation tables, and the named keys are set up in [Localization](/docs/studio/workspace/localization) — the nodes only read what is already there.
+These six nodes are how a game changes its own language and reads its translation keys: a settings screen lists the project's locales, the player picks one, and the choice is remembered. The languages, the translation tables, and the translation keys are set up in [Localization](/docs/studio/workspace/localization) — the nodes only read what is already there. A seventh node, [`Format Text`](#format-text), is no longer offered in the palette; graphs that hold one keep running.
 
 ## Conventions
 
-- **All six are latent, none is pure.** Each one returns asynchronously, so none of them can back a Blueprint Value.
+- **One is pure, the rest are latent.** `Translation Key Text` computes its value where it is read, so it works in a Blueprint Value and in a function. The other five return asynchronously and run in event and macro graphs only.
 - **This is the game's language, not the editor's.** Studio's own interface language is a separate setting that no node here reads or writes. The two are free to differ, and normally do — you author in your language while the game runs in the player's.
 - **Where the choice lives.** `Set Language` writes to the host's persistent store under the key `nls.locale`, one record per project, on the same channel as persistent variables. It survives quitting the game and is *not* part of a save file, so loading a save never changes the language. On first launch, when nothing valid is stored, the player's system language is matched against the configured locales and persisted; from then on the stored choice wins.
-- **Lookup walks a fallback chain.** Text is looked up in the current locale, then in that locale's configured fallback, and so on — stopping before the source language, whose text is the compiled default rather than a table entry. Falling off the end of the chain means the source text renders.
+- **A key reads the same everywhere.** `Get Text`, `Translation Key Text` and a widget whose words come from a translation key give one answer for the same key: the current locale's translation; then the translation of that locale's configured fallback, and so on along the chain; then the key's source text; and, for a key the project does not have, the key's name, so a deleted or mistyped key shows up in the running game instead of rendering blank. Keys are read whether or not the project has a source language.
+- **A Blueprint Value follows the language.** A Blueprint Value that reads the player's language, through `Translation Key Text` or through `Get Text` or `Get Current Language` in a function it calls, is evaluated again when the player switches language.
 - **The voice language is separate.** Dub language and subtitle language are deliberately different settings; nothing here touches the voice track.
-- **The editor canvas cannot run them.** There is no host on the author-time canvas, so every node here except `Format Text` fails there with `This node runs only in a running game. Open Dev Mode to run it.`, and the canvas renders source-language text by design.
+- **The editor canvas cannot run the latent ones.** There is no host on the author-time canvas, so every latent node here except `Format Text` fails there with `This node runs only in a running game. Open Dev Mode to run it.`, and the canvas renders source-language text by design.
 
 ## Get Current Language
 
@@ -43,7 +44,8 @@ The code is checked against the configured locales *before* anything is written,
 When no playthrough is running, on a title screen for example, the switch takes effect at once:
 
 - Text on widgets — a Text's content, a Button's label, a Text Input's placeholder — re-resolves and re-renders straight away. Nothing has to be remounted.
-- A string a graph already produced — a `Get Text` result written somewhere — is a plain string by then. It does not re-resolve. Run the graph again.
+- A Blueprint Value that reads the language is evaluated again and shows the new language.
+- Words a graph already wrote with `Set Text` or `Set Label` show as written in every language until the page is opened again. Run the graph again to write them in the new language.
 
 During a playthrough, what happens is set per project under **Project → Game → Language**, in **Changing language during a game**:
 
@@ -67,11 +69,32 @@ Every locale the project is configured for, in the order the project lists them.
 
 Each entry carries `code`, `displayName`, and `isSource`. `displayName` is the autonym the author entered — 日本語, never "Japanese" — which is what a language picker shows the player; `code` is what you hand back to `Set Language`. The pin is typed `any` because the value is a list of objects rather than one of the scalar blueprint types.
 
+## Translation Key Text
+
+`blueprint.localization.keyText` · Pure
+
+A translation key's words in the player's current language. It gives the same answer as `Get Text` but has no execution pins, so a Blueprint Value or a function can show a translated word.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `key` | in · data | `string` | Overrides the on-card field when wired. |
+| `value` | out · data | `string` | Labelled `Text`. An empty string when no key is chosen. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Key` | The translation key, chosen from the project's keys. |
+
+A Blueprint Value that shows it changes language on the same frame as a widget whose words come from a translation key.
+
+To put a value into translated words, wire it into `template` on [`Format`](/docs/studio/blueprint/nodes/data#format). With a key `settings.seconds` whose source text is `{0} s` and whose Chinese translation is `{0} 秒`, `Translation Key Text` into `template` and a `Make Array` holding `3` into `values` shows `3 s` in English and `3 秒` in Chinese.
+
 ## Get Text
 
 `blueprint.localization.getText` · Latent
 
-Resolves one named key to the text for the current language. Named keys are the project's developer-authored strings: the ones that are neither story lines nor typed onto a widget card.
+Resolves one translation key to its words in the current language. A translation key holds words that every widget and graph naming it shares, and it is translated once.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -84,17 +107,17 @@ Resolves one named key to the text for the current language. Named keys are the 
 
 | Field | What |
 | --- | --- |
-| `Key` | The named key, chosen from the project's registry. Each option shows its source text with the key name after it, so you pick by what the string says. |
+| `Key` | The translation key, chosen from the project's keys. Each option shows its source text with the key name after it, so you pick by what the words say. |
 
-Resolution order is the current locale's translation, through the fallback chain; then the key's own source text; then, when the key is not in the registry at all, the key name itself — so a key you deleted or mistyped shows up in the running game instead of rendering blank.
+The answer follows the order under [Conventions](#conventions): the translation along the fallback chain, then the key's source text, then the key's name for a key the project does not have.
 
-Text you typed onto a widget card does not need this node: text-bearing widgets resolve their own display text against the current locale. Reach for `Get Text` when the string is one a graph decides.
+Words on a widget do not need this node: a widget whose words are written directly or come from a translation key shows them in the player's language. Reach for `Get Text` when a graph decides the words, and for `Translation Key Text` inside a Blueprint Value.
 
 ## Has Text
 
 `blueprint.localization.hasText` · Latent
 
-Whether a named key exists in the project.
+Whether a translation key exists in the project, whether or not the project has a source language.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -107,7 +130,7 @@ Whether a named key exists in the project.
 
 | Field | What |
 | --- | --- |
-| `Key` | The named key, chosen from the project's registry. |
+| `Key` | The translation key, chosen from the project's keys. |
 
 <Callout type="warn">
 This answers *is the key defined*, not *is it translated*. A key with no translation for the current locale still reports `true`, because its source text is what will render. Translation coverage is a question for the localization editor, not for a running game.
@@ -116,6 +139,8 @@ This answers *is the key defined*, not *is it translated*. A key with no transla
 ## Format Text
 
 `blueprint.localization.formatText` · Latent
+
+Hidden from the palette; graphs that already hold one keep running as before. Use [`Format`](/docs/studio/blueprint/nodes/data#format) instead: it fills the same `{0}`, `{1}`, … placeholders from an array, also fills `{name}` from an object, and works in a Blueprint Value and in a function.
 
 Fills the `{0}`, `{1}`, … placeholders of a template with values, by position.
 

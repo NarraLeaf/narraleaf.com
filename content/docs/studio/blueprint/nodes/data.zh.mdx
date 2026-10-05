@@ -456,10 +456,12 @@ Concat（拼接）按引脚顺序把输入首尾相接，中间不加任何内�
 
 把模板中的`{name}`替换为`values`里的同名字段；`values`是数组时用`{0}`、`{1}`……。匹配不到的占位符变成空；`values`既不是 object 也不是 array 时，所有占位符都变成空
 
+`Format` 是创建浮窗中唯一的格式化节点，可用于 Blueprint Value 与函数。要使用玩家语言中的模板，把 [`Translation Key Text`](/zh/docs/studio/blueprint/nodes/localization#translation-key-text) 接到 `template`
+
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `template` | in · data | `string` | 可在卡片上内联输入|
-| `values` | in · data | `json` | 接一个`JSON`常量或`Make Object`|
+| `values` | in · data | `json` | 接一个`JSON`常量、`Make Object`，或为 `{0}`、`{1}`……接`Make Array`|
 | `result` | out · data | `string` | |
 
 ### Length

@@ -7,13 +7,13 @@ description: Reading and writing the content, typography and effects of a wired 
 
 ## Text
 
-Text nodes carry an `element:nl.text` pin, so the palette offers them only once the graph binds an `nl.text` element. When a text element takes its words from a **Translation key**, the game shows the key's text; `Get Text`, `Set Text`, `Append Text` and `Clear Text` read and write the element's own words, which the game does not show while the key is set. The Self forms are in [Text](/docs/studio/blueprint/nodes/text).
+Text nodes carry an `element:nl.text` pin, so the palette offers them only once the graph binds an `nl.text` element. `Get Text` reads the words on screen. Words that `Set Text`, `Append Text`, `Clear Text` and `Set All Properties` write show as written in every language, ahead of a **Translation key** and a Blueprint Value, until the page is opened again; the rules are those of the Self forms. The Self forms are in [Text](/docs/studio/blueprint/nodes/text).
 
 ### Get Text
 
 `blueprint.element.text.getText` · Pure
 
-Reads the element's current text content.
+Reads the words on screen, in the player's current language.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ Replaces the text content.
 
 `blueprint.element.text.appendText` · Latent
 
-Concatenates onto the end of the current text.
+Concatenates onto the end of the words on screen.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

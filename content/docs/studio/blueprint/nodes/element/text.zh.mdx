@@ -7,13 +7,13 @@ description: 读写连入的 nl.text 元素的内容、排版与效果，以及�
 
 ## Text
 
-Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。文本元素的文字来自**翻译键**时，游戏显示的是这个键的文本；`Get Text`、`Set Text`、`Append Text` 和 `Clear Text` 读写的是元素自己的文字，只要设置着键，游戏就不会显示这些文字。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)
+Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。`Get Text` 读取屏幕上显示的文字。`Set Text`、`Append Text`、`Clear Text` 与 `Set All Properties` 写入的文字在所有语言中都按写入的内容显示，优先于**翻译键**和 Blueprint Value，直到页面重新打开；规则与 Self 形态相同。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)
 
 ### Get Text
 
 `blueprint.element.text.getText` · Pure
 
-读取元素当前的文本内容
+读取屏幕上显示的文字，使用玩家当前的语言
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.tex
 
 `blueprint.element.text.appendText` · Latent
 
-在当前文本末尾追加内容
+在屏幕上显示的文字末尾追加内容
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

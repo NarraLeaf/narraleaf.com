@@ -9,7 +9,7 @@ One node, and it exists for the whole point of component blueprints: a component
 
 `blueprint.component.getParam` · Pure
 
-The value the placement gave for one of the component's declared parameters.
+The value the placement gave for one of the component's declared parameters, or the parameter's default when the placement gives none. For a **Text** parameter that the placement reads from a translation key, the value is the key's name; [`Translation Key Text`](/docs/studio/blueprint/nodes/localization#translation-key-text) gives its words. A text or a button inside the component can show a Text parameter without a blueprint; see [Components](/docs/studio/workspace/ui-editor#components).
 
 Available only on a component's own blueprint (`componentWidgetMain`) — outside a component there is no placement to ask about.
 

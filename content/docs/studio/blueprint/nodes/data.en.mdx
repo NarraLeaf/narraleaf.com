@@ -438,10 +438,12 @@ Joins its inputs in pin order with nothing between them. The card has an add-inp
 
 Replaces `{name}` in the template with the matching field of `values`, or `{0}`, `{1}` … when `values` is an array. A placeholder with no match becomes empty, and every placeholder becomes empty when `values` is neither an object nor an array.
 
+`Format` is the one formatter the palette offers, and it works in a Blueprint Value and in a function. For a template in the player's language, wire [`Translation Key Text`](/docs/studio/blueprint/nodes/localization#translation-key-text) into `template`.
+
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `template` | in · data | `string` | Accepts an on-card literal. |
-| `values` | in · data | `json` | Wire a `JSON` literal or a `Make Object`. |
+| `values` | in · data | `json` | Wire a `JSON` literal, a `Make Object`, or a `Make Array` for `{0}`, `{1}` …. |
 | `result` | out · data | `string` | |
 
 ### Length

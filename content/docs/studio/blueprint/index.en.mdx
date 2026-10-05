@@ -25,7 +25,7 @@ The **owner** is where a blueprint lives. It decides the blueprint's lifetime an
 
 | Owner | Belongs to | Lives as long as |
 | --- | --- | --- |
-| `globalMain` | the project, listed in the **UI** panel as **App logic** | the application |
+| `globalMain` | the project, listed in the **UI** panel as **App logic**, which earlier versions called the global blueprint | the application |
 | `surfaceMain` | one [Surface](/docs/studio/blueprint/surfaces) | that Surface's instance |
 | `widgetMain` | one widget instance | that widget instance |
 | `widgetValue` | one property of one widget | the binding that owns it |
@@ -39,6 +39,10 @@ A `widgetMain` blueprint acts on its own widget through **Self nodes**, which ta
 A **Blueprint Value** is a `widgetValue` blueprint bound to one property, so the property is computed instead of authored. The current targets are `nl.text` → `props.text`, `nl.button` → `props.label`, `nl.image` → `props.imageFill.assetId`, `nl.switch` → `props.checked`, `nl.frame` → `props.params`, and `nl.slider` → `props.value`.
 
 Its palette is deliberately narrow: the `Init` and `On Flush` heads, non-latent flow, pure Data and Math, local variable access, `Element` literals, and pure reads. No mutations, no navigation, no persistent variables, and no latent nodes (anything that suspends the graph, such as `Delay` or a save write) other than `Call Fn`. A value provider that could change the world would re-enter itself the moment the world changed.
+
+For words in the player's language, [`Translation Key Text`](/docs/studio/blueprint/nodes/localization#translation-key-text) gives a translation key's words and [`Format`](/docs/studio/blueprint/nodes/data#format) fills values into them. A Blueprint Value that reads the player's language updates when the player switches language, whether it reads it through `Translation Key Text` or a per-language asset, or through `Get Text`, `Get Current Language` or `Get Save Metadata` in a function it calls.
+
+While a Text's content or a Button's label is bound, the widget's own words are sample text: drawn in the editor only, not built into the game and not translated. See [Interface text](/docs/studio/workspace/localization#interface-text).
 
 <Callout type="info">
 The editor canvas is a layout tool. It resolves enough of a blueprint to preview a value binding, but it runs no game — nodes that need a running playthrough have nothing to talk to there. Verify blueprint behaviour in Dev Mode.

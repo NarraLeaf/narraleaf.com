@@ -7,13 +7,13 @@ Four small property surfaces: a Button's label and cursor, a Container's clippin
 
 ## Button
 
-Button nodes take an `element:nl.button` pin. When a button takes its label from a **Translation key**, the game shows the key's text; `Get Button Label` and `Set Button Label` read and write the button's own label, which the game does not show while the key is set. The Self forms are in [Button](/docs/studio/blueprint/nodes/button).
+Button nodes take an `element:nl.button` pin. `Get Button Label` reads the label on screen. The label `Set Button Label` writes shows as written in every language, ahead of a **Translation key** and a Blueprint Value, until the page is opened again. The Self forms are in [Button](/docs/studio/blueprint/nodes/button).
 
 ### Get Button Label
 
 `blueprint.element.button.getLabel` · Pure
 
-Reads the button's label text.
+Reads the label on screen, in the player's current language.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

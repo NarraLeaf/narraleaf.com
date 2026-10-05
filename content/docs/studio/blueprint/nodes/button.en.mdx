@@ -20,6 +20,8 @@ Self nodes for `nl.button`. Each one acts on the button whose blueprint it sits 
 
 Writes the button's text. With nothing wired and the card field left empty it writes an empty string — it blanks the label rather than leaving it alone.
 
+The label it writes shows as written in every language, ahead of a translation key, the translation of the button's own label and a Blueprint Value, until the page is opened again. The label written the first time is a change even when it equals the one on screen. The button's own label is its default value until the first write; see [Interface text](/docs/studio/workspace/localization#interface-text).
+
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
@@ -30,13 +32,11 @@ Writes the button's text. With nothing wired and the card field left empty it wr
 
 `blueprint.button.getLabel` · Pure
 
-Reads the stored `props.label`.
+Reads the label on screen: a label written while the game runs; otherwise the words of the button's translation key, or its own label, in the player's current language; or the label a Blueprint Value or a list row's field gives.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
-
-When a Blueprint Value drives `props.label`, it overrides the stored value at render time only. `Set Label` still writes the stored value and `Get Label` still returns it, so the pair keeps working on a value the player is not looking at. The same holds for a label whose source is **Translation key**: the game shows the key's text.
 
 ## Set Pointer
 

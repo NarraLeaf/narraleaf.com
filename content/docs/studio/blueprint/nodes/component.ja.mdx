@@ -9,7 +9,7 @@ description: コンポーネントのある配置を別の配置と区別する�
 
 `blueprint.component.getParam` · Pure
 
-その配置がコンポーネントの宣言済みパラメータの1つに対して与えた値。
+その配置がコンポーネントの宣言済みパラメータの1つに対して与えた値。配置が値を与えていない場合は、パラメータの初期値です。配置が翻訳キーから取る **Text**（テキスト）パラメータでは、値はキー名になります。キーの文字は [`Translation Key Text`](/ja/docs/studio/blueprint/nodes/localization#translation-key-text) で得られます。コンポーネント内のテキストやボタンは、ブループリントなしでも Text パラメータを表示できます。[コンポーネント](/ja/docs/studio/workspace/ui-editor#components) を参照してください。
 
 コンポーネント自身のブループリント（`componentWidgetMain`）でのみ利用可能です——コンポーネントの外には尋ねるべき配置が存在しません。
 

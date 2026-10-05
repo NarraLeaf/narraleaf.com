@@ -438,10 +438,12 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 テンプレート内の`{name}`を、`values`の対応するフィールドで置き換えます。`values`が配列の場合は`{0}`、`{1}`……で置き換えます。一致しないプレースホルダーは空になり、`values`がオブジェクトでも配列でもない場合はすべてのプレースホルダーが空になります。
 
+`Format` はパレットにある唯一の整形ノードで、Blueprint Value と関数でも使えます。プレイヤーの言語のテンプレートを使うには、[`Translation Key Text`](/ja/docs/studio/blueprint/nodes/localization#translation-key-text) を `template` に配線します。
+
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `template` | in · data | `string` | カード上のリテラルを受け付けます。 |
-| `values` | in · data | `json` | `JSON`リテラルまたは`Make Object`を配線してください。 |
+| `values` | in · data | `json` | `JSON`リテラル、`Make Object`、または `{0}`、`{1}`……用の`Make Array`を配線してください。 |
 | `result` | out · data | `string` | |
 
 ### Length

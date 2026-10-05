@@ -11,14 +11,15 @@ The Text category is the Self node set of the `nl.text` widget: the string it sh
 - **Reads are `Pure`, writes are `Latent`.** Every getter is side-effect free. Every setter suspends the graph while the host applies the patch.
 - **Not available in a Blueprint Value.** A Blueprint Value is owned by `widgetValue` and these nodes are scoped to `widgetMain` and `componentWidgetMain`, so the getters never appear in that palette even though they are pure. To read text properties from a Blueprint Value, use the Element-targeted getters with an `Element` literal.
 - **Writes need a running game.** The host API exists only under a blueprint runtime. On the editor canvas a setter fails with `This node runs only in a running game. Open Dev Mode to run it.`, and a getter produces nothing at all.
-- **A write that changes nothing does nothing.** Each setter normalizes its patch, compares it against the element's current properties, and returns early when they match — no repaint and no `On Flush` for that element. Getters never queue a flush either, so a graph can poll properties without driving itself in a loop.
+- **Written words win.** Words that `Set Text`, `Append Text`, `Clear Text` or the `text` pin of `Set All Properties` write while the game runs show as written in every language, ahead of a translation key, the translation of the element's own words and a Blueprint Value, until the page is opened again. A script layer's write does the same. The element's own words are its default value until the first write; see [Interface text](/docs/studio/workspace/localization#interface-text).
+- **A write that changes nothing does nothing.** Each setter normalizes its patch, compares it against the element's current properties, and returns early when they match — no repaint and no `On Flush` for that element. Words written for the first time are the exception: they are a change even when they equal the words on screen, because from then on they show as written in every language. Getters never queue a flush either, so a graph can poll properties without driving itself in a loop.
 - **An unwired or unrecognised input is not "leave it alone".** With no edge, nothing typed on the card, or a value outside the allowed set, most setters write a fixed fallback instead of keeping the current value: `Set Text` writes an empty string, `Set Font` clears the font, `Set Font Size` writes `16`, `Set Line Height` writes `1.4`, and each enum setter writes the first value of its list. Nothing is rejected and nothing throws. Only `Set Text Color`, `Set Effects`, and every pin of `Set All Properties` fall back to what the element already has.
 
 ## Get Text
 
 `blueprint.text.getText` · Pure
 
-Reads the string the element is currently carrying.
+Reads the words on screen: words written while the game runs; otherwise the words of the element's translation key, or its own words, in the player's current language; or the words a Blueprint Value or a list row's field gives.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -36,15 +37,15 @@ Replaces the whole string.
 | `next` | out · exec | — | |
 | `text` | in · data | `string` | Writes an empty string when nothing resolves. Accepts an on-card literal. |
 
-<Callout type="warn">
-If the element's `props.text` is bound to a [Blueprint Value](/docs/studio/blueprint), the binding wins. The computed value is layered over `props.text` on every render and is never written back, so `Set Text` stores a string nobody sees and `Get Text` reads the stored string rather than the one on screen. Change the data the value graph reads instead. A text whose source is **Translation key** behaves the same way: the game shows the key's text, and the string `Set Text` writes is not displayed.
+<Callout type="info">
+The words `Set Text` writes show as written in every language, also on a text whose source is **Translation key** or a [Blueprint Value](/docs/studio/blueprint), until the page is opened again. To show a translated word, write the result of [`Get Text`](/docs/studio/blueprint/nodes/localization#get-text), and write it again after the player switches language, or show it through a Blueprint Value instead.
 </Callout>
 
 ## Append Text
 
 `blueprint.text.appendText` · Latent
 
-Reads the current string and writes it back with `text` on the end. Appending an empty string resolves to the same string and is therefore a no-op.
+Reads the words on screen and writes them back with `text` on the end.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -281,7 +282,7 @@ Every text property from one card. Each output carries exactly what its dedicate
 
 `blueprint.text.setAllProperties` · Latent
 
-Writes every text property in one patch, so the element repaints once instead of ten times. It reads the current properties first and uses them as the fallback for **every** pin, which makes it the one setter where leaving a pin unwired keeps the current value — the opposite of the single-property setters.
+Writes every text property in one patch, so the element repaints once instead of ten times. It reads the current properties first and uses them as the fallback for **every** pin, which makes it the one setter where leaving a pin unwired keeps the current value — the opposite of the single-property setters. Left unwired and empty, `text` writes no words, so a keyed or bound text keeps following the player's language.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

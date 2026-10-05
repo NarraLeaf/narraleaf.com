@@ -20,6 +20,8 @@ description: 读写蓝图所属按钮的标签、指针与交互状态
 
 Set Label（设置标签）写入按钮文本。没有接线且卡片字段留空时它会写入空字符串——也就是清空标签，而不是保持不变
 
+它写入的标签在所有语言中都按写入的内容显示，优先于翻译键、按钮自身标签的译文和 Blueprint Value，直到页面重新打开。第一次写入的标签即使与屏幕上的相同也算一次变化。首次写入之前，按钮自身的标签是它的默认值，见[界面文本](/zh/docs/studio/workspace/localization#interface-text)
+
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
@@ -30,13 +32,11 @@ Set Label（设置标签）写入按钮文本。没有接线且卡片字段留�
 
 `blueprint.button.getLabel` · Pure
 
-Get Label（读取标签）读取存储的 `props.label`
+Get Label（读取标签）读取屏幕上显示的标签：游戏运行时写入过的标签；否则是按钮的翻译键的文字或它自身的标签在玩家当前语言中的文本；或者是 Blueprint Value、列表行字段给出的标签
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `label` | out · data | `string` | |
-
-当 `props.label` 由 Blueprint Value 驱动时，该值只在渲染时覆盖存储值。`Set Label` 仍然写入存储值，`Get Label` 也仍然读回它，于是这一对节点操作的是玩家根本看不到的那个值。标签来源为**翻译键**时同样如此：游戏显示的是该键的文本
 
 ## Set Pointer
 

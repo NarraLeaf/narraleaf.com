@@ -20,7 +20,7 @@ The first line under the heading is the node's **type id** — the value stored 
 | `Pure` | No side effects and no exec pins. It computes its outputs when something reads them, and it is one of the conditions for use inside a Blueprint Value. |
 | `Latent` | Suspends the graph until it resolves. Not offered in a Blueprint Value (except `Call Fn`), an inline story value or a branch condition. |
 
-`Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories (Data, List, Math, Time, Text, Slider, Displayable, Element, Game), plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow other than `Skip Delay`, local variable access, `Memo`, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
+`Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories (Data, List, Math, Time, Text, Slider, Displayable, Element, Game, Localization), plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow other than `Skip Delay`, local variable access, `Memo`, `Call Fn`, comments, `Return Value`, and four Page state reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
 
 Then the pin table:
 
@@ -63,7 +63,7 @@ Each count is what the palette offers. Nodes hidden from the palette and kept so
 | [Time](/docs/studio/blueprint/nodes/time) | 15 | The clock, the calendar, and dates as text. |
 | [Game](/docs/studio/blueprint/nodes/game) | 96 | Story control, dialog, preferences, saves, backlog. |
 | [App](/docs/studio/blueprint/nodes/app) | 30 | Surface navigation, window, application lifetime. |
-| [Localization](/docs/studio/blueprint/nodes/localization) | 6 | The game's player-facing locale. |
+| [Localization](/docs/studio/blueprint/nodes/localization) | 6 | The game's player-facing language, and its translation keys. |
 | [Network](/docs/studio/blueprint/nodes/network) | 3 | HTTP requests and reading the response. |
 | [Displayable](/docs/studio/blueprint/nodes/displayable) | 9 | Geometry, appearance variants, property animation. |
 | [Element](/docs/studio/blueprint/nodes/element) | 123 | Everything above, aimed at a wired `Element` instead of self. |

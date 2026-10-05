@@ -31,8 +31,18 @@ An interface opens as a tab: the UI Outline on the left, the canvas in the cente
 - Drag a widget to move it, and use its handles to resize it. Smart Snap aligns widgets with canvas edges, center lines, and nearby widgets.
 - The align tools act on the selection's bounding box.
 - The frame control draws the safe area of a target device over the canvas, and the play button opens the interface in Dev Mode.
+- What lies past the page's edge is drawn under a veil in the canvas color, so an element dragged off the page can still be selected and dragged back. A selected element that its container clips away is dragged by its selection frame. The game shows only what is on the page.
 
 The canvas never crops: the runtime always fits the whole stage inside the window, so what falls outside the safe area stays visible on some devices.
+
+## Words
+
+A Text's content, a Button's label and a Text Input's placeholder each take their words from one source, chosen in Properties: **Direct**, **Translation key**, or, for a Text and a Button, **Blueprint Value**.
+
+- Under a Blueprint Value, a list row's **Field** or a component's **Parameter**, the widget's own words are **Sample text**: drawn in the editor only and not part of the built game.
+- When a blueprint writes the words while the game runs, Properties labels the widget's own words **Default value**, and lists the blueprints under **Written in the game by**. Choosing one opens the blueprint with the node that writes selected and brought into view.
+
+How each source is translated is described under [Interface text](/docs/studio/workspace/localization#interface-text).
 
 ## Auto fit
 
@@ -68,6 +78,8 @@ A selection can be saved to the **Component Library** and placed again elsewhere
     duration="9s"
 />
 
+**Params** are declared on the component and set on each placement. A **String** parameter is read by the component's blueprints with [`Get Component Param`](/docs/studio/blueprint/nodes/component). A **Text** parameter holds words a player reads: a text or a button inside the component picks it under **Parameter**, and each placement shows its own words on the canvas and in the game, written directly or from a translation key.
+
 ## Behavior
 
-Widget behavior is written in Blueprints rather than in the canvas. Each interface has its own Blueprint, and the project has a global one: **App logic**, the first card in the **Page** list. See [Blueprint](/docs/studio/blueprint).
+Widget behavior is written in Blueprints rather than in the canvas. Each interface has its own Blueprint, and the project has one for the whole application: **App logic**, the first card in the **Page** list. See [Blueprint](/docs/studio/blueprint).

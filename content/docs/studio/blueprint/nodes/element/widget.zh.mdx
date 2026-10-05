@@ -7,13 +7,13 @@ description: 按钮文本与指针、容器裁剪、Switch 的开合状态，以
 
 ## Button
 
-Button 节点带 `element:nl.button` 引脚。按钮的文本来自**翻译键**时，游戏显示的是这个键的文本；`Get Button Label` 和 `Set Button Label` 读写的是按钮自己的文本，只要设置着键，游戏就不会显示它。Self 形态见 [Button](/zh/docs/studio/blueprint/nodes/button)
+Button 节点带 `element:nl.button` 引脚。`Get Button Label` 读取屏幕上显示的标签。`Set Button Label` 写入的标签在所有语言中都按写入的内容显示，优先于**翻译键**和 Blueprint Value，直到页面重新打开。Self 形态见 [Button](/zh/docs/studio/blueprint/nodes/button)
 
 ### Get Button Label
 
 `blueprint.element.button.getLabel` · Pure
 
-读取按钮文本
+读取屏幕上显示的标签，使用玩家当前的语言
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
