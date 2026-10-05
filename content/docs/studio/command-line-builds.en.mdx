@@ -135,6 +135,8 @@ narraleaf-studio --build /projects/my-game \
 
 The option is repeatable and accepts the `build.` settings only. An empty value selects the official source. The console names the settings a run was given; their values are not printed and are not written to the report.
 
+The three download mirrors are the settings under **Settings → Network**: `build.electronMirror` is **Electron download mirror**, `build.electronBuilderBinariesMirror` is **Build tooling mirror**, and `build.zigMirror` is **Compiler toolchain mirror**. Each offers **No mirror**, the default, **Mirror in China**, or an address typed in. A build that stops because a download failed says where these settings are.
+
 ## Host requirements
 
 Every target can be built on Windows and on macOS, but the host system decides which desktop formats are available, exactly as it does in the dialog:

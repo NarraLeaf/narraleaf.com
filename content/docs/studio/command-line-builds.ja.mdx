@@ -135,6 +135,8 @@ narraleaf-studio --build /projects/my-game \
 
 このオプションは繰り返し指定でき、`build.` で始まる設定のみを受け付けます。値が空の場合は公式のソースを使います。ログにはその実行が受け取った設定の名前だけが出ます。値は出力されず、レポートにも書き込まれません。
 
+3 つのダウンロードミラーは **Settings → Network**（設定 → ネットワーク）の設定です。`build.electronMirror` は **Electron download mirror**（Electron のダウンロードミラー）、`build.electronBuilderBinariesMirror` は **Build tooling mirror**（ビルドツールのミラー）、`build.zigMirror` は **Compiler toolchain mirror**（コンパイラーツールチェーンのミラー）です。どれも既定の **No mirror**（ミラーを使わない）、**Mirror in China**（中国のミラー）、または自分で入力するアドレスから選べます。ダウンロードに失敗してビルドが止まったときは、これらの設定の場所が示されます。
+
 ## ビルドマシンの条件
 
 すべてのターゲットは Windows でも macOS でもビルドできますが、作れるデスクトップのフォーマットは実行中のシステムによって決まります。ダイアログと同じです。

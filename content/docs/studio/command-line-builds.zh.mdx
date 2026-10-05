@@ -133,7 +133,9 @@ narraleaf-studio --build /projects/my-game \
   --build-setting build.electronMirror=https://mirror.example/electron/
 ```
 
-该选项可重复，只接受 `build.` 开头的设置。取值为空表示使用官方源。日志只列出这次运行收到了哪些设置，取值既不打印也不写进报告。
+该选项可重复，只接受 `build.` 开头的设置。取值为空表示使用官方源。日志只列出这次运行收到了哪些设置，取值既不打印也不写进报告
+
+三个下载镜像就是**设置 → 网络**中的设置：`build.electronMirror` 是 **Electron 下载镜像**，`build.electronBuilderBinariesMirror` 是**构建工具下载镜像**，`build.zigMirror` 是**编译工具链下载镜像**。每一项都可以选**不使用镜像**（默认）、**中国镜像**，或填写自定义地址。构建因下载失败而停止时，会指出这些设置的位置。
 
 ## 对构建机的要求
 
