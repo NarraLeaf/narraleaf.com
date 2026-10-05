@@ -1,58 +1,61 @@
 ---
 title: "Example: affection and multiple endings"
-description: A saved variable records affection, choices change it, a Blueprint Value shows it on the dialogue box, conditions and a graph condition pick the ending, and the title page counts the endings reached.
+description: A saved variable records affection, choices change it, a Blueprint Value shows it on the dialogue box, the story ends according to it, and the title page shows how many endings have been reached.
 ---
 
-This page builds an affection system on a project made from the **Skeleton** template. The player's choices raise Narra's affection, and hearts on the right of the dialogue box show its current value. When affection is high enough, Narra asks one more question; the story then ends in one of three endings, decided by affection and an earlier choice. The title page shows how many endings have been reached.
+This example builds an affection system in a project created from the **Skeleton** template:
 
-| Part | Where | What it does here |
+- Choices increase the saved variable `Affection`.
+- The right side of the dialogue box shows the current value of `Affection`.
+- An extra branch plays when `Affection` is 20 or more.
+- The story ends in one of three endings, according to `Affection` and `Honest`.
+- The title page shows how many endings have been reached.
+
+| Part | Where | Purpose |
 | --- | --- | --- |
 | Saved variable `Affection` | **Variables** panel | Holds affection; saved and loaded with the game |
-| `/inc`, `/if`, `/ending` | Scenes | Raise affection, branch on it, mark the endings |
-| Blueprint Value | A text in the Game UI **Dialogue** | Reads affection and shows it as hearts |
-| Graph condition | The ending branch | Checks affection and `Honest` together in a blueprint |
+| `/inc`, `/if`, `/ending` | Scenes | Increase affection, branch on it, mark the endings |
+| Blueprint Value | A text in the Game UI **Dialogue** | Reads `Affection` and shows it |
 | `Get Endings` | A text on the page **Title** | Shows the number of endings reached |
-
-The three endings:
 
 | Ending | Condition |
 | --- | --- |
-| Festival for two | Affection at least 35, and "Something honest." chosen in the clubroom |
-| Same time tomorrow | Affection at least 20 |
-| The empty seat | Anything else |
+| Festival together | `Affection` is 35 or more, and "Something honest." was chosen in the clubroom |
+| Same time tomorrow | `Affection` is 20 or more |
+| Left the club | Any other case |
 
 ## Before you start
 
-Create a project from the **Skeleton** template, as described in [Getting started](/docs/studio/getting-started). The Skeleton has three scenes in order: **The corridor**, **The clubroom** and **Last light**. The menu in **The clubroom** writes the choice into the saved variable `Honest`, **Last light** shows a different line depending on `Honest`, and the story ends with the ending **Same time tomorrow**.
+Create a project from the **Skeleton** template, as described in [Getting started](/docs/studio/getting-started). The Skeleton contains three scenes: **The corridor**, **The clubroom** and **Last light**. The menu in **The clubroom** writes the choice into the saved variable `Honest`; **Last light** shows a different line depending on `Honest` and ends with the ending **Same time tomorrow**.
 
-The steps below declare the variable first, then change the three scenes in turn, and finally change the Game UI **Dialogue** and the page **Title**.
+The steps below declare the variable, change the three scenes in turn, and then change the Game UI **Dialogue** and the page **Title**.
 
 ## 1. Declare the variable
 
 Open **Variables** in the right sidebar and click **Add** next to **Saved variables**. Name the new variable `Affection`, set its type to **Number** and leave the default at `0`.
 
-A saved variable belongs to the whole project, and every scene and every blueprint can read and write it. Its value goes into the save, comes back when the save is loaded, and returns to the default when a new game starts. The other scopes are described in [Variables](/docs/studio/blueprint/variables).
+A saved variable belongs to the whole project, and every scene and blueprint can read and write it. Its value is written into the save, restored when the save is loaded, and reset to the default when a new game starts. The other scopes are described in [Variables](/docs/studio/blueprint/variables).
 
-## 2. Let choices change affection
+## 2. Change affection in choices
 
 <Steps>
 <Step>
 
 ### The corridor
 
-After Narra's line "One and a half. You keep leaving before it gets dark.", add a row, type `/menu` and press Enter twice. Studio inserts a menu with its first option. Click **Add option** on the menu row to add a second option, double-click each option to write its text, then click **Add action inside** on an option to write the rows that follow it:
+After Narra's line "One and a half. You keep leaving before it gets dark.", add a row, type `/menu` and press Enter twice. Studio inserts a menu with its first option. Click **Add option** on the menu row to add a second option, double-click each option to enter its text, then click **Add action inside** on an option to enter the rows that run when it is chosen:
 
 | Option | Rows inside the option |
 | --- | --- |
-| I'll stay till the end today. | Narra: "...I'm holding you to that."<br />`/inc Affection 10` |
-| The club isn't going anywhere. | Narra: "The club isn't. People are." |
+| I'll stay until the end today. | Narra: "Then we'll lock up together today."<br />`/inc Affection 10` |
+| I have something else today. | Narra: "All right." |
 
 </Step>
 <Step>
 
 ### The clubroom
 
-Each of the two options in the menu **What do we make?** holds a `/set Honest …` row. After each of those rows add:
+Each of the two options in the menu **What do we make?** contains a `/set Honest …` row. After each of those rows, add:
 
 | Option | Row to add |
 | --- | --- |
@@ -62,7 +65,7 @@ Each of the two options in the menu **What do we make?** holds a `/set Honest �
 </Step>
 </Steps>
 
-Type `/inc Affection 20` and press Enter, and the row reads **inc Affection 20**. Without a number `/inc` adds 1, and `/dec` subtracts; `/set Affection Affection + 20` does the same.
+After you type `/inc Affection 20` and press Enter, the row reads **inc Affection 20**. Without a number, `/inc` adds 1; `/dec` decreases a value; `/set Affection Affection + 20` has the same effect as `/inc Affection 20`.
 
 <Figure
     src="/static/img/docs/studio/en/affection-story.webp"
@@ -71,25 +74,23 @@ Type `/inc Affection 20` and press Enter, and the row reads **inc Affection 20**
 
 ## 3. Show affection on the dialogue box
 
-The right of the dialogue box shows five hearts, and every 10 points of affection fills one.
-
 <Steps>
 <Step>
 
 ### Add a text
 
-Choose **UI** in the activity bar on the left, set **Interface Type** to **Game UI** and open **Dialogue**. Drag a **Text** from the toolbar under the canvas to the right of the dialogue band, name it `Affection` and align its text to the right. The Skeleton leaves room to the right of the nametag: position X 1420, Y 754, size 320 × 46.
+Choose **UI** in the activity bar on the left, choose **Game UI** under **Interfaces**, and open **Dialogue**. Drag a **Text** from the toolbar below the canvas to the right side of the dialogue band, name it `Affection`, and align its text to the right. The space to the right of the nametag is at X 1420, Y 754, with a size of 320 × 46.
 
 </Step>
 <Step>
 
-### Hand the text to a Blueprint Value
+### Use a Blueprint Value for the text
 
-With the text selected, go to **Content** in the properties panel and switch **Text** from **Direct** to **Blueprint Value**. Studio creates a Blueprint Value for it, and the old text becomes the **Sample text**, which only the editor shows. Click **Open Blueprint Value**.
+Select the text and, under **Content** in the properties panel, switch **Text** from **Direct** to **Blueprint Value**. Studio creates a Blueprint Value for it, and the existing text becomes the **Sample text**, which only the editor shows. Click **Open Blueprint Value**.
 
 <Figure
     src="/static/img/docs/studio/en/affection-meter-text.webp"
-    alt="The Game UI Dialogue open in the UI editor; the selected text Affection takes its text from a Blueprint Value in the properties panel, and its sample text is two filled and three empty hearts"
+    alt="The Game UI Dialogue open in the UI editor; the selected text Affection uses a Blueprint Value in the properties panel, and its sample text is Affection: 30"
 />
 
 </Step>
@@ -97,107 +98,66 @@ With the text selected, go to **Content** in the properties panel and switch **T
 
 ### Build the graph
 
-The Blueprint Value already has `Init` connected to `Return Value`, with a `String` supplying the old text. Delete the `String`, then add and connect the nodes below:
+The Blueprint Value already contains `Init` connected to `Return Value`, with a `String` supplying the existing text. Delete the `String`, then add and connect the nodes below:
 
 | Node | Setting | Connects to |
 | --- | --- | --- |
 | `Init` | | Exec to `Get Saved Var` |
-| `Get Saved Var` | **Saved variable**: `Affection` | Exec to `Return Value`; **Value** to **A** of `÷` |
-| `÷` | **B**: `10` | **Result** to **Number** of `Floor` |
-| `Floor` | | **Result** to **Count** of `Repeat` |
-| `Repeat` | **Value**: `♥` | **Result** to **Value** of `Pad End` |
-| `Pad End` | **Length**: `5`, **Pad**: `♡` | **Result** to **Value** of `Return Value` |
+| `Get Saved Var` | **Saved variable**: `Affection` | Exec to `Return Value`; **Value** to **B** of `Concat` |
+| `Concat` | **A**: `Affection: ` (ending with a space) | **Result** to **Value** of `Return Value` |
 
 <Figure
     src="/static/img/docs/studio/en/affection-meter-graph.webp"
-    alt="The Blueprint Value for Affection: Init into Get Saved Var into Return Value, with the value passing through divide by 10, Floor, Repeat and Pad End"
+    alt="The Blueprint Value for Affection: Init connects to Get Saved Var and Return Value, and the saved value passes through Concat, which adds the label, into Return Value"
 />
 
 </Step>
 </Steps>
 
-The text is worked out again each time the saved variable it reads is written: the moment the story runs `/inc`, when a save is loaded, and when a new game starts, the hearts on the dialogue box change with it.
+The text is evaluated again each time the saved variable it reads is written. The value on the dialogue box updates when `/inc` runs, when a save is loaded and when a new game starts.
 
 <Figure
     src="/static/img/docs/studio/en/affection-stage.webp"
-    alt="Dev Mode showing the two options after Narra's question, with three filled and two empty hearts on the right of the dialogue box"
+    alt="Dev Mode showing the two options after Narra's question, with Affection: 30 on the right of the dialogue box"
 />
 
 ## 4. Branch on affection
 
 In **Last light**, add a row after the condition on `Honest` and before Narra's line "Same time tomorrow. Don't be late.", type `/if Affection >= 20` and press Enter. Under **If**, add:
 
-- Narra: "On the way back... want to walk to the station together?"
-- A menu. Inside the option "Sure.", Narra: "It's a deal." and `/inc Affection 15`; inside the option "Not today.", Narra: "...Right. Sure."
+- Narra: "Do you want to walk to the station together?"
+- A menu. The option "Sure." contains Narra: "Okay." and `/inc Affection 15`; the option "Not today." contains Narra: "Maybe next time."
 
-With affection below 20 the story skips the whole branch. This condition has no **Else**, so when it does not hold the next row runs.
+When `Affection` is below 20, the whole branch is skipped. This condition has no **Else** branch, so the story continues with the next row.
 
-The condition of an `/if` is an expression, which can use comparisons, `&&`, `||` and `!`. In the properties panel the condition can also be switched to **Variable**, which picks the variable and the comparison from dropdowns.
+The condition of an `/if` is an expression, which supports comparisons and `&&`, `||` and `!`. The condition can also be switched to **Variable** in the properties panel, where the variable and the comparison are chosen from dropdowns.
 
 ## 5. Three endings
 
-Delete the two lines of narration and the ending **Same time tomorrow** at the end of **Last light**. At the end of the scene type `/if Affection >= 35 && Honest` and press Enter, then click **Else if** and **Else** on the condition row to add the other two branches:
+Delete the two lines of narration and the ending **Same time tomorrow** at the end of **Last light**. At the end of the scene, type `/if Affection >= 35 && Honest` and press Enter, then click **Else if** and **Else** on the condition row to add the other two branches:
 
 | Branch | Condition | Rows in the branch |
 | --- | --- | --- |
-| If | `Affection >= 35 && Honest` | Narration "On festival day, the first one through the clubroom door was Narra."<br />`/ending Festival for two` |
+| If | `Affection >= 35 && Honest` | Narration "On festival day, Narra and I set up the clubroom together."<br />`/ending Festival together` |
 | Else if | `Affection >= 20` | `/ending Same time tomorrow` |
-| Else | | Narration "The next day, I didn't go to the club."<br />`/ending The empty seat` |
+| Else | | Narration "After that, I stopped going to the club."<br />`/ending Left the club` |
 
 `/ending` ends the story on that row and records which ending the player reached.
 
-### Work out the condition in a blueprint
-
-A blueprint can work out the condition instead. The steps below turn the first branch into a graph condition that gives the same result as the expression `Affection >= 35 && Honest`.
-
-<Steps>
-<Step>
-
-### Switch to Graph
-
-Select the **If** row of the first branch, switch the condition in the properties panel from **Expression** to **Graph**, then click the preview card below it. Studio creates the condition blueprint and opens it in a **Condition** tab. The row's condition now reads **Graph condition**.
-
 <Figure
     src="/static/img/docs/studio/en/affection-endings.webp"
-    alt="The three branches at the end of Last light, each ending in an ending row; the first branch's condition reads Graph condition, and the properties panel shows the condition type Graph"
+    alt="The three branches at the end of Last light, each ending in an ending row; the selected first branch shows its condition expression in the properties panel"
 />
 
-</Step>
-<Step>
+## 6. Return to the title page after an ending
 
-### Build the graph
-
-The graph already has `On Call` connected to `Return Value`, with a `Boolean` supplying the value. Delete the `Boolean` and add the nodes below:
-
-| Node | Setting | Connects to |
-| --- | --- | --- |
-| `On Call` | | Exec to the first `Get Saved Var` |
-| `Get Saved Var` | **Saved variable**: `Affection` | Exec to the second `Get Saved Var`; **Value** to **A** of `Greater Than Or Equal` |
-| `Get Saved Var` | **Saved variable**: `Honest` | Exec to `Return Value`; **Value** to **A** of `And` |
-| `Greater Than Or Equal` | **B**: `35` | **Result** to **B** of `And` |
-| `And` | | **Result** to **Value** of `Return Value` |
-
-<Figure
-    src="/static/img/docs/studio/en/affection-condition.webp"
-    alt="The condition blueprint: On Call into two Get Saved Var nodes into Return Value; Affection goes through Greater Than Or Equal 35 and meets Honest in an And node"
-/>
-
-</Step>
-</Steps>
-
-The graph runs each time the story reaches this branch, and the branch is taken when the value handed to `Return Value` is true. A graph condition cannot use nodes that wait, such as `Get Persistent`; a calculation an expression cannot write, such as `Random Integer`, can go in a graph condition.
-
-The live preview treats a graph condition as false. Check ending branches in Dev Mode.
-
-## 6. Return to the title after an ending
-
-Open **Project** → **App**, expand **main** under **Build variants**, and set **Page shown when the story ends** to **Title**. An ending row shows this page once the story ends. A single ending row can pick a different page under **Page shown afterwards** in the properties panel.
+Open **Project** → **App**, expand **main** under **Build variants**, and set **Page shown when the story ends** to **Title**. The story shows this page after it ends on an ending row. A single ending row can show a different page, set under **Page shown afterwards** in the properties panel.
 
 ## 7. Show the endings reached on the title page
 
-The endings a player has reached are recorded outside the save: loading a save, starting a new game or restarting the game does not clear them.
+The endings a player has reached are recorded outside the save. Loading a save, starting a new game and restarting the game do not clear the record.
 
-Open the page **Title**, put a **Text** under the title rule and name it `Endings`. Switch its **Text** to **Blueprint Value**, open it and build the graph below:
+Open the page **Title**, add a **Text** below the title rule and name it `Endings`. Switch its **Text** to **Blueprint Value**, open it, and build the graph below:
 
 | Node | Setting | Connects to |
 | --- | --- | --- |
@@ -211,34 +171,34 @@ Open the page **Title**, put a **Text** under the title rule and name it `Ending
 | `Make Array` | Two items | **Array** to **Values** of `Format` |
 | `Format` | **Template**: `Endings reached {0} / {1}` | **Result** to **Value** of `Return Value` |
 
-`Get Endings` lists every ending row in the story, and each entry's `isReached` says whether the player has reached it. The first `Get Endings` keeps the endings reached; the second counts them all.
+`Get Endings` lists every ending row in the story, and the `isReached` field of each entry states whether the player has reached it. The first `Get Endings` keeps the endings that have been reached; the second counts all of them.
 
 <Figure
     src="/static/img/docs/studio/en/affection-endings-graph.webp"
-    alt="The Blueprint Value for Endings: two Get Endings nodes, one through Array Filter By Key and Array Length, the other through Array Length alone; both numbers go into Make Array and Format writes them into one line"
+    alt="The Blueprint Value for Endings: two Get Endings nodes, one passing through Array Filter By Key and Array Length, the other through Array Length only; both numbers go into Make Array, and Format turns them into text"
 />
 
 The template is text written in the graph and does not change with the game's language. In a project with more than one language, supply the template with `Translation Key Text`.
 
 <Figure
     src="/static/img/docs/studio/en/affection-title.webp"
-    alt="The title page in Dev Mode, with Endings reached 1 / 3 under the game title"
+    alt="The title page in Dev Mode, with Endings reached 1 / 3 below the game title"
 />
 
-## Play and check
+## Testing
 
 - Press **F5** to run the project in Dev Mode. Click **Play from this row** on a row to start from that row.
-- The debug button at the bottom left of Dev Mode → **Story** → **Variables** lists the current values of the saved variables and can change them. Set `Affection` to 40, turn `Honest` on, then play to the end to check **Festival for two**.
-- The arrow next to the Dev Mode button → **Reset player data** → **Dev Mode** clears every save and the endings record of Dev Mode. The title page goes back to `Endings reached 0 / 3`.
-- Click **Open Scene Flow** in the **Story** panel and pick `Affection` in the variable list. Each scene shows the range affection can have on arrival; **Show branches** shows what each option adds and which branches end the story.
-- When a condition asks for more than any route can reach, the **Problems** panel reports **Condition no path can satisfy** and gives the range of affection at that point.
+- The debug button at the bottom left of Dev Mode → **Story** → **Variables** lists the current values of the saved variables, which can be changed there. Set `Affection` to 40, turn on `Honest`, and play to the end to check the ending **Festival together**.
+- The arrow next to the Dev Mode button → **Reset player data** → **Dev Mode** clears all saves and the endings record of Dev Mode. The title page returns to `Endings reached 0 / 3`.
+- Click **Open Scene Flow** in the **Story** panel and choose `Affection` in the variable list. Each scene shows the range of `Affection` on arrival; **Show branches** shows how much each option adds and which branches end the story.
+- When the threshold of a condition is higher than any route can reach, the **Problems** panel reports **Condition no path can satisfy** and gives the range of `Affection` at that point.
 
 <Figure
     src="/static/img/docs/studio/en/affection-flow.webp"
-    alt="The scene flow focused on Affection: 0 on arrival at The corridor, 0-10 at The clubroom and 10-30 at Last light; the expanded branches mark what each option adds and the three ending branches"
+    alt="The scene flow focused on Affection: 0 on arrival at The corridor, 0-10 at The clubroom and 10-30 at Last light; the expanded branches mark the amount each option adds and the three ending branches"
 />
 
-## Next
+## Related pages
 
-- Persistent variables are kept outside the save, across every save and every launch; see [Persistent variables](/docs/studio/blueprint/variables#persistent-variables).
-- Node reference: [Variables nodes](/docs/studio/blueprint/nodes/variables), [Game nodes](/docs/studio/blueprint/nodes/game), [Data nodes](/docs/studio/blueprint/nodes/data), [Math nodes](/docs/studio/blueprint/nodes/math).
+- Persistent variables are not stored in saves and are kept across all saves and launches; see [Persistent variables](/docs/studio/blueprint/variables#persistent-variables).
+- Node reference: [Variables nodes](/docs/studio/blueprint/nodes/variables), [Game nodes](/docs/studio/blueprint/nodes/game), [Data nodes](/docs/studio/blueprint/nodes/data).
