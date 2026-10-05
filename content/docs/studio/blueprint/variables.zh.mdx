@@ -125,11 +125,12 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域
 
 ## Blueprint Value
 
-[Blueprint Value](/zh/docs/studio/blueprint) 是绑定到单个控件属性上的`widgetValue`蓝图，它的创建浮窗被刻意限制为安全的取值类节点。对变量而言有三条后果：
+[Blueprint Value](/zh/docs/studio/blueprint) 是绑定到单个控件属性上的`widgetValue`蓝图，它的创建浮窗被刻意限制为安全的取值类节点。对变量而言有四条后果：
 
 - **它不能声明`Var`。** 该节点不在它的创建浮窗里，声明变量的扫描也会直接跳过`widgetValue`宿主
 - **它不能读写持久变量。** `Get Persistent`和`Set Persistent`是 latent 的，而值绑定必须在被询问的那一拍里给出值——没有地方安放一个待定的 promise
 - **它照样能读写自己看得见的变量。** `Get Var`和`Set Var`在白名单上，它们解析到页面蓝图和应用逻辑——那就是全部可访问集合，因为值蓝图自己一个变量也不声明
+- **它能读取存档变量。** `Get Saved Var`在白名单上，`Set Saved Var`不在。变量每次被写入，绑定都重新求值：写入可以来自故事中的行、其它蓝图，或读取存档。[示例：好感度与多结局](/zh/docs/studio/blueprint/affection-endings)用这种方式在对话框上显示存档变量
 
 ## 故事变量与表达式
 
@@ -152,4 +153,4 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域
 
 可用前缀是`scene.` / `local.`、`saved.` / `var.`，以及`persis.` / `persistent.` / `global.`。表达式在你输入的当下就被解析，文档存的是语法树而不是文本，所以运行时不会再解析一次；这门语言也无法命名任何宿主对象，因此没有沙箱可逃
 
-故事 action 蓝图能触及全部三种故事作用域：`Get Scene Var` / `Set Scene Var`、`Get Saved Var` / `Set Saved Var`，以及`Get Persistent` / `Set Persistent`。`Get Scene Var`和`Set Scene Var`只对`storyAction`宿主存在，因为在运行中的故事之外没有场景。存档变量那一对也提供给除 Blueprint Value 之外的其它蓝图，在那里访问运行中的游戏的存档变量，见[变量节点](/zh/docs/studio/blueprint/nodes/variables)
+故事 action 蓝图能触及全部三种故事作用域：`Get Scene Var` / `Set Scene Var`、`Get Saved Var` / `Set Saved Var`，以及`Get Persistent` / `Set Persistent`。`Get Scene Var`和`Set Scene Var`只对`storyAction`宿主存在，因为在运行中的故事之外没有场景。存档变量那一对也提供给其它蓝图，在那里访问运行中的游戏的存档变量；Blueprint Value 只提供`Get Saved Var`，见[变量节点](/zh/docs/studio/blueprint/nodes/variables)

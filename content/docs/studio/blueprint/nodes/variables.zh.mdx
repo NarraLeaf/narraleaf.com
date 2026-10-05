@@ -11,7 +11,7 @@ description: 声明变量、读取变量、写入变量，以及访问 Persisten
 - **之后改类型不会动你的连线。** 改掉某个`Var`的 Data type 后，已不再匹配的连线原地保留；graph validation 报告类型不匹配，而不是由编辑器悄悄删掉这条连线。重接哪一根由你决定
 - **Persistent 那一对是 latent（会挂起执行）节点。** `Get Persistent`和`Set Persistent`在读写完成前会挂起整张图，因此进不了 [Blueprint Value](/zh/docs/studio/blueprint)、内联故事值和分支条件
 - **Blueprint Value 不能声明变量。** `widgetValue`宿主根本没有`Var`节点，但它仍然可以用`Get Var`和`Set Var`读写自己够得到的变量
-- **Scene 这两个节点属于 Story Action 蓝图。** `Get Scene Var`和`Set Scene Var`在别处都不提供。Saved 这一对提供给除 Blueprint Value 之外的所有蓝图：在 Story Action 蓝图里它访问运行中的剧情，在其它地方访问运行中的游戏
+- **Scene 这两个节点属于 Story Action 蓝图。** `Get Scene Var`和`Set Scene Var`在别处都不提供。Saved 这一对提供给所有蓝图：在 Story Action 蓝图里它访问运行中的剧情，在其它地方访问运行中的游戏。Blueprint Value 中可以用`Get Saved Var`，不能用`Set Saved Var`；它显示的值随变量的每次写入更新
 
 ## Var
 
@@ -142,6 +142,8 @@ Set Scene Var（设置场景变量）写入一个 Scene 变量，然后从`next`
 `blueprint.saved.get`
 
 Get Saved Var（获取存档变量）从运行中的游戏的存档存储读取一个 Saved 变量，也就是存档文件会带走的那一份。界面可以在任何游戏开始之前读取它，例如在标题画面上：这时`value`是该变量声明的默认值，`found`为`false`
+
+在 [Blueprint Value](/zh/docs/studio/blueprint) 中，变量每次被写入，控件都显示新值：写入可以来自故事中的行、界面的蓝图，或读取存档
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

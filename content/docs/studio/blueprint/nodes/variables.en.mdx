@@ -11,7 +11,7 @@ These nodes are the only way a graph touches a variable. Which scopes exist, how
 - **A later type change keeps your edges.** Change a `Var`'s Data type and any edge that no longer fits stays exactly where it is; validation reports a type mismatch instead of the editor quietly deleting the connection. You decide what to rewire.
 - **The Persistent pair is latent.** `Get Persistent` and `Set Persistent` suspend the graph until the read or write finishes, which keeps them out of a [Blueprint Value](/docs/studio/blueprint), an inline story value and a branch condition.
 - **Blueprint Value cannot declare.** A `widgetValue` owner has no `Var` node at all. It can still read and write the variables it can reach, through `Get Var` and `Set Var`.
-- **The Scene nodes belong to Story Action blueprints.** `Get Scene Var` and `Set Scene Var` are offered nowhere else. The Saved pair is offered to every blueprint except a Blueprint Value: in a Story Action blueprint it reaches the running story, and anywhere else it reaches the game being played.
+- **The Scene nodes belong to Story Action blueprints.** `Get Scene Var` and `Set Scene Var` are offered nowhere else. The Saved pair is offered to every blueprint: in a Story Action blueprint it reaches the running story, and anywhere else it reaches the game being played. A Blueprint Value takes `Get Saved Var` and not `Set Saved Var`, and the value it shows follows every write to the variable.
 
 ## Var
 
@@ -142,6 +142,8 @@ Writes a Scene variable, then continues through `next`.
 `blueprint.saved.get`
 
 Reads a Saved variable from the saved store of the game being played, the one a save file carries. A screen can read one before any game has started, for example on the title screen: `value` is then the variable's declared default and `found` is `false`.
+
+In a [Blueprint Value](/docs/studio/blueprint) the widget shows the new value whenever the variable is written, whether by a story row, a screen's blueprint or a save being loaded.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

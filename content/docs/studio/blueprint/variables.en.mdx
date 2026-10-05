@@ -125,11 +125,12 @@ A `Get Var` or `Set Var` whose selected variable no longer exists — deleted, o
 
 ## Blueprint Value
 
-A [Blueprint Value](/docs/studio/blueprint) is a `widgetValue` blueprint bound to a single widget property, and its palette is deliberately restricted to safe value-producing nodes. Three consequences for variables:
+A [Blueprint Value](/docs/studio/blueprint) is a `widgetValue` blueprint bound to a single widget property, and its palette is deliberately restricted to safe value-producing nodes. Four consequences for variables:
 
 - **It cannot declare `Var`.** The node is not in its palette, and the declared-variable scan skips `widgetValue` owners outright.
 - **It cannot read or write persistent variables.** `Get Persistent` and `Set Persistent` are latent, and a value binding has to produce a value in the tick it is asked for — there is nobody to hand a pending promise to.
 - **It can still read and write the variables it can see.** `Get Var` and `Set Var` are on the whitelist and resolve against the page's blueprint and App logic, which is the entire accessible set, since a value blueprint declares none of its own.
+- **It reads saved variables.** `Get Saved Var` is on the whitelist and `Set Saved Var` is not. The binding runs again whenever the variable is written, by a story row, another blueprint or a save being loaded. [Example: affection and multiple endings](/docs/studio/blueprint/affection-endings) shows a dialogue box following a saved variable this way.
 
 ## Story variables and expressions
 
@@ -152,4 +153,4 @@ Story expressions — the right-hand side of `/set`, the test in `/if`, and inli
 
 The prefixes are `scene.` / `local.`, `saved.` / `var.`, and `persis.` / `persistent.` / `global.`. An expression is parsed the moment you type it and the document stores the tree rather than the text, so nothing is re-parsed at run time; nothing in the language can name a host object either, so there is no sandbox to escape.
 
-A story-action blueprint reaches all three story scopes: `Get Scene Var` / `Set Scene Var`, `Get Saved Var` / `Set Saved Var`, and `Get Persistent` / `Set Persistent`. `Get Scene Var` and `Set Scene Var` exist only for `storyAction` owners, because outside a running story there is no scene. The saved pair is also offered to the other blueprints, except a Blueprint Value, and there it reaches the saved variables of the game being played; see [Variables nodes](/docs/studio/blueprint/nodes/variables).
+A story-action blueprint reaches all three story scopes: `Get Scene Var` / `Set Scene Var`, `Get Saved Var` / `Set Saved Var`, and `Get Persistent` / `Set Persistent`. `Get Scene Var` and `Set Scene Var` exist only for `storyAction` owners, because outside a running story there is no scene. The saved pair is also offered to the other blueprints, where it reaches the saved variables of the game being played; a Blueprint Value takes `Get Saved Var` only; see [Variables nodes](/docs/studio/blueprint/nodes/variables).

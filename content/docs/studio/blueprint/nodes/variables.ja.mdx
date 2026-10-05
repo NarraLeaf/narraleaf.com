@@ -11,7 +11,7 @@ description: 変数を宣言し、読み取り、書き込み、そして Persis
 - **後から型を変更しても、接続されたエッジは保持されます。** `Var` の Data type を変更し、既存のエッジがもう合わなくなっても、そのエッジはそのまま残ります。検証は接続を静かに削除するのではなく、型の不一致として報告します。どのエッジを繋ぎ直すかは作者が決めます。
 - **Persistent のペアは latent です。** `Get Persistent` と `Set Persistent` は読み書きが終わるまでグラフを一時停止させるため、[Blueprint Value](/ja/docs/studio/blueprint)、インラインのストーリー値、分岐条件では提供されません。
 - **Blueprint Value は宣言できません。** `widgetValue` の宿主には `Var` ノードが一切ありません。それでも `Get Var` と `Set Var` を通じて、自分がアクセスできる変数を読み書きできます。
-- **Scene のノードは Story Action ブループリントに属します。** `Get Scene Var` と `Set Scene Var` は他のどこにも提供されません。Saved のペアは Blueprint Value を除くすべてのブループリントに提供されます。Story Action ブループリントでは実行中のストーリーに、それ以外では実行中のゲームにアクセスします。
+- **Scene のノードは Story Action ブループリントに属します。** `Get Scene Var` と `Set Scene Var` は他のどこにも提供されません。Saved のペアはすべてのブループリントに提供されます。Story Action ブループリントでは実行中のストーリーに、それ以外では実行中のゲームにアクセスします。Blueprint Value では `Get Saved Var` を使え、`Set Saved Var` は使えません。表示する値は変数が書き込まれるたびに更新されます。
 
 ## Var
 
@@ -142,6 +142,8 @@ Scene 変数に書き込み、その後 `next` を通じて処理を継続しま
 `blueprint.saved.get`
 
 実行中のゲームのセーブストア（セーブファイルが持ち出す方のストア）から、Saved 変数を読み取ります。画面はゲームが始まる前、たとえばタイトル画面でも読み取れます。そのとき `value` はその変数の宣言済みのデフォルト値で、`found` は `false` です。
+
+[Blueprint Value](/ja/docs/studio/blueprint) の中では、変数が書き込まれるたびにウィジェットが新しい値を表示します。書き込みがストーリーの行、画面のブループリント、セーブの読み込みのどれによるものでも同じです。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |

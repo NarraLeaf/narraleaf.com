@@ -125,11 +125,12 @@ description: 値がどこに存在し、どのくらい生き続け、どのス�
 
 ## Blueprint Value
 
-[Blueprint Value](/ja/docs/studio/blueprint) は、1つのウィジェットプロパティにバインドされた `widgetValue` ブループリントであり、そのパレットは意図的に安全な値生成ノードだけに制限されています。変数について、3つの帰結があります。
+[Blueprint Value](/ja/docs/studio/blueprint) は、1つのウィジェットプロパティにバインドされた `widgetValue` ブループリントであり、そのパレットは意図的に安全な値生成ノードだけに制限されています。変数について、4つの帰結があります。
 
 - **`Var` を宣言できません。** このノードはパレットに存在せず、変数宣言のスキャンは `widgetValue` オーナーを最初から完全にスキップします。
 - **永続変数を読み書きできません。** `Get Persistent` と `Set Persistent` は latent であり、値バインディングは求められたそのティックのうちに値を出さなければなりません——保留中の promise を渡す相手がいないのです。
 - **見える変数は読み書きできます。** `Get Var` と `Set Var` はホワイトリストに含まれており、ページのブループリントと App logic に対して解決されます——値ブループリントは自分自身では何も宣言しないため、これがアクセス可能な集合のすべてです。
+- **セーブ変数を読めます。** `Get Saved Var` はホワイトリストに含まれ、`Set Saved Var` は含まれません。変数が書き込まれるたびに、バインディングは評価し直されます。書き込みはストーリーの行、ほかのブループリント、セーブの読み込みのどれでも構いません。[例：好感度とマルチエンディング](/ja/docs/studio/blueprint/affection-endings)では、この方法で会話ボックスにセーブ変数を表示します。
 
 ## ストーリー変数と式
 
@@ -152,4 +153,4 @@ description: 値がどこに存在し、どのくらい生き続け、どのス�
 
 接頭辞は `scene.` / `local.`、`saved.` / `var.`、そして `persis.` / `persistent.` / `global.` です。式は入力したその瞬間に解析され、ドキュメントはテキストではなく構文木を保存するため、実行時に再解析されることはありません。この言語にはホストオブジェクトを名指しする手段もないため、脱出すべきサンドボックスもありません。
 
-ストーリー action ブループリントは、3つのストーリースコープすべてに到達できます——`Get Scene Var` / `Set Scene Var`、`Get Saved Var` / `Set Saved Var`、そして `Get Persistent` / `Set Persistent`。`Get Scene Var` と `Set Scene Var` は `storyAction` オーナーに対してのみ存在します。実行中のストーリーの外にはシーンがないからです。セーブ変数のペアは Blueprint Value を除くほかのブループリントにも提供され、そこでは実行中のゲームのセーブ変数にアクセスします。詳しくは[変数ノード](/ja/docs/studio/blueprint/nodes/variables)を参照してください。
+ストーリー action ブループリントは、3つのストーリースコープすべてに到達できます——`Get Scene Var` / `Set Scene Var`、`Get Saved Var` / `Set Saved Var`、そして `Get Persistent` / `Set Persistent`。`Get Scene Var` と `Set Scene Var` は `storyAction` オーナーに対してのみ存在します。実行中のストーリーの外にはシーンがないからです。セーブ変数のペアはほかのブループリントにも提供され、そこでは実行中のゲームのセーブ変数にアクセスします。Blueprint Value で使えるのは `Get Saved Var` だけです。詳しくは[変数ノード](/ja/docs/studio/blueprint/nodes/variables)を参照してください。
