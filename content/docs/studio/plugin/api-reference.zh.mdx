@@ -117,7 +117,7 @@ const off = app.services.localization.registerWords({
 | `listKeys` | `() => PluginLocalizationKeyEntry[]` | 每个键的 `name` 与 `sourceText`。键加载完成之前为空|
 | `registerWords` | `(source: PluginWordsSource) => PluginCleanup` | 把插件显示给玩家的文字交给翻译表与导出|
 
-插件显示给玩家的文字，要么指定项目的某个翻译键，按键翻译；要么直接写，再用 `registerWords` 提交。`PluginWordsSource` 是 `{ list(), subscribe? }`：`list()` 返回 `PluginWordsEntry` 对象，`subscribe(listener)` 返回取消订阅的函数；`list()` 的结果会变化时调用 listener
+插件显示给玩家的文字，要么指定项目的某个翻译键，按键翻译；要么直接提供文字，再用 `registerWords` 提交。`PluginWordsSource` 是 `{ list(), subscribe? }`：`list()` 返回 `PluginWordsEntry` 对象，`subscribe(listener)` 返回取消订阅的函数；`list()` 的结果会变化时调用 listener
 
 | `PluginWordsEntry` | 说明 |
 | --- | --- |
@@ -125,7 +125,7 @@ const off = app.services.localization.registerWords({
 | `text` | 文字，使用项目的源语言|
 | `context` | 可选。玩家在哪里看到这段文字，供译者参考，例如 `File › Save`。缺省为插件名|
 
-每个含字母的条目在翻译表的**界面文本**中按插件名占一行，翻译单元是 `plugin:<pluginId>/<id>`。runtime 入口用 [`app.game.locale.words(id, text)`](#the-players-language) 读回玩家语言中的文字。[`ui.WordsField`](/zh/docs/studio/plugin/studio/ui-kit) 为作者提供与 Studio 自己的文字相同的**直接写**或**翻译键**选择
+每个含字母的条目在翻译表的**界面文本**中按插件名占一行，翻译单元是 `plugin:<pluginId>/<id>`。runtime 入口用 [`app.game.locale.words(id, text)`](#the-players-language) 读回玩家语言中的文字。[`ui.WordsField`](/zh/docs/studio/plugin/studio/ui-kit) 为作者提供与 Studio 自己的文字相同的**直接输入**或**翻译键**选择
 
 ### services.ui.panels
 
@@ -238,7 +238,7 @@ import { ui } from "narraleaf-studio/plugin";
 
 Studio 自己的组件，让面板与编辑器主题保持一致：`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`（及其子组件）、`ui.Modal`（及其子组件）、`ui.AssetSelector`、`ui.WordsField`，以及 `ui.Panel.*` 布局原语（`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`）
 
-`ui.WordsField` 是玩家读到的文字的字段，提供与 Studio 自己的文本和按钮文字相同的选择、键列表与就地编辑键。它是受控组件：`value` 是 `{ text, key }`，直接写时 `key` 为 null，`onChange` 收到下一个值。直接写的文字由插件用 `registerWords` 提交后翻译；取自键的文字按键翻译
+`ui.WordsField` 是玩家读到的文字的字段，提供与 Studio 自己的文本和按钮文字相同的选择、键列表与就地编辑键。它是受控组件：`value` 是 `{ text, key }`，选择**直接输入**时 `key` 为 null，`onChange` 收到下一个值。直接输入的文字由插件用 `registerWords` 提交后翻译；取自键的文字按键翻译
 
 ---
 

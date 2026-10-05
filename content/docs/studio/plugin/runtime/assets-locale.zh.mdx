@@ -51,7 +51,7 @@ const stop = app.game.locale?.onChange(next => {
 ```
 
 - `text(key)` 读取项目的某个翻译键在当前语言中的文字，所用的表与回退链与 [`Get Text`](/zh/docs/studio/blueprint/nodes/localization#get-text) 节点相同。项目没有声明该键时返回 `null`
-- `words(id, text)` 读取插件直接写、并在 studio 入口用 [`app.services.localization.registerWords`](/zh/docs/studio/plugin/api-reference#serviceslocalization) 提交翻译的文字：`id` 所指单元沿语言回退链找到的译文，否则为 `text`。游戏只带译文不带源文，所以由插件传入原文。插件只能读到自己的文字
+- `words(id, text)` 读取插件直接提供、并在 studio 入口用 [`app.services.localization.registerWords`](/zh/docs/studio/plugin/api-reference#serviceslocalization) 提交翻译的文字：`id` 所指单元沿语言回退链找到的译文，否则为 `text`。游戏只带译文不带源文，所以由插件传入原文。插件只能读到自己的文字
 
 这是只读的：插件可以跟随玩家的语言，但不能改变它
 

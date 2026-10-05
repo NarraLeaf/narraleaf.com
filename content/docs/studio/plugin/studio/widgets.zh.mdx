@@ -71,7 +71,7 @@ app.services.widgets.register(myWidgetModule);
 
 ## 玩家读到的文字 [#words-a-player-reads]
 
-控件的属性中有玩家读到的文字（例如标题或说明）时，在 manifest 的 [`contributes.widgetText`](/zh/docs/studio/plugin/manifest#widgettext) 下声明这些属性。Studio 随后在属性面板中为每一项提供**直接写**或**翻译键**的选择，在画布上绘制键的文字，并把这些文字列入翻译表。`render` 收到的 `element.props.<prop>` 已是解析好的文字：画布上为源语言，游戏中为玩家的语言。控件自己从不解析键
+控件的属性中有玩家读到的文字（例如标题或说明）时，在 manifest 的 [`contributes.widgetText`](/zh/docs/studio/plugin/manifest#widgettext) 下声明这些属性。Studio 随后在属性面板中为每一项提供**直接输入**或**翻译键**的选择，在画布上绘制键的文字，并把这些文字列入翻译表。`render` 收到的 `element.props.<prop>` 已是解析好的文字：画布上为源语言，游戏中为玩家的语言。控件自己从不解析键
 
 ## 控件事件 [#widget-events]
 
