@@ -18,7 +18,7 @@ The workspace has an activity bar, sidebars, an editor area, a Properties panel,
 | Left sidebar | Browse and create content for the current tool |
 | Center editor area | Open pages, scenes, asset previews, and Blueprints in tabs |
 | Right sidebar | **Properties** edits the selected page, widget, asset, or story action; **Variables** and **Dictionary** sit under it on the same rail |
-| Bottom bar | Show the console, build output, motion tools, and the assets panel |
+| Bottom bar | Show the console, build output, the **Problems** panel, motion tools, and the assets panel |
 | Top bar | File actions, version control, and the run and build controls |
 
 ## The left rail
@@ -30,6 +30,17 @@ Ten panels are registered on the left rail. Three are worth naming because they 
 - **Voice** is the voice-line library: the takes recorded for each line, per dub language. It starts folded into **Collapsed panels**, the last entry on the rail, together with **Localization** and **Plugins**.
 
 Which panels are on the rail is yours to set; a plugin can add its own through [`app.services.ui.panels`](/docs/studio/plugin/studio/ui).
+
+## Problems
+
+The **Problems** panel opens in the bottom bar, beside the console, and lists what the project checks found. The checks run by themselves shortly after each edit, and the status bar shows how many errors and warnings there are; clicking the count opens the panel.
+
+- The list shows the findings in the **Whole project**, the **Open editors** or the **Current editor**, filtered by severity and grouped **By rule** or **By location**.
+- Selecting a finding opens the place it is about, such as a story row, a widget on its page, a node in its blueprint or a row in the translation table.
+- The **?** on a finding opens **About this rule**: what the rule found, what it does to the game, and how to fix it.
+- A story row with a finding carries a mark in the color of its most severe finding. Hovering the mark lists the findings, and clicking it opens the panel. The blueprint editor lists the findings in its blueprint under the canvas.
+- **Run again** in the panel, or the **Check project** command, checks the whole project again and re-reads the asset files on disk, including files changed outside Studio.
+- **Check settings** opens **Project → Project → Project check**, where each rule's severity is set.
 
 ## Selection and properties
 

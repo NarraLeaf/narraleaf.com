@@ -17,7 +17,7 @@ A name reaches the package when it comes from something written in the project a
 
 ## Names assembled at run time
 
-A name is assembled when anything on its way puts text together or takes it from outside the project: `Concat`, `Format Text`, what the player typed into a Text Input, or a response from `Fetch`. A value the check cannot follow back to where it was written counts as assembled as well, such as a variable whose name is itself wired in.
+A name is assembled when anything on its way puts text together or takes it from outside the project: `Concat`, `Format`, what the player typed into a Text Input, or a response from `Fetch`. A value the check cannot follow back to where it was written counts as assembled as well, such as a variable whose name is itself wired in.
 
 ## The check
 
@@ -26,7 +26,7 @@ The rule is `blueprint/assembled-asset-name`, titled **Asset name assembled at r
 | Where | What appears |
 | --- | --- |
 | Blueprint editor | An error on the node that takes the name. When the name is used in another blueprint or by a property, the node that assembles it carries the error. |
-| **Problems** | One row for each use, after the **Check project** command or the check that runs before a build. |
+| **Problems** | One row for each use, kept up to date as the project is edited. |
 | Production build | The build stops with the same message. It stops whatever severity the rule is set to under **Project → Project → Project check**, and also when **Check before building** is off. |
 
 ## Fixing it
