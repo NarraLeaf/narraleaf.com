@@ -8,7 +8,7 @@ Five nodes for the game's voice tracks: playing a take, playing the take attache
 ## Conventions
 
 - **All five are latent.** None can back a Blueprint Value, and none is offered to a Story Action blueprint, which has no game host.
-- **A take is addressed by voice id**, which is the line's stable text id — the same key the translation table uses.
+- **A take is addressed by voice id**, which is the line's unit ID, the id its row carries in the translation table.
 - **Setting the language takes effect from the next spoken line.** The game does not restart, and the text language is unaffected; that one is set with the nodes in [Localization](/docs/studio/blueprint/nodes/localization).
 
 ## Play Voice

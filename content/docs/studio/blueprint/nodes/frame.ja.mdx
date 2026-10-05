@@ -35,7 +35,7 @@ description: Frame がどの Page を表示するか、そしてその Page に�
 カード上の Page 選択は、変更したときだけでなく実行のたびに書き込まれます。`Page props` だけを接続していても、`Set Frame Page` が `None` のままであれば Frame はクリアされます。対象を変えずに props だけを変更したい場合は `Set Params` を使ってください。
 </Callout>
 
-Frame が Page を切り替えている間、その内側でのクリックなどのポインター入力は Frame で止まります。離れていく Page は入力を受け付けず、新しく来る Page の要素はいつもどおり応答します。Frame 自身のヘッド、周囲の要素、Surface、グローバルブループリント **App logic**（アプリロジック）には何も届きません。切り替えが終わると、ポインター入力は再び Frame から上へ渡されます。詳しくは[イベントのバブリング](/ja/docs/studio/blueprint/nodes/events#event-bubbling)を参照してください。
+Frame が Page を切り替えている間、その内側でのクリックなどのポインター入力は Frame で止まります。離れていく Page は入力を受け付けず、新しく来る Page の要素はいつもどおり応答します。Frame 自身のヘッド、周囲の要素、Surface、**App logic**（アプリロジック）には何も届きません。切り替えが終わると、ポインター入力は再び Frame から上へ渡されます。詳しくは[イベントのバブリング](/ja/docs/studio/blueprint/nodes/events#event-bubbling)を参照してください。
 
 ## Get Target Page
 

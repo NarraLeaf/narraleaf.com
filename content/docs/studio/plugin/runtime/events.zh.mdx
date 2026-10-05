@@ -40,7 +40,7 @@ export default defineRuntimePlugin({
 | `firstSceneReady` | `void` | 第一个场景已挂载并完成首次绘制。**会重放**|
 | `sceneEnter` | `{ sceneId: string \| null }` | 一个场景组件**挂载**了。见下方警告|
 | `sceneExit` | `{ sceneId: string \| null }` | 对应的卸载|
-| `dialogueEnd` | `{ textId: string \| null }` | 一句对白显示完毕。`textId` 是这一行稳定的文本 id —— 与翻译表、引擎的 `voiceId` 用的是同一个键 —— 宿主叫不出名字的行则为 null。插件自己记“玩家听过什么”时，记的就是它|
+| `dialogueEnd` | `{ textId: string \| null }` | 一句对白显示完毕。`textId` 是这一行的单元 ID —— 与翻译表、引擎的 `voiceId` 用的是同一个 ID —— 宿主叫不出名字的行则为 null。插件自己记“玩家听过什么”时，记的就是它|
 | `choiceMade` | `{ text: string }` | 玩家选了一个选项|
 | `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | 一个选项菜单上了屏，带着它提供的全部选项 —— `choiceMade` 的另一半，那个只说选走了哪一个。菜单每次挂载都会触发，所以回退到同一个选择会再报一次。`index` 是引擎的索引，也是选中时寻址用的；被条件藏掉的选项不在列表里且**不会**把它前移，所以索引可能有缺口|
 | `characterPrompt` | `{ character: string \| null; text: string }` | 显示了一句角色台词|

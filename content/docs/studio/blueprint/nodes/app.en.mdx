@@ -9,7 +9,7 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 - **Three of them are tail nodes.** `Go Page`, `Replace Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
 - **The type ids do not all say `app`.** This group was called Page before it grew window, layer and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*`, `blueprint.frame.*`, `blueprint.layer.*` and `blueprint.app.*` are all this one category.
-- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in the global blueprint (**App logic**), which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in global and Surface blueprints.
+- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in **App logic**, which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in App logic and Surface blueprints.
 - **The editor canvas has no application to talk to.** On the author-time canvas every effectful node here fails with `This node runs only in a running game. Open Dev Mode to run it.`; the pure reads degrade quietly instead, so `Get Page Props` reads `{}` and the three `Is Surface …` reads report `false`. In the story editor's Game UI preview, navigation and quit reach stubs and do nothing, and the two fullscreen nodes report that they are not available there. Verify all of it in Dev Mode.
 
 ## Go Page
@@ -192,7 +192,7 @@ Holds the current window close request open, so the game decides rather than the
 
 It stops nothing else. It is not a way to swallow a key, dismiss a page, or keep an element's event from reaching anything — and outside a close request it has nothing at all to act on, which is an execution error rather than a quiet no-op, because a graph holding one there is asking for a guarantee it is not being given.
 
-Global and Surface graphs only.
+App logic and Surface graphs only.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

@@ -19,7 +19,7 @@ The palette filters heads by the blueprint's owner. A head that is not listed fo
 
 | Owner | Heads offered |
 | --- | --- |
-| Global blueprint (`globalMain`), listed as **App logic** | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads |
+| **App logic** (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads |
 | Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
 | Widget blueprint (`widgetMain`) | whatever that widget type declares; see the table below |
 | Widget inside a component definition (`componentWidgetMain`) | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter` and the heads its type declares in the table below. No keyboard, window, broadcast or bound element heads. |
@@ -54,23 +54,23 @@ Six pointer events climb the element tree: `Mouse Click`, `Mouse Double Click`, 
 
 A graph cannot end the climb early. A [script](/docs/studio/scripts) layer can, with `ctx.stopPropagation()`: the elements above do not hear the event, and the other heads on the same element still run. The heads of one element start together, and the climb moves on to its parent once they have finished. The nodes that used to steer bubbling, `Continue Event Bubble` and `Stop Event Bubble`, were removed. The one thing they were reliably used for, holding a window close open, is now [`Keep Window Open`](/docs/studio/blueprint/nodes/app) in the App category, which does that and nothing else.
 
-The global blueprint has no mouse heads. It hears pointer input through [`On Action`](#on-action), wherever the gesture lands, including where no interface takes it: a Page takes a press only where one of its elements is drawn, so a press on an empty part of a Page, or on a stage with nothing on it, still reaches the global blueprint's `On Action` heads.
+App logic has no mouse heads. It hears pointer input through [`On Action`](#on-action), wherever the gesture lands, including where no interface takes it: a Page takes a press only where one of its elements is drawn, so a press on an empty part of a Page, or on a stage with nothing on it, still reaches the `On Action` heads of App logic.
 
-While a Page or layer plays its exit animation, a press that no Page or layer takes is dropped. It does not reach the game stage or the Game UI on it, so it does not advance the story, and the global blueprint does not hear it. A press on the Page arriving in its place reaches that Page as usual. The same holds inside a Frame while it changes page: the arriving Page's elements answer presses as usual, and no press goes further than the Frame, so none becomes a click on the Frame, the elements around it or the Surface.
+While a Page or layer plays its exit animation, a press that no Page or layer takes is dropped. It does not reach the game stage or the Game UI on it, so it does not advance the story, and App logic does not hear it. A press on the Page arriving in its place reaches that Page as usual. The same holds inside a Frame while it changes page: the arriving Page's elements answer presses as usual, and no press goes further than the Frame, so none becomes a click on the Frame, the elements around it or the Surface.
 
 <Callout type="warn">
-While focus is in a text-entry element, keys reach no blueprint at all: the global, Surface and widget keyboard heads do not run and no input action is raised, so typing a name cannot advance dialogue on Space or open the menu on Escape. The field's own `Value Changed` and `Submit` heads still fire.
+While focus is in a text-entry element, keys reach no blueprint at all: the keyboard heads of App logic, Surfaces and widgets do not run and no input action is raised, so typing a name cannot advance dialogue on Space or open the menu on Escape. The field's own `Value Changed` and `Submit` heads still fire.
 </Callout>
 
 ## Application lifecycle
 
-Global-blueprint entry points, plus the three window events that also reach Surfaces.
+Entry points of App logic, plus the three window events that also reach Surfaces.
 
 ### App Boot
 
 `blueprint.event.head.appBoot`
 
-Fires once when the UI runtime has finished starting and holds a runnable global blueprint.
+Fires once when the UI runtime has finished starting and holds a runnable App logic blueprint.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ Initialise NarraLeaf preferences here — `Set Auto Forward`, `Set Game Speed`, 
 
 `blueprint.event.head.fullscreenChanged`
 
-Fires when the application window enters or leaves fullscreen, including a change made outside the game. It reaches the global blueprint first, then every Surface on screen: the layers from the topmost down, the current Page, any Page shown in a Frame, and the Game UI Surfaces on the stage. On each of those Surfaces, every widget blueprint that places the head runs too. That is why a settings control can track the window without owning the Page.
+Fires when the application window enters or leaves fullscreen, including a change made outside the game. It reaches App logic first, then every Surface on screen: the layers from the topmost down, the current Page, any Page shown in a Frame, and the Game UI Surfaces on the stage. On each of those Surfaces, every widget blueprint that places the head runs too. That is why a settings control can track the window without owning the Page.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -120,9 +120,9 @@ To read the current state from a graph that runs for some other reason, use `Is 
 
 `blueprint.event.head.windowCloseRequested`
 
-Fires when the player asks to close the window. The close is held open while the global blueprint runs and then each Surface on screen, in the order `On Fullscreen Changed` describes. A `Keep Window Open` in any of them cancels the close, and the Surfaces after it are not asked. Absent one, the window proceeds to close. In Dev Mode this covers the Dev Mode window; in preview and production, the game window.
+Fires when the player asks to close the window. The close is held open while App logic runs and then each Surface on screen, in the order `On Fullscreen Changed` describes. A `Keep Window Open` in any of them cancels the close, and the Surfaces after it are not asked. Absent one, the window proceeds to close. In Dev Mode this covers the Dev Mode window; in preview and production, the game window.
 
-Global and Surface blueprints only.
+App logic and Surface blueprints only.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -347,7 +347,7 @@ Fires when the element loses focus.
 
 ## Keyboard
 
-Keyboard events do not depend on element focus. A key goes first to the global blueprint, then to the Surface that owns the keyboard, and each runs its own chain:
+Keyboard events do not depend on element focus. A key goes first to App logic, then to the Surface that owns the keyboard, and each runs its own chain:
 
 - With a modal layer on screen, the topmost modal layer owns the keyboard. No other Surface hears keys.
 - Otherwise the current Page owns it. A layer that is not modal never takes the keyboard, so the Page beneath it keeps hearing keys.
@@ -431,9 +431,9 @@ Fires when the input action picked on the card is raised, however the player rai
 
 An action is a name the project gives to a gesture — "advance", "open the log", "dismiss" — and the bindings behind it live on the project's action vocabulary and on each Surface's answer to it, never on the graph. That is the point of the head: the author names the action, and which key or click means it stays the project's business. The card stores the action's id, so renaming the action leaves every graph pointing at it.
 
-Global and Surface graphs only. An action is panel-wide by construction, so it belongs to the two owners that speak for a whole panel: a Surface answers the actions it enables, and a global blueprint answers a gesture that means the same thing on every page. A widget saying "a click here means advance" is the arrangement the vocabulary replaced — an element that wants the raw gesture still has its own mouse heads.
+App logic and Surface graphs only. An action is panel-wide by construction, so it belongs to the two owners that speak for a whole panel: a Surface answers the actions it enables, and App logic answers a gesture that means the same thing on every page. A widget saying "a click here means advance" is the arrangement the vocabulary replaced — an element that wants the raw gesture still has its own mouse heads.
 
-The global blueprint hears every action in the vocabulary, before any Surface answers it. It hears a key whichever Surface owns the keyboard, and a pointer gesture wherever it lands. A Surface hears only the actions it answers: a key while it owns the keyboard, and a pointer gesture that lands on it. When both answer the same action, both run. Neither hears an input that was meant for a control. A pointer gesture on a button, switch, slider, text input or list raises no action, except a wheel over a list that cannot scroll any further that way, and neither does a key the focused control acts on, such as `Enter` on a focused button. A key held down raises its action once.
+App logic hears every action in the vocabulary, before any Surface answers it. It hears a key whichever Surface owns the keyboard, and a pointer gesture wherever it lands. A Surface hears only the actions it answers: a key while it owns the keyboard, and a pointer gesture that lands on it. When both answer the same action, both run. Neither hears an input that was meant for a control. A pointer gesture on a button, switch, slider, text input or list raises no action, except a wheel over a list that cannot scroll any further that way, and neither does a key the focused control acts on, such as `Enter` on a focused button. A key held down raises its action once.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -698,7 +698,7 @@ Fires in the private blueprint of the parent `nl.frame` when the sub-Page embedd
 
 ## Game preferences
 
-Both heads subscribe to the active `LiveGame`'s preference dispatcher. They are offered on global and Surface blueprints, and a change reaches the global blueprint and then every Surface on screen, in the order [`On Fullscreen Changed`](#on-fullscreen-changed) describes. With no live game running there is no subscription and nothing fires; after `On Game Ready` the runtime re-subscribes on the new `LiveGame`. Preference setters like `Set BGM Volume` and NarraLeaf's own internal writes both trigger these heads, and a write of an identical value is not guaranteed to be deduplicated — so do not write a preference from the graph that listens to it, or you build a self-triggering loop. See the [Game nodes](/docs/studio/blueprint/nodes/game) for the getters and setters.
+Both heads subscribe to the active `LiveGame`'s preference dispatcher. They are offered on App logic and Surface blueprints, and a change reaches App logic and then every Surface on screen, in the order [`On Fullscreen Changed`](#on-fullscreen-changed) describes. With no live game running there is no subscription and nothing fires; after `On Game Ready` the runtime re-subscribes on the new `LiveGame`. Preference setters like `Set BGM Volume` and NarraLeaf's own internal writes both trigger these heads, and a write of an identical value is not guaranteed to be deduplicated — so do not write a preference from the graph that listens to it, or you build a self-triggering loop. See the [Game nodes](/docs/studio/blueprint/nodes/game) for the getters and setters.
 
 ### On Preference Changed
 
@@ -733,7 +733,7 @@ Fires when any preference key changes. Use it to handle settings centrally — p
 
 ## Broadcast
 
-Broadcast moves a named message between blueprints on the Surface it is sent from: the Surface's own blueprint plus every widget blueprint on it. A widget that a List repeats hears it once in each row on screen. It does not reach the global blueprint and does not cross Surfaces, and the sender receives its own broadcast if it also listens. Targets are resolved from the document, not from the mounted React tree. All four nodes are offered on Surface and widget blueprints only.
+Broadcast moves a named message between blueprints on the Surface it is sent from: the Surface's own blueprint plus every widget blueprint on it. A widget that a List repeats hears it once in each row on screen. It does not reach App logic and does not cross Surfaces, and the sender receives its own broadcast if it also listens. Targets are resolved from the document, not from the mounted React tree. All four nodes are offered on Surface and widget blueprints only.
 
 ### On Broadcast
 

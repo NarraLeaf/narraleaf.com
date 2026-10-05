@@ -9,7 +9,7 @@ App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一�
 
 - **其中三个是尾节点。** `Go Page`、`Replace Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
 - **type id 并不都写 `app`。** 这一组在长出窗口、叠层和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*`、`blueprint.frame.*`、`blueprint.layer.*` 和 `blueprint.app.*` 全都属于这同一个分类
-- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于全局蓝图（**应用逻辑**）中——全局蓝图没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于全局与 Surface 蓝图
+- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于**应用逻辑**中——应用逻辑没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于应用逻辑与 Surface 蓝图
 - **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
 
 ## Go Page
@@ -192,7 +192,7 @@ Replace Page（替换页面）打开页面以代替当前页面，并关闭当�
 
 它不阻止任何其它东西。它不是用来吃掉一个按键、关掉一个页面或者阻断某个元素的事件的 —— 而且在关闭请求之外它根本无物可作用，那是一个**执行错误**而不是静默空操作，因为把它放在那里的图是在索要一个没人给它的保证。
 
-只能用于全局与 Surface 图。
+只能用于应用逻辑与 Surface 的图。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |

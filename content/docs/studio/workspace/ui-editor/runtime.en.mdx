@@ -105,7 +105,7 @@ The **Log** button on **Quick menu** runs `Go Page`. A page opened during a game
   <ScreenLayer kind="page" state="hidden">Title</ScreenLayer>
 </ScreenStack>
 
-The **Title** button on **Log** runs `Show Confirm` to ask whether to return to the title. **Confirm** is shown over **Log**, and **Log** stays on screen beneath it.
+The **Title** button on **Log** runs `Show Confirm` to ask whether to return to the title. **Confirm** is shown over **Log**, and **Log** stays on screen beneath it. Escape closes **Confirm** without an answer, as its cancel button does, and **Log** stays open.
 
 </Step>
 <Step>
@@ -163,7 +163,7 @@ Several things can take clicks at once, but keys go to exactly one place. Read t
 | A page | The current page and every layer | The current page |
 | A game in progress, no page | Game UI, layers and the stage | Game UI |
 
-Keys reach the global blueprint (**App logic**) first, then the one place in the table.
+Keys reach **App logic** first, then the one place in the table.
 
 ## The Layers panel in Dev Mode
 

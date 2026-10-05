@@ -40,7 +40,7 @@ export default defineRuntimePlugin({
 | `firstSceneReady` | `void` | First scene mounted and painted once. **Replayed**. |
 | `sceneEnter` | `{ sceneId: string \| null }` | A scene component **mounted**. See the warning below. |
 | `sceneExit` | `{ sceneId: string \| null }` | The counterpart unmount. |
-| `dialogueEnd` | `{ textId: string \| null }` | One line of dialogue finished displaying. `textId` is the line's stable text id — the same key the translation table and the engine's `voiceId` use — or null for a line the host cannot name. It is the id to record against when a plugin keeps its own account of what the player has heard. |
+| `dialogueEnd` | `{ textId: string \| null }` | One line of dialogue finished displaying. `textId` is the line's unit ID — the id the translation table and the engine's `voiceId` use — or null for a line the host cannot name. It is the id to record against when a plugin keeps its own account of what the player has heard. |
 | `choiceMade` | `{ text: string }` | The player picked a choice. |
 | `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | A choice menu went on screen, with every option it is offering — the other half of `choiceMade`, which only says what was taken. Fires whenever the menu mounts, so a rollback into the same choice reports it again. `index` is the engine's index and is what picking one addresses; options a condition hid are absent and do **not** shift it, so the indices can have gaps. |
 | `characterPrompt` | `{ character: string \| null; text: string }` | A character line was shown. |

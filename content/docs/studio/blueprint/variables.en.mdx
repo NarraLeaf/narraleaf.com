@@ -24,12 +24,12 @@ The value lives in a store attached to the **owner instance**, not to the graph 
 
 | Owner | One store per | What starts it over |
 | --- | --- | --- |
-| `globalMain` | the global blueprint (**App logic**) | nothing, while the application runs |
+| `globalMain` | **App logic** | nothing, while the application runs |
 | `surfaceMain` | each push of that [Surface](/docs/studio/blueprint/surfaces) onto the navigation stack | leaving the Surface and opening it again |
 | `widgetMain` · `componentWidgetMain` | widget instance: each placement of a component is its own instance, and so is each row's copy of a widget inside a list's row template. A list's own variables belong to the list and are shared by all its rows. | the widget unmounting |
 | `storyAction` | one call of the graph | every call |
 
-`Get Var` and `Set Var` offer three groups, always in this order: **Page** (the `surfaceMain` blueprint of the Surface this graph belongs to), **Blueprint** (the one you are editing), and **Global** (the `globalMain` blueprint). A blueprint that is already one of the others appears once, not twice. Names are sorted inside each group, and the scope label is printed beside a name **only** when two accessible variables share that name — so the usual list stays clean and a genuine clash is impossible to miss.
+`Get Var` and `Set Var` offer three groups, always in this order: **Page** (the `surfaceMain` blueprint of the Surface this graph belongs to), **Blueprint** (the one you are editing), and **Global** (the `globalMain` blueprint, **App logic**). A blueprint that is already one of the others appears once, not twice. Names are sorted inside each group, and the scope label is printed beside a name **only** when two accessible variables share that name — so the usual list stays clean and a genuine clash is impossible to miss.
 
 Editing a graph does not wipe live values. When a store is re-acquired, a newly declared variable is seeded with its default, a variable that is no longer declared is dropped, and every other slot keeps the value it was holding.
 
@@ -129,7 +129,7 @@ A [Blueprint Value](/docs/studio/blueprint) is a `widgetValue` blueprint bound t
 
 - **It cannot declare `Var`.** The node is not in its palette, and the declared-variable scan skips `widgetValue` owners outright.
 - **It cannot read or write persistent variables.** `Get Persistent` and `Set Persistent` are latent, and a value binding has to produce a value in the tick it is asked for — there is nobody to hand a pending promise to.
-- **It can still read and write the variables it can see.** `Get Var` and `Set Var` are on the whitelist and resolve against the Page and Global blueprints, which is the entire accessible set, since a value blueprint declares none of its own.
+- **It can still read and write the variables it can see.** `Get Var` and `Set Var` are on the whitelist and resolve against the page's blueprint and App logic, which is the entire accessible set, since a value blueprint declares none of its own.
 
 ## Story variables and expressions
 

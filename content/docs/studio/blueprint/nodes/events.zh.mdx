@@ -19,7 +19,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 | 宿主 | 提供的 Head |
 | --- | --- |
-| 全局蓝图（`globalMain`），显示为**应用逻辑** | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
+| **应用逻辑**（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
 | Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
 | 控件私有蓝图（`widgetMain`） | 由该控件类型声明的能力决定，见下表 |
 | 组件定义内的控件（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`，以及下表中该控件类型声明的 Head。没有键盘、窗口、广播和绑定元素的 Head |
@@ -54,23 +54,23 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 图无法提前结束这次传递，[脚本](/zh/docs/studio/scripts)图层可以，用`ctx.stopPropagation()`：上层元素收不到这次事件，同一元素上的其他 Head 照常执行。同一元素上的 Head 同时开始，全部结束后事件才传到父元素。曾经用来控制冒泡的两个节点`Continue Event Bubble`与`Stop Event Bubble`已经被删除。它们真正被稳定用到的那一件事，也就是把窗口关闭挂住，现在由 App 分类下的 [`Keep Window Open`](/zh/docs/studio/blueprint/nodes/app) 负责，它只做这一件事
 
-全局蓝图没有鼠标 Head。它通过 [`On Action`](#on-action) 收到指针输入，不论手势落在哪里，包括没有任何界面接收的地方：Page 只在绘有它的元素的地方接收点击，所以点在 Page 的空白处、或点在空无一物的舞台上，仍然会送达全局蓝图的`On Action` Head
+应用逻辑没有鼠标 Head。它通过 [`On Action`](#on-action) 收到指针输入，不论手势落在哪里，包括没有任何界面接收的地方：Page 只在绘有它的元素的地方接收点击，所以点在 Page 的空白处、或点在空无一物的舞台上，仍然会送达应用逻辑的`On Action` Head
 
-Page 或图层播放退出动画期间，没有任何 Page 或图层接收的点击会被丢弃。它到不了游戏舞台和舞台上的游戏界面，因此不会推进剧情，全局蓝图也收不到。点在取而代之、正在进场的 Page 上的点击照常送达那个 Page。Frame 切换 Page 期间同理：进场 Page 的元素照常响应点击，而任何点击都不会越过 Frame，因此不会变成 Frame、它周围的元素或 Surface 上的点击
+Page 或图层播放退出动画期间，没有任何 Page 或图层接收的点击会被丢弃。它到不了游戏舞台和舞台上的游戏界面，因此不会推进剧情，应用逻辑也收不到。点在取而代之、正在进场的 Page 上的点击照常送达那个 Page。Frame 切换 Page 期间同理：进场 Page 的元素照常响应点击，而任何点击都不会越过 Frame，因此不会变成 Frame、它周围的元素或 Surface 上的点击
 
 <Callout type="warn">
-焦点位于文本输入元素时，按键不会送达任何蓝图：全局、Surface 和控件的键盘 Head 都不执行，也不会触发任何输入意图，所以输入名字时按 Space 不会推进对话、按 Escape 不会打开菜单。该输入框自己的`Value Changed`和`Submit`仍然照常触发
+焦点位于文本输入元素时，按键不会送达任何蓝图：应用逻辑、Surface 和控件的键盘 Head 都不执行，也不会触发任何输入意图，所以输入名字时按 Space 不会推进对话、按 Escape 不会打开菜单。该输入框自己的`Value Changed`和`Submit`仍然照常触发
 </Callout>
 
 ## 应用生命周期
 
-全局蓝图的入口，外加三个同样能到达 Surface 的窗口事件
+应用逻辑的入口，外加三个同样能到达 Surface 的窗口事件
 
 ### App Boot
 
 `blueprint.event.head.appBoot`
 
-App Boot（应用启动）在 UI 运行时完成启动、并拥有可执行的全局蓝图时触发一次
+App Boot（应用启动）在 UI 运行时完成启动、并拥有可执行的应用逻辑蓝图时触发一次
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -96,7 +96,7 @@ On Game Ready（游戏就绪时）在每个被接受的 NarraLeaf session 触发
 
 `blueprint.event.head.fullscreenChanged`
 
-On Fullscreen Changed（全屏状态变更时）在应用窗口进入或退出全屏时触发，包括在游戏之外切换全屏的情况。它先送达全局蓝图，再送达屏幕上的每个 Surface：从最上层开始的各图层、当前 Page、显示在 Frame 里的 Page，以及舞台上的游戏界面。在其中每个 Surface 上，放了该 Head 的控件蓝图也会执行。所以设置面板里的控件不必拥有整个 Page 也能跟随窗口状态
+On Fullscreen Changed（全屏状态变更时）在应用窗口进入或退出全屏时触发，包括在游戏之外切换全屏的情况。它先送达应用逻辑，再送达屏幕上的每个 Surface：从最上层开始的各图层、当前 Page、显示在 Frame 里的 Page，以及舞台上的游戏界面。在其中每个 Surface 上，放了该 Head 的控件蓝图也会执行。所以设置面板里的控件不必拥有整个 Page 也能跟随窗口状态
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -120,9 +120,9 @@ On Window Focus Changed（窗口焦点变更时）在应用窗口获得或失去
 
 `blueprint.event.head.windowCloseRequested`
 
-On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。这次关闭会被挂起，先等全局蓝图、再按`On Fullscreen Changed`所述的顺序等屏幕上的每个 Surface 执行。其中任意一个执行了`Keep Window Open`就取消关闭，排在它之后的 Surface 不再被询问；没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口
+On Window Close Requested（窗口关闭请求时）在玩家请求关闭窗口时触发。这次关闭会被挂起，先等应用逻辑、再按`On Fullscreen Changed`所述的顺序等屏幕上的每个 Surface 执行。其中任意一个执行了`Keep Window Open`就取消关闭，排在它之后的 Surface 不再被询问；没有则窗口继续关闭。在 Studio Dev Mode 中它覆盖 Dev Mode 窗口，在预览和正式产物中覆盖游戏窗口
 
-只在全局蓝图和 Surface 蓝图中提供
+只在应用逻辑和 Surface 蓝图中提供
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -347,7 +347,7 @@ Blur（失焦）在元素失去焦点时触发
 
 ## 键盘 [#keyboard]
 
-键盘事件不依赖元素焦点。一次按键先送达全局蓝图，再送达持有键盘的那个 Surface，各自执行自己的链：
+键盘事件不依赖元素焦点。一次按键先送达应用逻辑，再送达持有键盘的那个 Surface，各自执行自己的链：
 
 - 屏幕上有模态图层时，最上面的模态图层持有键盘，其他 Surface 都收不到按键
 - 否则由当前 Page 持有。非模态的图层永远不会拿走键盘，所以它下面的 Page 仍然收得到按键
@@ -431,9 +431,9 @@ On Action（意图触发时）在卡片上选中的那个输入意图被触发�
 
 意图是项目给某个手势起的名字——“推进”“打开记录”“取消”——而它背后的绑定写在项目的意图词表上、以及每个 Surface 对它的回应里，从来不写在图上。这正是这个 Head 存在的意义：作者按名字选意图，至于哪个键、哪次点击算数，那是项目的事。卡片存的是意图的 id，所以给意图改名不会让任何图失去指向。
 
-只能用于全局与 Surface 图。一个意图按其构造就是整块面板范围的，所以它属于那两个能代表整块面板的宿主：Surface 回答它启用了哪些意图，全局蓝图回答那些在每一页上含义都相同的手势。一个控件说“在我这里点一下就是推进”，正是词表要取代的那种安排——想要原始手势的元素仍然有它自己的鼠标 Head。
+只能用于应用逻辑与 Surface 的图。一个意图按其构造就是整块面板范围的，所以它属于那两个能代表整块面板的宿主：Surface 回答它启用了哪些意图，应用逻辑回答那些在每一页上含义都相同的手势。一个控件说“在我这里点一下就是推进”，正是词表要取代的那种安排——想要原始手势的元素仍然有它自己的鼠标 Head。
 
-全局蓝图会收到词表里的每一个意图，并且先于任何 Surface。不论哪个 Surface 持有键盘，它都会收到按键；不论指针手势落在哪里，它都会收到。Surface 只收到它回应的那些意图：按键在它持有键盘时，指针手势在落到它上面时。两边都回应同一个意图时，两边都会执行。本来是冲着控件去的输入，两边都收不到：落在按钮、开关、滑块、文本输入框或 List 上的指针手势不会触发意图（滚轮落在已经无法朝那个方向继续滚动的 List 上时除外），获得焦点的控件自己会处理的按键也不会，例如焦点在按钮上时按 `Enter`。按住不放的按键只触发一次意图。
+应用逻辑会收到词表里的每一个意图，并且先于任何 Surface。不论哪个 Surface 持有键盘，它都会收到按键；不论指针手势落在哪里，它都会收到。Surface 只收到它回应的那些意图：按键在它持有键盘时，指针手势在落到它上面时。两边都回应同一个意图时，两边都会执行。本来是冲着控件去的输入，两边都收不到：落在按钮、开关、滑块、文本输入框或 List 上的指针手势不会触发意图（滚轮落在已经无法朝那个方向继续滚动的 List 上时除外），获得焦点的控件自己会处理的按键也不会，例如焦点在按钮上时按 `Enter`。按住不放的按键只触发一次意图。
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -698,7 +698,7 @@ Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit P
 
 ## Game Preference
 
-两个 Head 都订阅当前活动`LiveGame`的 preference 派发器。它们在全局蓝图和 Surface 蓝图中提供，一次变化先送达全局蓝图，再按 [`On Fullscreen Changed`](#on-fullscreen-changed) 所述的顺序送达屏幕上的每个 Surface。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/zh/docs/studio/blueprint/nodes/game)
+两个 Head 都订阅当前活动`LiveGame`的 preference 派发器。它们在应用逻辑和 Surface 蓝图中提供，一次变化先送达应用逻辑，再按 [`On Fullscreen Changed`](#on-fullscreen-changed) 所述的顺序送达屏幕上的每个 Surface。没有活动 game runtime 时不会订阅，也不会触发；`On Game Ready`之后运行时在新的`LiveGame`上重新订阅。Preference Setter（如`Set BGM Volume`）和 NarraLeaf 内部写入都会触发它们，并且写入相同值不保证被去重——所以不要在监听某个偏好的图里再写入同一个偏好，那会构成自触发循环。Getter 和 Setter 见 [Game 节点](/zh/docs/studio/blueprint/nodes/game)
 
 ### On Preference Changed
 
@@ -733,7 +733,7 @@ On Any Preference Changed（任意偏好变更时）在任意偏好键变化时�
 
 ## Broadcast
 
-Broadcast 在发送它的那个 Surface 的各蓝图之间传递具名消息：该 Surface 自己的蓝图，加上它上面的所有控件蓝图。被 List 重复的控件在屏幕上的每一行各收到一次。它不会到达全局蓝图，也不跨 Surface；发送者自己如果也在监听，同样会收到自己发出的广播。目标来自文档而不是已挂载的 React 树。四个节点都只在 Surface 蓝图和控件蓝图中提供
+Broadcast 在发送它的那个 Surface 的各蓝图之间传递具名消息：该 Surface 自己的蓝图，加上它上面的所有控件蓝图。被 List 重复的控件在屏幕上的每一行各收到一次。它不会到达应用逻辑，也不跨 Surface；发送者自己如果也在监听，同样会收到自己发出的广播。目标来自文档而不是已挂载的 React 树。四个节点都只在 Surface 蓝图和控件蓝图中提供
 
 ### On Broadcast
 

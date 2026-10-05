@@ -40,7 +40,7 @@ export default defineRuntimePlugin({
 | `firstSceneReady` | `void` | 最初のシーンがマウントされ、一度描画された。**再生される**。 |
 | `sceneEnter` | `{ sceneId: string \| null }` | シーンコンポーネントが**マウント**された。下の警告を参照。 |
 | `sceneExit` | `{ sceneId: string \| null }` | その対になるアンマウント。 |
-| `dialogueEnd` | `{ textId: string \| null }` | 一行の台詞の表示が終わった。`textId` はその行の安定したテキスト id で、翻訳テーブルやエンジンの `voiceId` が使うのと同じキーです。ホストが名前を付けられない行では null になります。プラグインが「プレイヤーが何を聞いたか」を自前で記録する際に、対象として記録すべき id です。 |
+| `dialogueEnd` | `{ textId: string \| null }` | 一行の台詞の表示が終わった。`textId` はその行のユニット ID で、翻訳テーブルやエンジンの `voiceId` が使うのと同じ ID です。ホストが名前を付けられない行では null になります。プラグインが「プレイヤーが何を聞いたか」を自前で記録する際に、対象として記録すべき id です。 |
 | `choiceMade` | `{ text: string }` | プレイヤーが選択肢を選んだ。 |
 | `choiceShown` | `{ options: { index: number; text: string; disabled: boolean }[] }` | 選択メニューが画面に表示され、それが提示するすべての選択肢を伴う — `choiceMade` の対になるもので、あちらは選ばれたものしか語りません。メニューがマウントされるたびに発火するため、同じ選択に巻き戻ると再び報告されます。`index` はエンジンの索引であり、選んだ際に指定するものです。条件によって隠された選択肢は一覧に含まれず、他の索引を**前に詰めることもない**ため、索引に欠番が生じることがあります。 |
 | `characterPrompt` | `{ character: string \| null; text: string }` | キャラクターの台詞が表示された。 |
