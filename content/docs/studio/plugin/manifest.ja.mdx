@@ -46,6 +46,7 @@ description: manifest.json のすべてのフィールド――エントリー�
 | --- | --- | --- |
 | `blueprintNodes` | `string[]` | このプラグインが提供するブループリントノード型。 |
 | `widgets` | `string[]` | このプラグインが提供するウィジェット要素型。 |
+| `widgetText` | object | 提供する各ウィジェットで、プレイヤーが読む文字を持つプロパティ。 |
 | `locales` | object[] | Studio の言語パック――プラグインが追加または補完するロケール。 |
 | `runtimeData` | `string[]` | ゲームと一緒に公開するプラグインストレージの名前空間。 |
 | `runtimeCapabilities` | `string[]` | runtime エントリーが使用してよい能力ドメイン。 |
@@ -62,6 +63,36 @@ description: manifest.json のすべてのフィールド――エントリー�
 ### blueprintNodes と widgets
 
 宣言していない型を登録すると、両方のエントリーで読み込み時にエラーになります。この宣言があるからこそ、Studio はビルド*の前に*、プロジェクトが使っているノードに runtime の提供元がないことを作者に伝えられます――何もしないノードを含むゲームを出荷してしまう代わりに。
+
+### widgetText
+
+タイトルや説明文のように、プレイヤーが読む文字を表示するウィジェットは、その文字を持つプロパティをウィジェット型ごとに挙げます。
+
+```json
+{
+  "contributes": {
+    "widgets": ["yourname.hello.badge"],
+    "widgetText": {
+      "yourname.hello.badge": [
+        { "prop": "title", "label": "Title", "localized": { "zh": "标题", "ja": "タイトル" } },
+        { "prop": "caption", "multiline": true }
+      ]
+    }
+  }
+}
+```
+
+| フィールド | 備考 |
+| --- | --- |
+| `prop` | 必須。文字を持つプロパティ。 |
+| `keyProp` | 作者が翻訳キーから文字を取るときに、翻訳キーを保持するプロパティ。省略時は `<prop>LocalizationKey`。Studio が書き込み、ウィジェットは描画に使いません。 |
+| `label` | Properties でその文字を呼ぶ名前。省略時はプロパティ名。 |
+| `localized` | エディターの言語ごとの `label`。`zh` や `ja` のような、エディターのロケールコードをキーにします。 |
+| `multiline` | 文字を複数行にできるかどうか。省略時は 1 行。 |
+
+Studio は、宣言された各プロパティを、自身の Text や Button ウィジェットの文字と同じように扱います。Properties の **Content**（内容）セクションで **Direct**（直接入力）か **Translation key**（翻訳キー）を選べ、キャンバスはキーの文字を描画し、文字は翻訳テーブルと書き出しに並び、プロジェクトの検査は翻訳やキーの欠落を報告し、グリフの検査も文字を読みます。ゲームの中では、`render` は宣言したプロパティにプレイヤーの言語の文字をすでに受け取っており、ウィジェットがキーを自分で解決することはありません。
+
+この宣言は両方のエントリーが読みます。studio エントリーのウィジェットはこれに従って編集され、runtime エントリーのウィジェットはこれに従って描画されます。ここで挙げる型はすべて `contributes.widgets` にも含まれ、1 つ以上の項目を持つ必要があります。`prop` と `keyProp` は識別子で、`runtimeTextOrigin` や `runtimeTextUnit` は使えず、同じウィジェットの中で名前を重複させられません。`widgetText` からインストール時の権限は派生しません。
 
 ### runtimeData
 

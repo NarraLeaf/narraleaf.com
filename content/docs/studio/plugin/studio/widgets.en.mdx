@@ -69,6 +69,10 @@ A widget that must render in shipped games needs both halves: this module for th
 
 A `render` that throws draws a **Widget failed to draw** block for that element only; the rest of the page draws as usual.
 
+## Words a player reads
+
+A widget whose props hold words a player reads, such as a title or a caption, declares those props in the manifest under [`contributes.widgetText`](/docs/studio/plugin/manifest#widgettext). Studio then offers each one in Properties with the choice of **Direct** or **Translation key**, draws a key's words on the canvas, and lists the words in the translation table. `render` receives the words already resolved in `element.props.<prop>`: in the source language on the canvas, and in the player's language in the game. The widget never resolves a key itself.
+
 ## Widget events
 
 With `supportsPrivateBlueprint: true` in its `logicApi`, the element gets a blueprint of its own, opened from the **Interaction** tab Studio adds after the plugin's fields in the properties panel. Each entry in `events` starts the graphs whose head is listed in its `headNodeTypes`.

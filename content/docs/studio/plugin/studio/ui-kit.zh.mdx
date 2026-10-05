@@ -19,7 +19,10 @@ import { ui } from "narraleaf-studio/plugin";
 | 进度 | `Progress`、`ProgressIndeterminate`、`ProgressCircle` |
 | 展开 | `Accordion`、`AccordionItem`、`NestedAccordion` |
 | 卡片 | `Card`、`CardHeader`、`CardTitle`、`CardDescription`、`CardContent`、`CardFooter`、`InteractiveCard` |
-| 资源 | `AssetSelector` |
+| 资产 | `AssetSelector` |
+| 文字 | `WordsField` |
+
+`WordsField` 是玩家读到的文字的字段：与 Studio 自己的文本和按钮文字一样，提供**直接写**或**翻译键**的选择、项目的键列表和就地编辑键。它是受控组件：`value` 是 `{ text, key }`，直接写时 `key` 为 null，`onChange` 收到下一个值。直接写的文字用 [`registerWords`](/zh/docs/studio/plugin/api-reference#serviceslocalization) 提交以供翻译；取自键的文字按键翻译
 
 ## 面板布局原语
 

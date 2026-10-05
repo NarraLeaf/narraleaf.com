@@ -70,7 +70,7 @@ const stop = app.services.i18n.onLocaleChange(locale => {
 | `createTranslator(bundle)` | A translator over *your* `{ locale: { key: string } }` tables. `t(key, params?)` resolves active → fallback → key, filling `{placeholders}`. |
 | `formatNumber` / `formatDate` / `formatList` | `Intl` formatters bound to the editor locale. |
 
-This is the **editor's** UI language. It is not a game's player-facing language — the runtime surface has no i18n; a game localizes through its own system.
+This is the **editor's** UI language. It is not a game's player-facing language: words a player reads are translated in the project's translation table, through [`services.localization`](#serviceslocalization), and read back in the game through [`game.locale`](#the-players-language).
 
 ### services.storage
 
@@ -94,6 +94,38 @@ app.services.assets.revokeObjectUrl(url);
 ```
 
 `getMap()`, `list(type)`, `get(type, id)`, `fetch(asset)`, `createObjectUrl(asset)`, `revokeObjectUrl(url)`. Revoke object URLs you create to avoid leaks.
+
+### services.localization
+
+The project's translation keys, read-only, and a place to offer the plugin's own words for translation.
+
+```ts
+const keys = app.services.localization.listKeys(); // [{ name, sourceText }]
+
+const off = app.services.localization.registerWords({
+    list: () => store.entries().map(entry => ({
+        id: `entry.${entry.id}.name`,
+        text: entry.name,
+        context: entry.group,
+    })),
+    subscribe: listener => store.subscribe(listener),
+});
+```
+
+| Member | Signature | Notes |
+| --- | --- | --- |
+| `listKeys` | `() => PluginLocalizationKeyEntry[]` | Each key's `name` and its `sourceText`. Empty until the keys have loaded. |
+| `registerWords` | `(source: PluginWordsSource) => PluginCleanup` | Offers the words the plugin puts in front of a player to the translation table and exports. |
+
+A plugin that puts words in front of a player either names one of the project's translation keys, which is translated as the key, or writes the words directly and offers them with `registerWords`. `PluginWordsSource` is `{ list(), subscribe? }`: `list()` returns `PluginWordsEntry` objects, and `subscribe(listener)` returns an unsubscribe function; call the listener whenever `list()` would answer differently.
+
+| `PluginWordsEntry` | Notes |
+| --- | --- |
+| `id` | The plugin's own id for the words: letters and digits, with `.`, `_` or `-` between them. Keep it the same while the words are the same thing; their translations are kept against it. |
+| `text` | The words, in the project's source language. |
+| `context` | Optional. Where a player meets the words, for a translator, such as `File › Save`. The plugin's name when absent. |
+
+Each entry with a letter in it has a row in the translation table, under **Interface text** and the plugin's name. The translation unit is `plugin:<pluginId>/<id>`. The runtime entry reads the words back in the player's language with [`app.game.locale.words(id, text)`](#the-players-language). [`ui.WordsField`](/docs/studio/plugin/studio/ui-kit) gives the author the same choice of **Direct** or **Translation key** that Studio's own labels offer.
 
 ### services.ui.panels
 
@@ -204,7 +236,9 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 import { ui } from "narraleaf-studio/plugin";
 ```
 
-Studio's own components, so panels match the editor theme: `ui.Button`, `ui.IconButton`, `ui.Input`, `ui.TextArea`, `ui.Select`, `ui.Switch`, `ui.Card` (+ parts), `ui.Modal` (+ parts), `ui.AssetSelector`, and the `ui.Panel.*` layout primitives (`Root`, `Header`, `Toolbar`, `Section`, `Row`, `EmptyState`).
+Studio's own components, so panels match the editor theme: `ui.Button`, `ui.IconButton`, `ui.Input`, `ui.TextArea`, `ui.Select`, `ui.Switch`, `ui.Card` (+ parts), `ui.Modal` (+ parts), `ui.AssetSelector`, `ui.WordsField`, and the `ui.Panel.*` layout primitives (`Root`, `Header`, `Toolbar`, `Section`, `Row`, `EmptyState`).
+
+`ui.WordsField` is the field for words a player reads, with the choice, key list and in-place key editing of Studio's own text and button labels. It is controlled: `value` is `{ text, key }`, with `key` null for words written directly, and `onChange` receives the next value. Words written directly are translated when the plugin offers them with `registerWords`; words read from a key are translated as the key.
 
 ---
 
@@ -349,9 +383,23 @@ Each of these exists only when `contributes.runtimeCapabilities` declared it *an
 | `game.story` | `story.compile` | [Runtime API](/docs/studio/plugin/runtime) |
 | `game.navigation` | none — a non-empty `contributes.externalLinks` | [Runtime API](/docs/studio/plugin/runtime) |
 
-### No i18n on the runtime surface
+### The player's language [#the-players-language]
 
-The runtime entry runs in the game — in Production there is no editor and no editor locale, so exposing one would not be portable. A game localizes its own player-facing content through NarraLeaf's game localization system, not through the plugin runtime API.
+The runtime entry runs in the game — in Production there is no editor and no editor locale, so the runtime surface has no `i18n`. With the `locale` capability, `app.game.locale` follows the player's language and reads the project's translated words in it:
+
+```ts
+const title = app.game.locale?.text("menu.title");           // a translation key; null when the project has none
+const name = app.game.locale?.words("entry.cg01.name", "Sunset"); // words offered with registerWords
+```
+
+| Member | Signature | Notes |
+| --- | --- | --- |
+| `current` | `readonly string` | The language the game is running in. |
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` | Fires on a language switch. |
+| `text` | `(key: string) => string \| null` | One of the project's translation keys, in that language. `null` when the project declares no such key. |
+| `words` | `(id: string, text: string) => string` | Words this plugin offered with `registerWords` from its studio entry: the translation of the unit `id` names, along the language's fallback chain, else `text`. The game carries translations and not source words, so the plugin passes the words as written. A plugin reads only its own words. |
+
+See [assets & locale](/docs/studio/plugin/runtime/assets-locale#locale).
 
 ---
 

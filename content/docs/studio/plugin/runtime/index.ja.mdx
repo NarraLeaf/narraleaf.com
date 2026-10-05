@@ -61,8 +61,8 @@ export default defineRuntimePlugin({
 | `saves.write` | `app.game.saves.write` / `.load` | スロットを上書きする、または実行中のプレイスルーを置き換える。 |
 | `ui.overlay` | [`app.game.ui.overlay`](/ja/docs/studio/plugin/runtime/overlay) | ゲームの上に要素を描画する。 |
 | `assets` | [`app.game.assets`](/ja/docs/studio/plugin/runtime/assets-locale) | パッケージ化されたアセット id を URL に解決する。 |
-| `locale` | [`app.game.locale`](/ja/docs/studio/plugin/runtime/assets-locale) | ゲームの表示言語を読み取り、観察する。 |
-| `menu` | `app.game.menu` — `set` | デスクトップ版ゲームの上にあるメニューバー全体を宣言する。`set(spec)` はメニューバーを丸ごと置き換え、空の spec を渡すとメニューバーがなくなる。各行は、ページを開く、自動送りを切り替えるといった組み込みのアクションか、グローバルブループリント **App logic**（アプリロジック）の関数を実行する。 |
+| `locale` | [`app.game.locale`](/ja/docs/studio/plugin/runtime/assets-locale) | ゲームの表示言語を読み取り、観察する。その言語でプロジェクトの翻訳キーとプラグイン自身の文字を読む。 |
+| `menu` | `app.game.menu` — `set` | デスクトップ版ゲームの上にあるメニューバー全体を宣言する。`set(spec)` はメニューバーを丸ごと置き換え、空の spec を渡すとメニューバーがなくなる。各行は、ページを開く、自動送りを切り替えるといった組み込みのアクションか、**App logic**（アプリロジック）の関数を実行する。ラベルは `{ key, text, words? }` で、翻訳キー `key` の文字、または `text` になり、`text` は `words`（プラグインが `registerWords` で `text` を出したときの id）を通じて翻訳される。 |
 | `story.compile` | `app.game.story` | 各シーンを観察し、その行の周囲にエンジンのアクションを注入するコンパイルパスを登録する。十三個の中で最も重いもの: このパスはプロジェクトの*すべての*シーンにわたって実行され、各シーンで誰が話しているかを見て、自分が書いていない行の周囲にアクションを置くことができます。これは `state.write` の変装ではなく、それを含意もしません — パスはアクションを組み立てるだけで、それを実行はしません。 |
 | `diagnostics` | `app.game.diagnostics` — `imageCache` | エンジンの画像キャッシュが保持している内容と、それに適用されている予算を読み取る。読み取り専用。ゲームのセッションが動き出すまで、`imageCache()` は `null` を返す。 |
 | `process.memory` | `app.game.process` — `memory` | ゲームの各プロセスが使っているメモリを、オペレーティングシステムの集計どおりに読み取る。読み取り専用で、`memory()` は Promise を返す。 |
@@ -140,5 +140,5 @@ execute: async ctx => {
 - **`hostAdapter` はありません。** ノードの `ctx` が持つのは `params`、`resolveInput`、`eventName`、`eventPayload`、`signal`、`game` だけで、他には何もありません。以前のビルドでは `ctx.hostAdapter.blueprintRuntime.hostApi` を通じてホストの内部 API 全体が漏れていましたが、その経路はなくなりました。今ではすべてが `ctx.game` を経由し、それはマニフェストが宣言したものそのものです。
 - **エディタのサービスはありません。** `app.services`、`app.privileged`、そして `ui` キットは、[studio エントリ](/ja/docs/studio/plugin/studio)にのみ存在します。ランタイムエントリはゲームコードです。
 - **`react-dom/client` はありません。** ホストは `react`、`react-dom`、そして JSX ランタイムを外部依存として提供しますが、プラグインは決して自分自身の React ルートをマウントしてはいけません。二つ目のルートは同じツリーをめぐってホストのものと衝突します。要素を返し、それをホストに描画させてください。
-- **エディタの i18n はありません。** `app.services.i18n` はエディタの UI 言語です。ゲームはプレイヤー向けのコンテンツを NarraLeaf 自身のローカライズシステムを通じてローカライズします。ランタイム側のインターフェースは、現在どのロケールが有効かを教えるだけです。
+- **エディタの i18n はありません。** `app.services.i18n` はエディタの UI 言語です。ゲームのプレイヤー向けの文字は、プロジェクトの翻訳テーブルで翻訳されます。ランタイム側のインターフェースは、現在どのロケールが有効かを教え、`app.game.locale` がその言語で翻訳キーとプラグイン自身の文字を読みます。
 - **クリーンアップのライフサイクルはありません。** ゲームのプロセスはプラグインを一度だけ読み込み、決してアンロードしないため、`setup` にはクリーンアップの戻り値がなく、`register` は `void` を返します。

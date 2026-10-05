@@ -70,7 +70,7 @@ const stop = app.services.i18n.onLocaleChange(locale => {
 | `createTranslator(bundle)` | 基于*你自己的* `{ locale: { key: string } }` 表构建的翻译器。`t(key, params?)` 按当前 → 回退 → key 的顺序解析，并填充 `{placeholders}`|
 | `formatNumber` / `formatDate` / `formatList` | 绑定到编辑器语言的 `Intl` 格式化器|
 
-这是**编辑器**的 UI 语言。它不是游戏面向玩家的语言——runtime 接口没有 i18n；游戏通过它自己的系统进行本地化
+这是**编辑器**的 UI 语言。它不是游戏面向玩家的语言：玩家读到的文字通过 [`services.localization`](#serviceslocalization) 在项目的翻译表中翻译，在游戏中通过 [`game.locale`](#the-players-language) 读回
 
 ### services.storage
 
@@ -94,6 +94,38 @@ app.services.assets.revokeObjectUrl(url);
 ```
 
 `getMap()`、`list(type)`、`get(type, id)`、`fetch(asset)`、`createObjectUrl(asset)`、`revokeObjectUrl(url)`。及时释放你创建的对象 URL，避免内存泄漏
+
+### services.localization
+
+项目的翻译键（只读），以及提交插件自己的文字以供翻译的入口
+
+```ts
+const keys = app.services.localization.listKeys(); // [{ name, sourceText }]
+
+const off = app.services.localization.registerWords({
+    list: () => store.entries().map(entry => ({
+        id: `entry.${entry.id}.name`,
+        text: entry.name,
+        context: entry.group,
+    })),
+    subscribe: listener => store.subscribe(listener),
+});
+```
+
+| 成员 | 签名 | 说明 |
+| --- | --- | --- |
+| `listKeys` | `() => PluginLocalizationKeyEntry[]` | 每个键的 `name` 与 `sourceText`。键加载完成之前为空|
+| `registerWords` | `(source: PluginWordsSource) => PluginCleanup` | 把插件显示给玩家的文字交给翻译表与导出|
+
+插件显示给玩家的文字，要么指定项目的某个翻译键，按键翻译；要么直接写，再用 `registerWords` 提交。`PluginWordsSource` 是 `{ list(), subscribe? }`：`list()` 返回 `PluginWordsEntry` 对象，`subscribe(listener)` 返回取消订阅的函数；`list()` 的结果会变化时调用 listener
+
+| `PluginWordsEntry` | 说明 |
+| --- | --- |
+| `id` | 插件自己给这段文字的 id：字母和数字，中间可用 `.`、`_` 或 `-`。只要还是同一段文字，就保持不变；译文挂在它上面|
+| `text` | 文字，使用项目的源语言|
+| `context` | 可选。玩家在哪里看到这段文字，供译者参考，例如 `File › Save`。缺省为插件名|
+
+每个含字母的条目在翻译表的**界面文本**中按插件名占一行，翻译单元是 `plugin:<pluginId>/<id>`。runtime 入口用 [`app.game.locale.words(id, text)`](#the-players-language) 读回玩家语言中的文字。[`ui.WordsField`](/zh/docs/studio/plugin/studio/ui-kit) 为作者提供与 Studio 自己的文字相同的**直接写**或**翻译键**选择
 
 ### services.ui.panels
 
@@ -204,7 +236,9 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 import { ui } from "narraleaf-studio/plugin";
 ```
 
-Studio 自己的组件，让面板与编辑器主题保持一致：`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`（及其子组件）、`ui.Modal`（及其子组件）、`ui.AssetSelector`，以及 `ui.Panel.*` 布局原语（`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`）
+Studio 自己的组件，让面板与编辑器主题保持一致：`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`（及其子组件）、`ui.Modal`（及其子组件）、`ui.AssetSelector`、`ui.WordsField`，以及 `ui.Panel.*` 布局原语（`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`）
+
+`ui.WordsField` 是玩家读到的文字的字段，提供与 Studio 自己的文本和按钮文字相同的选择、键列表与就地编辑键。它是受控组件：`value` 是 `{ text, key }`，直接写时 `key` 为 null，`onChange` 收到下一个值。直接写的文字由插件用 `registerWords` 提交后翻译；取自键的文字按键翻译
 
 ---
 
@@ -349,9 +383,23 @@ app.game.log("info", "loaded");    // "info" | "warning" | "error"
 | `game.story` | `story.compile` | [Runtime API](/zh/docs/studio/plugin/runtime) |
 | `game.navigation` | 无——只需一个非空的 `contributes.externalLinks` | [Runtime API](/zh/docs/studio/plugin/runtime) |
 
-### runtime 接口上没有 i18n
+### 玩家的语言 [#the-players-language]
 
-runtime 入口运行在游戏中——在生产环境里没有编辑器，也没有编辑器语言，因此把这样一个接口暴露出来并不具备可移植性。游戏通过 NarraLeaf 的游戏本地化系统来本地化自己面向玩家的内容，而不是通过插件的 runtime API
+runtime 入口运行在游戏中——在生产环境里没有编辑器，也没有编辑器语言，因此 runtime 接口上没有 `i18n`。声明了 `locale` 能力时，`app.game.locale` 跟随玩家的语言，并读取项目中已翻译的文字：
+
+```ts
+const title = app.game.locale?.text("menu.title");           // 翻译键；项目没有该键时为 null
+const name = app.game.locale?.words("entry.cg01.name", "Sunset"); // 用 registerWords 提交的文字
+```
+
+| 成员 | 签名 | 说明 |
+| --- | --- | --- |
+| `current` | `readonly string` | 游戏当前使用的语言|
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` | 切换语言时触发|
+| `text` | `(key: string) => string \| null` | 项目的某个翻译键在该语言中的文字。项目没有声明该键时为 `null`|
+| `words` | `(id: string, text: string) => string` | 本插件在 studio 入口用 `registerWords` 提交的文字：`id` 所指单元沿语言回退链找到的译文，否则为 `text`。游戏只带译文不带源文，所以由插件传入原文。插件只能读到自己的文字|
+
+见 [assets & locale](/zh/docs/studio/plugin/runtime/assets-locale#locale)
 
 ---
 

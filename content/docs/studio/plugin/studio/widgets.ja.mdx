@@ -69,6 +69,10 @@ app.services.widgets.register(myWidgetModule);
 
 `render` が例外を投げると、その要素だけが **Widget failed to draw**（ウィジェットの描画に失敗）のブロックとして描かれ、ページのほかの部分は通常どおり描画されます。
 
+## プレイヤーが読む文字 [#words-a-player-reads]
+
+タイトルや説明文のように、プレイヤーが読む文字をプロパティに持つウィジェットは、それらのプロパティをマニフェストの [`contributes.widgetText`](/ja/docs/studio/plugin/manifest#widgettext) で宣言します。すると Studio は、Properties でそれぞれに **Direct**（直接入力）か **Translation key**（翻訳キー）の選択を出し、キャンバスにキーの文字を描画し、その文字を翻訳テーブルに並べます。`render` が受け取る `element.props.<prop>` は解決済みの文字で、キャンバスではソース言語、ゲームではプレイヤーの言語です。ウィジェットがキーを自分で解決することはありません。
+
 ## ウィジェットのイベント [#widget-events]
 
 `logicApi` に `supportsPrivateBlueprint: true` を書いたウィジェットでは、要素が独自のブループリントを持ちます。このブループリントは、Studio がプロパティパネルでプラグインのフィールドのあとに追加する **Interaction**（操作）タブから開きます。`events` の各項目は、ヘッドがその `headNodeTypes` に挙げられているグラフを開始します。

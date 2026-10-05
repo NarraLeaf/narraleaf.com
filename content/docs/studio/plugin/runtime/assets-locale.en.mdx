@@ -33,20 +33,25 @@ Synchronous, so it is safe inside a widget renderer or a pure node.
 
 ## locale
 
-`app.game.locale` is the **game's** display language — the one the player chose, set by the running project's localization data.
+`app.game.locale` is the **game's** display language — the one the player chose, set by the running project's localization data — and the project's translated words in it.
 
 | Member | Signature |
 | --- | --- |
 | `current` | `readonly string` |
 | `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+| `text` | `(key: string) => string \| null` |
+| `words` | `(id: string, text: string) => string` |
 
 ```ts
 const locale = app.game.locale?.current ?? "en";
 
 const stop = app.game.locale?.onChange(next => {
-    // re-read your own translated strings for `next`
+    // read the words again for `next`
 });
 ```
+
+- `text(key)` reads one of the project's translation keys in the current language, through the same table and fallback chain as the [`Get Text`](/docs/studio/blueprint/nodes/localization#get-text) node. It returns `null` when the project declares no such key.
+- `words(id, text)` reads words the plugin wrote directly and offered for translation from its studio entry with [`app.services.localization.registerWords`](/docs/studio/plugin/api-reference#serviceslocalization): the translation of the unit `id` names, along the language's fallback chain, else `text`. The game carries translations and not source words, so the plugin passes the words as written. A plugin reads only its own words.
 
 This is read-only: a plugin can follow the player's language but cannot change it.
 
@@ -54,4 +59,4 @@ This is read-only: a plugin can follow the player's language but cannot change i
 Do not confuse this with [`app.services.i18n`](/docs/studio/plugin/studio/i18n), which is the **editor's** UI language and exists only on the studio entry. They are different languages set by different people — an author editing in English can be testing a game running in Japanese.
 </Callout>
 
-If your plugin ships its own translated strings for game-facing text, key them off `locale.current` and re-render on `onChange`. The runtime surface has no translator of its own.
+Words read with `text` or `words` are translated in the project's translation table with the rest of the game, in every language the author adds. Read them again on `onChange`.

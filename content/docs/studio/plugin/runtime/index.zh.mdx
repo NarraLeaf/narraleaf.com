@@ -61,8 +61,8 @@ export default defineRuntimePlugin({
 | `saves.write` | `app.game.saves.write` / `.load` | 覆盖一个槽位，或替换正在进行的游玩进程|
 | `ui.overlay` | [`app.game.ui.overlay`](/zh/docs/studio/plugin/runtime/overlay) | 在游戏之上绘制一个元素|
 | `assets` | [`app.game.assets`](/zh/docs/studio/plugin/runtime/assets-locale) | 把打包好的资源 id 解析成 URL|
-| `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言|
-| `menu` | `app.game.menu`——`set` | 声明桌面版游戏上方的整个菜单栏。`set(spec)` 替换整个菜单栏，传入空的 spec 会移除它。每一行运行一个内置动作（例如打开页面、开关自动前进）或全局蓝图（**应用逻辑**）中的一个函数|
+| `locale` | [`app.game.locale`](/zh/docs/studio/plugin/runtime/assets-locale) | 读取并观察游戏的显示语言，并读取项目的翻译键与插件自己的文字在该语言中的样子|
+| `menu` | `app.game.menu`——`set` | 声明桌面版游戏上方的整个菜单栏。`set(spec)` 替换整个菜单栏，传入空的 spec 会移除它。每一行运行一个内置动作（例如打开页面、开关自动前进）或**应用逻辑**中的一个函数。标签是 `{ key, text, words? }`：翻译键 `key` 的文字，或 `text`，后者经 `words` 翻译——`words` 是插件用 `registerWords` 提交 `text` 时给的 id|
 | `story.compile` | `app.game.story` | 注册一个编译遍历，它能看到每一个场景，并在它的行周围注入引擎动作。十三项里最重的一项：一个 pass 会跑遍项目的**每一个**场景、看见每场里谁在说话，并能在它没写过的行旁边放动作。它不是 `state.write` 的变相，也不隐含它 —— pass 只造动作，不跑动作|
 | `diagnostics` | `app.game.diagnostics`——`imageCache` | 读取引擎图片缓存当前持有的内容，以及它所受的预算。只读。游戏会话开始运行之前，`imageCache()` 返回 `null`|
 | `process.memory` | `app.game.process`——`memory` | 读取游戏各进程按操作系统统计占用的内存。只读，`memory()` 返回一个 Promise|
@@ -140,5 +140,5 @@ execute: async ctx => {
 - **没有 `hostAdapter`。** 节点的 `ctx` 只带 `params`、`resolveInput`、`eventName`、`eventPayload`、`signal` 和 `game`——别无其他。早期构建通过 `ctx.hostAdapter.blueprintRuntime.hostApi` 泄漏了宿主完整的内部 API；那条路径已经没了。现在一切都走 `ctx.game`，而它恰好就是清单声明的那些
 - **没有编辑器服务。** `app.services`、`app.privileged` 和 `ui` 套件只属于 [studio 入口](/zh/docs/studio/plugin/studio)。runtime 入口是游戏代码
 - **没有 `react-dom/client`。** 宿主以 external 的形式提供 `react`、`react-dom` 和 JSX 运行时，但插件绝不能挂载自己的 React root——第二个 root 会在同一棵树上和宿主的打架。返回元素，让宿主去渲染
-- **没有编辑器 i18n。** `app.services.i18n` 是编辑器的 UI 语言。游戏通过 NarraLeaf 自己的本地化系统来本地化面向玩家的内容；运行时接口只告诉你当前是哪个 locale
+- **没有编辑器 i18n。** `app.services.i18n` 是编辑器的 UI 语言。游戏面向玩家的文字在项目的翻译表中翻译；运行时接口告诉你当前是哪个 locale，`app.game.locale` 读取翻译键与插件自己的文字在该语言中的样子
 - **没有清理生命周期。** 游戏进程只加载一次插件，从不卸载，所以 `setup` 没有要返回的清理函数，`register` 返回 `void`

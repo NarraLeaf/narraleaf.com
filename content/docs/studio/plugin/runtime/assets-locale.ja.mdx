@@ -33,20 +33,25 @@ const src = app.game.assets?.url(String(ctx.params.iconAssetId ?? ""));
 
 ## locale
 
-`app.game.locale` は **ゲームの** 表示言語です。プレイヤーが選んだもので、実行中のプロジェクトのローカライズデータによって設定されます。
+`app.game.locale` は **ゲームの** 表示言語です。プレイヤーが選んだもので、実行中のプロジェクトのローカライズデータによって設定されます。その言語に翻訳されたプロジェクトの文字も読み取れます。
 
 | メンバー | シグネチャ |
 | --- | --- |
 | `current` | `readonly string` |
 | `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+| `text` | `(key: string) => string \| null` |
+| `words` | `(id: string, text: string) => string` |
 
 ```ts
 const locale = app.game.locale?.current ?? "en";
 
 const stop = app.game.locale?.onChange(next => {
-    // `next` に合わせて自分の翻訳済み文字列を読み直す
+    // `next` に合わせて文字を読み直す
 });
 ```
+
+- `text(key)` は、プロジェクトの翻訳キーを現在の言語で読み取ります。テーブルとフォールバックチェーンは [`Get Text`](/ja/docs/studio/blueprint/nodes/localization#get-text) ノードと同じです。プロジェクトがそのキーを宣言していない場合は `null` を返します。
+- `words(id, text)` は、プラグインが直接書き、studio エントリーから [`app.services.localization.registerWords`](/ja/docs/studio/plugin/api-reference#serviceslocalization) で翻訳に出した文字を読み取ります。`id` が指す単位の翻訳を言語のフォールバックチェーンに沿って探し、なければ `text` を返します。ゲームには翻訳だけが入り原文は入らないため、プラグインが書いたとおりの文字を渡します。プラグインが読めるのは自身の文字だけです。
 
 これは読み取り専用です。プラグインはプレイヤーの言語に追従できますが、それを変更することはできません。
 
@@ -54,4 +59,4 @@ const stop = app.game.locale?.onChange(next => {
 これを [`app.services.i18n`](/ja/docs/studio/plugin/studio/i18n) と混同しないでください。あちらは **エディタの** UI 言語であり、studio エントリにのみ存在します。両者は異なる人が設定する異なる言語です。英語で編集している作者が、日本語で動くゲームをテストしていることもあり得ます。
 </Callout>
 
-プラグインがゲーム向けのテキストに自前の翻訳済み文字列を用意しているなら、`locale.current` をキーにし、`onChange` で再描画してください。ランタイム側のインターフェースには翻訳機構そのものはありません。
+`text` や `words` で読む文字は、ゲームのほかの部分と一緒にプロジェクトの翻訳テーブルで翻訳され、作者が加えるすべての言語が対象になります。`onChange` で読み直してください。

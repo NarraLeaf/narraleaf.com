@@ -20,6 +20,9 @@ import { ui } from "narraleaf-studio/plugin";
 | Disclosure | `Accordion`, `AccordionItem`, `NestedAccordion` |
 | Cards | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `InteractiveCard` |
 | Assets | `AssetSelector` |
+| Words | `WordsField` |
+
+`WordsField` is the field for words a player reads: the choice of **Direct** or **Translation key**, the project's key list, and in-place key editing, as on Studio's own text and button labels. It is controlled: `value` is `{ text, key }`, with `key` null for words written directly, and `onChange` receives the next value. Offer words written directly for translation with [`registerWords`](/docs/studio/plugin/api-reference#serviceslocalization); words read from a key are translated as the key.
 
 ## Panel layout primitives
 

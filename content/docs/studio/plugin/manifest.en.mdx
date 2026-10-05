@@ -46,6 +46,7 @@ Entry paths cannot be absolute or contain `..`, `.`, null bytes, `?`, or `#`.
 | --- | --- | --- |
 | `blueprintNodes` | `string[]` | Blueprint node types this plugin provides. |
 | `widgets` | `string[]` | Widget element types this plugin provides. |
+| `widgetText` | object | The props of each contributed widget that hold words a player reads. |
 | `locales` | object[] | Studio language packs — locales the plugin adds or fills. |
 | `runtimeData` | `string[]` | Plugin storage namespaces to publish with the game. |
 | `runtimeCapabilities` | `string[]` | Capability domains the runtime entry may use. |
@@ -62,6 +63,36 @@ Every node type, widget type, storage namespace, sidecar id, build-dependency id
 ### blueprintNodes and widgets
 
 Registering a type you did not declare throws at load time, on both entries. The declaration is what lets Studio tell an author *before* a build that a node their project uses has no runtime provider — instead of shipping a game with a node that does nothing.
+
+### widgetText
+
+A contributed widget that shows words a player reads, such as a title or a caption, names the props that hold them, by widget type:
+
+```json
+{
+  "contributes": {
+    "widgets": ["yourname.hello.badge"],
+    "widgetText": {
+      "yourname.hello.badge": [
+        { "prop": "title", "label": "Title", "localized": { "zh": "标题", "ja": "タイトル" } },
+        { "prop": "caption", "multiline": true }
+      ]
+    }
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `prop` | Required. The prop that holds the words. |
+| `keyProp` | The prop the translation key is kept in, when the author reads the words from one. `<prop>LocalizationKey` when absent. Studio writes it; the widget never reads it to draw. |
+| `label` | What Properties calls the words. The prop name when absent. |
+| `localized` | `label` per editor language, keyed by the editor's locale code, such as `zh` or `ja`. |
+| `multiline` | Whether the words may run over several lines. One line when absent. |
+
+Studio handles each declared prop as it handles the words of its own Text and Button widgets. Properties shows them in a **Content** section with the choice of **Direct** or **Translation key**, the canvas draws a key's words, the words have rows in the translation table and in exports, the project checks report a missing translation or key, and the glyph check reads them. In the game, `render` receives the words already in the player's language, in the prop that was declared; the widget never resolves a key itself.
+
+Both entries read this declaration: the studio entry's widget is edited by it, and the runtime entry's widget is drawn by it. Each type named must also be in `contributes.widgets` and have at least one entry. `prop` and `keyProp` are identifiers, cannot be `runtimeTextOrigin` or `runtimeTextUnit`, and cannot repeat a name within one widget. `widgetText` derives no install permission.
 
 ### runtimeData
 

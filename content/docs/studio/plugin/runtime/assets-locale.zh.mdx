@@ -33,20 +33,25 @@ const src = app.game.assets?.url(String(ctx.params.iconAssetId ?? ""));
 
 ## locale
 
-`app.game.locale` 是**游戏的**显示语言——玩家选择的那个，由运行中的项目的本地化数据设定
+`app.game.locale` 是**游戏的**显示语言——玩家选择的那个，由运行中的项目的本地化数据设定——以及项目中已翻译成该语言的文字
 
 | 成员 | 签名 |
 | --- | --- |
 | `current` | `readonly string` |
 | `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` |
+| `text` | `(key: string) => string \| null` |
+| `words` | `(id: string, text: string) => string` |
 
 ```ts
 const locale = app.game.locale?.current ?? "en";
 
 const stop = app.game.locale?.onChange(next => {
-    // 按 `next` 重新读取你自己的翻译字符串
+    // 按 `next` 重新读取文字
 });
 ```
+
+- `text(key)` 读取项目的某个翻译键在当前语言中的文字，所用的表与回退链与 [`Get Text`](/zh/docs/studio/blueprint/nodes/localization#get-text) 节点相同。项目没有声明该键时返回 `null`
+- `words(id, text)` 读取插件直接写、并在 studio 入口用 [`app.services.localization.registerWords`](/zh/docs/studio/plugin/api-reference#serviceslocalization) 提交翻译的文字：`id` 所指单元沿语言回退链找到的译文，否则为 `text`。游戏只带译文不带源文，所以由插件传入原文。插件只能读到自己的文字
 
 这是只读的：插件可以跟随玩家的语言，但不能改变它
 
@@ -54,4 +59,4 @@ const stop = app.game.locale?.onChange(next => {
 不要把它和 [`app.services.i18n`](/zh/docs/studio/plugin/studio/i18n) 搞混，后者是**编辑器的** UI 语言，且只存在于 studio 入口上。它们是由不同的人设定的不同语言——用英文编辑的作者，完全可能在测试一个跑日文的游戏
 </Callout>
 
-如果你的插件为面向游戏的文本自带翻译字符串，请以 `locale.current` 为键，并在 `onChange` 时重新渲染。运行时接口自己没有翻译器
+用 `text` 或 `words` 读取的文字，与游戏的其他内容一起在项目的翻译表中翻译，作者添加的每种语言都覆盖在内。请在 `onChange` 时重新读取

@@ -70,7 +70,7 @@ const stop = app.services.i18n.onLocaleChange(locale => {
 | `createTranslator(bundle)` | *あなた自身の* `{ locale: { key: string } }` テーブルに基づく翻訳器。`t(key, params?)` はアクティブ → フォールバック → キー自身の順で解決し、`{placeholders}` を埋めます。 |
 | `formatNumber` / `formatDate` / `formatList` | エディターロケールに連動した `Intl` フォーマッター。 |
 
-これは**エディターの** UI 言語です。ゲームのプレイヤー向け言語ではありません――runtime サーフェスに i18n はなく、ゲームは自身のシステムを通じてローカライズします。
+これは**エディターの** UI 言語です。ゲームのプレイヤー向け言語ではありません。プレイヤーが読む文字は [`services.localization`](#serviceslocalization) を通じてプロジェクトの翻訳テーブルで翻訳され、ゲームの中では [`game.locale`](#the-players-language) で読み戻します。
 
 ### services.storage
 
@@ -94,6 +94,38 @@ app.services.assets.revokeObjectUrl(url);
 ```
 
 `getMap()`、`list(type)`、`get(type, id)`、`fetch(asset)`、`createObjectUrl(asset)`、`revokeObjectUrl(url)`。作成したオブジェクト URL は漏れを防ぐために解放してください。
+
+### services.localization
+
+プロジェクトの翻訳キー（読み取り専用）と、プラグイン自身の文字を翻訳に出すための入口です。
+
+```ts
+const keys = app.services.localization.listKeys(); // [{ name, sourceText }]
+
+const off = app.services.localization.registerWords({
+    list: () => store.entries().map(entry => ({
+        id: `entry.${entry.id}.name`,
+        text: entry.name,
+        context: entry.group,
+    })),
+    subscribe: listener => store.subscribe(listener),
+});
+```
+
+| メンバー | シグネチャ | 備考 |
+| --- | --- | --- |
+| `listKeys` | `() => PluginLocalizationKeyEntry[]` | 各キーの `name` と `sourceText`。キーの読み込みが終わるまでは空です。 |
+| `registerWords` | `(source: PluginWordsSource) => PluginCleanup` | プラグインがプレイヤーに見せる文字を、翻訳テーブルと書き出しに出します。 |
+
+プレイヤーに文字を見せるプラグインは、プロジェクトの翻訳キーを指定してキーとして翻訳させるか、文字を直接書いて `registerWords` で出すかのどちらかです。`PluginWordsSource` は `{ list(), subscribe? }` です。`list()` は `PluginWordsEntry` オブジェクトを返し、`subscribe(listener)` は購読を解除する関数を返します。`list()` の答えが変わるときは listener を呼んでください。
+
+| `PluginWordsEntry` | 備考 |
+| --- | --- |
+| `id` | プラグイン自身がその文字に付ける id。英数字と、その間に置く `.`、`_`、`-`。同じ文字である間は変えないでください。翻訳はこの id に結び付きます。 |
+| `text` | プロジェクトのソース言語での文字。 |
+| `context` | 省略可。プレイヤーがその文字を目にする場所で、翻訳者向けの情報です。例：`File › Save`。省略時はプラグイン名。 |
+
+英字を含む項目は、翻訳テーブルの **Interface text**（画面のテキスト）にプラグイン名でまとめて 1 行ずつ並びます。翻訳単位は `plugin:<pluginId>/<id>` です。runtime エントリーは [`app.game.locale.words(id, text)`](#the-players-language) でプレイヤーの言語の文字を読み戻します。[`ui.WordsField`](/ja/docs/studio/plugin/studio/ui-kit) は、Studio 自身のラベルと同じ **Direct**（直接入力）か **Translation key**（翻訳キー）の選択を作者に提供します。
 
 ### services.ui.panels
 
@@ -204,7 +236,9 @@ app.services.blueprintNodes.notifyDynamicSelectOptionsChanged();
 import { ui } from "narraleaf-studio/plugin";
 ```
 
-Studio 自身のコンポーネントで、パネルをエディターのテーマに合わせられます。`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`(とそのパーツ)、`ui.Modal`(とそのパーツ)、`ui.AssetSelector`、そして `ui.Panel.*` のレイアウトプリミティブ(`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`)。
+Studio 自身のコンポーネントで、パネルをエディターのテーマに合わせられます。`ui.Button`、`ui.IconButton`、`ui.Input`、`ui.TextArea`、`ui.Select`、`ui.Switch`、`ui.Card`(とそのパーツ)、`ui.Modal`(とそのパーツ)、`ui.AssetSelector`、`ui.WordsField`、そして `ui.Panel.*` のレイアウトプリミティブ(`Root`、`Header`、`Toolbar`、`Section`、`Row`、`EmptyState`)。
+
+`ui.WordsField` はプレイヤーが読む文字のためのフィールドで、Studio 自身のテキストやボタンのラベルと同じ選択、キーの一覧、その場でのキーの編集を備えます。制御コンポーネントで、`value` は `{ text, key }`（直接入力のときは `key` が null）、`onChange` は次の値を受け取ります。直接入力の文字はプラグインが `registerWords` で出すと翻訳され、キーから取った文字はキーとして翻訳されます。
 
 ---
 
@@ -349,9 +383,23 @@ app.game.log("info", "loaded");    // "info" | "warning" | "error"
 | `game.story` | `story.compile` | [Runtime API](/ja/docs/studio/plugin/runtime) |
 | `game.navigation` | なし――空でない `contributes.externalLinks` があればよい | [Runtime API](/ja/docs/studio/plugin/runtime) |
 
-### runtime サーフェスに i18n はありません
+### プレイヤーの言語 [#the-players-language]
 
-runtime エントリーはゲームの中で実行されます――Production にはエディターもエディターロケールも存在しないため、そのようなものを公開しても移植性がありません。ゲームは、プラグインの runtime API ではなく、NarraLeaf のゲームローカライゼーションシステムを通じて自らのプレイヤー向けコンテンツをローカライズします。
+runtime エントリーはゲームの中で実行されます――Production にはエディターもエディターロケールも存在しないため、runtime サーフェスに `i18n` はありません。`locale` 能力を宣言すると、`app.game.locale` がプレイヤーの言語に追従し、その言語でプロジェクトの翻訳済みの文字を読み取ります。
+
+```ts
+const title = app.game.locale?.text("menu.title");           // 翻訳キー。プロジェクトにない場合は null
+const name = app.game.locale?.words("entry.cg01.name", "Sunset"); // registerWords で出した文字
+```
+
+| メンバー | シグネチャ | 備考 |
+| --- | --- | --- |
+| `current` | `readonly string` | ゲームが実行されている言語。 |
+| `onChange` | `(listener: (locale: string) => void) => RuntimePluginCleanup` | 言語の切り替え時に発火します。 |
+| `text` | `(key: string) => string \| null` | プロジェクトの翻訳キーの、その言語での文字。プロジェクトがそのキーを宣言していない場合は `null`。 |
+| `words` | `(id: string, text: string) => string` | このプラグインが studio エントリーから `registerWords` で出した文字。`id` が指す単位の翻訳を言語のフォールバックチェーンに沿って探し、なければ `text` を返します。ゲームには翻訳だけが入り原文は入らないため、プラグインが書いたとおりの文字を渡します。プラグインが読めるのは自身の文字だけです。 |
+
+[assets & locale](/ja/docs/studio/plugin/runtime/assets-locale#locale) を参照してください。
 
 ---
 
