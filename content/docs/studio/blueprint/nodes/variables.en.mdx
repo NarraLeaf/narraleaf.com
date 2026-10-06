@@ -8,6 +8,7 @@ These nodes are the only way a graph touches a variable. Which scopes exist, how
 ## Conventions
 
 - **`Get Var` and `Set Var` project their `value` pin type from the selected variable.** The pin is declared `any`, but on the card it takes the type of whatever you picked in `Variable`, and the editor uses that projected type for the pin label, the connection preview, and validation.
+- **The Persistent and Saved pairs project their `value` pin the same way**, from the variable's declared type. A **Number** variable gives a `float` pin, so it wires into `+` and other number inputs.
 - **A later type change keeps your edges.** Change a `Var`'s Data type and any edge that no longer fits stays exactly where it is; validation reports a type mismatch instead of the editor quietly deleting the connection. You decide what to rewire.
 - **The Persistent pair is latent.** `Get Persistent` and `Set Persistent` suspend the graph until the read or write finishes, which keeps them out of a [Blueprint Value](/docs/studio/blueprint), an inline story value and a branch condition.
 - **Blueprint Value cannot declare.** A `widgetValue` owner has no `Var` node at all. It can still read and write the variables it can reach, through `Get Var` and `Set Var`.
@@ -75,7 +76,7 @@ Reads a project-level Persistent variable from host-managed storage. It is laten
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | The stored value, or the variable's default. |
+| `value` | out · data | `any` | The stored value, or the variable's default. Projected to the selected variable's type. |
 
 **On-card fields**
 
@@ -93,7 +94,7 @@ Writes a Persistent variable through host-managed storage, then continues throug
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | The value to store. |
+| `value` | in · data | `any` | The value to store. Projected to the selected variable's type. |
 
 **On-card fields**
 
@@ -149,7 +150,7 @@ In a [Blueprint Value](/docs/studio/blueprint) the widget shows the new value wh
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | The variable's current value, or its declared default when `found` is `false`. |
+| `value` | out · data | `any` | The variable's current value, or its declared default when `found` is `false`. Projected to the variable's declared type. |
 | `found` | out · data | `boolean` | `false` when no running game holds the variable. Always `true` in a Story Action blueprint. |
 
 **On-card fields**
@@ -170,7 +171,7 @@ Outside a Story Action blueprint it writes into the game being played, and fails
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | The value to write. |
+| `value` | in · data | `any` | The value to write. Projected to the variable's declared type. |
 
 **On-card fields**
 

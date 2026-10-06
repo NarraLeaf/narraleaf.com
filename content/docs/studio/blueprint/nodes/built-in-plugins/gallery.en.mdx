@@ -46,7 +46,7 @@ An entry with no variants yet is unlocked and locked as a whole: reaching a reco
 - **Every node has exec pins.** None is `Pure`, and a Blueprint Value offers none of them. Run them from an event graph and hand what they return to a List or a variable. All but `Get Gallery Groups` are `Latent`.
 - **A wired pin wins over the card.** `artworkId`, `variantId` and `groupId` override the card's `Artwork`, `Variant` and `Group` when they carry a non-empty string. The card picks by name while you author; the pins take the ids rows carry, which is how a row the player clicks drives a viewer.
 - **Rows are masked already.** Lock state is applied inside each row, so an item template draws whatever it is given and cannot show a locked entry's art by mistake.
-- **Rows feed a List.** Wire `entries` into [`Set List Content`](/docs/studio/blueprint/nodes/list#set-list-content). In the item template, read a field with [`Get List Item Props`](/docs/studio/blueprint/nodes/list#get-list-item-props) and [`Get JSON Field`](/docs/studio/blueprint/nodes/data#get-json-field).
+- **Rows feed a List.** Wire `entries` into [`Set List Content`](/docs/studio/blueprint/nodes/list#set-list-content), and set the List's **Struct** under **Edit content** to **Gallery entry**, **Gallery variant** or **Gallery group** (see [Lists](/docs/studio/workspace/ui-editor#lists)). The widgets in the item template then pick the fields by name, and [`Get Field`](/docs/studio/blueprint/nodes/data#get-field) reads one in a blueprint. These structs are known while the Gallery plugin is enabled.
 - **An entry the node cannot find fails it.** With no entry picked on the card and nothing on `artworkId`, a node fails with `Pick a gallery artwork`. An id the catalog does not hold fails with `Gallery artwork not found: <id>`.
 - **Where they run.** In the editor canvas the nodes read the catalog as you are editing it, with nothing unlocked, and an unlock or lock changes nothing. In Dev Mode, Preview and the built game they read the catalog packed with the game.
 - **A game with no catalog.** When the game carries no gallery catalog (the project never saved one), the plugin logs `No gallery catalog was published with this game.` once. `Get Gallery` and `Get Gallery Groups` return empty arrays, `Get Gallery Progress` returns zeros, and every node that names an entry fails.
@@ -63,7 +63,7 @@ The catalog's entries as rows, in the editor's order, narrowed by kind and group
 | `groupId` | in · data | `string` | Optional. Wired wins over the card's `Group`. |
 | `onlyUnlocked` | in · data | `boolean` | Optional. Accepts an on-card literal. `true` leaves out every locked entry. |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | Array of objects; fields below. |
+| `entries` | out · data | `array<struct:narraleaf.gallery.entry>` | **Gallery entry list**; fields below. |
 | `count` | out · data | `integer` | Rows in `entries`. |
 | `unlockedCount` | out · data | `integer` | Unlocked rows in `entries`. |
 
@@ -107,7 +107,7 @@ One entry's variants as rows, in the editor's order: the differential strip of a
 | `artworkId` | in · data | `string` | Optional. Wired wins over the card's `Artwork`. |
 | `onlyUnlocked` | in · data | `boolean` | Optional. Accepts an on-card literal. `true` leaves out every locked variant. |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | Array of objects; fields below. |
+| `entries` | out · data | `array<struct:narraleaf.gallery.variant>` | **Gallery variant list**; fields below. |
 | `count` | out · data | `integer` | Rows in `entries`. |
 | `unlockedCount` | out · data | `integer` | Unlocked rows in `entries`. |
 
@@ -144,7 +144,7 @@ The catalog's groups in the editor's order, for a tab bar. A row's `id` goes int
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `groups` | out · data | `array` | Array of `{ index, id, name }`. |
+| `groups` | out · data | `array<struct:narraleaf.gallery.group>` | **Gallery group list**, with the fields `index`, `id` and `name`. |
 | `count` | out · data | `integer` | |
 
 ## Get Gallery Progress

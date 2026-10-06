@@ -497,7 +497,7 @@ Item Render（项渲染）在 List 根据绑定数据、**列表内容**里的�
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
-| `item` | out · data | `json` | 条目数据|
+| `item` | out · data | `json` | 条目数据。该 List 结构的一行，从它拖出连线时会列出行的字段 |
 
 ### Item Click
 
@@ -511,7 +511,7 @@ Item Click（项点击）在条目容器收到点击时触发。点击条目模�
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
-| `item` | out · data | `json` | 条目数据|
+| `item` | out · data | `json` | 条目数据。该 List 结构的一行，从它拖出连线时会列出行的字段 |
 
 ### Item Hover
 
@@ -525,7 +525,7 @@ Item Hover（项悬停）在指针进入条目容器时触发
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | 优先来自 List 的`itemKeyPath`|
-| `item` | out · data | `json` | 条目数据|
+| `item` | out · data | `json` | 条目数据。该 List 结构的一行，从它拖出连线时会列出行的字段 |
 
 ### Selection Changed
 
@@ -540,7 +540,7 @@ Selection Changed（选择变更）在条目点击导致运行时选中索引变
 | `previousIndex` | out · data | `integer` | 之前没有选中项时为`-1`|
 | `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | 新选中条目的 key|
-| `item` | out · data | `json` | 新选中条目的数据|
+| `item` | out · data | `json` | 新选中条目的数据。该 List 结构的一行，从它拖出连线时会列出行的字段 |
 
 ### Scroll
 
@@ -578,7 +578,7 @@ List Item Refresh（列表项刷新）在`nl.list`渲染或刷新某个条目时
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `props` | out · data | `json` | `item`是 object 时为`item`本身，否则为`{ value: item }`|
-| `item` | out · data | `json` | 条目数据|
+| `item` | out · data | `json` | 条目数据。该 List 结构的一行，从它拖出连线时会列出行的字段 |
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | 本次渲染的条目总数|
 | `key` | out · data | `string` | |
@@ -709,7 +709,7 @@ On Preference Changed（偏好变更时）在所选偏好键变化时触发
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `json` | 变化后的新值。引脚类型是通用`json`；实际运行时类型由所选键决定：`autoForward`/`skip`/`skipping`/`skipReadText`/`showDialog`/`muteOnWindowBlur`为`boolean`，`voiceEndMode`为`string`，其余为`number`。接入`Set Slider Value`这类强类型输入前，先用`To Float`或`To Boolean`转换|
+| `value` | out · data | `json` | 新值，类型随所选键而定：`autoForward` / `skip` / `skipping` / `skipReadText` / `showDialog` / `muteOnWindowBlur` 为 `boolean`，`voiceEndMode` 为 `string`，其余为 `float`。可以直接连到 `Set Slider Value` 这类有类型的输入 |
 | `previousValue` | out · data | `json` | 运行时缓存的旧值，类型同`value`。本次会话对该键没有更早快照时为`null`|
 
 **卡片字段**

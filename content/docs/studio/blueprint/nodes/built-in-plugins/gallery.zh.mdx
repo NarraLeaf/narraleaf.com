@@ -46,7 +46,7 @@ Gallery 插件用于游戏的鉴赏界面：CG 画廊、场景回想、音乐鉴
 - **每个节点都有 exec 引脚。** 没有一个是 `Pure`，Blueprint Value 也一个都不提供。在事件图里运行它们，把结果交给列表或变量。除 `Get Gallery Groups` 外都是 `Latent`
 - **连线的引脚优先于卡片。** `artworkId`、`variantId` 和 `groupId` 带着非空字符串时，会覆盖卡上的 `Artwork`、`Variant` 和 `Group`。卡片在编写时按名字挑选；引脚接收行里带的 id，玩家点击的那一行就是这样驱动查看器的
 - **行已经处理好锁定。** 锁定状态在每一行内部就已应用，条目模板拿到什么画什么，不会因为疏忽露出锁定条目的原图
-- **行直接喂给列表。** 把 `entries` 接到 [`Set List Content`](/zh/docs/studio/blueprint/nodes/list#set-list-content)。在条目模板里，用 [`Get List Item Props`](/zh/docs/studio/blueprint/nodes/list#get-list-item-props) 和 [`Get JSON Field`](/zh/docs/studio/blueprint/nodes/data#get-json-field) 读取字段
+- **行直接喂给列表。** 把 `entries` 接到 [`Set List Content`](/zh/docs/studio/blueprint/nodes/list#set-list-content)，并在 List 的**编辑内容**中把**结构**设为**画廊条目**、**画廊变体**或**画廊分组**（见[列表](/zh/docs/studio/workspace/ui-editor#lists)）。条目模板中的控件随后按名称选择字段，蓝图中用 [`Get Field`](/zh/docs/studio/blueprint/nodes/data#get-field) 读取字段。画廊插件启用时这些结构才可用
 - **找不到条目时节点失败。** 卡上没有选条目、`artworkId` 也没有接值时，节点以 `Pick a gallery artwork` 失败。目录里没有的 id 以 `Gallery artwork not found: <id>` 失败
 - **运行的地方。** 在编辑器画布中，节点读取你正在编辑的目录，什么都没解锁，解锁和锁定都不产生任何变化。在开发模式、预览和构建出的游戏中，节点读取打包进游戏的目录
 - **游戏里没有目录时。** 游戏没有带画廊目录（项目从未保存过目录）时，插件会记录一次 `No gallery catalog was published with this game.`。`Get Gallery` 和 `Get Gallery Groups` 返回空数组，`Get Gallery Progress` 返回全零，所有指定条目的节点都会失败
@@ -63,7 +63,7 @@ Get Gallery（获取画廊）把目录中的条目按编辑器里的顺序作为
 | `groupId` | in · data | `string` | 可选。连线时优先于卡上的 `Group`|
 | `onlyUnlocked` | in · data | `boolean` | 可选。支持卡片字面量。为 `true` 时去掉所有锁定的条目|
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下|
+| `entries` | out · data | `array<struct:narraleaf.gallery.entry>` | **画廊条目列表**；字段见下 |
 | `count` | out · data | `integer` | `entries` 的行数|
 | `unlockedCount` | out · data | `integer` | `entries` 中已解锁的行数|
 
@@ -107,7 +107,7 @@ Get Gallery Variants（获取画廊变体）把一个条目的变体按编辑器
 | `artworkId` | in · data | `string` | 可选。连线时优先于卡上的 `Artwork`|
 | `onlyUnlocked` | in · data | `boolean` | 可选。支持卡片字面量。为 `true` 时去掉所有锁定的变体|
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下|
+| `entries` | out · data | `array<struct:narraleaf.gallery.variant>` | **画廊变体列表**；字段见下 |
 | `count` | out · data | `integer` | `entries` 的行数|
 | `unlockedCount` | out · data | `integer` | `entries` 中已解锁的行数|
 
@@ -144,7 +144,7 @@ Get Gallery Groups（获取画廊分组）按编辑器里的顺序给出目录�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `groups` | out · data | `array` | `{ index, id, name }` 的数组|
+| `groups` | out · data | `array<struct:narraleaf.gallery.group>` | **画廊分组列表**，字段为 `index`、`id` 和 `name` |
 | `count` | out · data | `integer` | |
 
 ## Get Gallery Progress

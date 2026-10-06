@@ -65,9 +65,9 @@ description: ゲームのプレイヤー向け言語を読み取り、切り替�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | `Languages` というラベルが付きます。プロジェクトにローカライズがない場合は空です。 |
+| `value` | out · data | `array<struct:nl.language>` | `Languages` というラベルが付いた **Language list**（言語のリスト）です。プロジェクトにローカライズがない場合は空です。 |
 
-各エントリーは `code`、`displayName`、`isSource` を持ちます。`displayName` は作者が入力した自称——「Japanese」ではなく「日本語」——であり、これが言語ピッカーがプレイヤーに表示するものです。`code` は `Set Language` に渡し返す値です。このピンが `any` 型なのは、値がスカラーなブループリント型の 1 つではなく、オブジェクトのリストだからです。
+各エントリーは `code`、`displayName`、`isSource` を持ちます。`displayName` は作者が入力した自称——「Japanese」ではなく「日本語」——であり、これが言語ピッカーがプレイヤーに表示するものです。`code` は `Set Language` に渡し返す値です。フィールドは [`Get Field`](/ja/docs/studio/blueprint/nodes/data#get-field) で読み取ります。
 
 ## Translation Key Text
 

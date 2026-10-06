@@ -243,7 +243,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `notifications` | out · data | `array` | |
+| `notifications` | out · data | `array<struct:nl.notificationItem>` | **Notification list**（通知のリスト）。フィールドは下記のとおりです。 |
 
 **エントリーフィールド**
 
@@ -801,7 +801,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `ids` | out · data | `array` | `string` の配列です。 |
+| `ids` | out · data | `array<string>` | |
 
 ### Get Save Metadata
 
@@ -965,7 +965,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `entries` | out · data | `array<struct:nl.saveEntry>` | **Save entry list**（セーブの項目のリスト）。フィールドは下記のとおりです。 |
 | `count` | out · data | `integer` | |
 
 **エントリーフィールド**
@@ -1013,7 +1013,7 @@ Game 分類は、ブループリントと実行中のストーリーをつなぐ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `entries` | out · data | `array<struct:nl.historyEntry>` | **History entry list**（履歴の項目のリスト）。フィールドは下記のとおりです。 |
 | `count` | out · data | `integer` | |
 
 **エントリーフィールド**
@@ -1082,7 +1082,7 @@ undo が作った未来へと進みます——「戻る」ボタンの隣にあ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | `Get History` と同じエントリーフィールドです。 |
+| `entries` | out · data | `array<struct:nl.historyEntry>` | `Get History` と同じエントリーフィールドです。 |
 | `count` | out · data | `integer` | |
 
 ゲームが稼働していない場合、および巻き戻した箇所が何もない場合は空の配列です。
@@ -1253,13 +1253,24 @@ story 内の `/ending` 行がその宣言のすべてであり、そのブロッ
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `endings` | out · data | `array` | 何も選ばれていない場合は空です。 |
+| `endings` | out · data | `array<struct:nl.ending>` | **Ending list**（エンディングのリスト）。フィールドは下記のとおりです。何も選ばれていない場合は空です。 |
 
 **カード上のフィールド**
 
 | フィールド | 内容 |
 | --- | --- |
 | `Story` | エンディングを一覧する対象の story。 |
+
+**エンディングのフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `endingId` | エンディングの id。 |
+| `name` | エンディングの名前。`/ending` の行に書いた名前です。 |
+| `sceneId`、`sceneName` | エンディングの行があるシーン。 |
+| `isReached` | プレイヤーがそのエンディングに到達したかどうか。 |
+
+フィールドは [`Get Field`](/ja/docs/studio/blueprint/nodes/data#get-field) で読み取るか、`endings` からワイヤーを引き出してフィールドで絞り込み・並べ替え・検索します。[構造体](/ja/docs/studio/blueprint/nodes/data#structs)を参照してください。
 
 ### Clear Ending State
 

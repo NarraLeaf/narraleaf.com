@@ -46,7 +46,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 - **どのノードにも exec ピンがあります。** `Pure` なものはなく、Blueprint Value ではどれも提供されません。イベントグラフから実行し、返された値を List や変数に渡してください。`Get Gallery Groups` 以外はすべて `Latent` です。
 - **接続したピンがカードより優先されます。** `artworkId`、`variantId`、`groupId` に空でない文字列が来ると、カードの `Artwork`、`Variant`、`Group` を上書きします。作成時にはカードで名前から選び、ピンには行が持つ id を渡します。プレイヤーがクリックした行がビューアーを動かすのはこの仕組みです。
 - **行はすでにロック状態を反映しています。** ロック状態は各行の中で適用済みなので、項目テンプレートは受け取ったものをそのまま描けばよく、ロック中のエントリーの画像を誤って見せることはありません。
-- **行は List に渡します。** `entries` を [`Set List Content`](/ja/docs/studio/blueprint/nodes/list#set-list-content) に接続します。項目テンプレートでは、[`Get List Item Props`](/ja/docs/studio/blueprint/nodes/list#get-list-item-props) と [`Get JSON Field`](/ja/docs/studio/blueprint/nodes/data#get-json-field) でフィールドを読みます。
+- **行は List に渡します。** `entries` を [`Set List Content`](/ja/docs/studio/blueprint/nodes/list#set-list-content) に接続し、List の **Edit content**（内容を編集）で **Struct**（構造体）を **Gallery entry**（ギャラリーの項目）、**Gallery variant**（ギャラリーのバリアント）、**Gallery group**（ギャラリーのグループ）のいずれかにします（[リスト](/ja/docs/studio/workspace/ui-editor#lists)を参照）。項目テンプレートのウィジェットはフィールドを名前で選べるようになり、ブループリントでは [`Get Field`](/ja/docs/studio/blueprint/nodes/data#get-field) でフィールドを読みます。これらの構造体は Gallery プラグインが有効なときに使えます。
 - **エントリーが見つからないとノードは失敗します。** カードでエントリーを選んでおらず `artworkId` にも何もないと、ノードは `Pick a gallery artwork` で失敗します。カタログにない id では `Gallery artwork not found: <id>` で失敗します。
 - **実行される場所。** エディターのキャンバスでは、ノードは編集中のカタログを読み、何も解除されていない状態として扱い、解除やロックは何も変えません。Dev Mode、Preview、ビルドしたゲームでは、ゲームに同梱されたカタログを読みます。
 - **カタログのないゲーム。** ゲームがギャラリーのカタログを持たない場合（プロジェクトがカタログを一度も保存していない場合）、プラグインは `No gallery catalog was published with this game.` を一度だけ記録します。`Get Gallery` と `Get Gallery Groups` は空の配列を返し、`Get Gallery Progress` はすべて 0 を返し、エントリーを指定するノードはすべて失敗します。
@@ -63,7 +63,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 | `groupId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Group` より優先されます。 |
 | `onlyUnlocked` | in · data | `boolean` | 省略可能です。カード上にリテラル値を入力できます。`true` ではロック中のエントリーをすべて除きます。 |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `entries` | out · data | `array<struct:narraleaf.gallery.entry>` | **Gallery entry list**（ギャラリーの項目のリスト）。フィールドは下記のとおりです。 |
 | `count` | out · data | `integer` | `entries` の行数です。 |
 | `unlockedCount` | out · data | `integer` | `entries` のうち解除済みの行数です。 |
 
@@ -107,7 +107,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 | `artworkId` | in · data | `string` | 省略可能です。接続されている場合はカードの `Artwork` より優先されます。 |
 | `onlyUnlocked` | in · data | `boolean` | 省略可能です。カード上にリテラル値を入力できます。`true` ではロック中のバリアントをすべて除きます。 |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | オブジェクトの配列です。フィールドは下記のとおりです。 |
+| `entries` | out · data | `array<struct:narraleaf.gallery.variant>` | **Gallery variant list**（ギャラリーのバリアントのリスト）。フィールドは下記のとおりです。 |
 | `count` | out · data | `integer` | `entries` の行数です。 |
 | `unlockedCount` | out · data | `integer` | `entries` のうち解除済みの行数です。 |
 
@@ -144,7 +144,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `groups` | out · data | `array` | `{ index, id, name }` の配列です。 |
+| `groups` | out · data | `array<struct:narraleaf.gallery.group>` | **Gallery group list**（ギャラリーのグループのリスト）。フィールドは `index`、`id`、`name` です。 |
 | `count` | out · data | `integer` | |
 
 ## Get Gallery Progress

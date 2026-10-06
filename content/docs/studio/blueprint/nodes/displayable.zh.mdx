@@ -27,7 +27,7 @@ Get Property（获取属性）读取拥有该蓝图的控件的某个属性。�
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `value` | out · data | `any` | 形状取决于所选的属性键|
+| `value` | out · data | `any` | 类型随所选键而定，见下表：`position` 与 `size` 为 `Vector2D`，`bounds` 为 `Rect`，`visible` 为 `boolean`，其余为 `float` |
 
 **卡上字段**
 
@@ -40,7 +40,7 @@ Get Property（获取属性）读取拥有该蓝图的控件的某个属性。�
 | 键 | 读取 |
 | --- | --- |
 | `position` | `{ x, y }`——控件左上角|
-| `size` | `{ width, height }`|
+| `size` | `Vector2D`，`x` 为宽、`y` 为高；值中也带有 `width` 和 `height`|
 | `bounds` | `{ x, y, width, height }`|
 | `x`、`y` | 左上角的两个分量，数值|
 | `offsetX`、`offsetY` | 相对 authored layout 的视觉位移|
@@ -59,7 +59,7 @@ Set Property（设置属性）写入所属控件的某个属性。可写的属�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 接线后卡片上的 Value 控件会禁用，以连线值为准|
+| `value` | in · data | `any` | 类型随所选键而定：`visible` 为 `boolean`，其余为 `float`。接线后卡片上的 Value 控件会禁用，以连线值为准 |
 
 **卡上字段**
 
@@ -212,7 +212,7 @@ Get Size（获取尺寸）已由`Get Property`的`size`键取代；在创建浮�
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `size` | out · data | `Vector2D` | 引脚类型是`Vector2D`，但值的键是`width`和`height`|
+| `size` | out · data | `Vector2D` | `{ x, y, width, height }`：`x` 与 `width` 为宽，`y` 与 `height` 为高 |
 
 ## Get Bounds
 

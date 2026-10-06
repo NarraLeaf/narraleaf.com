@@ -497,7 +497,7 @@ Item Render（項目描画）は、List がバインドされたデータ、**Li
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | この回で描画された項目数。 |
 | `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
-| `item` | out · data | `json` | その項目のデータ。 |
+| `item` | out · data | `json` | その項目のデータ。その List の構造体の行で、ワイヤーを引き出すと行のフィールドが並びます。 |
 
 ### Item Click
 
@@ -511,7 +511,7 @@ Item Click（項目クリック）は、item のコンテナがクリックさ�
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | この回で描画された項目数。 |
 | `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
-| `item` | out · data | `json` | その項目のデータ。 |
+| `item` | out · data | `json` | その項目のデータ。その List の構造体の行で、ワイヤーを引き出すと行のフィールドが並びます。 |
 
 ### Item Hover
 
@@ -525,7 +525,7 @@ Item Hover（項目ホバー）は、ポインタが item のコンテナに入�
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | この回で描画された項目数。 |
 | `key` | out · data | `string` | 設定されている場合は List の`itemKeyPath`から。 |
-| `item` | out · data | `json` | その項目のデータ。 |
+| `item` | out · data | `json` | その項目のデータ。その List の構造体の行で、ワイヤーを引き出すと行のフィールドが並びます。 |
 
 ### Selection Changed
 
@@ -540,7 +540,7 @@ Selection Changed（選択変更）は、項目のクリックによってラン
 | `previousIndex` | out · data | `integer` | 何も選択されていなかった場合は`-1`。 |
 | `count` | out · data | `integer` | この回で描画された項目数。 |
 | `key` | out · data | `string` | 新しく選択された項目のキー。 |
-| `item` | out · data | `json` | 新しく選択された項目のデータ。 |
+| `item` | out · data | `json` | 新しく選択された項目のデータ。その List の構造体の行で、ワイヤーを引き出すと行のフィールドが並びます。 |
 
 ### Scroll
 
@@ -578,7 +578,7 @@ List Item Refresh（リスト項目更新）は、`nl.list`がその item を描
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `props` | out · data | `json` | item がオブジェクトである場合はその item 自身、それ以外の場合は`{ value: item }`。 |
-| `item` | out · data | `json` | その項目のデータ。 |
+| `item` | out · data | `json` | その項目のデータ。その List の構造体の行で、ワイヤーを引き出すと行のフィールドが並びます。 |
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | この回で描画された項目数。 |
 | `key` | out · data | `string` | |
@@ -709,7 +709,7 @@ On Preference Changed（プレファレンス変更時）は、選択したプ�
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `json` | 新しい値。ピンの型は汎用の`json`です。実行時の型は選択したキーに従います。`autoForward` / `skip` / `skipping` / `skipReadText` / `showDialog` / `muteOnWindowBlur`は`boolean`、`voiceEndMode`は`string`、それ以外は`number`。`Set Slider Value`のような型付き入力へ渡す前に、`To Float`または`To Boolean`で変換してください。 |
+| `value` | out · data | `json` | 新しい値。型は選択したキーに従います。`autoForward` / `skip` / `skipping` / `skipReadText` / `showDialog` / `muteOnWindowBlur`は`boolean`、`voiceEndMode`は`string`、それ以外は`float`です。`Set Slider Value`のような型付き入力にそのまま接続できます。 |
 | `previousValue` | out · data | `json` | ランタイムがキャッシュしている変更前の値。`value`と同じ型。このセッションにそのキーの以前のスナップショットがない場合は`null`。 |
 
 **カード上のフィールド**

@@ -27,7 +27,7 @@ Get Property（プロパティの取得）は、ブループリントを所有�
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `value` | out · data | `any` | 形状は選択したキーに従います。 |
+| `value` | out · data | `any` | 選択したキーに応じた型になります（下表）。`position` と `size` は `Vector2D`、`bounds` は `Rect`、`visible` は `boolean`、それ以外は `float` です。 |
 
 **カード上のフィールド**
 
@@ -40,7 +40,7 @@ Get Property（プロパティの取得）は、ブループリントを所有�
 | キー | 読み取り内容 |
 | --- | --- |
 | `position` | `{ x, y }`——ウィジェットの左上。 |
-| `size` | `{ width, height }`。 |
+| `size` | `x` が幅、`y` が高さの `Vector2D`。値には `width` と `height` も含まれます。 |
 | `bounds` | `{ x, y, width, height }`。 |
 | `x`、`y` | 左上の各成分。数値。 |
 | `offsetX`、`offsetY` | 作成済みレイアウトからの視覚的なオフセット。 |
@@ -59,7 +59,7 @@ Set Property（プロパティの設定）は所有ウィジェットの1つの�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | 配線すると、カードの Value フィールドは無効になり、配線された値が優先されます。 |
+| `value` | in · data | `any` | 選択したキーに応じた型になります。`visible` は `boolean`、それ以外は `float` です。配線すると、カードの Value フィールドは無効になり、配線された値が優先されます。 |
 
 **カード上のフィールド**
 
@@ -212,7 +212,7 @@ Get Size（サイズの取得）は`Get Property`の`size`キーに取って代�
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `size` | out · data | `Vector2D` | ピンの型は`Vector2D`ですが、値のキーは`width`と`height`です。 |
+| `size` | out · data | `Vector2D` | `{ x, y, width, height }`。`x` と `width` が幅、`y` と `height` が高さです。 |
 
 ## Get Bounds
 

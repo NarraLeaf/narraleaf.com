@@ -497,7 +497,7 @@ Fires when the List renders one item instance, whether from bound data, the rows
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | Items rendered in this pass. |
 | `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
-| `item` | out · data | `json` | The item's data. |
+| `item` | out · data | `json` | The item's data. A row of the List's struct, so a wire dragged off it offers the row's fields. |
 
 ### Item Click
 
@@ -511,7 +511,7 @@ Fires when an item container is clicked. A click on a child element inside the i
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | Items rendered in this pass. |
 | `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
-| `item` | out · data | `json` | The item's data. |
+| `item` | out · data | `json` | The item's data. A row of the List's struct, so a wire dragged off it offers the row's fields. |
 
 ### Item Hover
 
@@ -525,7 +525,7 @@ Fires when the pointer enters an item container.
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | Items rendered in this pass. |
 | `key` | out · data | `string` | From the List's `itemKeyPath` when set. |
-| `item` | out · data | `json` | The item's data. |
+| `item` | out · data | `json` | The item's data. A row of the List's struct, so a wire dragged off it offers the row's fields. |
 
 ### Selection Changed
 
@@ -540,7 +540,7 @@ Fires when an item click moves the runtime selected index. The List seeds its se
 | `previousIndex` | out · data | `integer` | `-1` when nothing was selected. |
 | `count` | out · data | `integer` | Items rendered in this pass. |
 | `key` | out · data | `string` | Key of the newly selected item. |
-| `item` | out · data | `json` | Data of the newly selected item. |
+| `item` | out · data | `json` | Data of the newly selected item. A row of the List's struct, so a wire dragged off it offers the row's fields. |
 
 ### Scroll
 
@@ -578,7 +578,7 @@ Dispatched to the private blueprints of the elements under an item template when
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
 | `props` | out · data | `json` | The item itself when it is an object, otherwise `{ value: item }`. |
-| `item` | out · data | `json` | The item's data. |
+| `item` | out · data | `json` | The item's data. A row of the List's struct, so a wire dragged off it offers the row's fields. |
 | `index` | out · data | `integer` | |
 | `count` | out · data | `integer` | Items rendered in this pass. |
 | `key` | out · data | `string` | |
@@ -709,7 +709,7 @@ Fires when the selected preference key changes.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `then` | out · exec | — | |
-| `value` | out · data | `json` | The new value. The pin is generic `json`; the runtime type follows the selected key: `boolean` for `autoForward` / `skip` / `skipping` / `skipReadText` / `showDialog` / `muteOnWindowBlur`, `string` for `voiceEndMode`, `number` for the rest. Convert with `To Float` or `To Boolean` before feeding a typed input such as `Set Slider Value`. |
+| `value` | out · data | `json` | The new value, typed by the selected key: `boolean` for `autoForward` / `skip` / `skipping` / `skipReadText` / `showDialog` / `muteOnWindowBlur`, `string` for `voiceEndMode`, `float` for the rest. It wires straight into a typed input such as `Set Slider Value`. |
 | `previousValue` | out · data | `json` | The runtime's cached previous value, same type as `value`. `null` when this session has no earlier snapshot for the key. |
 
 **On-card fields**

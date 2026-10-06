@@ -22,13 +22,13 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `value` | out · data | `any` |  |
+| `value` | out · data | `any` | 类型随所选属性而定：`position` 与 `size` 为 `Vector2D`，`bounds` 为 `Rect`，`visible` 为 `boolean`，其余为 `float` |
 
 **卡片字段**
 
 | 字段 | 说明 |
 | --- | --- |
-| `property` | `position` 返回 `{ x, y }`，`size` 返回 `{ width, height }`，`bounds` 返回 `{ x, y, width, height }`。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` 返回 number；`visible` 返回 boolean。`opacity` 读回来是 `0..1`|
+| `property` | `position` 返回 `{ x, y }`，`size` 返回 `Vector2D`（`x` 为宽、`y` 为高，同时带有 `width` 和 `height`），`bounds` 返回 `{ x, y, width, height }`。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` 返回 number；`visible` 返回 boolean。`opacity` 读回来是 `0..1`|
 
 ### Set Element Property
 
@@ -41,7 +41,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element` |  |
-| `value` | in · data | `any` | 接线后卡片上的 Value 控件会禁用，运行时以连线值为准|
+| `value` | in · data | `any` | 类型随所选属性而定：`visible` 为 `boolean`，其余为 `float`。接线后卡片上的 Value 控件会禁用，运行时以连线值为准 |
 
 **卡片字段**
 
@@ -171,7 +171,7 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `size` | out · data | `Vector2D` |  |
+| `size` | out · data | `Vector2D` | `x` 与 `width` 为宽，`y` 与 `height` 为高 |
 
 ### Get Element Bounds
 

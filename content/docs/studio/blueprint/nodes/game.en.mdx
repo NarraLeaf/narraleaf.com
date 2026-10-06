@@ -243,7 +243,7 @@ The notifications the runtime is currently showing, mirrored from the engine's n
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `notifications` | out · data | `array` | |
+| `notifications` | out · data | `array<struct:nl.notificationItem>` | **Notification list**; fields below. |
 
 **Entry fields**
 
@@ -801,7 +801,7 @@ The ids of the project's player saves. Order is not guaranteed. Files that are c
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `ids` | out · data | `array` | Array of `string`. |
+| `ids` | out · data | `array<string>` | |
 
 ### Get Save Metadata
 
@@ -965,7 +965,7 @@ Every autosave in the reserved namespace, **newest first**. Slots left behind af
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | Array of objects; fields below. |
+| `entries` | out · data | `array<struct:nl.saveEntry>` | **Save entry list**; fields below. |
 | `count` | out · data | `integer` | |
 
 **Entry fields**
@@ -1013,7 +1013,7 @@ The backlog as a flat array, oldest first, ready to bind to a list widget.
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | Array of objects; fields below. |
+| `entries` | out · data | `array<struct:nl.historyEntry>` | **History entry list**; fields below. |
 | `count` | out · data | `integer` | |
 
 **Entry fields**
@@ -1082,7 +1082,7 @@ The entries ahead of the play head, in the same shape `Get History` publishes. A
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | Same entry fields as `Get History`. |
+| `entries` | out · data | `array<struct:nl.historyEntry>` | Same entry fields as `Get History`. |
 | `count` | out · data | `integer` | |
 
 Empty array when no game is running, and when nothing has been stepped back over.
@@ -1253,13 +1253,24 @@ Every ending the story declares, whether reached or not — the set a gallery la
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `endings` | out · data | `array` | Empty when nothing is picked. |
+| `endings` | out · data | `array<struct:nl.ending>` | **Ending list**; fields below. Empty when nothing is picked. |
 
 **On-card fields**
 
 | Field | What |
 | --- | --- |
 | `Story` | The story whose endings to list. |
+
+**Ending fields**
+
+| Field | What |
+| --- | --- |
+| `endingId` | The ending's id. |
+| `name` | The ending's name, as written on its `/ending` row. |
+| `sceneId`, `sceneName` | The scene that holds the ending row. |
+| `isReached` | Whether the player has reached the ending. |
+
+Read a field with [`Get Field`](/docs/studio/blueprint/nodes/data#get-field), or drag a wire off `endings` to filter, sort or find by a field; see [Structs](/docs/studio/blueprint/nodes/data#structs).
 
 ### Clear Ending State
 

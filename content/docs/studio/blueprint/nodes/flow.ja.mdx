@@ -103,7 +103,7 @@ For Each（各要素の走査）は JSON 配列を走査し、要素ごとに1�
 | `completed` | out · exec | — | 配列を使い切りました。 |
 | `items` | in · data | `json` | 走査する配列。 |
 | `maxIterations` | in · data | `integer` | 既定値は1000。カード上のリテラルを受け付けます。 |
-| `item` | out · data | `json` | 現在の要素。 |
+| `item` | out · data | `json` | 現在の要素。`items` の要素の 1 つで、型も要素と同じです。エンディングを反復すると、`item` は **Ending**（エンディング）になります。 |
 | `index` | out · data | `integer` | 現在の位置。 |
 
 ## While

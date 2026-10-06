@@ -65,9 +65,9 @@ Get Available Languages（获取可用语言）给出项目配置的每一种语
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 标注为`Languages`。项目没有本地化时为空|
+| `value` | out · data | `array<struct:nl.language>` | 标注为`Languages`，即**语言列表**。项目没有本地化时为空 |
 
-每一项带有 `code`、`displayName` 和 `isSource`。`displayName` 是作者填写的语言自称——日本語，而不是 Japanese——这正是语言选择器要展示给玩家的东西；`code` 则是交回给 `Set Language` 的东西。这个引脚类型是 `any`，因为它的值是一组对象，而不是蓝图的某种标量类型
+每一项带有 `code`、`displayName` 和 `isSource`。`displayName` 是作者填写的语言自称——日本語，而不是 Japanese——这正是语言选择器要展示给玩家的东西；`code` 则是交回给 `Set Language` 的东西。用 [`Get Field`](/zh/docs/studio/blueprint/nodes/data#get-field) 读取其中的字段
 
 ## Translation Key Text
 

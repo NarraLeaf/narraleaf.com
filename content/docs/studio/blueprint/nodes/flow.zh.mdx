@@ -103,7 +103,7 @@ For Each（遍历）走一遍 JSON 数组，每一项触发一次`loop`，同时
 | `completed` | out · exec | — | 数组已遍历完|
 | `items` | in · data | `json` | 要遍历的数组|
 | `maxIterations` | in · data | `integer` | 默认 1000。可在卡上填字面量|
-| `item` | out · data | `json` | 当前项|
+| `item` | out · data | `json` | 当前项。`items` 中的一项，类型与各项相同：遍历结局时，`item` 是**结局** |
 | `index` | out · data | `integer` | 当前下标|
 
 ## While

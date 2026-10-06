@@ -27,7 +27,7 @@ Reads one property of the widget that owns the blueprint. The key is picked on t
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `value` | out · data | `any` | Shape follows the selected key. |
+| `value` | out · data | `any` | Typed by the selected key, as listed below: `Vector2D` for `position` and `size`, `Rect` for `bounds`, `boolean` for `visible`, `float` for the rest. |
 
 **On-card fields**
 
@@ -40,7 +40,7 @@ Reads one property of the widget that owns the blueprint. The key is picked on t
 | Key | Reads |
 | --- | --- |
 | `position` | `{ x, y }` — the widget's top-left. |
-| `size` | `{ width, height }`. |
+| `size` | A `Vector2D` whose `x` is the width and `y` the height. The value also carries `width` and `height`. |
 | `bounds` | `{ x, y, width, height }`. |
 | `x`, `y` | The top-left components, as numbers. |
 | `offsetX`, `offsetY` | The visual offset from the authored layout. |
@@ -59,7 +59,7 @@ Writes one property on the owning widget. The writable keys are `x`, `y`, `offse
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | in · data | `any` | Wiring it disables the card's Value field; the wired value wins. |
+| `value` | in · data | `any` | Typed by the selected key: `boolean` for `visible`, `float` for the rest. Wiring it disables the card's Value field; the wired value wins. |
 
 **On-card fields**
 
@@ -206,7 +206,7 @@ Superseded by `Get Property` with the `size` key; hidden from the palette but st
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `size` | out · data | `Vector2D` | The pin is typed `Vector2D`, but the value's keys are `width` and `height`. |
+| `size` | out · data | `Vector2D` | `{ x, y, width, height }`: `x` and `width` are the width, `y` and `height` the height. |
 
 ## Get Bounds
 

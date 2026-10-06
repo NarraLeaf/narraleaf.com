@@ -22,13 +22,13 @@ The reader to use. Pick the property on the card and the `value` pin carries it.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `value` | out · data | `any` |  |
+| `value` | out · data | `any` | Typed by the selected property: `Vector2D` for `position` and `size`, `Rect` for `bounds`, `boolean` for `visible`, `float` for the rest. |
 
 **On-card fields**
 
 | Field | What |
 | --- | --- |
-| `property` | `position` gives `{ x, y }`, `size` gives `{ width, height }`, `bounds` gives `{ x, y, width, height }`. `x`, `y`, `offsetX`, `offsetY`, `width`, `height`, `rotation` and `opacity` give a number; `visible` gives a boolean. `opacity` comes back as `0..1`. |
+| `property` | `position` gives `{ x, y }`, `size` gives a `Vector2D` whose `x` is the width and `y` the height, also carrying `width` and `height`, `bounds` gives `{ x, y, width, height }`. `x`, `y`, `offsetX`, `offsetY`, `width`, `height`, `rotation` and `opacity` give a number; `visible` gives a boolean. `opacity` comes back as `0..1`. |
 
 ### Set Element Property
 
@@ -41,7 +41,7 @@ Writes one runtime property on the target. `variant` is deliberately absent from
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element` |  |
-| `value` | in · data | `any` | Wiring it disables the card's Value control; the wired value wins. |
+| `value` | in · data | `any` | Typed by the selected property: `boolean` for `visible`, `float` for the rest. Wiring it disables the card's Value control; the wired value wins. |
 
 **On-card fields**
 
@@ -171,7 +171,7 @@ Reads width and height as a `Vector2D`.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `size` | out · data | `Vector2D` |  |
+| `size` | out · data | `Vector2D` | `x` and `width` are the width, `y` and `height` the height. |
 
 ### Get Element Bounds
 

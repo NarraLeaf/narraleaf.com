@@ -65,9 +65,9 @@ Every locale the project is configured for, in the order the project lists them.
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | Labelled `Languages`. Empty when the project has no localization. |
+| `value` | out · data | `array<struct:nl.language>` | Labelled `Languages`, a **Language list**. Empty when the project has no localization. |
 
-Each entry carries `code`, `displayName`, and `isSource`. `displayName` is the autonym the author entered — 日本語, never "Japanese" — which is what a language picker shows the player; `code` is what you hand back to `Set Language`. The pin is typed `any` because the value is a list of objects rather than one of the scalar blueprint types.
+Each entry carries `code`, `displayName`, and `isSource`. `displayName` is the autonym the author entered — 日本語, never "Japanese" — which is what a language picker shows the player; `code` is what you hand back to `Set Language`. Read a field with [`Get Field`](/docs/studio/blueprint/nodes/data#get-field).
 
 ## Translation Key Text
 

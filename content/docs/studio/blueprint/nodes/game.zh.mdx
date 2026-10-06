@@ -243,7 +243,7 @@ Get Notifications（获取通知）：运行时当前正在显示的通知，镜
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `notifications` | out · data | `array` | |
+| `notifications` | out · data | `array<struct:nl.notificationItem>` | **通知列表**；字段见下 |
 
 **条目字段**
 
@@ -801,7 +801,7 @@ List Saves（列出存档）列出项目里玩家存档的 id。顺序不保证�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `ids` | out · data | `array` | `string` 数组|
+| `ids` | out · data | `array<string>` | |
 
 ### Get Save Metadata
 
@@ -965,7 +965,7 @@ List Auto Saves（列出自动存档）列出保留命名空间里的全部自�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下|
+| `entries` | out · data | `array<struct:nl.saveEntry>` | **存档条目列表**；字段见下 |
 | `count` | out · data | `integer` | |
 
 **条目字段**
@@ -1013,7 +1013,7 @@ Get History（获取历史）把对话记录作为一个扁平数组给出，从
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 对象数组，字段见下|
+| `entries` | out · data | `array<struct:nl.historyEntry>` | **历史记录条目列表**；字段见下 |
 | `count` | out · data | `integer` | |
 
 **条目字段**
@@ -1082,7 +1082,7 @@ Undo Last History Entry（撤销上一条历史）回退一条——即不带目
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `entries` | out · data | `array` | 条目字段与 `Get History` 相同 |
+| `entries` | out · data | `array<struct:nl.historyEntry>` | 条目字段与 `Get History` 相同 |
 | `count` | out · data | `integer` | |
 
 没有游戏在跑时、以及什么都没退过时，都是空数组
@@ -1253,13 +1253,24 @@ Clear Text Read（清除已读记录）清空已读记录，内存与磁盘一�
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `endings` | out · data | `array` | 没选剧本时为空 |
+| `endings` | out · data | `array<struct:nl.ending>` | **结局列表**；字段见下。没选剧本时为空 |
 
 **卡片字段**
 
 | 字段 | 含义 |
 | --- | --- |
 | `Story` | 要列出结局的剧本 |
+
+**结局字段**
+
+| 字段 | 含义 |
+| --- | --- |
+| `endingId` | 结局的 id |
+| `name` | 结局的名称，即 `/ending` 行上写的名称 |
+| `sceneId`、`sceneName` | 结局行所在的场景 |
+| `isReached` | 玩家是否已到达该结局 |
+
+用 [`Get Field`](/zh/docs/studio/blueprint/nodes/data#get-field) 读取字段，或从 `endings` 拖出连线，按字段筛选、排序或查找，见[结构](/zh/docs/studio/blueprint/nodes/data#structs)
 
 ### Clear Ending State
 

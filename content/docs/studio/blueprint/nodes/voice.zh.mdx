@@ -67,4 +67,4 @@ description: 从蓝图里播放一条录好的语音，以及游戏当前的配�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | 这份产物带的配音语言，是一个数组——设置页要列的就是它 |
+| `value` | out · data | `array<struct:nl.voiceLanguage>` | 这份产物带的配音语言，是**语音语言列表**，字段为 `code` 和 `displayName`。设置页要列的就是它 |

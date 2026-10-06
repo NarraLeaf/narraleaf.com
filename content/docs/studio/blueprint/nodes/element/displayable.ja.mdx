@@ -22,13 +22,13 @@ description: 接続された要素のジオメトリ・不透明度・Variant・
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `value` | out · data | `any` |  |
+| `value` | out · data | `any` | 選択したプロパティに応じた型になります。`position` と `size` は `Vector2D`、`bounds` は `Rect`、`visible` は `boolean`、それ以外は `float` です。 |
 
 **カード上のフィールド**
 
 | フィールド | 説明 |
 | --- | --- |
-| `property` | `position` は `{ x, y }` を、`size` は `{ width, height }` を、`bounds` は `{ x, y, width, height }` を返します。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` は number を、`visible` は boolean を返します。`opacity` は `0..1` で返ってきます。 |
+| `property` | `position` は `{ x, y }` を、`size` は `x` が幅、`y` が高さの `Vector2D`（`width` と `height` も含む）を、`bounds` は `{ x, y, width, height }` を返します。`x`、`y`、`offsetX`、`offsetY`、`width`、`height`、`rotation`、`opacity` は number を、`visible` は boolean を返します。`opacity` は `0..1` で返ってきます。 |
 
 ### Set Element Property
 
@@ -41,7 +41,7 @@ description: 接続された要素のジオメトリ・不透明度・Variant・
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `element` | in · data | `element` |  |
-| `value` | in · data | `any` | 接続するとカードの Value コントロールは無効化され、接続した値が優先されます。 |
+| `value` | in · data | `any` | 選択したプロパティに応じた型になります。`visible` は `boolean`、それ以外は `float` です。接続するとカードの Value コントロールは無効化され、接続した値が優先されます。 |
 
 **カード上のフィールド**
 
@@ -171,7 +171,7 @@ description: 接続された要素のジオメトリ・不透明度・Variant・
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `element` | in · data | `element` |  |
-| `size` | out · data | `Vector2D` |  |
+| `size` | out · data | `Vector2D` | `x` と `width` が幅、`y` と `height` が高さです。 |
 
 ### Get Element Bounds
 

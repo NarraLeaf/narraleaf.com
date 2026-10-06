@@ -67,4 +67,4 @@ description: ブループリントから収録済みの台詞を再生し、ゲ�
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `value` | out · data | `any` | このビルドに含まれる吹き替え言語を配列として返します——設定画面が一覧表示するのはこれです。 |
+| `value` | out · data | `array<struct:nl.voiceLanguage>` | このビルドに含まれる吹き替え言語を、`code` と `displayName` のフィールドを持つ **Voice language list**（ボイスの言語のリスト）として返します。設定画面が一覧表示するのはこれです。 |

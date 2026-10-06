@@ -103,7 +103,7 @@ Walks a JSON array, firing `loop` once per entry with `item` and `index` set. An
 | `completed` | out · exec | — | The array is exhausted. |
 | `items` | in · data | `json` | The array to walk. |
 | `maxIterations` | in · data | `integer` | Defaults to 1000. Accepts an on-card literal. |
-| `item` | out · data | `json` | The current entry. |
+| `item` | out · data | `json` | The current entry. One item of `items`, typed like them: looping over endings, `item` is an **Ending**. |
 | `index` | out · data | `integer` | The current position. |
 
 ## While
