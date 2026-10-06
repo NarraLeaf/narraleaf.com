@@ -157,21 +157,24 @@ Narra の台詞「一人半ね。暗くなる前に帰っちゃうんだから�
 
 プレイヤーが到達したエンディングはセーブの外に記録されます。ロード、新しいゲームの開始、ゲームの再起動では消えません。
 
-ページ「タイトル」を開き、タイトル区切り線の下に **Text**（テキスト）を追加して名前を `エンディング` にします。**Text** を **Blueprint Value**（ブループリント値）に切り替えて開き、次のように組みます。
+ページ「タイトル」を開き、タイトル区切り線の下に **Text**（テキスト）を追加して名前を `エンディング` にします。**Text** を **Blueprint Value**（ブループリント値）に切り替えて開きます。
+
+`Get Endings`（エンディング一覧を取得）を追加し、**Story**（ストーリー）を `スケルトン` にします。**Endings**（エンディング一覧）出力の型は **Ending list**（エンディングのリスト）です。**Endings** からワイヤーを引き出してキャンバスの空いた場所で離すと、ノード追加メニューが **Fields**（フィールド）のグループで開き、エンディングの各フィールドでできる操作が並びます。**Filter by isReached**（isReached で絞り込み）を選ぶと、Studio は **Key**（キー）が `isReached`、**Value**（値）が True の `Array Filter By Key`（配列をキーで絞り込み）を追加し、**Endings** をその **Array**（配列）に接続します。
+
+残りのノードを追加し、次のように接続します。
 
 | ノード | 設定 | 接続先 |
 | --- | --- | --- |
 | `Init`（初期化） | | 実行を `Return Value` へ |
 | `Get Endings`（エンディング一覧を取得） | **Story**（ストーリー）：`スケルトン` | **Endings**（エンディング一覧）を `Array Filter By Key` の **Array**（配列）へ |
-| `Boolean`（真偽値） | True | `Array Filter By Key` の **Value** へ |
-| `Array Filter By Key`（配列をキーで絞り込み） | **Key**（キー）：`isReached` | **Array** を `Array Length` へ |
+| `Array Filter By Key`（配列をキーで絞り込み） | **Key**（キー）：`isReached`、**Value**（値）：True | **Array** を `Array Length` へ |
 | `Array Length`（配列の長さ） | | **Length**（長さ）を `Make Array` の **Item 1**（項目 1）へ |
 | `Get Endings`（エンディング一覧を取得） | **Story**：`スケルトン` | **Endings** を 2 つ目の `Array Length` へ |
 | `Array Length`（配列の長さ） | | **Length** を `Make Array` の **Item 2**（項目 2）へ |
 | `Make Array`（配列を作る） | 項目 2 つ | **Array** を `Format` の **Values**（値の一覧）へ |
 | `Format`（整形） | **Template**（テンプレート）：`到達したエンディング {0} / {1}` | **Result** を `Return Value` の **Value** へ |
 
-`Get Endings` はストーリー内のすべてのエンディングの行を列挙し、各項目の `isReached` はプレイヤーがそのエンディングに到達したかどうかを示します。1 つ目の `Get Endings` は到達したエンディングを絞り込み、2 つ目はすべてのエンディングを数えます。
+`Get Endings` はストーリー内のすべてのエンディングの行を列挙します。各エンディングの `isReached` フィールドは、プレイヤーがそのエンディングに到達したかどうかを示します。1 つ目の `Get Endings` は到達したエンディングを絞り込み、2 つ目はすべてのエンディングを数えます。同じ **Endings** 出力から 2 本目のワイヤーを引くと 1 本目が置き換わるため、それぞれの数に `Get Endings` を 1 つずつ使います。エンディングのフィールドと、それを読み取るほかのノードは[構造体](/ja/docs/studio/blueprint/nodes/data#structs)にまとめてあります。
 
 <Figure
     src="/static/img/docs/studio/en/affection-endings-graph.webp"

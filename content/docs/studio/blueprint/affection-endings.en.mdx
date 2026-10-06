@@ -157,21 +157,24 @@ Open **Project** → **App**, expand **main** under **Build variants**, and set 
 
 The endings a player has reached are recorded outside the save. Loading a save, starting a new game and restarting the game do not clear the record.
 
-Open the page **Title**, add a **Text** below the title rule and name it `Endings`. Switch its **Text** to **Blueprint Value**, open it, and build the graph below:
+Open the page **Title**, add a **Text** below the title rule and name it `Endings`. Switch its **Text** to **Blueprint Value** and open it.
+
+Add `Get Endings` and set **Story** to `Skeleton`. Its **Endings** output carries an **Ending list**. Drag a wire from **Endings** and release it on empty canvas: the add-node menu opens on **Fields**, which lists what can be done with each field of an ending. Choose **Filter by isReached**. Studio adds `Array Filter By Key` with **Key** set to `isReached` and **Value** set to True, and connects **Endings** to its **Array**.
+
+Add the other nodes and connect them as below:
 
 | Node | Setting | Connects to |
 | --- | --- | --- |
 | `Init` | | Exec to `Return Value` |
 | `Get Endings` | **Story**: `Skeleton` | **Endings** to **Array** of `Array Filter By Key` |
-| `Boolean` | True | To **Value** of `Array Filter By Key` |
-| `Array Filter By Key` | **Key**: `isReached` | **Array** to `Array Length` |
+| `Array Filter By Key` | **Key**: `isReached`, **Value**: True | **Array** to `Array Length` |
 | `Array Length` | | **Length** to **Item 1** of `Make Array` |
 | `Get Endings` | **Story**: `Skeleton` | **Endings** to the second `Array Length` |
 | `Array Length` | | **Length** to **Item 2** of `Make Array` |
 | `Make Array` | Two items | **Array** to **Values** of `Format` |
 | `Format` | **Template**: `Endings reached {0} / {1}` | **Result** to **Value** of `Return Value` |
 
-`Get Endings` lists every ending row in the story, and the `isReached` field of each entry states whether the player has reached it. The first `Get Endings` keeps the endings that have been reached; the second counts all of them.
+`Get Endings` lists every ending row in the story. Each ending has the field `isReached`, which states whether the player has reached it. The first `Get Endings` keeps the endings that have been reached; the second counts all of them. A second wire from the same **Endings** output would replace the first, so each count has its own `Get Endings`. The fields of an ending and the other nodes that read them are listed under [Structs](/docs/studio/blueprint/nodes/data#structs).
 
 <Figure
     src="/static/img/docs/studio/en/affection-endings-graph.webp"

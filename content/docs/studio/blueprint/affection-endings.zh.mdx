@@ -157,21 +157,24 @@ description: 用存档变量记录好感度，在选项中修改它，用蓝图�
 
 玩家到达的结局记录在存档之外，读档、开始新游戏和重新启动游戏都不会清除该记录
 
-打开页面**标题**，在标题分隔线下方添加一个**文本**，命名为`结局进度`。将**文本**切换为**蓝图值**并打开，按下表搭建：
+打开页面**标题**，在标题分隔线下方添加一个**文本**，命名为`结局进度`。将**文本**切换为**蓝图值**并打开
+
+添加`Get Endings`（获取结局列表），**故事**选择`骨架`。它的**结局列表**输出类型为**结局列表**。从**结局列表**拖出连线，在画布空白处松开，添加节点菜单打开在**字段**分组，列出对结局各字段可做的操作。选择**按 isReached 筛选**：Studio 添加`Array Filter By Key`（数组按键筛选），**键**设为`isReached`，**值**设为真，并把**结局列表**连到它的**数组**
+
+添加其余节点，按下表连接：
 
 | 节点 | 设置 | 连接到 |
 | --- | --- | --- |
 | `Init`（初始化） | | 执行连接到`Return Value` |
 | `Get Endings`（获取结局列表） | **故事**选择`骨架` | **结局列表**连接到`Array Filter By Key`的**数组** |
-| `Boolean`（布尔值） | 真 | 连接到`Array Filter By Key`的**值** |
-| `Array Filter By Key`（数组按键筛选） | **键**填写`isReached` | **数组**连接到`Array Length` |
+| `Array Filter By Key`（数组按键筛选） | **键**为`isReached`，**值**为真 | **数组**连接到`Array Length` |
 | `Array Length`（数组长度） | | **长度**连接到`Make Array`的**项 1** |
 | `Get Endings`（获取结局列表） | **故事**选择`骨架` | **结局列表**连接到第二个`Array Length` |
 | `Array Length`（数组长度） | | **长度**连接到`Make Array`的**项 2** |
 | `Make Array`（创建数组） | 两项 | **数组**连接到`Format`的**值列表** |
 | `Format`（格式化） | **模板**填写`已达成结局 {0} / {1}` | **结果**连接到`Return Value`的**值** |
 
-`Get Endings`列出故事中的所有结局行，每一项的`isReached`表示玩家是否到达过该结局。第一个`Get Endings`筛选出已到达的结局，第二个统计全部结局
+`Get Endings`列出故事中的所有结局行。每个结局都有`isReached`字段，表示玩家是否到达过该结局。第一个`Get Endings`筛选出已到达的结局，第二个统计全部结局。从同一个**结局列表**输出再拉一条连线会替换原有的连线，因此两个计数各用一个`Get Endings`。结局的字段以及读取这些字段的其他节点，见[结构](/zh/docs/studio/blueprint/nodes/data#structs)
 
 <Figure
     src="/static/img/docs/studio/zh/affection-endings-graph.webp"
