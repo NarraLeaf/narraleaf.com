@@ -39,7 +39,8 @@ The canvas never crops: the runtime always fits the whole stage inside the windo
 
 A Text's content, a Button's label and a Text Input's placeholder each take their words from one source, chosen in Properties: **Direct**, **Translation key**, or, for a Text and a Button, **Blueprint Value**.
 
-- Under a Blueprint Value, a list row's **Field** or a component's **Parameter**, the widget's own words are **Sample text**: drawn in the editor only and not part of the built game.
+- On a page, a Text or a Button can show one of the page's Text params instead, chosen under **Page param**; see [Page params](#page-params).
+- Under a Blueprint Value, a list row's **Field**, a component's **Parameter** or a **Page param**, the widget's own words are **Sample text**: drawn in the editor only and not part of the built game.
 - When a blueprint writes the words while the game runs, Properties labels the widget's own words **Default value**, and lists the blueprints under **Written in the game by**. Choosing one opens the blueprint with the node that writes selected and brought into view.
 
 How each source is translated is described under [Interface text](/docs/studio/workspace/localization#interface-text).
@@ -84,6 +85,45 @@ With one of the engine's or a plugin's structs, the fields are those of the rows
 Changes made under **Edit content**, renaming a field among them, are taken back by **Undo** like any other edit.
 
 A blueprint that gives a List rows without a field the List declares, such as save entries wired into a List whose **Struct** is **Ending**, is reported on the blueprint canvas and in the **Problems** panel under **List fields do not match**. The List draws such a field empty. Rows that carry every declared field, with the same name and type, are accepted whatever other fields they have. See the [List nodes](/docs/studio/blueprint/nodes/list#conventions).
+
+## Page params
+
+A page can declare the values it is opened with. Select the page and add them under **Params** in Properties. Each param has a name, a **Type** and a **Default**:
+
+| Type | Holds |
+| --- | --- |
+| **String** | Text used as a value, such as an id or a tag. |
+| **Text** | Words the player reads. A Text or a Button on the page can show it directly. |
+| **Number** | A number. |
+| **Boolean** | True or false. |
+| **List** | Rows for a List. In place of a default it has a **Row struct**: one of the engine's or a loaded plugin's structs, or **Unspecified**. It starts empty. |
+| **JSON** | Any JSON value. |
+
+Names are unique on a page. Renaming a param keeps the blueprints that give or read it connected, and a List on the same page that shows it follows the new name. A Game UI has no **Params**, because the game opens it with nothing.
+
+A param is given a value by:
+
+- `Go Page`, `Replace Page`, `Show Layer` and `Set Frame Page`, which grow one input per param of the page picked in their `Page` field; see [App nodes](/docs/studio/blueprint/nodes/app#conventions).
+- A **Page** widget, whose Properties show one field per param of its page under **Params**. Words written there for a Text param are translated.
+- `Show Confirm`, which gives `message` and `buttons`; see [Show Confirm](/docs/studio/blueprint/nodes/app#show-confirm).
+
+A param that is not given reads its default. The page uses its params in three ways:
+
+- **A Text or a Button** shows a Text param chosen under **Page param**, above the choice of source, with no blueprint. In the game it shows the words the page was opened with. Words a node gives are shown as given; to translate them, give the node its words from `Translation Key Text` or `Get Text`. Words a **Page** widget gives are translated. When nothing was given, it shows the default, translated. On the page's own canvas it shows the default, or the widget's own words as sample text while the default is empty. Double-clicking such a widget on the canvas shows where its words come from instead of editing them.
+- **A List** shows a List param: under **Content**, set **Runtime items** to **Page props array** and choose the param under **Param**. The fields its item template shows should be in the param's **Row struct**.
+- **`Get Page Param`** reads any param in a blueprint, typed by the param; see [Get Page Param](/docs/studio/blueprint/nodes/app#get-page-param).
+
+The **Confirm** page of the Skeleton template uses both kinds: `message` is a Text param shown by the message text, and `buttons` is a List param whose **Row struct** is **Confirm button**, drawn by the button list.
+
+The project checks report these as warnings:
+
+| Check | Reports |
+| --- | --- |
+| **Undeclared page param** (`ui/page-prop-undeclared`) | A List on a page showing a page prop the page does not declare as a param. The List shows no rows in the game. |
+| **Unknown page param** (`ui/page-param-unknown`) | A **Page** widget giving a value the page it shows does not declare. |
+| **Missing page text param** (`ui/page-text-param-missing`) | A Text or Button showing a param the page does not declare as Text, or showing a param while it is not on a page. The game shows no words there. |
+| **List not matching its page param** (`ui/page-param-list-mismatch`) | A List showing a page param whose **Type** is neither List nor JSON, or whose **Row struct** lacks fields the List shows, with the same name and type. Other fields in the row struct are accepted. |
+| **Missing page param** (`blueprint/page-param-missing`) | A `Get Page Param` reading a param the page does not declare. |
 
 ## Components
 

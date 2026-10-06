@@ -47,7 +47,7 @@ Choose **Interface text** under **Source** in the translation table to translate
 - **Words written directly** are translated whenever the project has a second language. Each widget's own words have a row, except words made only of digits and symbols, and sample text. There is no per-widget switch.
 - **A translation key** is words shared by every widget that names it, and it is translated once. A widget shows its key's words whether or not the project has a source language, and a key the project does not have shows its name.
 - **Removing a key** turns the widgets that use it into widgets holding the key's words and translations as their own, written directly. The same happens to widgets pasted or imported from elsewhere that name a key this project does not have.
-- **Sample text** is the widget's own words under a binding: a Blueprint Value, a field of a list row, or a Text parameter of a component. It is drawn in the editor only, is not part of the built game, and is not translated.
+- **Sample text** is the widget's own words under a binding: a Blueprint Value, a field of a list row, a Text parameter of a component, or a Text param of the page. It is drawn in the editor only, is not part of the built game, and is not translated.
 - **Default value** is what Properties calls a widget's own words when a blueprint writes over them while the game runs, with `Set Text`, `Clear Text` or `Set Label`. They are built and translated like any other words, and the game shows them in the player's language until the first write. **Written in the game by** under the words lists those blueprints.
 - **Words a blueprint writes** while the game runs show as written in every language, ahead of a translation key and a Blueprint Value, until the page is opened again.
 - **Copies keep their translations.** A copied or duplicated widget whose words are written directly carries the translations of those words, also when it is pasted into another project, for the languages that project has.
@@ -58,6 +58,8 @@ Choose **Interface text** under **Source** in the translation table to translate
 The **Missing glyphs** project check reads each widget in the font of each of its states, and names the state when only that state's font lacks a character.
 
 A [component's](/docs/studio/workspace/ui-editor#components) Text parameter is translated per placement: words written directly on a placement have a row of their own.
+
+A page's Text [param](/docs/studio/workspace/ui-editor#page-params) is translated where its words are written. Its default has one row under the page, however many widgets show it, and words a **Page** widget gives for it have a row under that widget. Words a node gives when it opens the page are shown as given; give the node its words from `Translation Key Text` to show them in the player's language.
 
 ### Projects from earlier versions
 
