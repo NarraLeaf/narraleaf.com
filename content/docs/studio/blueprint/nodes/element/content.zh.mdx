@@ -9,7 +9,7 @@ description: 列表内容、选中项、滚动位置与条目字段、滑块数�
 
 List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 List 实例的运行时 items，而这些 items 只存在于该实例中：完全卸载后就没了，也不会自动恢复，需要作者自己从变量或其它数据源重新写入。`itemsBinding` 只在没有运行时 items 时作为读取 fallback
 
-条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/zh/docs/studio/blueprint/nodes/list)
+条目上下文读取节点——index、count、key、props——根本不是 Element 节点；它们读的是自己所在条目的模板作用域，和 Self 形态一起放在 [List](/zh/docs/studio/blueprint/nodes/list)。这些节点接收和给出的行带有连入 `list` 的 List 的结构，缺少其字段的行会被报告，见 [List](/zh/docs/studio/blueprint/nodes/list#约定)
 
 ### Get List Content
 
@@ -20,7 +20,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | out · data | `array` |  |
+| `items` | out · data | `array` | 连入 `list` 的 List 的结构的行 |
 
 ### Set List Content
 
@@ -33,7 +33,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | in · data | `array` |  |
+| `items` | in · data | `array` | 连入 `list` 的 List 的结构的行 |
 
 ### Clear List
 
@@ -58,7 +58,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | 连入 `list` 的 List 的结构的一行 |
 
 ### Insert List Item
 
@@ -72,7 +72,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | 可在卡片上直接填字面量|
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | 连入 `list` 的 List 的结构的一行 |
 
 ### Remove List Item
 
@@ -85,7 +85,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | 连入 `list` 的 List 的结构的一行 |
 
 ### Remove List Item At
 
@@ -121,7 +121,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | out · data | `json` |  |
+| `item` | out · data | `json` | 连入 `list` 的 List 的结构的一行 |
 
 ### Set Selected Item
 
@@ -134,7 +134,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | 连入 `list` 的 List 的结构的一行 |
 
 ### Get Selected Index
 
@@ -216,7 +216,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | 可填字面量 |
-| `item` | out · data | `json` | 落在当前条目之外时为 `null` |
+| `item` | out · data | `json` | 落在当前条目之外时为 `null`。连入 `list` 的 List 的结构的一行 |
 
 ### Find Item By Field
 
@@ -229,7 +229,7 @@ List 节点带 `list` 引脚，类型是 `element:nl.list`。它们操作的是 
 | `list` | in · data | `element:nl.list` |  |
 | `value` | in · data | `any` | 该字段应当等于什么 |
 | `index` | out · data | `integer` | 没有命中时为 `-1` |
-| `item` | out · data | `json` | 没有命中时为 `null` |
+| `item` | out · data | `json` | 没有命中时为 `null`。连入 `list` 的 List 的结构的一行 |
 | `found` | out · data | `boolean` |  |
 
 **卡片字段**

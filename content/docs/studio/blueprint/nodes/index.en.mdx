@@ -31,7 +31,7 @@ Then the pin table:
 | `completed` | out · exec | — | Fires after the wait. |
 | `token` | out · data | `Timer` | Feed to `Skip Delay` to cut the wait short. |
 
-Exec pins carry execution; data pins carry values. *Accepts an on-card literal* means you can type the value into the node card instead of wiring an edge. Some nodes have **dynamic pins**, projected from a selected variable, a chosen fn's signature, or a case you appended. Those are described in prose, because there is no fixed table to print.
+Exec pins carry execution; data pins carry values. A type such as `array<struct:nl.ending>` is an array of endings, shown on the card as **Ending list**; the struct types are listed under [Structs](/docs/studio/blueprint/nodes/data#structs). *Accepts an on-card literal* means you can type the value into the node card instead of wiring an edge. Some nodes have **dynamic pins**, projected from a selected variable, a chosen fn's signature, or a case you appended. Those are described in prose, because there is no fixed table to print.
 
 ## Availability
 
@@ -41,7 +41,7 @@ A node appearing in this catalog does not mean it appears in your palette. These
 - **Inline story values.** An inline story value or a branch condition refuses latent nodes.
 - **Owner and widget capability.** Self nodes only show in the blueprint of a widget that has that capability; a `Set Slider Value` is not offered inside a Text widget's blueprint.
 - **Present bindings.** An Element node only appears once the graph already holds a compatible `Element`, `Element Flush`, or `Element Click` node to wire it to.
-- **List item context.** `Get Item Field`, `Get List Item Index`, `Get List Item Key`, `Get List Item Count` and `Get List Item Props` read the item an element is rendered for, so they appear only in the blueprint of an element inside a List item template.
+- **List item context.** `Get List Item Index`, `Get List Item Key`, `Get List Item Count` and `Get List Item Props` read the item an element is rendered for, so they appear only where a row can be in scope, such as the blueprint of an element inside a List item template. `Get Field` is offered everywhere, and reads the row when its **Object** is left unwired in such a place.
 - **Story Action blueprints.** A blueprint called from a story row is offered no node that drives the running game or its interface: no App, Localization, Network, Sound or Voice node, and almost none of Game.
 
 <Callout type="info">
@@ -58,7 +58,7 @@ Each count is what the palette offers. Nodes hidden from the palette and kept so
 | [Flow](/docs/studio/blueprint/nodes/flow) | 12 | Branching, loops, sequencing, delays. |
 | [Functions](/docs/studio/blueprint/nodes/functions) | 3 | Declaring a fn, calling it, returning from it. |
 | [Variables](/docs/studio/blueprint/nodes/variables) | 9 | Declaring and reading blueprint and persistent variables. |
-| [Data](/docs/studio/blueprint/nodes/data) | 95 | Literals, conversion, predicates, JSON, strings, arrays. |
+| [Data](/docs/studio/blueprint/nodes/data) | 96 | Literals, conversion, predicates, JSON, strings, arrays, struct fields. |
 | [Math](/docs/studio/blueprint/nodes/math) | 25 | Arithmetic, rounding, boolean logic, comparison. |
 | [Time](/docs/studio/blueprint/nodes/time) | 15 | The clock, the calendar, and dates as text. |
 | [Game](/docs/studio/blueprint/nodes/game) | 96 | Story control, dialog, preferences, saves, backlog. |
@@ -73,7 +73,7 @@ Each count is what the palette offers. Nodes hidden from the palette and kept so
 | [Button](/docs/studio/blueprint/nodes/button) | 7 | Button label and pointer. |
 | [Container](/docs/studio/blueprint/nodes/container) | 6 | Container layout and children. |
 | [Frame](/docs/studio/blueprint/nodes/frame) | 8 | The Page a Frame shows, and its params. |
-| [List](/docs/studio/blueprint/nodes/list) | 33 | Runtime items, selection, scrolling, item context. |
+| [List](/docs/studio/blueprint/nodes/list) | 32 | Runtime items, selection, scrolling, item context. |
 | [Slider](/docs/studio/blueprint/nodes/slider) | 9 | Value, range, and snapping. |
 | [Debug](/docs/studio/blueprint/nodes/debug) | 2 | Logging and in-graph comments. |
 | [Input](/docs/studio/blueprint/nodes/input) | 2 | Which device the player is using, and whether an action is held. |

@@ -9,7 +9,7 @@ description: リストの項目と選択、スライダーの値と範囲、画�
 
 List ノードは `element:nl.list` 型の `list` ピンを取ります。これらは List インスタンスのランタイム items に作用し、その items はそのインスタンスの中にしか存在しません——完全にアンマウントされるとクリアされ、何もそれを復元しません。そのため変数や他のデータソースから自分で書き戻す必要があります。`itemsBinding` は、ランタイム items が何もないときの読み取りフォールバックとしてのみ参照されます。
 
-項目コンテキストの読み取りノード——index、count、key、props——はそもそも Element ノードではありません——それらは自分がレンダリングされている項目のテンプレートスコープを読み、Self 形態と一緒に [List](/ja/docs/studio/blueprint/nodes/list) にあります。
+項目コンテキストの読み取りノード——index、count、key、props——はそもそも Element ノードではありません——それらは自分がレンダリングされている項目のテンプレートスコープを読み、Self 形態と一緒に [List](/ja/docs/studio/blueprint/nodes/list) にあります。これらのノードが受け渡しする行は、`list` に接続した List の構造体を持ち、そのフィールドが欠けた行は報告されます。[List](/ja/docs/studio/blueprint/nodes/list#規約)を参照してください。
 
 ### Get List Content
 
@@ -20,7 +20,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | out · data | `array` |  |
+| `items` | out · data | `array` | `list` に接続した List の構造体の行です。 |
 
 ### Set List Content
 
@@ -33,7 +33,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | in · data | `array` |  |
+| `items` | in · data | `array` | `list` に接続した List の構造体の行です。 |
 
 ### Clear List
 
@@ -58,7 +58,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | `list` に接続した List の構造体の行です。 |
 
 ### Insert List Item
 
@@ -72,7 +72,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | `list` に接続した List の構造体の行です。 |
 
 ### Remove List Item
 
@@ -85,7 +85,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | `list` に接続した List の構造体の行です。 |
 
 ### Remove List Item At
 
@@ -121,7 +121,7 @@ List ノードは `element:nl.list` 型の `list` ピンを取ります。これ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | out · data | `json` |  |
+| `item` | out · data | `json` | `list` に接続した List の構造体の行です。 |
 
 ### Set Selected Item
 
@@ -134,7 +134,7 @@ JSON としての等価性で項目を見つけ、それを選択します。
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | `list` に接続した List の構造体の行です。 |
 
 ### Get Selected Index
 
@@ -216,7 +216,7 @@ JSON としての等価性で項目を見つけ、それを選択します。
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | カード上のリテラルを受け付けます。 |
-| `item` | out · data | `json` | 現在の items の範囲外では `null`。 |
+| `item` | out · data | `json` | 現在の items の範囲外では `null`。`list` に接続した List の構造体の行です。 |
 
 ### Find Item By Field
 
@@ -229,7 +229,7 @@ List が宣言している項目フィールドの1つで行を検索します�
 | `list` | in · data | `element:nl.list` |  |
 | `value` | in · data | `any` | フィールドが等しくあるべき値。 |
 | `index` | out · data | `integer` | 一致するものがないときは `-1`。 |
-| `item` | out · data | `json` | 一致するものがないときは `null`。 |
+| `item` | out · data | `json` | 一致するものがないときは `null`。`list` に接続した List の構造体の行です。 |
 | `found` | out · data | `boolean` |  |
 
 **カード上のフィールド**

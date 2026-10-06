@@ -14,8 +14,11 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 - **读取是纯节点，改写是 latent。** 每个改写节点都会挂起执行，直到改写完成
 - **内容与选中项的写入会排队触发 flush，滚动节点不会。** 滚动节点只是记录一个供渲染器消费的意图，因此不会重新跑那些由 flush 驱动的工作
 - **这些都是 Self 节点。** 它们作用于拥有当前图的 list-like 控件——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——并且没有目标引脚。要操作另一个 List，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.list.*` 对应节点，它们带有 `list` 输入，且只在当前图中已存在绑定到 `nl.list` 的节点时才出现
-- **条目上下文需要某一行处于作用域内。** 三个 `Get List Item …` 节点、`Get List Item Props` 与 `Get Item Field` 只出现在可能有某一行处于作用域的地方：List item template 内部元素所拥有的蓝图，读取的是该元素当前渲染所处的那个条目作用域；List 自己的蓝图，其中 `Item Click`、`Item Hover`、`Item Render` 与 `Selection Changed` 各自针对一行运行；以及组件定义上的蓝图，因为组件的某次摆放可能位于某一行中。通过 `Call Fn` 从某一行调用的 fn 会带上这一行，所以 fn 体内的这些节点读到的也是这一行
-- **字段类节点指的是已声明的字段，不是 JSON 路径。** `Get Item Field`、`Set Item Field At`、`Find Item By Field` 与 `Sort List By Field` 从 List 为其条目声明的那些字段里挑，卡片存的是字段的稳定 id 而不是属性名——所以改属性名、调字段顺序，对图都毫无代价。深层路径仍然归 `Get JSON Field`。两个写入节点在没选字段时拒绝运行；两个读取节点则只是什么也答不出来
+- **条目上下文需要某一行处于作用域内。** 三个 `Get List Item …` 节点与 `Get List Item Props` 只出现在可能有某一行处于作用域的地方：List item template 内部元素所拥有的蓝图，读取的是该元素当前渲染所处的那个条目作用域；List 自己的蓝图，其中 `Item Click`、`Item Hover`、`Item Render` 与 `Selection Changed` 各自针对一行运行；以及组件定义上的蓝图，因为组件的某次摆放可能位于某一行中。通过 `Call Fn` 从某一行调用的 fn 会带上这一行，所以 fn 体内的这些节点读到的也是这一行
+- **读取行中的一个字段用 [`Get Field`](/zh/docs/studio/blueprint/nodes/data#get-field)（获取字段）。** 它属于 Data 分类，所有蓝图中都提供。在上述位置不连接**对象**时，读取当前行。该节点原名 `Get Item Field`，归在 List 分类下
+- **字段类节点指的是已声明的字段，不是 JSON 路径。** `Get Field`、`Set Item Field At`、`Find Item By Field` 与 `Sort List By Field` 从 List 为其条目声明的那些字段里挑，卡片存的是字段的稳定 id 而不是属性名——所以改属性名、调字段顺序，对图都毫无代价。深层路径仍然归 `Get JSON Field`。两个写入节点在没选字段时拒绝运行；两个读取节点则只是什么也答不出来
+- **行带有 List 的结构。** 结构在 List 的**编辑内容**中设置（见[列表](/zh/docs/studio/workspace/ui-editor#lists)）。`Get List Content`、`Get Item At`、`Find Item By Field`、`Get Selected Item` 与条目事件头的 `item` 给出该结构的行，因此在结局列表上，从 `Item Click` 的 `item` 拖出连线时会列出结局的字段。带 `list` 引脚的 Element 版本采用连入的 List 的结构
+- **缺少 List 字段的行会被报告。** `Set List Content`、`Append List Item`、`Insert List Item`、`Remove List Item` 与 `Set Selected Item` 接收该 List 结构的行。行中缺少 List 声明的字段，或字段类型不同时，画布上显示警告，项目检查报告**列表字段不一致**（`blueprint/list-shape-mismatch`），List 中这些字段显示为空。字段比 List 声明的多的行可以接受。只检查两边结构都已知的节点
 
 <Callout type="warn">
 `Clear List` 写入的是一个空的运行时数组，而空数组同样算作已写入的内容——`itemsBinding` 不会回来，List 会一直空着，直到你再次写入条目。唯一能恢复 fallback 的是卸载 List 实例，而它会连同选中项和滚动状态一起丢弃
@@ -31,7 +34,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `items` | in · data | `array` | 非数组值按空数组写入|
+| `items` | in · data | `array` | 非数组值按空数组写入。该 List 结构的行 |
 
 ## Append List Item
 
@@ -43,7 +46,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | 该 List 结构的一行 |
 
 ## Insert List Item
 
@@ -56,7 +59,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `index` | in · data | `integer` | 夹到 `0…length`。可在卡片上直接填写字面量|
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | 该 List 结构的一行 |
 
 ## Remove List Item
 
@@ -68,7 +71,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | 该 List 结构的一行 |
 
 ## Remove List Item At
 
@@ -126,7 +129,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | 该 List 结构的一行 |
 
 ## Scroll To Index
 
@@ -233,7 +236,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `items` | out · data | `array` | |
+| `items` | out · data | `array` | 该 List 结构的行 |
 
 ## Get Selected Index
 
@@ -253,7 +256,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `item` | out · data | `json` | |
+| `item` | out · data | `json` | 该 List 结构的一行 |
 
 ## Get List Length
 
@@ -274,7 +277,7 @@ List 当前有多少行
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `index` | in · data | `integer` | 可填字面量 |
-| `item` | out · data | `json` | 下标落在当前条目之外时为 `null` |
+| `item` | out · data | `json` | 下标落在当前条目之外时为 `null`。该 List 结构的一行 |
 
 ## Find Item By Field
 
@@ -286,7 +289,7 @@ List 当前有多少行
 | --- | --- | --- | --- |
 | `value` | in · data | `any` | 该字段应当等于什么 |
 | `index` | out · data | `integer` | 没有命中时为 `-1` |
-| `item` | out · data | `json` | 没有命中时为 `null` |
+| `item` | out · data | `json` | 没有命中时为 `null`。该 List 结构的一行 |
 | `found` | out · data | `boolean` | |
 
 **卡片字段**
@@ -363,7 +366,7 @@ List 滚到了哪里，取值 `0`–`1`
 | `props` | out · data | `json` | |
 
 <Callout type="info">
-五个条目上下文节点读取的是正在渲染那一行的条目作用域，并且除事件图之外也能用于 Blueprint Value 图——模板里的一个文本元素之所以能逐行显示不同的字符串，靠的就是这个。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id
+四个条目上下文节点，以及在行中未连接**对象**的 `Get Field`，读取正在渲染那一行的条目作用域。它们除事件图之外也能用于 Blueprint Value 图，因此模板里的一个文本元素可以逐行显示不同的字符串。重复渲染出来的行彼此隔离，因此每份副本都保有自己的事件 locals 和自己解析出的 Blueprint Value，尽管所有副本都来自同一个源 element id
 </Callout>
 
 ## Get List Item Index
@@ -396,20 +399,4 @@ List 滚到了哪里，取值 `0`–`1`
 | --- | --- | --- | --- |
 | `key` | out · data | `string` | |
 
-## Get Item Field
-
-`blueprint.list.getItemField` · Pure
-
-正在渲染那一行里某个已声明字段的值。它是 `Get List Item Props` 的窄口版本：在卡片上把字段选出来，而不是把整个条目读回来再从里面挖一个 key，图也就不再依赖那个属性碰巧叫什么
-
-| 引脚 | 方向 | 类型 | 说明 |
-| --- | --- | --- | --- |
-| `value` | out · data | `any` | 形状随所选字段而定 |
-
-**卡片字段**
-
-| 字段 | 说明 |
-| --- | --- |
-| `Field` | 要读条目的哪个字段 |
-
-和上面三个 `Get List Item …` 一样需要条目上下文，也和它们一样能用在 Blueprint Value 里——模板中的一个文本元素之所以能逐行显示不同的字符串，靠的就是这条路。
+要读取正在渲染那一行的某个字段，使用不连接**对象**的 [`Get Field`](/zh/docs/studio/blueprint/nodes/data#get-field)。它与这些节点一样可以用在 Blueprint Value 中，模板中的一个文本元素就是这样逐行显示不同的字符串

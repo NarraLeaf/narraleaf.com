@@ -9,7 +9,7 @@ Three widgets that carry state of their own — a List's items, a Slider's value
 
 List nodes take a `list` pin typed `element:nl.list`. They act on the List instance's runtime items, and those items live only in that instance: a full unmount clears them and nothing restores them, so write them back from a variable or another data source yourself. `itemsBinding` is consulted only as a read fallback when there are no runtime items.
 
-Item-context readers — index, count, key, props — are not Element nodes at all; they read the template scope of the item they are rendered inside, and they live in [List](/docs/studio/blueprint/nodes/list) with the Self forms.
+Item-context readers — index, count, key, props — are not Element nodes at all; they read the template scope of the item they are rendered inside, and they live in [List](/docs/studio/blueprint/nodes/list) with the Self forms. The rows these nodes take and give carry the struct of the List wired into `list`, and rows that lack its fields are reported; see [List](/docs/studio/blueprint/nodes/list#conventions).
 
 ### Get List Content
 
@@ -20,7 +20,7 @@ Reads the runtime items. With none set, it falls back to `itemsBinding`, then **
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | out · data | `array` |  |
+| `items` | out · data | `array` | Rows of the struct of the List wired into `list`. |
 
 ### Set List Content
 
@@ -33,7 +33,7 @@ Replaces the runtime items. A non-array is treated as an empty array.
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `items` | in · data | `array` |  |
+| `items` | in · data | `array` | Rows of the struct of the List wired into `list`. |
 
 ### Clear List
 
@@ -58,7 +58,7 @@ Appends one item to the end.
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | A row of the struct of the List wired into `list`. |
 
 ### Insert List Item
 
@@ -72,7 +72,7 @@ Inserts one item at an index. The index is clamped to the valid range rather tha
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | Accepts an on-card literal. |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | A row of the struct of the List wired into `list`. |
 
 ### Remove List Item
 
@@ -85,7 +85,7 @@ Removes the first item that is JSON-equal to `item`.
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | A row of the struct of the List wired into `list`. |
 
 ### Remove List Item At
 
@@ -121,7 +121,7 @@ Outputs `null` when there is no valid selection.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | out · data | `json` |  |
+| `item` | out · data | `json` | A row of the struct of the List wired into `list`. |
 
 ### Set Selected Item
 
@@ -134,7 +134,7 @@ Finds the item by JSON equality and selects it.
 | `in` | in · exec | — |  |
 | `next` | out · exec | — |  |
 | `list` | in · data | `element:nl.list` |  |
-| `item` | in · data | `any` |  |
+| `item` | in · data | `any` | A row of the struct of the List wired into `list`. |
 
 ### Get Selected Index
 
@@ -216,7 +216,7 @@ One row by index, without pulling the whole array through `Get List Content`.
 | --- | --- | --- | --- |
 | `list` | in · data | `element:nl.list` |  |
 | `index` | in · data | `integer` | Accepts an on-card literal. |
-| `item` | out · data | `json` | `null` outside the current items. |
+| `item` | out · data | `json` | `null` outside the current items. A row of the struct of the List wired into `list`. |
 
 ### Find Item By Field
 
@@ -229,7 +229,7 @@ Looks a row up by one of the List's declared item fields. The card stores the fi
 | `list` | in · data | `element:nl.list` |  |
 | `value` | in · data | `any` | What the field should equal. |
 | `index` | out · data | `integer` | `-1` when nothing matches. |
-| `item` | out · data | `json` | `null` when nothing matches. |
+| `item` | out · data | `json` | `null` when nothing matches. A row of the struct of the List wired into `list`. |
 | `found` | out · data | `boolean` |  |
 
 **On-card fields**

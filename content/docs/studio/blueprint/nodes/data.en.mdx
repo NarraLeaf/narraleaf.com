@@ -7,7 +7,7 @@ Data holds the values a blueprint computes with. Reach for it when you need a co
 
 ## Value types
 
-Ten `valueType`s appear on the pins below.
+These `valueType`s appear on the pins below.
 
 | `valueType` | Holds | Produced by |
 | --- | --- | --- |
@@ -16,8 +16,10 @@ Ten `valueType`s appear on the pins below.
 | `float` | A number. | `Float`, `To Float`, `Parse Float`. |
 | `boolean` | True or false. | `Boolean`, every type test and string test. |
 | `json` | Any JSON value: object, array, string, number, boolean, or `null`. | `JSON`, `Parse JSON`, `Get JSON Field`, `Make Object`. |
-| `array` | A JSON array, as a type of its own. | `Make Array`, the `Array …` nodes that return an array, `Object Keys`, `Object Values`. |
-| `any` | Anything. | `Memo`, `Get Item Field`, and the property reads whose shape follows a card selection. |
+| `array` | A JSON array, as a type of its own. | `Make Array`, the `Array …` nodes that return an array, `Object Values`. |
+| `array<T>` | An array whose items are all of type `T`. The card shows it as a list of that type, such as **Ending list** or **string list**. | `Get Endings`, `Get History`, `Split`, `Object Keys`, `Array Range`. |
+| `struct:<id>` | An object whose fields are declared, such as an ending or a save entry. The card shows the struct's name, such as **Ending**. See [Structs](#structs). | `Array First` on endings, `Item Click` on a List, `For Each` over endings. |
+| `any` | Anything. | `Memo`, and the pins whose type follows what is picked on the card, such as `Get Field` and `Get Var`, until something is picked. |
 | `RGBAColor` | `{ r, g, b, a }`. | `Color`. |
 | `Vector2D` | `{ x, y }`. | `Vector2D`, `Make Vector2D`, `Rect Center`, `Get Center`. |
 | `Rect` | `{ x, y, width, height }`. | `Rect`, `Make Rect`, `Get Bounds`, `Get Measured Rect`. |
@@ -29,6 +31,10 @@ An edge between two data pins is allowed when the types are identical, or when o
 | `integer` | `float` | Every integer is a float. |
 | `integer`, `float` | `string` | The number is converted to text as the input is read. This is the only coercion that rewrites the value — every other permitted edge passes it through untouched. |
 | `array` | `json` | An array is a JSON value. |
+| `array<T>` | `array`, `json` | An array of known items is still an array. |
+| `array<T>` | `array<U>` | When a `T` connects to a `U`. |
+| `struct:<id>` | `json` | A struct is a JSON object. |
+| `struct:<id>` | another struct | When both have the same fields, in the same order, with the same types. |
 | `Rect` | `json` | A migration allowance rather than a rule about structured values — see below. |
 | `any` | anything | `any` matches in both directions. |
 | anything | `any` | |
@@ -38,6 +44,7 @@ Types from other categories widen the same way and nowhere else: `element` conne
 Everything else is refused, including the reverses authors expect to work:
 
 - **`json` → `array`, `json` → `Rect`.** Every widening rule runs one way only. An arbitrary object is not a rectangle.
+- **`json` → a struct.** An object whose fields are not declared, such as the result of `Parse JSON`, does not connect to `Get Field`. Read it with `Get JSON Field`.
 - **`float` → `integer`.** Insert `To Integer`, which truncates toward zero.
 - **`string` → `integer` or `float`.** Insert `Parse Int`, `Parse Float`, `To Integer`, or `To Float`.
 - **`boolean` → `string`, `json` → `string`.** Only numbers coerce to text. Insert `To String` or `Stringify JSON`.
@@ -49,7 +56,11 @@ Everything else is refused, including the reverses authors expect to work:
 </Callout>
 
 <Callout type="info">
-`array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array (`Split`'s result, `Parse JSON`, `Get JSON Field`) will not connect to an `array` input such as `Array Length` or List's `Set List Content`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
+`array` feeds a `json` input, never the reverse. A `json` value that happens to hold an array (`Parse JSON`, `Get JSON Field`) will not connect to an `array` input such as `Array Length` or List's `Set List Content`. `For Each` in [Flow](/docs/studio/blueprint/nodes/flow) takes `json`, so iterating over it still works; the `Array …` nodes do not.
+</Callout>
+
+<Callout type="info">
+The `array<T>` and struct types decide what connects and what the card offers. They do not change the values: an ending is the same object when the game runs. A wire that connected in a graph from an earlier version still connects.
 </Callout>
 
 ## Conventions
@@ -724,13 +735,13 @@ Every occurrence. `search` is plain text, not a pattern — an empty `search` ag
 
 `blueprint.string.split` · Pure
 
-The result is typed `json`, not `array`, so it reaches `Join`, `For Each`, and any other `json` input — but not the `Array …` nodes.
+The result is an array of strings. It reaches the `Array …` nodes as well as `Join`, `For Each` and any other `json` input.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `value` | in · data | `string` | Accepts an on-card literal. |
 | `separator` | in · data | `string` | Accepts an on-card literal. |
-| `result` | out · data | `json` | |
+| `result` | out · data | `array<string>` | |
 
 ### Join
 
@@ -783,6 +794,8 @@ Rewrites `\r\n` and lone `\r` to `\n`, so text pasted from any platform compares
 
 Every one of these reads its `array` input as an array and substitutes an empty one when it is not, so nothing throws. Every one that writes returns a new array on `result`.
 
+When the type of the items is known, as with the endings from `Get Endings`, the nodes that return an array return the same type, and `Array Get`, `Array First`, `Array Last` and `Array Find By Key` return one item of that type: `Array Filter By Key` on endings gives endings, and `Array First` gives one ending. `Array Concat` takes the type of `a`.
+
 ### Array Length
 
 `blueprint.collection.arrayLength` · Pure
@@ -796,7 +809,7 @@ Every one of these reads its `array` input as an array and substitutes an empty 
 
 `blueprint.collection.arrayGet` · Pure
 
-An index that is negative or past the end gives `null`. The output is `json` because an array element can be any JSON value.
+An index that is negative or past the end gives `null`. The output is `json` because an array element can be any JSON value, and takes the item type when the items are known.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -985,7 +998,7 @@ Drops later duplicates, keeping the first of each. Items are compared by value, 
 | `start` | in · data | `integer` | Accepts an on-card literal. Defaults to `0`. |
 | `count` | in · data | `integer` | Accepts an on-card literal. Clamped to `0`–`10000`. |
 | `step` | in · data | `integer` | Accepts an on-card literal. Defaults to `1`, and a `step` of `0` is read as `1` — it would otherwise be `count` copies of `start` wearing the shape of a range. |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<integer>` | |
 
 ### Array Find By Key
 
@@ -996,9 +1009,9 @@ The first item whose `key` field equals `value`, and where it was.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | The field name. Accepts an on-card literal. |
-| `value` | in · data | `any` | |
-| `item` | out · data | `json` | `null` when nothing matches. |
+| `key` | in · data | `string` | The field name. Accepts an on-card literal. A dropdown of the items' fields when their type is known. |
+| `value` | in · data | `any` | Takes the type of the field `key` names, and then accepts an on-card literal for a string, number or boolean field. |
+| `item` | out · data | `json` | `null` when nothing matches. One item of the array's type when it is known. |
 | `index` | out · data | `integer` | `-1` when nothing matches. |
 
 ### Array Filter By Key
@@ -1010,9 +1023,9 @@ Every item whose `key` field equals `value`, in their original order.
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | Accepts an on-card literal. |
-| `value` | in · data | `any` | |
-| `result` | out · data | `array` | |
+| `key` | in · data | `string` | Accepts an on-card literal. A dropdown of the items' fields when their type is known. |
+| `value` | in · data | `any` | Takes the type of the field `key` names, and then accepts an on-card literal for a string, number or boolean field. |
+| `result` | out · data | `array` | The same type as `array`. |
 
 ### Array Sort By Key
 
@@ -1025,9 +1038,9 @@ Numbers compare as numbers, booleans as `false` before `true`, and everything el
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | Accepts an on-card literal. |
+| `key` | in · data | `string` | Accepts an on-card literal. A dropdown of the items' fields when their type is known. |
 | `descending` | in · data | `boolean` | Accepts an on-card literal. |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array` | The same type as `array`. |
 
 ### JSON Array Length
 
@@ -1039,6 +1052,53 @@ The older name for `Array Length`, hidden from the palette and kept so existing 
 | --- | --- | --- | --- |
 | `value` | in · data | `array` | |
 | `length` | out · data | `integer` | |
+
+## Structs
+
+A struct is an object whose fields are declared: an ending, a history entry, a save entry, a gallery entry, or a row of a List. A pin that carries one shows the struct's name on the card, such as **Ending**, and a pin that carries an array of them shows **Ending list**. `Get Field` reads one field, picked from a dropdown.
+
+| Struct | Fields | Handed out by |
+| --- | --- | --- |
+| **Ending** | `endingId`, `name`, `sceneId`, `sceneName`, `isReached` | [`Get Endings`](/docs/studio/blueprint/nodes/game#get-endings) |
+| **History entry** | `id`, `type`, `text`, `character`, `avatar`, `voice`, `voiceId`, `selected`, `isPending` | [`Get History`](/docs/studio/blueprint/nodes/game#get-history), [`Get Future History`](/docs/studio/blueprint/nodes/game#get-future-history) |
+| **Save entry** | `id`, `slot`, `timestamp`, `createdAt`, `preview`, `line`, `speaker`, `metadata` | [`List Auto Saves`](/docs/studio/blueprint/nodes/game#list-auto-saves) |
+| **Notification** | `id`, `message` | [`Get Notifications`](/docs/studio/blueprint/nodes/game#get-notifications) |
+| **Language** | `code`, `displayName`, `isSource` | [`Get Available Languages`](/docs/studio/blueprint/nodes/localization#get-available-languages) |
+| **Voice language** | `code`, `displayName` | [`Get Available Voice Languages`](/docs/studio/blueprint/nodes/voice#get-available-voice-languages) |
+| **Choice** | `text`, `index`, `disabled`, `voiceId` | The rows of the choice list in the Game UI |
+| **NVL line** | `index`, `nametag`, `isActive` | The rows of the NVL list in the Game UI |
+| **Confirm button** | `id`, `text`, `index`, `disabled` | The buttons `Show Confirm` opens its page with |
+
+The fields are described with the node that hands them out. A plugin can declare the structs its own nodes hand out, such as the Gallery's **Gallery entry**; see [Manifest](/docs/studio/plugin/manifest#structs). The rows of a List have the struct set under **Edit content**, which is one of the structs above or the fields written for that List; see [Lists](/docs/studio/workspace/ui-editor#lists).
+
+- **The type follows the wires.** The array nodes pass the item type on, as described under [Arrays](#arrays). `For Each` in [Flow](/docs/studio/blueprint/nodes/flow#for-each) gives one item of the array it walks. The List nodes and the item heads give and take rows of the List's struct; see [List](/docs/studio/blueprint/nodes/list#conventions).
+- **A field's type becomes the pin's type.** A String field gives `string`, Number `float`, Boolean `boolean`, Image `ImageAsset|null`, Color `RGBAColor` and JSON `json`.
+- **Dragging a wire off a struct.** Release a wire dragged from a struct pin on empty canvas, and the add-node menu opens on **Fields**, which lists **Get** for each field, such as **Get isReached**. A wire dragged from an array of structs lists **Filter by**, **Sort by** and **Find by** for each field, such as **Filter by isReached**. Each entry adds the node with the field already chosen and wires it to the pin. **Filter by** and **Find by** on a boolean field compare against True.
+- **A field the struct does not have is reported.** A `Get Field` set to a field the struct lacks, and a `key` on `Array Filter By Key`, `Array Sort By Key` or `Array Find By Key` that names no field of the items, are warnings on the canvas and the project check **Field not in shape** (`blueprint/field-missing`). Such a node reads nothing: `Get Field` gives an empty value, a filter keeps no items, and a sort keeps the order. This happens after a List's field is deleted or a key is typed by hand. Only nodes whose struct is known are checked.
+
+### Get Field
+
+`blueprint.list.getItemField` · Pure
+
+One field of a struct. Wire the struct into **Object** and pick the field under **Field**. The output takes the field's type, so `isReached` from an ending wires straight into `Branch`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `object` | in · data | `struct:*` | Any struct, shown as **Struct**. Can stay unwired inside a List row. |
+| `value` | out · data | `any` | Takes the type of the picked field. `null` when the value has no such field. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Field` | The field to read, from the fields of the struct wired into **Object**. A field the struct no longer has stays in the list as **Missing field “…”**. |
+
+- **The first struct wired in is kept.** From then on **Object** accepts only that struct, even after its wire is removed. To read another struct, add another `Get Field`.
+- **Inside a List row, Object can stay unwired.** The node then reads the row being drawn, and the card shows **Object · Current row**. A row is in reach in the places listed under [List](/docs/studio/blueprint/nodes/list#conventions): the blueprints of the elements in the List's item template, the List's own item heads, and component definitions.
+- **Unwired anywhere else, it reads nothing.** The card reports **Object** as not connected. A `Get Field` that kept a struct and lost its wire also reads nothing; it does not read the row instead.
+- **An object without declared fields** does not connect. Read it with `Get JSON Field`.
+
+The node was named **Get Item Field** and read only List rows. Its type id is unchanged, so graphs that hold it keep the node, and one left unwired in a row reads the row as before.
 
 ## Geometry
 
@@ -1116,7 +1176,7 @@ Field names in insertion order. An array or any other non-object gives an empty 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `object` | in · data | `json` | |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<string>` | |
 
 ### Object Values
 

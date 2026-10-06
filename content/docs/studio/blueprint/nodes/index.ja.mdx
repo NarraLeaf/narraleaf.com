@@ -31,7 +31,7 @@ description: 組み込みノードカタログ。パレットの分類ごとに1
 | `completed` | out · exec | — | 待機が終わると発火します。 |
 | `token` | out · data | `Timer` | `Skip Delay` に渡すと待機を途中で打ち切れます。 |
 
-exec ピンは実行の流れを運び、data ピンは値を運びます。*カード上にリテラル値を入力できます* とは、接続を引く代わりにノードカード上に値を直接入力できるという意味です。ノードによっては**動的ピン**を持つものがあります。選択した変数、選んだ fn のシグネチャ、あるいは追加したケースから導出されるピンで、これらは決まった表を示せないため文章で説明されます。
+exec ピンは実行の流れを運び、data ピンは値を運びます。`array<struct:nl.ending>` のような型はエンディングの配列で、カードには **Ending list**（エンディングのリスト）と表示されます。構造体の一覧は[構造体](/ja/docs/studio/blueprint/nodes/data#structs)にあります。*カード上にリテラル値を入力できます* とは、接続を引く代わりにノードカード上に値を直接入力できるという意味です。ノードによっては**動的ピン**を持つものがあります。選択した変数、選んだ fn のシグネチャ、あるいは追加したケースから導出されるピンで、これらは決まった表を示せないため文章で説明されます。
 
 ## 利用可否
 
@@ -41,7 +41,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。*カ
 - **インラインのストーリー値。** インラインのストーリー値と分岐条件は latent ノードを受け付けません。
 - **オーナーとウィジェットの能力。** Self ノードは、その能力を持つウィジェットのブループリントにのみ表示されます。たとえば `Set Slider Value` は、Text ウィジェットのブループリントには提供されません。
 - **既存のバインディング。** Element ノードは、接続先となる互換性のある `Element`、`Element Flush`、`Element Click` のいずれかのノードがすでにグラフにある場合にのみ表示されます。
-- **項目コンテキスト。** `Get Item Field`、`Get List Item Index`、`Get List Item Key`、`Get List Item Count`、`Get List Item Props` はエレメントがレンダリングしている項目を読み取るため、List の項目テンプレート内にあるエレメントのブループリントにのみ表示されます。
+- **項目コンテキスト。** `Get List Item Index`、`Get List Item Key`、`Get List Item Count`、`Get List Item Props` はエレメントがレンダリングしている項目を読み取るため、行がスコープに入りうる場所（List の項目テンプレート内にあるエレメントのブループリントなど）にのみ表示されます。`Get Field` はすべてのブループリントで表示され、そのような場所で **Object** を接続しない場合は現在の行を読み取ります。
 - **Story Action ブループリント。** ストーリー行から呼び出されるブループリントには、実行中のゲームやそのインターフェースを操作するノードは提供されません。App、Localization、Network、Sound、Voice のノードはなく、Game のノードもほぼすべて提供されません。
 
 <Callout type="info">
@@ -58,7 +58,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。*カ
 | [Flow](/ja/docs/studio/blueprint/nodes/flow) | 12 | 分岐、ループ、順序制御、遅延。 |
 | [Functions](/ja/docs/studio/blueprint/nodes/functions) | 3 | fn の宣言、呼び出し、リターン。 |
 | [Variables](/ja/docs/studio/blueprint/nodes/variables) | 9 | ブループリント変数と永続変数の宣言と読み取り。 |
-| [Data](/ja/docs/studio/blueprint/nodes/data) | 95 | リテラル、変換、述語、JSON、文字列、配列。 |
+| [Data](/ja/docs/studio/blueprint/nodes/data) | 96 | リテラル、変換、述語、JSON、文字列、配列、構造体のフィールド。 |
 | [Math](/ja/docs/studio/blueprint/nodes/math) | 25 | 算術、丸め、ブール論理、比較。 |
 | [Time](/ja/docs/studio/blueprint/nodes/time) | 15 | 時刻、カレンダー、テキストとしての日付。 |
 | [Game](/ja/docs/studio/blueprint/nodes/game) | 96 | ストーリー制御、ダイアログ、設定、セーブ、バックログ。 |
@@ -73,7 +73,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。*カ
 | [Button](/ja/docs/studio/blueprint/nodes/button) | 7 | ボタンのラベルとポインター。 |
 | [Container](/ja/docs/studio/blueprint/nodes/container) | 6 | コンテナのレイアウトと子要素。 |
 | [Frame](/ja/docs/studio/blueprint/nodes/frame) | 8 | Frame が表示する Page と、その params。 |
-| [List](/ja/docs/studio/blueprint/nodes/list) | 33 | 実行時の項目、選択、スクロール、項目のコンテキスト。 |
+| [List](/ja/docs/studio/blueprint/nodes/list) | 32 | 実行時の項目、選択、スクロール、項目のコンテキスト。 |
 | [Slider](/ja/docs/studio/blueprint/nodes/slider) | 9 | 値、範囲、スナップ。 |
 | [Debug](/ja/docs/studio/blueprint/nodes/debug) | 2 | ロギングとグラフ内コメント。 |
 | [Input](/ja/docs/studio/blueprint/nodes/input) | 2 | プレイヤーがどのデバイスを使っているか、そしてアクションが押され続けているかどうか。 |

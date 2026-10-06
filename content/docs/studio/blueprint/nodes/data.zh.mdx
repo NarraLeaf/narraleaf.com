@@ -7,7 +7,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 
 ## 值类型
 
-下面的引脚上一共出现十种`valueType`
+下面的引脚上出现以下`valueType`
 
 | `valueType` | 内容 | 产出方 |
 | --- | --- | --- |
@@ -16,8 +16,10 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 | `float` | 数字| `Float`、`To Float`、`Parse Float`|
 | `boolean` | 真或假| `Boolean`，以及所有类型判断和字符串判断|
 | `json` | 任意 JSON 值：object、array、string、number、boolean 或`null`| `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`|
-| `array` | JSON 数组，但作为独立类型存在| `Make Array`、返回数组的那些`Array …`节点、`Object Keys`、`Object Values`|
-| `any` | 任意值| `Memo`、`Get Item Field`，以及形状随卡片选择而定的那些属性读取|
+| `array` | JSON 数组，但作为独立类型存在| `Make Array`、返回数组的那些`Array …`节点、`Object Values`|
+| `array<T>` | 各项类型都为`T`的数组。卡片上显示为该类型的列表，例如**结局列表**、**string列表**| `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`|
+| `struct:<id>` | 字段已声明的对象，例如结局、存档条目。卡片上显示结构的名称，例如**结局**。见[结构](#structs)| 作用于结局的`Array First`、List 的`Item Click`、遍历结局的`For Each`|
+| `any` | 任意值| `Memo`，以及类型随卡片上所选内容而定的引脚，例如`Get Field`、`Get Var`，在选定之前|
 | `RGBAColor` | `{ r, g, b, a }`| `Color`|
 | `Vector2D` | `{ x, y }`| `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`|
 | `Rect` | `{ x, y, width, height }`| `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`|
@@ -29,6 +31,10 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 | `integer` | `float` | 整数一定是浮点数|
 | `integer`、`float` | `string` | 读取该输入时数字会被转成文本。这是唯一会改写值的隐式转换——其余允许的连线都原样传递|
 | `array` | `json` | 数组本身就是一个 JSON 值|
+| `array<T>` | `array`、`json` | 各项类型已知的数组仍是数组|
+| `array<T>` | `array<U>` | `T`能接到`U`时|
+| `struct:<id>` | `json` | 结构就是一个 JSON 对象|
+| `struct:<id>` | 另一个结构 | 两者字段相同、顺序相同、类型相同时|
 | `Rect` | `json` | 一条为旧图留的兼容口子，而不是关于结构化类型的规则——见下|
 | `any` | 任意类型 | `any`在两个方向上都匹配|
 | 任意类型 | `any` | |
@@ -38,6 +44,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 其余一律拒绝，包括那些作者以为能反过来用的：
 
 - **`json` → `array`、`json` → `Rect`。** 每一条放宽规则都只单向成立。一个任意对象并不是一个矩形
+- **`json` → 结构。** 字段未声明的对象（例如`Parse JSON`的结果）不能接到`Get Field`上，请用`Get JSON Field`读取
 - **`float` → `integer`。** 插一个`To Integer`，它向零截断
 - **`string` → `integer`或`float`。** 插`Parse Int`、`Parse Float`、`To Integer`或`To Float`
 - **`boolean` → `string`、`json` → `string`。** 只有数字会隐式转成文本。插`To String`或`Stringify JSON`
@@ -49,7 +56,11 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 </Callout>
 
 <Callout type="info">
-`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值（`Split`的结果、`Parse JSON`、`Get JSON Field`）不能接到`Array Length`或 List 的`Set List Content`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
+`array`能接进`json`输入，反过来永远不行。一个恰好装着数组的`json`值（`Parse JSON`、`Get JSON Field`）不能接到`Array Length`或 List 的`Set List Content`这类`array`输入上。[Flow](/zh/docs/studio/blueprint/nodes/flow)里的`For Each`收`json`，所以遍历仍然可行；`Array …`节点则不行
+</Callout>
+
+<Callout type="info">
+`array<T>`和结构类型决定哪些引脚能相连、卡片上提供哪些选项，不改变值本身：游戏运行时，结局仍是同一个对象。早期版本的图中原本成立的连线仍然成立
 </Callout>
 
 ## 约定
@@ -766,13 +777,13 @@ Pad End（尾部填充）
 
 `blueprint.string.split` · Pure
 
-结果的类型是`json`而不是`array`，所以它能接到`Join`、`For Each`和任何其他`json`输入——但接不到`Array …`节点
+结果是字符串数组，能接到`Array …`节点，也能接到`Join`、`For Each`和其他任何`json`输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `value` | in · data | `string` | 可在卡片上内联输入|
 | `separator` | in · data | `string` | 可在卡片上内联输入|
-| `result` | out · data | `json` | |
+| `result` | out · data | `array<string>` | |
 
 ### Join
 
@@ -825,6 +836,8 @@ Pad End（尾部填充）
 
 这里每个节点都把`array`输入当数组读，不是数组时替换为空数组，所以不会抛错。每个写入类节点都在`result`上返回一个新数组
 
+各项类型已知时（例如`Get Endings`给出的结局），返回数组的节点返回同一类型，`Array Get`、`Array First`、`Array Last`和`Array Find By Key`返回该类型的一项：对结局使用`Array Filter By Key`得到结局，`Array First`得到一个结局。`Array Concat`取`a`的类型
+
 ### Array Length
 
 `blueprint.collection.arrayLength` · Pure
@@ -840,7 +853,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayGet` · Pure
 
-下标为负或越过末尾时给出`null`。输出类型是`json`，因为数组的一项可以是任何 JSON 值
+下标为负或越过末尾时给出`null`。输出类型是`json`，因为数组的一项可以是任何 JSON 值；各项类型已知时，输出取该类型
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1029,7 +1042,7 @@ Array Length（数组长度）
 | `start` | in · data | `integer` | 可填字面量。默认 `0` |
 | `count` | in · data | `integer` | 可填字面量。会被夹到 `0`–`10000` |
 | `step` | in · data | `integer` | 可填字面量。默认 `1`；`step` 为 `0` 时按 `1` 读——否则那会是 `count` 份 `start`，一个披着 range 外形却永远不前进的循环 |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<integer>` | |
 
 ### Array Find By Key
 
@@ -1040,9 +1053,9 @@ Array Length（数组长度）
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | 字段名。可填字面量 |
-| `value` | in · data | `any` | |
-| `item` | out · data | `json` | 没有命中时为 `null` |
+| `key` | in · data | `string` | 字段名。可填字面量。各项类型已知时，为各项字段的下拉列表 |
+| `value` | in · data | `any` | 类型随`key`所指字段而定；字段为字符串、数字或布尔值时可在卡片上填写 |
+| `item` | out · data | `json` | 没有命中时为 `null`。数组各项类型已知时，为该类型的一项 |
 | `index` | out · data | `integer` | 没有命中时为 `-1` |
 
 ### Array Filter By Key
@@ -1054,9 +1067,9 @@ Array Length（数组长度）
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | 可填字面量 |
-| `value` | in · data | `any` | |
-| `result` | out · data | `array` | |
+| `key` | in · data | `string` | 可填字面量。各项类型已知时，为各项字段的下拉列表 |
+| `value` | in · data | `any` | 类型随`key`所指字段而定；字段为字符串、数字或布尔值时可在卡片上填写 |
+| `result` | out · data | `array` | 与`array`类型相同 |
 
 ### Array Sort By Key
 
@@ -1069,9 +1082,9 @@ Array Length（数组长度）
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | 可填字面量 |
+| `key` | in · data | `string` | 可填字面量。各项类型已知时，为各项字段的下拉列表 |
 | `descending` | in · data | `boolean` | 可填字面量 |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array` | 与`array`类型相同 |
 
 ### JSON Array Length
 
@@ -1083,6 +1096,53 @@ Array Length（数组长度）
 | --- | --- | --- | --- |
 | `value` | in · data | `array` | |
 | `length` | out · data | `integer` | |
+
+## 结构 [#structs]
+
+结构是字段已声明的对象：结局、历史记录条目、存档条目、画廊条目，或 List 的一行。携带结构的引脚在卡片上显示结构的名称，例如**结局**；携带结构数组的引脚显示**结局列表**。`Get Field`（获取字段）读取其中一个字段，字段从下拉列表中选择
+
+| 结构 | 字段 | 给出该结构的节点 |
+| --- | --- | --- |
+| **结局** | `endingId`、`name`、`sceneId`、`sceneName`、`isReached` | [`Get Endings`](/zh/docs/studio/blueprint/nodes/game#get-endings) |
+| **历史记录条目** | `id`、`type`、`text`、`character`、`avatar`、`voice`、`voiceId`、`selected`、`isPending` | [`Get History`](/zh/docs/studio/blueprint/nodes/game#get-history)、[`Get Future History`](/zh/docs/studio/blueprint/nodes/game#get-future-history) |
+| **存档条目** | `id`、`slot`、`timestamp`、`createdAt`、`preview`、`line`、`speaker`、`metadata` | [`List Auto Saves`](/zh/docs/studio/blueprint/nodes/game#list-auto-saves) |
+| **通知** | `id`、`message` | [`Get Notifications`](/zh/docs/studio/blueprint/nodes/game#get-notifications) |
+| **语言** | `code`、`displayName`、`isSource` | [`Get Available Languages`](/zh/docs/studio/blueprint/nodes/localization#get-available-languages) |
+| **语音语言** | `code`、`displayName` | [`Get Available Voice Languages`](/zh/docs/studio/blueprint/nodes/voice#get-available-voice-languages) |
+| **选项** | `text`、`index`、`disabled`、`voiceId` | 游戏 UI 中选项列表的行 |
+| **NVL 行** | `index`、`nametag`、`isActive` | 游戏 UI 中 NVL 列表的行 |
+| **确认按钮** | `id`、`text`、`index`、`disabled` | `Show Confirm` 打开页面时传入的按钮 |
+
+各字段的含义写在给出该结构的节点下。插件可以声明自己的节点给出的结构，例如画廊插件的**画廊条目**，见[清单](/zh/docs/studio/plugin/manifest#structs)。List 的行采用**编辑内容**中设置的结构，可以是上表中的结构，也可以是为该 List 填写的字段，见[列表](/zh/docs/studio/workspace/ui-editor#lists)
+
+- **类型沿连线传递。** 数组节点把项的类型传下去，见[数组](#数组)。[Flow](/zh/docs/studio/blueprint/nodes/flow#for-each) 中的`For Each`给出所遍历数组的一项。List 节点和条目事件头给出、接收该 List 结构的行，见 [List](/zh/docs/studio/blueprint/nodes/list#约定)
+- **字段的类型就是引脚的类型。** 字符串字段为`string`，数字为`float`，布尔值为`boolean`，图片为`ImageAsset|null`，颜色为`RGBAColor`，JSON 为`json`
+- **从结构上拖出连线。** 从携带结构的引脚拖出连线并在画布空白处松开，添加节点菜单会打开在**字段**分组，列出**获取**每个字段的条目，例如**获取 isReached**、**获取 name**。从携带结构数组的引脚拖出时，列出按每个字段**筛选**、**排序**、**查找**的条目，例如**按 isReached 筛选**。每个条目添加的节点已选好该字段，并与该引脚相连。对布尔字段**筛选**或**查找**时，比较的值为真
+- **结构中没有的字段会被报告。** `Get Field`选择了结构中没有的字段，或`Array Filter By Key`、`Array Sort By Key`、`Array Find By Key`的`key`不是各项的字段时，画布上显示警告，项目检查报告**字段不存在**（`blueprint/field-missing`）。这样的节点读不到值：`Get Field`得到空值，筛选不保留任何项，排序不改变顺序。删除 List 的字段或手动填写键之后会出现这种情况。只检查结构已知的节点
+
+### Get Field
+
+`blueprint.list.getItemField` · Pure
+
+读取结构中的一个字段。把结构连到**对象**，在**字段**中选择字段。输出取该字段的类型，因此结局的`isReached`可以直接连到`Branch`
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `object` | in · data | `struct:*` | 任意结构，显示为**结构**。在 List 的行中可以不连接 |
+| `value` | out · data | `any` | 取所选字段的类型。值中没有该字段时为`null` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Field` | 要读取的字段，从连到**对象**的结构的字段中选择。结构中已不存在的字段仍留在列表中，显示为**字段“…”已缺失** |
+
+- **保留第一次连入的结构。** 此后**对象**只接受该结构，连线断开后也一样。要读取其他结构，请另加一个`Get Field`
+- **在 List 的行中，对象可以不连接。** 此时节点读取正在绘制的那一行，卡片显示**对象 · 当前行**。可以读到行的位置与 [List](/zh/docs/studio/blueprint/nodes/list#约定) 中所列相同：List 项模板中元素的蓝图、List 自己的条目事件头，以及组件定义
+- **在其他位置不连接时，读不到值。** 卡片报告**对象**未连接。保留了结构、连线已断开的`Get Field`也读不到值，不会改为读取当前行
+- **字段未声明的对象**接不上，请用`Get JSON Field`读取
+
+该节点原名**获取条目字段**（Get Item Field），只能读取 List 的行。类型 id 没有变化，已有的图仍保留该节点，在行中未连接的节点照旧读取当前行
 
 ## 几何
 
@@ -1160,7 +1220,7 @@ Array Length（数组长度）
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `object` | in · data | `json` | |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<string>` | |
 
 ### Object Values
 

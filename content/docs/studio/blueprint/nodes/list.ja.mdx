@@ -14,8 +14,11 @@ List ノードは、あなたが編集しているプライベートブループ
 - **読み取りは pure、変更は latent です。** すべての変更操作は、完了するまでグラフを一時停止させます。
 - **内容と選択の書き込みは flush をキューに入れますが、スクロールノードは入れません。** スクロールノードは、レンダラーが消費するための意図を記録するだけなので、flush 駆動の処理を再実行することは決してありません。
 - **これらは Self ノードです。** グラフを所有する list 系ウィジェット——`nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list`——に対して働き、対象ピンを取りません。別の List を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある対になった `blueprint.element.list.*` を使ってください。これらは `list` 入力を持ち、グラフに `nl.list` へのバインディングノードがある場合にのみ現れます。
-- **項目コンテキストには行がスコープ内にある必要があります。** 3 つの `Get List Item …` ノード、`Get List Item Props`、`Get Item Field` は、行がスコープに入りうる場所にのみ現れます。List の項目テンプレート内にあるエレメントが所有するブループリントでは、そのエレメントが現在レンダリングしている項目スコープを読み取ります。List 自身のブループリントでは、`Item Click`、`Item Hover`、`Item Render`、`Selection Changed` がそれぞれ 1 つの行に対して実行されます。コンポーネントの定義側のブループリントにも現れます。コンポーネントの配置が行の中にある場合があるためです。ある行から `Call Fn` で呼び出された fn はその行を引き継ぐため、fn の本体内でもこれらのノードは同じ行を読み取ります。
-- **フィールド系ノードが名指すのは宣言済みのフィールドであり、JSON パスではありません。** `Get Item Field`、`Set Item Field At`、`Find Item By Field`、`Sort List By Field` は、List がその項目のために宣言しているフィールドの中から選びます。カードにはプロパティ名ではなく、フィールドの安定した id が保存されます——そのため、プロパティ名の変更やフィールドの並べ替えは、グラフに何のコストももたらしません。深い階層のパスは引き続き `Get JSON Field` の領分です。2 つの書き込みノードはフィールドが選ばれていないと実行を拒否し、2 つの読み取りノードは単に何も答えません。
+- **項目コンテキストには行がスコープ内にある必要があります。** 3 つの `Get List Item …` ノードと `Get List Item Props` は、行がスコープに入りうる場所にのみ現れます。List の項目テンプレート内にあるエレメントが所有するブループリントでは、そのエレメントが現在レンダリングしている項目スコープを読み取ります。List 自身のブループリントでは、`Item Click`、`Item Hover`、`Item Render`、`Selection Changed` がそれぞれ 1 つの行に対して実行されます。コンポーネントの定義側のブループリントにも現れます。コンポーネントの配置が行の中にある場合があるためです。ある行から `Call Fn` で呼び出された fn はその行を引き継ぐため、fn の本体内でもこれらのノードは同じ行を読み取ります。
+- **行のフィールドを 1 つ読み取るには [`Get Field`](/ja/docs/studio/blueprint/nodes/data#get-field)（フィールドを取得）を使います。** Data に属し、すべてのブループリントで使えます。上記の場所で **Object**（オブジェクト）を接続しない場合は、現在の行を読み取ります。以前は `Get Item Field` という名前で、List に分類されていました。
+- **フィールド系ノードが名指すのは宣言済みのフィールドであり、JSON パスではありません。** `Get Field`、`Set Item Field At`、`Find Item By Field`、`Sort List By Field` は、List がその項目のために宣言しているフィールドの中から選びます。カードにはプロパティ名ではなく、フィールドの安定した id が保存されます——そのため、プロパティ名の変更やフィールドの並べ替えは、グラフに何のコストももたらしません。深い階層のパスは引き続き `Get JSON Field` の領分です。2 つの書き込みノードはフィールドが選ばれていないと実行を拒否し、2 つの読み取りノードは単に何も答えません。
+- **行は List の構造体を持ちます。** 構造体は List の **Edit content**（内容を編集）で設定します（[リスト](/ja/docs/studio/workspace/ui-editor#lists)を参照）。`Get List Content`、`Get Item At`、`Find Item By Field`、`Get Selected Item` と、項目のイベントヘッドの `item` はその構造体の行を返すため、エンディングのリストでは `Item Click` の `item` からワイヤーを引き出すとエンディングのフィールドが並びます。`list` ピンを持つ Element 版では、接続した List の構造体になります。
+- **List のフィールドが欠けた行は報告されます。** `Set List Content`、`Append List Item`、`Insert List Item`、`Remove List Item`、`Set Selected Item` は、その List の構造体の行を受け取ります。List が宣言するフィールドが行にない場合や型が異なる場合、キャンバスに警告が表示され、プロジェクトチェックが **List fields do not match**（リストのフィールドが一致しない、`blueprint/list-shape-mismatch`）を報告します。List ではそのフィールドが空で表示されます。List が宣言するより多くのフィールドを持つ行は受け付けられます。両方の構造体がわかっているノードだけが検査されます。
 
 <Callout type="warn">
 `Clear List` は空の実行時配列を書き込みます。空の配列であっても、それは書き込まれた内容として扱われます——`itemsBinding` は戻ってこず、再び項目を書き込むまで List は空のままです。フォールバックを復元する唯一の方法は List インスタンスをアンマウントすることであり、それは選択とスクロール状態も同時に破棄します。
@@ -31,7 +34,7 @@ List ノードは、あなたが編集しているプライベートブループ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `items` | in · data | `array` | 配列でない値は空の配列として書き込まれます。 |
+| `items` | in · data | `array` | 配列でない値は空の配列として書き込まれます。その List の構造体の行です。 |
 
 ## Append List Item
 
@@ -43,7 +46,7 @@ List ノードは、あなたが編集しているプライベートブループ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | その List の構造体の行です。 |
 
 ## Insert List Item
 
@@ -56,7 +59,7 @@ List ノードは、あなたが編集しているプライベートブループ
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
 | `index` | in · data | `integer` | `0…length` にクランプされます。カード上にリテラル値を入力できます。 |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | その List の構造体の行です。 |
 
 ## Remove List Item
 
@@ -68,7 +71,7 @@ List ノードは、あなたが編集しているプライベートブループ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | その List の構造体の行です。 |
 
 ## Remove List Item At
 
@@ -126,7 +129,7 @@ List ノードは、あなたが編集しているプライベートブループ
 | --- | --- | --- | --- |
 | `in` | in · exec | — | |
 | `next` | out · exec | — | |
-| `item` | in · data | `any` | |
+| `item` | in · data | `any` | その List の構造体の行です。 |
 
 ## Scroll To Index
 
@@ -233,7 +236,7 @@ List の実行時のインタラクションのオン・オフを切り替えま
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `items` | out · data | `array` | |
+| `items` | out · data | `array` | その List の構造体の行です。 |
 
 ## Get Selected Index
 
@@ -253,7 +256,7 @@ List の実行時のインタラクションのオン・オフを切り替えま
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
-| `item` | out · data | `json` | |
+| `item` | out · data | `json` | その List の構造体の行です。 |
 
 ## Get List Length
 
@@ -274,7 +277,7 @@ List が現在保持している行数です。
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `index` | in · data | `integer` | カード上にリテラル値を入力できます。 |
-| `item` | out · data | `json` | インデックスが現在の項目の範囲外である場合は `null` です。 |
+| `item` | out · data | `json` | インデックスが現在の項目の範囲外である場合は `null` です。その List の構造体の行です。 |
 
 ## Find Item By Field
 
@@ -286,7 +289,7 @@ List が現在保持している行数です。
 | --- | --- | --- | --- |
 | `value` | in · data | `any` | そのフィールドが等しくあるべき値。 |
 | `index` | out · data | `integer` | 一致するものがない場合は `-1` です。 |
-| `item` | out · data | `json` | 一致するものがない場合は `null` です。 |
+| `item` | out · data | `json` | 一致するものがない場合は `null` です。その List の構造体の行です。 |
 | `found` | out · data | `boolean` | |
 
 **カード上のフィールド**
@@ -363,7 +366,7 @@ List が現在どこまでスクロールされているかを `0`〜`1` で表�
 | `props` | out · data | `json` | |
 
 <Callout type="info">
-5 つの項目コンテキストノードは、描画中の行の項目スコープを読み取ります。これらは event グラフだけでなく Blueprint Value のグラフでも動作します——これが、テンプレート内の 1 つのテキストエレメントが行ごとに異なる文字列を表示できる仕組みです。繰り返される行は互いに独立しているため、すべてのコピーが同じ元のエレメント id から生成されているにもかかわらず、それぞれのコピーが自分自身のイベントローカル変数と、自分自身が解決した Blueprint Value を保持します。
+4 つの項目コンテキストノードと、行の中で **Object** を接続していない `Get Field` は、描画中の行の項目スコープを読み取ります。これらは event グラフだけでなく Blueprint Value のグラフでも動作するため、テンプレート内の 1 つのテキストエレメントが行ごとに異なる文字列を表示できます。繰り返される行は互いに独立しているため、すべてのコピーが同じ元のエレメント id から生成されているにもかかわらず、それぞれのコピーが自分自身のイベントローカル変数と、自分自身が解決した Blueprint Value を保持します。
 </Callout>
 
 ## Get List Item Index
@@ -396,20 +399,4 @@ List が現在どこまでスクロールされているかを `0`〜`1` で表�
 | --- | --- | --- | --- |
 | `key` | out · data | `string` | |
 
-## Get Item Field
-
-`blueprint.list.getItemField` · Pure
-
-描画中の行の、宣言済みフィールドを 1 つ返します。`Get List Item Props` の絞り込み版です：項目全体を読んでキーを掘り出す代わりに、カード上でフィールドを選ぶことで、グラフはそのプロパティがたまたま何と呼ばれているかに依存しなくなります。
-
-| ピン | 方向 | 型 | 備考 |
-| --- | --- | --- | --- |
-| `value` | out · data | `any` | 形はそのフィールドに従います。 |
-
-**カード上のフィールド**
-
-| フィールド | 内容 |
-| --- | --- |
-| `Field` | どの項目フィールドを読み取るか。 |
-
-上記の 3 つの `Get List Item …` 系の読み取りと同様に項目コンテキストを必要とし、それらと同様に Blueprint Value の中でも動作します。これが、テンプレート内の 1 つの Text エレメントが行ごとに異なる文字列を表示できる仕組みです。
+描画中の行のフィールドを 1 つ読み取るには、**Object** を接続しない [`Get Field`](/ja/docs/studio/blueprint/nodes/data#get-field) を使います。これらのノードと同様に Blueprint Value の中でも動作し、テンプレート内の 1 つの Text エレメントが行ごとに異なる文字列を表示できます。

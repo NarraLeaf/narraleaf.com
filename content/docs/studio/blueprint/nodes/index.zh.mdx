@@ -31,7 +31,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | `completed` | out · exec | — | 等待结束后触发|
 | `token` | out · data | `Timer` | 接给 `Skip Delay` 可提前结束等待|
 
-执行引脚传递执行，数据引脚传递值。*可在节点卡上直接填字面量*意味着你可以在卡片上输入该值，而不必拉一条连线。部分节点带**动态引脚**，由所选变量、所选 fn 的签名或你追加的分支推导出来。这类引脚以文字说明，因为没有固定的表可列
+执行引脚传递执行，数据引脚传递值。`array<struct:nl.ending>` 这样的类型是结局的数组，在卡片上显示为**结局列表**；各种结构见[结构](/zh/docs/studio/blueprint/nodes/data#structs)。*可在节点卡上直接填字面量*意味着你可以在卡片上输入该值，而不必拉一条连线。部分节点带**动态引脚**，由所选变量、所选 fn 的签名或你追加的分支推导出来。这类引脚以文字说明，因为没有固定的表可列
 
 ## 可用性
 
@@ -41,7 +41,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 - **内联故事值。** 内联故事值和分支条件拒绝 latent 节点
 - **宿主与控件能力。** Self 节点只在具备该能力的控件蓝图里出现；Text 控件的蓝图里不会提供 `Set Slider Value`
 - **已存在的绑定。** Element 节点只有在图中已有可兼容的 `Element`、`Element Flush` 或 `Element Click` 节点可供连接时才会出现
-- **列表项上下文。** `Get Item Field`、`Get List Item Index`、`Get List Item Key`、`Get List Item Count` 与 `Get List Item Props` 读取元素所渲染的那一项，所以只在 List 项模板内元素的蓝图里出现
+- **列表项上下文。** `Get List Item Index`、`Get List Item Key`、`Get List Item Count` 与 `Get List Item Props` 读取元素所渲染的那一项，所以只在可能有某一行处于作用域的地方出现，例如 List 项模板内元素的蓝图。`Get Field` 在所有蓝图中都提供，在这些位置不连接**对象**时读取当前行
 - **Story Action 蓝图。** 由故事行调用的蓝图不提供任何驱动运行中游戏或其界面的节点：没有 App、Localization、Network、Sound、Voice 节点，Game 分类也几乎全部不提供
 
 <Callout type="info">
@@ -58,7 +58,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | [Flow](/zh/docs/studio/blueprint/nodes/flow) | 12 | 分支、循环、顺序执行、延迟|
 | [Functions](/zh/docs/studio/blueprint/nodes/functions) | 3 | 声明 fn、调用、返回|
 | [Variables](/zh/docs/studio/blueprint/nodes/variables) | 9 | 声明与读写蓝图变量、持久变量|
-| [Data](/zh/docs/studio/blueprint/nodes/data) | 95 | 字面量、类型转换、类型判断、JSON、字符串、数组|
+| [Data](/zh/docs/studio/blueprint/nodes/data) | 96 | 字面量、类型转换、类型判断、JSON、字符串、数组、结构的字段|
 | [Math](/zh/docs/studio/blueprint/nodes/math) | 25 | 算术、取整、布尔逻辑、比较|
 | [Time](/zh/docs/studio/blueprint/nodes/time) | 15 | 当前时间、日历，以及日期文本|
 | [Game](/zh/docs/studio/blueprint/nodes/game) | 96 | 剧情控制、对话、偏好、存档、对话记录|
@@ -73,7 +73,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | [Button](/zh/docs/studio/blueprint/nodes/button) | 7 | 按钮标签与指针|
 | [Container](/zh/docs/studio/blueprint/nodes/container) | 6 | 容器布局与子元素|
 | [Frame](/zh/docs/studio/blueprint/nodes/frame) | 8 | Frame 所展示的 Page 及其 params|
-| [List](/zh/docs/studio/blueprint/nodes/list) | 33 | 运行时项、选中、滚动、项上下文|
+| [List](/zh/docs/studio/blueprint/nodes/list) | 32 | 运行时项、选中、滚动、项上下文|
 | [Slider](/zh/docs/studio/blueprint/nodes/slider) | 9 | 值、范围与吸附|
 | [Debug](/zh/docs/studio/blueprint/nodes/debug) | 2 | 日志与图内注释|
 | [Input](/zh/docs/studio/blueprint/nodes/input) | 2 | 玩家在用哪一类设备，以及某个输入意图是不是被按住的 |

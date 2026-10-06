@@ -7,7 +7,7 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 ## 値の型 [#value-types]
 
-以下のピンには10種類の`valueType`が現れます。
+以下のピンには次の`valueType`が現れます。
 
 | `valueType` | 内容 | 生成元 |
 | --- | --- | --- |
@@ -16,8 +16,10 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | `float` | 数値。 | `Float`、`To Float`、`Parse Float`。 |
 | `boolean` | 真または偽。 | `Boolean`、およびすべての型判定と文字列判定。 |
 | `json` | 任意の JSON 値——object、array、string、number、boolean、`null`のいずれか。 | `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`。 |
-| `array` | JSON 配列。ただし独立した型として扱われます。 | `Make Array`、配列を返す`Array …`ノード群、`Object Keys`、`Object Values`。 |
-| `any` | 何であってもよい値。 | `Memo`、`Get Item Field`、およびカードの選択に応じて形状が決まるプロパティ読み取り。 |
+| `array` | JSON 配列。ただし独立した型として扱われます。 | `Make Array`、配列を返す`Array …`ノード群、`Object Values`。 |
+| `array<T>` | 要素がすべて型`T`である配列。カードではその型のリストとして表示されます（**Ending list**（エンディングのリスト）、**string list**（stringのリスト）など）。 | `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`。 |
+| `struct:<id>` | フィールドが宣言されたオブジェクト。エンディングやセーブの項目など。カードには構造体の名前が表示されます（**Ending**（エンディング）など）。[構造体](#structs)を参照してください。 | エンディングに対する`Array First`、List の`Item Click`、エンディングを反復する`For Each`。 |
+| `any` | 何であってもよい値。 | `Memo`、およびカードで選んだものに応じて型が決まるピン（`Get Field`、`Get Var`など）。選ぶ前は`any`です。 |
 | `RGBAColor` | `{ r, g, b, a }`。 | `Color`。 |
 | `Vector2D` | `{ x, y }`。 | `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`。 |
 | `Rect` | `{ x, y, width, height }`。 | `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`。 |
@@ -29,6 +31,10 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | `integer` | `float` | すべての整数は浮動小数点数です。 |
 | `integer`、`float` | `string` | 入力を読み取る際に、数値はテキストへ変換されます。これは値を書き換える唯一の暗黙変換です——それ以外の許可された接続はすべて値をそのまま通します。 |
 | `array` | `json` | 配列は JSON 値そのものです。 |
+| `array<T>` | `array`、`json` | 要素の型がわかっている配列も配列です。 |
+| `array<T>` | `array<U>` | `T`が`U`に接続できる場合。 |
+| `struct:<id>` | `json` | 構造体は JSON オブジェクトです。 |
+| `struct:<id>` | 別の構造体 | 両方のフィールドが同じ名前・同じ順序・同じ型の場合。 |
 | `Rect` | `json` | 構造化された値についての規則ではなく、移行のために許されている経路です——下記参照。 |
 | `any` | 任意の型 | `any`はどちらの方向にも一致します。 |
 | 任意の型 | `any` | |
@@ -38,6 +44,7 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 それ以外はすべて拒否されます。作者が動くはずだと思い込みがちな逆方向の接続も含めてです。
 
 - **`json` → `array`、`json` → `Rect`。** どの拡張規則も一方向にしか成り立ちません。任意のオブジェクトが矩形であるとは限りません。
+- **`json` → 構造体。** フィールドが宣言されていないオブジェクト（`Parse JSON`の結果など）は`Get Field`に接続できません。`Get JSON Field`で読み取ってください。
 - **`float` → `integer`。** `To Integer`を挟んでください。これはゼロ方向に切り捨てます。
 - **`string` → `integer`または`float`。** `Parse Int`、`Parse Float`、`To Integer`、`To Float`のいずれかを挟んでください。
 - **`boolean` → `string`、`json` → `string`。** テキストへ暗黙変換されるのは数値だけです。`To String`または`Stringify JSON`を挟んでください。
@@ -49,7 +56,11 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 </Callout>
 
 <Callout type="info">
-`array`は`json`入力に渡せるが、逆方向は決してできません。たまたま配列を保持している`json`の値（`Split`の結果、`Parse JSON`、`Get JSON Field`）は、`Array Length`や List の`Set List Content`のような`array`入力には接続できません。[Flow](/ja/docs/studio/blueprint/nodes/flow)の`For Each`は`json`を受け取るため、それを使った反復は引き続き機能します。`Array …`ノード群はそうはいきません。
+`array`は`json`入力に渡せるが、逆方向は決してできません。たまたま配列を保持している`json`の値（`Parse JSON`、`Get JSON Field`）は、`Array Length`や List の`Set List Content`のような`array`入力には接続できません。[Flow](/ja/docs/studio/blueprint/nodes/flow)の`For Each`は`json`を受け取るため、それを使った反復は引き続き機能します。`Array …`ノード群はそうはいきません。
+</Callout>
+
+<Callout type="info">
+`array<T>`と構造体の型は、どのピンが接続できるか、カードに何が表示されるかを決めるもので、値そのものは変えません。ゲームの実行中、エンディングは同じオブジェクトのままです。以前のバージョンのグラフで成り立っていた接続は、引き続き成り立ちます。
 </Callout>
 
 ## 規約
@@ -724,13 +735,13 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 `blueprint.string.split` · Pure
 
-結果の型は`array`ではなく`json`であるため、`Join`、`For Each`、その他の`json`入力には届きますが、`Array …`ノード群には届きません。
+結果は文字列の配列です。`Array …`ノード群にも、`Join`、`For Each`、その他の`json`入力にも接続できます。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `value` | in · data | `string` | カード上のリテラルを受け付けます。 |
 | `separator` | in · data | `string` | カード上のリテラルを受け付けます。 |
-| `result` | out · data | `json` | |
+| `result` | out · data | `array<string>` | |
 
 ### Join
 
@@ -783,6 +794,8 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 これらはすべて、`array`入力を配列として読み取り、配列でない場合は空の配列に置き換えます。そのため何も例外を投げません。書き込みを行うものはすべて、`result`に新しい配列を返します。
 
+要素の型がわかっている場合（`Get Endings`が返すエンディングなど）、配列を返すノードは同じ型を返し、`Array Get`、`Array First`、`Array Last`、`Array Find By Key`はその型の要素を1つ返します。エンディングに`Array Filter By Key`を使うとエンディングが、`Array First`を使うとエンディングが1つ得られます。`Array Concat`は`a`の型になります。
+
 ### Array Length
 
 `blueprint.collection.arrayLength` · Pure
@@ -796,7 +809,7 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 `blueprint.collection.arrayGet` · Pure
 
-負の添字、または末尾を超える添字は`null`になります。出力の型が`json`なのは、配列の要素が任意の JSON 値になりうるためです。
+負の添字、または末尾を超える添字は`null`になります。出力の型が`json`なのは、配列の要素が任意の JSON 値になりうるためです。要素の型がわかっている場合は、その型になります。
 
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
@@ -985,7 +998,7 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | `start` | in · data | `integer` | カード上のリテラルを受け付けます。既定値は`0`。 |
 | `count` | in · data | `integer` | カード上のリテラルを受け付けます。`0`–`10000`にクランプされます。 |
 | `step` | in · data | `integer` | カード上のリテラルを受け付けます。既定値は`1`であり、`step`が`0`の場合は`1`として読み取られます——そうしないと、範囲の形をした`start`の`count`個のコピーになってしまうためです。 |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<integer>` | |
 
 ### Array Find By Key
 
@@ -996,9 +1009,9 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | フィールド名。カード上のリテラルを受け付けます。 |
-| `value` | in · data | `any` | |
-| `item` | out · data | `json` | 一致しない場合は`null`。 |
+| `key` | in · data | `string` | フィールド名。カード上のリテラルを受け付けます。要素の型がわかっている場合は、要素のフィールドを選ぶドロップダウンになります。 |
+| `value` | in · data | `any` | `key`が指すフィールドの型になり、そのフィールドが文字列・数値・真偽値ならカード上のリテラルを受け付けます。 |
+| `item` | out · data | `json` | 一致しない場合は`null`。配列の要素の型がわかっている場合は、その型の要素です。 |
 | `index` | out · data | `integer` | 一致しない場合は`-1`。 |
 
 ### Array Filter By Key
@@ -1010,9 +1023,9 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | カード上のリテラルを受け付けます。 |
-| `value` | in · data | `any` | |
-| `result` | out · data | `array` | |
+| `key` | in · data | `string` | カード上のリテラルを受け付けます。要素の型がわかっている場合は、要素のフィールドを選ぶドロップダウンになります。 |
+| `value` | in · data | `any` | `key`が指すフィールドの型になり、そのフィールドが文字列・数値・真偽値ならカード上のリテラルを受け付けます。 |
+| `result` | out · data | `array` | `array`と同じ型です。 |
 
 ### Array Sort By Key
 
@@ -1025,9 +1038,9 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `array` | in · data | `array` | |
-| `key` | in · data | `string` | カード上のリテラルを受け付けます。 |
+| `key` | in · data | `string` | カード上のリテラルを受け付けます。要素の型がわかっている場合は、要素のフィールドを選ぶドロップダウンになります。 |
 | `descending` | in · data | `boolean` | カード上のリテラルを受け付けます。 |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array` | `array`と同じ型です。 |
 
 ### JSON Array Length
 
@@ -1039,6 +1052,53 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | --- | --- | --- | --- |
 | `value` | in · data | `array` | |
 | `length` | out · data | `integer` | |
+
+## 構造体 [#structs]
+
+構造体は、フィールドが宣言されたオブジェクトです。エンディング、履歴の項目、セーブの項目、ギャラリーの項目、List の行がこれにあたります。構造体を運ぶピンには、カード上に構造体の名前（**Ending**（エンディング）など）が表示され、構造体の配列を運ぶピンには **Ending list**（エンディングのリスト）と表示されます。`Get Field`（フィールドを取得）は、ドロップダウンで選んだフィールドを1つ読み取ります。
+
+| 構造体 | フィールド | 返すノード |
+| --- | --- | --- |
+| **Ending**（エンディング） | `endingId`、`name`、`sceneId`、`sceneName`、`isReached` | [`Get Endings`](/ja/docs/studio/blueprint/nodes/game#get-endings) |
+| **History entry**（履歴の項目） | `id`、`type`、`text`、`character`、`avatar`、`voice`、`voiceId`、`selected`、`isPending` | [`Get History`](/ja/docs/studio/blueprint/nodes/game#get-history)、[`Get Future History`](/ja/docs/studio/blueprint/nodes/game#get-future-history) |
+| **Save entry**（セーブの項目） | `id`、`slot`、`timestamp`、`createdAt`、`preview`、`line`、`speaker`、`metadata` | [`List Auto Saves`](/ja/docs/studio/blueprint/nodes/game#list-auto-saves) |
+| **Notification**（通知） | `id`、`message` | [`Get Notifications`](/ja/docs/studio/blueprint/nodes/game#get-notifications) |
+| **Language**（言語） | `code`、`displayName`、`isSource` | [`Get Available Languages`](/ja/docs/studio/blueprint/nodes/localization#get-available-languages) |
+| **Voice language**（ボイスの言語） | `code`、`displayName` | [`Get Available Voice Languages`](/ja/docs/studio/blueprint/nodes/voice#get-available-voice-languages) |
+| **Choice**（選択肢） | `text`、`index`、`disabled`、`voiceId` | ゲーム UI の選択肢リストの行 |
+| **NVL line**（NVL の行） | `index`、`nametag`、`isActive` | ゲーム UI の NVL リストの行 |
+| **Confirm button**（確認ボタン） | `id`、`text`、`index`、`disabled` | `Show Confirm`がページを開くときに渡すボタン |
+
+各フィールドの意味は、その構造体を返すノードの説明にあります。プラグインは自分のノードが返す構造体を宣言できます。Gallery プラグインの **Gallery entry**（ギャラリーの項目）がその例です。[マニフェスト](/ja/docs/studio/plugin/manifest#structs)を参照してください。List の行は **Edit content**（内容を編集）で設定した構造体を持ちます。上の表の構造体か、その List のために書いたフィールドです。[リスト](/ja/docs/studio/workspace/ui-editor#lists)を参照してください。
+
+- **型は接続をたどって伝わります。** 配列ノードは要素の型を引き継ぎます。[配列](#配列)を参照してください。[Flow](/ja/docs/studio/blueprint/nodes/flow#for-each) の`For Each`は、反復する配列の要素を1つ返します。List ノードと項目のイベントヘッドは、その List の構造体の行を受け渡しします。[List](/ja/docs/studio/blueprint/nodes/list#規約)を参照してください。
+- **フィールドの型がピンの型になります。** 文字列のフィールドは`string`、数値は`float`、真偽値は`boolean`、画像は`ImageAsset|null`、色は`RGBAColor`、JSON は`json`です。
+- **構造体からワイヤーを引き出す。** 構造体を運ぶピンからワイヤーを引き出してキャンバスの空いた場所で離すと、ノード追加メニューが **Fields**（フィールド）のグループで開き、各フィールドを読み取る項目が並びます（**Get isReached**（isReached を取得）など）。構造体の配列を運ぶピンからは、各フィールドで絞り込み・並べ替え・検索する項目が並びます（**Filter by isReached**（isReached で絞り込み）など）。どの項目も、フィールドを選んだ状態のノードを追加し、そのピンに接続します。真偽値のフィールドで絞り込み・検索する場合、比較する値は True（真）になります。
+- **構造体にないフィールドは報告されます。** `Get Field`が構造体にないフィールドを指定している場合や、`Array Filter By Key`、`Array Sort By Key`、`Array Find By Key`の`key`が要素のフィールドでない場合、キャンバスに警告が表示され、プロジェクトチェックが **Field not in shape**（存在しないフィールド、`blueprint/field-missing`）を報告します。このようなノードは何も読み取れません。`Get Field`は空の値になり、絞り込みは要素を1つも残さず、並べ替えは順序を変えません。List のフィールドを削除したあとや、キーを手で入力したときに起きます。構造体がわかっているノードだけが検査されます。
+
+### Get Field
+
+`blueprint.list.getItemField` · Pure
+
+構造体のフィールドを1つ読み取ります。構造体を **Object**（オブジェクト）に接続し、**Field**（フィールド）でフィールドを選びます。出力はそのフィールドの型になるため、エンディングの`isReached`はそのまま`Branch`に接続できます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `object` | in · data | `struct:*` | 任意の構造体。**Struct**（構造体）と表示されます。List の行の中では接続しなくてもかまいません。 |
+| `value` | out · data | `any` | 選んだフィールドの型になります。値にそのフィールドがない場合は`null`です。 |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Field` | 読み取るフィールド。**Object** に接続した構造体のフィールドから選びます。構造体にもうないフィールドは **Missing field “…”**（フィールド「…」が見つからない）として一覧に残ります。 |
+
+- **最初に接続した構造体が保持されます。** 以降、**Object** はその構造体だけを受け付けます。接続を外しても同じです。別の構造体を読み取るには、`Get Field`をもう1つ追加してください。
+- **List の行の中では、Object を接続しなくてもかまいません。** このとき、ノードは描画中の行を読み取り、カードには **Object · Current row**（オブジェクト · 現在の行）と表示されます。行を読み取れる場所は [List](/ja/docs/studio/blueprint/nodes/list#規約) にあるとおりです。List の項目テンプレート内のエレメントのブループリント、List 自身の項目のイベントヘッド、コンポーネントの定義です。
+- **それ以外の場所で接続しない場合、何も読み取りません。** カードは **Object** が未接続であると報告します。構造体を保持したまま接続を外した`Get Field`も何も読み取らず、代わりに現在の行を読むこともありません。
+- **フィールドが宣言されていないオブジェクト**は接続できません。`Get JSON Field`で読み取ってください。
+
+このノードは以前 **Get Item Field**（項目の値を取得）という名前で、List の行だけを読み取っていました。型 id は変わっていないため、既存のグラフはこのノードをそのまま保持し、行の中で接続されていないノードは以前どおり現在の行を読み取ります。
 
 ## ジオメトリ
 
@@ -1116,7 +1176,7 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 | ピン | 方向 | 型 | 備考 |
 | --- | --- | --- | --- |
 | `object` | in · data | `json` | |
-| `result` | out · data | `array` | |
+| `result` | out · data | `array<string>` | |
 
 ### Object Values
 
