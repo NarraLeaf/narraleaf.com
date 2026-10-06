@@ -69,6 +69,22 @@ Sounds play in Dev Mode and in the game. The editor canvas plays none.
 
 An instance of a linked component has no **Sound** section and plays the sounds set in the component. For a sound that depends on a condition, use the [Sound nodes](/docs/studio/blueprint/nodes/sound) in a blueprint.
 
+## Lists
+
+A **List** draws its **Item template** once for each row. What a row holds is set with **Edit content** in the **Content** section of Properties; the line under the button names the fields.
+
+**Edit content** opens **List content**:
+
+- **Fields** are the values each row has, each with a name and a type: **String**, **Number**, **Boolean**, **Image**, **Color** or **JSON**. A widget inside the item template shows one of them under **Field**.
+- **Struct**, beside **Fields**, sets where the fields come from. **Custom** is the fields written for this List. The other entries are the structs the engine hands out, such as **Ending**, **Save entry** and **History entry**, and those of the plugins that are loaded, such as **Gallery entry** while the Gallery plugin is enabled.
+- **Rows** are what the canvas draws, and what the game draws while nothing else gives the List its content.
+
+With one of the engine's or a plugin's structs, the fields are those of the rows its nodes hand out: a List that shows the endings from `Get Endings` has the fields `endingId`, `name`, `sceneId`, `sceneName` and `isReached` without writing them. These fields cannot be edited. **Row key** and the fields shown by the widgets in the item template move to the field of the same name. A `Get Field` that reads the row keeps the field it had and is reported if the struct has no such field; pick the field again. Choosing **Custom** again keeps the fields and makes them editable. Every struct and its fields are listed under [Structs](/docs/studio/blueprint/nodes/data#structs).
+
+Changes made under **Edit content**, renaming a field among them, are taken back by **Undo** like any other edit.
+
+A blueprint that gives a List rows without a field the List declares, such as save entries wired into a List whose **Struct** is **Ending**, is reported on the blueprint canvas and in the **Problems** panel under **List fields do not match**. The List draws such a field empty. Rows that carry every declared field, with the same name and type, are accepted whatever other fields they have. See the [List nodes](/docs/studio/blueprint/nodes/list#conventions).
+
 ## Components
 
 A selection can be saved to the **Component Library** and placed again elsewhere. Use a component when a group of widgets is ready to be reused rather than copied.
