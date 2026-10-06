@@ -36,7 +36,7 @@ description: エディター側でブループリントノードの定義と動�
 | `inspectorParams` | `BlueprintInspectorParamDef[]` | カード上のフィールドで、実行時に `ctx.params` から読み取られます。 |
 | `execute` | `(ctx: PluginBlueprintNodeContext) => …` | ノード本体。下記参照。 |
 
-ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。`allowInlineLiteral` を指定できるのは、`valueType` が `string`、`integer`、`float`、`boolean`、`ImageAsset` のいずれかであるデータ入力だけです。それ以外の組み合わせは登録時に例外を投げます。
+ピン(`BlueprintNodePinDef`)は `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }` です。`allowInlineLiteral` を指定できるのは、`valueType` が `string`、`integer`、`float`、`boolean`、`ImageAsset` のいずれかであるデータ入力だけです。それ以外の組み合わせは登録時に例外を投げます。[`contributes.structs`](/ja/docs/studio/plugin/manifest#structs) で宣言したレコードを返す出力の型は、レコード 1 つなら `struct:<id>`、配列なら `array<struct:<id>>` です。
 
 ノードがどこに現れるかは Studio が決めます。`graphKinds` に `"event"` を含むプラグインのノードは、すべてのブループリントに、上記の制限の範囲で表示されます。`scope` フィールドはありません。定義に残っている `scope` や `requiresHostApi` は、登録時に取り除かれます。唯一の例外はイベントヘッドで、[後述](#event-heads)します。
 

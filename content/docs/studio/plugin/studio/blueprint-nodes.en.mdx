@@ -36,7 +36,7 @@ The essential fields:
 | `inspectorParams` | `BlueprintInspectorParamDef[]` | On-card fields, read at runtime from `ctx.params`. |
 | `execute` | `(ctx: PluginBlueprintNodeContext) => …` | The node body; see below. |
 
-A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`. `allowInlineLiteral` is accepted only on a data input whose `valueType` is `string`, `integer`, `float`, `boolean` or `ImageAsset`; anything else throws at registration.
+A pin (`BlueprintNodePinDef`) is `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`. `allowInlineLiteral` is accepted only on a data input whose `valueType` is `string`, `integer`, `float`, `boolean` or `ImageAsset`; anything else throws at registration. An output that hands out records declared under [`contributes.structs`](/docs/studio/plugin/manifest#structs) is typed `struct:<id>` for one record and `array<struct:<id>>` for an array of them.
 
 Studio decides where a node appears. A plugin node that lists `"event"` in its `graphKinds` is offered in every blueprint, within the limits above. There is no `scope` field: a `scope` or `requiresHostApi` left on a definition is dropped at registration. Event heads are the one exception, described [below](#event-heads).
 

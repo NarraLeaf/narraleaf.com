@@ -57,8 +57,9 @@ Entry paths cannot be absolute or contain `..`, `.`, null bytes, `?`, or `#`.
 | `externalLinks` | `string[]` | Address patterns the runtime entry may open in the player's browser. |
 | `network` | `string[]` | Host patterns the runtime entry may fetch bytes from. |
 | `reservedSaveIds` | `string[]` | Save ids this plugin keeps for itself, left out of the player's save list. |
+| `structs` | object[] | The fields of the rows this plugin's nodes hand out. |
 
-Every node type, widget type, storage namespace, sidecar id, build-dependency id and reserved save id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
+Every node type, widget type, storage namespace, sidecar id, build-dependency id, reserved save id and struct id must be prefixed with your plugin id. An unknown key under `contributes` is rejected rather than ignored.
 
 ### blueprintNodes and widgets
 
@@ -134,6 +135,51 @@ A save the plugin writes under its own id, such as a quick save slot or a checkp
 
 Each id must start with your plugin id, so a plugin cannot hide a slot the author's own `Save Game` wrote. The ids are reserved while the plugin runs in the game; in a game that does not run it, those saves are listed like any other.
 
+### structs
+
+A node that hands out a set of records, such as gallery entries, achievements or shop items, declares the fields of those records here and gives its output pin the struct's type:
+
+```json
+{
+  "contributes": {
+    "blueprintNodes": ["yourname.shop.getGoods"],
+    "structs": [
+      {
+        "id": "yourname.shop.good",
+        "name": "Shop item",
+        "localized": { "zh": "商品", "ja": "商品" },
+        "fields": [
+          { "key": "id", "type": "string" },
+          { "key": "name", "type": "string" },
+          { "key": "price", "type": "number" },
+          { "key": "icon", "type": "image" },
+          { "key": "owned", "type": "boolean" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+```ts
+{ id: "goods", kind: "output", semantic: "data", valueType: "array<struct:yourname.shop.good>", label: "Goods" }
+```
+
+| Field | Notes |
+| --- | --- |
+| `id` | Required. Prefixed with your plugin id. A pin carrying one record is typed `struct:<id>`, an array of them `array<struct:<id>>`. |
+| `name` | Required. What the editor calls the struct, on pins and in a List's **Struct** list. |
+| `localized` | `name` per editor language, keyed by the editor's locale code, such as `zh` or `ja`. |
+| `fields` | Required, at least one. `{ key, type }` for each field, in the order a List shows them. `type` is `string`, `number`, `boolean`, `image`, `color` or `json`. A `key` cannot repeat. |
+
+A declared struct is handled as the engine's own, such as an ending or a save entry:
+
+- A List can choose it as its **Struct** under **Edit content**. Its fields come from the plugin and cannot be edited, so an author does not copy field names from your documentation.
+- A wire dragged off the pin offers each field in the add-node menu, and `Get Field` reads a field by name with the field's type on its output.
+- Rows wired into `Set List Content` that lack a field of the List's struct are reported on the canvas and by the project checks.
+
+A field's key is also its id, so a field of your struct cannot be renamed by an author. The editor, the running game and the command-line checks read the declaration from the manifest before any plugin code runs. While the plugin is not loaded (disabled or not installed), its structs are unknown, as its nodes are: a List that names one shows no fields, and the project's dependency check names the plugin. `structs` derives no install permission.
+
 ## Permissions are derived
 
 Install permissions come in two families, and the split is the point.
@@ -186,6 +232,6 @@ This is what keeps the install prompt honest: a capability is declared in exactl
 
 ### Contributions that derive no permission
 
-`tests`, `buildConfig` and `reservedSaveIds` are the three contribution kinds that produce no install permission, and in each case the absence is a decision rather than an omission.
+`tests`, `buildConfig`, `reservedSaveIds` and `structs` are the contribution kinds that produce no install permission, and in each case the absence is a decision rather than an omission.
 
-Every other code-backed contribution gains a power the moment the plugin loads. A **test** only ever runs because the author opened Run > Test, picked it out of the dialog and pressed Start; there is no ambient capability to consent to at install time, and what a test may reach while running is gated separately by its own `requires`. A **build-configuration field** is a blank the author fills in, and filling it in gives the plugin no reach it did not already have. A **reserved save id** only takes ids in the plugin's own namespace out of the player's save list.
+Every other code-backed contribution gains a power the moment the plugin loads. A **test** only ever runs because the author opened Run > Test, picked it out of the dialog and pressed Start; there is no ambient capability to consent to at install time, and what a test may reach while running is gated separately by its own `requires`. A **build-configuration field** is a blank the author fills in, and filling it in gives the plugin no reach it did not already have. A **reserved save id** only takes ids in the plugin's own namespace out of the player's save list. A **struct** only describes the fields of rows the plugin's nodes already hand out.

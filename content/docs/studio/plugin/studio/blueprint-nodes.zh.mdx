@@ -36,7 +36,7 @@ description: 在编辑器侧注册蓝图节点定义与动态下拉选项
 | `inspectorParams` | `BlueprintInspectorParamDef[]` | 卡片上的字段，运行时从 `ctx.params` 读取|
 | `execute` | `(ctx: PluginBlueprintNodeContext) => …` | 节点主体；见下文|
 
-引脚（`BlueprintNodePinDef`）为 `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`。`allowInlineLiteral` 只能用在 `valueType` 为 `string`、`integer`、`float`、`boolean` 或 `ImageAsset` 的数据输入上，其他组合在注册时抛错
+引脚（`BlueprintNodePinDef`）为 `{ id, kind: "input" \| "output", semantic: "exec" \| "data", valueType?, label?, optional?, allowInlineLiteral? }`。`allowInlineLiteral` 只能用在 `valueType` 为 `string`、`integer`、`float`、`boolean` 或 `ImageAsset` 的数据输入上，其他组合在注册时抛错。给出 [`contributes.structs`](/zh/docs/studio/plugin/manifest#structs) 中所声明记录的输出，一条记录的类型写作 `struct:<id>`，一组记录写作 `array<struct:<id>>`
 
 节点出现在哪里由 Studio 决定。插件节点只要在 `graphKinds` 中列出 `"event"`，就会出现在每一份蓝图里，并受上述限制约束。定义里没有 `scope` 字段：定义上残留的 `scope` 或 `requiresHostApi` 会在注册时被丢弃。唯一的例外是事件头，见 [下文](#event-heads)
 
