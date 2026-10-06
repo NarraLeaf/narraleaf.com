@@ -36,7 +36,7 @@ NarraLeaf 舞台是按**游戏会话挂载那一刻处于活动状态的那个 S
 导航由两个栈组成：`Go Page` 打开的**页面**，与 `Show Layer` 显示的**叠加页面**。叠加页面总是画在所有页面之上。两个栈上的每一项都是某个 Surface 的一个*实例*，而不是 Surface 本身：它带着自己的 props 和自己的运行时 scope。同一个 Surface 打开两次，就得到两个互不相干的实例
 
 - 启动时页面栈只有一个页面：入口页面
-- **打开即入栈。** `Go Page`（前往页面）把选中的 Page 压入页面栈，并带上你接到它 `props` 输入上的值，新页面取代屏幕上原来的页面。`Replace Page`（替换页面）以同样的方式打开页面，然后把被它替换的页面移出栈，所以 `Go back` 和设为 `None` 的 `Go Page` 都不会回到那个页面。`Show Layer`（叠加页面）压入叠加页面栈，并交回一个指代**这一次显示**的**句柄**：`Hide Layer`、`Wait For Layer` 与 `Is Layer Mounted` 寻址的就是它。除此之外没有任何东西能指代某个叠加页面：叠放次序就是挂载次序，任何界面都无法被写成依赖于自己在第几层。叠加页面位于所有页面之上，包括在它之后打开的页面
+- **打开即入栈。** `Go Page`（前往页面）把选中的 Page 压入页面栈，并带上它的输入传入的参数和 `props`，新页面取代屏幕上原来的页面。`Replace Page`（替换页面）以同样的方式打开页面，然后把被它替换的页面移出栈，所以 `Go back` 和设为 `None` 的 `Go Page` 都不会回到那个页面。`Show Layer`（叠加页面）压入叠加页面栈，并交回一个指代**这一次显示**的**句柄**：`Hide Layer`、`Wait For Layer` 与 `Is Layer Mounted` 寻址的就是它。除此之外没有任何东西能指代某个叠加页面：叠放次序就是挂载次序，任何界面都无法被写成依赖于自己在第几层。叠加页面位于所有页面之上，包括在它之后打开的页面
 - **模态叠加页面。** 模态的叠加页面会让它下面的一切都不再接收输入，并持有键盘。非模态的叠加页面不影响它下面的页面。声明同一分组的叠加页面排队而不叠放，并且显示某个叠加页面的那个 Surface 关闭时，该叠加页面也随之关闭
 - **五种关闭方式。** `Go back`（返回上一页）在最上面的叠加页面可关闭时关掉它，否则只弹出一个页面。把 `Go Page` 的 Page 选择器设为 `None` 会把页面栈清空到只剩第一个页面。`Clear Page`（关闭全部页面）只关闭运行中的游戏里打开的那些页面，在游戏之外什么也不做。`Hide Layer` 关掉句柄指代的那个叠加页面，`Close This Layer` 则关掉当前蓝图**所在**的那个叠加页面，并可以带上一个结果给等着它的人
 - **栈底保持不动。** `Go back`、设为 `None` 的 `Go Page` 和 `Clear Page` 都不会关闭页面栈上的第一个页面。游戏启动时它是入口页面，`Quit Game` 之后是 `Quit Game` 打开的页面。在它显示于屏幕上时运行 `Replace Page`，该节点打开的页面会取代它成为第一个页面，启动画面就是这样把游戏交给标题页面的。在栈底调用 `Go back` 是空操作而不是错误。签名见 [App 节点](/zh/docs/studio/blueprint/nodes/app)
@@ -92,12 +92,13 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 - 目标必须是另一个 app Surface。把 Frame 指向自己、指向游戏界面、指向缺失的 Surface，或者指向任何会绕回持有该 Frame 的那个 Surface 的目标，都会被拒绝，Frame 显示占位提示而不是让渲染崩掉
 - 每个 Frame 实例拥有自己的运行时 scope，由父 scope、Frame 元素和目标共同推导。两个显示同一个 Page 的 Frame 不共享 surface state、不共享控件 locals、也不共享生命周期。被嵌入的 Page 在 Frame 首次挂载它时触发自己的 `Surface Init`，在目标变化或 Frame 消失时触发 `Surface Unmount`
 
-`params` 是值抵达 Page 的通路：
+值通过 Page 在属性中声明的**参数**抵达 Page，见[页面参数](/zh/docs/studio/workspace/ui-editor#page-params)：
 
-- Frame 的 `params` 属性**就是**被嵌入 Page 的 props。该 Page 内部的 `Get Page Props`（读取 Page props）读的就是它
-- 对页面和叠加页面来说，props 就是 `Go Page` 或 `Show Layer` 传进来的东西。同一个节点，同一次读取，所以一个 Page 不需要知道自己身处何处也能在各种位置上工作
-- 非对象的值会规范成 `{}`，取不存在的字段读作 `null`
-- `Set Frame Page`（切换 Frame 的 Page）切换目标，并可以在同一次调用里写入 params；它的 props 输入不接线时，原有 params 保持不变。参见 [Frame 节点](/zh/docs/studio/blueprint/nodes/frame)
+- 对页面和叠加页面来说，值由 `Go Page`、`Replace Page`、`Show Layer` 或 `Show Confirm` 传入。前三个节点为所选页面的每个参数各长出一个输入
+- Frame 的 `params` 属性**就是**被嵌入 Page 的 props。它的属性面板为目标 Page 的每个参数各显示一个字段
+- 在 Page 内部，文本或按钮在**页面参数**中显示文字参数，List 显示列表参数，`Get Page Param` 读取任意参数。未传入的参数读取默认值。无论作为页面、叠加页面还是在 Frame 中，同一个页面都以相同方式读取参数
+- `Get Page Props` 读取整个对象：已声明的参数及其默认值，以及 `Page props` 输入或 Frame 传入的其他字段。非对象的值会规范成 `{}`，取不存在的字段读作 `null`
+- `Set Frame Page`（切换 Frame 的 Page）切换目标，并可以在同一次调用里写入 params；没有传入参数且 props 输入不接线时，原有 params 保持不变。参见 [Frame 节点](/zh/docs/studio/blueprint/nodes/frame)
 - 子级用 `Emit Page Event`（发送 Page 事件）回话，由 Frame 元素自身蓝图上的 `Page Event` 事件 Head 接收。单独显示的页面或叠加页面没有父 Frame，在那里发送谁也收不到
 
 ## 舞台插槽
@@ -128,7 +129,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 
 - **自己的元素。** `Element` 字面量存的是 `{ surfaceId, elementId, elementType }`，从构造上就限定在同一个 Surface 内。没有任何节点能伸进另一个 Surface 的树
 - **自己的 surface state**，以实例的运行时 scope 作键，因此同一个 Surface 的两个实例永不冲突。作用域与生命周期见[变量](/zh/docs/studio/blueprint/variables)
-- **自己的 props**，通过 `Get Page Props`
+- **自己的参数和 props**，通过 `Get Page Param` 和 `Get Page Props`
 - 一切本来就不按 Surface 划分的东西：持久变量、全局状态、存档、正在运行的游戏
 
 它的事件 Head：`Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`（鼠标点击）、`Right Click`（鼠标右键点击）、`On Action`、键盘事件 Head、Game Preference 变化事件 Head、全屏变化与窗口焦点变化、窗口关闭请求、广播接收 Head，以及两个绑定元素的 Head

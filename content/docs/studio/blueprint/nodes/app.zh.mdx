@@ -9,7 +9,8 @@ App 节点是蓝图伸手够到它所运行的那个应用的地方：打开一�
 
 - **其中三个是尾节点。** `Go Page`、`Replace Page` 和 `Quit Application` 根本没有 `next` 引脚。它们之后是另一个 Surface，或者根本没有应用了——这张图没有剩下什么可以继续跑
 - **type id 并不都写 `app`。** 这一组在长出窗口、叠层和应用节点之前叫 Page。id 是要存进文档的东西，所以从未改名：`blueprint.page.*`、`blueprint.frame.*`、`blueprint.layer.*` 和 `blueprint.app.*` 全都属于这同一个分类
-- **宿主。** `Get Page Props` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Get Page Param` 与 `Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于**应用逻辑**中——应用逻辑没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于应用逻辑与 Surface 蓝图
+- **宿主。** `Get Page Props`、`Get Page Param` 和三个 `Is Surface …` 读取节点可用于 Surface、控件和 Blueprint Value 蓝图；`Emit Page Event` 可用于 Surface 和控件蓝图。它们都不存在于**应用逻辑**中——应用逻辑没有当前 Page 可问。导航、叠层、窗口、指针、截图与链接节点在除 Story Action 蓝图之外的所有蓝图中都可用，`Keep Window Open` 则只用于应用逻辑与 Surface 蓝图
+- **打开页面时传入它的参数。** `Page` 中所选页面声明了[参数](/zh/docs/studio/workspace/ui-editor#page-params)时，`Go Page`、`Replace Page`、`Show Layer` 与 `Set Frame Page` 会为每个参数长出一个以参数名命名的输入，位于 `Page props` 之前。字符串、文字、数字和布尔值参数可以在卡片上填写，列表参数接收由其行结构组成的数组。未连线且为空的输入不传值，页面读取该参数的默认值。以这种方式传入的值会替换 `Page props` 中的同名字段。`Go Page` 或 `Replace Page` 的 `Page` 输入连线时不显示参数输入：页面由连线决定，只传入 `Page props`
 - **编辑器画布没有应用可以对话。** 在作者时画布上，这里每个有副作用的节点都会以 `该节点仅在游戏运行时可用，需在开发模式中运行` 失败；纯读取节点则安静降级，`Get Page Props` 读到 `{}`，三个 `Is Surface …` 读到 `false`。在故事编辑器的游戏界面预览里，导航和退出会打到桩上什么都不做，两个全屏节点则报告在那里不可用。这些都要在开发模式中验证
 
 ## Go Page
@@ -32,6 +33,8 @@ Go Page（前往页面）打开卡片上选中的 Surface，走的是运行时�
 | --- | --- |
 | `Page` | 要打开的 Surface，从项目的 app Surface 中选择。选`None`则改为关闭第一个 Page 之上的所有 Page|
 
+卡片上还有所选页面的每个参数各一个输入，见[约定](#约定)
+
 游戏一旦跑起来，Page 栈会被藏到舞台下面。此时 `Go Page` 会把目标作为 UI 叠层打开在舞台*之上*，`None` 则关闭舞台之上的这些 Page、重新露出舞台。要离开游戏本身，请用 [Game](/zh/docs/studio/blueprint/nodes/game) 里的 `Quit Game`——它自己指定要返回的 Page
 
 ## Replace Page
@@ -51,6 +54,8 @@ Replace Page（替换页面）打开页面以代替当前页面，并关闭当�
 | 字段 | 说明 |
 | --- | --- |
 | `Page` | 要打开的 Surface，从项目的 app Surface 中选择。没有 `None`：未选页面也未连线时，节点以 `“替换页面”：选择页面` 失败|
+
+卡片上还有所选页面的每个参数各一个输入，见[约定](#约定)
 
 新页面与 `Go Page` 走同样的过渡动画出现，过渡完成后被替换的页面离开页面栈。替换入口页面时，新页面成为栈上的第一个页面。游戏运行中且舞台上方没有页面时，没有可替换的页面，该节点像 `Go Page` 一样把目标打开在舞台之上
 
@@ -105,6 +110,8 @@ Replace Page（替换页面）打开页面以代替当前页面，并关闭当�
 | 字段 | 说明 |
 | --- | --- |
 | `Page` | 要显示的 Surface，与 `Go Page` 选的是同一份列表。一层**就是**一页；给两份不同的列表会暗示它们不是一回事 |
+
+卡片上还有所选页面的每个参数各一个输入，见[约定](#约定)
 
 指向项目里没有的 Page 时，节点会带着宿主自己那句话失败，于是失败落在你能改的那一行上。
 
@@ -164,7 +171,9 @@ Replace Page（替换页面）打开页面以代替当前页面，并关闭当�
 
 用你自己的一页去问一个问题，并从玩家按下的那个按钮走出去。
 
-底下没有任何“确认框”专用机制。这个节点把选中的 Page 作为一个模态、可关闭、归在 `confirm` 分组的叠层显示出来 —— 于是第二个问题会排在第一个后面而不是压在它上面 —— 并通过普通的 Page props 把问题交给它：`message`，以及 `buttons`，形如 `{ id, text, index, disabled }`，可以直接给 List 绑定。用 `Show Layer` 手搭的一页读到的是一模一样的 props。
+该节点把选中的 Page 作为模态、可关闭、归在 `confirm` 分组的叠层显示，因此第二个问题排在第一个之后，而不是压在它上面。它向该页面传入两个[参数](/zh/docs/studio/workspace/ui-editor#page-params)：问题 `message`，以及 `buttons`，即由**确认按钮**行组成的列表，字段为 `id`、`text`、`index` 和 `disabled`。骨架模板的**确认**页面声明了这两个参数：`message` 是由消息文本显示的文字参数，`buttons` 是**行结构**为**确认按钮**的列表参数，由按钮列表绘制。为 `Show Confirm` 自建的页面也声明这两个参数
+
+`message` 按传入的原样显示。要以玩家的语言显示问题，把 `Translation Key Text`（翻译键文本）连到 `message`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -442,26 +451,34 @@ Get Fullscreen（获取全屏状态）读取应用窗口当前是否处于全屏
 
 `blueprint.page.getProps` · Pure
 
-Get Page Props（获取页面属性）读取当前蓝图所在 Page 的完整 props 对象。由 `Go Page` 打开的 Page 读到的是该节点的 `props` 输入；被 `nl.frame` 嵌入的 Page 读到的是 Frame 的 `params`。它永远不为 null——什么都没传就打开的 Page 读到 `{}`
+Get Page Props（获取页面属性）读取当前蓝图所在 Page 的完整 props 对象。由 `Go Page` 打开的 Page 读到的是该节点的 `props` 输入及其传入的参数；被 `nl.frame` 嵌入的 Page 读到的是 Frame 的 `params`。页面声明的每个参数都在其中，未传入的取默认值。它永远不为 null：未声明参数、什么都没传就打开的 Page 读到 `{}`
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
 | `props` | out · data | `json` | |
 
-要取出其中某个字段，用 [Data](/zh/docs/studio/blueprint/nodes/data) 里的 `Get JSON Field`，它接受点分路径
+读取某个已声明的参数，用 [`Get Page Param`](#get-page-param)。页面未声明的字段用 [Data](/zh/docs/studio/blueprint/nodes/data) 里的 `Get JSON Field` 读取，它接受点分路径
 
 ## Get Page Param
 
 `blueprint.frame.getParam` · Pure
 
-Get Page Param（获取页面参数）按名字读取当前 Page props 中的单个字段
-
-**这个节点不在创建浮窗里。** 你无法新增它；这里记录它，是因为更早写下的文档里仍然存在它，而且它仍然能跑。它的替代是 `Get Page Props` 接 `Get JSON Field`，后者读的是嵌套路径而不是一个扁平的 key
+Get Page Param（获取页面参数）读取打开页面时为某个[参数](/zh/docs/studio/workspace/ui-editor#page-params)传入的值，未传入时为该参数的默认值。在卡片的 `Param` 中选择参数，可选的是蓝图所属页面的参数
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
-| `key` | in · data | `string` | 可在节点卡上直接填字面量|
-| `value` | out · data | `json` | 字段不存在时读到`null`|
+| `value` | out · data | `json` | 类型随所选参数而定：字符串和文字为 `string`，数字为 `float`，布尔值为 `boolean`，JSON 为 `json`，列表为由其行结构组成的数组，**行结构**为**不指定**时为 `array` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Param` | 该蓝图所属页面的一个参数 |
+
+- **可用位置。** 页面自己的蓝图、页面上控件的蓝图，以及这些控件的 Blueprint Value。在页面控件中显示的页面上，读取的是该控件传入的值
+- **文字参数**得到传入的文字，未传入时为源语言的默认值。要以玩家的语言显示文字参数，在文本或按钮上的**页面参数**中选择它
+- **页面已不再声明的参数**在画布上显示警告，项目检查报告**缺失的页面参数**（`blueprint/page-param-missing`），节点读不到值
+- **未选择参数时**，卡片显示 `key` 输入（`string`，可在节点卡上直接填字面量），按该名称读取 Page prop，不存在时为 `null`。早期版本的图中的该节点是这种形式
 
 ## Emit Page Event
 

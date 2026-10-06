@@ -9,7 +9,7 @@ description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params
 
 - **读取是纯节点，写入是 latent 节点。** 本页每个 `Get` 节点都是 `Pure`。每个 `Set` 节点都是 `Latent`：写入要经过宿主并异步完成
 - **一个 Frame 持有两样东西：目标 Page 和一个 `params` 对象。** 目标必须是 Page；卡片下拉框只列出 Page，并排除该 Frame 所在的 Page 以及任何会绕回自身形成嵌套循环的 Page。Page 是什么、它和游戏界面 Surface 有何区别，见 [Surface 与 Page](/zh/docs/studio/blueprint/surfaces)
-- **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/zh/docs/studio/blueprint/nodes/app) 分类的 `Get Page Props` 读取整个对象，用 [Data](/zh/docs/studio/blueprint/nodes/data) 分类的 `Get JSON Field` 读取单个字段，读取不存在的字段得到 `null`。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/zh/docs/studio/blueprint/nodes/events)
+- **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/zh/docs/studio/blueprint/nodes/app) 分类的 `Get Page Param` 读取它声明的参数，用 `Get Page Props` 读取整个对象。`params` 中没有的参数读取默认值。在编辑器中，Frame 的属性面板为目标 Page 的每个参数各显示一个字段，见[页面参数](/zh/docs/studio/workspace/ui-editor#page-params)。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/zh/docs/studio/blueprint/nodes/events)
 - **没有改变任何东西的写入什么都不做。** 两个写入节点都会把传入的目标和 params 与当前值比对（params 按 JSON 相等比对），两者都相同时直接返回。重复执行它们不会重新挂载 Page，也不会重放进场动画
 - **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在 Frame 自己的主蓝图。要在 Blueprint Value 里读这个 Frame，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点
 
@@ -30,6 +30,8 @@ Set Frame Page（设置 Frame 的目标 Page）切换该 Frame 展示的 Page，
 | 字段 | 含义 |
 | --- | --- |
 | `Page` | 要展示的 Page。空选项 `None` 会清空该 Frame|
+
+所选 Page 声明了参数时，卡片会在 `Page props` 之前为每个参数长出一个输入，与 `Go Page` 相同（见 [App](/zh/docs/studio/blueprint/nodes/app#约定)）。传入的值叠加在 `Page props` 之上，替换 Frame 的 params。没有传入任何值且 `Page props` 未连线时，params 保持不变
 
 <Callout type="warn">
 卡片上的 Page 选择在每次执行时都会被写入，而不是只在你改动过它时才写。停留在 `None` 的 `Set Frame Page` 即使你只接了 `Page props`，也会把 Frame 清空。想只改 props 而不动目标，请使用 `Set Params`

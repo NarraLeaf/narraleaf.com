@@ -9,7 +9,8 @@ App nodes are where a blueprint reaches the application it is running inside: op
 
 - **Three of them are tail nodes.** `Go Page`, `Replace Page` and `Quit Application` have no `next` pin at all. What follows is a different Surface, or no application — there is nothing left of this graph to run.
 - **The type ids do not all say `app`.** This group was called Page before it grew window, layer and application nodes. Ids are what a document stores, so they were never renamed: `blueprint.page.*`, `blueprint.frame.*`, `blueprint.layer.*` and `blueprint.app.*` are all this one category.
-- **Owners.** `Get Page Props` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Get Page Param` and `Emit Page Event` in Surface and widget blueprints. None of them exists in **App logic**, which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in App logic and Surface blueprints.
+- **Owners.** `Get Page Props`, `Get Page Param` and the three `Is Surface …` reads live in Surface, widget, and Blueprint Value blueprints; `Emit Page Event` in Surface and widget blueprints. None of them exists in **App logic**, which has no current Page to ask about. The navigation, layer, window, pointer, screenshot and link nodes are offered in every blueprint except a Story Action blueprint, and `Keep Window Open` only in App logic and Surface blueprints.
+- **Opening a page gives its params.** When the page picked under `Page` declares [params](/docs/studio/workspace/ui-editor#page-params), `Go Page`, `Replace Page`, `Show Layer` and `Set Frame Page` grow one input per param, named after it, in front of `Page props`. A String, Text, Number or Boolean param can be typed on the card, and a List param takes an array of its row struct. An input left unwired and empty gives nothing, and the page reads the param's default. A value given this way replaces the field of the same name in `Page props`. While the `Page` input of `Go Page` or `Replace Page` is wired, the param inputs are not shown: the page comes from the wire and is opened with `Page props` alone.
 - **The editor canvas has no application to talk to.** On the author-time canvas every effectful node here fails with `This node runs only in a running game. Open Dev Mode to run it.`; the pure reads degrade quietly instead, so `Get Page Props` reads `{}` and the three `Is Surface …` reads report `false`. In the story editor's Game UI preview, navigation and quit reach stubs and do nothing, and the two fullscreen nodes report that they are not available there. Verify all of it in Dev Mode.
 
 ## Go Page
@@ -32,6 +33,8 @@ Opens the Surface picked on the card, through the same navigation path the runti
 | --- | --- |
 | `Page` | The Surface to open, chosen from the project's app Surfaces. `None` closes every Page above the first one instead. |
 
+The card also has one input per param of the picked page, described under [Conventions](#conventions).
+
 Once a game is running, the Page stack is hidden beneath the stage. `Go Page` then opens its target as a UI layer *above* the stage, and `None` closes the Pages over the stage to reveal it again. To leave the game itself, use `Quit Game` from [Game](/docs/studio/blueprint/nodes/game) — it names the Page to return to.
 
 ## Replace Page
@@ -51,6 +54,8 @@ Opens a page in place of the current page, and closes the current page. Use it f
 | Field | What |
 | --- | --- |
 | `Page` | The Surface to open, chosen from the project's app Surfaces. There is no `None`: with no page picked and nothing wired, the node fails with `“Replace Page”: pick a page.` |
+
+The card also has one input per param of the picked page, described under [Conventions](#conventions).
 
 The new page arrives through the same transition as `Go Page`, and the replaced page leaves the stack once it has. Replacing the entry page makes the new page the first page on the stack. While a game is running and no page is over the stage, there is nothing to replace, and the node opens its target above the stage as `Go Page` does.
 
@@ -105,6 +110,8 @@ Nothing about a layer's depth is addressable. Stacking order is mount order, and
 | Field | What |
 | --- | --- |
 | `Page` | The Surface to show, from the same list `Go Page` picks from. A layer *is* a page; two different lists would suggest otherwise. |
+
+The card also has one input per param of the picked page, described under [Conventions](#conventions).
 
 A Page the project does not hold fails on this node with the host's own sentence, so the failure lands on the row you can fix.
 
@@ -164,7 +171,9 @@ Whether the layer a handle names is still on screen. It is not offered inside a 
 
 Asks a question on a Page of your own and leaves through the button the player pressed.
 
-There is no confirm-specific machinery underneath. The node shows the chosen Page as a modal, dismissible layer in the `confirm` group — so a second question queues behind the first instead of over it — and hands it the question through ordinary Page props: `message`, and `buttons` as `{ id, text, index, disabled }` for a List to bind to. A page built by hand out of `Show Layer` reads exactly the same props.
+The node shows the chosen Page as a modal, dismissible layer in the `confirm` group, so a second question queues behind the first instead of over it. It gives the page two [params](/docs/studio/workspace/ui-editor#page-params): `message`, the question, and `buttons`, a list of **Confirm button** rows with the fields `id`, `text`, `index` and `disabled`. The **Confirm** page of the Skeleton template declares both: `message` is a Text param shown by the message text, and `buttons` is a List param whose **Row struct** is **Confirm button**, drawn by the button list. A page of your own for `Show Confirm` declares the same two params.
+
+`message` is shown as given. To show the question in the player's language, wire `message` from `Translation Key Text`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -442,26 +451,34 @@ Like the nodes in [Element](/docs/studio/blueprint/nodes/element), it is offered
 
 `blueprint.page.getProps` · Pure
 
-The whole props object of the Page this blueprint runs in. A Page opened by `Go Page` reads that node's `props` input; a Page embedded in an `nl.frame` reads the Frame's `params`. Never null — a Page opened with nothing reads `{}`.
+The whole props object of the Page this blueprint runs in. A Page opened by `Go Page` reads that node's `props` input and the params it gave; a Page embedded in an `nl.frame` reads the Frame's `params`. Every param the page declares is in it, with its default where nothing was given. Never null: a Page that declares no params and is opened with nothing reads `{}`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
 | `props` | out · data | `json` | |
 
-Pull a single field out with `Get JSON Field` from [Data](/docs/studio/blueprint/nodes/data), which takes a dotted path.
+To read one declared param, use [`Get Page Param`](#get-page-param). A field the page does not declare is read with `Get JSON Field` from [Data](/docs/studio/blueprint/nodes/data), which takes a dotted path.
 
 ## Get Page Param
 
 `blueprint.frame.getParam` · Pure
 
-Reads one field of the current Page props by name.
-
-**This node is not in the palette.** You cannot add one; it is documented because older documents still contain it and it still runs. It was replaced by `Get Page Props` followed by `Get JSON Field`, which reads nested paths instead of one flat key.
+The value the page was opened with for one of its [params](/docs/studio/workspace/ui-editor#page-params), or the param's default when nothing was given. Pick the param under `Param` on the card, from the params of the page the blueprint belongs to.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
-| `key` | in · data | `string` | Accepts an on-card literal. |
-| `value` | out · data | `json` | A field that is not there reads as `null`. |
+| `value` | out · data | `json` | Typed by the picked param: String and Text give `string`, Number `float`, Boolean `boolean`, JSON `json`, and List an array of its row struct, or `array` when the **Row struct** is **Unspecified**. |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Param` | One of the params of the page this blueprint belongs to. |
+
+- **Where it is offered.** In the page's own blueprint, in the blueprints of the widgets on the page, and in their Blueprint Values. On a page shown in a Page widget, it reads the values that widget gives.
+- **A Text param** gives the words it was given, or its default in the source language. To show a Text param in the player's language, choose it under **Page param** on the text or button itself.
+- **A param the page no longer declares** is a warning on the canvas and the project check **Missing page param** (`blueprint/page-param-missing`). The node then reads nothing.
+- **No param picked.** The card then shows a `key` input (`string`, accepts an on-card literal) and reads the Page prop of that name, `null` when it is not there. Graphs from earlier versions hold the node this way.
 
 ## Emit Page Event
 

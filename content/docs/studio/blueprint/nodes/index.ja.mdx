@@ -3,7 +3,7 @@ title: ノード
 description: 組み込みノードカタログ。パレットの分類ごとに1ページ、各ノードのシグネチャを収録
 ---
 
-組み込みカタログには、27 の分類にまたがる 615 個のノードがあります。分類とは、パレット内でナビゲートするためのグループ分けのことで、これらのページもエディターと同じ構成になっています。Studio の組み込みプラグインが追加するノードは、[組み込みプラグイン](/ja/docs/studio/blueprint/nodes/built-in-plugins)に別途まとめています。
+組み込みカタログには、27 の分類にまたがる 616 個のノードがあります。分類とは、パレット内でナビゲートするためのグループ分けのことで、これらのページもエディターと同じ構成になっています。Studio の組み込みプラグインが追加するノードは、[組み込みプラグイン](/ja/docs/studio/blueprint/nodes/built-in-plugins)に別途まとめています。
 
 ## ノードの読み方
 
@@ -20,7 +20,7 @@ description: 組み込みノードカタログ。パレットの分類ごとに1
 | `Pure` | 副作用がなく、exec ピンを持ちません。出力が読み取られたときに計算され、Blueprint Value の中で使える条件の一つです。 |
 | `Latent` | 解決するまでグラフを一時停止します。Blueprint Value（`Call Fn` を除く）、インラインのストーリー値、分岐条件では提供されません。 |
 
-`Pure` であること自体は、そのノードが [Blueprint Value](/ja/docs/studio/blueprint) の中で使えることを意味**しません**。それは別の、より狭い規則です：ノードは pure であり、かつ latent でなく、かつ許可された分類（Data、List、Math、Time、Text、Slider、Displayable、Element、Game、Localization）のいずれかに属していなければなりません。これに加えて、少数の個別の例外（`Init` と `On Flush` のヘッド、`Skip Delay` を除く latent でない Flow、ローカル変数へのアクセス、`Memo`、`Call Fn`、コメント、`Return Value`、および 4 つの Page 状態読み取り）があります。`widgetMain` にスコープされた Self ノードは、フラグに関係なく除外されます。Blueprint Value の中からウィジェットに到達するには、`Element` リテラルと Element カテゴリーの読み取りノードを使います。
+`Pure` であること自体は、そのノードが [Blueprint Value](/ja/docs/studio/blueprint) の中で使えることを意味**しません**。それは別の、より狭い規則です：ノードは pure であり、かつ latent でなく、かつ許可された分類（Data、List、Math、Time、Text、Slider、Displayable、Element、Game、Localization）のいずれかに属していなければなりません。これに加えて、少数の個別の例外（`Init` と `On Flush` のヘッド、`Skip Delay` を除く latent でない Flow、ローカル変数へのアクセス、`Memo`、`Call Fn`、コメント、`Return Value`、`Get Saved Var`、および 5 つの Page の読み取り：`Get Page Props`、`Get Page Param`、3 つの `Is Surface …`）があります。`widgetMain` にスコープされた Self ノードは、フラグに関係なく除外されます。Blueprint Value の中からウィジェットに到達するには、`Element` リテラルと Element カテゴリーの読み取りノードを使います。
 
 続いて、ピン表が示されます。
 
@@ -62,7 +62,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 | [Math](/ja/docs/studio/blueprint/nodes/math) | 25 | 算術、丸め、ブール論理、比較。 |
 | [Time](/ja/docs/studio/blueprint/nodes/time) | 15 | 時刻、カレンダー、テキストとしての日付。 |
 | [Game](/ja/docs/studio/blueprint/nodes/game) | 96 | ストーリー制御、ダイアログ、設定、セーブ、バックログ。 |
-| [App](/ja/docs/studio/blueprint/nodes/app) | 30 | Surface のナビゲーション、ウィンドウ、アプリケーションのライフタイム。 |
+| [App](/ja/docs/studio/blueprint/nodes/app) | 31 | Surface のナビゲーション、ウィンドウ、アプリケーションのライフタイム。 |
 | [Localization](/ja/docs/studio/blueprint/nodes/localization) | 6 | ゲームのプレイヤー向けロケールと、プロジェクトの翻訳キー。 |
 | [Network](/ja/docs/studio/blueprint/nodes/network) | 3 | HTTP リクエストとレスポンスの読み取り。 |
 | [Displayable](/ja/docs/studio/blueprint/nodes/displayable) | 9 | ジオメトリ、外観バリアント、プロパティアニメーション。 |

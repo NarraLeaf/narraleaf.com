@@ -36,7 +36,7 @@ The NarraLeaf stage is built at the design size of whichever Surface is active a
 Navigation is two stacks: **pages**, opened by `Go Page`, and **layers**, shown by `Show Layer`. Every layer is drawn above every page. Each entry on either stack is an *instance* of a Surface, not the Surface itself: it carries its own props and its own runtime scope. Open the same Surface twice and you get two independent instances that share nothing.
 
 - On boot the page stack holds a single page: the entry page.
-- **Opening pushes.** `Go Page` pushes the selected Page onto the page stack with whatever you wired into its `props` input, and the new page replaces the one on screen. `Replace Page` opens a page the same way and then removes the page it replaced from the stack, so neither `Go back` nor `Go Page` with `None` returns to it. `Show Layer` pushes onto the layer stack and hands back a **handle** naming that showing of it: the value `Hide Layer`, `Wait For Layer` and `Is Layer Mounted` address. Nothing else names a layer: stacking order is mount order, and no screen can be written to depend on sitting at a particular depth. A layer sits above every page, including pages opened after it.
+- **Opening pushes.** `Go Page` pushes the selected Page onto the page stack with the params and `props` its inputs give, and the new page replaces the one on screen. `Replace Page` opens a page the same way and then removes the page it replaced from the stack, so neither `Go back` nor `Go Page` with `None` returns to it. `Show Layer` pushes onto the layer stack and hands back a **handle** naming that showing of it: the value `Hide Layer`, `Wait For Layer` and `Is Layer Mounted` address. Nothing else names a layer: stacking order is mount order, and no screen can be written to depend on sitting at a particular depth. A layer sits above every page, including pages opened after it.
 - **Modal layers.** A modal layer takes input from everything beneath it and holds the keyboard. A layer that is not modal leaves the page beneath it working. Layers that claim the same group queue rather than stack, and a layer closes on its own when the Surface that showed it closes.
 - **Five ways to close.** `Go back` closes the top layer when that layer is dismissible, and otherwise pops exactly one page. `Go Page` with its Page selector set to `None` empties the page stack down to its first page. `Clear Page` closes only the pages opened during a running game, and does nothing outside a game. `Hide Layer` closes the layer its handle names, and `Close This Layer` closes the layer the running blueprint is *inside*, optionally with a result for whoever is waiting on it.
 - **The floor stays.** `Go back`, `Go Page` with `None` and `Clear Page` never close the first page on the page stack. When the game launches it is the entry page; after `Quit Game` it is the page `Quit Game` opened. `Replace Page` run while it is the page on screen puts the page it opens in its place, which is how a splash page hands over to the title page. `Go back` at the bottom of the stack is a no-op rather than an error. Signatures are on [App nodes](/docs/studio/blueprint/nodes/app).
@@ -92,12 +92,13 @@ Page is a role, not a separate document type. The same `appSurface` can be a pag
 - The target must be another app Surface. Pointing a Frame at itself, at a Game UI, at a missing Surface, or at anything that leads back to the Surface holding the Frame is rejected, and the Frame shows a placeholder instead of breaking the render.
 - Each Frame instance gets its own runtime scope, derived from the parent scope, the Frame element, and the target. Two Frames showing the same Page share no surface state, no widget locals, and no lifecycle. The embedded Page fires its own `Surface Init` when the Frame first mounts it, and `Surface Unmount` when the target changes or the Frame goes away.
 
-`params` is how values reach a Page:
+Values reach a Page through the **params** it declares in its properties; see [Page params](/docs/studio/workspace/ui-editor#page-params):
 
-- A Frame's `params` prop **is** the embedded Page's props. `Get Page Props` inside that Page reads it.
-- For a page or a layer, the props are what `Go Page` or `Show Layer` passed. Same node, same read, which is why a Page works in every position without knowing where it is.
-- A non-object value normalizes to `{}`, and a field that is not there reads as `null`.
-- `Set Frame Page` switches the target and can write params in the same call; leaving its props input unwired keeps the existing params. See [Frame nodes](/docs/studio/blueprint/nodes/frame).
+- For a page or a layer, the values are what `Go Page`, `Replace Page`, `Show Layer` or `Show Confirm` gave. Each of the first three grows one input per param of the page it picks.
+- A Frame's `params` prop **is** the embedded Page's props. Its Properties show one field per param of the target Page.
+- Inside the Page, a text or button shows a Text param under **Page param**, a List shows a List param, and `Get Page Param` reads any param. A param that was not given reads its default. The same page reads its params the same way as a page, a layer or inside a Frame.
+- `Get Page Props` reads the whole object: the declared params with their defaults, and any other field a `Page props` input or the Frame gave. A non-object value normalizes to `{}`, and a field that is not there reads as `null`.
+- `Set Frame Page` switches the target and can write params in the same call; with no param given and its props input unwired, the existing params are kept. See [Frame nodes](/docs/studio/blueprint/nodes/frame).
 - The child talks back with `Emit Page Event`, received by the `Page Event` head on the Frame element's own blueprint. A page or layer shown on its own has no parent Frame, so emitting there reaches nobody.
 
 ## Stage slots
@@ -128,7 +129,7 @@ What it can reach:
 
 - **Its own elements.** The `Element` literal stores `{ surfaceId, elementId, elementType }` and is same-Surface by construction. Nothing reaches into another Surface's tree.
 - **Its own surface state**, keyed by the instance's runtime scope, so two instances of the same Surface never collide. Scopes and lifetimes are on [Variables](/docs/studio/blueprint/variables).
-- **Its own props**, through `Get Page Props`.
+- **Its own params and props**, through `Get Page Param` and `Get Page Props`.
 - Everything that is not per-Surface anyway: persistent variables, global state, saves, the running game.
 
 Its event heads: `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Action`, the keyboard heads, the game-preference heads, fullscreen and window focus changes, the window-close request, the broadcast receivers, and the two bound-element heads.
