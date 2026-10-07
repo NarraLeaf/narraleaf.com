@@ -55,7 +55,7 @@ const copyByLocale = {
         label: 'Download source',
         options: {
           github: 'GitHub',
-          mirror: 'Mirror',
+          mirror: 'GitCode mirror',
         },
       },
     },
@@ -91,7 +91,7 @@ const copyByLocale = {
         label: '下载源',
         options: {
           github: 'GitHub',
-          mirror: '镜像源',
+          mirror: 'GitCode 镜像',
         },
       },
     },
@@ -127,7 +127,7 @@ const copyByLocale = {
         label: 'ダウンロード元',
         options: {
           github: 'GitHub',
-          mirror: 'ミラー',
+          mirror: 'GitCode ミラー',
         },
       },
     },

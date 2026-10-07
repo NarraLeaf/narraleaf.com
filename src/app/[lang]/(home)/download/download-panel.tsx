@@ -12,7 +12,7 @@ import {
   type StudioDownload,
   type StudioPlatformId,
   type StudioReleaseInfo,
-  withDownloadSource,
+  downloadHref,
 } from '@/lib/studio-release';
 
 export type DownloadPanelCopy = {
@@ -217,7 +217,7 @@ export function DownloadPanel({
           />
         ) : primary?.url ? (
           <PrimaryAction
-            href={withDownloadSource(primary.url, source)}
+            href={downloadHref(primary, source)}
             icon={<Download />}
             label={copy.downloadFor.replace('{platform}', primary.platform)}
             detail={[primary.detail, primary.size].filter(Boolean).join(' · ')}
@@ -277,7 +277,7 @@ function PlatformRow({
 }) {
   return (
     <a
-      href={row.url ? withDownloadSource(row.url, source) : STUDIO_RELEASES_PAGE}
+      href={row.url ? downloadHref(row, source) : STUDIO_RELEASES_PAGE}
       target={row.url ? undefined : '_blank'}
       rel={row.url ? undefined : 'noreferrer'}
       className="flex items-center gap-3 rounded-lg px-2.5 py-2 transition-colors hover:bg-fd-accent hover:text-fd-accent-foreground"

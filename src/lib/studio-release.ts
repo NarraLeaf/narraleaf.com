@@ -12,16 +12,19 @@ export const STUDIO_RELEASES_PAGE = `https://github.com/${STUDIO_REPO}/releases`
 /**
  * Where the bytes come from.
  *
- * GitHub's release CDN is unreliable from mainland China, so the same asset is
- * offered through a mirror that proxies `github.com` under our own host. The
- * mirror is a rewrite of the URL, not a second set of files: whatever the
- * release published is what it serves, so the two sources can never point at
- * different builds.
+ * GitHub is unreachable or crawls from much of mainland China, and a proxy in
+ * front of it did not help: the Cloudflare one this page used to offer has no
+ * node there, so its requests landed in Los Angeles and installers arrived at
+ * tens of kilobytes a second. Every release is now copied to GitCode, which
+ * serves files from inside China (the Studio repository's
+ * `.github/workflows/mirror-gitcode.yml`). The copy is the same files under the
+ * same names, so the two sources cannot point at different builds.
  */
 export type DownloadSourceId = 'github' | 'mirror';
 
-const MIRROR_ORIGIN = 'https://gh-mirror.mewbaka.cn';
-const GITHUB_ORIGIN = 'https://github.com';
+const MIRROR_REPO = 'https://gitcode.com/NarraLeaf/NarraLeaf-Studio';
+/** Where a mirror link goes while the copy of the current release is not up yet. */
+export const MIRROR_RELEASES_PAGE = `${MIRROR_REPO}/releases`;
 
 /**
  * The source offered first, in every language.
@@ -35,16 +38,17 @@ const GITHUB_ORIGIN = 'https://github.com';
 export const DEFAULT_DOWNLOAD_SOURCE: DownloadSourceId = 'github';
 
 /**
- * Point a download URL at the chosen source.
+ * Where a row's download link goes for the chosen source.
  *
- * Only `github.com` URLs are rewritten — the mirror proxies that origin and
- * nothing else, so a URL from anywhere else is returned untouched rather than
- * turned into a link that 404s.
+ * The mirror link is GitCode's own address for the file, read from its release
+ * rather than built from the GitHub one: the copy is uploaded after GitHub
+ * publishes, and for those minutes a built address would be a 404. Until the
+ * file is there, the link opens GitCode's release list instead.
  */
-export function withDownloadSource(url: string, source: DownloadSourceId): string {
-  if (source !== 'mirror' || !url.startsWith(`${GITHUB_ORIGIN}/`)) return url;
+export function downloadHref(row: StudioDownload, source: DownloadSourceId): string {
+  if (source === 'mirror') return row.mirrorUrl ?? MIRROR_RELEASES_PAGE;
 
-  return `${MIRROR_ORIGIN}${url.slice(GITHUB_ORIGIN.length)}`;
+  return row.url ?? STUDIO_RELEASES_PAGE;
 }
 
 /**
@@ -57,6 +61,10 @@ export function withDownloadSource(url: string, source: DownloadSourceId): strin
  * through to the last release that actually carries the files.
  */
 const RELEASES_API = `https://api.github.com/repos/${STUDIO_REPO}/releases?per_page=20`;
+
+/** GitCode's API answers this without a token. */
+const mirrorReleaseApi = (tag: string) =>
+  `https://api.gitcode.com/api/v5/repos/${STUDIO_REPO}/releases/tags/${encodeURIComponent(tag)}`;
 
 interface ReleaseAsset {
   name: string;
@@ -115,6 +123,8 @@ export type StudioDownload = {
   platform: string;
   detail: string;
   url: string | null;
+  /** The same file on GitCode, once the copy of this release has it. */
+  mirrorUrl: string | null;
   size: string | null;
 };
 
@@ -147,6 +157,35 @@ async function fetchReleases(): Promise<Release[]> {
   }
 }
 
+/**
+ * The files GitCode holds for a release, by name. Empty when it holds none yet
+ * or cannot be reached; the mirror links then open its release list.
+ */
+async function fetchMirrorFiles(tag: string): Promise<Map<string, string>> {
+  try {
+    const response = await fetch(mirrorReleaseApi(tag), {
+      // Shorter than GitHub's hour: the copy lands minutes after a release, and
+      // until this is read again the mirror links point at the release list.
+      next: { revalidate: 600 },
+    });
+
+    if (!response.ok) return new Map();
+
+    const release = (await response.json()) as {
+      assets?: { name?: string; browser_download_url?: string; type?: string }[];
+    };
+
+    return new Map(
+      (release.assets ?? [])
+        // `source` entries are the archives GitCode attaches to every release.
+        .filter((asset) => asset.type !== 'source' && asset.name && asset.browser_download_url)
+        .map((asset) => [asset.name as string, asset.browser_download_url as string]),
+    );
+  } catch {
+    return new Map();
+  }
+}
+
 function formatSize(bytes: number): string {
   return `${Math.round(bytes / 1024 / 1024)} MB`;
 }
@@ -169,6 +208,8 @@ export async function getStudioRelease(): Promise<StudioReleaseInfo> {
       candidate.assets.some((asset) => STUDIO_TARGETS.some((target) => target.match(asset.name))),
     ) ?? null;
 
+  const mirror = release ? await fetchMirrorFiles(release.tag_name) : new Map<string, string>();
+
   return {
     version: release?.tag_name ?? null,
     downloads: STUDIO_TARGETS.map((target) => {
@@ -179,6 +220,7 @@ export async function getStudioRelease(): Promise<StudioReleaseInfo> {
         platform: target.platform,
         detail: target.detail,
         url: asset?.browser_download_url ?? null,
+        mirrorUrl: asset ? (mirror.get(asset.name) ?? null) : null,
         size: asset ? formatSize(asset.size) : null,
       };
     }),

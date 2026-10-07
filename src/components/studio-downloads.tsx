@@ -1,22 +1,22 @@
 import type { Locale } from '@/lib/i18n';
-import { STUDIO_RELEASES_PAGE, getStudioRelease, withDownloadSource } from '@/lib/studio-release';
+import { STUDIO_RELEASES_PAGE, downloadHref, getStudioRelease } from '@/lib/studio-release';
 
 const TEXT = {
   en: {
     download: 'Download',
-    mirror: 'Mirror',
+    mirror: 'GitCode mirror',
     unavailable: 'All releases',
     allReleases: 'All releases',
   },
   zh: {
     download: '下载',
-    mirror: '镜像源下载',
+    mirror: 'GitCode 镜像下载',
     unavailable: '全部版本',
     allReleases: '全部版本',
   },
   ja: {
     download: 'ダウンロード',
-    mirror: 'ミラーからダウンロード',
+    mirror: 'GitCode ミラーからダウンロード',
     unavailable: 'すべてのリリース',
     allReleases: 'すべてのリリース',
   },
@@ -71,7 +71,7 @@ export async function StudioDownloads({ lang = 'en' }: { lang?: Locale }) {
                       {text.download}
                     </a>
                     <a
-                      href={withDownloadSource(row.url, 'mirror')}
+                      href={downloadHref(row, 'mirror')}
                       className="font-medium text-fd-primary underline underline-offset-4"
                     >
                       {text.mirror}
