@@ -646,7 +646,7 @@ game.getLiveGame().skipDialog();
 
 其间的每一行都会被真实执行，因此回溯历史及其恢复快照会像正常游玩一样累积 —— 只是更快且静音。快进期间音频被静音，由本次快进执行到的定时暂停（`Control.sleep`、自动前进）会立即解决。一旦有菜单在等待选择，它就会停下，因此选择本身始终留给玩家。由于历史全程累积，[getHistory](#gethistory) 和 [restoreToHistory](#restoretohistory) 会像正常游玩一样覆盖被快进的区间
 
-跳过一行是向渲染层广播的一个*请求*，而不是同步的状态变更，因此该请求会被反复重发，直到该行结算为止。始终不响应的一行会以 `"stalled"` 结束本次快进，而不是把调用挂住 —— 这个方法在任何情况下都会结算
+跳过一行是向渲染层广播的一个*请求*，而不是同步的状态变更，因此该请求会被反复重发，直到该行结算为止。始终不响应的一行会以 `"stalled"` 结束本次快进，而不是把调用挂住 —— 这个方法在任何情况下都会结算。以拒绝跳过作为回应的一行（调用了 `ctx.skip.refuse()` 的 [Service](/zh/docs/narraleaf-react/core/elements/service#skipping) 处理函数）会立即以 `"refused"` 结束本次快进，并留在原地继续运行
 
 ```typescript
 // 快进到下一个决策点。
@@ -661,21 +661,26 @@ const result = await game.getLiveGame().fastForward({ until: { actionId: "act-42
 if (result.reason === "action") {
     // 已停在 act-42 上，尚未执行
 } else if (result.reachedTarget === false) {
-    // 菜单挡住了去路、调用栈被清空、达到 maxSteps，或某一行卡住了
+    // 菜单挡住了去路、调用栈被清空、达到 maxSteps，或某一行卡住或拒绝了跳过
+}
+
+if (result.reason === "refused") {
+    // 有一行在等玩家；result.refusal 是它给出的消息（如果有），用于展示
 }
 ```
 
 - `options.until?: "menu" | "end" | { actionId: string }` - `"menu"`（默认）在下一个菜单处停止；`"end"` 运行到故事结束；`{ actionId }` 一直前进到该动作成为下一个待执行项，并在**执行它之前**停下，从而把播放头停在那一行上。只扫描根执行栈 —— 埋在进行中的 `Control.all` / `Control.any` 或异步分支里的 id 不构成停止点。菜单同样会中止 `actionId` 形式的快进，因为在玩家做出选择之前目标无法抵达
 - `options.maxSteps?: number` - 前进步数的安全上限（默认为 `maxStackModelLoop` 配置）
 - `options.stepTimeout?: number` - 单个挂起的行在被判定为 `"stalled"` 之前允许结算的时长（毫秒）。默认 `10000`。如果剧情会快进穿过较长的、无法跳过的媒体，请调高它
-- 返回 `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>` - 停止的原因
-    - `reason` - `"action"` 抵达了 `until.actionId`；`"menu"` 有菜单在等待选择；`"end"` 调用栈已清空；`"maxSteps"` 触到步数上限；`"stalled"` 某一行在 `stepTimeout` 内拒绝结算
+- 返回 `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled" | "refused"; reachedTarget?: boolean; refusal?: string }>` - 停止的原因
+    - `reason` - `"action"` 抵达了 `until.actionId`；`"menu"` 有菜单在等待选择；`"end"` 调用栈已清空；`"maxSteps"` 触到步数上限；`"stalled"` 某一行没有在 `stepTimeout` 内结算；`"refused"` 某一行拒绝被跳过
     - `reachedTarget` - **仅**在请求了 `until: { actionId }` 时出现，且只有在 `reason` 为 `"action"` 时才为 `true`。`"menu"` / `"end"` 形式仍保持原来的 `{ reason }` 形状
+    - `refusal` - `reason` 为 `"refused"` 时，该行给出的消息（如果有）。它用于展示给人看，不要据此做任何判断
 </Step>
 </Steps>
 
 <Callout type="info">
-    `until: { actionId }`、`"action"` 原因与 `reachedTarget` 自 `0.16.0` 起可用。`options.stepTimeout` 与 `"stalled"` 原因自 `0.17.1` 起可用
+    `until: { actionId }`、`"action"` 原因与 `reachedTarget` 自 `0.16.0` 起可用。`options.stepTimeout` 与 `"stalled"` 原因自 `0.17.1` 起可用。`"refused"` 原因与 `refusal` 自 `1.3.0` 起可用；对 `reason` 做穷举 `switch` 的代码需要补上这个分支才能通过编译
 </Callout>
 
 <Callout type="warning">

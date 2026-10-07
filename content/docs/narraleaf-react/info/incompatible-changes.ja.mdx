@@ -4,6 +4,12 @@ description: NarraLeaf-React の各バージョン間における破壊的変更
 ---
 完全な変更内容は [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md) を参照してください。
 
+## 1.3.0
+
+- **Promise を返す [Service](/ja/docs/narraleaf-react/core/elements/service#async-actions) のハンドラは、どう書かれていてもストーリーを待たせるようになりました。** 以前は `async` と宣言された関数だけが待たれていました。Promise を返す普通の関数（`(ctx) => fetch(url)` や、ビルドによって普通の関数にコンパイルされた `async` ハンドラ）は、ストーリーが待たずに実行されていました。現在はそのようなハンドラも、Promise が確定するまでストーリーを待たせます。処理中もストーリーを進めたいハンドラは、処理を開始するだけにして、その Promise を返さないでください
+- [`LiveGame.fastForward`](/ja/docs/narraleaf-react/core/game/live-game#fastforward) の `reason` に `"refused"` が加わり、結果に `refusal` が加わりました。これを生むのはサービスが `ctx.skip.refuse()` を呼ぶストーリーだけですが、`reason` を網羅する `switch` はコンパイルを通すためにこの分岐を追加する必要があります
+- [`ServiceHandlerCtx`](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) に `signal` と `skip` が加わりました。コンテキストを手で組み立てるコード（ハンドラを直接呼ぶテストなど）は、これらを用意する必要があります。`onAbort` は非推奨となり、`signal` を使ってください。実行がキャンセルされた後に登録したリスナーは、決して呼ばれないのではなく、ただちに呼ばれるようになりました
+
 ## 0.39.2
 
 - ホストが受け取るスクリプトエラー（`RuntimeScriptError`。[`GameConfig.onError`](/ja/docs/narraleaf-react/core/types/GameConfig) 経由で渡されます）は、`message` に文だけを含むようになりました。以前は問題を起こしたアクションの `id` と `type`、さらにそのアクションの構築スタック全体がその後ろに連結されており、メッセージをパネルに表示するホストでは折り返し線の上がバンドルのスタックフレームで埋め尽くされていました。これらは今後それぞれ別のフィールドに分かれます —— `error.action`（`id` と `type`）、`error.actionStack`、そして一つの文字列としてまとめた `error.composedMessage` です。**メッセージ文字列を解析してこれらを取り出していたホストは、フィールドを直接読むように変更してください。** エラーオブジェクトをそのままログに出しているだけなら何も失われません。`error.stack` には引き続き構築の全体が含まれます

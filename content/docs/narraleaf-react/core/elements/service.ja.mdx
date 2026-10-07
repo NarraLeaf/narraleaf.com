@@ -128,26 +128,93 @@ class MyCustomService extends Service<MyCustomActions> {
 }
 ```
 
-### 非同期アクション
+### 非同期アクション [#async-actions]
 
-非同期処理を行う必要がある場合は、Promise を返すことができます。  
-ただし、将来的な利用に備えて、そのアクションを中止可能にしておくべきです。
-
-このサービスがまだ実行中のときにプレイヤーが _アンドゥ_ を行うと、ゲームエンジンは現在のアクションコンテキストに登録されているすべての `onAbort` コールバックを自動的に呼び出します。実行中のタスク（ネットワークリクエスト、タイマー、アニメーションなど）を中止し、それまでに生じた副作用をロールバックするのは**スクリプト側の責任**です。そうしておくことで、アンドゥ後に同じアクションが再び実行されたときに、まったく同じ結果になることが保証されます。
+Promise を返すハンドラは、セリフの 1 行と同じように、その Promise が確定するまでストーリーを待たせます。それ以外の値を返すハンドラでは、ストーリーはすぐに先へ進みます。
 
 ```typescript
-this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-    const promise = fetch("https://example.com", { signal }); // 何らかの非同期処理
+this.on("load", async (ctx: ServiceHandlerCtx, url: string) => {
+    const response = await fetch(url, { signal: ctx.signal });
+    const data = await response.json();
+    if (ctx.signal.aborted) return; // 待っている間にキャンセルされた：ゲームには触らない
 
-    ctx.onAbort(() => {
-        abortController.abort(); // 非同期処理を中止する
-    });
-
-    return promise; // promise を返すと、ゲームはその解決を待つ
+    this.data = data;
 });
 ```
+
+Promise が reject された場合、ストーリーはこのアクションで止まり、エラーが報告されます。
+
+<Callout type="info">
+    `1.3.0` 以降、ハンドラは Promise を返せば必ず待たれます。以前は `async` と宣言された関数だけが待たれていました。Promise を返す普通の関数（`(ctx) => fetch(url)`）は、ストーリーが待たずに実行され、reject された Promise はストーリーを何も報告しないまま永遠に止めていました。
+</Callout>
+
+ストーリーを待たせている間、ハンドラはプレイヤーの操作を 2 つの形で知ります。ゲームがそこから離れるときは**キャンセル**され、プレイヤーがスキップしたときは**急ぐよう求められ**ます。
+
+#### キャンセル [#cancellation]
+
+プレイヤーがその手前まで巻き戻したとき、ストーリーがそこからジャンプしたとき、それが実行されていた `Control.any` で別の分岐が先に終わったとき、またはセーブデータをロードしたとき、その実行はキャンセルされ、`ctx.signal` が中断されます。これは標準の `AbortSignal` なので、`fetch` など、それを受け取るものにそのまま渡せます。
+
+キャンセルは拒否できず、ハンドラを待つこともありません。シグナルが発火した時点で、ゲームはすでに先へ進んでいます。実行中の処理（ネットワークリクエスト、タイマー、アニメーションなど）を止め、それまでに生じた副作用を戻すのは**スクリプト側の責任**です。そうしておくことで、巻き戻した後に同じアクションを再び実行しても、まったく同じ結果になります。`await` のたびに、ゲームに触る前に `ctx.signal.aborted` を確認してください。キャンセルされた実行が最後に出す reject（`fetch` の `AbortError` など）は報告されません。
+
+#### スキップ [#skipping]
+
+プレイヤーがスキップしたとき（スキップキーを一度押す・押し続ける、またはホストが [skipDialog](/ja/docs/narraleaf-react/core/game/live-game#skipdialog) や [fastForward](/ja/docs/narraleaf-react/core/game/live-game#fastforward) を呼んだとき）、ストーリーを待たせているハンドラは `ctx.skip` を通じて急ぐよう求められます。求められても終了はしません。スキップされることが何を意味するかは、ハンドラ自身が決めます。
+
+| 応え方 | 方法 | スキップキーの長押し | `fastForward` |
+| --- | --- | --- | --- |
+| **すぐに終える** | `ctx.skip.onRequest` の中で、行っていたことを最終状態にして戻る | 先へ進む | 先へ進む |
+| **無視する** | 何もしない。`1.3.0` より前に書かれたハンドラはすべてこれ | ハンドラを待つ | 最大 `stepTimeout` 待ち、`"stalled"` を報告 |
+| **拒否する** | `ctx.skip.refuse(message?)` | ハンドラを待つ | ただちに止まり、`"refused"` を報告 |
+
+```typescript
+type MinigameActions = {
+    countdown: [seconds: number];
+    fishing: [];
+};
+
+class Minigames extends Service<MinigameActions, null> {
+    constructor() {
+        super();
+
+        // すぐに終える：スキップするとカウントダウンがすぐに終わる。
+        this.on("countdown", async (ctx, seconds) => {
+            await new Promise<void>(resolve => {
+                const timer = setTimeout(resolve, seconds * 1000);
+                ctx.skip.onRequest(() => {
+                    clearTimeout(timer);
+                    resolve();
+                });
+                ctx.signal.addEventListener("abort", () => clearTimeout(timer));
+            });
+        });
+
+        // 拒否する：早送りはプレイヤーの代わりにミニゲームを遊べないので、ここで止まる。
+        this.on("fishing", async (ctx) => {
+            ctx.skip.refuse("waiting for the fishing minigame");
+            await playFishing(ctx.signal);
+        });
+    }
+
+    serialize() {
+        return null;
+    }
+
+    deserialize() {
+    }
+}
+```
+
+- `onRequest` は、プレイヤーが初めてスキップしたときに 1 回、初めてスキップモードでスキップしたとき（`request.forced`）にもう 1 回呼ばれます。これはセリフが区別しているのと同じで、スキップキーを一度押すと行を次の一時停止まで表示し、押し続けると一時停止も越えて進みます。スキップモードが繰り返すたびに呼ばれることはありません。
+- `refuse` は拒否を取り下げる関数を返します。拒否は重ねられ、すべて取り下げるとアクションは再びスキップできるようになります。メッセージは人のためのもので、ログに出力され、`fastForward` から返されます。エンジンはこれをもとに何も判断しません。
+- `ctx.skip.fastForwarding` は、ゲームがいま早送り中かどうかを示します。ハンドラは開始時にこれを確認して、最終状態へ直行できます。
+- 要求はブロードキャストされ、ステージ上の他のものと同じように届きます。`Control.all` の分岐や非同期分岐で実行されているハンドラも、プレイヤーがスキップするたびに求められます。ステージのクリックは要求ではありません。
+- 求められるのは Promise を返すハンドラだけです。同期ハンドラは、プレイヤーが求められるより前に終わっています。
+
+すべてのメンバーは [ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照してください。
+
+<Callout type="info">
+    `ctx.signal` と `ctx.skip` は `1.3.0` 以降で利用可能です。`ctx.signal` と同じ場面で発火する `ctx.onAbort` は非推奨です。
+</Callout>
 
 ### アクションのトリガー
 

@@ -659,7 +659,7 @@ Fast-forward playback to the next menu, to the end of the story, or to a specifi
 
 Every line in between is executed for real, so the backlog and its restore snapshots accumulate exactly as in normal play — only faster and silent. Audio is muted for the duration, and the timed pauses the run executes (`Control.sleep`, auto-forward) resolve at once. It stops as soon as a menu is waiting for a choice, so the choice itself is always left to the player. Because history accumulates the whole way, [getHistory](#gethistory) and [restoreToHistory](#restoretohistory) cover the fast-forwarded span just like normal play.
 
-Skipping a line is a *request* broadcast to the renderer, not a synchronous state change, so it is re-issued until the line settles. A line that never answers ends the run with `"stalled"` rather than hanging — this method always settles.
+Skipping a line is a *request* broadcast to the renderer, not a synchronous state change, so it is re-issued until the line settles. A line that never answers ends the run with `"stalled"` rather than hanging — this method always settles. A line that answers by refusing to be skipped — a [Service](/docs/narraleaf-react/core/elements/service#skipping) handler calling `ctx.skip.refuse()` — ends it at once with `"refused"`, and is left running where it is.
 
 ```typescript
 // Jump ahead to the next decision point.
@@ -674,21 +674,26 @@ const result = await game.getLiveGame().fastForward({ until: { actionId: "act-42
 if (result.reason === "action") {
     // parked on act-42, not yet executed
 } else if (result.reachedTarget === false) {
-    // a menu blocked the path, the stack drained, maxSteps was hit, or a line stalled
+    // a menu blocked the path, the stack drained, maxSteps was hit, or a line stalled or refused
+}
+
+if (result.reason === "refused") {
+    // a line is waiting for the player; result.refusal is its message, to show, if it gave one
 }
 ```
 
 - `options.until?: "menu" | "end" | { actionId: string }` - `"menu"` (default) stops at the next menu; `"end"` runs until the story finishes; `{ actionId }` runs until that action surfaces as the next thing to execute and stops **just before** running it, so the play head is left parked on that line. Only the root execution stack is scanned — an id buried inside an in-flight `Control.all` / `Control.any` or async branch is not a stop point. A menu that blocks the path stops an `actionId` run too, since the target cannot be reached until the player decides.
 - `options.maxSteps?: number` - safety bound on the number of advance steps (defaults to the `maxStackModelLoop` config).
 - `options.stepTimeout?: number` - how long, in milliseconds, a single suspended line is given to settle before the run reports `"stalled"`. Default `10000`. Raise it for a story that fast-forwards through long unskippable media.
-- Returns `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>` - why it stopped.
-    - `reason` - `"action"` reached `until.actionId`; `"menu"` a menu is waiting for a choice; `"end"` the stack drained; `"maxSteps"` the step cap was hit; `"stalled"` a line refused to settle within `stepTimeout`.
+- Returns `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled" | "refused"; reachedTarget?: boolean; refusal?: string }>` - why it stopped.
+    - `reason` - `"action"` reached `until.actionId`; `"menu"` a menu is waiting for a choice; `"end"` the stack drained; `"maxSteps"` the step cap was hit; `"stalled"` a line did not settle within `stepTimeout`; `"refused"` a line refused to be skipped.
     - `reachedTarget` - present **only** when `until: { actionId }` was requested, and `true` only for reason `"action"`. A `"menu"` / `"end"` run keeps its plain `{ reason }` shape.
+    - `refusal` - with `"refused"`, the message the line gave, if it gave one. It is for showing to a person; do not decide anything by it.
 </Step>
 </Steps>
 
 <Callout type="info">
-    `until: { actionId }`, the `"action"` reason and `reachedTarget` are available since `0.16.0`. `options.stepTimeout` and the `"stalled"` reason are available since `0.17.1`.
+    `until: { actionId }`, the `"action"` reason and `reachedTarget` are available since `0.16.0`. `options.stepTimeout` and the `"stalled"` reason are available since `0.17.1`. The `"refused"` reason and `refusal` are available since `1.3.0`; an exhaustive `switch` over `reason` needs the extra arm to keep compiling.
 </Callout>
 
 <Callout type="warning">

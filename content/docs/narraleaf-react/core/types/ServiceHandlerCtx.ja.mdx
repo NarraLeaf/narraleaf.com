@@ -1,38 +1,73 @@
 ---
 title: "ServiceHandlerCtx"
-description: "`Service` のアクションハンドラに渡されるコンテキスト：`ScriptCtx` に加えて、アクションがキャンセルされたときのクリーンアップを登録する `onAbort`"
+description: "`Service` のアクションハンドラに渡されるコンテキスト：`ScriptCtx` に加えて、実行がキャンセルされたときに中断される `signal` と、プレイヤーが急ぐよう求める `skip`"
 ---
 ```typescript
 type ServiceHandlerCtx = ScriptCtx & {
+    signal: AbortSignal;
+    skip: ServiceSkipSignal;
+    /** @deprecated `signal` を使ってください。 */
     onAbort: (handler: () => void) => void;
 };
 type ServiceHandler<Args extends any[]> = (ctx: ServiceHandlerCtx, ...args: Args) => void | Promise<void>;
+
+interface ServiceSkipSignal {
+    readonly requested: boolean;
+    readonly forced: boolean;
+    readonly fastForwarding: boolean;
+    onRequest(listener: (request: ServiceSkipRequest) => void): { cancel(): void };
+    refuse(message?: string): () => void;
+}
+
+interface ServiceSkipRequest {
+    readonly forced: boolean;
+}
 ```
 
-ScriptCtx については [ScriptCtx](/ja/docs/narraleaf-react/core/types/ScriptCtx) を参照してください。
+ScriptCtx については [ScriptCtx](/ja/docs/narraleaf-react/core/types/ScriptCtx) を参照してください。ハンドラがどのように実行され、待たれ、キャンセルされ、スキップされるかは [Service](/ja/docs/narraleaf-react/core/elements/service#async-actions) を参照してください。
 
-## 中断可能にする
+<Callout type="info">
+    `signal` と `skip` は `1.3.0` 以降で利用可能です。`onAbort` は非推奨です。
+</Callout>
 
-サービスのアクションは、将来の利用に備えて中断可能であるべきです。
+## signal
 
-アクションを中断可能にするには、`onAbort` メソッドを使用します。
+この実行がキャンセルされたときに中断されます。プレイヤーがその手前まで巻き戻したとき、ストーリーがそこからジャンプしたとき、それが実行されていた `Control.any` で別の分岐が先に終わったとき、またはセーブデータをロードしたときです。
+
+キャンセルは拒否できず、ハンドラを待つこともありません。シグナルが発火した時点で、ゲームはすでに先へ進んでいます。ハンドラが待っているものにシグナルを渡し、`await` のたびに、ゲームに触る前に `signal.aborted` を確認してください。
 
 ```typescript
 class MyCustomService extends Service {
     constructor() {
         super();
 
-        this.onAction("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
-            const abortController = new AbortController();
-            const { signal } = abortController;
-            const promise = fetch("https://example.com", { signal }); // some async operation
-
-            ctx.onAbort(() => {
-                abortController.abort(); // abort the async operation
-            });
-
-            return promise; // if you return a promise, the game will wait for the promise to resolve
+        this.on("myAction", async (ctx: ServiceHandlerCtx) => {
+            const response = await fetch("https://example.com", { signal: ctx.signal });
+            if (ctx.signal.aborted) return;
+            // ...
         });
     }
 }
 ```
+
+同期ハンドラの signal が中断されることはありません。何かがキャンセルできるより前に、ハンドラは終わっています。
+
+## skip
+
+このハンドラに対する、プレイヤーからの急ぐ要求です。ハンドラの 3 つの応え方は [スキップ](/ja/docs/narraleaf-react/core/elements/service#skipping) を参照してください。
+
+- `requested: boolean` - プレイヤーがこのハンドラにもう急ぐよう求めたかどうか。
+- `forced: boolean` - プレイヤーがもうスキップモードで求めたかどうか。スキップキーの長押し、[skipDialog](/ja/docs/narraleaf-react/core/game/live-game#skipdialog)、[fastForward](/ja/docs/narraleaf-react/core/game/live-game#fastforward) がこれにあたります。スキップキーを一度押すだけでは forced になりません。
+- `fastForwarding: boolean` - ゲームがいま [fastForward](/ja/docs/narraleaf-react/core/game/live-game#fastforward) 中かどうか。読むたびに現在の値を返すので、ハンドラは開始時にこれを確認して最終状態へ直行できます。
+- `onRequest(listener)` - 要求を待ち受けます。最初の要求で 1 回、初めて forced な要求が来たときにもう 1 回呼ばれ、繰り返しのたびには呼ばれません。要求がすでに届いた後に登録すると、ただちに呼ばれます。戻り値のトークンの `cancel()` で待ち受けをやめます。リスナーが投げたエラーは、このアクションを失敗させます。
+- `refuse(message?)` - 戻り値の関数が呼ばれるまで、早送りで飛ばされることを拒否します。拒否は重ねられます。早送りがこのアクションに達すると止まり、`"refused"` を報告し、`message` を `refusal` として返します。スキップキーの長押しはハンドラを待ちます。メッセージは人のためのもので、エンジンはこれをもとに何も判断しません。同期ハンドラの中で拒否しても効果はなく、警告がログに出力されます。
+
+求められるのは Promise を返すハンドラだけです。同期ハンドラの `requested` は常に `false` です。
+
+## onAbort
+
+<Callout type="warning">
+    `1.3.0` 以降は非推奨です。同じ場面で発火する `signal` を使ってください。
+</Callout>
+
+この実行がキャンセルされたときに `handler` を呼びます。キャンセルの後に登録すると、ただちに呼ばれます。

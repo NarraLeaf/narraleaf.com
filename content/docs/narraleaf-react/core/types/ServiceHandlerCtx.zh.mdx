@@ -1,37 +1,73 @@
 ---
 title: "ServiceHandlerCtx"
-description: 传递给 `Service` 动作处理函数的上下文：`ScriptCtx` 加上用于注册取消清理逻辑的 `onAbort`
+description: 传递给 `Service` 动作处理函数的上下文：`ScriptCtx`，加上运行被取消时中止的 `signal`，以及玩家用来催促它的 `skip`
 ---
 ```typescript
 type ServiceHandlerCtx = ScriptCtx & {
+    signal: AbortSignal;
+    skip: ServiceSkipSignal;
+    /** @deprecated 请改用 `signal`。 */
     onAbort: (handler: () => void) => void;
 };
+type ServiceHandler<Args extends any[]> = (ctx: ServiceHandlerCtx, ...args: Args) => void | Promise<void>;
+
+interface ServiceSkipSignal {
+    readonly requested: boolean;
+    readonly forced: boolean;
+    readonly fastForwarding: boolean;
+    onRequest(listener: (request: ServiceSkipRequest) => void): { cancel(): void };
+    refuse(message?: string): () => void;
+}
+
+interface ServiceSkipRequest {
+    readonly forced: boolean;
+}
 ```
 
-关于 ScriptCtx，参见 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)
+关于 ScriptCtx，参见 [ScriptCtx](/zh/docs/narraleaf-react/core/types/ScriptCtx)。处理函数如何运行、被等待、被取消和被跳过，参见 [Service](/zh/docs/narraleaf-react/core/elements/service#async-actions)。
 
-## 可中断性
+<Callout type="info">
+    `signal` 和 `skip` 自 `1.3.0` 起可用。`onAbort` 已弃用。
+</Callout>
 
-服务动作应当可中止，以支持将来的使用
+## signal
 
-可以使用 `onAbort` 方法让动作可中止
+这次运行被取消时中止：玩家回退到它之前、故事跳转离开它、它所在的 `Control.any` 被其他分支抢先完成，或者读取了存档。
+
+取消不能拒绝，也不会等待处理函数：信号触发时，游戏已经继续往下走了。把信号交给处理函数正在等待的东西，并在每次 `await` 之后先检查 `signal.aborted` 再去动游戏。
 
 ```typescript
 class MyCustomService extends Service {
     constructor() {
         super();
 
-        this.onAction("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
-            const abortController = new AbortController();
-            const { signal } = abortController;
-            const promise = fetch("https://example.com", { signal }); // some async operation
-
-            ctx.onAbort(() => {
-                abortController.abort(); // abort the async operation
-            });
-
-            return promise; // if you return a promise, the game will wait for the promise to resolve
+        this.on("myAction", async (ctx: ServiceHandlerCtx) => {
+            const response = await fetch("https://example.com", { signal: ctx.signal });
+            if (ctx.signal.aborted) return;
+            // ...
         });
     }
 }
 ```
+
+同步处理函数的 signal 永远不会被中止：在任何东西能取消它之前，它就已经执行完了。
+
+## skip
+
+玩家对这个处理函数的催促。处理函数的三种回应方式参见[跳过](/zh/docs/narraleaf-react/core/elements/service#skipping)。
+
+- `requested: boolean` - 玩家是否已经催促过这个处理函数。
+- `forced: boolean` - 玩家是否已经以跳过模式催促过它：长按跳过键、[skipDialog](/zh/docs/narraleaf-react/core/game/live-game#skipdialog) 或 [fastForward](/zh/docs/narraleaf-react/core/game/live-game#fastforward)。单按一次跳过键不算。
+- `fastForwarding: boolean` - 游戏当前是否正在 [fastForward](/zh/docs/narraleaf-react/core/game/live-game#fastforward)。每次读取都是实时的，处理函数可以在开始时检查它，直接进入最终状态。
+- `onRequest(listener)` - 监听催促。第一次催促时调用一次，第一次强制催促时再调用一次，不会每次重复都调用。如果注册时已经被催促过，会立即调用。返回的令牌调用 `cancel()` 即停止监听。监听函数抛出的错误会让这个操作失败。
+- `refuse(message?)` - 拒绝被快进跳过，直到调用返回的函数为止。拒绝可以叠加。快进到达这个操作时会停下并报告 `"refused"`，`message` 作为 `refusal` 返回；长按跳过键则会等待处理函数。消息是给人看的，引擎不会根据它做任何判断。在同步处理函数里拒绝没有效果，并会记录一条警告。
+
+只有返回 promise 的处理函数才会收到催促；同步处理函数的 `requested` 始终为 `false`。
+
+## onAbort
+
+<Callout type="warning">
+    自 `1.3.0` 起弃用。请改用 `signal`，二者在相同时机触发。
+</Callout>
+
+这次运行被取消时调用 `handler`。如果注册时已经被取消，会立即调用。

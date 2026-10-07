@@ -130,24 +130,91 @@ class MyCustomService extends Service<MyCustomActions> {
 
 ### Async Actions
 
-If you need to perform async operations, you can return a promise.  
-But for future use, you should make the action abortable.
-
-When the player performs an _undo_ while this service is still running, the game engine will automatically call every `onAbort` callback registered in the current action context. It is **script's responsibility** to cancel any in-flight tasks (network requests, timers, animations, etc.) and roll back side-effects created so far. Doing so guarantees that if the same action is executed again (after the undo) it will yield exactly the same result.
+A handler that returns a promise holds the story until the promise settles, the way a line of dialogue does. A handler that returns anything else lets the story carry on at once.
 
 ```typescript
-this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
-    const abortController = new AbortController();
-    const { signal } = abortController;
-    const promise = fetch("https://example.com", { signal }); // some async operation
+this.on("load", async (ctx: ServiceHandlerCtx, url: string) => {
+    const response = await fetch(url, { signal: ctx.signal });
+    const data = await response.json();
+    if (ctx.signal.aborted) return; // cancelled while waiting: leave the game alone
 
-    ctx.onAbort(() => {
-        abortController.abort(); // abort the async operation
-    });
-
-    return promise; // if you return a promise, the game will wait for the promise to resolve
+    this.data = data;
 });
 ```
+
+If the promise rejects, the story stops at this action and the error is reported.
+
+<Callout type="info">
+    Since `1.3.0` a handler is waited for whenever it returns a promise. Before, only a function declared `async` was: a plain function returning a promise - `(ctx) => fetch(url)` - ran without the story waiting for it, and a promise that rejected left the story waiting forever without reporting anything.
+</Callout>
+
+While it holds the story, a handler hears about the player in two ways: it is **cancelled** when the game moves away from it, and it is **asked to hurry** when the player skips.
+
+#### Cancellation
+
+A run is cancelled when the player steps back past it, the story jumps away from it, a `Control.any` it ran in is won by another branch, or a save is loaded. `ctx.signal` is then aborted. It is a standard `AbortSignal`, so it can be handed to `fetch` and anything else that takes one.
+
+A cancellation cannot be refused, and it does not wait for the handler: by the time the signal fires the game has already moved on. It is the **script's responsibility** to stop any work still in flight (network requests, timers, animations) and roll back the side effects created so far, so that running the action again after a step back gives exactly the same result. Check `ctx.signal.aborted` after each `await` before touching the game again. The rejection a cancelled run ends with - the `AbortError` of a `fetch` - is not reported.
+
+#### Skipping
+
+When the player skips - presses the skip key, holds it, or a host calls [skipDialog](/docs/narraleaf-react/core/game/live-game#skipdialog) or [fastForward](/docs/narraleaf-react/core/game/live-game#fastforward) - a handler holding the story is asked to hurry through `ctx.skip`. Being asked does not end it: the handler decides what being skipped means for it.
+
+| Answer | How | Holding the skip key | `fastForward` |
+| --- | --- | --- | --- |
+| **Finish now** | Put what it was doing into its final state and return, in `ctx.skip.onRequest` | Moves on | Moves on |
+| **Ignore it** | Do nothing - what every handler written before `1.3.0` does | Waits for the handler | Waits up to `stepTimeout`, then reports `"stalled"` |
+| **Refuse** | `ctx.skip.refuse(message?)` | Waits for the handler | Stops at once and reports `"refused"` |
+
+```typescript
+type MinigameActions = {
+    countdown: [seconds: number];
+    fishing: [];
+};
+
+class Minigames extends Service<MinigameActions, null> {
+    constructor() {
+        super();
+
+        // Finish now: skipping ends the countdown at once.
+        this.on("countdown", async (ctx, seconds) => {
+            await new Promise<void>(resolve => {
+                const timer = setTimeout(resolve, seconds * 1000);
+                ctx.skip.onRequest(() => {
+                    clearTimeout(timer);
+                    resolve();
+                });
+                ctx.signal.addEventListener("abort", () => clearTimeout(timer));
+            });
+        });
+
+        // Refuse: a fast-forward cannot play the minigame for the player, so it stops here.
+        this.on("fishing", async (ctx) => {
+            ctx.skip.refuse("waiting for the fishing minigame");
+            await playFishing(ctx.signal);
+        });
+    }
+
+    serialize() {
+        return null;
+    }
+
+    deserialize() {
+    }
+}
+```
+
+- `onRequest` is called the first time the player skips, and once more the first time it is in the skip mode (`request.forced`) - the distinction a line of dialogue draws between one press of the skip key, which reveals a line up to its next pause, and holding it, which walks past the pauses too. It is not called for every repeat of the skip mode.
+- `refuse` returns a function that withdraws the refusal. Refusals stack: the action can be skipped again once all of them are withdrawn. The message is for people - it is logged and handed back by `fastForward` - and nothing in the engine reads it.
+- `ctx.skip.fastForwarding` says whether the game is fast-forwarding right now, for a handler that can go straight to its final state on entry.
+- Requests are broadcast, as they are to everything else on the stage: a handler running in a `Control.all` branch or an async one is asked whenever the player skips. A click on the stage is not a request.
+- Only a handler that returns a promise is ever asked. A synchronous one has finished before the player could ask.
+
+See [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx) for every member.
+
+<Callout type="info">
+    `ctx.signal` and `ctx.skip` are available since `1.3.0`. `ctx.onAbort`, which fires on the same occasions as `ctx.signal`, is deprecated.
+</Callout>
 
 ### Trigger Action
 

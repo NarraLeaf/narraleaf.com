@@ -4,6 +4,12 @@ description: Breaking and incompatible changes across NarraLeaf-React versions, 
 ---
 For complete changes, see the [CHANGELOG](https://github.com/NarraLeaf/narraleaf-react/blob/master/CHANGELOG.md).
 
+## 1.3.0
+
+- **A [Service](/docs/narraleaf-react/core/elements/service#async-actions) handler that returns a promise holds the story, however it was written.** Only a function declared `async` used to be waited for: a plain function returning a promise - `(ctx) => fetch(url)`, or an `async` handler a build compiled down to a plain function - ran without the story waiting. Such a handler now holds the story until its promise settles. A handler that wants the story to carry on while it works should start the work without returning its promise
+- [`LiveGame.fastForward`](/docs/narraleaf-react/core/game/live-game#fastforward)'s `reason` gained `"refused"`, and the result gained `refusal`. Only a story whose services call `ctx.skip.refuse()` can produce it, but an exhaustive `switch` over `reason` needs the extra arm to keep compiling
+- [`ServiceHandlerCtx`](/docs/narraleaf-react/core/types/ServiceHandlerCtx) gained `signal` and `skip`. Code that builds a context by hand - a test calling a handler directly - must supply them. `onAbort` is deprecated in favour of `signal`, and a listener registered after the run was cancelled now runs at once rather than never
+
 ## 0.39.2
 
 - The script error a host receives (`RuntimeScriptError`, reached through [`GameConfig.onError`](/docs/narraleaf-react/core/types/GameConfig)) now carries the sentence alone in `message`. It used to carry the offending action's id and type and that action's whole construction stack appended to it, which in a host that shows the message in a panel is several lines of bundle frames above the fold. The parts are now separate fields — `error.action` (its `id` and `type`), `error.actionStack`, and `error.composedMessage` for the one-string form. **A host that parsed the message string to split those out must read the fields instead.** Nothing that logs the error object loses anything: `error.stack` still carries the whole composition

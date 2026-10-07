@@ -1,38 +1,73 @@
 ---
 title: "ServiceHandlerCtx"
-description: "The context passed to a `Service` action handler: `ScriptCtx` plus `onAbort`, for registering cleanup when the action is cancelled."
+description: "The context passed to a `Service` action handler: `ScriptCtx` plus `signal`, aborted when the run is cancelled, and `skip`, through which the player asks it to hurry."
 ---
 ```typescript
 type ServiceHandlerCtx = ScriptCtx & {
+    signal: AbortSignal;
+    skip: ServiceSkipSignal;
+    /** @deprecated Use `signal`. */
     onAbort: (handler: () => void) => void;
 };
 type ServiceHandler<Args extends any[]> = (ctx: ServiceHandlerCtx, ...args: Args) => void | Promise<void>;
+
+interface ServiceSkipSignal {
+    readonly requested: boolean;
+    readonly forced: boolean;
+    readonly fastForwarding: boolean;
+    onRequest(listener: (request: ServiceSkipRequest) => void): { cancel(): void };
+    refuse(message?: string): () => void;
+}
+
+interface ServiceSkipRequest {
+    readonly forced: boolean;
+}
 ```
 
-For ScriptCtx, see [ScriptCtx](/docs/narraleaf-react/core/types/ScriptCtx).
+For ScriptCtx, see [ScriptCtx](/docs/narraleaf-react/core/types/ScriptCtx). For how a handler is run, waited for, cancelled and skipped, see [Service](/docs/narraleaf-react/core/elements/service#async-actions).
 
-## Abortify
+<Callout type="info">
+    `signal` and `skip` are available since `1.3.0`. `onAbort` is deprecated.
+</Callout>
 
-Service action should be abortable for future use.
+## signal
 
-To make an action abortable, you can use the `onAbort` method.
+Aborted when this run is cancelled: the player stepped back past it, the story jumped away from it, a `Control.any` it ran in was won by another branch, or a save was loaded.
+
+A cancellation cannot be refused and does not wait for the handler - the game has already moved on when the signal fires. Hand the signal to whatever the handler is waiting on, and check `signal.aborted` after each `await` before touching the game again.
 
 ```typescript
 class MyCustomService extends Service {
     constructor() {
         super();
 
-        this.onAction("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
-            const abortController = new AbortController();
-            const { signal } = abortController;
-            const promise = fetch("https://example.com", { signal }); // some async operation
-
-            ctx.onAbort(() => {
-                abortController.abort(); // abort the async operation
-            });
-
-            return promise; // if you return a promise, the game will wait for the promise to resolve
+        this.on("myAction", async (ctx: ServiceHandlerCtx) => {
+            const response = await fetch("https://example.com", { signal: ctx.signal });
+            if (ctx.signal.aborted) return;
+            // ...
         });
     }
 }
 ```
+
+A synchronous handler's signal is never aborted: the handler has finished before anything could cancel it.
+
+## skip
+
+The player asking this handler to hurry. See [Skipping](/docs/narraleaf-react/core/elements/service#skipping) for the three ways a handler can answer.
+
+- `requested: boolean` - whether the player has asked this handler to hurry yet.
+- `forced: boolean` - whether the player has asked it in the skip mode yet: the skip key held, [skipDialog](/docs/narraleaf-react/core/game/live-game#skipdialog), or [fastForward](/docs/narraleaf-react/core/game/live-game#fastforward). A single press of the skip key is not forced.
+- `fastForwarding: boolean` - whether the game is in [fastForward](/docs/narraleaf-react/core/game/live-game#fastforward) right now. Read live, so a handler can check it on entry and go straight to its final state.
+- `onRequest(listener)` - listen for requests. The listener is called once for the first request and once more the first time a request is forced, never for every repeat. Registering after a request has arrived calls the listener at once. Returns a token whose `cancel()` stops listening. An error thrown by the listener fails the action.
+- `refuse(message?)` - refuse to be fast-forwarded past until the returned function is called. Refusals stack. A fast-forward that reaches the action stops and reports `"refused"`, with `message` as `refusal`; holding the skip key waits for the handler. The message is for people and nothing in the engine reads it. Refusing in a synchronous handler does nothing and logs a warning.
+
+Only a handler that returns a promise is ever asked; `requested` stays `false` for a synchronous one.
+
+## onAbort
+
+<Callout type="warning">
+    Deprecated since `1.3.0`. Use `signal`, which fires on the same occasions.
+</Callout>
+
+Run `handler` when this run is cancelled. Registering after the cancellation runs it at once.

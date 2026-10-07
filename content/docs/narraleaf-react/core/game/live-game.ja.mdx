@@ -705,6 +705,8 @@ game.getLiveGame().skipDialog();
 行をスキップするのは、レンダラーへブロードキャストされる*要求*であって、同期的な状態変更では
 ありません。そのため、この要求はその行が確定するまで繰り返し発行されます。決して応答しない行は、
 呼び出しをハングさせるのではなく `"stalled"` で早送りを終了させます。このメソッドは常に確定します。
+スキップを拒否することで応答する行（`ctx.skip.refuse()` を呼んだ [Service](/ja/docs/narraleaf-react/core/elements/service#skipping) のハンドラ）は、
+ただちに `"refused"` で早送りを終了させ、その場で実行を続けます。
 
 ```typescript
 // 次の決定点まで先へ進む。
@@ -719,7 +721,11 @@ const result = await game.getLiveGame().fastForward({ until: { actionId: "act-42
 if (result.reason === "action") {
     // act-42 で止まり、まだ実行されていない
 } else if (result.reachedTarget === false) {
-    // メニューが道を塞いだ、スタックが尽きた、maxSteps に達した、または行が固まった
+    // メニューが道を塞いだ、スタックが尽きた、maxSteps に達した、または行が固まったか拒否した
+}
+
+if (result.reason === "refused") {
+    // 行がプレイヤーを待っている。result.refusal はその行が示したメッセージ（あれば）で、表示用
 }
 ```
 
@@ -733,20 +739,25 @@ if (result.reason === "action") {
 - `options.stepTimeout?: number` - 1 つの一時停止された行が `"stalled"` と報告されるまでに確定を
   許される時間（ミリ秒）。デフォルトは `10000`。スキップできない長いメディアを通過する早送りが
   あるストーリーでは、これを上げてください。
-- 返り値: `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled"; reachedTarget?: boolean }>`
+- 返り値: `Promise<{ reason: "menu" | "end" | "maxSteps" | "action" | "stalled" | "refused"; reachedTarget?: boolean; refusal?: string }>`
   - なぜ停止したか。
     - `reason` - `"action"` は `until.actionId` に到達したこと、`"menu"` はメニューが選択を待って
       いること、`"end"` はスタックが尽きたこと、`"maxSteps"` はステップ上限に達したこと、
-      `"stalled"` は行が `stepTimeout` 内に確定しなかったことを示します。
+      `"stalled"` は行が `stepTimeout` 内に確定しなかったこと、`"refused"` は行がスキップを
+      拒否したことを示します。
     - `reachedTarget` - `until: { actionId }` を指定したときに**のみ**存在し、`reason` が
       `"action"` のときにのみ `true` になります。`"menu"` / `"end"` の実行はそのまま単純な
       `{ reason }` の形を保ちます。
+    - `refusal` - `"refused"` のとき、その行が示したメッセージ（あれば）。人に見せるためのもので、
+      これをもとに何かを判断しないでください。
 </Step>
 </Steps>
 
 <Callout type="info">
     `until: { actionId }`、`"action"` という reason、`reachedTarget` は `0.16.0` 以降で利用可能です。
     `options.stepTimeout` と `"stalled"` という reason は `0.17.1` 以降で利用可能です。
+    `"refused"` という reason と `refusal` は `1.3.0` 以降で利用可能です。`reason` を網羅する
+    `switch` は、コンパイルを通すためにこの分岐を追加する必要があります。
 </Callout>
 
 <Callout type="warning">
