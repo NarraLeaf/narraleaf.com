@@ -11,13 +11,13 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 
 | 类型 | 内容 | 产出方 |
 | --- | --- | --- |
-| 文本（`string`） | 一段文字| `String`，以及所有字符串节点|
+| 字符串（`string`） | 文本| `String`，以及所有字符串节点|
 | 整数（`integer`） | 不带小数的数| `Integer`，以及各类长度、下标、计数|
 | 数字（`float`） | 可带小数的数| `Float`、`To Float`、`Parse Float`|
 | 布尔值（`boolean`） | 真或假| `Boolean`，以及所有类型判断和字符串判断|
 | JSON（`json`） | 任意 JSON 值：object、array、string、number、boolean 或`null`| `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`|
 | 列表（`array`） | JSON 数组，但作为独立类型存在| `Make Array`、返回数组的那些`Array …`节点、`Object Values`|
-| 某类型的列表（`array<T>`） | 各项类型都为`T`的数组。卡片上显示为该类型的列表，例如**结局列表**、**文本列表**| `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`|
+| 某类型的列表（`array<T>`） | 各项类型都为`T`的数组。卡片上显示为该类型的列表，例如**结局列表**、**字符串列表**| `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`|
 | 结构的名称（`struct:<id>`） | 字段已声明的对象，例如结局、存档条目。卡片上显示结构的名称，例如**结局**。见[结构](#structs)| 作用于结局的`Array First`、List 的`Item Click`、遍历结局的`For Each`|
 | 任意值（`any`） | 任意值| `Memo`，以及类型随卡片上所选内容而定的引脚，例如`Get Field`、`Get Var`，在选定之前|
 | 颜色（`RGBAColor`） | `{ r, g, b, a }`| `Color`|

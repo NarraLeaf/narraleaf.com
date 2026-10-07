@@ -96,7 +96,7 @@ Page 是一种角色，不是另一种文档类型。同一个 `appSurface` 可�
 
 - 对页面和叠加页面来说，值由 `Go Page`、`Replace Page`、`Show Layer` 或 `Show Confirm` 传入。前三个节点为所选页面的每个参数各长出一个输入
 - Frame 的 `params` 属性**就是**被嵌入 Page 的 props。它的属性面板为目标 Page 的每个参数各显示一个字段
-- 在 Page 内部，文本或按钮在**页面参数**中显示界面文字参数，List 显示列表参数，`Get Page Param` 读取任意参数。未传入的参数读取默认值。无论作为页面、叠加页面还是在 Frame 中，同一个页面都以相同方式读取参数
+- 在 Page 内部，文本或按钮在**页面参数**中显示文字参数，List 显示列表参数，`Get Page Param` 读取任意参数。未传入的参数读取默认值。无论作为页面、叠加页面还是在 Frame 中，同一个页面都以相同方式读取参数
 - `Get Page Props` 读取整个对象：已声明的参数及其默认值，以及 `Page props` 输入或 Frame 传入的其他字段。非对象的值会规范成 `{}`，取不存在的字段读作 `null`
 - `Set Frame Page`（切换 Frame 的 Page）切换目标，并可以在同一次调用里写入 params；没有传入参数且 props 输入不接线时，原有 params 保持不变。参见 [Frame 节点](/zh/docs/studio/blueprint/nodes/frame)
 - 子级用 `Emit Page Event`（发送 Page 事件）回话，由 Frame 元素自身蓝图上的 `Page Event` 事件 Head 接收。单独显示的页面或叠加页面没有父 Frame，在那里发送谁也收不到
