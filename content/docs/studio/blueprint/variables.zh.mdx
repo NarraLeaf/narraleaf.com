@@ -85,23 +85,23 @@ description: 一个值存在哪里、能活多久，以及该选哪个作用域
 
 ## 类型
 
-`Var`提供九种类型。你选的那一种决定卡片上`Default`的编辑器，也决定投影到`Get Var`和`Set Var`上的类型
+`Var`提供九种类型。你选的那一种决定卡片上`Default`的编辑器，也决定投影到`Get Var`和`Set Var`上的类型。卡片、变量对话框与成员面板中显示界面名称，括号中是类型 id
 
-| `valueType` | 默认值 | 说明 |
+| 类型 | 默认值 | 说明 |
 | --- | --- | --- |
-| `string` | `""` | |
-| `integer` | `0` | 可接入`float`或`string`输入|
-| `float` | `0` | 可接入`string`输入|
-| `boolean` | `false` | |
-| `json` | `{}` | 接受`array`来源|
-| `array` | `[]` | 可接入`json`输入；`json`不能反向接回|
-| `Timer` | `null` | 用来存放 [`Delay`](/zh/docs/studio/blueprint/nodes/flow) 交回的令牌|
-| `AnimationToken` | `null` | 用来存放动画交回的令牌|
-| `any` | `null` | `Default`字段被禁用——见下文|
+| 文本（`string`） | `""` | |
+| 整数（`integer`） | `0` | 可接入`float`或`string`输入|
+| 数字（`float`） | `0` | 可接入`string`输入|
+| 布尔值（`boolean`） | `false` | |
+| JSON（`json`） | `{}` | 接受`array`来源|
+| 列表（`array`） | `[]` | 可接入`json`输入；`json`不能反向接回|
+| 计时器（`Timer`） | `null` | 用来存放 [`Delay`](/zh/docs/studio/blueprint/nodes/flow) 交回的令牌|
+| 动画（`AnimationToken`） | `null` | 用来存放动画交回的令牌|
+| 任意值（`any`） | `null` | `Default`字段被禁用——见下文|
 
 数值接到`string`的连线会在取值时做转换。其余允许的配对都是精确匹配或加宽，绝不会背着你收窄
 
-场景变量、存档变量和持久变量使用一个更窄的封闭集合——`boolean`、`number`、`string`、`json`——因为这些值会被序列化进存档文件或宿主存储，而一个活的`Timer`没有什么可以序列化的
+场景变量、存档变量和持久变量使用一个更窄的封闭集合——布尔值（`boolean`）、数字（`number`）、文本（`string`）、JSON（`json`）——因为这些值会被序列化进存档文件或宿主存储，而一个活的`Timer`没有什么可以序列化的
 
 ### 默认值
 

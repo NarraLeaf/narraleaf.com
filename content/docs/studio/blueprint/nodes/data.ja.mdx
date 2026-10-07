@@ -7,22 +7,34 @@ Data は、ブループリントが計算に使う値を保持するカテゴリ
 
 ## 値の型 [#value-types]
 
-以下のピンには次の`valueType`が現れます。
+以下のピンには次の型が現れます。カード、型の選択、変数、メッセージにはインターフェース上の名前が表示されます。括弧内は型 ID で、ドキュメントのピン表、コマンドラインツール、プロジェクトのファイルではこちらで書かれます。
 
-| `valueType` | 内容 | 生成元 |
+| 型 | 内容 | 生成元 |
 | --- | --- | --- |
-| `string` | テキスト。 | `String`、およびすべての文字列ノード。 |
-| `integer` | 整数。 | `Integer`、および各種の長さ・添字・件数。 |
-| `float` | 数値。 | `Float`、`To Float`、`Parse Float`。 |
-| `boolean` | 真または偽。 | `Boolean`、およびすべての型判定と文字列判定。 |
-| `json` | 任意の JSON 値——object、array、string、number、boolean、`null`のいずれか。 | `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`。 |
-| `array` | JSON 配列。ただし独立した型として扱われます。 | `Make Array`、配列を返す`Array …`ノード群、`Object Values`。 |
-| `array<T>` | 要素がすべて型`T`である配列。カードではその型のリストとして表示されます（**Ending list**（エンディングのリスト）、**string list**（stringのリスト）など）。 | `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`。 |
-| `struct:<id>` | フィールドが宣言されたオブジェクト。エンディングやセーブの項目など。カードには構造体の名前が表示されます（**Ending**（エンディング）など）。[構造体](#structs)を参照してください。 | エンディングに対する`Array First`、List の`Item Click`、エンディングを反復する`For Each`。 |
-| `any` | 何であってもよい値。 | `Memo`、およびカードで選んだものに応じて型が決まるピン（`Get Field`、`Get Var`など）。選ぶ前は`any`です。 |
-| `RGBAColor` | `{ r, g, b, a }`。 | `Color`。 |
-| `Vector2D` | `{ x, y }`。 | `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`。 |
-| `Rect` | `{ x, y, width, height }`。 | `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`。 |
+| 文字列（`string`） | テキスト。 | `String`、およびすべての文字列ノード。 |
+| 整数（`integer`） | 小数部のない数。 | `Integer`、および各種の長さ・添字・件数。 |
+| 数値（`float`） | 小数を含みうる数。 | `Float`、`To Float`、`Parse Float`。 |
+| 真偽値（`boolean`） | 真または偽。 | `Boolean`、およびすべての型判定と文字列判定。 |
+| JSON（`json`） | 任意の JSON 値——object、array、string、number、boolean、`null`のいずれか。 | `JSON`、`Parse JSON`、`Get JSON Field`、`Make Object`。 |
+| リスト（`array`） | JSON 配列。ただし独立した型として扱われます。 | `Make Array`、配列を返す`Array …`ノード群、`Object Values`。 |
+| 型のリスト（`array<T>`） | 要素がすべて型`T`である配列。カードではその型のリストとして表示されます（**Ending list**（エンディングのリスト）、**string list**（文字列のリスト）など）。 | `Get Endings`、`Get History`、`Split`、`Object Keys`、`Array Range`。 |
+| 構造体の名前（`struct:<id>`） | フィールドが宣言されたオブジェクト。エンディングやセーブの項目など。カードには構造体の名前が表示されます（**Ending**（エンディング）など）。[構造体](#structs)を参照してください。 | エンディングに対する`Array First`、List の`Item Click`、エンディングを反復する`For Each`。 |
+| 任意の値（`any`） | 何であってもよい値。 | `Memo`、およびカードで選んだものに応じて型が決まるピン（`Get Field`、`Get Var`など）。選ぶ前は`any`です。 |
+| 色（`RGBAColor`） | `{ r, g, b, a }`。 | `Color`。 |
+| 2 次元ベクトル（`Vector2D`） | `{ x, y }`。 | `Vector2D`、`Make Vector2D`、`Rect Center`、`Get Center`。 |
+| 矩形（`Rect`） | `{ x, y, width, height }`。 | `Rect`、`Make Rect`、`Get Bounds`、`Get Measured Rect`。 |
+
+他のカテゴリのピンには次の型も現れます。
+
+| 型 | 内容 | 参照 |
+| --- | --- | --- |
+| 要素（`element`）、ボタンの要素（`element:nl.button`）など | インターフェース上の 1 つの要素。ウィジェットの種類が決まっている場合は「ウィジェット名の要素」と表示されます。 | [Element](/ja/docs/studio/blueprint/nodes/element) |
+| 画像（`ImageAsset`、`ImageAsset\|null`） | 1 つの画像アセット。null 許容の形は空にもなります。 | [Image](/ja/docs/studio/blueprint/nodes/image) |
+| タイマー（`Timer`） | `Delay`が返すトークン。 | [Flow](/ja/docs/studio/blueprint/nodes/flow) |
+| アニメーション（`AnimationToken`） | `Animate Property`が返すトークン。 | [Displayable](/ja/docs/studio/blueprint/nodes/displayable) |
+| サウンド（`SoundHandle`） | `Play Sound`が再生しているクリップ。 | [Sound](/ja/docs/studio/blueprint/nodes/sound) |
+| レスポンス（`ResponseBody`） | `Fetch`が取得したレスポンス。 | [Network](/ja/docs/studio/blueprint/nodes/network) |
+| セーブ枠（`SaveSlot`） | 1 つのセーブ。 | [Game](/ja/docs/studio/blueprint/nodes/game) |
 
 2つのデータピン間の接続は、型が完全に一致する場合、または次のいずれかが成り立つ場合に許可されます。
 

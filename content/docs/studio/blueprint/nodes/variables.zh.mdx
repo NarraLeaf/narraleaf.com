@@ -25,11 +25,11 @@ Var（变量）是一次声明，不是执行链上的一步——也是这一�
 | 字段 | 说明 |
 | --- | --- |
 | `name` | 变量名，也就是各个`Variable`下拉里显示的名字|
-| `valueType` | Data type：`String`、`Integer`、`Float`、`Boolean`、`JSON`、`Array`、`Timer`、`AnimationToken`、`Any`|
+| `valueType` | 数据类型：文本（`string`）、整数（`integer`）、数字（`float`）、布尔值（`boolean`）、JSON（`json`）、列表（`array`）、计时器（`Timer`）、动画（`AnimationToken`）、任意值（`any`）|
 | `defaultValue` | 初始值。它会被深拷贝进变量 store，所以运行时改变量永远不会改到你写下的默认值|
 
 <Callout type="info">
-选择`Any`会把 Default 锁成一个禁用的`null`。`Any`变量总是以`null`起步——没有类型可以据以给出一个像样的默认值。读它之前，先用`Set Var`赋一个值
+选择**任意值**（`any`）会把 Default 锁成一个禁用的`null`。任意值变量总是以`null`起步——没有类型可以据以给出一个像样的默认值。读它之前，先用`Set Var`赋一个值
 </Callout>
 
 ## Get Var

@@ -25,11 +25,11 @@ description: 変数を宣言し、読み取り、書き込み、そして Persis
 | フィールド | 内容 |
 | --- | --- |
 | `name` | 変数の名前で、各 `Variable` ドロップダウンに表示されるものと同じです。 |
-| `valueType` | データ型です。`String`、`Integer`、`Float`、`Boolean`、`JSON`、`Array`、`Timer`、`AnimationToken`、または `Any` のいずれかです。 |
+| `valueType` | データ型です。文字列（`string`）、整数（`integer`）、数値（`float`）、真偽値（`boolean`）、JSON（`json`）、リスト（`array`）、タイマー（`Timer`）、アニメーション（`AnimationToken`）、または任意の値（`any`）のいずれかです。 |
 | `defaultValue` | 初期値です。ストアにディープコピーされるため、実行時に変数を変更しても、作者が設定した既定値が書き換わることはありません。 |
 
 <Callout type="info">
-`Any` を選ぶと、Default は無効化された `null` に固定されます。`Any` の変数は常に `null` から始まります——妥当な既定値の元になる型が存在しないためです。何かに読み取られる前に、`Set Var` で値を与えてください。
+**任意の値**（`any`）を選ぶと、Default は無効化された `null` に固定されます。任意の値の変数は常に `null` から始まります——妥当な既定値の元になる型が存在しないためです。何かに読み取られる前に、`Set Var` で値を与えてください。
 </Callout>
 
 ## Get Var
