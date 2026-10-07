@@ -11,7 +11,7 @@ The implementation includes action triggers, localStorage persistence, and const
 ```tsx
 // lib/gallery.ts
 import { Service } from "narraleaf-react";
-import type { LambdaHandler, ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
+import type { LambdaHandler, ScriptCtx } from "narraleaf-react";
 
 export type GalleryMetadata = {
   url: string;
@@ -105,16 +105,16 @@ export class GalleryService extends Service<GalleryActions, null> {
   }
 
   private setupActions() {
-    this.on("add", (ctx: ServiceHandlerCtx, name, metadata) => {
+    this.on("add", (ctx, name, metadata) => {
       const parsed = typeof metadata === "function" ? metadata(ctx) : metadata;
       this.unlocked[name] = parsed;
       this.saveToStorage();
     });
-    this.on("remove", (_ctx: ServiceHandlerCtx, name) => {
+    this.on("remove", (_ctx, name) => {
       delete this.unlocked[name];
       this.saveToStorage();
     });
-    this.on("clear", (_ctx: ServiceHandlerCtx) => {
+    this.on("clear", () => {
       this.$clear();
     });
   }
@@ -132,10 +132,8 @@ export class GalleryService extends Service<GalleryActions, null> {
   private saveToStorage() {
     if (!this.autoSave) return;
     if (typeof localStorage === "undefined") return;
-    const data = this.serialize();
-    if (data) {
-      localStorage.setItem(this.storageKey, JSON.stringify(data));
-    }
+    const data: GalleryStorage = { unlocked: this.unlocked };
+    localStorage.setItem(this.storageKey, JSON.stringify(data));
   }
 }
 ```
@@ -164,14 +162,16 @@ story.entry(scene);
 ```tsx
 scene.action([
   narrator.say("You discovered a beautiful sunset."),
-  gallery.add("cg_sunset", {
+  gallery.add("cg_sunset", () => ({
     url: "/images/cg/sunset.png",
     title: "Sunset",
     unlockedAt: Date.now(),
-  }),
+  })),
   narrator.say("Added to gallery."),
 ]);
 ```
+
+Pass the metadata as a function, as here, when part of it is worked out as the line is reached. An object written straight into `scene.action` is built once, when the story is defined, so a `Date.now()` in it would be the time the game loaded.
 
 ### 2) Conditional branching (different dialogue when already unlocked)
 
@@ -181,11 +181,11 @@ scene.action([
     narrator.say("You've already seen the sunset."),
   ]).Else([
     narrator.say("You discovered a beautiful sunset."),
-    gallery.add("cg_sunset", {
+    gallery.add("cg_sunset", () => ({
       url: "/images/cg/sunset.png",
       title: "Sunset",
       unlockedAt: Date.now(),
-    }),
+    })),
   ]),
 ]);
 ```
@@ -243,7 +243,8 @@ The localStorage layer is separate from the save system. `serialize()` returns `
 
 ## See Also
 
-- [Service](/docs/narraleaf-react/core/types/ServiceHandlerCtx) - Service handler context
+- [Service](/docs/narraleaf-react/core/elements/service) - Writing a service
+- [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx) - Service handler context
 - [Story.registerService](/docs/narraleaf-react/core/elements/story) - Service registration
 - [Condition](/docs/narraleaf-react/core/elements/condition) - Conditional branching
 - [Page overlay](/docs/narraleaf-react/solutions/page-overlay-settings) - Overlay pages and routing

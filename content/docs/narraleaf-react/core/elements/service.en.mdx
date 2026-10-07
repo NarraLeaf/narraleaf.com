@@ -2,9 +2,9 @@
 title: "Service"
 description: The `Service` abstract class for custom, story-registered logic shared across scenes, covering actions, serialization, and async handling.
 ---
-Service is a special abstract class that is used to create custom actions, behaviors, or any other custom logic that can be shared across multiple scenes.
+Service is an abstract class for custom actions, behaviors, or any other logic shared across scenes.
 
-To use it, you need to extend and fully implement the abstract methods.
+To use it, extend it, register a handler for each of its actions in the constructor, and implement `serialize` and `deserialize` to save its data with the game.
 
 ```typescript
 import {Service} from "narraleaf-react";
@@ -12,35 +12,39 @@ import {Service} from "narraleaf-react";
 
 ## Example
 
-Here is an example of a custom service that implements a simple gallery service.
+Here is an example of a custom service that implements a simple gallery.
 
 ```typescript
 type GalleryActions = {
-    "add": [name: string]
+    add: [name: string];
 };
 
-class Gallery extends Service<GalleryActions> {
+type GalleryData = {
+    unlocked: string[];
+};
+
+class Gallery extends Service<GalleryActions, GalleryData> {
     // custom data
     unlocked: string[] = [];
 
     constructor() {
         super();
 
-        // register the action handler
-        this.on("add", (ctx: ServiceHandlerCtx, name: string) => {
-            console.log("Adding", name);
+        // register the action handler; `name` is typed by GalleryActions
+        this.on("add", (ctx, name) => {
             this.unlocked.push(name);
-        })
+        });
     }
 
-    /* Implement the serialize and deserialize methods */
-    serialize(): Record<string, any> | null {
+    /* Save the data with the game, and restore it from a save */
+    serialize(): GalleryData {
         return {
-            unlocked: this.unlocked
+            unlocked: [...this.unlocked],
         };
     }
-    deserialize(data: Record<string, any>): void {
-        this.unlocked = data.unlocked;
+
+    deserialize(data: GalleryData): void {
+        this.unlocked = [...data.unlocked];
     }
 
     /* Custom service logic */
@@ -55,6 +59,7 @@ and we can use this service in the game:
 
 ```typescript
 const gallery = new Gallery();
+story.registerService("gallery", gallery);
 
 myScene.action([
     gallery
@@ -62,78 +67,78 @@ myScene.action([
         .add("image2")
         .add("image3"),
 ]);
-
 ```
 
 ## Creating Custom Service
 
 ### Implementing Service
 
-To implement a service, you need to extend the `Service` class and implement the abstract methods.
+To implement a service, extend the `Service` class. Its two type parameters are the actions it handles and the data it saves:
 
 ```typescript
-class MyCustomService extends Service {
+type MyCustomActions = {
+    myAction: [arg0: string, arg1: number];
+};
+
+type MyCustomData = {
+    count: number;
+};
+
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
+    count = 0;
+
     /**
      * Serialize the service to data
      *
      * **Note**: data must be JSON serializable, return null if nothing needs to be saved
      */
-    serialize(): Record<string, any> | null {
-        return null;
+    serialize(): MyCustomData | null {
+        return {count: this.count};
     }
 
     /**
      * Load data to the service
-     * @param data data exported from toData
+     * @param data data returned by serialize
      */
-    deserialize(data: Record<string, any>): void {
+    deserialize(data: MyCustomData): void {
+        this.count = data.count;
     }
 }
 ```
+
+- `serialize` runs whenever the game is saved, and whenever a line or a menu is recorded in the backlog, so that the player can return to it. Return a copy of the service's state, not the state itself: the engine keeps what `serialize` returns, and a live reference would go on changing with the service.
+- `deserialize` runs when a save is loaded, with what `serialize` returned. A service the save holds no data for - it returned `null`, or the save was made before it was registered - is not called, and keeps the state it has.
+- A service with nothing to save returns `null` from `serialize` and leaves `deserialize` empty.
 
 ### Registering Actions
 
-To register actions, you need to use the `on` method.  
-All registration should be done in the constructor.
+To register actions, use the `on` method in the constructor. A handler is looked up by name each time its action runs, including after a save is loaded, so it has to be registered before the story starts. An action whose handler is missing logs a warning and does nothing.
 
 ```typescript
-class MyCustomService extends Service {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
+        // ctx, arg0 and arg1 are typed by MyCustomActions
+        this.on("myAction", (ctx, arg0, arg1) => {
             // custom logic
         });
     }
+
+    /* serialize and deserialize */
 }
 ```
 
-For ServiceHandlerCtx, see [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx).
+For `ctx`, see [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx).
 
-To enable type checking, you can define the action types.
-
-```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
-    constructor() {
-        super();
-
-        this.on("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
-            // custom logic
-        });
-    }
-}
-```
+The action map is what type-checks the handlers and the triggers. A service declared without one, `extends Service`, accepts any action name with any arguments.
 
 ### Async Actions
 
 A handler that returns a promise holds the story until the promise settles, the way a line of dialogue does. A handler that returns anything else lets the story carry on at once.
 
 ```typescript
-this.on("load", async (ctx: ServiceHandlerCtx, url: string) => {
+this.on("load", async (ctx, url: string) => {
     const response = await fetch(url, { signal: ctx.signal });
     const data = await response.json();
     if (ctx.signal.aborted) return; // cancelled while waiting: leave the game alone
@@ -231,7 +236,7 @@ scene.action([
 or you can wrap the action in a method.
 
 ```typescript
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     myAction(arg0: string, arg1: number) {
         return this.trigger("myAction", arg0, arg1);
     }
@@ -250,28 +255,31 @@ scene.action([
 
 ### Accessing Service
 
-After creating the service, you need to register it in the game.
+After creating the service, register it with the story under a name. Registering is what puts the service's data in saves, and what lets the interface look it up.
 
 ```typescript
 const story = new Story(/* ... */);
 story.registerService("gallery", gallery);
 ```
 
-And you can access the service using ctx.
+A component reads it through [useLiveGame](/docs/narraleaf-react/player/hooks/useLiveGame):
 
 ```tsx
-// ex. in a component
-const game = useGame();
-const liveGame = game.getLiveGame();
+function GalleryPage() {
+    const liveGame = useLiveGame();
+    const gallery = liveGame.story?.getService<Gallery>("gallery");
 
-const gallery = liveGame.story?.getService<Gallery>("gallery");
-
-return (
-    {gallery && gallery.unlocked.map((name) => (
-        <div key={name}>{name}</div>
-    ))}
-);
+    return (
+        <ul>
+            {gallery?.unlocked.map((name) => (
+                <li key={name}>{name}</li>
+            ))}
+        </ul>
+    );
+}
 ```
+
+`getService` throws when no service is registered under the name.
 
 ## Public Methods
 
@@ -283,15 +291,11 @@ return (
 Register an action handler.
 
 ```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on<"myAction">("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
+        this.on("myAction", (ctx, arg0, arg1) => {
             // custom logic
         });
     }
@@ -299,7 +303,7 @@ class MyCustomService extends Service<MyCustomActions> {
 ```
 
 - `key: K` - The action key
-- `handler: ServiceHandler<Content[K]>` - For ServiceHandler, see [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx)
+- `handler: ServiceHandler<Content[K]>` - Called with the [ServiceHandlerCtx](/docs/narraleaf-react/core/types/ServiceHandlerCtx) and the action's arguments. A handler that returns a promise holds the story until it settles; see [Async Actions](#async-actions)
 - Returns `this`
 </Step>
 </Steps>
@@ -317,7 +321,7 @@ Trigger an action.
 const service = new MyCustomService();
 
 scene.action([
-    service.trigger<"myAction">("myAction", "foo", 123)
+    service.trigger("myAction", "foo", 123)
 ]);
 ```
 

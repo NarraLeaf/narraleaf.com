@@ -41,7 +41,7 @@ class MyCustomService extends Service {
     constructor() {
         super();
 
-        this.on("myAction", async (ctx: ServiceHandlerCtx) => {
+        this.on("myAction", async (ctx) => {
             const response = await fetch("https://example.com", { signal: ctx.signal });
             if (ctx.signal.aborted) return;
             // ...

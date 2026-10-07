@@ -2,9 +2,9 @@
 title: "サービス"
 description: 複数のシーンにまたがって共有される、カスタムかつストーリーに登録されたロジックのための `Service` 抽象クラス。アクション、シリアライズ、非同期処理を扱う
 ---
-Service は、複数のシーンにまたがって共有できるカスタムアクション、振る舞い、その他任意のカスタムロジックを作成するための特別な抽象クラスです。
+Service は、複数のシーンにまたがって共有できるカスタムアクション、振る舞い、その他任意のカスタムロジックを作成するための抽象クラスです。
 
-使用するには、これを継承し、抽象メソッドをすべて実装する必要があります。
+使用するには、これを継承し、コンストラクター内で各アクションのハンドラーを登録し、データをゲームと一緒に保存するために `serialize` と `deserialize` を実装します。
 
 ```typescript
 import {Service} from "narraleaf-react";
@@ -12,35 +12,39 @@ import {Service} from "narraleaf-react";
 
 ## 例
 
-シンプルなギャラリーサービスを実装するカスタムサービスの例を示します。
+シンプルなギャラリーを実装するカスタムサービスの例を示します。
 
 ```typescript
 type GalleryActions = {
-    "add": [name: string]
+    add: [name: string];
 };
 
-class Gallery extends Service<GalleryActions> {
+type GalleryData = {
+    unlocked: string[];
+};
+
+class Gallery extends Service<GalleryActions, GalleryData> {
     // カスタムデータ
     unlocked: string[] = [];
 
     constructor() {
         super();
 
-        // アクションハンドラーを登録する
-        this.on("add", (ctx: ServiceHandlerCtx, name: string) => {
-            console.log("Adding", name);
+        // アクションハンドラーを登録する。name の型は GalleryActions から決まる
+        this.on("add", (ctx, name) => {
             this.unlocked.push(name);
-        })
+        });
     }
 
-    /* serialize と deserialize メソッドを実装する */
-    serialize(): Record<string, any> | null {
+    /* データをゲームと一緒に保存し、セーブから復元する */
+    serialize(): GalleryData {
         return {
-            unlocked: this.unlocked
+            unlocked: [...this.unlocked],
         };
     }
-    deserialize(data: Record<string, any>): void {
-        this.unlocked = data.unlocked;
+
+    deserialize(data: GalleryData): void {
+        this.unlocked = [...data.unlocked];
     }
 
     /* カスタムサービスロジック */
@@ -55,6 +59,7 @@ class Gallery extends Service<GalleryActions> {
 
 ```typescript
 const gallery = new Gallery();
+story.registerService("gallery", gallery);
 
 myScene.action([
     gallery
@@ -62,78 +67,78 @@ myScene.action([
         .add("image2")
         .add("image3"),
 ]);
-
 ```
 
 ## カスタムサービスの作成
 
 ### サービスの実装
 
-サービスを実装するには、`Service` クラスを継承し、抽象メソッドを実装する必要があります。
+サービスを実装するには、`Service` クラスを継承します。2 つの型パラメーターは、サービスが扱うアクションと、サービスが保存するデータです。
 
 ```typescript
-class MyCustomService extends Service {
+type MyCustomActions = {
+    myAction: [arg0: string, arg1: number];
+};
+
+type MyCustomData = {
+    count: number;
+};
+
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
+    count = 0;
+
     /**
      * サービスをデータにシリアライズする
      *
      * **注:** データは JSON にシリアライズ可能でなければならない。保存するものがない場合は null を返す
      */
-    serialize(): Record<string, any> | null {
-        return null;
+    serialize(): MyCustomData | null {
+        return {count: this.count};
     }
 
     /**
      * サービスにデータを読み込む
-     * @param data toData からエクスポートされたデータ
+     * @param data serialize が返したデータ
      */
-    deserialize(data: Record<string, any>): void {
+    deserialize(data: MyCustomData): void {
+        this.count = data.count;
     }
 }
 ```
+
+- `serialize` は、ゲームをセーブするたびに呼ばれます。また、プレイヤーが後で戻れるよう、行やメニューがバックログに記録されるたびにも呼ばれます。サービスの状態そのものではなく、そのコピーを返してください。エンジンは `serialize` が返したものを保持するため、状態への参照をそのまま返すと、サービスと一緒に変わり続けてしまいます。
+- `deserialize` は、セーブをロードしたときに、`serialize` が返したデータとともに呼ばれます。セーブにそのサービスのデータがない場合（`null` を返していた、またはサービスを登録する前に作られたセーブである場合）は呼ばれず、サービスは今の状態のままです。
+- 保存するものがないサービスは、`serialize` で `null` を返し、`deserialize` は空のままにします。
 
 ### アクションの登録
 
-アクションを登録するには、`on` メソッドを使用します。  
-登録はすべてコンストラクター内で行う必要があります。
+アクションを登録するには、コンストラクター内で `on` メソッドを使用します。ハンドラーはアクションが実行されるたびに（セーブのロード後も含めて）名前で検索されるため、ストーリーが始まる前に登録されている必要があります。ハンドラーが見つからないアクションは、警告を記録して何もしません。
 
 ```typescript
-class MyCustomService extends Service {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
+        // ctx、arg0、arg1 の型は MyCustomActions から決まる
+        this.on("myAction", (ctx, arg0, arg1) => {
             // カスタムロジック
         });
     }
+
+    /* serialize と deserialize */
 }
 ```
 
-ServiceHandlerCtx については、[ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照してください。
+`ctx` については、[ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照してください。
 
-型チェックを有効にするには、アクションの型を定義できます。
-
-```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
-    constructor() {
-        super();
-
-        this.on("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
-            // カスタムロジック
-        });
-    }
-}
-```
+ハンドラーとトリガーの型チェックは、アクションの型定義に基づきます。型定義なしで宣言したサービス（`extends Service`）は、任意のアクション名と任意の引数を受け付けます。
 
 ### 非同期アクション [#async-actions]
 
 Promise を返すハンドラは、セリフの 1 行と同じように、その Promise が確定するまでストーリーを待たせます。それ以外の値を返すハンドラでは、ストーリーはすぐに先へ進みます。
 
 ```typescript
-this.on("load", async (ctx: ServiceHandlerCtx, url: string) => {
+this.on("load", async (ctx, url: string) => {
     const response = await fetch(url, { signal: ctx.signal });
     const data = await response.json();
     if (ctx.signal.aborted) return; // 待っている間にキャンセルされた：ゲームには触らない
@@ -231,7 +236,7 @@ scene.action([
 あるいは、アクションをメソッドの中にラップすることもできます。
 
 ```typescript
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     myAction(arg0: string, arg1: number) {
         return this.trigger("myAction", arg0, arg1);
     }
@@ -250,28 +255,31 @@ scene.action([
 
 ### サービスへのアクセス
 
-サービスを作成した後は、ゲーム内にそれを登録する必要があります。
+サービスを作成した後は、名前を付けてストーリーに登録します。登録することで、サービスのデータがセーブに含まれ、UI から名前で見つけられるようになります。
 
 ```typescript
 const story = new Story(/* ... */);
 story.registerService("gallery", gallery);
 ```
 
-そして、ctx を使ってサービスにアクセスできます。
+コンポーネントからは [useLiveGame](/ja/docs/narraleaf-react/player/hooks/useLiveGame) を通して読み取ります。
 
 ```tsx
-// 例: コンポーネント内
-const game = useGame();
-const liveGame = game.getLiveGame();
+function GalleryPage() {
+    const liveGame = useLiveGame();
+    const gallery = liveGame.story?.getService<Gallery>("gallery");
 
-const gallery = liveGame.story?.getService<Gallery>("gallery");
-
-return (
-    {gallery && gallery.unlocked.map((name) => (
-        <div key={name}>{name}</div>
-    ))}
-);
+    return (
+        <ul>
+            {gallery?.unlocked.map((name) => (
+                <li key={name}>{name}</li>
+            ))}
+        </ul>
+    );
+}
 ```
+
+その名前でサービスが登録されていない場合、`getService` はエラーを投げます。
 
 ## 公開メソッド
 
@@ -283,15 +291,11 @@ return (
 アクションハンドラーを登録します。
 
 ```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on<"myAction">("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
+        this.on("myAction", (ctx, arg0, arg1) => {
             // カスタムロジック
         });
     }
@@ -299,7 +303,7 @@ class MyCustomService extends Service<MyCustomActions> {
 ```
 
 - `key: K` - アクションキー
-- `handler: ServiceHandler<Content[K]>` - ServiceHandler については [ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) を参照
+- `handler: ServiceHandler<Content[K]>` - [ServiceHandlerCtx](/ja/docs/narraleaf-react/core/types/ServiceHandlerCtx) とアクションの引数を受け取って呼ばれる。Promise を返すハンドラーは、それが確定するまでストーリーを待たせる。[非同期アクション](#async-actions)を参照
 - 戻り値: `this`
 </Step>
 </Steps>
@@ -317,7 +321,7 @@ class MyCustomService extends Service<MyCustomActions> {
 const service = new MyCustomService();
 
 scene.action([
-    service.trigger<"myAction">("myAction", "foo", 123)
+    service.trigger("myAction", "foo", 123)
 ]);
 ```
 

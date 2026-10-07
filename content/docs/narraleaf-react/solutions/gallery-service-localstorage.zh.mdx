@@ -11,7 +11,7 @@ description: 用 Service 与 localStorage 实现独立于存档的 CG 解锁记�
 ```tsx
 // lib/gallery.ts
 import { Service } from "narraleaf-react";
-import type { LambdaHandler, ScriptCtx, ServiceHandlerCtx } from "narraleaf-react";
+import type { LambdaHandler, ScriptCtx } from "narraleaf-react";
 
 export type GalleryMetadata = {
   url: string;
@@ -105,16 +105,16 @@ export class GalleryService extends Service<GalleryActions, null> {
   }
 
   private setupActions() {
-    this.on("add", (ctx: ServiceHandlerCtx, name, metadata) => {
+    this.on("add", (ctx, name, metadata) => {
       const parsed = typeof metadata === "function" ? metadata(ctx) : metadata;
       this.unlocked[name] = parsed;
       this.saveToStorage();
     });
-    this.on("remove", (_ctx: ServiceHandlerCtx, name) => {
+    this.on("remove", (_ctx, name) => {
       delete this.unlocked[name];
       this.saveToStorage();
     });
-    this.on("clear", (_ctx: ServiceHandlerCtx) => {
+    this.on("clear", () => {
       this.$clear();
     });
   }
@@ -132,10 +132,8 @@ export class GalleryService extends Service<GalleryActions, null> {
   private saveToStorage() {
     if (!this.autoSave) return;
     if (typeof localStorage === "undefined") return;
-    const data = this.serialize();
-    if (data) {
-      localStorage.setItem(this.storageKey, JSON.stringify(data));
-    }
+    const data: GalleryStorage = { unlocked: this.unlocked };
+    localStorage.setItem(this.storageKey, JSON.stringify(data));
   }
 }
 ```
@@ -164,14 +162,16 @@ story.entry(scene);
 ```tsx
 scene.action([
   narrator.say("你发现了一幅夕阳美景。"),
-  gallery.add("cg_sunset", {
+  gallery.add("cg_sunset", () => ({
     url: "/images/cg/sunset.png",
     title: "夕阳",
     unlockedAt: Date.now(),
-  }),
+  })),
   narrator.say("已加入图鉴。"),
 ]);
 ```
+
+像这里这样把元数据写成函数，它会在剧情执行到这一行时才求值。直接写进 `scene.action` 的对象只在定义故事时构造一次，里面的 `Date.now()` 会是游戏加载的时间。
 
 ### 2) 条件分支（已解锁时显示不同对话）
 
@@ -181,11 +181,11 @@ scene.action([
     narrator.say("你已见过夕阳了。"),
   ]).Else([
     narrator.say("你发现了一幅夕阳美景。"),
-    gallery.add("cg_sunset", {
+    gallery.add("cg_sunset", () => ({
       url: "/images/cg/sunset.png",
       title: "夕阳",
       unlockedAt: Date.now(),
-    }),
+    })),
   ]),
 ]);
 ```
@@ -243,7 +243,8 @@ export function GalleryPage() {
 
 ## 参考
 
-- [Service](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx) - Service 处理上下文
+- [Service](/zh/docs/narraleaf-react/core/elements/service) - 编写服务
+- [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx) - Service 处理上下文
 - [Story.registerService](/zh/docs/narraleaf-react/core/elements/story) - 服务注册
 - [Condition](/zh/docs/narraleaf-react/core/elements/condition) - 条件分支
 - [页面叠层](/zh/docs/narraleaf-react/solutions/page-overlay-settings) - 叠层页面与路由

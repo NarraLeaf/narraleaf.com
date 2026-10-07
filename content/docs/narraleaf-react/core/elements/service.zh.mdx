@@ -2,9 +2,9 @@
 title: "服务"
 description: 用于构建跨场景共享自定义逻辑的 `Service` 抽象类，涵盖动作、序列化与异步处理
 ---
-Service 是一个抽象类，用于创建自定义操作与行为，或在多个场景之间共享自定义逻辑
+Service 是一个抽象类，用于创建自定义操作与行为，或在多个场景之间共享自定义逻辑。
 
-使用时需要继承它，并实现全部抽象方法
+使用时需要继承它，在构造函数里为它的每个操作注册处理函数，并实现 `serialize` 和 `deserialize`，让它的数据随游戏一起保存。
 
 ```typescript
 import {Service} from "narraleaf-react";
@@ -12,35 +12,39 @@ import {Service} from "narraleaf-react";
 
 ## 示例
 
-以下是一个实现简单画廊服务的自定义服务示例
+以下是一个实现简单画廊的自定义服务示例
 
 ```typescript
 type GalleryActions = {
-    "add": [name: string]
+    add: [name: string];
 };
 
-class Gallery extends Service<GalleryActions> {
+type GalleryData = {
+    unlocked: string[];
+};
+
+class Gallery extends Service<GalleryActions, GalleryData> {
     // 自定义数据
     unlocked: string[] = [];
 
     constructor() {
         super();
 
-        // 注册操作处理程序
-        this.on("add", (ctx: ServiceHandlerCtx, name: string) => {
-            console.log("添加", name);
+        // 注册操作处理函数；name 的类型来自 GalleryActions
+        this.on("add", (ctx, name) => {
             this.unlocked.push(name);
-        })
+        });
     }
 
-    /* 实现 serialize 和 deserialize 方法 */
-    serialize(): Record<string, any> | null {
+    /* 随游戏保存数据，并从存档中恢复 */
+    serialize(): GalleryData {
         return {
-            unlocked: this.unlocked
+            unlocked: [...this.unlocked],
         };
     }
-    deserialize(data: Record<string, any>): void {
-        this.unlocked = data.unlocked;
+
+    deserialize(data: GalleryData): void {
+        this.unlocked = [...data.unlocked];
     }
 
     /* 自定义服务逻辑 */
@@ -55,6 +59,7 @@ class Gallery extends Service<GalleryActions> {
 
 ```typescript
 const gallery = new Gallery();
+story.registerService("gallery", gallery);
 
 myScene.action([
     gallery
@@ -62,77 +67,78 @@ myScene.action([
         .add("image2")
         .add("image3"),
 ]);
-
 ```
 
 ## 创建自定义服务
 
 ### 实现服务
 
-要实现服务，请继承 `Service` 类并实现抽象方法：
+要实现服务，请继承 `Service` 类。它的两个类型参数分别是服务处理的操作和服务保存的数据：
 
 ```typescript
-class MyCustomService extends Service {
+type MyCustomActions = {
+    myAction: [arg0: string, arg1: number];
+};
+
+type MyCustomData = {
+    count: number;
+};
+
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
+    count = 0;
+
     /**
      * 将服务序列化为数据
      *
      * **注意**：数据必须是 JSON 可序列化的，如果不需要保存则返回 null
      */
-    serialize(): Record<string, any> | null {
-        return null;
+    serialize(): MyCustomData | null {
+        return {count: this.count};
     }
 
     /**
      * 将数据加载到服务中
-     * @param data 从 toData 导出的数据
+     * @param data serialize 返回的数据
      */
-    deserialize(data: Record<string, any>): void {
+    deserialize(data: MyCustomData): void {
+        this.count = data.count;
     }
 }
 ```
+
+- 每次保存游戏时都会调用 `serialize`；每次把一句对话或一个菜单记入历史记录时也会调用，以便玩家之后能回到那里。请返回服务状态的副本，而不是状态本身：引擎会保留 `serialize` 返回的内容，直接返回的引用会跟着服务一起继续变化。
+- 读取存档时会调用 `deserialize`，传入 `serialize` 当时返回的数据。如果存档里没有这个服务的数据（它当时返回了 `null`，或者存档是在注册它之前保存的），就不会调用它，服务保持现有状态。
+- 没有数据要保存的服务，`serialize` 返回 `null`，`deserialize` 留空即可。
 
 ### 注册操作
 
-要注册操作，请使用 `on` 方法，所有注册都在构造函数中完成：
+要注册操作，请在构造函数中使用 `on` 方法。每次操作运行时（包括读取存档之后），都会按名称查找处理函数，所以它必须在故事开始前注册好。找不到处理函数的操作会记录一条警告，然后什么都不做。
 
 ```typescript
-class MyCustomService extends Service {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on("myAction", (ctx: ServiceHandlerCtx, ...args: any[]) => {
+        // ctx、arg0 和 arg1 的类型都来自 MyCustomActions
+        this.on("myAction", (ctx, arg0, arg1) => {
             // 自定义逻辑
         });
     }
+
+    /* serialize 和 deserialize */
 }
 ```
 
-关于 `ServiceHandlerCtx` 的详细说明见 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx)
+关于 `ctx` 的详细说明见 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx)
 
-要启用类型检查，可以定义操作类型：
-
-```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
-    constructor() {
-        super();
-
-        this.on("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
-            // 自定义逻辑
-        });
-    }
-}
-```
+处理函数和触发调用的类型检查都依据操作表。不带操作表声明的服务（`extends Service`）接受任意操作名和任意参数。
 
 ### 异步操作 [#async-actions]
 
 处理函数返回 promise 时，故事会停在这里等它结算，就像等一句对话那样；返回其他值时，故事立即继续。
 
 ```typescript
-this.on("load", async (ctx: ServiceHandlerCtx, url: string) => {
+this.on("load", async (ctx, url: string) => {
     const response = await fetch(url, { signal: ctx.signal });
     const data = await response.json();
     if (ctx.signal.aborted) return; // 等待期间被取消：不要再动游戏
@@ -230,7 +236,7 @@ scene.action([
 也可以把操作包装进自定义方法：
 
 ```typescript
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     myAction(arg0: string, arg1: number) {
         return this.trigger("myAction", arg0, arg1);
     }
@@ -249,28 +255,31 @@ scene.action([
 
 ### 访问服务
 
-创建服务后，要在游戏中注册它：
+创建服务后，要用一个名称把它注册到故事中。注册之后，服务的数据才会进入存档，界面也才能按名称找到它。
 
 ```typescript
 const story = new Story(/* ... */);
 story.registerService("gallery", gallery);
 ```
 
-之后就可以通过 `ctx` 访问服务：
+组件通过 [useLiveGame](/zh/docs/narraleaf-react/player/hooks/useLiveGame) 读取它：
 
 ```tsx
-// 例如，在组件中
-const game = useGame();
-const liveGame = game.getLiveGame();
+function GalleryPage() {
+    const liveGame = useLiveGame();
+    const gallery = liveGame.story?.getService<Gallery>("gallery");
 
-const gallery = liveGame.story?.getService<Gallery>("gallery");
-
-return (
-    {gallery && gallery.unlocked.map((name) => (
-        <div key={name}>{name}</div>
-    ))}
-);
+    return (
+        <ul>
+            {gallery?.unlocked.map((name) => (
+                <li key={name}>{name}</li>
+            ))}
+        </ul>
+    );
+}
 ```
+
+如果该名称下没有注册服务，`getService` 会抛出错误。
 
 ## 公共方法
 
@@ -279,18 +288,14 @@ return (
 <Steps>
 <Step>
 
-注册一个操作处理程序
+注册一个操作处理函数
 
 ```typescript
-type MyCustomActions = {
-    "myAction": [arg0: string, arg1: number]
-};
-
-class MyCustomService extends Service<MyCustomActions> {
+class MyCustomService extends Service<MyCustomActions, MyCustomData> {
     constructor() {
         super();
 
-        this.on<"myAction">("myAction", (ctx: ServiceHandlerCtx, arg0: string, arg1: number) => {
+        this.on("myAction", (ctx, arg0, arg1) => {
             // 自定义逻辑
         });
     }
@@ -298,7 +303,7 @@ class MyCustomService extends Service<MyCustomActions> {
 ```
 
 - `key: K` - 操作键
-- `handler: ServiceHandler<Content[K]>` - 详细说明参见 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx)
+- `handler: ServiceHandler<Content[K]>` - 调用时传入 [ServiceHandlerCtx](/zh/docs/narraleaf-react/core/types/ServiceHandlerCtx) 和操作参数。返回 promise 的处理函数会让故事等到它结算，参见[异步操作](#async-actions)
 - 返回 `this`
 </Step>
 </Steps>
@@ -316,7 +321,7 @@ class MyCustomService extends Service<MyCustomActions> {
 const service = new MyCustomService();
 
 scene.action([
-    service.trigger<"myAction">("myAction", "foo", 123)
+    service.trigger("myAction", "foo", 123)
 ]);
 ```
 
