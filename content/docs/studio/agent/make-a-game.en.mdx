@@ -11,7 +11,7 @@ This walk-through assumes the agent is connected and has the skill or the guide.
 
 ### Prepare the script and the art
 
-Put the script in a text file and the art and audio in one folder. In **Settings → Agent access**, add that folder under **Folders agents may import from**, and switch on **Allow agents to make changes**.
+Put the script in a text file and the art and audio in one folder. In **Settings → Agent access**, switch on **Allow agents to make changes**, and add that folder under **Folders agents may import from**. If you leave the folder out, Studio asks you to allow it the first time the agent reads from it.
 
 Sprites need a transparent background; an opaque one shows as a rectangle. Formats Studio imports:
 
@@ -24,6 +24,8 @@ Sprites need a transparent background; an opaque one shows as a rectangle. Forma
 
 A missing picture is not a blocker: the agent makes a labelled placeholder and tells you.
 
+Art in parts, a PSD or one image per layer and tag such as `mei_body.png` and `mei_eyes_smile.png`, becomes a [layered character](#layered). Voice recordings can sit in the same folder; see [Translation and voice](#translation-and-voice).
+
 </Step>
 
 <Step>
@@ -32,7 +34,7 @@ A missing picture is not a blocker: the agent makes a labelled placeholder and t
 
 For example:
 
-> Make a visual novel from the script in `~/Documents/winter-story/script.txt` with the art in `~/Documents/winter-story/art`. Chinese text, 1920x1080, two endings.
+> Make a visual novel from the script in `~/Documents/my-novel/script.txt` with the art in `~/Documents/my-novel/art`. Chinese text, 1920x1080, two endings.
 
 In a client that shows MCP prompts, the `make_game` prompt starts the same workflow.
 
@@ -58,11 +60,12 @@ The skill sets the order of work:
 | Brief | Agrees on what is being made, as above |
 | Project | Creates the project from the Skeleton template, or opens an existing one, and reuses the template's demo content |
 | Assets | Imports your files under story-friendly names and makes placeholders for what is missing |
-| Cast and variables | Sets up characters with their poses and name colours, and the variables the story needs |
+| Cast and variables | Sets up characters with their poses or layered sprites and name colours, and the variables the story needs |
 | Story | Writes the story one scene per call, with branches, and points the title's start button at the opening scene |
 | Interface | Sets the palette and fonts, then restyles each page, checking a screenshot after every pass, and fills the Extra page through the Gallery tools |
 | Interaction | Adds blueprints only for behaviour the template lacks, such as unlocking CGs |
 | Verify | Runs the checks until there are no errors, runs the route and ending tests, and plays every route to its ending |
+| Translation and voice | Only when you ask: translates the game into the languages you name, and links the voice recordings to their lines |
 | Ship | Builds the game and reports what it made and what is left for you |
 
 </Step>
@@ -71,7 +74,7 @@ The skill sets the order of work:
 
 ### Take over
 
-The agent ends with a report: the scenes, routes and endings it made, every placeholder still in the game, what remains for you, and the built file to open. The project stays open in Studio, and you can keep editing or ask the agent for more.
+The agent ends with a report: the scenes, routes and endings it made, every placeholder still in the game, how far each translation and voice language got, what remains for you, and the built file to open. The project stays open in Studio, and you can keep editing or ask the agent for more.
 
 </Step>
 
@@ -88,6 +91,45 @@ Recollections, music and voice lines unlock by themselves, when the player reach
 3. On the title page's open event, a chain that reads the variable and runs **Unlock Gallery** for that entry when it is true. The title opens at launch and after every playthrough, so the Extra page it leads to is already up to date.
 
 The tools are listed in [Plugin tools](/docs/studio/agent/tools#plugin-tools).
+
+## Layered characters [#layered]
+
+When a character's art comes in parts, the agent builds a layered character instead of one picture per pose: an expression changes the brows, eyes and mouth and keeps the outfit. Layered characters are described in [Characters](/docs/studio/workspace/character-manager). The agent builds one in either of two ways:
+
+- **From images named by layer and tag.** It imports the parts named `<character>_<layer>` for a layer that always draws and `<character>_<layer>_<tag>` for one tag of a layer that changes, such as `mei_body`, `mei_eyes_smile` and `mei_outfit_casual`. It then states the stacking order and which layers change together, such as brows, eyes and mouth under one `expression` axis.
+- **From a PSD.** Each top-level group of two or more layers becomes an axis whose tags are the layers inside it, and every other layer always draws. Layers are baked to the full canvas and imported as assets; hidden layers are left out. A layer whose blend mode the stage cannot draw, such as multiply or screen, is merged onto the layer below or skipped, and the agent asks you which when it is unsure.
+
+Every layer image must be the full canvas size, transparent around the part, or Studio refuses the character and lists the sizes. The agent looks at the combinations a scene uses in a preview before writing it.
+
+Turning an existing character into a layered one, or back, discards its current looks, and the story rows that chose one fall back to the default. Studio refuses the switch until the agent confirms it, and the skill has the agent show you those rows and ask first.
+
+Live2D and Spine characters are set up by you in the character editor. The agent reads them and writes the rows that drive them, with the names the model offers.
+
+## Translation and voice [#translation-and-voice]
+
+The agent does these only when you ask, and only once the story is final: every later edit to a line puts its translation and its recording out of date.
+
+### Translations
+
+The agent adds the language to the project, then translates the names first and agrees a glossary with you, then the interface and named keys, then the story scene by scene. It covers story lines, character, scene and ending names, interface text, named translation keys, and text that plugins offer for translation.
+
+- Values the game fills in, such as `{0}`, and the tags around styled words and pauses are kept. A batch that loses one is still written, but the agent is told and sends those lines again.
+- Each batch carries the revision of every line the agent read. A line you edited in the meantime is skipped and handed back with its new source.
+- What the agent writes is marked **Machine**. Approve it in the translation table's **Review** mode. The agent marks lines **Translated** or **Reviewed** only when you tell it to.
+- Each batch is one step of undo, however many lines it holds. With **Follow agent edits** on, Studio opens that language's translation table.
+
+Translation itself is described in [Localization](/docs/studio/workspace/localization).
+
+### Voice-over
+
+Studio does not record. The agent links recordings you already have to the lines they belong to:
+
+1. It sets the voice languages, which are separate from the text languages: a game can be read in English and voiced in Japanese.
+2. It lists each voiced line's expected file name under the recording rule, `{scene}_{index}_{character}` by default: the scene name, the line's position among the voiced lines of its scene (`001`, `002`, …) and the speaker. Hand the list to whoever records, or have the rule changed before recording starts, since files are matched by it.
+3. It imports the recordings into one asset folder and links each line to the asset whose library name matches the line's expected name. Case, spaces, punctuation, file extensions and folders are ignored, so `Opening_001_Aoi.ogg` and `opening 001 aoi.wav` both match. A name that two assets or two lines share is never guessed at.
+4. It links what is left one by one, and lists the lines still missing a recording.
+
+A new take shows as **Voiced**. The agent marks a take **Approved** only when you say you listened to it. A misnamed recording is fixed by renaming its asset, since matching reads the library name. Each call that links takes is one step of undo, and with **Follow agent edits** on, Studio opens that language's voice table.
 
 ## Watching the agent [#watching]
 
@@ -127,11 +169,11 @@ The log holds the last 500 calls of this window in memory. It records what you c
 
 **Pause.** **Pause agent**, in the status bar cell or the **Agent** menu, refuses every change from agents in this project until **Resume agent**. The agent can still read, which is how it catches up on what you changed meanwhile. A pause lasts for the session and is not remembered after Studio restarts.
 
-**Undo.** Each call that changes the project is one step of undo. **Ctrl+Z** (**Cmd+Z** on macOS) takes back the agent's last change as it would one of yours. The skill tells the agent to treat an undone change as a no and to ask before trying it again.
+**Undo.** Each call that changes the project is one step of undo, including a character edit and a whole batch of translations or voice links. **Ctrl+Z** (**Cmd+Z** on macOS) takes back the agent's last change as it would one of yours. The skill tells the agent to treat an undone change as a no and to ask before trying it again.
 
 **Edit alongside it.** You can edit the page or scene the agent is working on. The agent's next write carries the revision it read, so it is refused with `stale_revision`; the agent reads your version again and redoes its change on top of it. Your edit wins.
 
-**Stop it entirely.** Switching off **Allow agents to make changes** refuses every change from every agent until it is switched on again. Switching off **Allow agents to connect** stops the endpoint.
+**Stop it entirely.** Switching off **Allow agents to make changes**, and **Full access** if it is on, refuses every change from every agent until one of them is switched on again. Switching off **Allow agents to connect** stops the endpoint.
 
 ## What usually remains
 
@@ -140,5 +182,8 @@ The agent lists these in its report. The usual ones:
 - Sprites with an opaque background, which show as rectangles until you supply cut-outs.
 - Placeholder images standing in for art that was not supplied.
 - Files in formats Studio cannot play, which need converting.
-- Translations into other languages, and leftover demo content.
+- Translations marked **Machine**, waiting for your review, and voice takes waiting for approval.
+- Recordings still missing, listed by scene and expected file name.
+- Live2D and Spine characters, which you set up in the character editor.
+- Leftover demo content.
 - The application icon and code signing, set under **Identity** and **Signing** in the build dialog. See [Run and Package](/docs/studio/getting-started/run-and-package).

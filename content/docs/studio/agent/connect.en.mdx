@@ -33,7 +33,9 @@ Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://1
 
 Switch on **Allow agents to make changes** when the agent should edit. It is off by default. While it is off, the agent can read the project and every change it tries is refused.
 
-Turning it on from the menu bar, **Agent → Allow agents to modify the project**, asks for confirmation first.
+Turning it on from the menu bar, **Agent → Allow agents to modify the project**, asks for confirmation first, in a Studio window.
+
+**Full access**, below it, is off by default and is not needed to make a game. It lets agents change projects and read any folder without asking; see [Full access](/docs/studio/agent/security#full-access) before turning it on.
 
 </Step>
 
@@ -42,6 +44,8 @@ Turning it on from the menu bar, **Agent → Allow agents to modify the project*
 ### Add the folders that hold your files
 
 Under **Folders agents may import from**, **Add folder…** adds the folder that holds the art and audio the agent should import. Files inside the project can always be imported.
+
+This step is optional. When an agent needs a file from any other folder, Studio asks you in a window, **Allow the agent to read a folder?**, and a folder you allow is added to this list. See [Folders outside the project](/docs/studio/agent/security#folders).
 
 </Step>
 
@@ -75,7 +79,8 @@ A project window's menu bar has an **Agent** menu:
 | **Follow agent edits** | Opens the editor where each change lands |
 | **Agent log** | Opens the log of every call in this project |
 | **Enable agent access** | The same switch as **Allow agents to connect** |
-| **Allow agents to modify the project** | The same switch as **Allow agents to make changes**, with a confirmation when turned on |
+| **Allow agents to modify the project** | The same switch as **Allow agents to make changes**, with a confirmation when turned on. While full access is on, it shows as on and cannot be switched |
+| **Allow agents full access** | The same switch as **Full access**, with a confirmation when turned on |
 | **Copy connection configuration** | Claude Code, opencode, JSON, or **stdio (Claude Desktop)** |
 | **Export Agent Skill…** | Writes the skill folder to a folder you pick |
 | **Agent access settings…** | Opens **Settings → Agent access** |
@@ -252,7 +257,7 @@ Agents that read `AGENTS.md`, such as opencode, Codex, Cursor and Gemini CLI wit
 The server serves the guide itself, so an agent gets it with no skill installed:
 
 - The **`make_game` prompt** starts the whole workflow in clients that show MCP prompts, often as a slash command such as `/make_game`, or `/mcp__narraleaf__make_game` in Claude Code.
-- The **`agent_guide` tool** returns any chapter: `workflow`, `story-format`, `ui-format`, `blueprint-format`, `ui-design`, `script-adaptation`, `verify-and-ship`, `troubleshooting`.
+- The **`agent_guide` tool** returns any chapter: `workflow`, `story-format`, `ui-format`, `blueprint-format`, `ui-design`, `script-adaptation`, `layered-sprites`, `verify-and-ship`, `localization-and-voice`, `troubleshooting`.
 - The same chapters are MCP resources at `narraleaf://guide/<chapter>`.
 
 With any MCP client, this first message works:

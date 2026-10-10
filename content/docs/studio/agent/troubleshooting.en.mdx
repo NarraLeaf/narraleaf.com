@@ -1,6 +1,6 @@
 ---
 title: Troubleshooting
-description: When an agent cannot reach Studio, and what each refusal code means.
+description: When an agent cannot reach Studio, when it waits on a folder, and what each refusal code means.
 ---
 
 ## The agent cannot connect
@@ -31,20 +31,33 @@ A plugin's tools exist only while a project that loads the plugin is open. `agen
 | The plugin's tools are switched off | Switch them on under **Settings → Agent access → Plugin tools**. A call to a switched-off tool is refused with `unavailable` |
 | More than one project is open, and the call went to one that does not load the plugin | The refusal, `unknown_tool`, names the projects that offer the tool. Ask the agent to name one of them |
 
+## Folder prompts [#folder-prompts]
+
+When an agent needs a file outside the project and the allowed folders, Studio opens **Allow the agent to read a folder?** to ask you. Until the folder is allowed, the call is refused with `path_not_allowed`, shown as **Folder not allowed** in the **Agent log**, and the row's **Next step** says which case it is. See [Folders outside the project](/docs/studio/agent/security#folders).
+
+| What the agent reports | Cause | What to do |
+| --- | --- | --- |
+| **Waiting for the author:** followed by the folder, or the answer `pending` | The prompt is open and you have not answered. A call waits about 50 seconds, then returns while the prompt stays up | Answer the prompt. Once you allow it, the agent's next try goes through. If you cannot see the prompt, look over the project window the agent works on; a prompt that another one is still waiting behind opens when that one is answered |
+| **Declined by the author:** followed by the folder | You chose **Deny**, closed the prompt or pressed Escape. The agent is told not to ask again | To allow it after all, add the folder with **Add folder…** under **Folders agents may import from**, then tell the agent to try again. For 60 seconds after a denial, Studio answers the same folder as declined without asking, so asking the agent to retry at once brings no new prompt |
+| **Not allowed:** followed by the folder and a reason, and no prompt | The folder is a drive root, your home folder as a whole, a folder containing it, or one of Studio's own folders, which are never offered | Ask the agent to name the specific folder that holds the files, or copy the files into the project folder |
+| A request for more than five folders is partly answered | One prompt names at most five folders | Nothing. The agent asks again for the rest |
+
+With [full access](/docs/studio/agent/security#full-access) on, Studio asks about no folder, and the folders it never offers stay closed.
+
 ## Refusal codes
 
 When Studio refuses a call, the agent receives a code, a message and often a next step, and the row in the **Agent log** shows the code's name. The guide tells the agent what to do with each one; the table is what you do.
 
 | Code | Agent log shows | Meaning | What you do |
 | --- | --- | --- | --- |
-| `writes_disabled` | **Changes not allowed** | **Allow agents to make changes** is off | Switch it on if the agent should edit. Reading still works |
+| `writes_disabled` | **Changes not allowed** | **Allow agents to make changes** and **Full access** are both off | Switch on **Allow agents to make changes** if the agent should edit. Reading still works |
 | `paused` | **Paused** | You paused the agent in this project | **Resume agent** when it may continue |
 | `frozen` | **Project frozen** | The project is not accepting changes: a past version is open, it was frozen by hand, a merge is unfinished, Studio is in recovery mode, or another window took it over | Finish or leave that state; the agent retries |
 | `live_session` | **Live session running** | A Team live session is running in the project | Leave the session, or let the agent work read-only until it ends |
 | `stale_revision` | **Changed since read** | The page or scene changed after the agent read it, usually because you edited it | Nothing. The agent reads it again and redoes its change on your version |
 | `check_failed` | **Check failed** | The text the agent sent did not compile, or the check found an error. Nothing was written | Nothing, unless it repeats. The agent fixes the findings and writes again |
 | `not_found` | **Not found** | A scene, page, element, asset or character the call names does not exist | Nothing, unless it repeats. The agent lists what exists and retries |
-| `path_not_allowed` | **Folder not allowed** | An import from a folder outside the project and the allowed folders | Add the folder under **Folders agents may import from**, or copy the files into the project folder |
+| `path_not_allowed` | **Folder not allowed** | A read from a folder outside the project and the allowed folders that was not allowed: the prompt is still waiting, you declined it, or Studio never offers that folder | See [Folder prompts](#folder-prompts) |
 | `untrusted` | **Project not trusted** | The project is not trusted, so it may not be played, tested or built | Trust it from **Not trusted** in the status bar, if you trust where it came from |
 | `no_workspace` | **No open project** | No project is open, or several are and the call did not say which | Open the project, or ask the agent to name its folder |
 | `invalid_args` | **Invalid arguments** | The arguments do not fit the tool | Nothing. The agent corrects the call |

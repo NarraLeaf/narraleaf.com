@@ -3,7 +3,7 @@ title: Tools
 description: Every tool Studio's MCP server offers, grouped by what it works on.
 ---
 
-Studio's MCP server has 54 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
+Studio's MCP server has 66 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
 
 **Changes the project** marks the tools that are refused while **Allow agents to make changes** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
 
@@ -13,8 +13,9 @@ Every tool that works on a project takes an optional `project`, the project fold
 
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
-| `agent_status` | Studio status | No | Says which projects are open in Studio, whether write access is on, whether the agent is paused, and which directories it may import files from. Call it first |
+| `agent_status` | Studio status | No | Says which projects are open in Studio, whether write access and full access are on, whether the agent is paused, and which directories it may import files from. Call it first |
 | `agent_guide` | Read the guide | No | Returns one chapter of the NarraLeaf game-making guide as Markdown |
+| `request_folder_access` | Ask for folder access | No | Asks you, in one Studio window, to let the agent read the folders that hold the files it names, before a big import. Answers `granted`, `denied` or `pending` |
 
 ## Projects
 
@@ -30,7 +31,7 @@ Every tool that works on a project takes an optional `project`, the project fold
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
 | `assets_list` | List assets | No | Lists the project's assets with id, name, type and folder |
-| `assets_import` | Import files | Yes | Imports files from disk into the project |
+| `assets_import` | Import files | Yes | Imports files from disk into the project. A file outside the project and the allowed folders makes Studio ask you for its folder first |
 | `asset_delete` | Delete an asset | Yes | Deletes an asset from the project, for example the Skeleton template's leftover demo pictures and music once nothing uses them |
 | `assets_placeholder` | Make a placeholder image | Yes | Generates a solid-colour PNG with an optional caption and imports it as an image asset |
 | `audio_tracks_list` | List audio tracks | No | Lists the audio tracks (Music, Sound, Voice and any custom ones) that `/bgm track=` and sound props can name |
@@ -39,12 +40,17 @@ Every tool that works on a project takes an optional `project`, the project fold
 
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
-| `characters_list` | List characters | No | Lists characters with id, name, nicknames, name colour, poses (sprite images) and `entranceTransform` (how big the sprite is drawn and where it stands) |
+| `characters_list` | List characters | No | Lists characters with id, name, nicknames, name colour, kind, their looks (a preset character's poses, a layered character's axes and layers, a Live2D or Spine character's model) and `entranceTransform` (how big the sprite is drawn and where it stands) |
 | `character_upsert` | Create or update a character | Yes | Creates a character, or updates the one with this `id` or exact `name` |
+| `character_layered_set` | Lay out a layered character | Yes | Creates a layered character, or replaces the looks of one: its axes with their tags, and its layers from bottom to top |
+| `character_layers_import` | Build a layered character from files | Yes | Builds a layered character from image assets named `<prefix>_<layer>` and `<prefix>_<layer>_<tag>`, or from a PSD |
+| `character_preview` | Preview a character look | No | Returns a picture of one look of a character, composited as Studio's editor draws it |
 | `character_delete` | Delete a character | Yes | Deletes a character, for example the Skeleton template's demo cast |
 | `variables_list` | List variables | No | Lists the project's global variables (saved with the game or persistent across saves) |
 | `variable_upsert` | Create or update a variable | Yes | Declares a global variable, or updates one by `id` (the way to rename one, since rows and nodes hold the id) or by exact `name` |
 | `variable_delete` | Delete a variable | Yes | Deletes a global variable, for example the Skeleton template's demo variables |
+
+Each character edit is one step of undo. Turning a character of another kind into a layered one, or a layered one back into poses, discards its looks, so `character_upsert`, `character_layered_set` and `character_layers_import` refuse it until the call passes `confirmSwitch: true`. The refusal lists the story rows that chose one of the looks. Live2D and Spine characters are read only; they are set up in Studio's character editor.
 
 ## Story
 
@@ -89,6 +95,28 @@ Every tool that works on a project takes an optional `project`, the project fold
 | `blueprint_list` | List blueprints | No | Lists blueprints with their owner (page or element) and event heads |
 | `blueprint_show` | Read a blueprint as text | No | Prints one blueprint (or all of one owner) in the `.bp` text format |
 | `blueprint_apply` | Write blueprints | Yes | Applies a `.bp` document: each `blueprint` block replaces every graph of its owner |
+
+## Translation and voice
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `localization_status` | Translation progress | No | How far each target language is translated, by status and by origin, and with one language each scene's lines left to do |
+| `localization_list` | List text to translate | No | Lists the translation units of one language in reading order, a page at a time, each with its source, translation, status and `rev` |
+| `localization_set` | Write translations | Yes | Writes translations of one language, up to 1000 per call, in one step of undo |
+| `voice_status` | Voice-over progress | No | The voice languages, the recording file-name rule, whether choice options are voiced, and per language and character how many lines have a take |
+| `voice_list` | List voiced lines | No | Lists the voiced lines of one voice language in story order, each with its expected file name, linked take and status |
+| `voice_link` | Link voice takes | Yes | Links audio assets to voiced lines one by one, unlinks them, or approves a take, in one step of undo |
+| `voice_auto_link` | Link takes by name | Yes | Links every voiced line to the audio asset named after it by the recording rule, in one step of undo |
+| `voice_settings_set` | Change voice settings | Yes | Sets the voice languages, the recording file-name rule and whether choice options are voiced |
+
+A translation unit is a story line, a character, scene, ending or `/rename` name, a word on a page or component, a named translation key, or text a plugin offers. One id runs through all of them, so they are listed and written the same way, and a story line's id is also its voice line.
+
+- **Statuses.** A translation is `missing`, `machine`, `translated`, `reviewed` or `stale`, the last when the source changed after it was translated. `localization_set` writes `machine` unless told otherwise; the translation table shows it as **Machine**. A take is `missing`, `linked`, `approved` or `stale`; the voice table shows a linked take as **Voiced** and a stale one as **Outdated**.
+- **Markup.** A unit's source shows the values the game fills in as `{0}` and styled words and pauses as run tags, `‹1›word‹/1›` and `‹2/›`. A translation that loses one, a `{name}` placeholder or a line break is written with a warning for that unit.
+- **Revisions.** Each unit carries a `rev`. A unit whose source changed since the agent listed it is skipped and returned with its new source.
+- **The recording rule.** The default is `{scene}_{index}_{character}`; it also takes `{locale}` and `{unit}`. Names are compared ignoring case, spaces, punctuation and folders, against each asset's library name. A name that several assets or several lines share is returned as ambiguous, never guessed at.
+
+The game's text languages are set with `project_settings_set`, its voice languages with `voice_settings_set`. `localization_set`, `voice_link` and `voice_auto_link` take `dryRun: true`, which checks and writes nothing, as do `character_layered_set` and `character_layers_import`.
 
 ## Checking and building
 
@@ -152,7 +180,9 @@ The formats are described in the guide's `story-format`, `ui-format` and `bluepr
 | `blueprint-format` | The `.bp` format |
 | `ui-design` | Designing visual-novel interfaces |
 | `script-adaptation` | Turning a script into scenes |
+| `layered-sprites` | Layered characters: axes, layers, building one from files or a PSD |
 | `verify-and-ship` | Checks, tests, play-testing and building |
+| `localization-and-voice` | Translating the game and linking voice recordings |
 | `troubleshooting` | Refusals and what to do about them |
 | `plugin:<plugin id>` | The chapter an enabled plugin ships, such as `plugin:narraleaf.gallery` |
 

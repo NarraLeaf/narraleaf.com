@@ -3,7 +3,7 @@ title: 工具
 description: Studio MCP 服务器提供的全部工具，按作用对象分组
 ---
 
-Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添加更多，见[插件工具](#plugin-tools)。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
+Studio 的 MCP 服务器自带 66 个工具，列于下文，插件还可以添加更多，见[插件工具](#plugin-tools)。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
 
 **修改项目**为“是”的工具在 **允许 Agent 修改工程** 关闭时会被拒绝；作用于已打开项目的，在 Agent 暂停、项目冻结以及 Team 实时会话期间也会被拒绝。其余工具只读取，试玩也属于其中，因此 Agent 无需修改权限即可检查游戏
 
@@ -13,8 +13,9 @@ Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添�
 
 | 工具 | Studio 中显示为 | 修改项目 | 用途 |
 | --- | --- | --- | --- |
-| `agent_status` | 查询 Studio 状态 | 否 | 报告 Studio 中打开了哪些项目、是否允许修改、Agent 是否已暂停，以及可以从哪些目录导入文件，应最先调用 |
+| `agent_status` | 查询 Studio 状态 | 否 | 报告 Studio 中打开了哪些项目、是否允许修改、是否开启了完全访问、Agent 是否已暂停，以及可以从哪些目录导入文件，应最先调用 |
 | `agent_guide` | 阅读指南 | 否 | 以 Markdown 返回 NarraLeaf 游戏制作指南中的一章 |
+| `request_folder_access` | 请求文件夹访问权限 | 否 | 在大批量导入之前，通过一个 Studio 窗口请作者允许 Agent 读取所列文件所在的文件夹，结果为 `granted`、`denied` 或 `pending` |
 
 ## 项目
 
@@ -30,7 +31,7 @@ Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添�
 | 工具 | Studio 中显示为 | 修改项目 | 用途 |
 | --- | --- | --- | --- |
 | `assets_list` | 列出资产 | 否 | 列出项目的资产，含 id、名称、类型和文件夹 |
-| `assets_import` | 导入文件 | 是 | 把磁盘上的文件导入项目 |
+| `assets_import` | 导入文件 | 是 | 把磁盘上的文件导入项目。文件位于项目目录和允许的文件夹之外时，Studio 会先询问作者是否允许读取其所在的文件夹 |
 | `asset_delete` | 删除资产 | 是 | 从项目中删除资产，例如骨架模板残留的示例图片和音乐不再被使用之后 |
 | `assets_placeholder` | 生成占位图 | 是 | 生成一张纯色 PNG，可附说明文字，并作为图片资产导入 |
 | `audio_tracks_list` | 列出音轨 | 否 | 列出 `/bgm track=` 与声音属性可以指定的音轨（音乐、音效、语音及自定义音轨） |
@@ -39,12 +40,17 @@ Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添�
 
 | 工具 | Studio 中显示为 | 修改项目 | 用途 |
 | --- | --- | --- | --- |
-| `characters_list` | 列出角色 | 否 | 列出角色，含 id、名称、别名、名字颜色、姿态（立绘图片）和 `entranceTransform`（立绘绘制的大小与站位） |
+| `characters_list` | 列出角色 | 否 | 列出角色，含 id、名称、别名、名字颜色、类型、外观（预设角色的姿态，分层立绘角色的轴与图层，Live2D 或 Spine 角色的模型）和 `entranceTransform`（立绘绘制的大小与站位） |
 | `character_upsert` | 新建或更新角色 | 是 | 新建角色，或更新具有该 `id` 或完全相同 `name` 的角色 |
+| `character_layered_set` | 设置分层立绘角色 | 是 | 新建分层立绘角色，或替换已有角色的外观：各个轴及其标签，以及自下而上的图层 |
+| `character_layers_import` | 从文件构建分层立绘 | 是 | 用命名为 `<prefix>_<layer>` 和 `<prefix>_<layer>_<tag>` 的图片资产或一个 PSD 构建分层立绘角色 |
+| `character_preview` | 预览角色外观 | 否 | 返回角色某一外观的图片，合成方式与 Studio 编辑器相同 |
 | `character_delete` | 删除角色 | 是 | 删除角色，例如清理骨架模板的示例角色 |
 | `variables_list` | 列出变量 | 否 | 列出项目的全局变量（随存档保存，或跨存档持久保存） |
 | `variable_upsert` | 新建或更新变量 | 是 | 声明全局变量，或按 `id`（重命名的方式，行与节点保存的是 id，会随之更新）或完全相同的 `name` 更新已有变量 |
 | `variable_delete` | 删除变量 | 是 | 删除全局变量，例如清理骨架模板的示例变量 |
+
+每次角色编辑记为一步撤销。把其他类型的角色改为分层立绘，或把分层立绘改回姿态，会丢弃角色现有的外观，因此 `character_upsert`、`character_layered_set` 和 `character_layers_import` 在调用未传入 `confirmSwitch: true` 时会拒绝，拒绝消息中列出选用了这些外观的故事行。Live2D 和 Spine 角色只能读取，需在 Studio 的角色编辑器中设置
 
 ## 故事
 
@@ -89,6 +95,28 @@ Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添�
 | `blueprint_list` | 列出蓝图 | 否 | 列出蓝图及其所有者（页面或元素）和事件入口 |
 | `blueprint_show` | 读取蓝图文本 | 否 | 以 `.bp` 文本格式输出一个蓝图（或一个所有者的全部蓝图） |
 | `blueprint_apply` | 写入蓝图 | 是 | 应用 `.bp` 文档：每个 `blueprint` 块替换其所有者的全部图 |
+
+## 翻译与配音
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `localization_status` | 翻译进度 | 否 | 各目标语言的翻译进度，按状态和来源分列；指定一种语言时还列出每个场景剩余的台词 |
+| `localization_list` | 列出待翻译文本 | 否 | 按阅读顺序分页列出某一语言的翻译单元，每条含原文、译文、状态和 `rev` |
+| `localization_set` | 写入翻译 | 是 | 写入某一语言的译文，每次最多 1000 条，记为一步撤销 |
+| `voice_status` | 配音进度 | 否 | 配音语言、录音文件名规则、选项是否配音，以及各语言、各角色已有录音的台词数 |
+| `voice_list` | 列出配音台词 | 否 | 按故事顺序分页列出某一配音语言的配音台词，每条含预期文件名、已链接的录音和状态 |
+| `voice_link` | 链接配音 | 是 | 逐条为配音台词链接或取消链接音频资产，或审听通过已有录音，记为一步撤销 |
+| `voice_auto_link` | 按名称链接配音 | 是 | 把每句配音台词链接到按录音文件名规则与之同名的音频资产，记为一步撤销 |
+| `voice_settings_set` | 修改配音设置 | 是 | 设置配音语言、录音文件名规则，以及选项是否配音 |
+
+翻译单元可以是一句故事台词，角色、场景、结局或 `/rename` 的名称，页面或组件上的文字，一个具名翻译键，或插件提供的文本。所有单元共用同一套 id，因此列出和写入的方式相同，故事台词的 id 同时也是它的配音台词 id
+
+- **状态**：译文的状态为 `missing`、`machine`、`translated`、`reviewed` 或 `stale`，最后一种表示翻译之后原文又有改动。`localization_set` 默认写入 `machine`，翻译表中显示为 **机翻**。录音的状态为 `missing`、`linked`、`approved` 或 `stale`，配音表中已链接的录音显示为 **已配音**，过时的显示为 **待更新**
+- **标记**：翻译单元的原文用 `{0}` 表示游戏填入的值，用 `‹1›word‹/1›` 和 `‹2/›` 这类运行标签表示样式文字和停顿。丢失了其中某项、`{name}` 占位符或换行的译文仍会写入，但该单元会附带警告
+- **版本**：每个单元带有 `rev`。Agent 列出之后原文有改动的单元会被跳过，并连同新的原文一起返回
+- **录音文件名规则**：默认为 `{scene}_{index}_{character}`，也可以使用 `{locale}` 和 `{unit}`。比较时忽略大小写、空格、标点和文件夹，对照的是资产库中的名称。多个资产或多句台词共用的名称会作为有歧义的结果返回，不做猜测
+
+游戏的文本语言用 `project_settings_set` 设置，配音语言用 `voice_settings_set` 设置。`localization_set`、`voice_link` 和 `voice_auto_link` 接受 `dryRun: true`，只检查、不写入，`character_layered_set` 和 `character_layers_import` 也是如此
 
 ## 检查与构建
 
@@ -152,7 +180,9 @@ Agent 通过三种文本格式读写项目内容：
 | `blueprint-format` | `.bp` 格式 |
 | `ui-design` | 视觉小说界面的设计 |
 | `script-adaptation` | 把剧本转为场景 |
+| `layered-sprites` | 分层立绘角色：轴、图层，以及用文件或 PSD 构建 |
 | `verify-and-ship` | 检查、测试、试玩与构建 |
+| `localization-and-voice` | 翻译游戏与链接配音录音 |
 | `troubleshooting` | 各种拒绝及其处理 |
 | `plugin:<plugin id>` | 已启用插件附带的章节，例如 `plugin:narraleaf.gallery` |
 

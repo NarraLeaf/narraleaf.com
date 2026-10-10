@@ -33,7 +33,9 @@ description: 在 Studio 中开启 Agent 接入，把 Studio 添加到 MCP 客户
 
 需要 Agent 编辑项目时，打开 **允许 Agent 修改工程**。该开关默认关闭；关闭时 Agent 可以读取项目，所有修改操作都会被拒绝
 
-从菜单栏的**智能体 → 允许 Agent 修改工程**打开时，Studio 会先请求确认
+从菜单栏的**智能体 → 允许 Agent 修改工程**打开时，Studio 会先在自己的窗口中请求确认
+
+其下方的 **完全访问** 默认关闭，制作游戏并不需要它。开启后 Agent 可以修改工程，并可不经询问读取任意文件夹，开启前请先阅读[完全访问](/zh/docs/studio/agent/security#full-access)
 
 </Step>
 
@@ -42,6 +44,8 @@ description: 在 Studio 中开启 Agent 接入，把 Studio 添加到 MCP 客户
 ### 添加存放素材的文件夹
 
 在 **允许导入素材的文件夹** 下，用 **添加文件夹…** 添加存放美术和音频素材的文件夹。项目目录内的文件始终允许导入
+
+这一步可以跳过。Agent 需要读取其他文件夹中的文件时，Studio 会弹出 **允许 Agent 读取文件夹？** 窗口询问作者，作者允许的文件夹会添加到该列表中，见[项目以外的文件夹](/zh/docs/studio/agent/security#folders)
 
 </Step>
 
@@ -75,7 +79,8 @@ description: 在 Studio 中开启 Agent 接入，把 Studio 添加到 MCP 客户
 | **跟随 Agent 的编辑** | 打开每次修改所在的编辑器 |
 | **Agent 日志** | 打开本项目所有调用的日志 |
 | **启用 Agent 接入** | 与 **允许 Agent 连接** 是同一个开关 |
-| **允许 Agent 修改工程** | 与设置中的同名开关相同，打开时需要确认 |
+| **允许 Agent 修改工程** | 与设置中的同名开关相同，打开时需要确认。完全访问开启期间显示为已打开，且不能切换 |
+| **允许 Agent 完全访问** | 与设置中的 **完全访问** 是同一个开关，打开时需要确认 |
 | **复制连接配置** | Claude Code、opencode、JSON 或 **stdio（Claude Desktop）** |
 | **导出 Agent Skill…** | 把 Skill 文件夹写入选定的位置 |
 | **Agent 接入设置…** | 打开**设置 → Agent 接入** |
@@ -252,7 +257,7 @@ Skill 就是 `narraleaf-make-game` 文件夹。把整个文件夹（而不只是
 服务器自身也提供这份指南，因此未安装 Skill 的 Agent 同样可以获得：
 
 - **`make_game` 提示词**：在显示 MCP 提示词的客户端中启动整个流程，通常是 `/make_game` 这样的斜杠命令，在 Claude Code 中为 `/mcp__narraleaf__make_game`
-- **`agent_guide` 工具**：返回任意一章，包括 `workflow`、`story-format`、`ui-format`、`blueprint-format`、`ui-design`、`script-adaptation`、`verify-and-ship`、`troubleshooting`
+- **`agent_guide` 工具**：返回任意一章，包括 `workflow`、`story-format`、`ui-format`、`blueprint-format`、`ui-design`、`script-adaptation`、`layered-sprites`、`verify-and-ship`、`localization-and-voice`、`troubleshooting`
 - 同样的章节也以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`
 
 对任何 MCP 客户端，下面这条首条消息都适用：

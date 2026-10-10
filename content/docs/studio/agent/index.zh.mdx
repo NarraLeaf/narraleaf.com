@@ -16,11 +16,12 @@ Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Stud
 | 范围 | 工具涵盖的内容 |
 | --- | --- |
 | 项目 | 用骨架或空白模板新建项目、打开项目，修改名称、设计分辨率和游戏语言 |
-| 资产 | 导入图片、音频、视频和字体，生成带说明文字的占位图，删除未被使用的资产，列出音轨 |
-| 角色与变量 | 新建、更新和删除角色，设置图片姿态与登场位置；声明、重命名和删除全局变量 |
+| 资产 | 导入图片、音频、视频和字体，生成带说明文字的占位图，删除未被使用的资产，列出音轨，请求读取项目以外的文件夹 |
+| 角色与变量 | 新建、更新和删除角色，设置图片姿态与登场位置；用按图层和标签命名的图片或 PSD 构建分层立绘角色，并预览其外观；声明、重命名和删除全局变量 |
 | 故事 | 以 `.story` 文本读写整个场景；新建、重命名和删除场景；设置入口场景；重命名故事 |
 | 界面 | 以 `.ui` 文本读写页面、游戏 UI 和组件，对元素做小修改，应用界面模板，设置配色与字体，截取页面或单个控件在悬停、按下状态下的图像，读取作者当前的选择 |
 | 蓝图 | 以 `.bp` 文本读写蓝图 |
+| 翻译与配音 | 把故事台词、名称、界面文本、具名键和插件文本翻译为游戏的各个语言，译文标记为 **机翻**，等待作者审校；设置配音语言和录音文件名规则，按名称批量或逐条把录音链接到台词 |
 | 插件 | 项目中已加载插件的工具所提供的操作，内置的 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件可以用 CG、回想、音乐和语音填充鉴赏界面 |
 | 检查与构建 | 运行项目检查和内置测试，在开发模式中逐行试玩，读取控制台，为当前系统、Windows、macOS、Linux 或 Web 构建 |
 
@@ -29,13 +30,13 @@ Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Stud
 ## Agent 不能做什么
 
 - 编辑由插件管理的数据，除非该插件为这些数据提供了 Agent 工具。见[插件工具](/zh/docs/studio/agent/tools#plugin-tools)
-- 编辑译文。可以增删游戏提供的语言，译文本身在[本地化](/zh/docs/studio/workspace/localization)中编辑
-- 设置语音表、分层立绘、Live2D 或 Spine 模型。角色的姿态是单张图片资产，导入仅限图片、音频、视频和字体
+- 设置 Live2D 或 Spine 角色。模型及其运行时在[角色编辑器](/zh/docs/studio/workspace/character-manager)中设置，Agent 负责书写驱动它们的故事行
 - 修改音频总线。只能列出音轨
 - 设置项目图标、签名凭据或其他构建设置，也不能构建 Android 或 iOS 版本
 - 删除页面。游戏不需要的部分会被隐藏
 - 在运行中的游戏里按下按钮。控件的各种状态通过截图检查
 - 直接写入项目目录中的文件。所有修改都经由工具完成，作者可以看到并撤销
+- 读取 Studio 自身的文件夹、整个主文件夹或磁盘根目录，开启完全访问时也是如此。见[项目以外的文件夹](/zh/docs/studio/agent/security#folders)
 
 ## 两个组成部分
 
@@ -49,6 +50,6 @@ Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Stud
   <Card title="连接 Agent" description="开启 Agent 接入，并把 Studio 添加到 Agent 中" href="/zh/docs/studio/agent/connect" />
   <Card title="用 Agent 制作游戏" description="从剧本和美术素材到构建完成的游戏，以及如何介入" href="/zh/docs/studio/agent/make-a-game" />
   <Card title="工具" description="全部工具，按作用对象分组" href="/zh/docs/studio/agent/tools" />
-  <Card title="Agent 接入开放了什么" description="谁能访问端点，以及限制它的各项开关" href="/zh/docs/studio/agent/security" />
+  <Card title="Agent 接入开放了什么" description="谁能访问端点，Agent 可以读取哪些文件夹，以及限制它的各项开关" href="/zh/docs/studio/agent/security" />
   <Card title="故障排查" description="连接问题与拒绝代码" href="/zh/docs/studio/agent/troubleshooting" />
 </Cards>
