@@ -5936,6 +5936,7 @@ __metadata:
   resolution: "narraleaf.com@workspace:."
   dependencies:
     "@emotion/is-prop-valid": "npm:^1.4.0"
+    "@orama/orama": "npm:^3.1.18"
     "@tailwindcss/postcss": "npm:^4.2.4"
     "@types/mdx": "npm:^2.0.13"
     "@types/node": "npm:^25.6.0"
