@@ -1,0 +1,135 @@
+---
+title: 工具
+description: Studio MCP 服务器提供的全部工具，按作用对象分组
+---
+
+Studio 的 MCP 服务器提供 54 个工具。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
+
+**修改项目**为“是”的工具在 **允许 Agent 修改工程** 关闭时会被拒绝；作用于已打开项目的，在 Agent 暂停、项目冻结以及 Team 实时会话期间也会被拒绝。其余工具只读取，试玩也属于其中，因此 Agent 无需修改权限即可检查游戏
+
+所有作用于项目的工具都接受可选参数 `project`，即项目目录的绝对路径，仅在同时打开多个项目时需要
+
+## 会话与指南
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `agent_status` | 查询 Studio 状态 | 否 | 报告 Studio 中打开了哪些项目、是否允许修改、Agent 是否已暂停，以及可以从哪些目录导入文件，应最先调用 |
+| `agent_guide` | 阅读指南 | 否 | 以 Markdown 返回 NarraLeaf 游戏制作指南中的一章 |
+
+## 项目
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `project_create` | 新建工程 | 是 | 用模板新建 NarraLeaf 项目，并在 Studio 中打开 |
+| `project_open` | 打开工程 | 否 | 在 Studio 中打开已有的项目目录，已打开时切换到该项目 |
+| `project_info` | 工程概览 | 否 | 名称、设计分辨率、语言、入口页面与入口场景，以及故事、场景、页面、资产、角色和变量的数量 |
+| `project_settings_set` | 修改工程设置 | 是 | 修改项目名称、设计分辨率或游戏语言 |
+
+## 资产
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `assets_list` | 列出资产 | 否 | 列出项目的资产，含 id、名称、类型和文件夹 |
+| `assets_import` | 导入文件 | 是 | 把磁盘上的文件导入项目 |
+| `asset_delete` | 删除资产 | 是 | 从项目中删除资产，例如骨架模板残留的示例图片和音乐不再被使用之后 |
+| `assets_placeholder` | 生成占位图 | 是 | 生成一张纯色 PNG，可附说明文字，并作为图片资产导入 |
+| `audio_tracks_list` | 列出音轨 | 否 | 列出 `/bgm track=` 与声音属性可以指定的音轨（音乐、音效、语音及自定义音轨） |
+
+## 角色与变量
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `characters_list` | 列出角色 | 否 | 列出角色，含 id、名称、别名、名字颜色、姿态（立绘图片）和 `entranceTransform`（立绘绘制的大小与站位） |
+| `character_upsert` | 新建或更新角色 | 是 | 新建角色，或更新具有该 `id` 或完全相同 `name` 的角色 |
+| `character_delete` | 删除角色 | 是 | 删除角色，例如清理骨架模板的示例角色 |
+| `variables_list` | 列出变量 | 否 | 列出项目的全局变量（随存档保存，或跨存档持久保存） |
+| `variable_upsert` | 新建或更新变量 | 是 | 声明全局变量，或按 `id`（重命名的方式，行与节点保存的是 id，会随之更新）或完全相同的 `name` 更新已有变量 |
+| `variable_delete` | 删除变量 | 是 | 删除全局变量，例如清理骨架模板的示例变量 |
+
+## 故事
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `story_commands` | 故事命令目录 | 否 | 按类别列出故事命令（`/bg`、`/show`、`/bgm`、`/menu`、`/if`、`/jump` 等），或搜索它们 |
+| `story_command` | 故事命令详情 | 否 | 单个故事命令的参数、位置顺序、默认值和示例 |
+| `story_targets` | 故事行可用的名称 | 否 | 列出故事行可以解析的所有名称：角色、图片、音频、视频、音轨、变量、场景、页面，以及每个场景开场时的背景与音乐 |
+| `story_list` | 列出故事与场景 | 否 | 按顺序列出故事及其章节和场景，并标出入口场景 |
+| `story_show` | 读取场景文本 | 否 | 以 `.story` 文本格式输出一个场景，附带其 `revision` |
+| `story_apply` | 写入场景 | 是 | 用 `source` 中的行替换其 `#scene` 头所指场景的行 |
+| `scene_create` | 新建场景 | 是 | 在故事中新建空场景；指定的故事不存在时一并新建 |
+| `scene_rename` | 重命名场景 | 是 | 重命名场景；指向它的跳转会随之更新，因为跳转保存的是场景的 id |
+| `story_rename` | 重命名故事 | 是 | 重命名故事，例如骨架模板自带的故事，其名称显示在 Studio 的故事列表中 |
+| `scene_set_entry` | 设置入口场景 | 是 | 将某个场景设为玩家按下开始后游戏进入的场景 |
+| `scene_delete` | 删除场景 | 是 | 删除场景及其中的行，例如清理骨架模板的示例场景 |
+
+## 界面
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `ui_widgets` | 控件目录 | 否 | 列出界面控件类型（`nl.button`、`nl.text`、`nl.container`、`nl.list` 等）及各自可插入的位置 |
+| `ui_widget` | 控件详情 | 否 | 单个控件类型的全部信息：属性及默认值、可绑定属性、生成的部件、蓝图事件、命令和说明 |
+| `ui_usage` | 控件用法示例 | 否 | 控件在随附的骨架模板（或本项目）中的实际用例，以 `.ui` 格式输出，可直接粘贴修改 |
+| `ui_surfaces` | 列出页面与组件 | 否 | 列出页面、游戏 UI（对话框、选项等）和组件，含元素路径、id 及挂在其上的蓝图 |
+| `ui_show` | 读取页面文本 | 否 | 以 `.ui` 文本格式输出页面或组件，包括 id 和属性，附带其 `revision` |
+| `ui_selection` | 读取当前选择 | 否 | 作者在界面编辑器中选中的页面和元素及其属性 |
+| `ui_screenshot` | 页面截图 | 否 | 按游戏中的样子渲染页面（或其中一个元素），并返回图像 |
+| `ui_apply` | 写入页面 | 是 | 应用 `.ui` 文档；每个 `surface` 或 `component` 块替换该页面的整棵元素树 |
+| `ui_patch` | 编辑元素 | 是 | 不重写整个页面而做小修改：添加元素、设置属性、移动或缩放、更换父级、重命名、删除、放置组件 |
+| `ui_templates` | 界面模板 | 否 | 列出 Studio 模板商店中可应用的界面模板（标题界面、对话框、菜单） |
+| `ui_template_apply` | 应用模板 | 是 | 把模板中的页面添加到项目 |
+| `brand_get` | 读取配色 | 否 | 项目的品牌配色与字体 |
+| `brand_set` | 修改配色 | 是 | 设置配色中的颜色（按 id，新 id 会被添加）和项目字体栈 |
+
+## 蓝图
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `blueprint_nodes` | 蓝图节点目录 | 否 | 搜索蓝图节点，包括本项目已加载插件提供的节点 |
+| `blueprint_node` | 蓝图节点详情 | 否 | 单个节点类型的引脚、检查器参数、适用的图类型和作用范围 |
+| `blueprint_list` | 列出蓝图 | 否 | 列出蓝图及其所有者（页面或元素）和事件入口 |
+| `blueprint_show` | 读取蓝图文本 | 否 | 以 `.bp` 文本格式输出一个蓝图（或一个所有者的全部蓝图） |
+| `blueprint_apply` | 写入蓝图 | 是 | 应用 `.bp` 文档：每个 `blueprint` 块替换其所有者的全部图 |
+
+## 检查与构建
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `lint` | 检查工程 | 否 | 运行项目的全部检查规则并返回结果，错误排在前面 |
+| `test` | 运行工程测试 | 否 | 在无界面状态下运行内置测试：`narraleaf-studio:route-coverage`（每个场景均可到达）、`narraleaf-studio:reachable-endings`、`narraleaf-studio:project-diagnostics` |
+| `playtest_start` | 试玩游戏 | 否 | 在开发模式中打开游戏，从标题页面或某个场景（及行）开始 |
+| `playtest_advance` | 推进试玩 | 否 | 让运行中的故事向前推进 `steps` 行 |
+| `playtest_screenshot` | 试玩截图 | 否 | 运行中的开发模式游戏的截图：舞台及其游戏 UI，或显示标题等页面时的窗口 |
+| `playtest_stop` | 停止试玩 | 否 | 关闭开发模式中的游戏 |
+| `console_read` | 读取控制台 | 否 | Studio 控制台最近的几行（构建、故事、蓝图、运行时频道） |
+| `build` | 构建游戏 | 是 | 构建项目的可运行包，与 Studio 构建窗口使用同一流程 |
+
+## 文本格式
+
+Agent 通过三种文本格式读写项目内容：
+
+| 格式 | 内容 | 读取 | 写入 |
+| --- | --- | --- | --- |
+| `.story` | 一个场景：头部、各行及分支 | `story_show` | `story_apply` |
+| `.ui` | 一个页面、游戏 UI 或组件：元素及其属性 | `ui_show` | `ui_apply`、`ui_patch` |
+| `.bp` | 一个所有者的蓝图 | `blueprint_show` | `blueprint_apply` |
+
+每次读取都返回一个 `revision`；写入时带回该值，如果内容在此期间有变动，写入会以 `stale_revision` 被拒绝。`story_apply`、`ui_apply`、`ui_patch` 和 `blueprint_apply` 接受 `dryRun: true`，只检查文本，不写入
+
+格式说明见指南的 `story-format`、`ui-format` 和 `blueprint-format` 三章。有哪些命令、控件和节点，由目录类工具回答：`story_commands`、`story_command`、`story_targets`、`ui_widgets`、`ui_widget`、`ui_usage`、`blueprint_nodes` 和 `blueprint_node`，它们从正在运行的 Studio 读取，Agent 应当查询它们，而不是凭记忆书写
+
+## 指南
+
+`agent_guide` 接受一个 `chapter` 参数：
+
+| 章节 | 内容 |
+| --- | --- |
+| `workflow` | 从需求确认到构建的工作顺序 |
+| `story-format` | `.story` 格式 |
+| `ui-format` | `.ui` 格式 |
+| `blueprint-format` | `.bp` 格式 |
+| `ui-design` | 视觉小说界面的设计 |
+| `script-adaptation` | 把剧本转为场景 |
+| `verify-and-ship` | 检查、测试、试玩与构建 |
+| `troubleshooting` | 各种拒绝及其处理 |
+
+这些章节同时以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`；`make_game` 提示词以 `workflow` 开始整个流程，可附带可选的 `brief`

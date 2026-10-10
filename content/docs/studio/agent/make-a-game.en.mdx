@@ -1,0 +1,132 @@
+---
+title: Making a game with an agent
+description: From a script and a folder of art to a built game, what the agent does on the way, and how to watch and step in.
+---
+
+This walk-through assumes the agent is connected and has the skill or the guide. See [Connecting an agent](/docs/studio/agent/connect).
+
+<Steps>
+
+<Step>
+
+### Prepare the script and the art
+
+Put the script in a text file and the art and audio in one folder. In **Settings → Agent access**, add that folder under **Folders agents may import from**, and switch on **Allow agents to make changes**.
+
+Sprites need a transparent background; an opaque one shows as a rectangle. Formats Studio imports:
+
+| Kind | Formats |
+| --- | --- |
+| Images | PNG, JPEG, WebP, GIF, AVIF, SVG |
+| Audio | MP3, OGG, Opus, WAV, M4A, AAC, FLAC |
+| Video | WebM, MP4 (H.264) |
+| Fonts | TTF, OTF, WOFF, WOFF2 |
+
+A missing picture is not a blocker: the agent makes a labelled placeholder and tells you.
+
+</Step>
+
+<Step>
+
+### Tell the agent what you want
+
+For example:
+
+> Make a visual novel from the script in `~/Documents/winter-story/script.txt` with the art in `~/Documents/winter-story/art`. Chinese text, 1920x1080, two endings.
+
+In a client that shows MCP prompts, the `make_game` prompt starts the same workflow.
+
+</Step>
+
+<Step>
+
+### Agree on the brief
+
+The agent first checks the connection, then goes through a short brief with you: title, text language, resolution, art style, characters, endings, and which assets exist. Given a script, it lists the scenes, speakers and assets it found, the script references that have no file, and the files the script never uses. It waits for you to accept that list before touching the project.
+
+</Step>
+
+<Step>
+
+### Let it work
+
+The skill sets the order of work:
+
+| Step | What the agent does |
+| --- | --- |
+| Connect | Reads the session: open projects, whether it may change anything, which folders it may import from |
+| Brief | Agrees on what is being made, as above |
+| Project | Creates the project from the Skeleton template, or opens an existing one, and reuses the template's demo content |
+| Assets | Imports your files under story-friendly names and makes placeholders for what is missing |
+| Cast and variables | Sets up characters with their poses and name colours, and the variables the story needs |
+| Story | Writes the story one scene per call, with branches, and points the title's start button at the opening scene |
+| Interface | Sets the palette and fonts, then restyles each page, checking a screenshot after every pass |
+| Interaction | Adds blueprints only for behaviour the template lacks |
+| Verify | Runs the checks until there are no errors, runs the route and ending tests, and plays every route to its ending |
+| Ship | Builds the game and reports what it made and what is left for you |
+
+</Step>
+
+<Step>
+
+### Take over
+
+The agent ends with a report: the scenes, routes and endings it made, every placeholder still in the game, what remains for you, and the built file to open. The project stays open in Studio, and you can keep editing or ask the agent for more.
+
+</Step>
+
+</Steps>
+
+## Watching the agent [#watching]
+
+### Follow mode
+
+With **Follow agent edits** on, Studio opens the editor where each change lands and briefly outlines the elements or rows that changed. It is on by default and remembered per project.
+
+Following never brings Studio to the front, so typing in another application is not interrupted. When you are typing in a Studio tab, the agent's tab opens behind it.
+
+### Status bar
+
+The status bar turns green while an agent is at work: during a call, for 15 seconds after the last one, and for as long as the agent is paused. A running game and experimental mode keep their own colours.
+
+From the first call on, a cell in the status bar names what the agent is doing:
+
+| Cell | Means |
+| --- | --- |
+| **Agent editing: …** | A call is changing the page or scene named |
+| **Agent edited: …** | The last change, for a few seconds after it lands |
+| **Agent: …** | The connected client, between calls |
+| **Agent paused** | Changes are refused until you resume |
+
+Clicking the cell offers **Pause agent** and **Follow agent edits**.
+
+### Agent log
+
+**Agent → Agent log** opens a panel in the bottom dock, beside the Console. It has one row per call: the time, the client, what it did, what it was about, how it ended and how long it took.
+
+- The filter shows **All calls**, **Changes only** or **Failures only**.
+- Clicking a row that changed something opens the change and outlines it.
+- A refused row opens to the reason and the **Next step** the agent was given.
+- **Export…** saves the log as JSON Lines; **Clear** empties it.
+
+The log holds the last 500 calls of this window in memory. It records what you could have watched happen, not the arguments of each call, and nothing of it is written to the project.
+
+## Stepping in
+
+**Pause.** **Pause agent**, in the status bar cell or the **Agent** menu, refuses every change from agents in this project until **Resume agent**. The agent can still read, which is how it catches up on what you changed meanwhile. A pause lasts for the session and is not remembered after Studio restarts.
+
+**Undo.** Each call that changes the project is one step of undo. **Ctrl+Z** (**Cmd+Z** on macOS) takes back the agent's last change as it would one of yours. The skill tells the agent to treat an undone change as a no and to ask before trying it again.
+
+**Edit alongside it.** You can edit the page or scene the agent is working on. The agent's next write carries the revision it read, so it is refused with `stale_revision`; the agent reads your version again and redoes its change on top of it. Your edit wins.
+
+**Stop it entirely.** Switching off **Allow agents to make changes** refuses every change from every agent until it is switched on again. Switching off **Allow agents to connect** stops the endpoint.
+
+## What usually remains
+
+The agent lists these in its report. The usual ones:
+
+- Sprites with an opaque background, which show as rectangles until you supply cut-outs.
+- Placeholder images standing in for art that was not supplied.
+- Files in formats Studio cannot play, which need converting.
+- Gallery entries, translations of other languages, and leftover demo content.
+- The application icon and code signing, set under **Identity** and **Signing** in the build dialog. See [Run and Package](/docs/studio/getting-started/run-and-package).

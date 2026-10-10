@@ -1,0 +1,53 @@
+---
+title: Agent access
+description: Let an AI agent work on the project open in Studio over MCP, while you watch every edit land.
+---
+
+Studio can serve an MCP endpoint (the Model Context Protocol) on your own computer. Any agent that speaks MCP can then work on the project open in Studio: Claude Code, Claude Desktop, opencode, Codex, Cursor, Gemini CLI and others.
+
+An agent's edit goes through the same services as an edit made by hand. It appears on the canvas as it lands, it is saved by the same auto-save, and each call that changes the project is one step of undo. You can pause the agent, undo what it did, or edit alongside it at any moment.
+
+<Callout type="info">
+Agent access needs a Studio release after 1.4.5. Studio must be open while the agent works: the endpoint is part of Studio, and an agent can only reach it while Studio runs.
+</Callout>
+
+## What an agent can do
+
+| Area | What the tools cover |
+| --- | --- |
+| Projects | Create a project from the Skeleton or Empty template, open one, change its name, design resolution and game languages |
+| Assets | Import images, audio, video and fonts, make labelled placeholder images, delete assets nothing uses, list audio tracks |
+| Characters and variables | Create, update and delete characters with image poses and an entrance position; declare, rename and delete global variables |
+| Story | Read and write a whole scene as `.story` text; create, rename and delete scenes; set the entry scene; rename a story |
+| Interface | Read and write pages, Game UI and components as `.ui` text, make small element edits, apply interface templates, set the palette and fonts, screenshot a page or one control in its hover or pressed state, read what you selected |
+| Blueprints | Read and write blueprints as `.bp` text |
+| Checking and building | Run the project checks and the built-in tests, play the game in Dev Mode line by line, read the console, build for the current system, Windows, macOS, Linux or the web |
+
+Every tool is listed in [Tools](/docs/studio/agent/tools).
+
+## What it cannot do
+
+- Edit data that a plugin owns, such as the entries of the [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) plugin.
+- Edit translations. It can add or remove the languages a game offers; the translated text is edited in [Localization](/docs/studio/workspace/localization).
+- Set up voice tables, layered sprites, Live2D or Spine models. A character pose is one image asset, and imports are limited to images, audio, video and fonts.
+- Change the audio bus. It can list the audio tracks only.
+- Set the project icon, signing credentials or other build settings, or build for Android or iOS.
+- Delete a page. It hides what a game does not need.
+- Press buttons in a running game. It checks a control's states with screenshots instead.
+- Write files in the project folder directly. Every change goes through a tool, so you can see it and undo it.
+
+## Two pieces
+
+**The MCP server** is built into Studio and is off until you switch it on. It gives an agent the tools.
+
+**The `narraleaf-make-game` skill** is the guide the agent follows: the order of work, the text formats it writes, interface design rules and the traps to avoid. Studio exports it as a folder, and the server also serves the same guide to agents that cannot load skills.
+
+## Next
+
+<Cards>
+  <Card title="Connecting an agent" description="Switch on agent access and add Studio to your agent." href="/docs/studio/agent/connect" />
+  <Card title="Making a game with an agent" description="From a script and art to a built game, and how to step in." href="/docs/studio/agent/make-a-game" />
+  <Card title="Tools" description="Every tool, grouped by what it works on." href="/docs/studio/agent/tools" />
+  <Card title="What agent access exposes" description="Who can reach the endpoint, and the switches that limit it." href="/docs/studio/agent/security" />
+  <Card title="Troubleshooting" description="Connection problems and refusal codes." href="/docs/studio/agent/troubleshooting" />
+</Cards>

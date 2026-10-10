@@ -1,0 +1,135 @@
+---
+title: Tools
+description: Every tool Studio's MCP server offers, grouped by what it works on.
+---
+
+Studio's MCP server offers 54 tools. Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
+
+**Changes the project** marks the tools that are refused while **Allow agents to make changes** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
+
+Every tool that works on a project takes an optional `project`, the project folder's absolute path. It is needed only when more than one project is open.
+
+## Session and guide
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `agent_status` | Studio status | No | Says which projects are open in Studio, whether write access is on, whether the agent is paused, and which directories it may import files from. Call it first |
+| `agent_guide` | Read the guide | No | Returns one chapter of the NarraLeaf game-making guide as Markdown |
+
+## Projects
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `project_create` | Create a project | Yes | Creates a new NarraLeaf project from a template and opens it in Studio |
+| `project_open` | Open a project | No | Opens an existing project directory in Studio, or focuses it if already open |
+| `project_info` | Project overview | No | Name, design resolution, languages, entry page and scene, and counts of stories, scenes, pages, assets, characters and variables |
+| `project_settings_set` | Change project settings | Yes | Changes the project's name, design resolution or game languages |
+
+## Assets
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `assets_list` | List assets | No | Lists the project's assets with id, name, type and folder |
+| `assets_import` | Import files | Yes | Imports files from disk into the project |
+| `asset_delete` | Delete an asset | Yes | Deletes an asset from the project, for example the Skeleton template's leftover demo pictures and music once nothing uses them |
+| `assets_placeholder` | Make a placeholder image | Yes | Generates a solid-colour PNG with an optional caption and imports it as an image asset |
+| `audio_tracks_list` | List audio tracks | No | Lists the audio tracks (Music, Sound, Voice and any custom ones) that `/bgm track=` and sound props can name |
+
+## Characters and variables
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `characters_list` | List characters | No | Lists characters with id, name, nicknames, name colour, poses (sprite images) and `entranceTransform` (how big the sprite is drawn and where it stands) |
+| `character_upsert` | Create or update a character | Yes | Creates a character, or updates the one with this `id` or exact `name` |
+| `character_delete` | Delete a character | Yes | Deletes a character, for example the Skeleton template's demo cast |
+| `variables_list` | List variables | No | Lists the project's global variables (saved with the game or persistent across saves) |
+| `variable_upsert` | Create or update a variable | Yes | Declares a global variable, or updates one by `id` (the way to rename one, since rows and nodes hold the id) or by exact `name` |
+| `variable_delete` | Delete a variable | Yes | Deletes a global variable, for example the Skeleton template's demo variables |
+
+## Story
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `story_commands` | Story command catalogue | No | Lists the story commands (`/bg`, `/show`, `/bgm`, `/menu`, `/if`, `/jump` …) by category, or searches them |
+| `story_command` | Story command details | No | Parameters, positional order, defaults and examples of one story command |
+| `story_targets` | Names a story line can use | No | Lists every name a story line can resolve: characters, images, audio, videos, audio tracks, variables, scenes, pages, and the background and music each scene opens on |
+| `story_list` | List stories and scenes | No | Lists stories, their chapters and scenes in order, with the entry scene marked |
+| `story_show` | Read a scene as text | No | Prints one scene in the `.story` text format, with its `revision` |
+| `story_apply` | Write a scene | Yes | Replaces the rows of the scene named in the source's `#scene` header with the rows in `source` |
+| `scene_create` | Create a scene | Yes | Creates an empty scene in a story, and the story itself if none by that name exists |
+| `scene_rename` | Rename a scene | Yes | Renames a scene. Jumps that name it follow, because they hold its id |
+| `story_rename` | Rename a story | Yes | Renames a story, such as the Skeleton template's own, whose name the author sees in Studio's story list |
+| `scene_set_entry` | Set the entry scene | Yes | Makes a scene the one the game starts on when the player presses Start |
+| `scene_delete` | Delete a scene | Yes | Deletes a scene and its rows, for example the Skeleton template's demo scenes |
+
+## Interface
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `ui_widgets` | Widget catalogue | No | Lists the interface widget types (`nl.button`, `nl.text`, `nl.container`, `nl.list` …) and where each may be inserted |
+| `ui_widget` | Widget details | No | Everything about one widget type: props with defaults, bindable props, parts it builds, blueprint events, commands and notes |
+| `ui_usage` | Widget usage examples | No | Real occurrences of a widget in the shipped Skeleton template (or this project), printed in the `.ui` format so they can be pasted and edited |
+| `ui_surfaces` | List pages and components | No | Lists pages, Game UI (dialogue box, choice …) and components, with element paths, ids and the blueprints attached to them |
+| `ui_show` | Read a page as text | No | Prints a page or component in the `.ui` text format, ids and props included, with its `revision` |
+| `ui_selection` | What the author selected | No | The page and elements the author has selected in the interface editor, with their props |
+| `ui_screenshot` | Look at a page | No | Renders a page (or one element of it) as it looks in the game and returns the image |
+| `ui_apply` | Write pages | Yes | Applies a `.ui` document. Each `surface` or `component` block replaces that page's whole element tree |
+| `ui_patch` | Edit elements | Yes | Small edits to one page without rewriting it: add an element, set props, move or resize, re-parent, rename, delete, place a component |
+| `ui_templates` | Interface templates | No | Lists interface templates available to apply (title screens, dialogue boxes, menus) from Studio's template store |
+| `ui_template_apply` | Apply a template | Yes | Adds a template's pages to the project |
+| `brand_get` | Read the palette | No | The project's brand palette and fonts |
+| `brand_set` | Change the palette | Yes | Sets palette colours (by id; new ids are added) and the project font stack |
+
+## Blueprints
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `blueprint_nodes` | Blueprint node catalogue | No | Searches blueprint nodes, including those of plugins loaded in this project |
+| `blueprint_node` | Blueprint node details | No | Pins, inspector params, graph kinds and scope of one node type |
+| `blueprint_list` | List blueprints | No | Lists blueprints with their owner (page or element) and event heads |
+| `blueprint_show` | Read a blueprint as text | No | Prints one blueprint (or all of one owner) in the `.bp` text format |
+| `blueprint_apply` | Write blueprints | Yes | Applies a `.bp` document: each `blueprint` block replaces every graph of its owner |
+
+## Checking and building
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `lint` | Check the project | No | Runs every project lint rule and returns the findings, errors first |
+| `test` | Run a project test | No | Runs a built-in test headlessly: `narraleaf-studio:route-coverage` (every scene reachable), `narraleaf-studio:reachable-endings`, `narraleaf-studio:project-diagnostics` |
+| `playtest_start` | Play the game | No | Opens the game in Dev Mode, from the title page or from a scene (and row) |
+| `playtest_advance` | Advance the game | No | Reads on `steps` lines of a running story |
+| `playtest_screenshot` | Look at the game | No | Screenshot of the running Dev Mode game: the stage with its Game UI, or the window when a page such as the title is showing |
+| `playtest_stop` | Stop playing | No | Closes the Dev Mode game |
+| `console_read` | Read Studio's console | No | Recent lines from Studio's console (build, story, blueprint, runtime channels) |
+| `build` | Build the game | Yes | Builds a playable package of the project, through the same pipeline as Studio's build dialog |
+
+## Text formats
+
+An agent reads and writes the project's content as text, through three formats:
+
+| Format | Holds | Read with | Write with |
+| --- | --- | --- | --- |
+| `.story` | One scene: its header, its rows and its branches | `story_show` | `story_apply` |
+| `.ui` | A page, Game UI or component: its elements and their props | `ui_show` | `ui_apply`, `ui_patch` |
+| `.bp` | The blueprints of one owner | `blueprint_show` | `blueprint_apply` |
+
+Each read returns a `revision`, and a write that carries it back is refused with `stale_revision` if the content changed in between. `story_apply`, `ui_apply`, `ui_patch` and `blueprint_apply` take `dryRun: true`, which checks the text and writes nothing.
+
+The formats are described in the guide's `story-format`, `ui-format` and `blueprint-format` chapters. Which commands, widgets and nodes exist is answered by the catalogue tools, `story_commands`, `story_command`, `story_targets`, `ui_widgets`, `ui_widget`, `ui_usage`, `blueprint_nodes` and `blueprint_node`, which read it from the Studio that is running. An agent should ask them rather than rely on memory.
+
+## Guide
+
+`agent_guide` takes one `chapter`:
+
+| Chapter | Covers |
+| --- | --- |
+| `workflow` | The order of work, from the brief to the build |
+| `story-format` | The `.story` format |
+| `ui-format` | The `.ui` format |
+| `blueprint-format` | The `.bp` format |
+| `ui-design` | Designing visual-novel interfaces |
+| `script-adaptation` | Turning a script into scenes |
+| `verify-and-ship` | Checks, tests, play-testing and building |
+| `troubleshooting` | Refusals and what to do about them |
+
+The same chapters are MCP resources at `narraleaf://guide/<chapter>`, and the `make_game` prompt starts the `workflow` with an optional `brief`.

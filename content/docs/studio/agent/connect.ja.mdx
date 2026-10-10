@@ -1,0 +1,260 @@
+---
+title: エージェントを接続する
+description: Studio でエージェント連携をオンにし、MCP クライアントに Studio を追加して、エージェントにスキルを渡す
+---
+
+接続に必要なのは 3 つです。Studio でエージェント連携をオンにすること、エンドポイントをエージェントの設定に追加すること、エージェントがスキルを探す場所にスキルを置くことです。
+
+## エージェント連携をオンにする
+
+<Steps>
+
+<Step>
+
+### 設定を開く
+
+**設定 → エージェント連携**を開きます。プロジェクトのウィンドウでは、メニューバーの**エージェント**メニューにある**エージェント連携の設定…** から同じ場所に移動できます。
+
+</Step>
+
+<Step>
+
+### エージェントの接続を許可する
+
+**エージェントの接続を許可**をオンにします。**アドレス**にはエンドポイントが表示されます。ポートを変えていなければ `http://127.0.0.1:47219/mcp` です。提供が始まると**待ち受け中**と表示されます。
+
+**ポート**の変更はすぐに反映され、1024 から 65535 まで指定できます。ポートが使用中の場合、Studio は空いているポートを使い、**アドレス**には実際に使っているポートが表示されます。
+
+</Step>
+
+<Step>
+
+### 変更を許可する
+
+エージェントに編集させるときは、**エージェントによる変更を許可**をオンにします。既定ではオフです。オフの間、エージェントはプロジェクトを読み取れますが、変更はすべて拒否されます。
+
+メニューバーの**エージェント → エージェントによるプロジェクトの変更を許可**からオンにする場合は、先に確認を求められます。
+
+</Step>
+
+<Step>
+
+### 素材のあるフォルダーを追加する
+
+**素材を読み込めるフォルダー**の**フォルダーを追加…** で、エージェントに読み込ませる画像や音声のあるフォルダーを追加します。プロジェクト内のファイルはいつでも読み込めます。
+
+</Step>
+
+<Step>
+
+### 設定をコピーする
+
+**設定をコピー**は、アドレスとアクセストークンを入れた状態の、そのまま貼り付けられる設定をクリップボードに置きます。形式は 4 つあります。
+
+| ボタン | 内容 |
+| --- | --- |
+| **Claude Code** | `claude mcp add` コマンド |
+| **JSON** | `mcpServers` のエントリー |
+| **opencode** | `opencode.json` 用の `mcp` ブロック |
+| **stdio** | Studio 自身をブリッジとして起動するエントリー。ローカルのプログラムしか起動できないクライアント向けで、トークンは含まれません |
+
+プロジェクトのウィンドウの**エージェント → 接続設定をコピー**にも同じ形式があります。トークンそのものは**アクセストークン**の**表示**で確認できます。
+
+</Step>
+
+</Steps>
+
+## エージェントメニュー
+
+プロジェクトのウィンドウのメニューバーには**エージェント**メニューがあります。
+
+| 項目 | 働き |
+| --- | --- |
+| 状態の行 | 接続中のクライアントとその状態。たとえば**エージェント：Claude Code · 作業中**。クリックはできません |
+| **エージェントを一時停止** / **エージェントを再開** | 再開するまで、このプロジェクトに対するエージェントの変更をすべて拒否します |
+| **エージェントの編集を追う** | 変更が反映されたエディタを開きます |
+| **エージェントログ** | このプロジェクトでのすべての呼び出しのログを開きます |
+| **エージェント連携を有効にする** | **エージェントの接続を許可**と同じスイッチです |
+| **エージェントによるプロジェクトの変更を許可** | **エージェントによる変更を許可**と同じスイッチで、オンにするときに確認があります |
+| **接続設定をコピー** | Claude Code、opencode、JSON、**stdio（Claude Desktop）** |
+| **Agent Skill を書き出す…** | スキルのフォルダーを、選んだ場所に書き出します |
+| **エージェント連携の設定…** | **設定 → エージェント連携**を開きます |
+
+一時停止、追従、ログについては[エージェントでゲームを作る](/ja/docs/studio/agent/make-a-game#watching)で説明しています。
+
+## エージェントに Studio を追加する
+
+以下のクライアントはいずれも、サーバーを `narraleaf` という名前で登録します。例の `<PORT>` と `<TOKEN>` には、**アドレス**と**アクセストークン**の値を入れます。
+
+### Claude Code
+
+**設定をコピー → Claude Code** でコマンドが得られます。ターミナルで一度だけ実行します。
+
+```sh
+claude mcp add --scope user --transport http narraleaf http://127.0.0.1:<PORT>/mcp --header "Authorization: Bearer <TOKEN>"
+```
+
+`--scope user` を付けると、サーバーはすべてのフォルダーで使えるようになり、ターミナルがどのフォルダーにあってもゲーム制作を頼めます。付けない場合、サーバーはコマンドを実行したフォルダーにしか存在しません。`claude mcp list`、または Claude Code の中で `/mcp` を実行して確認します。
+
+ゲームを 1 本作るには 100 回以上のツール呼び出しが必要で、Claude Code は既定で呼び出しのたびに確認を求めます。最初の確認で narraleaf のツールに **Yes, and don't ask again** を選ぶか、`~/.claude/settings.json` で事前に許可します。
+
+```json
+{ "permissions": { "allow": ["mcp__narraleaf"] } }
+```
+
+エージェントが何かを変更できるかどうかは、引き続き Studio のスイッチが決めます。一時停止も同じように効きます。
+
+### Claude Desktop
+
+Claude Desktop は設定ファイルからローカルのプログラムを起動します。Studio 自身がそのプログラムになれます。`--mcp-stdio` を付けて起動された Studio はウィンドウを開かず、接続を起動中の Studio に転送します。
+
+**設定をコピー → stdio** で、Studio のパスが入ったエントリーが得られます。
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio",
+      "args": ["--mcp-stdio"]
+    }
+  }
+}
+```
+
+パスは Studio 自身の実行ファイルです。
+
+- macOS: アプリケーションフォルダーに置いた場合は `/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio`
+- Windows: インストール先フォルダーの `NarraLeaf Studio.exe`。JSON ではバックスラッシュを 2 つずつ書きます。コピーしたエントリーはすでにそうなっています
+- Linux: AppImage ファイルそのもの
+
+このエントリーを `claude_desktop_config.json`（Claude Desktop の **Settings → Developer → Edit Config**）にマージし、Claude Desktop を再起動します。
+
+このエントリーにトークンは含まれません。ブリッジはアドレスとトークンを毎回 Studio の設定から読み取るので、トークンを変更したりポートを変えたりしても使い続けられます。Studio が起動していなければ、ブリッジが Studio を起動し、エンドポイントが使えるようになるまで最大 1 分待ちます。エージェント連携がオフの場合は、どのリクエストにも、オンにする場所を示すメッセージを返します。
+
+ブリッジが合わない場合は、サードパーティの npm パッケージ `mcp-remote`（Node.js が必要）でも同じことができます。
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:<PORT>/mcp", "--header", "Authorization:${NARRALEAF_AUTH}"],
+      "env": { "NARRALEAF_AUTH": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+URL でカスタムコネクターを追加できる Claude Desktop なら、そこにアドレスとトークンを入れることもできます。
+
+### opencode
+
+**設定をコピー → opencode** でブロックが得られます。作業フォルダーの `opencode.json`、またはすべてのフォルダーで使うなら `~/.config/opencode/opencode.json` にマージします。
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "narraleaf": {
+      "type": "remote",
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "enabled": true,
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+`opencode mcp list` で確認します。
+
+### Codex CLI
+
+`~/.codex/config.toml` に追加します。
+
+```toml
+[mcp_servers.narraleaf]
+url = "http://127.0.0.1:<PORT>/mcp"
+http_headers = { "Authorization" = "Bearer <TOKEN>" }
+```
+
+トークンをファイルに書きたくない場合は、シェルで `NARRALEAF_TOKEN` として export し、`http_headers` の代わりに `bearer_token_env_var = "NARRALEAF_TOKEN"` と書きます。`codex mcp list`、または Codex の中で `/mcp` を実行して確認します。
+
+### Cursor
+
+作業フォルダーの `.cursor/mcp.json`、またはすべてのフォルダーで使うなら `~/.cursor/mcp.json` として保存し、**Cursor Settings → MCP** でサーバーを有効にします。
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+`~/.gemini/settings.json`、または作業フォルダーの `.gemini/settings.json` にマージします。
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "httpUrl": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  },
+  "context": { "fileName": ["AGENTS.md", "GEMINI.md"] }
+}
+```
+
+`context.fileName` によって Gemini CLI は `AGENTS.md` を読み、そこからスキルにたどり着きます。Gemini CLI の中で `/mcp` を実行して確認します。
+
+### その他のクライアント
+
+| 設定 | 値 |
+| --- | --- |
+| トランスポート | Streamable HTTP |
+| URL | `http://127.0.0.1:<PORT>/mcp` |
+| ヘッダー | `Authorization: Bearer <TOKEN>` |
+
+ローカルのプログラムしか起動できないクライアントでは、Claude Desktop のエントリーと同じように `--mcp-stdio` を付けて Studio を起動するか、`mcp-remote` などのブリッジを使います。
+
+## スキルを入れる
+
+**エージェント → Agent Skill を書き出す…** は、選んだフォルダーに `NarraLeaf-Skills` という名前のフォルダーを書き出します。同じ名前のファイルは置き換えられ、フォルダー内のほかのファイルはそのまま残ります。
+
+<Files>
+  <Folder name="NarraLeaf-Skills" defaultOpen>
+    <File name="README.md" />
+    <File name="AGENTS.md" />
+    <Folder name="mcp-configs" />
+    <Folder name="narraleaf-make-game" />
+  </Folder>
+</Files>
+
+スキルは `narraleaf-make-game` フォルダーです。`SKILL.md` だけでなくフォルダーごと、エージェントがスキルを探す場所にコピーします。
+
+| エージェント | すべてのフォルダー向け | 1 つのプロジェクト向け |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills/narraleaf-make-game/` | `.claude/skills/narraleaf-make-game/` |
+| opencode | `~/.config/opencode/skill/narraleaf-make-game/` | `.opencode/skill/narraleaf-make-game/` |
+| Codex CLI | `~/.codex/skills/narraleaf-make-game/` | なし |
+| Claude Desktop、claude.ai | フォルダーを zip にして **Settings → Capabilities → Skills** からアップロード | なし |
+| Cursor、Gemini CLI、その他 | スキルのフォルダーは不要。下記を参照 | なし |
+
+`AGENTS.md` を読むエージェント（opencode、Codex、Cursor、上記の設定をした Gemini CLI など）は、`NarraLeaf-Skills` の中で起動すれば自分でスキルを見つけます。
+
+### スキルがない場合
+
+サーバー自身がガイドを提供するので、スキルを入れていないエージェントもガイドを受け取れます。
+
+- **`make_game` プロンプト**は、MCP のプロンプトを表示するクライアントで作業全体を始めます。多くは `/make_game` のようなスラッシュコマンドで、Claude Code では `/mcp__narraleaf__make_game` です。
+- **`agent_guide` ツール**は任意の章を返します。`workflow`、`story-format`、`ui-format`、`blueprint-format`、`ui-design`、`script-adaptation`、`verify-and-ship`、`troubleshooting` があります。
+- 同じ章は MCP リソース `narraleaf://guide/<chapter>` としても提供されます。
+
+どの MCP クライアントでも、最初のメッセージとして次の文が使えます。
+
+> Use the NarraLeaf Studio tools. Call agent_guide with chapter "workflow" and follow it to make my game.

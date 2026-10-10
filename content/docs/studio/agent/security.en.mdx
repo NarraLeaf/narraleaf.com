@@ -1,0 +1,53 @@
+---
+title: What agent access exposes
+description: Who can reach Studio's MCP endpoint, what an agent may change, and the switches that limit it.
+---
+
+Agent access lets a program on your computer read and change the projects open in Studio. This page is what that rests on.
+
+## Nothing listens until you switch it on
+
+**Allow agents to connect** is off in a new profile. Until it is switched on, Studio serves nothing. Switching it off stops the endpoint at once.
+
+## Only this computer
+
+The endpoint is bound to `127.0.0.1`, so it cannot be reached from another machine. Being local is not enough by itself, because any web page you open can send requests to your own computer. So every request is checked before any of it is read:
+
+- **A request carrying an `Origin` header is refused.** Browsers send one; MCP clients are programs and send none. This shuts out a web page posting to the port, including one that points its own host name at `127.0.0.1`.
+- **The `Host` header must name the endpoint**: `127.0.0.1` or `localhost` with its port.
+- **The request must carry the access token** as `Authorization: Bearer <token>`. A request without it, or with a wrong one, is refused.
+- **A request is at most 4 MB.** The largest thing an agent sends is a scene or a page as text.
+
+Nothing in a request is evaluated as code. The arguments of each call are checked against the tool's schema before the call runs.
+
+## The access token
+
+Studio keeps the token in `agent-mcp.json` in its user data folder, together with the other agent access settings. On macOS and Linux the file can be read by your account only. On Windows it relies on the permissions of the user data folder. The token is kept out of Studio's general settings, which are often exported and shared.
+
+Anything that can read the token can change your projects while agent access is on, so treat it like a password. **Replace the token → Regenerate** issues a new one at once; clients set up with the old one are refused from their next request and need the configuration copied again. The **stdio** entry holds no token and keeps working.
+
+The token never reaches a project window. A project window runs plugin code, so its **Agent** menu is given only whether agent access is on, whether changes are allowed and whether the endpoint is running. Copying a configuration from that menu is carried out outside the window, straight onto the clipboard.
+
+<Callout type="warn">
+Copying a configuration puts the token on the system clipboard, where other programs and clipboard history can read it. Paste it where it belongs, and regenerate the token if it may have been seen.
+</Callout>
+
+## What an agent may change
+
+**Changes are off by default.** With **Allow agents to make changes** off, an agent can read the open projects and every change it tries is refused. Turning it on from a project window's **Agent** menu asks for confirmation in a system dialog, which plugin code in the window cannot answer. Switching it off never asks.
+
+**Pausing stops changes in one project.** While an agent is paused, every change it tries there is refused. Reads still work.
+
+**A busy project refuses changes.** No change is accepted while the project is frozen: a past version is open for viewing, the project was frozen by hand, a version-control merge is unfinished, Studio is in recovery mode, or another Studio window has taken the project over. A [Team](/docs/studio/team) live session refuses agent changes for as long as it runs, so they cannot race the people in it.
+
+**Changes go through Studio.** An agent has no tool that writes files in the project folder. Each change is made through the same services as an edit by hand, so it appears in the editor, is one step of undo, and is checked the way an edit by hand is. A scene, page or blueprint that does not pass the check is not written.
+
+**Imports come from the folders you allow.** An agent imports files only from inside the project and from the folders under **Folders agents may import from**. A path anywhere else is refused.
+
+**A project not trusted does not run.** A project that Studio did not create cannot be played or built until it is trusted, by agents as by you. **Not trusted** in the status bar, or **Settings → Data → Trusted projects**, trusts it.
+
+## What an agent can reach
+
+An agent can open any project folder on the computer by path and create a project in any folder, as you can from Studio. Builds are written to the project's build folder unless the agent names another. Agent access does not limit which project an agent opens; the switches above limit what it may do there.
+
+The log of what an agent did is in the project window's **Agent log**, and in Studio's own log. See [Making a game with an agent](/docs/studio/agent/make-a-game#watching).
