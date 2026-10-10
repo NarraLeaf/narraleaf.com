@@ -1,3 +1,4 @@
+import { brotliDecompressSync } from 'node:zlib';
 import { type AnyOrama, create, getByID, load, search } from '@orama/orama';
 import { createContentHighlighter, type SortedResult } from 'fumadocs-core/search';
 import { i18n, isLocale, type Locale } from '@/lib/i18n';
@@ -44,8 +45,10 @@ async function loadDatabase(locale: Locale, request: Request): Promise<AnyOrama>
     throw new Error(`Could not fetch the ${locale} search index: ${response.status} ${response.statusText}`);
   }
 
+  // Compressed by `./[locale]/route.ts` to fit Vercel's limit on a prerendered response.
+  const json = brotliDecompressSync(Buffer.from(await response.arrayBuffer())).toString('utf8');
   const db = create({ schema: { _: 'string' }, ...searchDatabaseOptions(locale) });
-  load(db, await response.json());
+  load(db, JSON.parse(json));
   return db;
 }
 
