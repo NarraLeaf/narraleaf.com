@@ -1,0 +1,177 @@
+---
+title: Agent tools
+description: Offer tools of your own to the AI agents an author connects to Studio, through app.services.agent.
+---
+
+An author can connect an AI agent to Studio over MCP, and the agent then works on the open project through Studio's tools. See [Agent access](/docs/studio/agent). `app.services.agent` lets your plugin add tools of its own beside them.
+
+Offer tools when your plugin keeps data an agent should be able to fill or change, and Studio's own tools cannot reach it: a catalogue, a table, settings the plugin stores. A plugin that only adds blueprint nodes or widgets needs none; an agent already uses those through Studio's blueprint and interface tools.
+
+The built-in Gallery is the reference implementation. Its six tools fill the Extra page's catalogue, and its guide chapter teaches an agent to use them. See [Plugin tools](/docs/studio/agent/tools#plugin-tools).
+
+## Declare the tools
+
+Every tool is declared in the manifest, by name and by whether it changes the project:
+
+```json
+{
+  "id": "acme.notes",
+  "entries": { "studio": "main.js" },
+  "contributes": {
+    "agentTools": [
+      { "name": "acme.notes.list", "write": false },
+      { "name": "acme.notes.add_note", "write": true }
+    ],
+    "agentGuide": "agent/guide.md"
+  }
+}
+```
+
+| Field | Notes |
+| --- | --- |
+| `agentTools` | `{ name, write }` for each tool. `write` is required. Declaring tools needs a `studio` entry, the only one that runs where an agent's calls arrive. |
+| `agentGuide` | Optional. A Markdown file inside the package, served to agents as a guide chapter. See [The guide chapter](#the-guide-chapter). |
+
+The declaration is what the author approves at install: the prompt shows, under **AI agents**, how many tools the plugin offers and how many of them can change the project. Registering a tool that is not declared throws, and so does registering it with a different `write`.
+
+## Register them
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+type Notes = { items: { id: string; text: string }[] };
+
+export default definePlugin({
+    async setup(app) {
+        const { storage, workspace, agent } = app.services;
+        let notes: Notes = { items: [] };
+
+        const load = async () => {
+            notes = (await storage.readJson<Notes>("notes")) ?? { items: [] };
+        };
+        await load();
+        // Undo of an agent's edit writes storage back, then calls this.
+        workspace.registerReloader(load);
+
+        agent.registerTools([
+            {
+                name: "acme.notes.list",
+                title: "List notes",
+                description: "Lists the project's notes with their ids. Call it before changing notes.",
+                inputSchema: { type: "object", properties: {}, additionalProperties: false },
+                write: false,
+                handler: () => ({
+                    text: notes.items.length > 0
+                        ? notes.items.map(note => `${note.id}: ${note.text}`).join("\n")
+                        : "No notes yet.",
+                    data: { notes: notes.items },
+                }),
+            },
+            {
+                name: "acme.notes.add_note",
+                title: "Add a note",
+                description: "Adds one note to the project, as one step of undo for the author. Keep each note to one line.",
+                inputSchema: {
+                    type: "object",
+                    properties: { text: { type: "string", description: "The note." } },
+                    required: ["text"],
+                    additionalProperties: false,
+                },
+                write: true,
+                async handler(args) {
+                    const text = String(args.text).trim();
+                    if (!text) {
+                        return { error: { code: "invalid_args", message: "The note is empty.", hint: "Pass the note's words as text." } };
+                    }
+                    const next: Notes = { items: [...notes.items, { id: crypto.randomUUID(), text }] };
+                    await storage.writeJson("notes", next);
+                    notes = next;
+                    return { text: `Added. The project has ${next.items.length} notes.`, data: { count: next.items.length } };
+                },
+            },
+        ]);
+    },
+});
+```
+
+| Method | Signature | Notes |
+| --- | --- | --- |
+| `registerTool` | `(def: PluginAgentToolDef) => PluginCleanup` | Offers one tool. The cleanup withdraws it; the host also withdraws it when the plugin unloads. |
+| `registerTools` | `(defs: PluginAgentToolDef[]) => PluginCleanup` | Checks every definition before offering any, so a mistake in the last one leaves none registered. |
+
+A definition that breaks a rule below throws at registration, while the plugin loads, with the reason.
+
+## PluginAgentToolDef
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string` | `<plugin id>.<tool>`, declared in `contributes.agentTools`. |
+| `title` | `string` | 1 to 80 characters. Shown to the author in the Agent log, and as the undo step's name. |
+| `description` | `string` | 1 to 1200 characters, written for the model: what the tool is for, when to use it, the mistake to avoid. |
+| `inputSchema` | object | The arguments, in the schema subset below. |
+| `write` | `boolean` | Whether the tool changes the project. Must match the declaration. |
+| `handler` | `(args, context) => PluginAgentToolResult \| Promise<…>` | Runs the call. |
+
+Tool names, titles and descriptions are not translated. Agents read the descriptions, so write them in English.
+
+### Names
+
+A name is the plugin id, a dot, and the tool's own part, using lower-case letters, digits, `_`, `.` and `-` only. The tool part needs at least one letter or digit.
+
+Agents see the tool under its MCP name: the plugin id and the tool part, each with every `.` and `-` turned into `_`, joined by `__`. `acme.notes.add_note` is offered as `acme_notes__add_note`. The MCP name may be at most 64 characters; a longer one is refused in the manifest. Studio's own tool names never contain `__`, so a plugin tool cannot shadow one. Two plugins whose names flatten to the same MCP name cannot both offer it; the one that registers second is refused.
+
+### Input schema
+
+The arguments are checked against `inputSchema` before the handler runs, so the schema may use only what that check understands:
+
+- The root is `{ "type": "object", … }`.
+- Keywords: `type`, `description`, `properties`, `required`, `items`, `enum`, `additionalProperties`, `minimum`, `maximum`, `default`, `oneOf`. Any other is refused.
+- `type` is one of `object`, `string`, `number`, `integer`, `boolean`, `array`, `null`. `enum` is a non-empty list of strings or numbers.
+- At most 10 levels deep and 20 000 characters as JSON.
+- No property called `project`. Studio adds it to every tool, uses it to route the call to the right project, and removes it before the handler sees the arguments.
+
+## The handler
+
+The handler receives the checked arguments, without `project`, and a context holding only `clientName`, the name the MCP client gave, or `null`. Whatever it does, it does through your plugin's own `app`.
+
+It returns one of:
+
+| Result | Becomes |
+| --- | --- |
+| A string | A text answer. |
+| `{ text, data?, image? }` | `text` for the model; `data` as MCP `structuredContent`; `image` as one picture, `{ mimeType: "image/png" \| "image/jpeg", data }` in base64. |
+| `{ error: { code?, message, hint? } }` | A refusal the agent can act on. `code` is `invalid_args`, `not_found`, `check_failed`, `stale_revision` or `unavailable`, which is also the default. Put the next step in `hint`. |
+
+Answers are held to limits: text past 60 000 characters is cut, with a note saying so; `data` larger than 60 000 characters of JSON is left out; a picture must be at most 10 000 000 characters of base64. A handler that throws is answered with `internal` and the error's message.
+
+Return the ids a later call needs, and say in the description which tool lists them. Agents do better with a list tool to call first than with names they have to guess.
+
+## What Studio does around a call
+
+**The gate.** A plugin tool passes the same checks as Studio's own. A `write: true` tool is refused unless the author allowed agents to make changes, and while the agent is paused, the project is frozen or a live session runs. The author can also switch off all of one plugin's tools in **Settings → Agent access → Plugin tools**. The plugin cannot opt out of any of it.
+
+**Reading tools cannot write.** While a `write: false` tool runs, `storage.writeJson` throws.
+
+**A writing tool's edit is one undo step.** While a `write: true` tool runs, every `storage.writeJson` is captured: each namespace as it was before the first write, and as the last write left it. When the call ends, the change is pushed onto the project's undo stack as one step named after the title. Undo and redo write each namespace back, then run the reloader you registered with `services.workspace.registerReloader`. The step is recorded even when the handler throws after writing.
+
+**One call at a time.** Studio runs an agent's calls one after another, and a second call to your plugin while one of its tools is running is refused with `unavailable`. A write the author makes in your plugin's own panel while a tool runs is counted as the tool's.
+
+What this means for your plugin:
+
+- **Keep the data an agent changes in `services.storage`.** That is what the gate watches and what undo restores. A change written anywhere else, such as a file through `privileged`, is not undone.
+- **Register a reloader**, and make it re-read everything you hold in memory. Without one, undo changes the stored data and not your plugin's copy of it, and the next edit writes the old copy back.
+- **Update memory after the write succeeds**, as the example does, so a refused write leaves nothing half-applied.
+
+## The guide chapter
+
+`contributes.agentGuide` points to one Markdown file in the package. Agents read it with `agent_guide` and the chapter `plugin:<plugin id>`, or as the MCP resource `narraleaf://guide/plugin/<plugin id>`; `agent_guide` with no chapter lists it among the others while the plugin is enabled. A chapter larger than 256 KB is not served.
+
+Write it for an agent that has never seen your plugin: what the data is, which tool to call first, a complete example of the arguments, and the common mistakes. Tool descriptions say what one tool does; the chapter says how the tools fit together.
+
+## Versions
+
+The install permission is derived from `contributes.agentTools`, never written by hand. A version that adds a tool, or turns a reading tool into one that changes the project, widens it and asks the author again. A version that removes a tool, or changes only titles, descriptions and handlers, does not. See [Permissions are derived](/docs/studio/plugin/manifest#permissions-are-derived).
+
+## Reference implementation
+
+The built-in Gallery plugin, `narraleaf.gallery`, offers six tools over its catalogue: one that reads it, and five that add, edit and remove entries, set the groups and set the locked look. Its guide chapter covers the order of work and how a CG is unlocked. See [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) for the data the tools edit.

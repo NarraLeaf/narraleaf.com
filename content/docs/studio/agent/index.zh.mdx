@@ -21,13 +21,14 @@ Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Stud
 | 故事 | 以 `.story` 文本读写整个场景；新建、重命名和删除场景；设置入口场景；重命名故事 |
 | 界面 | 以 `.ui` 文本读写页面、游戏 UI 和组件，对元素做小修改，应用界面模板，设置配色与字体，截取页面或单个控件在悬停、按下状态下的图像，读取作者当前的选择 |
 | 蓝图 | 以 `.bp` 文本读写蓝图 |
+| 插件 | 项目中已加载插件的工具所提供的操作，内置的 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件可以用 CG、回想、音乐和语音填充鉴赏界面 |
 | 检查与构建 | 运行项目检查和内置测试，在开发模式中逐行试玩，读取控制台，为当前系统、Windows、macOS、Linux 或 Web 构建 |
 
 全部工具见[工具](/zh/docs/studio/agent/tools)
 
 ## Agent 不能做什么
 
-- 编辑由插件管理的数据，例如 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件的画廊条目
+- 编辑由插件管理的数据，除非该插件为这些数据提供了 Agent 工具。见[插件工具](/zh/docs/studio/agent/tools#plugin-tools)
 - 编辑译文。可以增删游戏提供的语言，译文本身在[本地化](/zh/docs/studio/workspace/localization)中编辑
 - 设置语音表、分层立绘、Live2D 或 Spine 模型。角色的姿态是单张图片资产，导入仅限图片、音频、视频和字体
 - 修改音频总线。只能列出音轨

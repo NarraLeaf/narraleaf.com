@@ -60,8 +60,8 @@ The skill sets the order of work:
 | Assets | Imports your files under story-friendly names and makes placeholders for what is missing |
 | Cast and variables | Sets up characters with their poses and name colours, and the variables the story needs |
 | Story | Writes the story one scene per call, with branches, and points the title's start button at the opening scene |
-| Interface | Sets the palette and fonts, then restyles each page, checking a screenshot after every pass |
-| Interaction | Adds blueprints only for behaviour the template lacks |
+| Interface | Sets the palette and fonts, then restyles each page, checking a screenshot after every pass, and fills the Extra page through the Gallery tools |
+| Interaction | Adds blueprints only for behaviour the template lacks, such as unlocking CGs |
 | Verify | Runs the checks until there are no errors, runs the route and ending tests, and plays every route to its ending |
 | Ship | Builds the game and reports what it made and what is left for you |
 
@@ -76,6 +76,18 @@ The agent ends with a report: the scenes, routes and endings it made, every plac
 </Step>
 
 </Steps>
+
+## The Extra page
+
+When the project uses the [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) plugin, as the Skeleton template does, the agent fills the Extra page through the plugin's own tools. It reads the plugin's guide chapter first, then adds every CG with its differentials, a recollection for each key scene, the soundtrack, and voice lines if the game is voiced. The page shows whatever the catalogue holds, so it needs no new blueprint to list them.
+
+Recollections, music and voice lines unlock by themselves, when the player reaches the scene, hears the track or is told the line. A CG does not: it needs an [Unlock Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery#unlock-gallery) node, and the story text an agent writes cannot run one. The guide has the agent do it in three parts:
+
+1. A persistent variable for each CG, such as `seen_cg_rooftop`, false by default.
+2. A `/set` row that makes it true in the scene, right after the CG appears.
+3. On the title page's open event, a chain that reads the variable and runs **Unlock Gallery** for that entry when it is true. The title opens at launch and after every playthrough, so the Extra page it leads to is already up to date.
+
+The tools are listed in [Plugin tools](/docs/studio/agent/tools#plugin-tools).
 
 ## Watching the agent [#watching]
 
@@ -128,5 +140,5 @@ The agent lists these in its report. The usual ones:
 - Sprites with an opaque background, which show as rectangles until you supply cut-outs.
 - Placeholder images standing in for art that was not supplied.
 - Files in formats Studio cannot play, which need converting.
-- Gallery entries, translations of other languages, and leftover demo content.
+- Translations into other languages, and leftover demo content.
 - The application icon and code signing, set under **Identity** and **Signing** in the build dialog. See [Run and Package](/docs/studio/getting-started/run-and-package).

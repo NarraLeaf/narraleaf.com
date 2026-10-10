@@ -3,7 +3,7 @@ title: Tools
 description: Every tool Studio's MCP server offers, grouped by what it works on.
 ---
 
-Studio's MCP server offers 54 tools. Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
+Studio's MCP server has 54 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
 
 **Changes the project** marks the tools that are refused while **Allow agents to make changes** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
 
@@ -103,6 +103,29 @@ Every tool that works on a project takes an optional `project`, the project fold
 | `console_read` | Read Studio's console | No | Recent lines from Studio's console (build, story, blueprint, runtime channels) |
 | `build` | Build the game | Yes | Builds a playable package of the project, through the same pipeline as Studio's build dialog |
 
+## Plugin tools [#plugin-tools]
+
+A plugin can offer agents tools of its own. They are listed beside Studio's tools, under a name made of the plugin id and the tool's name, with every `.` and `-` turned into `_` and the two parts joined by `__`. The Gallery's `narraleaf.gallery.add_entries` is offered as `narraleaf_gallery__add_entries`.
+
+A plugin's tools are offered only while a project that loads the plugin is open, and the plugin is enabled there. When that changes, clients that keep Studio's notification stream open are told the list changed; others see the new list the next time they ask for it. `agent_status` names the plugin tools each open project offers.
+
+A plugin tool passes the same checks as Studio's own, and its **Changes the project** flag means the same. **Settings → Agent access → Plugin tools** switches off all the tools of one plugin. Plugin authors: see [Agent tools](/docs/studio/plugin/studio/agent-tools).
+
+A plugin may also ship a guide chapter, read with `agent_guide` and `plugin:<plugin id>`.
+
+### Gallery
+
+The built-in [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) plugin fills the Extra page. Its guide chapter is `plugin:narraleaf.gallery`. The titles are the plugin's own and are not translated.
+
+| Tool | Shown in Studio as | Changes the project | Purpose |
+| --- | --- | --- | --- |
+| `narraleaf_gallery__list` | Read the gallery | No | The Extra page's catalogue: groups, entries of every kind (cg, scene, music, voice) with their ids and variants, and the locked look |
+| `narraleaf_gallery__add_entries` | Add gallery entries | Yes | Adds entries to the Extra page in one undo step |
+| `narraleaf_gallery__update_entries` | Edit gallery entries | Yes | Edits existing entries in one undo step |
+| `narraleaf_gallery__remove_entries` | Remove gallery entries | Yes | Removes entries (by id) from the gallery in one undo step |
+| `narraleaf_gallery__set_groups` | Set gallery groups | Yes | Replaces the gallery's group list, in order, in one undo step |
+| `narraleaf_gallery__set_settings` | Set the gallery's locked look | Yes | Sets what a locked entry looks like on the Extra page, in one undo step |
+
 ## Text formats
 
 An agent reads and writes the project's content as text, through three formats:
@@ -119,7 +142,7 @@ The formats are described in the guide's `story-format`, `ui-format` and `bluepr
 
 ## Guide
 
-`agent_guide` takes one `chapter`:
+`agent_guide` takes one `chapter`. Without one, it lists the chapters there are:
 
 | Chapter | Covers |
 | --- | --- |
@@ -131,5 +154,6 @@ The formats are described in the guide's `story-format`, `ui-format` and `bluepr
 | `script-adaptation` | Turning a script into scenes |
 | `verify-and-ship` | Checks, tests, play-testing and building |
 | `troubleshooting` | Refusals and what to do about them |
+| `plugin:<plugin id>` | The chapter an enabled plugin ships, such as `plugin:narraleaf.gallery` |
 
-The same chapters are MCP resources at `narraleaf://guide/<chapter>`, and the `make_game` prompt starts the `workflow` with an optional `brief`.
+The same chapters are MCP resources at `narraleaf://guide/<chapter>`, and a plugin's at `narraleaf://guide/plugin/<plugin id>`; the `make_game` prompt starts the `workflow` with an optional `brief`.

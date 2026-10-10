@@ -13,11 +13,23 @@ Start in **Settings → Agent access**. **Address** reads **Listening.** while t
 | The connection is refused | The port changed, or the one asked for was in use and Studio served on another | Compare the port in **Address** with the agent's configuration, copy the configuration again, and restart the agent |
 | The agent reports a missing or wrong bearer token | The token was regenerated, or the configuration was typed by hand | Copy the configuration again |
 | The agent reports that requests from web pages are not accepted | The client sends an `Origin` header, as a browser does | Use a client that runs as a program on the computer |
-| The connection fails with HTTP 405 | The client was set up for the older SSE transport, which opens a stream Studio does not offer | Set it up for Streamable HTTP |
+| The client never connects, or fails with HTTP 405 | The client was set up for the older HTTP+SSE transport | Set it up for Streamable HTTP |
 | Claude Code has the tools in one folder only | The server was added without `--scope user` | In that folder, run `claude mcp remove narraleaf -s local`, then run the command from **Copy configuration → Claude Code** |
 | Claude Desktop says agent access is turned off | The stdio bridge reached Studio, and **Allow agents to connect** is off | Switch it on; the bridge needs no restart |
 | Claude Desktop waits, then reports that Studio is not running or did not start in time | Studio did not start serving within a minute, or the bridge was given `--user-data-dir`, which makes it connect without starting Studio | Open Studio, check **Settings → Agent access**, then reconnect |
 | The agent works on the wrong project | More than one project is open | Ask the agent to name the project folder, or close the other projects |
+
+## The agent does not see a plugin's tools
+
+A plugin's tools exist only while a project that loads the plugin is open. `agent_status` names the plugin tools each open project offers.
+
+| Cause | What to do |
+| --- | --- |
+| The client listed the tools before the plugin was loaded, and keeps the old list | Ask the agent to list its tools again, or reconnect it. A client that keeps Studio's notification stream open is told when the list changes; others see the change the next time they list the tools |
+| The project that uses the plugin is not open | Open it. The tools of a closed project's plugins are not offered |
+| The plugin is not enabled in the project, or failed to load | Enable it in the project, and check the Console for a load error |
+| The plugin's tools are switched off | Switch them on under **Settings → Agent access → Plugin tools**. A call to a switched-off tool is refused with `unavailable` |
+| More than one project is open, and the call went to one that does not load the plugin | The refusal, `unknown_tool`, names the projects that offer the tool. Ask the agent to name one of them |
 
 ## Refusal codes
 
@@ -37,7 +49,7 @@ When Studio refuses a call, the agent receives a code, a message and often a nex
 | `no_workspace` | **No open project** | No project is open, or several are and the call did not say which | Open the project, or ask the agent to name its folder |
 | `invalid_args` | **Invalid arguments** | The arguments do not fit the tool | Nothing. The agent corrects the call |
 | `unknown_tool` | **Unknown tool** | There is no tool by that name | Nothing. The agent asks for the list of tools again |
-| `unavailable` | **Unavailable** | The call is valid but cannot be carried out in the current state, for example advancing a game that is not running, or a project window that did not answer in time | Read the message in the **Agent log**; it names what is missing |
+| `unavailable` | **Unavailable** | The call is valid but cannot be carried out in the current state, for example advancing a game that is not running, a project window that did not answer in time, or a tool of a plugin whose tools are switched off | Read the message in the **Agent log**; it names what is missing |
 | `internal` | **Internal error** | Something in Studio failed that is not the agent's doing | If it repeats, check the Console for errors and report it |
 
 A code the agent cannot act on by itself, such as `writes_disabled`, `paused` or `path_not_allowed`, makes it stop and ask you.

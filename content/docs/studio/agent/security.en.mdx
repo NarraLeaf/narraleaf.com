@@ -46,6 +46,20 @@ Copying a configuration puts the token on the system clipboard, where other prog
 
 **A project not trusted does not run.** A project that Studio did not create cannot be played or built until it is trusted, by agents as by you. **Not trusted** in the status bar, or **Settings → Data → Trusted projects**, trusts it.
 
+## Plugin tools
+
+A plugin can offer agents tools of its own. See [Plugin tools](/docs/studio/agent/tools#plugin-tools).
+
+**They pass the same checks.** A plugin tool that changes the project is refused while changes are not allowed, while the agent is paused, while the project is frozen and during a live session, exactly as Studio's own tools are. A plugin cannot opt out.
+
+**A reading tool cannot write.** While a tool the plugin registered as reading runs, the plugin's stored data refuses every write. What a writing tool changes in it is recorded as one step of undo.
+
+**You are told before it happens.** When a plugin offers agent tools, its install prompt says so under **AI agents**, with how many tools there are and how many can change the project. A later version that adds a tool, or turns a reading tool into one that changes the project, asks again.
+
+**You can switch a plugin's tools off.** **Settings → Agent access → Plugin tools** lists the enabled plugins that offer tools, each with **Allow the agent tools of …**. A plugin switched off there has its tools hidden from agents, and their calls are refused.
+
+**They run as plugin code.** A plugin tool runs inside the project window with the plugin's own access, like everything else the plugin does. Plugins are not sandboxed, so the trust you give a plugin at install covers its tools too. See [Install a plugin](/docs/studio/plugin/install-plugin).
+
 ## What an agent can reach
 
 An agent can open any project folder on the computer by path and create a project in any folder, as you can from Studio. Builds are written to the project's build folder unless the agent names another. Agent access does not limit which project an agent opens; the switches above limit what it may do there.

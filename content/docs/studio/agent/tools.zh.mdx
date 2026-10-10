@@ -3,7 +3,7 @@ title: 工具
 description: Studio MCP 服务器提供的全部工具，按作用对象分组
 ---
 
-Studio 的 MCP 服务器提供 54 个工具。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
+Studio 的 MCP 服务器自带 54 个工具，列于下文，插件还可以添加更多，见[插件工具](#plugin-tools)。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
 
 **修改项目**为“是”的工具在 **允许 Agent 修改工程** 关闭时会被拒绝；作用于已打开项目的，在 Agent 暂停、项目冻结以及 Team 实时会话期间也会被拒绝。其余工具只读取，试玩也属于其中，因此 Agent 无需修改权限即可检查游戏
 
@@ -103,6 +103,29 @@ Studio 的 MCP 服务器提供 54 个工具。工具说明使用英文，因为�
 | `console_read` | 读取控制台 | 否 | Studio 控制台最近的几行（构建、故事、蓝图、运行时频道） |
 | `build` | 构建游戏 | 是 | 构建项目的可运行包，与 Studio 构建窗口使用同一流程 |
 
+## 插件工具 [#plugin-tools]
+
+插件可以为 Agent 提供自己的工具。它们与 Studio 的工具列在一起，名称由插件 ID 和工具名组成：其中的 `.` 和 `-` 都换成 `_`，两部分之间用 `__` 连接。Gallery 的 `narraleaf.gallery.add_entries` 以 `narraleaf_gallery__add_entries` 的名称提供
+
+插件的工具只在加载了该插件、并在其中启用了该插件的项目处于打开状态时提供。情况变化时，保持 Studio 通知流打开的客户端会收到列表已变化的通知，其他客户端在下次获取列表时看到新的列表。`agent_status` 会列出每个已打开项目提供的插件工具
+
+插件工具接受与 Studio 自身工具相同的检查，**修改项目**一列的含义也相同。**设置 → Agent 接入 → 插件工具** 可以关闭某个插件的全部工具。插件作者请参阅 [Agent 工具](/zh/docs/studio/plugin/studio/agent-tools)
+
+插件还可以附带一章指南，通过 `agent_guide` 和 `plugin:<plugin id>` 读取
+
+### Gallery
+
+内置的 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件用于填充鉴赏界面，其指南章节为 `plugin:narraleaf.gallery`。工具标题由插件自己提供，没有翻译
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `narraleaf_gallery__list` | Read the gallery | 否 | 鉴赏界面的目录：分组、各类条目（cg、scene、music、voice）及其 id 和变体，以及锁定时的外观 |
+| `narraleaf_gallery__add_entries` | Add gallery entries | 是 | 向鉴赏界面添加条目，记为一步撤销 |
+| `narraleaf_gallery__update_entries` | Edit gallery entries | 是 | 编辑已有条目，记为一步撤销 |
+| `narraleaf_gallery__remove_entries` | Remove gallery entries | 是 | 按 id 从画廊中移除条目，记为一步撤销 |
+| `narraleaf_gallery__set_groups` | Set gallery groups | 是 | 按顺序替换画廊的分组列表，记为一步撤销 |
+| `narraleaf_gallery__set_settings` | Set the gallery's locked look | 是 | 设置锁定条目在鉴赏界面上的外观，记为一步撤销 |
+
 ## 文本格式
 
 Agent 通过三种文本格式读写项目内容：
@@ -119,7 +142,7 @@ Agent 通过三种文本格式读写项目内容：
 
 ## 指南
 
-`agent_guide` 接受一个 `chapter` 参数：
+`agent_guide` 接受一个 `chapter` 参数，不传时列出现有的全部章节：
 
 | 章节 | 内容 |
 | --- | --- |
@@ -131,5 +154,6 @@ Agent 通过三种文本格式读写项目内容：
 | `script-adaptation` | 把剧本转为场景 |
 | `verify-and-ship` | 检查、测试、试玩与构建 |
 | `troubleshooting` | 各种拒绝及其处理 |
+| `plugin:<plugin id>` | 已启用插件附带的章节，例如 `plugin:narraleaf.gallery` |
 
-这些章节同时以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`；`make_game` 提示词以 `workflow` 开始整个流程，可附带可选的 `brief`
+这些章节同时以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`，插件的章节为 `narraleaf://guide/plugin/<plugin id>`；`make_game` 提示词以 `workflow` 开始整个流程，可附带可选的 `brief`

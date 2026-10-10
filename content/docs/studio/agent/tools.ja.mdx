@@ -3,7 +3,7 @@ title: ツール
 description: Studio の MCP サーバーが提供するすべてのツールを、対象ごとにまとめたもの
 ---
 
-Studio の MCP サーバーは 54 個のツールを提供します。ツールの説明はエージェントが読むものなので英語で書かれており、それぞれにいつ使うかが書かれています。「Studio での表示」は、Studio が**エージェントログ**とステータスバーでその呼び出しを呼ぶ名前です。
+Studio の MCP サーバーには以下の 54 個のツールがあり、プラグインがさらに追加できます。[プラグインのツール](#plugin-tools)を参照してください。ツールの説明はエージェントが読むものなので英語で書かれており、それぞれにいつ使うかが書かれています。「Studio での表示」は、Studio が**エージェントログ**とステータスバーでその呼び出しを呼ぶ名前です。
 
 「プロジェクトを変更」が「する」のツールは、**エージェントによる変更を許可**がオフの間は拒否されます。開いているプロジェクトに対するものは、エージェントの一時停止中、プロジェクトの凍結中、Team のライブセッション中にも拒否されます。それ以外のツールは読み取りだけを行います。テストプレイもこちらに含まれるため、エージェントは変更の許可がなくてもゲームを確認できます。
 
@@ -103,6 +103,29 @@ Studio の MCP サーバーは 54 個のツールを提供します。ツール�
 | `console_read` | コンソールを読む | しない | Studio のコンソールの最近の行（ビルド、ストーリー、ブループリント、ランタイムのチャンネル） |
 | `build` | ゲームをビルド | する | プロジェクトの実行可能なパッケージをビルドする。Studio のビルドダイアログと同じ処理を通る |
 
+## プラグインのツール [#plugin-tools]
+
+プラグインは、エージェント向けに独自のツールを提供できます。これらは Studio のツールと並んで、プラグイン ID とツール名からなる名前で提供されます。`.` と `-` はすべて `_` に置き換えられ、2 つの部分は `__` でつながれます。Gallery の `narraleaf.gallery.add_entries` は `narraleaf_gallery__add_entries` として提供されます。
+
+プラグインのツールが提供されるのは、そのプラグインを読み込み、そこで有効にしているプロジェクトが開いている間だけです。状況が変わると、Studio の通知ストリームを開いたままのクライアントには一覧が変わったことが通知され、それ以外のクライアントは次に一覧を取得したときに新しい一覧を受け取ります。`agent_status` は、開いている各プロジェクトが提供するプラグインのツールを示します。
+
+プラグインのツールは Studio 自身のツールと同じ検査を通り、「プロジェクトを変更」の意味も同じです。**設定 → エージェント連携 → プラグインのツール**で、プラグインごとにすべてのツールをオフにできます。プラグインの作者は [エージェント用ツール](/ja/docs/studio/plugin/studio/agent-tools)を参照してください。
+
+プラグインはガイドの章を同梱することもでき、`agent_guide` に `plugin:<plugin id>` を渡して読みます。
+
+### Gallery
+
+組み込みの [Gallery](/ja/docs/studio/blueprint/nodes/built-in-plugins/gallery) プラグインは鑑賞画面を埋めます。ガイドの章は `plugin:narraleaf.gallery` です。表示名はプラグイン自身のもので、翻訳されていません。
+
+| ツール | Studio での表示 | プロジェクトを変更 | 用途 |
+| --- | --- | --- | --- |
+| `narraleaf_gallery__list` | Read the gallery | しない | 鑑賞画面のカタログ。グループ、各種類（cg、scene、music、voice）の項目とその id とバリアント、ロック中の見た目 |
+| `narraleaf_gallery__add_entries` | Add gallery entries | する | 鑑賞画面に項目を追加する。1 ステップで取り消せる |
+| `narraleaf_gallery__update_entries` | Edit gallery entries | する | 既存の項目を編集する。1 ステップで取り消せる |
+| `narraleaf_gallery__remove_entries` | Remove gallery entries | する | id を指定してギャラリーから項目を削除する。1 ステップで取り消せる |
+| `narraleaf_gallery__set_groups` | Set gallery groups | する | ギャラリーのグループ一覧を順序どおりに置き換える。1 ステップで取り消せる |
+| `narraleaf_gallery__set_settings` | Set the gallery's locked look | する | ロック中の項目が鑑賞画面でどう見えるかを設定する。1 ステップで取り消せる |
+
 ## テキスト形式
 
 エージェントは、プロジェクトの内容を 3 つのテキスト形式で読み書きします。
@@ -119,7 +142,7 @@ Studio の MCP サーバーは 54 個のツールを提供します。ツール�
 
 ## ガイド
 
-`agent_guide` は `chapter` を 1 つ受け取ります。
+`agent_guide` は `chapter` を 1 つ受け取ります。省略すると、ある章をすべて一覧にします。
 
 | 章 | 内容 |
 | --- | --- |
@@ -131,5 +154,6 @@ Studio の MCP サーバーは 54 個のツールを提供します。ツール�
 | `script-adaptation` | 台本をシーンにする方法 |
 | `verify-and-ship` | チェック、テスト、テストプレイ、ビルド |
 | `troubleshooting` | 拒否とその対処 |
+| `plugin:<plugin id>` | 有効なプラグインが同梱する章。たとえば `plugin:narraleaf.gallery` |
 
-同じ章は MCP リソース `narraleaf://guide/<chapter>` としても提供されます。`make_game` プロンプトは、省略可能な `brief` を付けて `workflow` から作業を始めます。
+同じ章は MCP リソース `narraleaf://guide/<chapter>` として、プラグインの章は `narraleaf://guide/plugin/<plugin id>` として提供されます。`make_game` プロンプトは、省略可能な `brief` を付けて `workflow` から作業を始めます。
