@@ -237,6 +237,7 @@ http_headers = { "Authorization" = "Bearer <TOKEN>" }
     <File name="AGENTS.md" />
     <Folder name="mcp-configs" />
     <Folder name="narraleaf-make-game" />
+    <Folder name="narraleaf-port-renpy" />
   </Folder>
 </Files>
 
@@ -251,6 +252,8 @@ Skill 就是 `narraleaf-make-game` 文件夹。把整个文件夹（而不只是
 | Cursor、Gemini CLI 及其他 | 无需 Skill 文件夹，见下文 | 无 |
 
 会读取 `AGENTS.md` 的 Agent，例如 opencode、Codex、Cursor 以及按上文设置的 Gemini CLI，在 `NarraLeaf-Skills` 文件夹中启动时会自行找到 Skill
+
+同目录下的 `narraleaf-port-renpy` 用于移植附带源码的 Ren'Py 游戏，见[移植 Ren'Py 游戏](/zh/docs/studio/agent/make-a-game#renpy)。它以 `narraleaf-make-game` 为基础，因此两者都要按同样的方式安装。服务器不以指南的形式提供它，Agent 需从文件夹中读取
 
 ### 没有 Skill 时
 

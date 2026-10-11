@@ -58,13 +58,13 @@ The skill sets the order of work:
 | --- | --- |
 | Connect | Reads the session: open projects, whether it may change anything, which folders it may import from |
 | Brief | Agrees on what is being made, as above |
-| Project | Creates the project from the Skeleton template, or opens an existing one, and reuses the template's demo content |
-| Assets | Imports your files under story-friendly names and makes placeholders for what is missing |
-| Cast and variables | Sets up characters with their poses or layered sprites and name colours, and the variables the story needs |
+| Project | Creates the project from the Skeleton template, or opens an existing one, and reuses the template's demo content. A project made from the Empty template gets the Skeleton's working screens installed. Sets how a new player's settings start, such as text speed and auto-forward delay |
+| Assets | Imports your files under story-friendly names and makes placeholders for what is missing. A file identical to one already imported is not imported twice |
+| Cast and variables | Sets up characters with their poses or layered sprites, name colours and [avatars](#avatars), and the variables the story needs |
 | Story | Writes the story one scene per call, with branches, and points the title's start button at the opening scene |
 | Interface | Sets the palette and fonts, then restyles each page, checking a screenshot after every pass, and fills the Extra page through the Gallery tools |
-| Interaction | Adds blueprints only for behaviour the template lacks, such as unlocking CGs |
-| Verify | Runs the checks until there are no errors, runs the route and ending tests, and plays every route to its ending |
+| Interaction | Adds blueprints only for behaviour the template lacks, such as unlocking a CG or granting an achievement at a story row |
+| Verify | Runs the checks until there are no errors, runs the route and ending tests, plays every route to its ending, and presses every button it wired or restyled in the running game |
 | Translation and voice | Only when you ask: translates the game into the languages you name, and links the voice recordings to their lines |
 | Ship | Builds the game and reports what it made and what is left for you |
 
@@ -84,11 +84,13 @@ The agent ends with a report: the scenes, routes and endings it made, every plac
 
 When the project uses the [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) plugin, as the Skeleton template does, the agent fills the Extra page through the plugin's own tools. It reads the plugin's guide chapter first, then adds every CG with its differentials, a recollection for each key scene, the soundtrack, and voice lines if the game is voiced. The page shows whatever the catalogue holds, so it needs no new blueprint to list them.
 
-Recollections, music and voice lines unlock by themselves, when the player reaches the scene, hears the track or is told the line. A CG does not: it needs an [Unlock Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery#unlock-gallery) node, and the story text an agent writes cannot run one. The guide has the agent do it in three parts:
+Recollections, music and voice lines unlock by themselves, when the player reaches the scene, hears the track or is told the line. A CG does not: it needs an [Unlock Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery#unlock-gallery) node. The guide gives the agent two ways to run one:
 
-1. A persistent variable for each CG, such as `seen_cg_rooftop`, false by default.
-2. A `/set` row that makes it true in the scene, right after the CG appears.
-3. On the title page's open event, a chain that reads the variable and runs **Unlock Gallery** for that entry when it is true. The title opens at launch and after every playthrough, so the Extra page it leads to is already up to date.
+- **At the row where the CG appears.** A story row runs a blueprint of its own that calls **Unlock Gallery**, so the CG unlocks the moment the player sees it.
+- **From the title page**, when the moment is better kept as a variable, such as one flag that several CGs or routes share:
+  1. A persistent variable for each CG, such as `seen_cg_rooftop`, false by default.
+  2. A `/set` row that makes it true in the scene, right after the CG appears.
+  3. On the title page's open event, a chain that reads the variable and runs **Unlock Gallery** for that entry when it is true. The title opens at launch and after every playthrough, so the Extra page it leads to is already up to date.
 
 The tools are listed in [Plugin tools](/docs/studio/agent/tools#plugin-tools).
 
@@ -104,6 +106,10 @@ Every layer image must be the full canvas size, transparent around the part, or 
 Turning an existing character into a layered one, or back, discards its current looks, and the story rows that chose one fall back to the default. Studio refuses the switch until the agent confirms it, and the skill has the agent show you those rows and ask first.
 
 Live2D and Spine characters are set up by you in the character editor. The agent reads them and writes the rows that drive them, with the names the model offers.
+
+## Avatars [#avatars]
+
+The avatar is the face beside a line in the dialogue box and the backlog. The agent sets it with the character: a default avatar, shown wherever nothing more specific is, off-stage lines and the backlog included, and one per pose, or for a layered character one per combination of the axes the avatar follows, usually one per expression whatever the outfit. When the agent sets none, Studio cuts avatars from the sprites when you open the Characters panel, and the agent mentions it in its report.
 
 ## Translation and voice [#translation-and-voice]
 
@@ -130,6 +136,16 @@ Studio does not record. The agent links recordings you already have to the lines
 4. It links what is left one by one, and lists the lines still missing a recording.
 
 A new take shows as **Voiced**. The agent marks a take **Approved** only when you say you listened to it. A misnamed recording is fixed by renaming its asset, since matching reads the library name. Each call that links takes is one step of undo, and with **Follow agent edits** on, Studio opens that language's voice table.
+
+## Porting a Ren'Py game [#renpy]
+
+The optional `narraleaf-port-renpy` skill guides an agent through moving an existing Ren'Py game into Studio, when the game comes with its source: the `game` folder with its `.rpy` scripts. It builds on `narraleaf-make-game`, so both are installed; see [Connecting an agent](/docs/studio/agent/connect).
+
+- **A converter, not a hand port.** The agent writes a program that reads the scripts once and generates each scene's `.story` text from them. A mapping that turns out wrong is fixed in the converter, and the scenes are generated again.
+- **Ren'Py to Studio mappings.** The skill sets out how Ren'Py statements, image attributes, positions and transforms, characters, variables and persistent data, menus and endings carry over, and which media must be converted before import.
+- **The interface traced from the running game.** The agent runs the Ren'Py game, takes a screenshot of every screen, rebuilds each one in Studio against its picture, and checks it again in Studio's running game. This step needs the Ren'Py SDK on the computer.
+
+The agent reads the Ren'Py source in place and never changes it; what it makes on the way goes in a working folder of its own.
 
 ## Watching the agent [#watching]
 

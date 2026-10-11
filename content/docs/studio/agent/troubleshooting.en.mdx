@@ -37,7 +37,7 @@ When an agent needs a file outside the project and the allowed folders, Studio o
 
 | What the agent reports | Cause | What to do |
 | --- | --- | --- |
-| **Waiting for the author:** followed by the folder, or the answer `pending` | The prompt is open and you have not answered. A call waits about 50 seconds, then returns while the prompt stays up | Answer the prompt. Once you allow it, the agent's next try goes through. If you cannot see the prompt, look over the project window the agent works on; a prompt that another one is still waiting behind opens when that one is answered |
+| **Waiting for the author:** followed by the folder, or the answer `pending` | The prompt is open and you have not answered. A call waits about 50 seconds, then returns while the prompt stays up | Answer the prompt. Once you allow it, the agent's next try goes through. If you cannot see the prompt, look over the project window the agent works on, which Studio's Dock icon (macOS) or taskbar button (Windows, Linux) points to by bouncing or flashing; a prompt that another one is still waiting behind opens when that one is answered |
 | **Declined by the author:** followed by the folder | You chose **Deny**, closed the prompt or pressed Escape. The agent is told not to ask again | To allow it after all, add the folder with **Add folder…** under **Folders agents may import from**, then tell the agent to try again. For 60 seconds after a denial, Studio answers the same folder as declined without asking, so asking the agent to retry at once brings no new prompt |
 | **Not allowed:** followed by the folder and a reason, and no prompt | The folder is a drive root, your home folder as a whole, a folder containing it, or one of Studio's own folders, which are never offered | Ask the agent to name the specific folder that holds the files, or copy the files into the project folder |
 | A request for more than five folders is partly answered | One prompt names at most five folders | Nothing. The agent asks again for the rest |
@@ -62,7 +62,7 @@ When Studio refuses a call, the agent receives a code, a message and often a nex
 | `no_workspace` | **No open project** | No project is open, or several are and the call did not say which | Open the project, or ask the agent to name its folder |
 | `invalid_args` | **Invalid arguments** | The arguments do not fit the tool | Nothing. The agent corrects the call |
 | `unknown_tool` | **Unknown tool** | There is no tool by that name | Nothing. The agent asks for the list of tools again |
-| `unavailable` | **Unavailable** | The call is valid but cannot be carried out in the current state, for example advancing a game that is not running, a project window that did not answer in time, or a tool of a plugin whose tools are switched off | Read the message in the **Agent log**; it names what is missing |
+| `unavailable` | **Unavailable** | The call is valid but cannot be carried out in the current state, for example advancing a game that is not running, deleting a page, scene, chapter or asset that something still uses, a project window that did not answer in time, or a tool of a plugin whose tools are switched off | Read the message in the **Agent log**; it names what is missing |
 | `internal` | **Internal error** | Something in Studio failed that is not the agent's doing | If it repeats, check the Console for errors and report it |
 
 A code the agent cannot act on by itself, such as `writes_disabled`, `paused` or `path_not_allowed`, makes it stop and ask you.

@@ -5,7 +5,7 @@ description: 通过 app.services.agent，为作者连接到 Studio 的 AI Agent 
 
 作者可以通过 MCP 把 AI Agent 连接到 Studio，Agent 随后用 Studio 的工具编辑打开的项目，见 [Agent 接入](/zh/docs/studio/agent)。`app.services.agent` 让插件在这些工具旁边加上自己的工具
 
-当插件保存了 Agent 应当能够填写或修改、而 Studio 自身的工具又触及不到的数据时，就应提供工具，例如插件保存的目录、表格或设置。只添加蓝图节点或控件的插件不需要提供工具，Agent 已经可以通过 Studio 的蓝图和界面工具使用它们
+当插件保存了 Agent 应当能够填写或修改、而 Studio 自身的工具又触及不到的数据时，就应提供工具，例如插件保存的目录、表格或设置。只添加蓝图节点或控件的插件不需要提供工具，Agent 已经可以通过 Studio 的蓝图和界面工具使用它们，也可以通过运行蓝图的故事行在故事的某一处运行这些节点
 
 内置的 Gallery 是参考实现。它的六个工具填充鉴赏界面的目录，它的指南章节教 Agent 如何使用这些工具，见[插件工具](/zh/docs/studio/agent/tools#plugin-tools)
 

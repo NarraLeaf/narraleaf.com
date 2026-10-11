@@ -15,15 +15,15 @@ Agent access needs a Studio release after 1.4.5. Studio must be open while the a
 
 | Area | What the tools cover |
 | --- | --- |
-| Projects | Create a project from the Skeleton or Empty template, open one, change its name, design resolution and game languages |
-| Assets | Import images, audio, video and fonts, make labelled placeholder images, delete assets nothing uses, list audio tracks, ask you for access to a folder outside the project |
-| Characters and variables | Create, update and delete characters with image poses and an entrance position; build layered characters from images named by layer and tag, or from a PSD, and preview their looks; declare, rename and delete global variables |
-| Story | Read and write a whole scene as `.story` text; create, rename and delete scenes; set the entry scene; rename a story |
-| Interface | Read and write pages, Game UI and components as `.ui` text, make small element edits, apply interface templates, set the palette and fonts, screenshot a page or one control in its hover or pressed state, read what you selected |
-| Blueprints | Read and write blueprints as `.bp` text |
+| Projects | Create a project from the Skeleton or Empty template, open one, change its name, design resolution, game languages and the settings a new player starts with |
+| Assets | Import images, audio, video and fonts, make labelled placeholder images, find where an asset is used and delete assets nothing uses, list audio tracks, ask you for access to a folder outside the project |
+| Characters and variables | Create, update and delete characters with image poses, dialogue avatars and an entrance position; build layered characters from images named by layer and tag, or from a PSD, and preview their looks; declare, rename and delete global variables |
+| Story | Read and write a whole scene as `.story` text; create, rename and delete scenes; rename and delete chapters; set the entry scene; rename a story |
+| Interface | Read and write pages, Game UI and components as `.ui` text, make small element edits, install the standard working screens in a project made from the Empty template, rename and delete pages and set the entry page, apply interface templates, set the palette and fonts, screenshot a page or one control in its hover or pressed state, read what you selected |
+| Blueprints | Read and write blueprints as `.bp` text, remove one left behind, and run one from a story row |
 | Translation and voice | Translate story lines, names, interface text, named keys and plugin text into the game's languages, marked **Machine** for you to review; set the voice languages and the recording file-name rule, and link recordings to their lines by name or one by one |
 | Plugins | Whatever the tools of a plugin loaded in the project offer. The built-in [Gallery](/docs/studio/blueprint/nodes/built-in-plugins/gallery) plugin's tools fill the Extra page with CGs, recollections, music and voice lines |
-| Checking and building | Run the project checks and the built-in tests, play the game in Dev Mode line by line, read the console, build for the current system, Windows, macOS, Linux or the web |
+| Checking and building | Run the project checks and the built-in tests, play the game in Dev Mode line by line and click, point and press keys in it, read the console, build for the current system, Windows, macOS, Linux or the web |
 
 Every tool is listed in [Tools](/docs/studio/agent/tools).
 
@@ -33,8 +33,6 @@ Every tool is listed in [Tools](/docs/studio/agent/tools).
 - Set up Live2D or Spine characters. The model and its runtime are set up in the [character editor](/docs/studio/workspace/character-manager); the agent writes the story rows that drive them.
 - Change the audio bus. It can list the audio tracks only.
 - Set the project icon, signing credentials or other build settings, or build for Android or iOS.
-- Delete a page. It hides what a game does not need.
-- Press buttons in a running game. It checks a control's states with screenshots instead.
 - Write files in the project folder directly. Every change goes through a tool, so you can see it and undo it.
 - Read Studio's own folders, your home folder as a whole, or a drive root, even with full access. See [Folders outside the project](/docs/studio/agent/security#folders).
 
@@ -43,6 +41,8 @@ Every tool is listed in [Tools](/docs/studio/agent/tools).
 **The MCP server** is built into Studio and is off until you switch it on. It gives an agent the tools.
 
 **The `narraleaf-make-game` skill** is the guide the agent follows: the order of work, the text formats it writes, interface design rules and the traps to avoid. Studio exports it as a folder, and the server also serves the same guide to agents that cannot load skills.
+
+The exported folder also holds an optional second skill, **`narraleaf-port-renpy`**, for porting a Ren'Py game that comes with its source. See [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy).
 
 ## Next
 

@@ -237,6 +237,7 @@ A client that can only start local programs runs Studio with `--mcp-stdio`, as i
     <File name="AGENTS.md" />
     <Folder name="mcp-configs" />
     <Folder name="narraleaf-make-game" />
+    <Folder name="narraleaf-port-renpy" />
   </Folder>
 </Files>
 
@@ -251,6 +252,8 @@ The skill is `narraleaf-make-game`. Copy the whole folder, not only `SKILL.md`, 
 | Cursor, Gemini CLI, others | No skill folder; see below | None |
 
 Agents that read `AGENTS.md`, such as opencode, Codex, Cursor and Gemini CLI with the setting above, find the skill by themselves when started inside `NarraLeaf-Skills`.
+
+`narraleaf-port-renpy`, beside it, is for porting a Ren'Py game that comes with its source; see [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy). It builds on `narraleaf-make-game`, so install both, in the same way. The server does not serve it as a guide; an agent reads it from the folder.
 
 ### Without a skill
 

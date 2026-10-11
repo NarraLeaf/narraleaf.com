@@ -5,7 +5,7 @@ description: Offer tools of your own to the AI agents an author connects to Stud
 
 An author can connect an AI agent to Studio over MCP, and the agent then works on the open project through Studio's tools. See [Agent access](/docs/studio/agent). `app.services.agent` lets your plugin add tools of its own beside them.
 
-Offer tools when your plugin keeps data an agent should be able to fill or change, and Studio's own tools cannot reach it: a catalogue, a table, settings the plugin stores. A plugin that only adds blueprint nodes or widgets needs none; an agent already uses those through Studio's blueprint and interface tools.
+Offer tools when your plugin keeps data an agent should be able to fill or change, and Studio's own tools cannot reach it: a catalogue, a table, settings the plugin stores. A plugin that only adds blueprint nodes or widgets needs none; an agent already uses those through Studio's blueprint and interface tools, and can run a node at a point in the story from a story row that runs a blueprint.
 
 The built-in Gallery is the reference implementation. Its six tools fill the Extra page's catalogue, and its guide chapter teaches an agent to use them. See [Plugin tools](/docs/studio/agent/tools#plugin-tools).
 

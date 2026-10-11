@@ -3,7 +3,7 @@ title: Tools
 description: Every tool Studio's MCP server offers, grouped by what it works on.
 ---
 
-Studio's MCP server has 66 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
+Studio's MCP server has 77 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
 
 **Changes the project** marks the tools that are refused while **Allow agents to make changes** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
 
@@ -23,16 +23,17 @@ Every tool that works on a project takes an optional `project`, the project fold
 | --- | --- | --- | --- |
 | `project_create` | Create a project | Yes | Creates a new NarraLeaf project from a template and opens it in Studio |
 | `project_open` | Open a project | No | Opens an existing project directory in Studio, or focuses it if already open |
-| `project_info` | Project overview | No | Name, design resolution, languages, entry page and scene, and counts of stories, scenes, pages, assets, characters and variables |
-| `project_settings_set` | Change project settings | Yes | Changes the project's name, design resolution or game languages |
+| `project_info` | Project overview | No | Name, design resolution, languages, entry page and scene, the player defaults (starting text speed, auto-forward delay, volumes, skipping), and counts of stories, scenes, pages, assets, characters and variables |
+| `project_settings_set` | Change project settings | Yes | Changes the project's name, design resolution, game languages, or the player defaults: what a new player's settings start at. A player's saved settings keep theirs |
 
 ## Assets
 
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
 | `assets_list` | List assets | No | Lists the project's assets with id, name, type and folder |
-| `assets_import` | Import files | Yes | Imports files from disk into the project. A file outside the project and the allowed folders makes Studio ask you for its folder first |
-| `asset_delete` | Delete an asset | Yes | Deletes an asset from the project, for example the Skeleton template's leftover demo pictures and music once nothing uses them |
+| `assets_import` | Import files | Yes | Imports files from disk into the project. A file outside the project and the allowed folders makes Studio ask you for its folder first. A file identical to an asset already in the project is not imported again, and the answer names the existing asset; a path with no file behind it is reported as not found |
+| `asset_delete` | Delete an asset | Yes | Deletes an asset from the project, for example the Skeleton template's leftover demo pictures and music. Refused while anything still uses it, and the refusal lists where |
+| `asset_usage` | Where an asset is used | No | Lists every place an asset is used: the uses Studio's usage index counts, and every place its id is written in stories, pages and blueprints |
 | `assets_placeholder` | Make a placeholder image | Yes | Generates a solid-colour PNG with an optional caption and imports it as an image asset |
 | `audio_tracks_list` | List audio tracks | No | Lists the audio tracks (Music, Sound, Voice and any custom ones) that `/bgm track=` and sound props can name |
 
@@ -40,8 +41,8 @@ Every tool that works on a project takes an optional `project`, the project fold
 
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
-| `characters_list` | List characters | No | Lists characters with id, name, nicknames, name colour, kind, their looks (a preset character's poses, a layered character's axes and layers, a Live2D or Spine character's model) and `entranceTransform` (how big the sprite is drawn and where it stands) |
-| `character_upsert` | Create or update a character | Yes | Creates a character, or updates the one with this `id` or exact `name` |
+| `characters_list` | List characters | No | Lists characters with id, name, nicknames, name colour, kind, their looks (a preset character's poses, a layered character's axes and layers, a Live2D or Spine character's model) `entranceTransform` (how big the sprite is drawn and where it stands) and the dialogue avatars |
+| `character_upsert` | Create or update a character | Yes | Creates a character, or updates the one with this `id` or exact `name`, including its dialogue avatars |
 | `character_layered_set` | Lay out a layered character | Yes | Creates a layered character, or replaces the looks of one: its axes with their tags, and its layers from bottom to top |
 | `character_layers_import` | Build a layered character from files | Yes | Builds a layered character from image assets named `<prefix>_<layer>` and `<prefix>_<layer>_<tag>`, or from a PSD |
 | `character_preview` | Preview a character look | No | Returns a picture of one look of a character, composited as Studio's editor draws it |
@@ -51,6 +52,8 @@ Every tool that works on a project takes an optional `project`, the project fold
 | `variable_delete` | Delete a variable | Yes | Deletes a global variable, for example the Skeleton template's demo variables |
 
 Each character edit is one step of undo. Turning a character of another kind into a layered one, or a layered one back into poses, discards its looks, so `character_upsert`, `character_layered_set` and `character_layers_import` refuse it until the call passes `confirmSwitch: true`. The refusal lists the story rows that chose one of the looks. Live2D and Spine characters are read only; they are set up in Studio's character editor.
+
+The avatar is the face beside a line in the dialogue box and the backlog. `character_upsert` takes a `defaultAvatar`, shown wherever nothing more specific is, and `avatars`, one image per pose, or for a layered character one per combination of the axes named in `avatarAxes`, such as one per expression whatever the outfit. Without them, Studio cuts avatars from the sprites when you open the Characters panel. A Live2D or Spine character has the default avatar only.
 
 ## Story
 
@@ -65,6 +68,8 @@ Each character edit is one step of undo. Turning a character of another kind int
 | `scene_create` | Create a scene | Yes | Creates an empty scene in a story, and the story itself if none by that name exists |
 | `scene_rename` | Rename a scene | Yes | Renames a scene. Jumps that name it follow, because they hold its id |
 | `story_rename` | Rename a story | Yes | Renames a story, such as the Skeleton template's own, whose name the author sees in Studio's story list |
+| `chapter_rename` | Rename a chapter | Yes | Renames a chapter of a story. Chapters only group scenes, so nothing else changes |
+| `chapter_delete` | Delete a chapter | Yes | Deletes an empty chapter. Refused while it still holds scenes, and the refusal lists them |
 | `scene_set_entry` | Set the entry scene | Yes | Makes a scene the one the game starts on when the player presses Start |
 | `scene_delete` | Delete a scene | Yes | Deletes a scene and its rows, for example the Skeleton template's demo scenes |
 
@@ -81,10 +86,18 @@ Each character edit is one step of undo. Turning a character of another kind int
 | `ui_screenshot` | Look at a page | No | Renders a page (or one element of it) as it looks in the game and returns the image |
 | `ui_apply` | Write pages | Yes | Applies a `.ui` document. Each `surface` or `component` block replaces that page's whole element tree |
 | `ui_patch` | Edit elements | Yes | Small edits to one page without rewriting it: add an element, set props, move or resize, re-parent, rename, delete, place a component |
-| `ui_templates` | Interface templates | No | Lists interface templates available to apply (title screens, dialogue boxes, menus) from Studio's template store |
-| `ui_template_apply` | Apply a template | Yes | Adds a template's pages to the project |
+| `ui_page_rename` | Rename a page | Yes | Renames a page or Game UI. Go Page nodes and frames that open it hold its id, so they follow |
+| `ui_page_delete` | Delete a page | Yes | Deletes a page or Game UI with its elements and blueprints. Refused for the entry page, and while anything still opens or names it; the refusal lists them |
+| `ui_page_set_entry` | Set the entry page | Yes | Makes a page the one the game opens on, such as the splash or the title |
+| `ui_install_standard_screens` | Install the standard screens | Yes | Brings the Skeleton template's working screens into the project: splash, title, save, load, settings, backlog, Extra and confirm pages, the dialogue box, choice menu, quick menu and notifications, with their components and every blueprint behind them |
+| `ui_templates` | Interface templates | No | Lists interface templates from Studio's online template store. They are layouts: most carry no blueprints, so their buttons do nothing until they are wired |
+| `ui_template_apply` | Apply a template | Yes | Adds a template's pages to the project as new pages, never as the entry page, and says for each how many blueprints and bound props came with it |
 | `brand_get` | Read the palette | No | The project's brand palette and fonts |
 | `brand_set` | Change the palette | Yes | Sets palette colours (by id; new ids are added) and the project font stack |
+
+`ui_install_standard_screens` is for a project made from the Empty template, or one whose interface was lost. Start begins the project's own story, and the files, palette entries, translation keys, input actions, save field and persistent variable the screens use come along. A Game UI slot the project already fills is left alone unless the call passes `replace: true`, and the splash becomes the entry page when the current one is empty. Pages that need a plugin the project does not run, such as the Gallery's Extra page, are left out together with the buttons that open them. The whole installation is one step of undo, and `dryRun: true` reports what it would add without writing.
+
+A page from the template store is a layout without logic: its Start button, save slots and sliders do nothing until the agent wires them with blueprints. For screens that already work, the standard screens are the better start.
 
 ## Blueprints
 
@@ -95,6 +108,9 @@ Each character edit is one step of undo. Turning a character of another kind int
 | `blueprint_list` | List blueprints | No | Lists blueprints with their owner (page or element) and event heads |
 | `blueprint_show` | Read a blueprint as text | No | Prints one blueprint (or all of one owner) in the `.bp` text format |
 | `blueprint_apply` | Write blueprints | Yes | Applies a `.bp` document: each `blueprint` block replaces every graph of its owner |
+| `blueprint_remove` | Remove a blueprint | Yes | Removes one blueprint, typically one left behind when the element it belonged to was deleted. Refused while another blueprint or a bound prop still names it |
+
+The check every `.bp` document passes refuses an Element node that names an element of another page or Game UI, since a blueprint reaches only the elements of its own page, and it warns about a loop whose body never wires back to the loop, which would run once and stop. `blueprint_remove` takes `dryRun: true`.
 
 ## Translation and voice
 
@@ -122,14 +138,19 @@ The game's text languages are set with `project_settings_set`, its voice languag
 
 | Tool | Shown in Studio as | Changes the project | Purpose |
 | --- | --- | --- | --- |
-| `lint` | Check the project | No | Runs every project lint rule and returns the findings, errors first |
+| `lint` | Check the project | No | Runs every project lint rule and returns the findings, errors first, a page at a time. The answer opens with a count per rule over the whole report; `rule` narrows it to one rule or a category such as `story/`, and `cursor` and `limit` page through it |
 | `test` | Run a project test | No | Runs a built-in test headlessly: `narraleaf-studio:route-coverage` (every scene reachable), `narraleaf-studio:reachable-endings`, `narraleaf-studio:project-diagnostics` |
 | `playtest_start` | Play the game | No | Opens the game in Dev Mode, from the title page or from a scene (and row) |
-| `playtest_advance` | Advance the game | No | Reads on `steps` lines of a running story |
-| `playtest_screenshot` | Look at the game | No | Screenshot of the running Dev Mode game: the stage with its Game UI, or the window when a page such as the title is showing |
+| `playtest_advance` | Advance the game | No | Reads on `steps` lines of a running story, through click-waits, timed waits and videos, and stops at a choice menu or an ending, naming the ending |
+| `playtest_screenshot` | Look at the game | No | Screenshot of the running Dev Mode game as the player sees it: the stage with its Game UI and every page or layer open over it. `view: "stage"` gives the stage alone, as a save thumbnail shows it |
+| `playtest_click` | Click in the game | No | Clicks an element of the running game's interface the way a player's mouse does, named by its id, a path of names, a unique name or the words it shows, and says what opened, closed or started |
+| `playtest_hover` | Point at something in the game | No | Rests the pointer on an element without pressing it, so its hover look and its On Mouse Enter graph run |
+| `playtest_key` | Press a key in the game | No | Presses a key the way a player's keyboard does, so the input actions bound to it and the focus navigation answer it; also right click and the mouse wheel |
 | `playtest_stop` | Stop playing | No | Closes the Dev Mode game |
 | `console_read` | Read Studio's console | No | Recent lines from Studio's console (build, story, blueprint, runtime channels) |
 | `build` | Build the game | Yes | Builds a playable package of the project, through the same pipeline as Studio's build dialog |
+
+The playtest tools act on the game window without bringing it to the front. Every playtest answer also lists the errors and warnings Dev Mode has reported in the run, with the scene and row or the page each came from: the ones the issue strip of the Dev Mode window counts.
 
 ## Plugin tools [#plugin-tools]
 
@@ -165,6 +186,12 @@ An agent reads and writes the project's content as text, through three formats:
 | `.bp` | The blueprints of one owner | `blueprint_show` | `blueprint_apply` |
 
 Each read returns a `revision`, and a write that carries it back is refused with `stale_revision` if the content changed in between. `story_apply`, `ui_apply`, `ui_patch` and `blueprint_apply` take `dryRun: true`, which checks the text and writes nothing.
+
+Some of what a `.story` scene can say:
+
+- **Styled words.** Dialogue, narration and choice options can style part of a line with `{b}…{/b}`, `{i}…{/i}` and `{color=…}…{/color}`, nested on one line. A line with styling the format has no tag for, such as ruby or a size, reads back as a `»` row and is kept as it is.
+- **Exact positions.** `pos=x,y` on `/show`, `/image`, `/text` and `/transform` places the object's centre. `x` and `y` are shares of the stage: `x` from the left edge (0) to the right (1), `y` from the bottom edge (0) up to the top (1). `left`, `center` and `right` are `0.25,0.5`, `0.5,0.5` and `0.75,0.5`. Beside a `pos=`, `xoffset=` and `yoffset=` add design pixels; a positive `yoffset` moves up.
+- **A row that runs a blueprint.** A story row can run a blueprint of its own when play reaches it, including one that calls a plugin's node: unlocking a gallery CG the moment it shows, or granting an achievement. The agent writes the blueprint with `blueprint_apply` and the row with `story_apply`.
 
 The formats are described in the guide's `story-format`, `ui-format` and `blueprint-format` chapters. Which commands, widgets and nodes exist is answered by the catalogue tools, `story_commands`, `story_command`, `story_targets`, `ui_widgets`, `ui_widget`, `ui_usage`, `blueprint_nodes` and `blueprint_node`, which read it from the Studio that is running. An agent should ask them rather than rely on memory.
 

@@ -237,6 +237,7 @@ http_headers = { "Authorization" = "Bearer <TOKEN>" }
     <File name="AGENTS.md" />
     <Folder name="mcp-configs" />
     <Folder name="narraleaf-make-game" />
+    <Folder name="narraleaf-port-renpy" />
   </Folder>
 </Files>
 
@@ -251,6 +252,8 @@ http_headers = { "Authorization" = "Bearer <TOKEN>" }
 | Cursor、Gemini CLI、その他 | スキルのフォルダーは不要。下記を参照 | なし |
 
 `AGENTS.md` を読むエージェント（opencode、Codex、Cursor、上記の設定をした Gemini CLI など）は、`NarraLeaf-Skills` の中で起動すれば自分でスキルを見つけます。
+
+隣の `narraleaf-port-renpy` は、ソースのある Ren'Py のゲームを移植するためのスキルです。[Ren'Py のゲームを移植する](/ja/docs/studio/agent/make-a-game#renpy)を参照してください。`narraleaf-make-game` を土台にしているので、両方を同じ方法で入れます。サーバーはこれをガイドとして提供しないため、エージェントはフォルダーから読み取ります。
 
 ### スキルがない場合
 
