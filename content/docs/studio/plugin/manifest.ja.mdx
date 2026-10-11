@@ -107,13 +107,13 @@ Studio は、宣言された各プロパティを、自身の Text や Button �
 
 ### runtimeCapabilities
 
-10 個の能力ドメインがあり、それぞれが `app.game` の 1 つの名前空間に対応します。宣言されていないドメインは、エラーを投げるメソッドになるのではなく、**オブジェクトから欠落**します。`entries.runtime` を伴わずにこれを宣言することはマニフェストエラーです。
+13 個の能力ドメインがあり、それぞれが `app.game` の 1 つの名前空間に対応します。宣言されていないドメインは、エラーを投げるメソッドになるのではなく、**オブジェクトから欠落**します。`entries.runtime` を伴わずにこれを宣言することはマニフェストエラーです。
 
 ```json
 { "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
 ```
 
-`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale` · `menu` · `story.compile` · `diagnostics` · `process.memory`
 
 完全なモデル、それぞれが具体的に何を許可するか、そして各環境がそれをどうさらに狭めるかについては、[Runtime API](/ja/docs/studio/plugin/runtime)を参照してください。
 

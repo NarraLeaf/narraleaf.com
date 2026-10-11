@@ -107,13 +107,13 @@ Studio 像对待自己的文本与按钮控件的文字那样处理每个声明�
 
 ### runtimeCapabilities
 
-十个能力域，每一个对应 `app.game` 的一个命名空间。未声明的域**在对象上根本不存在**，而不是一个会抛错的方法。声明了它却没有 `entries.runtime` 是清单错误
+十三个能力域，每一个对应 `app.game` 的一个命名空间。未声明的域**在对象上根本不存在**，而不是一个会抛错的方法。声明了它却没有 `entries.runtime` 是清单错误
 
 ```json
 { "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
 ```
 
-`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale` · `menu` · `story.compile` · `diagnostics` · `process.memory`
 
 完整模型、每个能力具体授予什么，以及各环境如何进一步收窄它：[Runtime API](/zh/docs/studio/plugin/runtime)
 

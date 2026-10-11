@@ -107,13 +107,13 @@ The list is an explicit allowlist so editor-only plugin state cannot leak into a
 
 ### runtimeCapabilities
 
-The ten capability domains, each mapping onto one namespace of `app.game`. An undeclared domain is **absent from the object**, not a method that throws. Declaring one without an `entries.runtime` is a manifest error.
+The thirteen capability domains, each mapping onto one namespace of `app.game`. An undeclared domain is **absent from the object**, not a method that throws. Declaring one without an `entries.runtime` is a manifest error.
 
 ```json
 { "contributes": { "runtimeCapabilities": ["store", "events", "state.read"] } }
 ```
 
-`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale`
+`store` · `events` · `state.read` · `state.write` · `saves.read` · `saves.write` · `ui.overlay` · `assets` · `locale` · `menu` · `story.compile` · `diagnostics` · `process.memory`
 
 The full model, what each one grants, and how environments narrow it further: [Runtime API](/docs/studio/plugin/runtime).
 
