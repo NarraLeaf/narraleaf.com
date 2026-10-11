@@ -39,9 +39,9 @@ xattr -dr com.apple.quarantine "/Applications/NarraLeaf Studio.app"
 
 ## アップデート
 
-Studio は起動直後に新しいリリースがないか確認し、結果を**Settings → General → Updates**（設定 → 一般 → アップデート）に表示します。ダウンロードは自動的には開始されません。確認を止めるには**Check for updates at launch**（起動時にアップデートを確認）をオフにします。
+Studio は起動直後と、起動中は数時間ごとに新しいリリースがないか確認し、結果を**Settings → General → Updates**（設定 → 一般 → 更新）に表示します。確認を止めるには**Check for updates automatically**（更新を自動で確認）をオフにします。**Update download source**（更新のダウンロード元）で新しいバージョンのダウンロード元を選べます。**Automatic**（自動）では GitHub と GitCode の速度を比べ、速い方を使います。
 
-**Windows** — その画面から更新をダウンロードします。Studio は次回の再起動時にインストールします。
+**Windows** — Studio は新しいバージョンをバックグラウンドでダウンロードして準備し、ワークスペースのタイトルバーにある更新ボタンが進み具合を示します。Studio を再起動すると更新が適用されます。各バージョンを **Updates**（更新）パネルから自分でダウンロードしたい場合は、**Download updates automatically**（更新を自動でダウンロード）をオフにします。
 
 **macOS** — Studio は新しいバージョンを通知するのみです。最新の `.dmg` をダウンロードし、Applications 内のアプリを置き換えてください。
 
