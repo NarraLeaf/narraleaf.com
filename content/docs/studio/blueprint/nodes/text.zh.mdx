@@ -14,6 +14,7 @@ Text 分类是 `nl.text` 控件的 Self 节点集合：它显示的字符串、�
 - **写入的文字优先。** `Set Text`、`Append Text`、`Clear Text` 以及 `Set All Properties` 的 `text` 引脚在游戏运行时写入的文字，在所有语言中都按写入的内容显示，优先于翻译键、元素自身文字的译文和 Blueprint Value，直到页面重新打开。脚本图层的写入同样如此。首次写入之前，元素自身的文字是它的默认值，见[界面文本](/zh/docs/studio/workspace/localization#interface-text)
 - **没有产生变化的写入什么也不做。** 每个 setter 都会先规范化补丁，再与元素当前属性比较，两者一致时直接返回——不重绘，该元素也不会触发`On Flush`。第一次写入文字是例外：即使与屏幕上的文字相同也算一次变化，因为此后这些文字在所有语言中都按写入的内容显示。getter 同样不会排队 flush，所以图可以反复轮询属性而不会把自己带进循环
 - **未接线的输入不等于「保持原样」。** 没有连线、卡片上也没有填值，或者填的值不在允许集合内时，多数 setter 会写入一个固定的兜底值而不是保留当前值：`Set Text` 写入空字符串，`Set Font` 清除字体，`Set Font Size` 写入 `16`，`Set Line Height` 写入 `1.4`，各个枚举 setter 写入其列表中的第一个值。什么都不会被拒绝，也不会抛错。只有 `Set Text Color`、`Set Effects` 以及 `Set All Properties` 的每一个引脚会回退到元素已有的值
+- **部分节点在创建浮窗中按组列出。** 浏览创建浮窗时，从 `Get Font` 到 `Get Effects` 的九个样式读取节点合为一行**获取文本样式**，对应的写入节点合为一行**设置文本样式**；`Get Visible` 与 `Get Enabled` 合为一行**获取可见性或启用状态**，`Set Visible` 与 `Set Enabled` 合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## Get Text
 

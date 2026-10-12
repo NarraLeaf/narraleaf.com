@@ -12,6 +12,7 @@ description: Frame がどの Page を表示するか、そしてその Page に�
 - **`params` は組み込まれた Page の Page props です。** Frame の内側の Page は、宣言したパラメータを [App](/ja/docs/studio/blueprint/nodes/app) の `Get Page Param` で、オブジェクト全体を `Get Page Props` で読み取ります。`params` にないパラメータは初期値を読みます。エディターでは、Frame の Properties に対象の Page のパラメータごとのフィールドが表示されます。[ページのパラメータ](/ja/docs/studio/workspace/ui-editor#page-params)を参照してください。Page 側は `Emit Page Event` で応答でき、それはこの Frame の [Events](/ja/docs/studio/blueprint/nodes/events) にある `Page Event` ヘッドに届きます。
 - **何も変えない書き込みは何もしません。** 2 つの書き込みノードはいずれも、渡された対象と params を現在の値と比較します（params は JSON としての等価性で比較されます）。両方が一致していれば早期に処理を終えます。再実行しても Page が再マウントされることはなく、入場アニメーションが再生されることもありません。
 - **これらのノードはいずれも Blueprint Value の中では動作しません。** `Get` ノードは pure ですが、Blueprint Value は `widgetValue` オーナー上で評価され、このページのすべてのノードは Frame のメインブループリントにスコープされています。Blueprint Value の中からこの Frame を読み取るには、それを指す `Element` リテラルを置き、Element カテゴリーの読み取りノードを使ってください。
+- **表示と有効状態のノードは、それぞれ同じ種類のノードとしてまとめられます。** パレットを一覧するとき、`Get Visible` と `Get Enabled` は **Get Visible or Enabled**（表示・有効状態を取得）、`Set Visible` と `Set Enabled` は **Set Visible or Enabled**（表示・有効状態を設定）として、それぞれ 1 行で表示されます。検索すると各ノードが自分の名前で表示されます。配置したカードは、タイトルの横の ▾ で 2 つのノードを切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
 
 ## Set Frame Page
 

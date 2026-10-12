@@ -13,6 +13,7 @@ These nodes drive the interface image widget `nl.image` — the picture in a tit
 - **Writes rewrite the widget's `imageFill`** (`mode`, `assetId`, `cropPlacement`) or its `imageFlipX` / `imageFlipY`, then queue a flush of the element. A write whose values match what is already there does nothing at all — no patch, no flush.
 - **An unusable input falls back to the current value.** An unrecognised or empty fit mode, a non-numeric crop percentage, and an unwired boolean all leave that property as it was, rather than resetting it.
 - **Geometry, opacity, and variants are not here.** Position, size, rotation, and opacity belong to [Displayable](/docs/studio/blueprint/nodes/displayable), and a non-Default appearance variant never overrides the Default's fill mode or crop — so switching to a translucent variant cannot leave the picture stuck in `crop`.
+- **Some nodes are grouped into families.** While the palette is browsed, `Get Image Fit Mode`, `Get Image Crop Rect`, `Get Image Flip X` and `Get Image Flip Y` are one row, **Get Image Framing**, and their setters are **Set Image Framing**; `Get Visible` and `Get Enabled` are **Get Visible or Enabled**, and `Set Visible` and `Set Enabled` are **Set Visible or Enabled**. A search finds each node by its own name, and the ▾ beside a placed card's title switches it to another node of its family. See [Node families](/docs/studio/blueprint/nodes#node-families).
 
 ## Image Asset
 

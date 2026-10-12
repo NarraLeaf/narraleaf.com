@@ -9,6 +9,8 @@ description: 接続された nl.text 要素の内容・タイポグラフィ・�
 
 Text ノードは `element:nl.text` ピンを持つため、グラフが `nl.text` 要素をバインドしたときにのみパレットに提供されます。`Get Text` は画面に表示されている文字を読み取ります。`Set Text`、`Append Text`、`Clear Text`、`Set All Properties` が書き込んだ文字は、ページを開き直すまですべての言語で書き込んだとおりに表示され、**Translation key**（翻訳キー）や Blueprint Value より優先されます。規則は Self 形態と同じです。Self 形態は [Text](/ja/docs/studio/blueprint/nodes/text) にあります。
 
+パレットを一覧するとき、`Get Font` から `Get Effects` までの 9 つのスタイル取得ノードは **Get Text Style**（文字のスタイルを取得）、対応する設定ノードは **Set Text Style**（文字のスタイルを設定）として、紐づけられた要素ごとに 1 行で表示されます。配置したカードは、タイトルの横の ▾ で同じ種類の別のノードに切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
+
 ### Get Text
 
 `blueprint.element.text.getText` · Pure

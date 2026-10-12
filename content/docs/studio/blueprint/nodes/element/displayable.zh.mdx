@@ -234,6 +234,8 @@ description: 对连入元素的几何、透明度、Variant 和属性动画操�
 
 要隐藏元素但不卸载它，用 `Set Element Display`——`visible` 和 `display` 是两个开关，只有 `display` 会折叠整棵子树
 
+浏览创建浮窗时，每种控件的两个读取节点合为一行**获取可见性或启用状态**，两个写入节点合为一行**设置可见性或启用状态**，每个已绑定的元素各有一行。已放置的卡片可用标题旁的 ▾ 在两者之间切换。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
+
 ### Get Button Visible
 
 `blueprint.element.button.getVisible` · Pure

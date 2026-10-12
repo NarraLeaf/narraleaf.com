@@ -17,7 +17,7 @@ Game 分类是蓝图与运行中剧情之间的接缝。这里的一切都在和
 - **状态取值节点会降级，偏好取值节点不会。** 每一个纯状态读取——`Is In Game`、`Is Game Overlay`、`Get Nametag`、`Get Speaker Avatar`、`Get Speaker Color`、`Get Dialog Text`、`Is Narrator`、`Is Dialog Waiting`、`Get Choice Count`、`Get Notifications`、`Is NVL Mode`、`Is Text Read`、`Has Read Text`、`Can Undo History`、`Can Redo History`、`Get Track Volume`、两个游玩时长读取，以及结局、走过的路线、DLC、构建变体与角色的那些读取——在什么都没有播放时都给出中性值：`false`、`null`、`0`、空数组，颜色给不透明白，音轨音量给 1。正因如此，同一个共享 Page 才能按它们分支，画廊的一行也才能把「锁住」的样子直接绑到引脚上。十八个偏好取值节点是例外：它们读的是活动`GamePreference`，没有游戏就失败。`Is Dialog Shown` 也是其中之一——它读的是 `showDialog` 偏好，只是名字按问题起而不是按键名起
 - **偏好初始化挂在`On Game Ready`上，不要挂`App Boot`。** `App Boot`可能早于`LiveGame`存在就运行，而没有活动游戏的偏好写入会失败。参见[事件](/zh/docs/studio/blueprint/nodes/events)
 - **存档 id 会被校验。** id 会被 trim，不能为空，不能含路径分隔符或控制字符。磁盘上的文件名由 id 的哈希派生；你选的 id 保存在记录的 metadata 里
-- **偏好的取值节点与设值节点各合为一组。** 浏览创建浮窗时，[偏好](#偏好)一节的 `Get …` 节点合为一行**获取偏好设置**，`Set …` 节点合为一行**修改偏好设置**；`Get Track Volume` 和 `Set Track Volume` 各自单独一行。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
+- **部分节点在创建浮窗中按组列出。** 浏览创建浮窗时，[偏好](#偏好)一节的 `Get …` 节点合为一行**获取偏好设置**，`Set …` 节点合为一行**修改偏好设置**，`Get Track Volume` 和 `Set Track Volume` 各自单独一行；[存档](#存档)一节从 `Get Save Metadata` 到 `Get Save Preview` 的六个读取节点合为一行**获取存档信息**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## 游玩
 

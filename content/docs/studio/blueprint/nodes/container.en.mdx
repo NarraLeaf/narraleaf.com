@@ -13,6 +13,7 @@ Self nodes for `nl.container`. Each one acts on the container whose blueprint it
 - **Layout is author-time only.** Layout mode, stack direction, gap, and padding have no nodes — clipping is the one box property a running graph can change. Position and size come from [Displayable](/docs/studio/blueprint/nodes/displayable), which also owns opacity and appearance variants.
 - **Two nodes on this page are not in the palette.** `Get Variant` and `Set Variant` were superseded by the Displayable variant nodes and hidden. They are documented because blueprints authored before that switch still hold them and still run — not because you can add one.
 - **None of these run inside a Blueprint Value.** The `Get` nodes are pure, but a Blueprint Value evaluates on a `widgetValue` owner and every node on this page is scoped to the container's main blueprint. To read the container from inside a Blueprint Value, place an `Element` literal for it and use the Element-category reader. `nl.container` has no property of its own that a Blueprint Value can drive.
+- **The visible and enabled nodes are two families.** While the palette is browsed, `Get Visible` and `Get Enabled` are one row, **Get Visible or Enabled**, and `Set Visible` and `Set Enabled` are **Set Visible or Enabled**. A search finds each node by its own name, and the ▾ beside a placed card's title switches between the two. See [Node families](/docs/studio/blueprint/nodes#node-families).
 
 ## Set Clip Content
 

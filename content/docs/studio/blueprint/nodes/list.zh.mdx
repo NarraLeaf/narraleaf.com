@@ -19,6 +19,7 @@ List 节点用于驱动当前私有蓝图所属列表控件的运行时内容、
 - **字段类节点指的是已声明的字段，不是 JSON 路径。** `Get Field`、`Set Item Field At`、`Find Item By Field` 与 `Sort List By Field` 从 List 为其条目声明的那些字段里挑，卡片存的是字段的稳定 id 而不是属性名——所以改属性名、调字段顺序，对图都毫无代价。深层路径仍然归 `Get JSON Field`。两个写入节点在没选字段时拒绝运行；两个读取节点则只是什么也答不出来
 - **行带有 List 的结构。** 结构在 List 的**编辑内容**中设置（见[列表](/zh/docs/studio/workspace/ui-editor#lists)）。`Get List Content`、`Get Item At`、`Find Item By Field`、`Get Selected Item` 与条目事件头的 `item` 给出该结构的行，因此在结局列表上，从 `Item Click` 的 `item` 拖出连线时会列出结局的字段。带 `list` 引脚的 Element 版本采用连入的 List 的结构
 - **缺少 List 字段的行会被报告。** `Set List Content`、`Append List Item`、`Insert List Item`、`Remove List Item` 与 `Set Selected Item` 接收该 List 结构的行。行中缺少 List 声明的字段，或字段类型不同时，画布上显示警告，项目检查报告**列表字段不一致**（`blueprint/list-shape-mismatch`），List 中这些字段显示为空。字段比 List 声明的多的行可以接受。只检查两边结构都已知的节点
+- **可见与启用节点各合为一组。** 浏览创建浮窗时，`Get Visible` 与 `Get Enabled` 合为一行**获取可见性或启用状态**，`Set Visible` 与 `Set Enabled` 合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 在两者之间切换。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 <Callout type="warn">
 `Clear List` 写入的是一个空的运行时数组，而空数组同样算作已写入的内容——`itemsBinding` 不会回来，List 会一直空着，直到你再次写入条目。唯一能恢复 fallback 的是卸载 List 实例，而它会连同选中项和滚动状态一起丢弃

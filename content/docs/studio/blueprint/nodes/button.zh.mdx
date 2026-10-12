@@ -13,6 +13,7 @@ description: 读写蓝图所属按钮的标签、指针与交互状态
 - **外观属于 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)。** 几何、透明度和外观变体在那里设置，对所有控件通用，不在这里
 - **本页有两个节点不在创建浮窗里。** `Get Variant` 和 `Set Variant` 已被 Displayable 的变体节点取代并隐藏。这里记录它们，是因为在那次切换之前创作的蓝图仍然留着它们、也仍然能跑，而不是因为你还能新建一个
 - **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在按钮自己的主蓝图。要在 Blueprint Value 里读这个按钮，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点。`props.label` 本身就是一个可以由 Blueprint Value 驱动的属性
+- **可见与启用节点各合为一组。** 浏览创建浮窗时，`Get Visible` 与 `Get Enabled` 合为一行**获取可见性或启用状态**，`Set Visible` 与 `Set Enabled` 合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 在两者之间切换。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## Set Label
 

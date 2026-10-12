@@ -20,6 +20,8 @@ The first line under the heading is the node's **type id** — the value stored 
 | `Pure` | No side effects and no exec pins. It computes its outputs when something reads them, and it is one of the conditions for use inside a Blueprint Value. |
 | `Latent` | Suspends the graph until it resolves. Not offered in a Blueprint Value (except `Call Fn`), an inline story value or a branch condition. |
 
+While **Settings → General → Developer options** is on, the palette also shows each node's type id on the right of its row.
+
 `Pure` does **not** by itself mean the node works inside a [Blueprint Value](/docs/studio/blueprint). That is a separate, narrower rule: the node must be pure *and* non-latent *and* belong to one of the allowed categories (Data, List, Math, Time, Text, Slider, Displayable, Element, Game, Localization), plus a short list of specific exceptions (`Init` and `On Flush` heads, non-latent Flow other than `Skip Delay`, local variable access, `Memo`, `Call Fn`, comments, `Return Value`, `Get Saved Var`, and five Page reads: `Get Page Props`, `Get Page Param` and the three `Is Surface …` reads). A Self node scoped to `widgetMain` is excluded regardless of its flags; inside a Blueprint Value you reach a widget through an `Element` literal and the Element-category reader.
 
 Then the pin table:
@@ -52,7 +54,7 @@ When several compatible sources exist, the palette lists the node once. Adding i
 
 Some nodes are variants of one operation, such as the six comparisons or the four keyboard heads. The palette lists each such set as a family.
 
-- **Browsing.** While the **Search nodes** box is empty, a family is one row. The row shows the family's name, and below it the category and the number of nodes, such as *Math · 6 nodes*. Hovering over the row lists its nodes. Choosing the row adds the family's first node, the one listed first in the table below.
+- **Browsing.** While the **Search nodes** box is empty, a family is one row. The row shows the family's name, and below it the category and the number of nodes, such as *Math · 6 nodes*. Hovering over the row lists its nodes. Choosing the row adds the family's first node, the one listed first in the table below. Element nodes are grouped the same way, with one row per family for each bound element.
 - **Searching.** A search lists every node of a family on its own row. Typing `>` or `Greater Than` finds `Greater Than`, and typing a family's name, such as `Compare`, lists all of its nodes.
 - **Switching a placed node.** The card of a node that belongs to a family has a ▾ button beside its title, **Switch to another node of this kind**. It lists the nodes of the family that the blueprint can hold, with a check mark beside the current one. Choosing another node changes the card in place.
 
@@ -60,7 +62,7 @@ When a card changes to another node of its family:
 
 - A wire stays connected when the new node has a matching pin that accepts it. A wire into `bgmVolume` on `Set BGM Volume` stays connected, now into `soundVolume`, when the card becomes `Set SFX Volume`.
 - A wire the new node cannot accept is removed.
-- A setting the new node does not have is removed, such as the key chosen on `On Key Down` when the card becomes `Any Key Down`.
+- A setting is kept when the new node has the same setting: `3` on an `Integer` literal stays `3` when the card becomes `Float`. Any other setting is removed, such as the key chosen on `On Key Down` when the card becomes `Any Key Down`, and the new node starts from its own defaults.
 - A value typed on the card moves to the matching pin when that pin takes the same type of value, and is removed otherwise.
 - **Ctrl+Z** (**Cmd+Z** on macOS) restores the previous node, its wires and its values in one step.
 
@@ -70,6 +72,7 @@ Families change only how the palette lists nodes. Every node keeps its own name 
 | --- | --- | --- |
 | **On Key** | `On Key Down`, `On Key Up`, `Any Key Down`, `Any Key Up` | [Events](/docs/studio/blueprint/nodes/events#keyboard) |
 | **On Gamepad Button** | `On Gamepad Button Down`, `On Gamepad Button Up`, `Any Gamepad Button Down`, `Any Gamepad Button Up` | Events |
+| **Literal** | `String`, `Integer`, `Float`, `Boolean`, `Color`, `Vector2D`, `Rect`, `JSON`, `Null` | [Data](/docs/studio/blueprint/nodes/data#literals) |
 | **Convert Type** | `To String`, `To Integer`, `To Float`, `To Boolean`, `To JSON` | [Data](/docs/studio/blueprint/nodes/data#conversion) |
 | **Check Type** | `Is String`, `Is Number`, `Is Boolean`, `Is Array`, `Is Object`, `Is Null` | [Data](/docs/studio/blueprint/nodes/data#type-tests) |
 | **Trim Whitespace** | `Trim`, `Trim Start`, `Trim End` | [Data](/docs/studio/blueprint/nodes/data#trim) |
@@ -81,6 +84,15 @@ Families change only how the palette lists nodes. Every node keeps its own name 
 | **Compare** | `Equal`, `Not Equal`, `Greater Than`, `Greater Than Or Equal`, `Less Than`, `Less Than Or Equal` | [Math](/docs/studio/blueprint/nodes/math#compare) |
 | **Get Preference** | 17 nodes: every `Get …` node under Preferences except `Get Track Volume`, starting with `Get Auto Forward` | [Game](/docs/studio/blueprint/nodes/game#preferences) |
 | **Set Preference** | 17 nodes: every `Set …` node under Preferences except `Set Track Volume`, starting with `Set Auto Forward` | [Game](/docs/studio/blueprint/nodes/game#preferences) |
+| **Get Save Info** | `Get Save Time`, `Get Save Playtime`, `Get Save Line`, `Get Save Story`, `Get Save Preview`, `Get Save Metadata` | [Game](/docs/studio/blueprint/nodes/game#saves) |
+| **Get Text Style** | `Get Font`, `Get Font Size`, `Get Font Weight`, `Get Text Color`, `Get Line Height`, `Get Text Align`, `Get Text Vertical Align`, `Get Wrap Mode`, `Get Effects` | [Text](/docs/studio/blueprint/nodes/text#get-font), [Element](/docs/studio/blueprint/nodes/element/text#get-font) |
+| **Set Text Style** | The `Set …` nodes for the same nine properties | [Text](/docs/studio/blueprint/nodes/text#set-font), [Element](/docs/studio/blueprint/nodes/element/text#set-font) |
+| **Get Image Framing** | `Get Image Fit Mode`, `Get Image Flip X`, `Get Image Flip Y`, `Get Image Crop Rect` | [Image](/docs/studio/blueprint/nodes/image#get-image-fit-mode), [Element](/docs/studio/blueprint/nodes/element/content#get-image-fit-mode) |
+| **Set Image Framing** | The `Set …` nodes for the same four properties | [Image](/docs/studio/blueprint/nodes/image#set-image-fit-mode), [Element](/docs/studio/blueprint/nodes/element/content#set-image-fit-mode) |
+| **Get Visible or Enabled** | `Get Visible` and `Get Enabled` of one widget type: Button, Container, Frame, Image, List, Slider, Switch or Text. As Element nodes: `Get Button Visible` and `Get Button Enabled`, and the same pair for each of those widgets | The widget's page, [Element](/docs/studio/blueprint/nodes/element/displayable#visible-and-enabled) |
+| **Set Visible or Enabled** | `Set Visible` and `Set Enabled` of one widget type, and the matching Element pair | The widget's page, [Element](/docs/studio/blueprint/nodes/element/displayable#visible-and-enabled) |
+
+Text Style, Image Framing and Visible or Enabled are separate families for a widget's own nodes and for its Element nodes, and Visible or Enabled is a separate family for each widget type. The ▾ on a card lists only the nodes of the card's own family.
 
 ## Categories
 

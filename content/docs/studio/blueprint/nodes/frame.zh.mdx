@@ -12,6 +12,7 @@ description: 决定 Frame 展示哪个 Page，以及交给该 Page 的 params
 - **`params` 就是被嵌入 Page 的 Page props。** Frame 内的 Page 用 [App](/zh/docs/studio/blueprint/nodes/app) 分类的 `Get Page Param` 读取它声明的参数，用 `Get Page Props` 读取整个对象。`params` 中没有的参数读取默认值。在编辑器中，Frame 的属性面板为目标 Page 的每个参数各显示一个字段，见[页面参数](/zh/docs/studio/workspace/ui-editor#page-params)。它通过 `Emit Page Event` 回话，事件会抵达本 Frame 的 `Page Event` 事件 Head，见 [Events](/zh/docs/studio/blueprint/nodes/events)
 - **没有改变任何东西的写入什么都不做。** 两个写入节点都会把传入的目标和 params 与当前值比对（params 按 JSON 相等比对），两者都相同时直接返回。重复执行它们不会重新挂载 Page，也不会重放进场动画
 - **这些节点都不能在 Blueprint Value 中运行。** `Get` 节点确实是纯节点，但 Blueprint Value 在 `widgetValue` 宿主上求值，而本页所有节点的作用域都限定在 Frame 自己的主蓝图。要在 Blueprint Value 里读这个 Frame，请放一个指向它的 `Element` 字面量，再用 Element 分类的读取节点
+- **可见与启用节点各合为一组。** 浏览创建浮窗时，`Get Visible` 与 `Get Enabled` 合为一行**获取可见性或启用状态**，`Set Visible` 与 `Set Enabled` 合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 在两者之间切换。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## Set Frame Page
 

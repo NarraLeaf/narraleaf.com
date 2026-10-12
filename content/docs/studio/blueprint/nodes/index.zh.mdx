@@ -20,6 +20,8 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | `Pure` | 无副作用，没有执行引脚。有东西读取它的输出时才计算，也是能进入 Blueprint Value 的条件之一|
 | `Latent` | 会挂起执行直到完成。Blueprint Value（`Call Fn` 除外）、内联故事值和分支条件都不提供它|
 
+打开**设置 → 常规 → 开发者选项**后，创建浮窗还会在每个节点那一行的右侧显示它的 type id
+
 `Pure` 本身**并不**意味着该节点能在 [Blueprint Value](/zh/docs/studio/blueprint) 里使用。那是另一条更窄的规则：节点必须同时是纯节点、非 latent，且属于允许的分类（Data、List、Math、Time、Text、Slider、Displayable、Element、Game、Localization），外加一小串特例（`Init` 与 `On Flush` 事件头、除 `Skip Delay` 以外非 latent 的 Flow、本地变量读写、`Memo`、`Call Fn`、注释、`Return Value`、`Get Saved Var`，以及五个 Page 读取节点：`Get Page Props`、`Get Page Param` 和三个 `Is Surface …`）。scope 限定为 `widgetMain` 的 Self 节点无论标记如何都被排除；在 Blueprint Value 里要触及某个控件，走 `Element` 字面量加 Element 分类的读取节点
 
 然后是引脚表：
@@ -52,7 +54,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 
 有些节点是同一种操作的不同形式，例如六个比较节点、四个按键事件 Head。创建浮窗把这样的每一组节点作为一组同类节点列出
 
-- **浏览。** **搜索节点**框为空时，一组同类节点只占一行：上面是组名，下面是分类与节点数，例如*数学 · 6 个节点*。鼠标悬停在这一行上会列出组内的节点。选择这一行会添加组内的第一个节点，即下表中列在最前面的那个
+- **浏览。** **搜索节点**框为空时，一组同类节点只占一行：上面是组名，下面是分类与节点数，例如*数学 · 6 个节点*。鼠标悬停在这一行上会列出组内的节点。选择这一行会添加组内的第一个节点，即下表中列在最前面的那个。Element 节点也这样合并，每个已绑定的元素各有一行
 - **搜索。** 搜索时，组内每个节点各占一行。输入`>`或`大于`都会找到`Greater Than`；输入组名（例如`比较`）会列出组内全部节点
 - **切换已放置的节点。** 节点属于某一组时，卡片标题旁有一个 ▾ 按钮（**切换为同类的其他节点**）。点击后列出组内当前蓝图能放置的节点，当前节点带勾选标记。选择另一个节点，卡片会在原位置变成该节点
 
@@ -60,7 +62,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 
 - 新节点有对应的引脚且该引脚接受这条连线时，连线保持连接。连到`Set BGM Volume`的`bgmVolume`的连线，在卡片变成`Set SFX Volume`后改连到`soundVolume`
 - 新节点无法接受的连线会被移除
-- 新节点没有的设置会被移除，例如`On Key Down`变成`Any Key Down`时，原先选定的按键
+- 新节点有相同的设置时，设置保留：`Integer`常量上的`3`在卡片变成`Float`后仍是`3`。其他设置会被移除（例如`On Key Down`变成`Any Key Down`时原先选定的按键），新节点的设置从默认值开始
 - 卡片上填写的值，在对应引脚接受同一类型的值时移到该引脚上，否则被移除
 - **Ctrl+Z**（macOS 上为 **Cmd+Z**）一步恢复原来的节点及其连线和值
 
@@ -70,6 +72,7 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | --- | --- | --- |
 | **按键时** | `On Key Down`、`On Key Up`、`Any Key Down`、`Any Key Up` | [Events](/zh/docs/studio/blueprint/nodes/events#keyboard)|
 | **手柄按键时** | `On Gamepad Button Down`、`On Gamepad Button Up`、`Any Gamepad Button Down`、`Any Gamepad Button Up` | Events|
+| **字面量** | `String`、`Integer`、`Float`、`Boolean`、`Color`、`Vector2D`、`Rect`、`JSON`、`Null` | [Data](/zh/docs/studio/blueprint/nodes/data#常量)|
 | **转换类型** | `To String`、`To Integer`、`To Float`、`To Boolean`、`To JSON` | [Data](/zh/docs/studio/blueprint/nodes/data#转换)|
 | **判断类型** | `Is String`、`Is Number`、`Is Boolean`、`Is Array`、`Is Object`、`Is Null` | [Data](/zh/docs/studio/blueprint/nodes/data#类型判断)|
 | **去除空白** | `Trim`、`Trim Start`、`Trim End` | [Data](/zh/docs/studio/blueprint/nodes/data#trim)|
@@ -81,6 +84,15 @@ description: 内置节点目录，每个创建浮窗分类一页，逐个列出�
 | **比较** | `Equal`、`Not Equal`、`Greater Than`、`Greater Than Or Equal`、`Less Than`、`Less Than Or Equal` | [Math](/zh/docs/studio/blueprint/nodes/math#compare)|
 | **获取偏好设置** | 17 个节点：「偏好」一节中除`Get Track Volume`以外的全部`Get …`节点，第一个是`Get Auto Forward` | [Game](/zh/docs/studio/blueprint/nodes/game#偏好)|
 | **修改偏好设置** | 17 个节点：「偏好」一节中除`Set Track Volume`以外的全部`Set …`节点，第一个是`Set Auto Forward` | [Game](/zh/docs/studio/blueprint/nodes/game#偏好)|
+| **获取存档信息** | `Get Save Time`、`Get Save Playtime`、`Get Save Line`、`Get Save Story`、`Get Save Preview`、`Get Save Metadata` | [Game](/zh/docs/studio/blueprint/nodes/game#存档)|
+| **获取文本样式** | `Get Font`、`Get Font Size`、`Get Font Weight`、`Get Text Color`、`Get Line Height`、`Get Text Align`、`Get Text Vertical Align`、`Get Wrap Mode`、`Get Effects` | [Text](/zh/docs/studio/blueprint/nodes/text#get-font)、[Element](/zh/docs/studio/blueprint/nodes/element/text#get-font)|
+| **设置文本样式** | 同样九项属性的`Set …`节点 | [Text](/zh/docs/studio/blueprint/nodes/text#set-font)、[Element](/zh/docs/studio/blueprint/nodes/element/text#set-font)|
+| **获取图片显示方式** | `Get Image Fit Mode`、`Get Image Flip X`、`Get Image Flip Y`、`Get Image Crop Rect` | [Image](/zh/docs/studio/blueprint/nodes/image#get-image-fit-mode)、[Element](/zh/docs/studio/blueprint/nodes/element/content#get-image-fit-mode)|
+| **设置图片显示方式** | 同样四项属性的`Set …`节点 | [Image](/zh/docs/studio/blueprint/nodes/image#set-image-fit-mode)、[Element](/zh/docs/studio/blueprint/nodes/element/content#set-image-fit-mode)|
+| **获取可见性或启用状态** | 一种控件的`Get Visible`与`Get Enabled`：Button、Container、Frame、Image、List、Slider、Switch 或 Text。Element 节点为`Get Button Visible`与`Get Button Enabled`，其余控件同理 | 控件所在分类、[Element](/zh/docs/studio/blueprint/nodes/element/displayable#visible-与-enabled)|
+| **设置可见性或启用状态** | 一种控件的`Set Visible`与`Set Enabled`，以及对应的 Element 节点 | 控件所在分类、[Element](/zh/docs/studio/blueprint/nodes/element/displayable#visible-与-enabled)|
+
+文本样式、图片显示方式、可见性或启用状态这几组，控件自身的节点与 Element 节点分属不同的组，可见性或启用状态还按控件类型各自成组。卡片上的 ▾ 只列出卡片所在那一组的节点
 
 ## 分类
 

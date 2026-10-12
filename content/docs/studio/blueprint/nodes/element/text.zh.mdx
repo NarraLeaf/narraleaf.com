@@ -9,6 +9,8 @@ description: 读写连入的 nl.text 元素的内容、排版与效果，以及�
 
 Text 节点带 `element:nl.text` 引脚，所以只有当前图绑定了 `nl.text` 元素时创建浮窗才会列出它们。`Get Text` 读取屏幕上显示的文字。`Set Text`、`Append Text`、`Clear Text` 与 `Set All Properties` 写入的文字在所有语言中都按写入的内容显示，优先于**翻译键**和 Blueprint Value，直到页面重新打开；规则与 Self 形态相同。Self 形态见 [Text](/zh/docs/studio/blueprint/nodes/text)
 
+浏览创建浮窗时，从 `Get Font` 到 `Get Effects` 的九个样式读取节点合为一行**获取文本样式**，对应的写入节点合为一行**设置文本样式**，每个已绑定的元素各有一行。已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
+
 ### Get Text
 
 `blueprint.element.text.getText` · Pure

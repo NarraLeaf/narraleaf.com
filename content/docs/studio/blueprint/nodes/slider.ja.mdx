@@ -20,6 +20,7 @@ Slider ノードは、編集中のプライベートブループリントが属�
 - **範囲は使用される前に修正されます。** `max` が `min` 以下のときは常に `min + 1` に強制されるため、スライダーの範囲が幅ゼロになることはありません。有限数でない値はフォールバックします——壊れた範囲を読み取る場合はウィジェットの既定値（`min` 0、`max` 100、`step` 1）に、`Set Slider Range` の場合はその項目の現在の実行時の値にフォールバックします。
 - **読み取りは pure、書き込みは latent です。** Blueprint Value のオーナーは `widgetValue` であり、`Get Value`、`Get Normalized Value`、`Get Slider Range` は提供されません。Blueprint Value からスライダーを読み取るには、Element のバージョンを `Element` リテラルとともに使用してください。2つの書き込みノードは、書き込みが完了するまでグラフを一時停止させます。
 - **これらは Self ノードです。** グラフを所有する Slider に対して作用し、ターゲットピンを持ちません。別の Slider を操作するには、[Element](/ja/docs/studio/blueprint/nodes/element) にある `blueprint.element.slider.*` の対をなすノードを使用してください。これらは `slider` 入力を持ち、グラフに `nl.slider` へのバインディングノードがある場合にのみ現れます。
+- **表示と有効状態のノードは、それぞれ同じ種類のノードとしてまとめられます。** パレットを一覧するとき、`Get Visible` と `Get Enabled` は **Get Visible or Enabled**（表示・有効状態を取得）、`Set Visible` と `Set Enabled` は **Set Visible or Enabled**（表示・有効状態を設定）として、それぞれ 1 行で表示されます。検索すると各ノードが自分の名前で表示されます。配置したカードは、タイトルの横の ▾ で 2 つのノードを切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
 
 <Callout type="warn">
 `Set Slider Value` と `Set Slider Range` は実行時の状態のみを変更します。`valueChanged`、`dragStart`、`dragEnd` は発行しないため、それらのイベントを介してスライダーに反応するグラフは、ブループリントがスライダーを動かしても実行されません——後続の処理は同じ実行チェーン上で行ってください。また、これらは UIDocument に書き戻すこともないため、ウィジェットが次にマウントされるときのスライダーの起点は、作者が設定した値のままです。

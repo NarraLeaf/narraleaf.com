@@ -20,6 +20,8 @@ description: 組み込みノードカタログ。パレットの分類ごとに1
 | `Pure` | 副作用がなく、exec ピンを持ちません。出力が読み取られたときに計算され、Blueprint Value の中で使える条件の一つです。 |
 | `Latent` | 解決するまでグラフを一時停止します。Blueprint Value（`Call Fn` を除く）、インラインのストーリー値、分岐条件では提供されません。 |
 
+**Settings → General → Developer options**（設定 → 一般 → 開発者オプション）がオンのときは、パレットの各ノードの行の右側にも type id が表示されます。
+
 `Pure` であること自体は、そのノードが [Blueprint Value](/ja/docs/studio/blueprint) の中で使えることを意味**しません**。それは別の、より狭い規則です：ノードは pure であり、かつ latent でなく、かつ許可された分類（Data、List、Math、Time、Text、Slider、Displayable、Element、Game、Localization）のいずれかに属していなければなりません。これに加えて、少数の個別の例外（`Init` と `On Flush` のヘッド、`Skip Delay` を除く latent でない Flow、ローカル変数へのアクセス、`Memo`、`Call Fn`、コメント、`Return Value`、`Get Saved Var`、および 5 つの Page の読み取り：`Get Page Props`、`Get Page Param`、3 つの `Is Surface …`）があります。`widgetMain` にスコープされた Self ノードは、フラグに関係なく除外されます。Blueprint Value の中からウィジェットに到達するには、`Element` リテラルと Element カテゴリーの読み取りノードを使います。
 
 続いて、ピン表が示されます。
@@ -52,7 +54,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 
 6 つの比較ノードや 4 つのキー入力の Head のように、1 つの操作の別の形にあたるノードがあります。パレットは、このようなノードの組を同じ種類のノードとしてまとめて表示します。
 
-- **一覧するとき。** **Search nodes**（ノードを検索）の欄が空のとき、同じ種類のノードは 1 行にまとまります。行には種類の名前と、その下に分類とノード数が表示されます（*Math · 6 nodes*（数学 · 6 個のノード）など）。行にポインターを合わせると、含まれるノードが表示されます。行を選ぶと、その種類の最初のノード（下の表で先頭にあるノード）が追加されます。
+- **一覧するとき。** **Search nodes**（ノードを検索）の欄が空のとき、同じ種類のノードは 1 行にまとまります。行には種類の名前と、その下に分類とノード数が表示されます（*Math · 6 nodes*（数学 · 6 個のノード）など）。行にポインターを合わせると、含まれるノードが表示されます。行を選ぶと、その種類の最初のノード（下の表で先頭にあるノード）が追加されます。Element ノードも同じようにまとめられ、紐づけられた要素ごとに 1 行になります。
 - **検索するとき。** 検索すると、同じ種類のノードもそれぞれ 1 行ずつ表示されます。`>` または `より大きい` と入力すると `Greater Than` が見つかり、種類の名前（`比較` など）を入力すると、その種類のノードがすべて表示されます。
 - **配置したノードを切り替えるとき。** 同じ種類のノードにまとめられたノードのカードには、タイトルの横に ▾ ボタン **Switch to another node of this kind**（同じ種類の別のノードに切り替える）があります。押すと、その種類のうちこのブループリントに置けるノードが表示され、現在のノードにはチェックが付いています。別のノードを選ぶと、カードはその場でそのノードに変わります。
 
@@ -60,7 +62,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 
 - 新しいノードに対応するピンがあり、そのピンがエッジを受け付ける場合、エッジは接続されたまま残ります。`Set BGM Volume` の `bgmVolume` へのエッジは、カードが `Set SFX Volume` に変わると `soundVolume` へのエッジになります。
 - 新しいノードが受け付けないエッジは削除されます。
-- 新しいノードにない設定は削除されます。たとえば `On Key Down` が `Any Key Down` に変わると、選んでいたキーは削除されます。
+- 新しいノードに同じ設定がある場合、設定はそのまま残ります。`Integer` リテラルの `3` は、カードが `Float` に変わっても `3` のままです。それ以外の設定は削除され（`On Key Down` が `Any Key Down` に変わったときの、選んでいたキーなど）、新しいノードの設定は既定値から始まります。
 - カード上に入力した値は、対応するピンが同じ型の値を受け付ける場合はそのピンに移り、そうでない場合は削除されます。
 - **Ctrl+Z**（macOS では **Cmd+Z**）で、元のノードとそのエッジ、値が 1 ステップで元に戻ります。
 
@@ -70,6 +72,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 | --- | --- | --- |
 | **On Key**（キー入力のとき） | `On Key Down`、`On Key Up`、`Any Key Down`、`Any Key Up` | [Events](/ja/docs/studio/blueprint/nodes/events#keyboard) |
 | **On Gamepad Button**（ゲームパッドのボタン入力のとき） | `On Gamepad Button Down`、`On Gamepad Button Up`、`Any Gamepad Button Down`、`Any Gamepad Button Up` | Events |
+| **Literal**（リテラル） | `String`、`Integer`、`Float`、`Boolean`、`Color`、`Vector2D`、`Rect`、`JSON`、`Null` | [Data](/ja/docs/studio/blueprint/nodes/data#リテラル) |
 | **Convert Type**（型を変換） | `To String`、`To Integer`、`To Float`、`To Boolean`、`To JSON` | [Data](/ja/docs/studio/blueprint/nodes/data#変換) |
 | **Check Type**（型を調べる） | `Is String`、`Is Number`、`Is Boolean`、`Is Array`、`Is Object`、`Is Null` | [Data](/ja/docs/studio/blueprint/nodes/data#型判定) |
 | **Trim Whitespace**（空白を取り除く） | `Trim`、`Trim Start`、`Trim End` | [Data](/ja/docs/studio/blueprint/nodes/data#trim) |
@@ -81,6 +84,15 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 | **Compare**（比較） | `Equal`、`Not Equal`、`Greater Than`、`Greater Than Or Equal`、`Less Than`、`Less Than Or Equal` | [Math](/ja/docs/studio/blueprint/nodes/math#compare) |
 | **Get Preference**（設定を取得） | 17 個：「設定」の節にある `Get …` ノードのうち `Get Track Volume` を除くすべて。先頭は `Get Auto Forward` | [Game](/ja/docs/studio/blueprint/nodes/game#設定) |
 | **Set Preference**（設定を変更） | 17 個：「設定」の節にある `Set …` ノードのうち `Set Track Volume` を除くすべて。先頭は `Set Auto Forward` | [Game](/ja/docs/studio/blueprint/nodes/game#設定) |
+| **Get Save Info**（セーブ情報を取得） | `Get Save Time`、`Get Save Playtime`、`Get Save Line`、`Get Save Story`、`Get Save Preview`、`Get Save Metadata` | [Game](/ja/docs/studio/blueprint/nodes/game#セーブ) |
+| **Get Text Style**（文字のスタイルを取得） | `Get Font`、`Get Font Size`、`Get Font Weight`、`Get Text Color`、`Get Line Height`、`Get Text Align`、`Get Text Vertical Align`、`Get Wrap Mode`、`Get Effects` | [Text](/ja/docs/studio/blueprint/nodes/text#get-font)、[Element](/ja/docs/studio/blueprint/nodes/element/text#get-font) |
+| **Set Text Style**（文字のスタイルを設定） | 同じ 9 つのプロパティの `Set …` ノード | [Text](/ja/docs/studio/blueprint/nodes/text#set-font)、[Element](/ja/docs/studio/blueprint/nodes/element/text#set-font) |
+| **Get Image Framing**（画像の表示方法を取得） | `Get Image Fit Mode`、`Get Image Flip X`、`Get Image Flip Y`、`Get Image Crop Rect` | [Image](/ja/docs/studio/blueprint/nodes/image#get-image-fit-mode)、[Element](/ja/docs/studio/blueprint/nodes/element/content#get-image-fit-mode) |
+| **Set Image Framing**（画像の表示方法を設定） | 同じ 4 つのプロパティの `Set …` ノード | [Image](/ja/docs/studio/blueprint/nodes/image#set-image-fit-mode)、[Element](/ja/docs/studio/blueprint/nodes/element/content#set-image-fit-mode) |
+| **Get Visible or Enabled**（表示・有効状態を取得） | 1 種類のウィジェットの `Get Visible` と `Get Enabled`（Button、Container、Frame、Image、List、Slider、Switch、Text）。Element ノードでは `Get Button Visible` と `Get Button Enabled`、ほかのウィジェットも同様 | 各ウィジェットのページ、[Element](/ja/docs/studio/blueprint/nodes/element/displayable#visible-と-enabled) |
+| **Set Visible or Enabled**（表示・有効状態を設定） | 1 種類のウィジェットの `Set Visible` と `Set Enabled`、および対応する Element ノード | 各ウィジェットのページ、[Element](/ja/docs/studio/blueprint/nodes/element/displayable#visible-と-enabled) |
+
+Text Style、Image Framing、Visible or Enabled は、ウィジェット自身のノードと Element ノードとで別の種類になり、Visible or Enabled はさらにウィジェットの種類ごとに分かれます。カードの ▾ に表示されるのは、そのカードと同じ種類のノードだけです。
 
 ## 分類
 

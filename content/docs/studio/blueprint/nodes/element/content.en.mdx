@@ -387,6 +387,8 @@ Writes `min`, `max` and `step`, then re-normalizes the current runtime value aga
 
 Image nodes take an `element:nl.image` pin. They are about the interface image widget only — not stage images, not character sprites, not anything the story performs. The literal card that produces an `ImageAsset` is not derived and stays in [Image](/docs/studio/blueprint/nodes/image) with the Self forms.
 
+While the palette is browsed, `Get Image Fit Mode`, `Get Image Crop Rect`, `Get Image Flip X` and `Get Image Flip Y` are one row, **Get Image Framing**, and their setters are **Set Image Framing**, with one row for each bound element. The ▾ beside a placed card's title switches it to another node of its family. See [Node families](/docs/studio/blueprint/nodes#node-families).
+
 ### Get Image Asset
 
 `blueprint.element.image.getImageAsset` · Pure

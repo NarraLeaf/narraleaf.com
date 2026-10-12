@@ -20,6 +20,7 @@ Slider 节点用于读取和改写当前私有蓝图所属 `nl.slider` 的运行
 - **范围在被使用之前会先被修正。** 只要 `max` 不大于 `min`，它就会被强制成 `min + 1`，因此滑块永远不会有一个零宽度的范围。不是有限数字的值会走回退——读到损坏的范围时回退到控件默认值（`min` 0、`max` 100、`step` 1），而 `Set Slider Range`（设置滑块范围）回退到该字段当前的运行时值
 - **读取是纯节点，写入是 latent。** Blueprint Value 的宿主是 `widgetValue`，不提供 `Get Value`、`Get Normalized Value` 和 `Get Slider Range`（获取滑块范围）；要在 Blueprint Value 中读取滑块，请配合 `Element` 字面量使用 Element 版本。两个写入节点会挂起执行，直到写入完成
 - **这些都是 Self 节点。** 它们作用于拥有当前图的那个 Slider，并且没有目标引脚。要操作另一个 Slider，请使用 [Element](/zh/docs/studio/blueprint/nodes/element) 分类下的 `blueprint.element.slider.*` 对应节点，它们带有 `slider` 输入，且只在当前图中已存在绑定到 `nl.slider` 的节点时才出现
+- **可见与启用节点各合为一组。** 浏览创建浮窗时，`Get Visible` 与 `Get Enabled` 合为一行**获取可见性或启用状态**，`Set Visible` 与 `Set Enabled` 合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 在两者之间切换。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 <Callout type="warn">
 `Set Slider Value` 和 `Set Slider Range` 只改运行时状态。它们不会派发 `valueChanged`、`dragStart` 或 `dragEnd`，因此当蓝图去挪这个滑块时，靠这些事件做出反应的图不会被跑起来——请把后续动作接在同一条执行链上。它们也从不写回 UIDocument，所以控件下次挂载时，Slider 仍然从 authored 的值起步

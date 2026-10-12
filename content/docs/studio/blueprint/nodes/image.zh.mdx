@@ -13,6 +13,7 @@ description: 读取和改写 nl.image 控件的图片资源、填充模式、裁
 - **写入改写控件的`imageFill`**（`mode`、`assetId`、`cropPlacement`）或`imageFlipX` / `imageFlipY`，随后排队 flush 该元素。如果写入的值和现有值完全一致，则什么也不做——不写 patch，也不 flush
 - **无法使用的输入会回退到当前值。** 无法识别或为空的填充模式、非数值的裁剪百分比、未接线的布尔输入，都会让该属性保持原样，而不是被重置
 - **几何、不透明度和变体不在这里。** 位置、尺寸、旋转和不透明度属于 [Displayable](/zh/docs/studio/blueprint/nodes/displayable)；非 Default 的 Appearance Variant 也永远不会覆盖 Default 的填充模式和裁剪——因此切到半透明变体不会把图片卡在`crop`上
+- **部分节点在创建浮窗中按组列出。** 浏览创建浮窗时，`Get Image Fit Mode`、`Get Image Crop Rect`、`Get Image Flip X`和`Get Image Flip Y`合为一行**获取图片显示方式**，对应的写入节点合为一行**设置图片显示方式**；`Get Visible`与`Get Enabled`合为一行**获取可见性或启用状态**，`Set Visible`与`Set Enabled`合为一行**设置可见性或启用状态**。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## Image Asset
 
