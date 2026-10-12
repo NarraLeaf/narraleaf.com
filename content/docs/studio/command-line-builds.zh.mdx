@@ -1,6 +1,6 @@
 ---
 title: 命令行构建
-description: 不打开界面，用命令行产出发行构建，供构建机与发版流程使用
+description: 不打开界面，用命令行产出发行构建或检查项目，供构建机与发版流程使用
 ---
 
 Studio 可以从命令行构建项目，结束时返回状态码。这种方式不打开任何窗口，构建日志写到标准输出，产出的文件与**构建发行包**窗口产出的一致。
@@ -64,6 +64,8 @@ narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
 ## 构建前检查
 
 命令行构建执行的检查与窗口里的一致。阻塞项会以状态码 `3` 中止构建，全部检查结果都会进入报告和日志。
+
+开启**构建前检查**时，构建还会运行项目检查，并按[级别](/zh/docs/studio/getting-started/workspace-overview#levels)一节所述中止构建。
 
 目标平台可以携带代码签名却没有配置凭据时，构建中止。要接受未签名的产物，加上 `--build-allow-unsigned`。
 
@@ -136,6 +138,38 @@ narraleaf-studio --build /projects/my-game \
 该选项可重复，只接受 `build.` 开头的设置。取值为空表示使用官方源。日志只列出这次运行收到了哪些设置，取值既不打印也不写进报告
 
 三个下载镜像就是**设置 → 网络**中的设置：`build.electronMirror` 是 **Electron 下载镜像**，`build.electronBuilderBinariesMirror` 是**构建工具下载镜像**，`build.zigMirror` 是**编译工具链下载镜像**。每一项都可以选**不使用镜像**（默认）、**中国镜像**，或填写自定义地址。构建因下载失败而停止时，会指出这些设置的位置。
+
+## 项目检查 [#project-check]
+
+`--lint` 不打开界面，运行与**问题**面板相同的项目检查，结束时返回状态码。它不产出任何构建。
+
+```sh
+narraleaf-studio --lint /projects/my-game --lint-report /artifacts/lint.json
+```
+
+| 选项 | 取值 | 默认 |
+| --- | --- | --- |
+| `--lint` | 项目目录，或最近打开过的项目名称 | 必填 |
+| `--lint-report` | 写出报告的文件 | 不写报告 |
+| `--lint-user-data-dir` | 本次运行使用的配置目录 | 已安装的配置 |
+| `--lint-plugin` | 本次运行启用的插件，按名称或 id 指定，可重复 | 配置中已启用的插件 |
+
+`--lint-plugin` 只接受 `--lint-plugin=名称` 写法。`--lint` 与 `--build` 不能写在同一条命令里；给了 `--lint-*` 选项却没给 `--lint` 会被拒绝。
+
+检查使用项目自己的设置：设为**关闭**的规则被跳过，每条问题的级别就是其规则所设的级别。项目中有错误，或在**中止构建的级别**为**警告及错误**时有警告，运行以状态码 `1` 结束。次要警告与提示不会让运行失败。状态码 `0` 表示检查通过，`2` 与 `4` 的含义与构建相同。
+
+每条问题在日志中打印为一行，包含位置、消息与规则 id。次要警告按 `info` 级别打印。
+
+`--lint-report` 对每一种结果都写出一个 JSON 文件，记录结果、状态码、Studio 版本与完整日志。检查运行过时，其中的 `lint` 部分包含：
+
+| 字段 | 内容 |
+| --- | --- |
+| `counts` | 各级别的问题数：`error`、`warning`、`minor`、`info` |
+| `findings` | 每条问题，带 `severity`、规则 `id`、`message`，有位置时还带 `location` |
+| `rulesRun` | 运行过的规则 |
+| `skipped` | 项目中设为关闭的规则 |
+
+次要警告的 `severity` 为 `"minor"`，计入 `counts.minor`。
 
 ## 对构建机的要求
 

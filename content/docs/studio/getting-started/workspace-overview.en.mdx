@@ -33,14 +33,31 @@ Which panels are on the rail is yours to set; a plugin can add its own through [
 
 ## Problems
 
-The **Problems** panel opens in the bottom bar, beside the console, and lists what the project checks found. The checks run by themselves shortly after each edit, and the status bar shows how many errors and warnings there are; clicking the count opens the panel.
+The **Problems** panel opens in the bottom bar, beside the console, and lists what the project checks found. The checks run by themselves shortly after each edit, and the status bar shows how many errors and warnings there are. Hovering the count also shows how many minor warnings and info there are, and clicking it opens the panel.
 
-- The list shows the findings in the **Whole project**, the **Open editors** or the **Current editor**, filtered by severity and grouped **By rule** or **By location**.
+- The list shows the findings in the **Whole project**, the **Open editors** or the **Current editor**, filtered by level and grouped **By rule** or **By location**.
 - Selecting a finding opens the place it is about, such as a story row, a widget on its page, a node in its blueprint or a row in the translation table.
 - The **?** on a finding opens **About this rule**: what the rule found, what it does to the game, and how to fix it.
 - A story row with a finding carries a mark in the color of its most severe finding. Hovering the mark lists the findings, and clicking it opens the panel. The blueprint editor lists the findings in its blueprint under the canvas.
 - **Run again** in the panel, or the **Check project** command, checks the whole project again and re-reads the asset files on disk, including files changed outside Studio.
-- **Check settings** opens **Project → Project → Project check**, where each rule's severity is set.
+- **Check settings** opens **Project → Project → Project check**, where each rule's level is set.
+
+### Levels [#levels]
+
+Each rule reports at one of four levels, or is set to **Off** and does not run.
+
+| Level | Counted in the status bar | Stops a production build |
+| --- | --- | --- |
+| **Error** | Yes | Yes |
+| **Warning** | Yes | When **Stop the build on** is **Warnings and errors** |
+| **Minor warning** | No | No |
+| **Info** | No | No |
+
+A production build runs the checks while **Check before building** is on. Both settings are under **Project → Project → Project check**, and **Stop the build on** is **Errors** until it is changed.
+
+**Minor warning** is for problems of low priority. **Missing translation**, **Unused asset** and **Unused variable** report at this level unless the project sets another, and a [command-line check](/docs/studio/command-line-builds#project-check) never fails on it.
+
+Studio 1.4.5 and earlier do not have **Minor warning**. They report a rule set to it at the rule's default level, and remove that setting from the project when any project check setting is changed in them.
 
 ## Selection and properties
 

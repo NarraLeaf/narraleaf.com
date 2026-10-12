@@ -1,6 +1,6 @@
 ---
 title: コマンドラインビルド
-description: 画面を開かずにコマンドラインからリリースビルドを生成する。ビルドマシンとリリース作業のための手順
+description: 画面を開かずにコマンドラインからリリースビルドを生成し、プロジェクトを検査する。ビルドマシンとリリース作業のための手順
 ---
 
 Studio はコマンドラインからプロジェクトをビルドし、終了コードを返します。この実行ではウィンドウを開かず、ビルドログは標準出力に書き出され、成果物は**Build for distribution**（配布用にビルド）ダイアログが生成するものと同じです。
@@ -64,6 +64,8 @@ narraleaf-studio --build /projects/my-game --build-report /artifacts/report.json
 ## ビルド前チェック
 
 コマンドラインビルドは、ダイアログと同じチェックを実行します。ブロッキングの項目があるとコード `3` で中止し、チェック結果はすべてレポートとログに残ります。
+
+**Check before building**（ビルド前に検査）がオンの間は、ビルドがプロジェクトの検査も実行し、[レベル](/ja/docs/studio/getting-started/workspace-overview#levels)に書かれたとおりにビルドを止めます。
 
 コード署名を付けられるターゲットで認証情報が設定されていない場合、ビルドは中止します。署名のない成果物を受け入れる場合は `--build-allow-unsigned` を付けます。
 
@@ -136,6 +138,38 @@ narraleaf-studio --build /projects/my-game \
 このオプションは繰り返し指定でき、`build.` で始まる設定のみを受け付けます。値が空の場合は公式のソースを使います。ログにはその実行が受け取った設定の名前だけが出ます。値は出力されず、レポートにも書き込まれません。
 
 3 つのダウンロードミラーは **Settings → Network**（設定 → ネットワーク）の設定です。`build.electronMirror` は **Electron download mirror**（Electron のダウンロードミラー）、`build.electronBuilderBinariesMirror` は **Build tooling mirror**（ビルドツールのミラー）、`build.zigMirror` は **Compiler toolchain mirror**（コンパイラーツールチェーンのミラー）です。どれも既定の **No mirror**（ミラーを使わない）、**Mirror in China**（中国のミラー）、または自分で入力するアドレスから選べます。ダウンロードに失敗してビルドが止まったときは、これらの設定の場所が示されます。
+
+## プロジェクトの検査 [#project-check]
+
+`--lint` は、**Problems**（問題）パネルと同じプロジェクトの検査を画面なしで実行し、終了コードを返します。ビルドは生成しません。
+
+```sh
+narraleaf-studio --lint /projects/my-game --lint-report /artifacts/lint.json
+```
+
+| オプション | 値 | 既定 |
+| --- | --- | --- |
+| `--lint` | プロジェクトフォルダ、または最近開いたプロジェクトの名前 | 必須 |
+| `--lint-report` | レポートの書き出し先 | レポートなし |
+| `--lint-user-data-dir` | この実行で使うプロファイルのディレクトリ | インストール済みのプロファイル |
+| `--lint-plugin` | この実行で有効にするプラグイン（名前または id）、繰り返し可 | プロファイルで有効なプラグイン |
+
+`--lint-plugin` は `--lint-plugin=名前` の書き方だけを受け付けます。`--lint` と `--build` は 1 つのコマンドラインに同時に指定できず、`--lint` を伴わない `--lint-*` オプションは拒否されます。
+
+検査はプロジェクト自身の設定に従います。**Off**（オフ）にしたルールは飛ばされ、各指摘にはそのルールに設定したレベルが付きます。プロジェクトにエラーがあるとき、または **Stop the build on**（ビルドを止める条件）が **Warnings and errors**（警告とエラー）で警告があるとき、実行はコード `1` で終わります。軽微な警告と情報で失敗することはありません。コード `0` は検査を通ったことを表し、コード `2` と `4` の意味はビルドと同じです。
+
+各指摘は、場所、メッセージ、ルール id を含む 1 行としてログに出ます。軽微な警告は `info` レベルで出ます。
+
+`--lint-report` は、すべての結果について JSON ファイルを書き出し、結果、終了コード、Studio のバージョン、ログ全体を記録します。検査が実行された場合、その `lint` ブロックには次のものが入ります。
+
+| フィールド | 内容 |
+| --- | --- |
+| `counts` | レベルごとの指摘の数：`error`、`warning`、`minor`、`info` |
+| `findings` | すべての指摘。`severity`、ルールの `id`、`message`、場所がある場合は `location` を持つ |
+| `rulesRun` | 実行されたルール |
+| `skipped` | プロジェクトでオフにしたルール |
+
+軽微な警告の `severity` は `"minor"` で、`counts.minor` に数えられます。
 
 ## ビルドマシンの条件
 

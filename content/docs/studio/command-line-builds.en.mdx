@@ -1,6 +1,6 @@
 ---
 title: Command-Line Builds
-description: Produce a release build from a command line, with no interface, for build machines and release jobs.
+description: Produce a release build or check a project from a command line, with no interface, for build machines and release jobs.
 ---
 
 Studio builds a project from a command line and exits with a status code. The run opens no window, writes its console output to standard output, and produces the same artifacts the **Build for distribution** dialog produces.
@@ -64,6 +64,8 @@ The file records the result and the exit code, the project and the request as th
 ## Preflight
 
 A command-line build runs the checks the dialog runs. Blocking findings stop it with code `3`, and every finding reaches the report and the console.
+
+While **Check before building** is on, the build also runs the project check, which stops it at the levels described under [Levels](/docs/studio/getting-started/workspace-overview#levels).
 
 A target that can carry a code signature and has no credential stops the build. Pass `--build-allow-unsigned` to accept an unsigned artifact.
 
@@ -136,6 +138,38 @@ narraleaf-studio --build /projects/my-game \
 The option is repeatable and accepts the `build.` settings only. An empty value selects the official source. The console names the settings a run was given; their values are not printed and are not written to the report.
 
 The three download mirrors are the settings under **Settings → Network**: `build.electronMirror` is **Electron download mirror**, `build.electronBuilderBinariesMirror` is **Build tooling mirror**, and `build.zigMirror` is **Compiler toolchain mirror**. Each offers **No mirror**, the default, **Mirror in China**, or an address typed in. A build that stops because a download failed says where these settings are.
+
+## Project check [#project-check]
+
+`--lint` runs the project check that fills the **Problems** panel, with no interface, and exits with a status code. It builds nothing.
+
+```sh
+narraleaf-studio --lint /projects/my-game --lint-report /artifacts/lint.json
+```
+
+| Option | Value | Default |
+| --- | --- | --- |
+| `--lint` | Project folder, or the name of a recently opened project | Required |
+| `--lint-report` | File to write the report to | No report |
+| `--lint-user-data-dir` | Profile directory for this run | The installed profile |
+| `--lint-plugin` | A plugin to switch on for this run, by name or id; repeatable | The plugins switched on in the profile |
+
+`--lint-plugin` accepts only the `--lint-plugin=name` form. `--lint` and `--build` cannot be given on one command line, and a `--lint-*` option given without `--lint` is refused.
+
+The check uses the project's own settings: a rule set to **Off** is skipped, and each finding has the level its rule is set to. The run ends with code `1` when the project has an error, or a warning while **Stop the build on** is **Warnings and errors**. A minor warning or an info never fails it. Code `0` means the check passed, and codes `2` and `4` mean what they mean for a build.
+
+Each finding is printed as one line with its location, its message and its rule id. A minor warning is printed at the `info` level.
+
+`--lint-report` writes a JSON file for every outcome. It records the result, the exit code, the Studio version and the whole console. When the check ran, its `lint` block holds:
+
+| Field | Content |
+| --- | --- |
+| `counts` | The number of findings at each level: `error`, `warning`, `minor`, `info` |
+| `findings` | Every finding, with its `severity`, its rule `id`, its `message` and, where it has one, its `location` |
+| `rulesRun` | The rules that ran |
+| `skipped` | The rules the project turned off |
+
+A minor warning has the `severity` `"minor"` and is counted in `counts.minor`.
 
 ## Host requirements
 
