@@ -83,6 +83,7 @@ Data 承载蓝图参与运算的值。需要一个常量、值的类型不对，
 - **只有`string`、`integer`、`float`、`boolean`引脚支持卡片内联输入。** `json`和`array`输入没有卡片编辑器，请接一个`JSON`常量或`Make Object` / `Make Array`节点
 - **输入未连线不算错误。** 它读取该引脚的卡片内联值，没有内联值时读到空；各节点自行归一：缺失的数组读作空数组，缺失的字符串读作`""`，缺失的数字读作`0`
 - **一条纯节点链最多解析 32 层。** 超过之后读取静默地什么都取不到
+- **部分节点在创建浮窗中按组列出。** 浏览创建浮窗时，以下每组合为一行：[转换](#转换)中从`To String`到`To JSON`的节点（**转换类型**），[类型判断](#类型判断)中从`Is String`到`Is Null`的节点（**判断类型**），`Trim`、`Trim Start`和`Trim End`（**去除空白**），`To Upper Case`、`To Lower Case`和`Capitalize`（**转换大小写**），`Replace`和`Replace All`（**替换文本**），以及`Pad Start`和`Pad End`（**填充文本**）。搜索时每个节点按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为同组的其他节点。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 <Callout type="warn">
 `Array Push`、`Set JSON Field`、`Remove JSON Field`，以及本页所有写入类节点，交给你的都是一个**新**值，输入保持不动。只把`Get Var → Array Push`连起来什么也不会发生——你必须把结果再连回`Set Var`。参见 [变量](/zh/docs/studio/blueprint/variables)

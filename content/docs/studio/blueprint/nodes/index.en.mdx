@@ -48,9 +48,43 @@ A node appearing in this catalog does not mean it appears in your palette. These
 When several compatible sources exist, the palette lists the node once. Adding it auto-connects to the source if there is exactly one; with more than one it leaves the target input open for you to choose.
 </Callout>
 
+## Node families
+
+Some nodes are variants of one operation, such as the six comparisons or the four keyboard heads. The palette lists each such set as a family.
+
+- **Browsing.** While the **Search nodes** box is empty, a family is one row. The row shows the family's name, and below it the category and the number of nodes, such as *Math · 6 nodes*. Hovering over the row lists its nodes. Choosing the row adds the family's first node, the one listed first in the table below.
+- **Searching.** A search lists every node of a family on its own row. Typing `>` or `Greater Than` finds `Greater Than`, and typing a family's name, such as `Compare`, lists all of its nodes.
+- **Switching a placed node.** The card of a node that belongs to a family has a ▾ button beside its title, **Switch to another node of this kind**. It lists the nodes of the family that the blueprint can hold, with a check mark beside the current one. Choosing another node changes the card in place.
+
+When a card changes to another node of its family:
+
+- A wire stays connected when the new node has a matching pin that accepts it. A wire into `bgmVolume` on `Set BGM Volume` stays connected, now into `soundVolume`, when the card becomes `Set SFX Volume`.
+- A wire the new node cannot accept is removed.
+- A setting the new node does not have is removed, such as the key chosen on `On Key Down` when the card becomes `Any Key Down`.
+- A value typed on the card moves to the matching pin when that pin takes the same type of value, and is removed otherwise.
+- **Ctrl+Z** (**Cmd+Z** on macOS) restores the previous node, its wires and its values in one step.
+
+Families change only how the palette lists nodes. Every node keeps its own name and type id, and existing graphs are unchanged.
+
+| Family | Nodes | Category |
+| --- | --- | --- |
+| **On Key** | `On Key Down`, `On Key Up`, `Any Key Down`, `Any Key Up` | [Events](/docs/studio/blueprint/nodes/events#keyboard) |
+| **On Gamepad Button** | `On Gamepad Button Down`, `On Gamepad Button Up`, `Any Gamepad Button Down`, `Any Gamepad Button Up` | Events |
+| **Convert Type** | `To String`, `To Integer`, `To Float`, `To Boolean`, `To JSON` | [Data](/docs/studio/blueprint/nodes/data#conversion) |
+| **Check Type** | `Is String`, `Is Number`, `Is Boolean`, `Is Array`, `Is Object`, `Is Null` | [Data](/docs/studio/blueprint/nodes/data#type-tests) |
+| **Trim Whitespace** | `Trim`, `Trim Start`, `Trim End` | [Data](/docs/studio/blueprint/nodes/data#trim) |
+| **Change Case** | `To Lower Case`, `To Upper Case`, `Capitalize` | [Data](/docs/studio/blueprint/nodes/data#to-upper-case) |
+| **Replace Text** | `Replace`, `Replace All` | [Data](/docs/studio/blueprint/nodes/data#replace) |
+| **Pad Text** | `Pad Start`, `Pad End` | [Data](/docs/studio/blueprint/nodes/data#pad-start) |
+| **Rounding** | `Round`, `Floor`, `Ceil` | [Math](/docs/studio/blueprint/nodes/math#rounding-and-sign) |
+| **Random Number** | `Random Integer`, `Random Float` | [Math](/docs/studio/blueprint/nodes/math#random-float) |
+| **Compare** | `Equal`, `Not Equal`, `Greater Than`, `Greater Than Or Equal`, `Less Than`, `Less Than Or Equal` | [Math](/docs/studio/blueprint/nodes/math#compare) |
+| **Get Preference** | 17 nodes: every `Get …` node under Preferences except `Get Track Volume`, starting with `Get Auto Forward` | [Game](/docs/studio/blueprint/nodes/game#preferences) |
+| **Set Preference** | 17 nodes: every `Set …` node under Preferences except `Set Track Volume`, starting with `Set Auto Forward` | [Game](/docs/studio/blueprint/nodes/game#preferences) |
+
 ## Categories
 
-Each count is what the palette offers. Nodes hidden from the palette and kept so that older graphs still run are documented on their category's page and are not counted.
+Each count is what the palette offers. A [family](#node-families) counts as all of its nodes, so the number on a category's chip in the palette, which counts a family as one row, can be lower. Nodes hidden from the palette and kept so that older graphs still run are documented on their category's page and are not counted.
 
 | Category | Nodes | Covers |
 | --- | --- | --- |

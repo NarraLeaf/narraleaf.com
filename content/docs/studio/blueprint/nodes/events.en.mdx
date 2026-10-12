@@ -12,6 +12,7 @@ An event head is where a graph begins. It has no execution input — the runtime
 - **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. So does a head that runs because a press [climbed](#event-bubbling) from a descendant: it reads the point the press landed on in its own element's box, not in the box of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
 - **Blueprint Value heads.** A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
 - **A disabled element stays silent.** A widget that is disabled, or in text-editing state, does not dispatch its interaction heads at all.
+- **The keyboard heads are a family.** While the palette is browsed, the four heads under [Keyboard](#keyboard) are one row, **On Key**. A search finds each head by its own name, and the ▾ beside a placed card's title switches it to another of the four. See [Node families](/docs/studio/blueprint/nodes#node-families).
 
 ## Where a head is offered
 

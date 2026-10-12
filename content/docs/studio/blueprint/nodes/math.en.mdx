@@ -13,6 +13,7 @@ Math is where a value gets worked out rather than stored: arithmetic, rounding, 
 - **A wired edge beats the card field.** Pins marked *Accepts an on-card literal* draw a field on the node card, and that field is read only while the pin has no edge.
 - **Anything that is not a finite number reads as NaN.** A numeric pin takes a finite number as-is, `true` and `false` as `1` and `0`, and a numeric string by parsing it. Everything else — `null`, an empty card field, `Infinity` — is NaN, and a node handed NaN outputs NaN. One missing operand turns every result downstream of it into NaN.
 - **`integer` flows into `float`, never the reverse.** `Round`, `Floor` and `Ceil` output `integer`, which connects to any `float` input; a `float` output will not connect to an `integer` input. Both connect to a `string` input, which is how a computed number reaches [`Log`](/docs/studio/blueprint/nodes/debug).
+- **Some nodes are grouped into families.** While the palette is browsed, `Round`, `Floor` and `Ceil` are one row, **Rounding**; the two random nodes are **Random Number**; and the six nodes under [Compare](#compare) are **Compare**. A search finds each node by its own name, and the ▾ beside a placed card's title switches it to another node of its family. See [Node families](/docs/studio/blueprint/nodes#node-families).
 
 ## Arithmetic
 

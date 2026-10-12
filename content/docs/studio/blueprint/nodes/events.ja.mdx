@@ -12,6 +12,7 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 - **座標はデザイン座標です。** 要素のマウス Head は、その要素自身のローカルなデザイン空間を報告します。子孫要素から[昇ってきた](#event-bubbling)ことで実行される Head も同じで、押された位置を、ポインタの下にある要素の枠ではなく自分の要素の枠の中で読み取ります。Surface ブループリントに置かれた`Mouse Click`と`Right Click`は、代わりにその[Surface](/ja/docs/studio/blueprint/surfaces)のデザイン空間を報告します。
 - **Blueprint Value の Head。** Blueprint Value グラフが受け付ける Head は`Init`と`On Flush`の2つだけです。
 - **無効な要素は沈黙します。** 無効化されている、またはテキスト編集状態にあるウィジェットは、自身の操作系 Head をまったくディスパッチしません。
+- **キーボードの Head は同じ種類のノードとしてまとめられます。** パレットを一覧するとき、[キーボード](#keyboard)の 4 つの Head は **On Key**（キー入力のとき）として 1 行で表示されます。検索すると各 Head が自分の名前で表示されます。配置したカードは、タイトルの横の ▾ で 4 つのうちの別の Head に切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
 
 ## Head が提供される場所
 

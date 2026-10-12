@@ -48,9 +48,43 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 互換性のある接続元が複数存在する場合でも、パレットにはそのノードが1つだけ表示されます。追加すると、接続元が1つだけならそこへ自動的に接続されます。複数ある場合は、対象の入力を未接続のまま残し、選択できるようにします。
 </Callout>
 
+## 同じ種類のノード [#node-families]
+
+6 つの比較ノードや 4 つのキー入力の Head のように、1 つの操作の別の形にあたるノードがあります。パレットは、このようなノードの組を同じ種類のノードとしてまとめて表示します。
+
+- **一覧するとき。** **Search nodes**（ノードを検索）の欄が空のとき、同じ種類のノードは 1 行にまとまります。行には種類の名前と、その下に分類とノード数が表示されます（*Math · 6 nodes*（数学 · 6 個のノード）など）。行にポインターを合わせると、含まれるノードが表示されます。行を選ぶと、その種類の最初のノード（下の表で先頭にあるノード）が追加されます。
+- **検索するとき。** 検索すると、同じ種類のノードもそれぞれ 1 行ずつ表示されます。`>` または `より大きい` と入力すると `Greater Than` が見つかり、種類の名前（`比較` など）を入力すると、その種類のノードがすべて表示されます。
+- **配置したノードを切り替えるとき。** 同じ種類のノードにまとめられたノードのカードには、タイトルの横に ▾ ボタン **Switch to another node of this kind**（同じ種類の別のノードに切り替える）があります。押すと、その種類のうちこのブループリントに置けるノードが表示され、現在のノードにはチェックが付いています。別のノードを選ぶと、カードはその場でそのノードに変わります。
+
+カードが同じ種類の別のノードに変わるときは、次のようになります。
+
+- 新しいノードに対応するピンがあり、そのピンがエッジを受け付ける場合、エッジは接続されたまま残ります。`Set BGM Volume` の `bgmVolume` へのエッジは、カードが `Set SFX Volume` に変わると `soundVolume` へのエッジになります。
+- 新しいノードが受け付けないエッジは削除されます。
+- 新しいノードにない設定は削除されます。たとえば `On Key Down` が `Any Key Down` に変わると、選んでいたキーは削除されます。
+- カード上に入力した値は、対応するピンが同じ型の値を受け付ける場合はそのピンに移り、そうでない場合は削除されます。
+- **Ctrl+Z**（macOS では **Cmd+Z**）で、元のノードとそのエッジ、値が 1 ステップで元に戻ります。
+
+まとめて表示されるのはパレットの中だけです。各ノードは自分の名前と type id をそのまま持ち、既存のグラフは変わりません。
+
+| 種類 | ノード | 分類 |
+| --- | --- | --- |
+| **On Key**（キー入力のとき） | `On Key Down`、`On Key Up`、`Any Key Down`、`Any Key Up` | [Events](/ja/docs/studio/blueprint/nodes/events#keyboard) |
+| **On Gamepad Button**（ゲームパッドのボタン入力のとき） | `On Gamepad Button Down`、`On Gamepad Button Up`、`Any Gamepad Button Down`、`Any Gamepad Button Up` | Events |
+| **Convert Type**（型を変換） | `To String`、`To Integer`、`To Float`、`To Boolean`、`To JSON` | [Data](/ja/docs/studio/blueprint/nodes/data#変換) |
+| **Check Type**（型を調べる） | `Is String`、`Is Number`、`Is Boolean`、`Is Array`、`Is Object`、`Is Null` | [Data](/ja/docs/studio/blueprint/nodes/data#型判定) |
+| **Trim Whitespace**（空白を取り除く） | `Trim`、`Trim Start`、`Trim End` | [Data](/ja/docs/studio/blueprint/nodes/data#trim) |
+| **Change Case**（大文字・小文字を変える） | `To Lower Case`、`To Upper Case`、`Capitalize` | [Data](/ja/docs/studio/blueprint/nodes/data#to-upper-case) |
+| **Replace Text**（文字列を置換） | `Replace`、`Replace All` | [Data](/ja/docs/studio/blueprint/nodes/data#replace) |
+| **Pad Text**（文字で埋める） | `Pad Start`、`Pad End` | [Data](/ja/docs/studio/blueprint/nodes/data#pad-start) |
+| **Rounding**（端数処理） | `Round`、`Floor`、`Ceil` | [Math](/ja/docs/studio/blueprint/nodes/math#丸めと符号) |
+| **Random Number**（乱数） | `Random Integer`、`Random Float` | [Math](/ja/docs/studio/blueprint/nodes/math#random-float) |
+| **Compare**（比較） | `Equal`、`Not Equal`、`Greater Than`、`Greater Than Or Equal`、`Less Than`、`Less Than Or Equal` | [Math](/ja/docs/studio/blueprint/nodes/math#compare) |
+| **Get Preference**（設定を取得） | 17 個：「設定」の節にある `Get …` ノードのうち `Get Track Volume` を除くすべて。先頭は `Get Auto Forward` | [Game](/ja/docs/studio/blueprint/nodes/game#設定) |
+| **Set Preference**（設定を変更） | 17 個：「設定」の節にある `Set …` ノードのうち `Set Track Volume` を除くすべて。先頭は `Set Auto Forward` | [Game](/ja/docs/studio/blueprint/nodes/game#設定) |
+
 ## 分類
 
-ノード数は、パレットに表示されるノードの数です。パレットから非表示になり、旧いグラフを動かすために残されているノードは、各分類のページに記載していますが、ノード数には含めていません。
+ノード数は、パレットに表示されるノードの数です。[同じ種類のノード](#node-families)は含まれるノードをすべて数えます。パレットの分類のチップに出る数は同じ種類のノードを 1 行として数えるため、これより小さくなることがあります。パレットから非表示になり、旧いグラフを動かすために残されているノードは、各分類のページに記載していますが、ノード数には含めていません。
 
 | 分類 | ノード数 | 内容 |
 | --- | --- | --- |

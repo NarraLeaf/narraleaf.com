@@ -12,6 +12,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 - **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；因事件从后代元素[向上传递](#event-bubbling)而执行的 Head 也是如此，它读到的是这次按下在自己元素框内的位置，而不是在指针下那个元素框内的位置；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
 - **Blueprint Value 的 Head。** Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
 - **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head
+- **按键 Head 在创建浮窗中合为一组。** 浏览创建浮窗时，[键盘](#keyboard)下的四个 Head 合为一行**按键时**。搜索时每个 Head 按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为这四个中的另一个。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## 哪些 Head 可用
 
