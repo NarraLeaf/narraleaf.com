@@ -1,0 +1,268 @@
+---
+title: 连接 Agent
+description: 在 Studio 中开启 Agent 接入，把 Studio 添加到 MCP 客户端，并为 Agent 安装 Skill
+---
+
+连接需要三步：在 Studio 中开启 Agent 接入，把端点添加到 Agent 的配置中，把 Skill 安装到 Agent 查找它的位置
+
+## 开启 Agent 接入
+
+<Steps>
+
+<Step>
+
+### 打开设置
+
+打开**设置 → Agent 接入**。在项目窗口中，也可以从菜单栏的**智能体**菜单选择 **Agent 接入设置…** 进入同一位置
+
+</Step>
+
+<Step>
+
+### 允许 Agent 连接
+
+打开 **允许 Agent 连接**。**地址** 显示端点，未改过端口时为 `http://127.0.0.1:54080/mcp`；端点开始提供服务后显示**运行中**
+
+**端口** 修改后立即生效，可填 1024 到 65535。端口被占用时，Studio 改用空闲端口，**地址** 显示实际使用的端口
+
+</Step>
+
+<Step>
+
+### 允许修改
+
+需要 Agent 编辑项目时，打开 **允许 Agent 修改工程**。该开关默认关闭；关闭时 Agent 可以读取项目，所有修改操作都会被拒绝
+
+从菜单栏的**智能体 → 允许 Agent 修改工程**打开时，Studio 会先在自己的窗口中请求确认
+
+其下方的 **完全访问** 默认关闭，制作游戏并不需要它。开启后 Agent 可以修改工程，并可不经询问读取任意文件夹，开启前请先阅读[完全访问](/zh/docs/studio/agent/security#full-access)
+
+</Step>
+
+<Step>
+
+### 添加存放素材的文件夹
+
+在 **允许导入素材的文件夹** 下，用 **添加文件夹…** 添加存放美术和音频素材的文件夹。项目目录内的文件始终允许导入
+
+这一步可以跳过。Agent 需要读取其他文件夹中的文件时，Studio 会弹出 **允许 Agent 读取文件夹？** 窗口询问作者，作者允许的文件夹会添加到该列表中，见[项目以外的文件夹](/zh/docs/studio/agent/security#folders)
+
+</Step>
+
+<Step>
+
+### 复制配置
+
+**复制配置** 把可直接粘贴的配置放到剪贴板，其中已填入地址和访问令牌，共有四种形式：
+
+| 按钮 | 内容 |
+| --- | --- |
+| **Claude Code** | `claude mcp add` 命令 |
+| **JSON** | 一个 `mcpServers` 条目 |
+| **opencode** | 用于 `opencode.json` 的 `mcp` 配置块 |
+| **stdio** | 以 Studio 本身作为桥接程序启动的条目，适用于只能启动本地程序的客户端，其中不含令牌 |
+
+项目窗口中**智能体 → 复制连接配置**提供同样的四种形式。令牌本身显示在 **访问令牌** 一项，点击 **显示** 查看
+
+</Step>
+
+</Steps>
+
+## 智能体菜单
+
+项目窗口的菜单栏中有一个**智能体**菜单：
+
+| 菜单项 | 作用 |
+| --- | --- |
+| 状态行 | 已连接的客户端及其状态，例如 **Agent：Claude Code · 工作中**，不可点击 |
+| **暂停 Agent** / **继续 Agent** | 在继续之前，拒绝 Agent 对本项目的所有修改 |
+| **跟随 Agent 的编辑** | 打开每次修改所在的编辑器 |
+| **Agent 日志** | 打开本项目所有调用的日志 |
+| **启用 Agent 接入** | 与 **允许 Agent 连接** 是同一个开关 |
+| **允许 Agent 修改工程** | 与设置中的同名开关相同，打开时需要确认。完全访问开启期间显示为已打开，且不能切换 |
+| **允许 Agent 完全访问** | 与设置中的 **完全访问** 是同一个开关，打开时需要确认 |
+| **复制连接配置** | Claude Code、opencode、JSON 或 **stdio（Claude Desktop）** |
+| **导出 Agent Skill…** | 把 Skill 文件夹写入选定的位置 |
+| **Agent 接入设置…** | 打开**设置 → Agent 接入** |
+
+暂停、跟随和日志的说明见[用 Agent 制作游戏](/zh/docs/studio/agent/make-a-game#watching)
+
+## 把 Studio 添加到 Agent
+
+以下各客户端都以 `narraleaf` 为名注册该服务器。示例中的 `<PORT>` 和 `<TOKEN>` 分别取自 **地址** 和 **访问令牌**
+
+### Claude Code
+
+**复制配置 → Claude Code** 给出完整命令，在终端中运行一次即可：
+
+```sh
+claude mcp add --scope user --transport http narraleaf http://127.0.0.1:<PORT>/mcp --header "Authorization: Bearer <TOKEN>"
+```
+
+`--scope user` 让该服务器在所有文件夹中可用，终端位于哪个文件夹都可以直接要求制作游戏。不加该参数时，服务器只在运行命令的那个文件夹中存在。可用 `claude mcp list` 或 Claude Code 中的 `/mcp` 确认
+
+制作一个游戏需要上百次工具调用，Claude Code 默认每次调用前都会询问。对第一次询问选择 **Yes, and don't ask again** 放行 narraleaf 的工具，或预先写入 `~/.claude/settings.json`：
+
+```json
+{ "permissions": { "allow": ["mcp__narraleaf"] } }
+```
+
+Agent 能否修改项目仍由 Studio 的开关决定，暂停也照样生效
+
+### Claude Desktop
+
+Claude Desktop 通过配置文件启动本地程序，Studio 本身就可以充当这个程序：以 `--mcp-stdio` 启动时，Studio 不打开窗口，只把连接转发给正在运行的 Studio
+
+**复制配置 → stdio** 给出已填好 Studio 路径的条目：
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio",
+      "args": ["--mcp-stdio"]
+    }
+  }
+}
+```
+
+路径是 Studio 自身的可执行文件：
+
+- macOS：安装在“应用程序”中时为 `/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio`
+- Windows：安装目录下的 `NarraLeaf Studio.exe`；JSON 中每个反斜杠都要写两次，复制得到的条目已经处理好
+- Linux：AppImage 文件本身
+
+把该条目合并进 `claude_desktop_config.json`（在 Claude Desktop 中选择 **Settings → Developer → Edit Config**），然后重启 Claude Desktop
+
+该条目不含令牌：桥接程序每次都从 Studio 的设置中读取地址和令牌，因此更换令牌或改动端口后仍可继续使用。Studio 未运行时，桥接程序会启动它，并最多等待一分钟让端点就绪。Agent 接入关闭时，它对每个请求都回复一条说明开启位置的消息
+
+如果桥接方式不适用，可以改用第三方 npm 包 `mcp-remote`（需要 Node.js）：
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:<PORT>/mcp", "--header", "Authorization:${NARRALEAF_AUTH}"],
+      "env": { "NARRALEAF_AUTH": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+如果所用的 Claude Desktop 支持按 URL 添加自定义连接器，也可以直接在那里填写地址和令牌
+
+### opencode
+
+**复制配置 → opencode** 给出配置块，将其合并进工作目录中的 `opencode.json`，或合并进 `~/.config/opencode/opencode.json` 以便在所有文件夹中使用：
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "narraleaf": {
+      "type": "remote",
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "enabled": true,
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+可用 `opencode mcp list` 确认
+
+### Codex CLI
+
+在 `~/.codex/config.toml` 中加入：
+
+```toml
+[mcp_servers.narraleaf]
+url = "http://127.0.0.1:<PORT>/mcp"
+http_headers = { "Authorization" = "Bearer <TOKEN>" }
+```
+
+若不希望令牌写在文件中，可以在 shell 中导出环境变量 `NARRALEAF_TOKEN`，并用 `bearer_token_env_var = "NARRALEAF_TOKEN"` 代替 `http_headers`。可用 `codex mcp list` 或 Codex 中的 `/mcp` 确认
+
+### Cursor
+
+保存为工作目录中的 `.cursor/mcp.json`，或 `~/.cursor/mcp.json` 以便在所有文件夹中使用，然后在 **Cursor Settings → MCP** 中启用该服务器：
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+合并进 `~/.gemini/settings.json`，或工作目录中的 `.gemini/settings.json`：
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "httpUrl": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  },
+  "context": { "fileName": ["AGENTS.md", "GEMINI.md"] }
+}
+```
+
+`context.fileName` 让 Gemini CLI 读取 `AGENTS.md`，由它把 Gemini 引向 Skill。可用 Gemini CLI 中的 `/mcp` 确认
+
+### 其他客户端
+
+| 设置 | 取值 |
+| --- | --- |
+| 传输方式 | Streamable HTTP |
+| URL | `http://127.0.0.1:<PORT>/mcp` |
+| 请求头 | `Authorization: Bearer <TOKEN>` |
+
+只能启动本地程序的客户端，可以像 Claude Desktop 的条目那样以 `--mcp-stdio` 运行 Studio，或使用 `mcp-remote` 之类的桥接程序
+
+## 安装 Skill
+
+**智能体 → 导出 Agent Skill…** 在选定的位置写入一个名为 `NarraLeaf-Skills` 的文件夹。同名文件会被替换，文件夹中的其他文件保留
+
+<Files>
+  <Folder name="NarraLeaf-Skills" defaultOpen>
+    <File name="README.md" />
+    <File name="AGENTS.md" />
+    <Folder name="mcp-configs" />
+    <Folder name="narraleaf-make-game" />
+    <Folder name="narraleaf-port-renpy" />
+  </Folder>
+</Files>
+
+Skill 就是 `narraleaf-make-game` 文件夹。把整个文件夹（而不只是 `SKILL.md`）复制到 Agent 查找 Skill 的位置：
+
+| Agent | 个人（所有文件夹） | 单个项目 |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills/narraleaf-make-game/` | `.claude/skills/narraleaf-make-game/` |
+| opencode | `~/.config/opencode/skill/narraleaf-make-game/` | `.opencode/skill/narraleaf-make-game/` |
+| Codex CLI | `~/.codex/skills/narraleaf-make-game/` | 无 |
+| Claude Desktop、claude.ai | 把文件夹压缩为 zip，在 **Settings → Capabilities → Skills** 中上传 | 无 |
+| Cursor、Gemini CLI 及其他 | 无需 Skill 文件夹，见下文 | 无 |
+
+会读取 `AGENTS.md` 的 Agent，例如 opencode、Codex、Cursor 以及按上文设置的 Gemini CLI，在 `NarraLeaf-Skills` 文件夹中启动时会自行找到 Skill
+
+同目录下的 `narraleaf-port-renpy` 用于移植附带源码的 Ren'Py 游戏，见[移植 Ren'Py 游戏](/zh/docs/studio/agent/make-a-game#renpy)。它以 `narraleaf-make-game` 为基础，因此两者都要按同样的方式安装。服务器不以指南的形式提供它，Agent 需从文件夹中读取
+
+### 没有 Skill 时
+
+服务器自身也提供这份指南，因此未安装 Skill 的 Agent 同样可以获得：
+
+- **`make_game` 提示词**：在显示 MCP 提示词的客户端中启动整个流程，通常是 `/make_game` 这样的斜杠命令，在 Claude Code 中为 `/mcp__narraleaf__make_game`
+- **`agent_guide` 工具**：返回任意一章，包括 `workflow`、`story-format`、`ui-format`、`blueprint-format`、`ui-design`、`script-adaptation`、`layered-sprites`、`verify-and-ship`、`localization-and-voice`、`troubleshooting`
+- 同样的章节也以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`
+
+对任何 MCP 客户端，下面这条首条消息都适用：
+
+> Use the NarraLeaf Studio tools. Call agent_guide with chapter "workflow" and follow it to make my game.

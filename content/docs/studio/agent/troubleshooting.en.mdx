@@ -1,0 +1,68 @@
+---
+title: Troubleshooting
+description: When an agent cannot reach Studio, when it waits on a folder, and what each refusal code means.
+---
+
+## The agent cannot connect
+
+Start in **Settings → Agent access**. **Address** reads **Listening.** while the endpoint is served, **Not running.** while it is off, and **Could not start:** followed by the reason when it failed.
+
+| Symptom | Cause | What to do |
+| --- | --- | --- |
+| The agent has no NarraLeaf tools | Studio is not running, or **Allow agents to connect** is off | Open Studio and switch it on, then restart the agent or reconnect it |
+| The connection is refused | The port changed, or the one asked for was in use and Studio served on another | Compare the port in **Address** with the agent's configuration, copy the configuration again, and restart the agent |
+| The agent reports a missing or wrong bearer token | The token was regenerated, or the configuration was typed by hand | Copy the configuration again |
+| The agent reports that requests from web pages are not accepted | The client sends an `Origin` header, as a browser does | Use a client that runs as a program on the computer |
+| The client never connects, or fails with HTTP 405 | The client was set up for the older HTTP+SSE transport | Set it up for Streamable HTTP |
+| Claude Code has the tools in one folder only | The server was added without `--scope user` | In that folder, run `claude mcp remove narraleaf -s local`, then run the command from **Copy configuration → Claude Code** |
+| Claude Desktop says agent access is turned off | The stdio bridge reached Studio, and **Allow agents to connect** is off | Switch it on; the bridge needs no restart |
+| Claude Desktop waits, then reports that Studio is not running or did not start in time | Studio did not start serving within a minute, or the bridge was given `--user-data-dir`, which makes it connect without starting Studio | Open Studio, check **Settings → Agent access**, then reconnect |
+| The agent works on the wrong project | More than one project is open | Ask the agent to name the project folder, or close the other projects |
+
+## The agent does not see a plugin's tools
+
+A plugin's tools exist only while a project that loads the plugin is open. `agent_status` names the plugin tools each open project offers.
+
+| Cause | What to do |
+| --- | --- |
+| The client listed the tools before the plugin was loaded, and keeps the old list | Ask the agent to list its tools again, or reconnect it. A client that keeps Studio's notification stream open is told when the list changes; others see the change the next time they list the tools |
+| The project that uses the plugin is not open | Open it. The tools of a closed project's plugins are not offered |
+| The plugin is not enabled in the project, or failed to load | Enable it in the project, and check the Console for a load error |
+| The plugin's tools are switched off | Switch them on under **Settings → Agent access → Plugin tools**. A call to a switched-off tool is refused with `unavailable` |
+| More than one project is open, and the call went to one that does not load the plugin | The refusal, `unknown_tool`, names the projects that offer the tool. Ask the agent to name one of them |
+
+## Folder prompts [#folder-prompts]
+
+When an agent needs a file outside the project and the allowed folders, Studio opens **Allow the agent to read a folder?** to ask you. Until the folder is allowed, the call is refused with `path_not_allowed`, shown as **Folder not allowed** in the **Agent log**, and the row's **Next step** says which case it is. See [Folders outside the project](/docs/studio/agent/security#folders).
+
+| What the agent reports | Cause | What to do |
+| --- | --- | --- |
+| **Waiting for the author:** followed by the folder, or the answer `pending` | The prompt is open and you have not answered. A call waits about 50 seconds, then returns while the prompt stays up | Answer the prompt. Once you allow it, the agent's next try goes through. If you cannot see the prompt, look over the project window the agent works on, which Studio's Dock icon (macOS) or taskbar button (Windows, Linux) points to by bouncing or flashing; a prompt that another one is still waiting behind opens when that one is answered |
+| **Declined by the author:** followed by the folder | You chose **Deny**, closed the prompt or pressed Escape. The agent is told not to ask again | To allow it after all, add the folder with **Add folder…** under **Folders agents may import from**, then tell the agent to try again. For 60 seconds after a denial, Studio answers the same folder as declined without asking, so asking the agent to retry at once brings no new prompt |
+| **Not allowed:** followed by the folder and a reason, and no prompt | The folder is a drive root, your home folder as a whole, a folder containing it, or one of Studio's own folders, which are never offered | Ask the agent to name the specific folder that holds the files, or copy the files into the project folder |
+| A request for more than five folders is partly answered | One prompt names at most five folders | Nothing. The agent asks again for the rest |
+
+With [full access](/docs/studio/agent/security#full-access) on, Studio asks about no folder, and the folders it never offers stay closed.
+
+## Refusal codes
+
+When Studio refuses a call, the agent receives a code, a message and often a next step, and the row in the **Agent log** shows the code's name. The guide tells the agent what to do with each one; the table is what you do.
+
+| Code | Agent log shows | Meaning | What you do |
+| --- | --- | --- | --- |
+| `writes_disabled` | **Changes not allowed** | **Allow agents to make changes** and **Full access** are both off | Switch on **Allow agents to make changes** if the agent should edit. Reading still works |
+| `paused` | **Paused** | You paused the agent in this project | **Resume agent** when it may continue |
+| `frozen` | **Project frozen** | The project is not accepting changes: a past version is open, it was frozen by hand, a merge is unfinished, Studio is in recovery mode, or another window took it over | Finish or leave that state; the agent retries |
+| `live_session` | **Live session running** | A Team live session is running in the project | Leave the session, or let the agent work read-only until it ends |
+| `stale_revision` | **Changed since read** | The page or scene changed after the agent read it, usually because you edited it | Nothing. The agent reads it again and redoes its change on your version |
+| `check_failed` | **Check failed** | The text the agent sent did not compile, or the check found an error. Nothing was written | Nothing, unless it repeats. The agent fixes the findings and writes again |
+| `not_found` | **Not found** | A scene, page, element, asset or character the call names does not exist | Nothing, unless it repeats. The agent lists what exists and retries |
+| `path_not_allowed` | **Folder not allowed** | A read from a folder outside the project and the allowed folders that was not allowed: the prompt is still waiting, you declined it, or Studio never offers that folder | See [Folder prompts](#folder-prompts) |
+| `untrusted` | **Project not trusted** | The project is not trusted, so it may not be played, tested or built | Trust it from **Not trusted** in the status bar, if you trust where it came from |
+| `no_workspace` | **No open project** | No project is open, or several are and the call did not say which | Open the project, or ask the agent to name its folder |
+| `invalid_args` | **Invalid arguments** | The arguments do not fit the tool | Nothing. The agent corrects the call |
+| `unknown_tool` | **Unknown tool** | There is no tool by that name | Nothing. The agent asks for the list of tools again |
+| `unavailable` | **Unavailable** | The call is valid but cannot be carried out in the current state, for example advancing a game that is not running, deleting a page, scene, chapter or asset that something still uses, a project window that did not answer in time, or a tool of a plugin whose tools are switched off | Read the message in the **Agent log**; it names what is missing |
+| `internal` | **Internal error** | Something in Studio failed that is not the agent's doing | If it repeats, check the Console for errors and report it |
+
+A code the agent cannot act on by itself, such as `writes_disabled`, `paused` or `path_not_allowed`, makes it stop and ask you.

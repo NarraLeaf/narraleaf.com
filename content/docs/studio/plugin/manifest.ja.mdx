@@ -58,6 +58,8 @@ description: manifest.json のすべてのフィールド――エントリー�
 | `network` | `string[]` | runtime エントリーがバイトを取得してよいホストパターン。 |
 | `reservedSaveIds` | `string[]` | プラグインが自分用に確保するセーブ id。プレイヤーのセーブ一覧には出ません。 |
 | `structs` | object[] | プラグインのノードが返す行のフィールド。 |
+| `agentTools` | object[] | studio エントリーが AI エージェントに提供するツール。それぞれ `{ name, write }`。[エージェント用ツール](/ja/docs/studio/plugin/studio/agent-tools)を参照。 |
+| `agentGuide` | `string` | パッケージ内の Markdown ファイル。このプラグインのガイドの章としてエージェントに提供される。 |
 
 すべてのノード型、ウィジェット型、ストレージの名前空間、sidecar id、ビルド依存関係 id、予約セーブ id、構造体 id には、あなたのプラグイン id を前置しなければなりません。`contributes` の下に未知のキーがあると、無視されるのではなく拒否されます。
 
@@ -211,9 +213,10 @@ Studio の言語パックです――プラグインが追加するロケール�
 | `buildDependency` | `contributes.buildDependencies` の各エントリーと、そのダウンロード元のホスト名。 |
 | `externalLink` | `contributes.externalLinks`。作者自身のパターンそのまま――書き換えられないので、プロンプトとマニフェストは同一の文書になります。 |
 | `network` | `contributes.network`。`externalLink` とは別の問題であり、決して統合されません。ページを開く操作はアドレスをブラウザーに渡すだけで何も返ってきませんが、これはバイトを取得する操作であり、返ってきたものはゲームの内部で実行されます。 |
+| `agentTools` | `contributes.agentTools`。すべてのツールと、そのうちプロジェクトを変更するもの。ツールを追加したり、読み取りのツールを書き込みのツールに変えたりすると、もう一度確認されます。 |
 
 <Callout type="warn">
-`runtime`、`sidecar`、`buildDependency`、`externalLink`、`network` の権限を手で書くことは**マニフェストエラー**です――プラグインは *"permission kind … is derived from contributes and must not be declared by hand."* というメッセージとともにインストールに失敗します。能力を `contributes` に一度だけ宣言すれば、権限は自動的についてきます。
+`runtime`、`sidecar`、`buildDependency`、`externalLink`、`network`、`agentTools` の権限を手で書くことは**マニフェストエラー**です――プラグインは *"permission kind … is derived from contributes and must not be declared by hand."* というメッセージとともにインストールに失敗します。能力を `contributes` に一度だけ宣言すれば、権限は自動的についてきます。
 </Callout>
 
 これが、インストールプロンプトの正直さを保っている仕組みです。ある能力はただ 1 か所でしか宣言されないため、プロンプトが列挙する内容とプラグインが実際に到達できる範囲がずれることはあり得ません。これはまた、更新の挙動も健全にします――能力を追加すると派生する権限セットが広がり、作者への再確認が自動的に発生します。一方、何も広げないバージョンは既存の許可をそのまま引き継ぎます。

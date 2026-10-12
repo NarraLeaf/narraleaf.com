@@ -1,0 +1,98 @@
+---
+title: What agent access exposes
+description: Who can reach Studio's MCP endpoint, what an agent may change and read, and the switches that limit it.
+---
+
+Agent access lets a program on your computer read and change the projects open in Studio. This page is what that rests on.
+
+## Nothing listens until you switch it on
+
+**Allow agents to connect** is off in a new profile. Until it is switched on, Studio serves nothing. Switching it off stops the endpoint at once.
+
+## Only this computer
+
+The endpoint is bound to `127.0.0.1`, so it cannot be reached from another machine. Being local is not enough by itself, because any web page you open can send requests to your own computer. So every request is checked before any of it is read:
+
+- **A request carrying an `Origin` header is refused.** Browsers send one; MCP clients are programs and send none. This shuts out a web page posting to the port, including one that points its own host name at `127.0.0.1`.
+- **The `Host` header must name the endpoint**: `127.0.0.1` or `localhost` with its port.
+- **The request must carry the access token** as `Authorization: Bearer <token>`. A request without it, or with a wrong one, is refused.
+- **A request is at most 4 MB.** The largest thing an agent sends is a scene or a page as text.
+
+Nothing in a request is evaluated as code. The arguments of each call are checked against the tool's schema before the call runs.
+
+## The access token
+
+Studio keeps the token in `agent-mcp.json` in its user data folder, together with the other agent access settings. On macOS and Linux the file can be read by your account only. On Windows it relies on the permissions of the user data folder. The token is kept out of Studio's general settings, which are often exported and shared.
+
+Anything that can read the token can change your projects while agent access is on, so treat it like a password. **Replace the token → Regenerate** issues a new one at once; clients set up with the old one are refused from their next request and need the configuration copied again. The **stdio** entry holds no token and keeps working.
+
+The token never reaches a project window. A project window runs plugin code, so its **Agent** menu is given only whether agent access is on, whether changes are allowed, whether full access is on and whether the endpoint is running. Copying a configuration from that menu is carried out outside the window, straight onto the clipboard.
+
+<Callout type="warn">
+Copying a configuration puts the token on the system clipboard, where other programs and clipboard history can read it. Paste it where it belongs, and regenerate the token if it may have been seen.
+</Callout>
+
+## What an agent may change
+
+**Changes are off by default.** With **Allow agents to make changes** off, an agent can read the open projects and every change it tries is refused. Turning it on from a project window's **Agent** menu asks first, **Allow agents to modify projects?**, in a Studio window that plugin code in the project window cannot answer; see [Questions in Studio's own window](#prompts). Switching it off never asks. [Full access](#full-access) allows changes too.
+
+**Pausing stops changes in one project.** While an agent is paused, every change it tries there is refused. Reads still work.
+
+**A busy project refuses changes.** No change is accepted while the project is frozen: a past version is open for viewing, the project was frozen by hand, a version-control merge is unfinished, Studio is in recovery mode, or another Studio window has taken the project over. A [Team](/docs/studio/team) live session refuses agent changes for as long as it runs, so they cannot race the people in it.
+
+**Changes go through Studio.** An agent has no tool that writes files in the project folder. Each change is made through the same services as an edit by hand, so it appears in the editor, is one step of undo, and is checked the way an edit by hand is. A scene, page or blueprint that does not pass the check is not written.
+
+**A project not trusted does not run.** A project that Studio did not create cannot be played or built until it is trusted, by agents as by you. **Not trusted** in the status bar, or **Settings → Data → Trusted projects**, trusts it.
+
+## Folders outside the project [#folders]
+
+An agent reads files on your computer to import them: art, audio and fonts, and a PSD to build a layered character from. Files inside the project and inside the folders under **Folders agents may import from** are read without asking.
+
+**Any other folder is asked about.** When a call needs a file elsewhere, Studio opens **Allow the agent to read a folder?** over the project window. Nobody at the screen started the call, so the prompt does not take the foreground from another application: it stays above the project window that asked, and Studio's Dock icon bounces on macOS, or its taskbar button flashes on Windows and Linux. When Studio is already in front, the prompt takes the focus. It names the agent's client and each folder that holds the files, at most five in one prompt. When the agent asks up front with `request_folder_access`, the prompt also shows the purpose it gave, as **Purpose stated by the agent:** followed by its own words. Studio asks for the folder the files sit in, not a wider one, unless more than five folders are needed and some of them share a parent.
+
+- **Allow this folder** or **Allow these folders** lets the agent read them and adds them to **Folders agents may import from**, where **Remove** takes them out again.
+- **Deny** refuses the call. For 60 seconds after a denial, the same folder is answered as declined without a new prompt, so an agent that retries at once cannot put the question in front of you again and again. The agent is told not to ask again, and to ask you in its conversation instead.
+- Closing the window or pressing Escape counts as **Deny**.
+
+One prompt is shown at a time, whichever project window asks. A call waits up to about 50 seconds for your answer. If you have not answered by then, the agent is told the folder is waiting for you, and the prompt stays open; once you allow it, the agent's next try goes through.
+
+**Some folders are never offered**, with or without full access: a drive or file-system root, your home folder as a whole, any folder that contains your home folder, and Studio's own folders, which hold its settings with the access token, and the application itself, together with any folder that contains one of them. An agent that names one is told to name the specific folder inside it that holds the files.
+
+## Full access [#full-access]
+
+**Full access** in **Settings → Agent access**, or **Allow agents full access** in a project window's **Agent** menu, is off by default. Turning it on asks first, from either place, with **Give agents full access?** Switching it off never asks.
+
+While it is on:
+
+- Agents may change projects whatever **Allow agents to make changes** says. That switch shows as on and cannot be switched until full access is off again.
+- Agents may read files in any folder without asking. Nothing is added to **Folders agents may import from**.
+- The folders that are never offered stay closed: Studio's own folders, the home folder as a whole, and drive roots.
+- Pausing, a frozen project, a Team live session and the checks every change passes still apply.
+
+<Callout type="warn">
+Full access is a broad grant. While it is on, any program that holds the access token can read files in any folder your account can open, including the folders inside your home folder that hold private documents and other programs' settings, and can change any open project, without a prompt for you to see. The excluded folders rule out only the widest requests and Studio's own token. An agent also acts on what it reads, so full access extends your trust to everything the agent is given. Turn it on for work you are watching and off when it is done; for everyday use, allowing folders as they are asked for keeps an agent to what it needs.
+</Callout>
+
+## Questions in Studio's own window [#prompts]
+
+Every question agent access asks you opens in a Studio window titled **Agent Access**: whether agents may make changes, whether they get full access, whether one may read a folder, and whether an exported skill may replace the files of the same name. Studio opens it itself, outside the project window, so the plugin code that runs in a project window cannot see or answer it. A question you raised yourself, by switching something on or exporting the skill, comes to the front; a folder prompt an agent raised appears without taking the foreground, as described in [Folders outside the project](#folders). Only the window's own allow or replace button counts as yes. Pressing Escape, closing the window, or closing the project window it belongs to counts as no.
+
+## Plugin tools
+
+A plugin can offer agents tools of its own. See [Plugin tools](/docs/studio/agent/tools#plugin-tools).
+
+**They pass the same checks.** A plugin tool that changes the project is refused while changes are not allowed, while the agent is paused, while the project is frozen and during a live session, exactly as Studio's own tools are. A plugin cannot opt out.
+
+**A reading tool cannot write.** While a tool the plugin registered as reading runs, the plugin's stored data refuses every write. What a writing tool changes in it is recorded as one step of undo.
+
+**You are told before it happens.** When a plugin offers agent tools, its install prompt says so under **AI agents**, with how many tools there are and how many can change the project. A later version that adds a tool, or turns a reading tool into one that changes the project, asks again.
+
+**You can switch a plugin's tools off.** **Settings → Agent access → Plugin tools** lists the enabled plugins that offer tools, each with **Allow the agent tools of …**. A plugin switched off there has its tools hidden from agents, and their calls are refused.
+
+**They run as plugin code.** A plugin tool runs inside the project window with the plugin's own access, like everything else the plugin does. Plugins are not sandboxed, so the trust you give a plugin at install covers its tools too. See [Install a plugin](/docs/studio/plugin/install-plugin).
+
+## What an agent can reach
+
+An agent can open any project folder on the computer by path and create a project in any folder, as you can from Studio. Builds are written to the project's build folder unless the agent names another. Agent access does not limit which project an agent opens; the switches above limit what it may do there. What it may read outside the project is limited as in [Folders outside the project](#folders).
+
+The log of what an agent did is in the project window's **Agent log**, and in Studio's own log. See [Making a game with an agent](/docs/studio/agent/make-a-game#watching).

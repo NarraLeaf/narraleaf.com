@@ -1,0 +1,216 @@
+---
+title: 工具
+description: Studio MCP 服务器提供的全部工具，按作用对象分组
+---
+
+Studio 的 MCP 服务器自带 77 个工具，列于下文，插件还可以添加更多，见[插件工具](#plugin-tools)。工具说明使用英文，因为它们是写给 Agent 阅读的，每条说明都写明了何时使用该工具。“Studio 中显示为”一列是 Studio 在 **Agent 日志**和状态栏中对该调用的称呼
+
+**修改项目**为“是”的工具在 **允许 Agent 修改工程** 关闭时会被拒绝；作用于已打开项目的，在 Agent 暂停、项目冻结以及 Team 实时会话期间也会被拒绝。其余工具只读取，试玩也属于其中，因此 Agent 无需修改权限即可检查游戏
+
+所有作用于项目的工具都接受可选参数 `project`，即项目目录的绝对路径，仅在同时打开多个项目时需要
+
+## 会话与指南
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `agent_status` | 查询 Studio 状态 | 否 | 报告 Studio 中打开了哪些项目、是否允许修改、是否开启了完全访问、Agent 是否已暂停，以及可以从哪些目录导入文件，应最先调用 |
+| `agent_guide` | 阅读指南 | 否 | 以 Markdown 返回 NarraLeaf 游戏制作指南中的一章 |
+| `request_folder_access` | 请求文件夹访问权限 | 否 | 在大批量导入之前，通过一个 Studio 窗口请作者允许 Agent 读取所列文件所在的文件夹，结果为 `granted`、`denied` 或 `pending` |
+
+## 项目
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `project_create` | 新建工程 | 是 | 用模板新建 NarraLeaf 项目，并在 Studio 中打开 |
+| `project_open` | 打开工程 | 否 | 在 Studio 中打开已有的项目目录，已打开时切换到该项目 |
+| `project_info` | 工程概览 | 否 | 名称、设计分辨率、语言、入口页面与入口场景、玩家默认值（初始文字速度、自动播放间隔、音量、跳过设置），以及故事、场景、页面、资产、角色和变量的数量 |
+| `project_settings_set` | 修改工程设置 | 是 | 修改项目名称、设计分辨率、游戏语言或玩家默认值，即新玩家各项设置的初始值。玩家已保存的设置不受影响 |
+
+## 资产
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `assets_list` | 列出资产 | 否 | 列出项目的资产，含 id、名称、类型和文件夹 |
+| `assets_import` | 导入文件 | 是 | 把磁盘上的文件导入项目。文件位于项目目录和允许的文件夹之外时，Studio 会先询问作者是否允许读取其所在的文件夹。与项目中已有资产内容完全相同的文件不会重复导入，结果中给出已有资产的名称；路径下没有文件时报告为未找到 |
+| `asset_delete` | 删除资产 | 是 | 从项目中删除资产，例如骨架模板残留的示例图片和音乐。仍有内容使用该资产时拒绝，并列出使用位置 |
+| `asset_usage` | 查看资产引用 | 否 | 列出资产的全部使用位置：Studio 引用索引统计到的使用，以及故事、页面和蓝图中写有其 id 的每一处 |
+| `assets_placeholder` | 生成占位图 | 是 | 生成一张纯色 PNG，可附说明文字，并作为图片资产导入 |
+| `audio_tracks_list` | 列出音轨 | 否 | 列出 `/bgm track=` 与声音属性可以指定的音轨（音乐、音效、语音及自定义音轨） |
+
+## 角色与变量
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `characters_list` | 列出角色 | 否 | 列出角色，含 id、名称、别名、名字颜色、类型、外观（预设角色的姿态，分层立绘角色的轴与图层，Live2D 或 Spine 角色的模型）、`entranceTransform`（立绘绘制的大小与站位）以及对白头像 |
+| `character_upsert` | 新建或更新角色 | 是 | 新建角色，或更新具有该 `id` 或完全相同 `name` 的角色，包括其对白头像 |
+| `character_layered_set` | 设置分层立绘角色 | 是 | 新建分层立绘角色，或替换已有角色的外观：各个轴及其标签，以及自下而上的图层 |
+| `character_layers_import` | 从文件构建分层立绘 | 是 | 用命名为 `<prefix>_<layer>` 和 `<prefix>_<layer>_<tag>` 的图片资产或一个 PSD 构建分层立绘角色 |
+| `character_preview` | 预览角色外观 | 否 | 返回角色某一外观的图片，合成方式与 Studio 编辑器相同 |
+| `character_delete` | 删除角色 | 是 | 删除角色，例如清理骨架模板的示例角色 |
+| `variables_list` | 列出变量 | 否 | 列出项目的全局变量（随存档保存，或跨存档持久保存） |
+| `variable_upsert` | 新建或更新变量 | 是 | 声明全局变量，或按 `id`（重命名的方式，行与节点保存的是 id，会随之更新）或完全相同的 `name` 更新已有变量 |
+| `variable_delete` | 删除变量 | 是 | 删除全局变量，例如清理骨架模板的示例变量 |
+
+每次角色编辑记为一步撤销。把其他类型的角色改为分层立绘，或把分层立绘改回姿态，会丢弃角色现有的外观，因此 `character_upsert`、`character_layered_set` 和 `character_layers_import` 在调用未传入 `confirmSwitch: true` 时会拒绝，拒绝消息中列出选用了这些外观的故事行。Live2D 和 Spine 角色只能读取，需在 Studio 的角色编辑器中设置
+
+对白头像是对话框和对话记录中台词旁显示的面部图像。`character_upsert` 接受 `defaultAvatar`，在没有更具体的头像时显示，以及 `avatars`：每个姿态一张图片，分层立绘角色则按 `avatarAxes` 所列各轴的标签组合各一张，例如无论服装如何，每种表情一张。两者都未设置时，作者打开角色面板时 Studio 会从立绘中裁出头像。Live2D 或 Spine 角色只有默认头像
+
+## 故事
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `story_commands` | 故事命令目录 | 否 | 按类别列出故事命令（`/bg`、`/show`、`/bgm`、`/menu`、`/if`、`/jump` 等），或搜索它们 |
+| `story_command` | 故事命令详情 | 否 | 单个故事命令的参数、位置顺序、默认值和示例 |
+| `story_targets` | 故事行可用的名称 | 否 | 列出故事行可以解析的所有名称：角色、图片、音频、视频、音轨、变量、场景、页面，以及每个场景开场时的背景与音乐 |
+| `story_list` | 列出故事与场景 | 否 | 按顺序列出故事及其章节和场景，并标出入口场景 |
+| `story_show` | 读取场景文本 | 否 | 以 `.story` 文本格式输出一个场景，附带其 `revision` |
+| `story_apply` | 写入场景 | 是 | 用 `source` 中的行替换其 `#scene` 头所指场景的行 |
+| `scene_create` | 新建场景 | 是 | 在故事中新建空场景；指定的故事不存在时一并新建 |
+| `scene_rename` | 重命名场景 | 是 | 重命名场景；指向它的跳转会随之更新，因为跳转保存的是场景的 id |
+| `story_rename` | 重命名故事 | 是 | 重命名故事，例如骨架模板自带的故事，其名称显示在 Studio 的故事列表中 |
+| `chapter_rename` | 重命名章节 | 是 | 重命名故事中的章节。章节只用于给场景分组，因此不影响其他内容 |
+| `chapter_delete` | 删除章节 | 是 | 删除空章节。章节中仍有场景时拒绝，并列出这些场景 |
+| `scene_set_entry` | 设置入口场景 | 是 | 将某个场景设为玩家按下开始后游戏进入的场景 |
+| `scene_delete` | 删除场景 | 是 | 删除场景及其中的行，例如清理骨架模板的示例场景 |
+
+## 界面
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `ui_widgets` | 控件目录 | 否 | 列出界面控件类型（`nl.button`、`nl.text`、`nl.container`、`nl.list` 等）及各自可插入的位置 |
+| `ui_widget` | 控件详情 | 否 | 单个控件类型的全部信息：属性及默认值、可绑定属性、生成的部件、蓝图事件、命令和说明 |
+| `ui_usage` | 控件用法示例 | 否 | 控件在随附的骨架模板（或本项目）中的实际用例，以 `.ui` 格式输出，可直接粘贴修改 |
+| `ui_surfaces` | 列出页面与组件 | 否 | 列出页面、游戏 UI（对话框、选项等）和组件，含元素路径、id 及挂在其上的蓝图 |
+| `ui_show` | 读取页面文本 | 否 | 以 `.ui` 文本格式输出页面或组件，包括 id 和属性，附带其 `revision` |
+| `ui_selection` | 读取当前选择 | 否 | 作者在界面编辑器中选中的页面和元素及其属性 |
+| `ui_screenshot` | 页面截图 | 否 | 按游戏中的样子渲染页面（或其中一个元素），并返回图像 |
+| `ui_apply` | 写入页面 | 是 | 应用 `.ui` 文档；每个 `surface` 或 `component` 块替换该页面的整棵元素树 |
+| `ui_patch` | 编辑元素 | 是 | 不重写整个页面而做小修改：添加元素、设置属性、移动或缩放、更换父级、重命名、删除、放置组件 |
+| `ui_page_rename` | 重命名页面 | 是 | 重命名页面或游戏 UI；打开它的 Go Page 节点和框架保存的是其 id，会随之更新 |
+| `ui_page_delete` | 删除页面 | 是 | 删除页面或游戏 UI 及其元素和蓝图。入口页面，以及仍被其他内容打开或引用的页面不能删除，拒绝时列出引用位置 |
+| `ui_page_set_entry` | 设置入口页面 | 是 | 将某个页面设为游戏启动时打开的页面，例如启动画面或标题界面 |
+| `ui_install_standard_screens` | 安装标准界面 | 是 | 把骨架模板中可直接使用的界面导入项目：启动画面、标题、存档、读档、设置、对话记录、鉴赏和确认页面，对话框、选项菜单、快捷菜单和通知，以及它们的组件和背后的全部蓝图 |
+| `ui_templates` | 界面模板 | 否 | 列出 Studio 在线模板商店中的界面模板。模板只是布局，大多不带蓝图，在接入逻辑之前其中的按钮不起作用 |
+| `ui_template_apply` | 应用模板 | 是 | 把模板中的页面作为新页面添加到项目，不会成为入口页面，并说明每个页面带有多少蓝图和绑定属性 |
+| `brand_get` | 读取配色 | 否 | 项目的品牌配色与字体 |
+| `brand_set` | 修改配色 | 是 | 设置配色中的颜色（按 id，新 id 会被添加）和项目字体栈 |
+
+`ui_install_standard_screens` 用于空白模板创建的项目，或界面已丢失的项目。开始按钮进入项目自己的故事，界面用到的文件、配色条目、翻译键、输入动作、存档字段和持久变量会一并导入。项目已占用的游戏 UI 插槽保持不变，除非调用传入 `replace: true`；当前入口页面为空时，启动画面成为入口页面。需要项目未运行的插件的页面，例如 Gallery 的鉴赏界面，连同打开它们的按钮都不会导入。整个安装记为一步撤销，`dryRun: true` 只报告将要添加的内容，不写入
+
+模板商店中的页面是不含逻辑的布局：在 Agent 用蓝图接入之前，其中的开始按钮、存档栏位和滑块都不起作用。需要可直接使用的界面时，标准界面是更好的起点
+
+## 蓝图
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `blueprint_nodes` | 蓝图节点目录 | 否 | 搜索蓝图节点，包括本项目已加载插件提供的节点 |
+| `blueprint_node` | 蓝图节点详情 | 否 | 单个节点类型的引脚、检查器参数、适用的图类型和作用范围 |
+| `blueprint_list` | 列出蓝图 | 否 | 列出蓝图及其所有者（页面或元素）和事件入口 |
+| `blueprint_show` | 读取蓝图文本 | 否 | 以 `.bp` 文本格式输出一个蓝图（或一个所有者的全部蓝图） |
+| `blueprint_apply` | 写入蓝图 | 是 | 应用 `.bp` 文档：每个 `blueprint` 块替换其所有者的全部图 |
+| `blueprint_remove` | 移除蓝图 | 是 | 移除一个蓝图，通常是所属元素被删除后遗留下来的蓝图。仍被其他蓝图或绑定属性引用时拒绝 |
+
+每个 `.bp` 文档都要通过的检查会拒绝引用其他页面或游戏 UI 中元素的 Element 节点，因为蓝图只能访问其所在页面的元素；循环体没有连回循环节点时会给出警告，这样的循环只运行一次就停止。`blueprint_remove` 接受 `dryRun: true`
+
+## 翻译与配音
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `localization_status` | 翻译进度 | 否 | 各目标语言的翻译进度，按状态和来源分列；指定一种语言时还列出每个场景剩余的台词 |
+| `localization_list` | 列出待翻译文本 | 否 | 按阅读顺序分页列出某一语言的翻译单元，每条含原文、译文、状态和 `rev` |
+| `localization_set` | 写入翻译 | 是 | 写入某一语言的译文，每次最多 1000 条，记为一步撤销 |
+| `voice_status` | 配音进度 | 否 | 配音语言、录音文件名规则、选项是否配音，以及各语言、各角色已有录音的台词数 |
+| `voice_list` | 列出配音台词 | 否 | 按故事顺序分页列出某一配音语言的配音台词，每条含预期文件名、已链接的录音和状态 |
+| `voice_link` | 链接配音 | 是 | 逐条为配音台词链接或取消链接音频资产，或审听通过已有录音，记为一步撤销 |
+| `voice_auto_link` | 按名称链接配音 | 是 | 把每句配音台词链接到按录音文件名规则与之同名的音频资产，记为一步撤销 |
+| `voice_settings_set` | 修改配音设置 | 是 | 设置配音语言、录音文件名规则，以及选项是否配音 |
+
+翻译单元可以是一句故事台词，角色、场景、结局或 `/rename` 的名称，页面或组件上的文字，一个具名翻译键，或插件提供的文本。所有单元共用同一套 id，因此列出和写入的方式相同，故事台词的 id 同时也是它的配音台词 id
+
+- **状态**：译文的状态为 `missing`、`machine`、`translated`、`reviewed` 或 `stale`，最后一种表示翻译之后原文又有改动。`localization_set` 默认写入 `machine`，翻译表中显示为 **机翻**。录音的状态为 `missing`、`linked`、`approved` 或 `stale`，配音表中已链接的录音显示为 **已配音**，过时的显示为 **待更新**
+- **标记**：翻译单元的原文用 `{0}` 表示游戏填入的值，用 `‹1›word‹/1›` 和 `‹2/›` 这类运行标签表示样式文字和停顿。丢失了其中某项、`{name}` 占位符或换行的译文仍会写入，但该单元会附带警告
+- **版本**：每个单元带有 `rev`。Agent 列出之后原文有改动的单元会被跳过，并连同新的原文一起返回
+- **录音文件名规则**：默认为 `{scene}_{index}_{character}`，也可以使用 `{locale}` 和 `{unit}`。比较时忽略大小写、空格、标点和文件夹，对照的是资产库中的名称。多个资产或多句台词共用的名称会作为有歧义的结果返回，不做猜测
+
+游戏的文本语言用 `project_settings_set` 设置，配音语言用 `voice_settings_set` 设置。`localization_set`、`voice_link` 和 `voice_auto_link` 接受 `dryRun: true`，只检查、不写入，`character_layered_set` 和 `character_layers_import` 也是如此
+
+## 检查与构建
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `lint` | 检查工程 | 否 | 运行项目的全部检查规则，分页返回结果，错误排在前面。结果开头给出整份报告中每条规则的数量；`rule` 可限定为一条规则或 `story/` 这样的类别，`cursor` 和 `limit` 用于翻页 |
+| `test` | 运行工程测试 | 否 | 在无界面状态下运行内置测试：`narraleaf-studio:route-coverage`（每个场景均可到达）、`narraleaf-studio:reachable-endings`、`narraleaf-studio:project-diagnostics` |
+| `playtest_start` | 试玩游戏 | 否 | 在开发模式中打开游戏，从标题页面或某个场景（及行）开始 |
+| `playtest_advance` | 推进试玩 | 否 | 让运行中的故事向前推进 `steps` 行，可越过等待点击、定时等待和视频，在选项菜单或结局处停下，并给出结局名称 |
+| `playtest_screenshot` | 试玩截图 | 否 | 按玩家所见截取运行中的开发模式游戏：舞台及其游戏 UI，以及其上打开的每个页面或图层。`view: "stage"` 只截取舞台，与存档缩略图相同 |
+| `playtest_click` | 在试玩中点击 | 否 | 像玩家的鼠标那样点击运行中游戏界面上的元素，元素可用 id、名称路径、唯一名称或显示的文字指定，并报告打开、关闭或开始了什么 |
+| `playtest_hover` | 在试玩中悬停 | 否 | 让指针停在某个元素上而不按下，使其悬停外观和 On Mouse Enter 图生效 |
+| `playtest_key` | 在试玩中按键 | 否 | 像玩家的键盘那样按下一个键，绑定到该键的输入动作和焦点导航都会响应；也可以发送右键和鼠标滚轮 |
+| `playtest_stop` | 停止试玩 | 否 | 关闭开发模式中的游戏 |
+| `console_read` | 读取控制台 | 否 | Studio 控制台最近的几行（构建、故事、蓝图、运行时频道） |
+| `build` | 构建游戏 | 是 | 构建项目的可运行包，与 Studio 构建窗口使用同一流程 |
+
+试玩工具操作游戏窗口时不会把它切到前台。每个试玩结果还会列出本次运行中开发模式报告的错误和警告，并注明各自来自哪个场景和行或哪个页面，与开发模式窗口问题栏统计的相同
+
+## 插件工具 [#plugin-tools]
+
+插件可以为 Agent 提供自己的工具。它们与 Studio 的工具列在一起，名称由插件 ID 和工具名组成：其中的 `.` 和 `-` 都换成 `_`，两部分之间用 `__` 连接。Gallery 的 `narraleaf.gallery.add_entries` 以 `narraleaf_gallery__add_entries` 的名称提供
+
+插件的工具只在加载了该插件、并在其中启用了该插件的项目处于打开状态时提供。情况变化时，保持 Studio 通知流打开的客户端会收到列表已变化的通知，其他客户端在下次获取列表时看到新的列表。`agent_status` 会列出每个已打开项目提供的插件工具
+
+插件工具接受与 Studio 自身工具相同的检查，**修改项目**一列的含义也相同。**设置 → Agent 接入 → 插件工具** 可以关闭某个插件的全部工具。插件作者请参阅 [Agent 工具](/zh/docs/studio/plugin/studio/agent-tools)
+
+插件还可以附带一章指南，通过 `agent_guide` 和 `plugin:<plugin id>` 读取
+
+### Gallery
+
+内置的 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件用于填充鉴赏界面，其指南章节为 `plugin:narraleaf.gallery`。工具标题由插件自己提供，没有翻译
+
+| 工具 | Studio 中显示为 | 修改项目 | 用途 |
+| --- | --- | --- | --- |
+| `narraleaf_gallery__list` | Read the gallery | 否 | 鉴赏界面的目录：分组、各类条目（cg、scene、music、voice）及其 id 和变体，以及锁定时的外观 |
+| `narraleaf_gallery__add_entries` | Add gallery entries | 是 | 向鉴赏界面添加条目，记为一步撤销 |
+| `narraleaf_gallery__update_entries` | Edit gallery entries | 是 | 编辑已有条目，记为一步撤销 |
+| `narraleaf_gallery__remove_entries` | Remove gallery entries | 是 | 按 id 从画廊中移除条目，记为一步撤销 |
+| `narraleaf_gallery__set_groups` | Set gallery groups | 是 | 按顺序替换画廊的分组列表，记为一步撤销 |
+| `narraleaf_gallery__set_settings` | Set the gallery's locked look | 是 | 设置锁定条目在鉴赏界面上的外观，记为一步撤销 |
+
+## 文本格式
+
+Agent 通过三种文本格式读写项目内容：
+
+| 格式 | 内容 | 读取 | 写入 |
+| --- | --- | --- | --- |
+| `.story` | 一个场景：头部、各行及分支 | `story_show` | `story_apply` |
+| `.ui` | 一个页面、游戏 UI 或组件：元素及其属性 | `ui_show` | `ui_apply`、`ui_patch` |
+| `.bp` | 一个所有者的蓝图 | `blueprint_show` | `blueprint_apply` |
+
+每次读取都返回一个 `revision`；写入时带回该值，如果内容在此期间有变动，写入会以 `stale_revision` 被拒绝。`story_apply`、`ui_apply`、`ui_patch` 和 `blueprint_apply` 接受 `dryRun: true`，只检查文本，不写入
+
+`.story` 场景可以表达的部分内容：
+
+- **文字样式**：对话、旁白和选项可以用 `{b}…{/b}`、`{i}…{/i}` 和 `{color=…}…{/color}` 为一行中的部分文字设置样式，可在同一行内嵌套。使用了该格式没有对应标签的样式（如注音或字号）的行，读回时显示为 `»` 行，应保持原样
+- **精确位置**：`/show`、`/image`、`/text` 和 `/transform` 上的 `pos=x,y` 指定对象中心的位置。`x` 和 `y` 是舞台的比例：`x` 从左边缘（0）到右边缘（1），`y` 从下边缘（0）向上到上边缘（1）。`left`、`center` 和 `right` 分别为 `0.25,0.5`、`0.5,0.5` 和 `0.75,0.5`。与 `pos=` 同时使用时，`xoffset=` 和 `yoffset=` 以设计像素追加偏移，`yoffset` 为正时向上移动
+- **运行蓝图的行**：故事行可以在播放到它时运行自己的蓝图，包括调用插件节点的蓝图，例如在 CG 出现时解锁鉴赏条目，或授予成就。Agent 用 `blueprint_apply` 写入蓝图，用 `story_apply` 写入该行
+
+格式说明见指南的 `story-format`、`ui-format` 和 `blueprint-format` 三章。有哪些命令、控件和节点，由目录类工具回答：`story_commands`、`story_command`、`story_targets`、`ui_widgets`、`ui_widget`、`ui_usage`、`blueprint_nodes` 和 `blueprint_node`，它们从正在运行的 Studio 读取，Agent 应当查询它们，而不是凭记忆书写
+
+## 指南
+
+`agent_guide` 接受一个 `chapter` 参数，不传时列出现有的全部章节：
+
+| 章节 | 内容 |
+| --- | --- |
+| `workflow` | 从需求确认到构建的工作顺序 |
+| `story-format` | `.story` 格式 |
+| `ui-format` | `.ui` 格式 |
+| `blueprint-format` | `.bp` 格式 |
+| `ui-design` | 视觉小说界面的设计 |
+| `script-adaptation` | 把剧本转为场景 |
+| `layered-sprites` | 分层立绘角色：轴、图层，以及用文件或 PSD 构建 |
+| `verify-and-ship` | 检查、测试、试玩与构建 |
+| `localization-and-voice` | 翻译游戏与链接配音录音 |
+| `troubleshooting` | 各种拒绝及其处理 |
+| `plugin:<plugin id>` | 已启用插件附带的章节，例如 `plugin:narraleaf.gallery` |
+
+这些章节同时以 MCP 资源的形式提供，地址为 `narraleaf://guide/<chapter>`，插件的章节为 `narraleaf://guide/plugin/<plugin id>`；`make_game` 提示词以 `workflow` 开始整个流程，可附带可选的 `brief`

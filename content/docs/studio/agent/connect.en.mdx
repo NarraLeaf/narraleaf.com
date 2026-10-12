@@ -1,0 +1,268 @@
+---
+title: Connecting an agent
+description: Switch on agent access in Studio, add Studio to an MCP client, and give the agent the skill.
+---
+
+Connecting takes three things: agent access switched on in Studio, the endpoint added to the agent's settings, and the skill installed where the agent looks for it.
+
+## Switch on agent access
+
+<Steps>
+
+<Step>
+
+### Open the settings
+
+Open **Settings → Agent access**. In a project window, the menu bar's **Agent** menu leads to the same place through **Agent access settings…**.
+
+</Step>
+
+<Step>
+
+### Allow agents to connect
+
+Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://127.0.0.1:54080/mcp` unless the port was changed, and reads **Listening.** once it is served.
+
+**Port** takes effect at once and accepts 1024 to 65535. When the port is in use, Studio serves on a free one instead, and **Address** shows the one actually in use.
+
+</Step>
+
+<Step>
+
+### Allow changes
+
+Switch on **Allow agents to make changes** when the agent should edit. It is off by default. While it is off, the agent can read the project and every change it tries is refused.
+
+Turning it on from the menu bar, **Agent → Allow agents to modify the project**, asks for confirmation first, in a Studio window.
+
+**Full access**, below it, is off by default and is not needed to make a game. It lets agents change projects and read any folder without asking; see [Full access](/docs/studio/agent/security#full-access) before turning it on.
+
+</Step>
+
+<Step>
+
+### Add the folders that hold your files
+
+Under **Folders agents may import from**, **Add folder…** adds the folder that holds the art and audio the agent should import. Files inside the project can always be imported.
+
+This step is optional. When an agent needs a file from any other folder, Studio asks you in a window, **Allow the agent to read a folder?**, and a folder you allow is added to this list. See [Folders outside the project](/docs/studio/agent/security#folders).
+
+</Step>
+
+<Step>
+
+### Copy the configuration
+
+**Copy configuration** puts a ready-to-paste configuration on the clipboard, with the address and the access token filled in. It offers four forms:
+
+| Button | Gives |
+| --- | --- |
+| **Claude Code** | The `claude mcp add` command |
+| **JSON** | An `mcpServers` entry |
+| **opencode** | An `mcp` block for `opencode.json` |
+| **stdio** | An entry that starts Studio itself as a bridge, for clients that can only start a local program. It holds no token |
+
+The same forms are under **Agent → Copy connection configuration** in a project window. The token is also shown under **Access token** with **Show**.
+
+</Step>
+
+</Steps>
+
+## The Agent menu
+
+A project window's menu bar has an **Agent** menu:
+
+| Item | Does |
+| --- | --- |
+| Status line | The connected client and its state, for example **Agent: Claude Code · Working**. Not clickable |
+| **Pause agent** / **Resume agent** | Refuses every change from agents in this project until resumed |
+| **Follow agent edits** | Opens the editor where each change lands |
+| **Agent log** | Opens the log of every call in this project |
+| **Enable agent access** | The same switch as **Allow agents to connect** |
+| **Allow agents to modify the project** | The same switch as **Allow agents to make changes**, with a confirmation when turned on. While full access is on, it shows as on and cannot be switched |
+| **Allow agents full access** | The same switch as **Full access**, with a confirmation when turned on |
+| **Copy connection configuration** | Claude Code, opencode, JSON, or **stdio (Claude Desktop)** |
+| **Export Agent Skill…** | Writes the skill folder to a folder you pick |
+| **Agent access settings…** | Opens **Settings → Agent access** |
+
+Pausing, following and the log are described in [Making a game with an agent](/docs/studio/agent/make-a-game#watching).
+
+## Add Studio to your agent
+
+Each client below registers the server under the name `narraleaf`. Where a snippet shows `<PORT>` and `<TOKEN>`, take them from **Address** and **Access token**.
+
+### Claude Code
+
+**Copy configuration → Claude Code** gives the command. Run it once in a terminal:
+
+```sh
+claude mcp add --scope user --transport http narraleaf http://127.0.0.1:<PORT>/mcp --header "Authorization: Bearer <TOKEN>"
+```
+
+`--scope user` registers the server for every folder, so a game can be asked for from whichever folder the terminal is in. Without it, the server exists only in the folder the command ran in. Check with `claude mcp list`, or `/mcp` inside Claude Code.
+
+Making a game takes a hundred or more tool calls, and Claude Code asks before each one by default. Answer the first prompt with **Yes, and don't ask again** for the narraleaf tools, or allow them in advance in `~/.claude/settings.json`:
+
+```json
+{ "permissions": { "allow": ["mcp__narraleaf"] } }
+```
+
+Studio's own switches still decide whether the agent may change anything, and pausing still stops it.
+
+### Claude Desktop
+
+Claude Desktop starts local programs from its configuration file, and Studio can be that program. Started with `--mcp-stdio`, Studio opens no window and forwards the connection to the Studio that is running.
+
+**Copy configuration → stdio** gives the entry with the path to Studio filled in:
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio",
+      "args": ["--mcp-stdio"]
+    }
+  }
+}
+```
+
+The path is Studio's own executable:
+
+- macOS: `/Applications/NarraLeaf Studio.app/Contents/MacOS/NarraLeaf Studio` for a copy in Applications.
+- Windows: `NarraLeaf Studio.exe` in the installation folder. In JSON every backslash is doubled; the copied entry already does this.
+- Linux: the AppImage file itself.
+
+Merge the entry into `claude_desktop_config.json` (**Settings → Developer → Edit Config** in Claude Desktop) and restart Claude Desktop.
+
+The entry holds no token. The bridge reads the address and the token from Studio's settings each time, so it keeps working after the token is replaced or the port changes. When Studio is not running, the bridge starts it and waits up to a minute for the endpoint. When agent access is off, it answers every request with a message saying where to switch it on.
+
+If the bridge does not suit you, `mcp-remote`, a third-party npm package that needs Node.js, does the same:
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://127.0.0.1:<PORT>/mcp", "--header", "Authorization:${NARRALEAF_AUTH}"],
+      "env": { "NARRALEAF_AUTH": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+A Claude Desktop that can add a custom connector by URL can use the address and token there instead.
+
+### opencode
+
+**Copy configuration → opencode** gives the block. Merge it into `opencode.json` in the working folder, or into `~/.config/opencode/opencode.json` for every folder:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "narraleaf": {
+      "type": "remote",
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "enabled": true,
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+Check with `opencode mcp list`.
+
+### Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.narraleaf]
+url = "http://127.0.0.1:<PORT>/mcp"
+http_headers = { "Authorization" = "Bearer <TOKEN>" }
+```
+
+To keep the token out of the file, export it in the shell as `NARRALEAF_TOKEN` and write `bearer_token_env_var = "NARRALEAF_TOKEN"` in place of `http_headers`. Check with `codex mcp list`, or `/mcp` inside Codex.
+
+### Cursor
+
+Save as `.cursor/mcp.json` in the working folder, or `~/.cursor/mcp.json` for every folder, then enable the server under **Cursor Settings → MCP**:
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "url": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  }
+}
+```
+
+### Gemini CLI
+
+Merge into `~/.gemini/settings.json`, or `.gemini/settings.json` in the working folder:
+
+```json
+{
+  "mcpServers": {
+    "narraleaf": {
+      "httpUrl": "http://127.0.0.1:<PORT>/mcp",
+      "headers": { "Authorization": "Bearer <TOKEN>" }
+    }
+  },
+  "context": { "fileName": ["AGENTS.md", "GEMINI.md"] }
+}
+```
+
+The `context.fileName` entry makes Gemini CLI read `AGENTS.md`, which points it to the skill. Check with `/mcp` inside Gemini CLI.
+
+### Any other client
+
+| Setting | Value |
+| --- | --- |
+| Transport | Streamable HTTP |
+| URL | `http://127.0.0.1:<PORT>/mcp` |
+| Header | `Authorization: Bearer <TOKEN>` |
+
+A client that can only start local programs runs Studio with `--mcp-stdio`, as in the Claude Desktop entry, or a bridge such as `mcp-remote`.
+
+## Install the skill
+
+**Agent → Export Agent Skill…** writes a folder named `NarraLeaf-Skills` into the folder you pick. Files of the same name are replaced; nothing else in the folder is removed.
+
+<Files>
+  <Folder name="NarraLeaf-Skills" defaultOpen>
+    <File name="README.md" />
+    <File name="AGENTS.md" />
+    <Folder name="mcp-configs" />
+    <Folder name="narraleaf-make-game" />
+    <Folder name="narraleaf-port-renpy" />
+  </Folder>
+</Files>
+
+The skill is `narraleaf-make-game`. Copy the whole folder, not only `SKILL.md`, to where the agent looks for skills:
+
+| Agent | For every folder | For one project |
+| --- | --- | --- |
+| Claude Code | `~/.claude/skills/narraleaf-make-game/` | `.claude/skills/narraleaf-make-game/` |
+| opencode | `~/.config/opencode/skill/narraleaf-make-game/` | `.opencode/skill/narraleaf-make-game/` |
+| Codex CLI | `~/.codex/skills/narraleaf-make-game/` | None |
+| Claude Desktop, claude.ai | Zip the folder and upload it under **Settings → Capabilities → Skills** | None |
+| Cursor, Gemini CLI, others | No skill folder; see below | None |
+
+Agents that read `AGENTS.md`, such as opencode, Codex, Cursor and Gemini CLI with the setting above, find the skill by themselves when started inside `NarraLeaf-Skills`.
+
+`narraleaf-port-renpy`, beside it, is for porting a Ren'Py game that comes with its source; see [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy). It builds on `narraleaf-make-game`, so install both, in the same way. The server does not serve it as a guide; an agent reads it from the folder.
+
+### Without a skill
+
+The server serves the guide itself, so an agent gets it with no skill installed:
+
+- The **`make_game` prompt** starts the whole workflow in clients that show MCP prompts, often as a slash command such as `/make_game`, or `/mcp__narraleaf__make_game` in Claude Code.
+- The **`agent_guide` tool** returns any chapter: `workflow`, `story-format`, `ui-format`, `blueprint-format`, `ui-design`, `script-adaptation`, `layered-sprites`, `verify-and-ship`, `localization-and-voice`, `troubleshooting`.
+- The same chapters are MCP resources at `narraleaf://guide/<chapter>`.
+
+With any MCP client, this first message works:
+
+> Use the NarraLeaf Studio tools. Call agent_guide with chapter "workflow" and follow it to make my game.

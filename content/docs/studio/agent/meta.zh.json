@@ -1,0 +1,11 @@
+{
+  "title": "Agent 接入（MCP）",
+  "pages": [
+    "index",
+    "connect",
+    "make-a-game",
+    "tools",
+    "security",
+    "troubleshooting"
+  ]
+}

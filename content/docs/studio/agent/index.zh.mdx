@@ -1,0 +1,55 @@
+---
+title: Agent 接入
+description: 通过 MCP 让 AI Agent 编辑 Studio 中打开的项目，每一处修改都实时呈现
+---
+
+Studio 可以在本机提供 MCP（Model Context Protocol）端点。支持 MCP 的 Agent 由此可以编辑 Studio 中打开的项目，包括 Claude Code、Claude Desktop、opencode、Codex、Cursor、Gemini CLI 等
+
+Agent 的修改与手动编辑经过同一套服务：落地时即显示在画布上，由同一套自动保存写入磁盘，每次修改项目的调用记为一步撤销。作者可以随时暂停 Agent、撤销它的修改，或与它同时编辑
+
+<Callout type="info">
+Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Studio 必须处于运行状态：端点是 Studio 的一部分，只有 Studio 运行时 Agent 才能连接
+</Callout>
+
+## Agent 能做什么
+
+| 范围 | 工具涵盖的内容 |
+| --- | --- |
+| 项目 | 用骨架或空白模板新建项目、打开项目，修改名称、设计分辨率、游戏语言以及新玩家各项设置的初始值 |
+| 资产 | 导入图片、音频、视频和字体，生成带说明文字的占位图，查看资产的使用位置并删除未被使用的资产，列出音轨，请求读取项目以外的文件夹 |
+| 角色与变量 | 新建、更新和删除角色，设置图片姿态、对白头像与登场位置；用按图层和标签命名的图片或 PSD 构建分层立绘角色，并预览其外观；声明、重命名和删除全局变量 |
+| 故事 | 以 `.story` 文本读写整个场景；新建、重命名和删除场景；重命名和删除章节；设置入口场景；重命名故事 |
+| 界面 | 以 `.ui` 文本读写页面、游戏 UI 和组件，对元素做小修改，为空白模板创建的项目安装可直接使用的标准界面，重命名和删除页面并设置入口页面，应用界面模板，设置配色与字体，截取页面或单个控件在悬停、按下状态下的图像，读取作者当前的选择 |
+| 蓝图 | 以 `.bp` 文本读写蓝图，移除遗留的蓝图，并从故事行运行蓝图 |
+| 翻译与配音 | 把故事台词、名称、界面文本、具名键和插件文本翻译为游戏的各个语言，译文标记为 **机翻**，等待作者审校；设置配音语言和录音文件名规则，按名称批量或逐条把录音链接到台词 |
+| 插件 | 项目中已加载插件的工具所提供的操作，内置的 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery) 插件可以用 CG、回想、音乐和语音填充鉴赏界面 |
+| 检查与构建 | 运行项目检查和内置测试，在开发模式中逐行试玩，并在其中点击、悬停和按键，读取控制台，为当前系统、Windows、macOS、Linux 或 Web 构建 |
+
+全部工具见[工具](/zh/docs/studio/agent/tools)
+
+## Agent 不能做什么
+
+- 编辑由插件管理的数据，除非该插件为这些数据提供了 Agent 工具。见[插件工具](/zh/docs/studio/agent/tools#plugin-tools)
+- 设置 Live2D 或 Spine 角色。模型及其运行时在[角色编辑器](/zh/docs/studio/workspace/character-manager)中设置，Agent 负责书写驱动它们的故事行
+- 修改音频总线。只能列出音轨
+- 设置项目图标、签名凭据或其他构建设置，也不能构建 Android 或 iOS 版本
+- 直接写入项目目录中的文件。所有修改都经由工具完成，作者可以看到并撤销
+- 读取 Studio 自身的文件夹、整个主文件夹或磁盘根目录，开启完全访问时也是如此。见[项目以外的文件夹](/zh/docs/studio/agent/security#folders)
+
+## 两个组成部分
+
+**MCP 服务器**内置于 Studio，在作者开启之前不会运行。它为 Agent 提供工具
+
+**`narraleaf-make-game` Skill** 是 Agent 遵循的指南：工作顺序、要写的文本格式、界面设计规则以及需要避开的陷阱。Studio 可以将它导出为文件夹。对于无法加载 Skill 的 Agent，服务器也会提供同一份指南
+
+导出的文件夹中还有一个可选的 Skill，**`narraleaf-port-renpy`**，用于移植附带源码的 Ren'Py 游戏，见[移植 Ren'Py 游戏](/zh/docs/studio/agent/make-a-game#renpy)
+
+## 下一步
+
+<Cards>
+  <Card title="连接 Agent" description="开启 Agent 接入，并把 Studio 添加到 Agent 中" href="/zh/docs/studio/agent/connect" />
+  <Card title="用 Agent 制作游戏" description="从剧本和美术素材到构建完成的游戏，以及如何介入" href="/zh/docs/studio/agent/make-a-game" />
+  <Card title="工具" description="全部工具，按作用对象分组" href="/zh/docs/studio/agent/tools" />
+  <Card title="Agent 接入开放了什么" description="谁能访问端点，Agent 可以读取哪些文件夹，以及限制它的各项开关" href="/zh/docs/studio/agent/security" />
+  <Card title="故障排查" description="连接问题与拒绝代码" href="/zh/docs/studio/agent/troubleshooting" />
+</Cards>

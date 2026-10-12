@@ -1,0 +1,177 @@
+---
+title: エージェント用ツール
+description: app.services.agent を通じて、作者が Studio に接続した AI エージェントにプラグイン独自のツールを提供する
+---
+
+作者は MCP で AI エージェントを Studio に接続でき、エージェントは Studio のツールで開いているプロジェクトを編集します。[エージェント連携](/ja/docs/studio/agent)を参照してください。`app.services.agent` を使うと、プラグインはそれらのツールと並べて独自のツールを追加できます。
+
+エージェントが埋めたり変更したりできるべきデータをプラグインが持っていて、Studio 自身のツールではそこに届かない場合に、ツールを提供します。たとえば、プラグインが保存するカタログ、表、設定です。ブループリントノードやウィジェットを追加するだけのプラグインには不要です。エージェントはそれらを Studio のブループリントやインターフェースのツールですでに扱えます。ブループリントを実行するストーリーの行から、物語の特定の位置でノードを実行することもできます。
+
+組み込みの Gallery が参考実装です。6 つのツールで鑑賞画面のカタログを埋め、ガイドの章でその使い方をエージェントに教えます。[プラグインのツール](/ja/docs/studio/agent/tools#plugin-tools)を参照してください。
+
+## ツールを宣言する
+
+ツールはすべて、名前と、プロジェクトを変更するかどうかをマニフェストで宣言します。
+
+```json
+{
+  "id": "acme.notes",
+  "entries": { "studio": "main.js" },
+  "contributes": {
+    "agentTools": [
+      { "name": "acme.notes.list", "write": false },
+      { "name": "acme.notes.add_note", "write": true }
+    ],
+    "agentGuide": "agent/guide.md"
+  }
+}
+```
+
+| フィールド | 説明 |
+| --- | --- |
+| `agentTools` | ツールごとに `{ name, write }`。`write` は必須です。ツールを宣言するには `studio` エントリーが必要です。エージェントの呼び出しが届く場所で動くのはこのエントリーだけだからです。 |
+| `agentGuide` | 省略可。パッケージ内の Markdown ファイルで、ガイドの章としてエージェントに提供されます。[ガイドの章](#the-guide-chapter)を参照してください。 |
+
+作者がインストール時に承認するのは、この宣言です。確認画面の **AI エージェント** に、プラグインが提供するツールの数と、そのうちプロジェクトを変更できるものの数が表示されます。宣言していないツールを登録すると例外が投げられ、宣言と異なる `write` で登録した場合も同じです。
+
+## ツールを登録する
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+type Notes = { items: { id: string; text: string }[] };
+
+export default definePlugin({
+    async setup(app) {
+        const { storage, workspace, agent } = app.services;
+        let notes: Notes = { items: [] };
+
+        const load = async () => {
+            notes = (await storage.readJson<Notes>("notes")) ?? { items: [] };
+        };
+        await load();
+        // エージェントの変更を取り消すと、ストレージが書き戻されてからこれが呼ばれる
+        workspace.registerReloader(load);
+
+        agent.registerTools([
+            {
+                name: "acme.notes.list",
+                title: "List notes",
+                description: "Lists the project's notes with their ids. Call it before changing notes.",
+                inputSchema: { type: "object", properties: {}, additionalProperties: false },
+                write: false,
+                handler: () => ({
+                    text: notes.items.length > 0
+                        ? notes.items.map(note => `${note.id}: ${note.text}`).join("\n")
+                        : "No notes yet.",
+                    data: { notes: notes.items },
+                }),
+            },
+            {
+                name: "acme.notes.add_note",
+                title: "Add a note",
+                description: "Adds one note to the project, as one step of undo for the author. Keep each note to one line.",
+                inputSchema: {
+                    type: "object",
+                    properties: { text: { type: "string", description: "The note." } },
+                    required: ["text"],
+                    additionalProperties: false,
+                },
+                write: true,
+                async handler(args) {
+                    const text = String(args.text).trim();
+                    if (!text) {
+                        return { error: { code: "invalid_args", message: "The note is empty.", hint: "Pass the note's words as text." } };
+                    }
+                    const next: Notes = { items: [...notes.items, { id: crypto.randomUUID(), text }] };
+                    await storage.writeJson("notes", next);
+                    notes = next;
+                    return { text: `Added. The project has ${next.items.length} notes.`, data: { count: next.items.length } };
+                },
+            },
+        ]);
+    },
+});
+```
+
+| メソッド | シグネチャ | 説明 |
+| --- | --- | --- |
+| `registerTool` | `(def: PluginAgentToolDef) => PluginCleanup` | ツールを 1 つ提供します。返るクリーンアップで取り下げられます。プラグインのアンロード時にはホストも取り下げます。 |
+| `registerTools` | `(defs: PluginAgentToolDef[]) => PluginCleanup` | すべての定義を検査してからまとめて提供します。最後の定義に誤りがあれば、どれも登録されません。 |
+
+以下の規則に反する定義は、登録時、つまりプラグインの読み込み時に、理由とともに例外を投げます。
+
+## PluginAgentToolDef
+
+| フィールド | 型 | 説明 |
+| --- | --- | --- |
+| `name` | `string` | `<プラグイン ID>.<ツール>`。`contributes.agentTools` で宣言したもの。 |
+| `title` | `string` | 1〜80 文字。エージェントログで作者に表示され、取り消しのステップ名にもなります。 |
+| `description` | `string` | 1〜1200 文字。モデルが読むもので、何のためのツールか、いつ使うか、避けるべき誤りを書きます。 |
+| `inputSchema` | object | 引数。下記のスキーマのサブセットで書きます。 |
+| `write` | `boolean` | プロジェクトを変更するかどうか。宣言と一致させます。 |
+| `handler` | `(args, context) => PluginAgentToolResult \| Promise<…>` | 呼び出しを実行します。 |
+
+ツールの名前、表示名、説明は翻訳されません。説明はエージェントが読むものなので、英語で書きます。
+
+### 名前
+
+名前は、プラグイン ID、ドット、ツール自身の部分からなり、使えるのは小文字、数字、`_`、`.`、`-` だけです。ツールの部分には英字か数字が 1 つ以上必要です。
+
+エージェントには MCP 名で見えます。プラグイン ID とツールの部分のそれぞれで `.` と `-` をすべて `_` に置き換え、`__` でつないだものです。`acme.notes.add_note` は `acme_notes__add_note` として提供されます。MCP 名は最大 64 文字で、それより長いものはマニフェストの検証で拒否されます。Studio 自身のツール名には `__` が含まれないので、プラグインのツールがそれを覆い隠すことはありません。置き換え後の名前が同じになる 2 つのプラグインは、両方ともそのツールを提供することはできず、後から登録した側が拒否されます。
+
+### 入力スキーマ
+
+引数はハンドラーの実行前に `inputSchema` で検査されるため、スキーマにはその検査が理解するものだけを使えます。
+
+- ルートは `{ "type": "object", … }` です。
+- 使えるキーワードは `type`、`description`、`properties`、`required`、`items`、`enum`、`additionalProperties`、`minimum`、`maximum`、`default`、`oneOf` です。それ以外は拒否されます。
+- `type` は `object`、`string`、`number`、`integer`、`boolean`、`array`、`null` のいずれかです。`enum` は文字列か数値からなる空でないリストです。
+- 入れ子は 10 段まで、JSON にして 20 000 文字までです。
+- `project` という名前のプロパティは置けません。Studio がすべてのツールに追加し、呼び出しを正しいプロジェクトに振り分けるのに使い、ハンドラーに渡す前に取り除きます。
+
+## ハンドラー
+
+ハンドラーは、検査済みの引数（`project` を除く）と、`clientName` だけを持つコンテキストを受け取ります。`clientName` は MCP クライアントが名乗った名前で、なければ `null` です。ハンドラーが行うことはすべて、プラグイン自身の `app` を通じて行います。
+
+戻り値は次のいずれかです。
+
+| 戻り値 | 結果 |
+| --- | --- |
+| 文字列 | テキストの回答。 |
+| `{ text, data?, image? }` | `text` はモデル向け、`data` は MCP の `structuredContent`、`image` は 1 枚の画像で `{ mimeType: "image/png" \| "image/jpeg", data }`（base64）。 |
+| `{ error: { code?, message, hint? } }` | エージェントが対処できる拒否。`code` は `invalid_args`、`not_found`、`check_failed`、`stale_revision`、`unavailable` のいずれかで、既定は `unavailable` です。次にすべきことは `hint` に書きます。 |
+
+回答には上限があります。テキストは 60 000 文字を超えると切り詰められ、その旨の注記が付きます。`data` は JSON で 60 000 文字を超えると省かれます。画像は base64 で 10 000 000 文字までです。ハンドラーが例外を投げると、`internal` とその例外のメッセージが回答になります。
+
+後の呼び出しに必要な id は回答に含め、それを一覧するツールを説明に書いておきます。名前を推測させるより、最初に呼ぶ一覧用のツールがあるほうが、エージェントはうまく動きます。
+
+## 呼び出しの前後で Studio がすること
+
+**検査。** プラグインのツールは Studio 自身のツールと同じ検査を通ります。`write: true` のツールは、作者がエージェントによる変更を許可していなければ拒否され、エージェントの一時停止中、プロジェクトの凍結中、ライブセッション中も拒否されます。作者は**設定 → エージェント連携 → プラグインのツール**で、プラグインのツールをまとめてオフにすることもできます。プラグインはこのどれも回避できません。
+
+**読み取りのツールは書き込めません。** `write: false` のツールの実行中は、`storage.writeJson` が例外を投げます。
+
+**書き込みのツールの変更は 1 ステップの取り消しになります。** `write: true` のツールの実行中、`storage.writeJson` はすべて記録されます。各名前空間の最初の書き込み前の内容と、最後の書き込み後の内容です。呼び出しが終わると、変更はツールの表示名を付けた 1 ステップとしてプロジェクトの取り消し履歴に積まれます。取り消しとやり直しは各名前空間を書き戻し、それから `services.workspace.registerReloader` で登録したリローダーを実行します。ハンドラーが書き込みの後で例外を投げても、このステップは記録されます。
+
+**呼び出しは 1 つずつです。** Studio はエージェントの呼び出しを順に実行し、プラグインのツールが実行中のときに届いたそのプラグインへの 2 つ目の呼び出しは `unavailable` で拒否されます。ツールの実行中に作者がプラグインのパネルで行った書き込みは、そのツールの書き込みとして扱われます。
+
+これがプラグインにとって意味することは次のとおりです。
+
+- **エージェントが変更するデータは `services.storage` に置きます。** 検査が見張り、取り消しが元に戻すのはこれです。ほかの場所への変更（たとえば `privileged` で書いたファイル）は取り消されません。
+- **リローダーを登録し**、メモリに持っているものをすべて読み直させます。リローダーがないと、取り消しは保存されたデータだけを変え、プラグインの手元の写しは変わらず、次の編集で古い写しが書き戻されます。
+- **書き込みが成功してからメモリを更新します。** 例のとおりにすれば、拒否された書き込みが中途半端な状態を残しません。
+
+## ガイドの章 [#the-guide-chapter]
+
+`contributes.agentGuide` はパッケージ内の Markdown ファイル 1 つを指します。エージェントは `agent_guide` に章 `plugin:<プラグイン ID>` を渡すか、MCP リソース `narraleaf://guide/plugin/<プラグイン ID>` として読みます。プラグインが有効な間は、章を指定しない `agent_guide` の一覧にもほかの章と並んで表示されます。256 KB を超える章は提供されません。
+
+プラグインを初めて見るエージェントに向けて書きます。データが何か、最初にどのツールを呼ぶか、引数の完全な例、よくある誤りです。ツールの説明は 1 つのツールが何をするかを、章はツール同士がどう組み合わさるかを伝えます。
+
+## バージョン
+
+インストール権限は `contributes.agentTools` から派生し、手書きはできません。ツールを追加したり、読み取りのツールをプロジェクトを変更するツールに変えたりするバージョンは権限を広げ、作者にもう一度確認します。ツールを削除する、または表示名・説明・ハンドラーだけを変えるバージョンでは確認しません。[権限は派生するものです](/ja/docs/studio/plugin/manifest#permissions-are-derived)を参照してください。
+
+## 参考実装
+
+組み込みの Gallery プラグイン `narraleaf.gallery` は、カタログに対して 6 つのツールを提供します。カタログを読むものが 1 つ、項目の追加・編集・削除、グループの設定、ロック中の見た目の設定を行うものが 5 つです。ガイドの章では、作業の順序と CG の解除方法を説明しています。ツールが編集するデータについては [Gallery](/ja/docs/studio/blueprint/nodes/built-in-plugins/gallery) を参照してください。

@@ -1,0 +1,177 @@
+---
+title: Agent 工具
+description: 通过 app.services.agent，为作者连接到 Studio 的 AI Agent 提供插件自己的工具
+---
+
+作者可以通过 MCP 把 AI Agent 连接到 Studio，Agent 随后用 Studio 的工具编辑打开的项目，见 [Agent 接入](/zh/docs/studio/agent)。`app.services.agent` 让插件在这些工具旁边加上自己的工具
+
+当插件保存了 Agent 应当能够填写或修改、而 Studio 自身的工具又触及不到的数据时，就应提供工具，例如插件保存的目录、表格或设置。只添加蓝图节点或控件的插件不需要提供工具，Agent 已经可以通过 Studio 的蓝图和界面工具使用它们，也可以通过运行蓝图的故事行在故事的某一处运行这些节点
+
+内置的 Gallery 是参考实现。它的六个工具填充鉴赏界面的目录，它的指南章节教 Agent 如何使用这些工具，见[插件工具](/zh/docs/studio/agent/tools#plugin-tools)
+
+## 声明工具
+
+每个工具都要在清单中声明名称，以及它是否修改项目：
+
+```json
+{
+  "id": "acme.notes",
+  "entries": { "studio": "main.js" },
+  "contributes": {
+    "agentTools": [
+      { "name": "acme.notes.list", "write": false },
+      { "name": "acme.notes.add_note", "write": true }
+    ],
+    "agentGuide": "agent/guide.md"
+  }
+}
+```
+
+| 字段 | 说明 |
+| --- | --- |
+| `agentTools` | 每个工具一项 `{ name, write }`，`write` 必填。声明工具需要 `studio` 入口，因为只有它运行在 Agent 调用到达的地方 |
+| `agentGuide` | 可选。包内的一个 Markdown 文件，作为指南章节提供给 Agent，见[指南章节](#the-guide-chapter) |
+
+作者在安装时批准的就是这份声明：安装提示会在 **AI Agent** 一项中给出插件提供的工具数量，以及其中可修改项目的数量。注册未声明的工具会抛错，注册时的 `write` 与声明不一致也会抛错
+
+## 注册工具
+
+```ts
+import { definePlugin } from "narraleaf-studio/plugin";
+
+type Notes = { items: { id: string; text: string }[] };
+
+export default definePlugin({
+    async setup(app) {
+        const { storage, workspace, agent } = app.services;
+        let notes: Notes = { items: [] };
+
+        const load = async () => {
+            notes = (await storage.readJson<Notes>("notes")) ?? { items: [] };
+        };
+        await load();
+        // 撤销 Agent 的修改时，宿主先写回存储，再调用这里
+        workspace.registerReloader(load);
+
+        agent.registerTools([
+            {
+                name: "acme.notes.list",
+                title: "List notes",
+                description: "Lists the project's notes with their ids. Call it before changing notes.",
+                inputSchema: { type: "object", properties: {}, additionalProperties: false },
+                write: false,
+                handler: () => ({
+                    text: notes.items.length > 0
+                        ? notes.items.map(note => `${note.id}: ${note.text}`).join("\n")
+                        : "No notes yet.",
+                    data: { notes: notes.items },
+                }),
+            },
+            {
+                name: "acme.notes.add_note",
+                title: "Add a note",
+                description: "Adds one note to the project, as one step of undo for the author. Keep each note to one line.",
+                inputSchema: {
+                    type: "object",
+                    properties: { text: { type: "string", description: "The note." } },
+                    required: ["text"],
+                    additionalProperties: false,
+                },
+                write: true,
+                async handler(args) {
+                    const text = String(args.text).trim();
+                    if (!text) {
+                        return { error: { code: "invalid_args", message: "The note is empty.", hint: "Pass the note's words as text." } };
+                    }
+                    const next: Notes = { items: [...notes.items, { id: crypto.randomUUID(), text }] };
+                    await storage.writeJson("notes", next);
+                    notes = next;
+                    return { text: `Added. The project has ${next.items.length} notes.`, data: { count: next.items.length } };
+                },
+            },
+        ]);
+    },
+});
+```
+
+| 方法 | 签名 | 说明 |
+| --- | --- | --- |
+| `registerTool` | `(def: PluginAgentToolDef) => PluginCleanup` | 提供一个工具。返回的清理函数会撤回它，插件卸载时宿主也会撤回 |
+| `registerTools` | `(defs: PluginAgentToolDef[]) => PluginCleanup` | 先检查所有定义，再统一提供，因此最后一个定义出错时一个都不会注册 |
+
+违反下列任何规则的定义都会在注册时、也就是插件加载时抛错，并说明原因
+
+## PluginAgentToolDef
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `name` | `string` | `<插件 ID>.<工具名>`，须在 `contributes.agentTools` 中声明 |
+| `title` | `string` | 1 到 80 个字符。在 Agent 日志中显示给作者，也用作撤销步骤的名称 |
+| `description` | `string` | 1 到 1200 个字符，写给模型阅读：工具做什么、何时使用、要避免的错误 |
+| `inputSchema` | object | 参数结构，使用下文的结构子集 |
+| `write` | `boolean` | 工具是否修改项目，须与声明一致 |
+| `handler` | `(args, context) => PluginAgentToolResult \| Promise<…>` | 执行调用 |
+
+工具名、标题和说明都不会被翻译。说明是 Agent 阅读的，因此应使用英文
+
+### 名称
+
+名称由插件 ID、一个点和工具自身的部分组成，只能使用小写字母、数字、`_`、`.` 和 `-`。工具部分至少要有一个字母或数字
+
+Agent 看到的是工具的 MCP 名称：插件 ID 和工具部分中的 `.` 与 `-` 都换成 `_`，两部分之间用 `__` 连接。`acme.notes.add_note` 以 `acme_notes__add_note` 的名称提供。MCP 名称最长 64 个字符，更长的名称在清单校验时即被拒绝。Studio 自身的工具名不含 `__`，因此插件工具不会覆盖它们。两个插件的名称换算后相同时，后注册的一方会被拒绝
+
+### 参数结构
+
+参数在 handler 运行之前按 `inputSchema` 校验，因此结构中只能使用校验所理解的内容：
+
+- 根节点为 `{ "type": "object", … }`
+- 可用的关键字：`type`、`description`、`properties`、`required`、`items`、`enum`、`additionalProperties`、`minimum`、`maximum`、`default`、`oneOf`，其他关键字一律拒绝
+- `type` 取 `object`、`string`、`number`、`integer`、`boolean`、`array`、`null` 之一。`enum` 是由字符串或数字组成的非空列表
+- 最多 10 层嵌套，写成 JSON 后不超过 20 000 个字符
+- 不能有名为 `project` 的属性。Studio 会为每个工具添加它，用它把调用路由到正确的项目，并在 handler 拿到参数之前将其移除
+
+## handler
+
+handler 收到校验过的参数（不含 `project`），以及一个只含 `clientName` 的上下文，即 MCP 客户端提供的名称，没有时为 `null`。它做的任何事情都通过插件自己的 `app` 完成
+
+它返回以下之一：
+
+| 返回值 | 结果 |
+| --- | --- |
+| 字符串 | 文本回答 |
+| `{ text, data?, image? }` | `text` 给模型阅读；`data` 作为 MCP 的 `structuredContent`；`image` 是一张图片，形式为 `{ mimeType: "image/png" \| "image/jpeg", data }`，使用 base64 |
+| `{ error: { code?, message, hint? } }` | Agent 可以据此处理的拒绝。`code` 取 `invalid_args`、`not_found`、`check_failed`、`stale_revision` 或 `unavailable`，默认为 `unavailable`。下一步该做什么写在 `hint` 中 |
+
+回答受以下限制：文本超过 60 000 个字符会被截断并附上说明；`data` 写成 JSON 超过 60 000 个字符时会被丢弃；图片的 base64 不能超过 10 000 000 个字符。handler 抛出异常时，回答为 `internal` 并附上异常消息
+
+把后续调用需要的 id 返回给 Agent，并在说明中写明由哪个工具列出它们。先调用一个列出工具，比让 Agent 猜名称效果更好
+
+## Studio 在调用前后做的事
+
+**检查**：插件工具接受与 Studio 自身工具相同的检查。`write: true` 的工具在作者未允许 Agent 修改时会被拒绝，在 Agent 暂停、项目冻结或实时会话期间也会被拒绝。作者还可以在**设置 → Agent 接入 → 插件工具**中关闭某个插件的全部工具。插件无法绕过其中任何一项
+
+**只读工具无法写入**：`write: false` 的工具运行期间，`storage.writeJson` 会抛错
+
+**写入工具的修改记为一步撤销**：`write: true` 的工具运行期间，每次 `storage.writeJson` 都会被记录，包括每个命名空间第一次写入前的内容和最后一次写入后的内容。调用结束时，这次修改作为一步推入项目的撤销栈，以工具标题命名。撤销和重做会写回每个命名空间，然后运行你用 `services.workspace.registerReloader` 注册的重载函数。即使 handler 在写入后抛出异常，这一步也会被记录
+
+**一次一个调用**：Studio 依次执行 Agent 的调用，插件的某个工具正在运行时，对该插件的第二个调用会以 `unavailable` 被拒绝。工具运行期间作者在插件面板中做的写入，会被算作该工具的写入
+
+这对插件意味着：
+
+- **把 Agent 会修改的数据放在 `services.storage` 中**。检查监视的是它，撤销恢复的也是它。写到其他地方的修改（例如通过 `privileged` 写的文件）不会被撤销
+- **注册重载函数**，并让它重新读取插件在内存中持有的全部内容。没有重载函数时，撤销只改了存储的数据，没有改插件手里的副本，下一次编辑又会把旧副本写回去
+- **写入成功后再更新内存**，如示例所示，这样被拒绝的写入不会留下改了一半的状态
+
+## 指南章节 [#the-guide-chapter]
+
+`contributes.agentGuide` 指向包内的一个 Markdown 文件。Agent 通过 `agent_guide` 和章节名 `plugin:<插件 ID>` 读取它，或读取 MCP 资源 `narraleaf://guide/plugin/<插件 ID>`。插件启用期间，不带章节调用 `agent_guide` 时，它会和其他章节一起列出。超过 256 KB 的章节不会提供
+
+写给从未见过这个插件的 Agent：数据是什么、先调用哪个工具、一个完整的参数示例，以及常见错误。工具说明讲的是单个工具做什么，章节讲的是这些工具如何配合
+
+## 版本
+
+安装权限由 `contributes.agentTools` 派生，不能手写。新版本新增工具，或把只读工具改为修改项目的工具，会扩大该权限并再次询问作者。删除工具，或只修改标题、说明和 handler，则不会，见[权限是派生的](/zh/docs/studio/plugin/manifest#permissions-are-derived)
+
+## 参考实现
+
+内置的 Gallery 插件 `narraleaf.gallery` 针对其目录提供六个工具：一个读取目录，五个分别用于添加、编辑和移除条目，设置分组，以及设置锁定时的外观。它的指南章节讲解工作顺序以及如何解锁 CG。这些工具编辑的数据见 [Gallery](/zh/docs/studio/blueprint/nodes/built-in-plugins/gallery)
