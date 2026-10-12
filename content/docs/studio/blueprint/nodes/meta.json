@@ -28,6 +28,7 @@
     "list",
     "slider",
     "switch",
+    "video",
     "debug",
     "built-in-plugins"
   ]

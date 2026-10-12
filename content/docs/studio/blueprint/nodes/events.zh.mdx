@@ -32,7 +32,8 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 | --- | --- |
 | 所有支持私有蓝图的控件 | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、四个键盘 Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
 | `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 九个鼠标 Head、`Focus`、`Blur`、`List Item Refresh` |
-| `nl.video`、`nl.puppet` | 九个鼠标 Head、`Focus`、`Blur` |
+| `nl.video` | 九个鼠标 Head、`Focus`、`Blur`、`Playback Ended` |
+| `nl.puppet` | 九个鼠标 Head、`Focus`、`Blur` |
 | `nl.switch` | 九个鼠标 Head、`Focus`、`Blur`、`Changed`、`Turned On`、`Turned Off` |
 | `nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list` | `Scroll`、`Scroll End`、`Item Render`、`Item Click`、`Item Hover`、`Selection Changed` |
 | `nl.slider` | `Drag Start`、`Value Changed`、`Drag End` |
@@ -695,6 +696,20 @@ Page Event（页面事件）在嵌入某个 Page 组件的子 Page 调用`Emit P
 | `then` | out · exec | — | |
 | `event` | out · data | `string` | 子 Page 发出的事件名|
 | `data` | out · data | `json` | 子 Page 发出的事件数据|
+
+## 视频 [#video]
+
+### Playback Ended
+
+`blueprint.event.head.videoEnded`
+
+Playback Ended（播放结束）在 `nl.video` 的私有蓝图中触发：视频每播放到结尾一次，触发一次。开启**循环**时、更换视频文件时、以及页面在播完前关闭时不触发。用 `Seek Video`（跳转视频播放位置）把正在播放的视频移到结尾，同样会触发。在编辑画布上预览播放不会触发
+
+要在图中开始、停止或移动视频，使用 [Video 节点](/zh/docs/studio/blueprint/nodes/video)
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
 
 ## Game Preference
 

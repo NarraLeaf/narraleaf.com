@@ -1,9 +1,9 @@
 ---
-title: Button, Container, Switch, Frame
-description: Button label and pointer, container clipping, a Switch's checked state, and the Page a Frame shows — all on a wired element.
+title: Button, Container, Switch, Frame, Video
+description: Button label and pointer, container clipping, a Switch's checked state, the Page a Frame shows, and a Video's playback, all on a wired element.
 ---
 
-Four small property surfaces: a Button's label and cursor, a Container's clipping, a Switch's checked state, and the Page a Frame shows. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
+A Button's label and cursor, a Container's clipping, a Switch's checked state, the Page a Frame shows, and a Video's playback. The rules common to every Element node are in [Element](/docs/studio/blueprint/nodes/element).
 
 ## Button
 
@@ -245,3 +245,174 @@ Writes the params object. A non-object value is normalized to an empty object.
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.frame` |  |
 | `params` | in · data | `json` |  |
+
+## Video
+
+Video nodes take an `element:nl.video` pin named `video`, so they work from any graph on the page that holds a binding for a video, such as the blueprint of a skip button beside it. Each one does to the wired video what the node of the same name in [Video](/docs/studio/blueprint/nodes/video) does to its own video. The video's `Playback Ended` head is on the video's own blueprint.
+
+### Play Video
+
+`blueprint.element.video.play` · Latent
+
+Starts the video, resumes it from where it was paused, or plays it again from the start after it has ended.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Pause Video
+
+`blueprint.element.video.pause` · Latent
+
+Pauses the video where it is.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Stop Video
+
+`blueprint.element.video.stop` · Latent
+
+Pauses the video and returns it to the start of the clip.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Seek Video
+
+`blueprint.element.video.seek` · Latent
+
+Moves the video to `time`. A playing video moved to its end runs its `Playback Ended`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | in · data | `float` | Seconds from the start of the clip. Accepts an on-card literal. |
+
+### Get Video Time
+
+`blueprint.element.video.getTime` · Pure
+
+Where the video is, in seconds from the start of the clip. `0` while there is no clip on screen.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | out · data | `float` | Seconds. |
+
+### Get Video Duration
+
+`blueprint.element.video.getDuration` · Pure
+
+How long the clip is, in seconds. `0` until the clip has loaded.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `duration` | out · data | `float` | Seconds. |
+
+### Is Video Playing
+
+`blueprint.element.video.isPlaying` · Pure
+
+`true` while the video is playing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isPlaying` | out · data | `boolean` |  |
+
+### Is Video Ended
+
+`blueprint.element.video.isEnded` · Pure
+
+`true` once the clip has played to its end, until it is played or moved again. Always `false` while **Loop** is on.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isEnded` | out · data | `boolean` |  |
+
+### Set Video Volume
+
+`blueprint.element.video.setVolume` · Latent
+
+Sets the video's volume in place of the **Volume** set on the widget.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | in · data | `float` | From `0` to `1`. Accepts an on-card literal. |
+
+### Set Video Muted
+
+`blueprint.element.video.setMuted` · Latent
+
+Mutes or unmutes the video.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | in · data | `boolean` | Accepts an on-card literal. |
+
+### Set Video Loop
+
+`blueprint.element.video.setLoop` · Latent
+
+Turns **Loop** on or off.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `loop` | in · data | `boolean` | Accepts an on-card literal. |
+
+### Set Video Speed
+
+`blueprint.element.video.setPlaybackRate` · Latent
+
+Sets how fast the video plays: `1` is normal speed.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `speed` | in · data | `float` | Kept between `0.0625` and `16`. Accepts an on-card literal. |
+
+### Get Video Volume
+
+`blueprint.element.video.getVolume` · Pure
+
+The video's volume, from `0` to `1`, without the player's volume settings.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | out · data | `float` |  |
+
+### Is Video Muted
+
+`blueprint.element.video.isMuted` · Pure
+
+`true` while the video is muted.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | out · data | `boolean` |  |

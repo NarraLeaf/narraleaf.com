@@ -7,12 +7,12 @@ Element ノードは、ウィジェットメソッドの派生形態です——
 
 これらはどれも単独では[パレット](/ja/docs/studio/blueprint)に現れません。Element ノードは、グラフがすでに互換のあるウィジェット型に対するバインディングノード——`Element` リテラル、または[Events](/ja/docs/studio/blueprint/nodes/events)の `Element Flush` / `Element Click` イベントヘッドのいずれか——を持っているときにのみ提供されます。先にバインディングを置いてください。
 
-このカテゴリは123個のノードから成ります——このページの末尾にある `Element` 参照ノードと、他の4ページに分かれた122個です。
+このカテゴリは137個のノードから成ります。このページの末尾にある `Element` 参照ノードと、他の4ページに分かれた136個です。
 
 - [Displayable](/ja/docs/studio/blueprint/nodes/element/displayable)——ジオメトリ、不透明度、Variant とプロパティアニメーション、加えて8種類のウィジェットが繰り返し持つ `visible` / `enabled` の対。41個のノード。
 - [Text](/ja/docs/studio/blueprint/nodes/element/text)——`nl.text` の内容、タイポグラフィ、エフェクト、そして `nl.textInput` の値。27個のノード。
 - [List, Slider, Image](/ja/docs/studio/blueprint/nodes/element/content)——リストの項目、選択、スクロール位置と項目フィールド。スライダーの値と範囲。画像のアセット、フィットモード、クロップ。40個のノード。
-- [Button, Container, Switch, Frame](/ja/docs/studio/blueprint/nodes/element/widget)——ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、そして Frame が表示する Page。14個のノード。
+- [Button, Container, Switch, Frame, Video](/ja/docs/studio/blueprint/nodes/element/widget)——ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、Frame が表示する Page、Video の再生。28個のノード。
 
 この数字はパレットが提供するものです。少数の代替されたノードがそれらと一緒に文書化され、隠しとしてマークされています——それらはここでも[カテゴリ一覧表](/ja/docs/studio/blueprint/nodes)でもカウントされていません。
 
@@ -20,7 +20,7 @@ Element ノードは、ウィジェットメソッドの派生形態です——
 
 これらは、このページと上の4ページのすべての Element ノードに当てはまります。
 
-- **ターゲットはデータピンで届きます。** Displayable、Text、Button、Container、Image、Frame の各ノードはそれを `element` と呼びます。List ノードは `list`、Slider ノードは `slider`、Switch ノードは `switch`、Text Input ノードは `textInput` を使います。`visible` / `enabled` の対は、どのウィジェット型でもそれを `element` と呼びます。その `valueType` は Displayable 系では裸の `element`、それ以外では `element:<widgetType>` です——これが Slider を Text ノードに流し込めないようにしている仕組みです。
+- **ターゲットはデータピンで届きます。** Displayable、Text、Button、Container、Image、Frame の各ノードはそれを `element` と呼びます。List ノードは `list`、Slider ノードは `slider`、Switch ノードは `switch`、Text Input ノードは `textInput`、Video ノードは `video` を使います。`visible` / `enabled` の対は、どのウィジェット型でもそれを `element` と呼びます。その `valueType` は Displayable 系では裸の `element`、それ以外では `element:<widgetType>` です——これが Slider を Text ノードに流し込めないようにしている仕組みです。
 - **パレットの項目はノードの種類ごとに1つで、要素ごとには決して増えません。** グラフが互換のあるバインディングをちょうど1つ持っていれば、ノードを置くだけでターゲットピンが自動的にそれへ接続されます。2つ以上あるときはピンは空のままになり、自分で選びます。
 - **同じ Surface か同じコンポーネントに限ります。** `Element` リテラルは、自分自身の Surface 上の要素か、コンポーネント自身のブループリントではそのコンポーネントの要素しか指定できません。ランタイムも実行時に改めて確認し、それ以外を指す参照は拒否されます。[Surfaces](/ja/docs/studio/blueprint/surfaces)を参照してください。
 - **List の行やコンポーネントの配置の中では、ターゲットはその描画のコピーです。** List のある1行、またはコンポーネントのある1つの配置のために実行されるグラフは、項目テンプレートやコンポーネントの中の要素について、その行やその配置のコピーに届きます。それらの外にある要素は要素そのものなので、List の横のパネルを表示する `Item Click` は、そのパネルを表示します。読み取りノードは、書き込みノードが書くのと同じコピーを読みます。

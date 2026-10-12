@@ -1,0 +1,177 @@
+---
+title: Video
+description: 播放、暂停、停止与跳转视频控件，读取播放位置，设置音量、静音、循环与速度
+---
+
+十四个节点，对应页面上的一个 `nl.video` 元素：开始、暂停、停止视频与移动播放位置，读取播放到哪里，并在游戏运行时修改音量、静音、循环与速度。故事行播放的视频属于故事，这些节点不作用于它。要在视频播完时运行一张图，使用 [`Playback Ended`](/zh/docs/studio/blueprint/nodes/events#playback-ended)（播放结束）。
+
+## 约定 [#conventions]
+
+- **只用于视频控件的蓝图。** 这些节点的作用范围是 `nl.video`，只在视频控件自己的蓝图中提供。要在其他图中操作视频，例如视频旁边的跳过按钮，使用 [Element](/zh/docs/studio/blueprint/nodes/element/widget#video) 分类中的对应版本，它们带有 `video` 输入
+- **命令不等待视频。** `Play Video`（播放视频）、`Pause Video`（暂停视频）、`Stop Video`（停止视频）与 `Seek Video`（跳转视频播放位置）把请求交给视频后即从 `next` 继续。视频文件尚未加载完成时，加载完成后开始播放
+- **读取反映最近一次命令。** 在同一张图中，`Seek Video` 之后的 `Get Video Time`（获取视频播放位置）读到的是新位置，`Play Video` 之后的 `Is Video Playing`（视频是否在播放）读到 `true`
+- **设置节点只改变运行中的游戏。** `Set Video Volume`（设置视频音量）、`Set Video Muted`（设置视频静音）、`Set Video Loop`（设置视频循环）与 `Set Video Speed`（设置视频速度）代替属性面板中为控件设置的值。它们不写入 UI 文档，页面下次打开时，视频仍从属性面板中的值开始
+- **读取节点是 pure，其余是 latent。** 蓝图值的宿主是 `widgetValue`，不提供本页的读取节点
+- **有声视频可能要等玩家操作。** 在玩家点击或按键之前不允许播放声音的平台上（例如运行 Web 导出的浏览器），有声视频在此之前无法开始播放：`Play Video` 与**自动播放**都不会让它开始，图照常继续。静音视频可立即播放
+
+## 片头视频播完后打开标题页面 [#opening-movie]
+
+一个先播放片头视频、再打开标题页面的页面：
+
+1. 在该页面上添加一个**视频**控件，将片头视频选为它的**视频文件**，并开启**自动播放**。**循环**保持关闭
+2. 在该视频控件的蓝图中，把 `Playback Ended`（播放结束）连到 `Replace Page`（替换页面），`Page` 设为标题页面
+
+片头视频播完后，标题页面代替当前页面打开，从标题页面执行 `Go back`（返回上一页）也不会回到片头视频。要让玩家跳过片头，把该视频的 `Mouse Click`（鼠标点击）连到 `Seek Video`，`time` 设为比片头更长的值，例如 `9999`：视频移到结尾，`Playback Ended` 随之运行。
+
+## Play Video
+
+`blueprint.video.play` · Latent
+
+开始播放视频，或从暂停处继续播放；视频已播完时从头重新播放。音量与**自动播放**相同，受玩家的音量设置影响。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Pause Video
+
+`blueprint.video.pause` · Latent
+
+在当前位置暂停视频，`Play Video` 从该位置继续播放。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Stop Video
+
+`blueprint.video.stop` · Latent
+
+暂停视频并回到视频开头。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Seek Video
+
+`blueprint.video.seek` · Latent
+
+把视频移到 `time` 处。超过结尾的时间移到结尾，负数移到开头。正在播放的视频继续播放，暂停中的视频保持暂停。正在播放的视频移到结尾时运行 `Playback Ended`，暂停中的视频停在结尾。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `time` | in · data | `float` | 从视频开头计的秒数。可在卡片上直接填写字面量 |
+
+## Get Video Time
+
+`blueprint.video.getTime` · Pure
+
+视频当前的播放位置，为从视频开头计的秒数。画面上没有视频时为 `0`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `time` | out · data | `float` | 单位秒 |
+
+## Get Video Duration
+
+`blueprint.video.getDuration` · Pure
+
+视频文件的时长，单位为秒。加载完成前为 `0`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `duration` | out · data | `float` | 单位秒 |
+
+## Is Video Playing
+
+`blueprint.video.isPlaying` · Pure
+
+视频正在播放时为 `true`；暂停、停止、已播完以及画面上没有视频时为 `false`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isPlaying` | out · data | `boolean` | |
+
+## Is Video Ended
+
+`blueprint.video.isEnded` · Pure
+
+视频播放到结尾后为 `true`，直到再次播放或移动位置。开启**循环**时始终为 `false`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `isEnded` | out · data | `boolean` | |
+
+## Set Video Volume
+
+`blueprint.video.setVolume` · Latent
+
+设置视频的音量，代替控件上设置的**音量**。玩家的音量设置与音轨仍在此基础上生效。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `volume` | in · data | `float` | `0` 到 `1`，超出范围的值按范围边界处理。不是数字时音量保持不变。可在卡片上直接填写字面量 |
+
+## Set Video Muted
+
+`blueprint.video.setMuted` · Latent
+
+将视频设为静音或取消静音。静音时无论音量多少都不发声。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muted` | in · data | `boolean` | 可在卡片上直接填写字面量 |
+
+## Set Video Loop
+
+`blueprint.video.setLoop` · Latent
+
+开启或关闭**循环**。开启时，视频播到结尾后从头继续，`Playback Ended` 不运行。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `loop` | in · data | `boolean` | 可在卡片上直接填写字面量 |
+
+## Set Video Speed
+
+`blueprint.video.setPlaybackRate` · Latent
+
+设置视频的播放速度：`1` 为正常速度，`2` 为两倍速，`0.5` 为半速。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `speed` | in · data | `float` | 范围为 `0.0625` 到 `16`。不是数字时速度保持不变。可在卡片上直接填写字面量 |
+
+## Get Video Volume
+
+`blueprint.video.getVolume` · Pure
+
+视频的音量（`0` 到 `1`），即控件上设置的**音量**或 `Set Video Volume` 设置的值，不含玩家的音量设置。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `volume` | out · data | `float` | |
+
+## Is Video Muted
+
+`blueprint.video.isMuted` · Pure
+
+视频处于静音时为 `true`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `muted` | out · data | `boolean` | |

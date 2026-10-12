@@ -1,9 +1,9 @@
 ---
-title: Button、Container、Switch、Frame
-description: ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、そして Frame が表示する Page——すべて接続された要素に対して
+title: Button、Container、Switch、Frame、Video
+description: ボタンのラベルとポインタ、コンテナのクリッピング、Switch のチェック状態、Frame が表示する Page、Video の再生。すべて接続された要素に対して行います
 ---
 
-4つの小さなプロパティ面——Button のラベルとカーソル、Container のクリッピング、Switch のチェック状態、そして Frame が表示する Page。すべての Element ノードに共通する規則は [Element](/ja/docs/studio/blueprint/nodes/element) にあります。
+Button のラベルとカーソル、Container のクリッピング、Switch のチェック状態、Frame が表示する Page、Video の再生を扱います。すべての Element ノードに共通する規則は [Element](/ja/docs/studio/blueprint/nodes/element) にあります。
 
 ## Button
 
@@ -245,3 +245,174 @@ params オブジェクトを書き込みます。オブジェクトでない値�
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.frame` |  |
 | `params` | in · data | `json` |  |
+
+## Video
+
+Video ノードは `video` という名前の `element:nl.video` ピンを持つため、動画へのバインディングを持つページ上のどのグラフからでも使えます。たとえば動画の横に置いたスキップボタンのブループリントです。各ノードは、[Video](/ja/docs/studio/blueprint/nodes/video) にある同じ名前のノードが自身の動画に行うことを、接続された動画に対して行います。動画の `Playback Ended`（再生終了）は、動画ウィジェット自身のブループリントにあります。
+
+### Play Video
+
+`blueprint.element.video.play` · Latent
+
+動画の再生を始めます。一時停止中なら止めた位置から再開し、最後まで再生したあとなら最初から再生し直します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Pause Video
+
+`blueprint.element.video.pause` · Latent
+
+動画を今の位置で一時停止します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Stop Video
+
+`blueprint.element.video.stop` · Latent
+
+動画を一時停止し、クリップの先頭に戻します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Seek Video
+
+`blueprint.element.video.seek` · Latent
+
+動画を `time` の位置へ移します。再生中の動画を終わりに移すと、その動画の `Playback Ended` が実行されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | in · data | `float` | クリップの先頭からの秒数です。カード上での直接入力に対応します。 |
+
+### Get Video Time
+
+`blueprint.element.video.getTime` · Pure
+
+動画の今の再生位置を、クリップの先頭からの秒数で返します。画面にクリップがないときは `0` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | out · data | `float` | 単位は秒です。 |
+
+### Get Video Duration
+
+`blueprint.element.video.getDuration` · Pure
+
+クリップの長さを秒で返します。読み込みが終わるまでは `0` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `duration` | out · data | `float` | 単位は秒です。 |
+
+### Is Video Playing
+
+`blueprint.element.video.isPlaying` · Pure
+
+動画が再生中のとき `true` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isPlaying` | out · data | `boolean` |  |
+
+### Is Video Ended
+
+`blueprint.element.video.isEnded` · Pure
+
+クリップが最後まで再生されたあとは `true` で、もう一度再生するか位置を移すまで続きます。**Loop** がオンのときは常に `false` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isEnded` | out · data | `boolean` |  |
+
+### Set Video Volume
+
+`blueprint.element.video.setVolume` · Latent
+
+ウィジェットで設定した **Volume**（音量）の代わりに、動画の音量を設定します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | in · data | `float` | `0` から `1` です。カード上での直接入力に対応します。 |
+
+### Set Video Muted
+
+`blueprint.element.video.setMuted` · Latent
+
+動画を消音するか、消音を解除します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | in · data | `boolean` | カード上での直接入力に対応します。 |
+
+### Set Video Loop
+
+`blueprint.element.video.setLoop` · Latent
+
+**Loop**（ループ）をオンかオフにします。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `loop` | in · data | `boolean` | カード上での直接入力に対応します。 |
+
+### Set Video Speed
+
+`blueprint.element.video.setPlaybackRate` · Latent
+
+動画の再生の速さを設定します。`1` が通常です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `speed` | in · data | `float` | `0.0625` から `16` の範囲に収められます。カード上での直接入力に対応します。 |
+
+### Get Video Volume
+
+`blueprint.element.video.getVolume` · Pure
+
+動画の音量（`0` から `1`）を返します。プレイヤーの音量設定は含みません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | out · data | `float` |  |
+
+### Is Video Muted
+
+`blueprint.element.video.isMuted` · Pure
+
+動画が消音されているとき `true` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | out · data | `boolean` |  |

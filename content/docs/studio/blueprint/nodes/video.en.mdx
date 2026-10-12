@@ -1,0 +1,177 @@
+---
+title: Video
+description: Playing, pausing, stopping and seeking a video widget, reading where it is, and setting its volume, mute, loop and speed.
+---
+
+Fourteen nodes for a `nl.video` element on a page: start, pause, stop and move its clip, read where the clip is, and change its volume, mute, loop and speed while the game runs. A video a story row plays is part of the story and is not reached by these nodes. To run a graph when the clip finishes, use [`Playback Ended`](/docs/studio/blueprint/nodes/events#playback-ended).
+
+## Conventions
+
+- **Video blueprints only.** These are scoped to `nl.video`, so they are offered in a video's own blueprint and nowhere else. To reach a video from another graph, such as a skip button beside it, use the [Element](/docs/studio/blueprint/nodes/element/widget#video) versions, which carry a `video` input.
+- **Commands do not wait for the clip.** `Play Video`, `Pause Video`, `Stop Video` and `Seek Video` pass the request to the video and continue at `next`. A clip that has not loaded yet starts once it has.
+- **A read follows the last command.** After `Seek Video`, a `Get Video Time` in the same graph reads the new time, and after `Play Video`, `Is Video Playing` reads `true`.
+- **The setters change the running game only.** `Set Video Volume`, `Set Video Muted`, `Set Video Loop` and `Set Video Speed` take the place of the values set on the widget in Properties. They do not write to the UI document, so the next time the page opens, the video starts from the values in Properties.
+- **Reads are pure, the rest are latent.** A Blueprint Value is owned by `widgetValue` and does not offer the reads on this page.
+- **Sound can wait for the player.** Where the platform holds back sound until the player has clicked or pressed a key, as a browser does for a web export, a video with sound does not start before then: `Play Video` and **Autoplay** leave it where it is, and the graph continues. A muted video starts at once.
+
+## Show the title page after an opening movie [#opening-movie]
+
+A page that plays an opening movie and then opens the title page:
+
+1. On the page, add a **Video**, choose the movie as its **Clip**, and turn on **Autoplay**. Leave **Loop** off.
+2. In the video's blueprint, connect `Playback Ended` to `Replace Page`, with `Page` set to the title page.
+
+When the movie ends, the title page opens in its place, and `Go back` from the title page does not return to the movie. To let the player skip the movie, connect the video's `Mouse Click` to `Seek Video` with `time` set to a value longer than the movie, such as `9999`: the movie moves to its end and `Playback Ended` runs.
+
+## Play Video
+
+`blueprint.video.play` · Latent
+
+Starts the video, or resumes it from where it was paused. After the clip has ended, plays it again from the start. It plays at the volume the player has set, as **Autoplay** does.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Pause Video
+
+`blueprint.video.pause` · Latent
+
+Pauses the video where it is. `Play Video` resumes it from there.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Stop Video
+
+`blueprint.video.stop` · Latent
+
+Pauses the video and returns it to the start of the clip.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Seek Video
+
+`blueprint.video.seek` · Latent
+
+Moves the video to `time`. A time past the end moves it to the end, and a negative time to the start. A playing video keeps playing and a paused one stays paused. A playing video moved to its end runs `Playback Ended`; a paused one stays paused at the end.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `time` | in · data | `float` | Seconds from the start of the clip. Accepts an on-card literal. |
+
+## Get Video Time
+
+`blueprint.video.getTime` · Pure
+
+Where the video is, in seconds from the start of the clip. `0` while there is no clip on screen.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `time` | out · data | `float` | Seconds. |
+
+## Get Video Duration
+
+`blueprint.video.getDuration` · Pure
+
+How long the clip is, in seconds. `0` until the clip has loaded.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `duration` | out · data | `float` | Seconds. |
+
+## Is Video Playing
+
+`blueprint.video.isPlaying` · Pure
+
+`true` while the video is playing. `false` while it is paused, stopped or at its end, and while there is no clip on screen.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isPlaying` | out · data | `boolean` | |
+
+## Is Video Ended
+
+`blueprint.video.isEnded` · Pure
+
+`true` once the clip has played to its end, until it is played or moved again. Always `false` while **Loop** is on.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `isEnded` | out · data | `boolean` | |
+
+## Set Video Volume
+
+`blueprint.video.setVolume` · Latent
+
+Sets the video's volume in place of the **Volume** set on the widget. The player's volume settings and the audio track still apply on top of it.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `volume` | in · data | `float` | From `0` to `1`; a value outside is kept within that range. A value that is not a number leaves the volume as it is. Accepts an on-card literal. |
+
+## Set Video Muted
+
+`blueprint.video.setMuted` · Latent
+
+Mutes or unmutes the video. A muted video plays silently at any volume.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muted` | in · data | `boolean` | Accepts an on-card literal. |
+
+## Set Video Loop
+
+`blueprint.video.setLoop` · Latent
+
+Turns **Loop** on or off. While **Loop** is on, the clip starts over at its end and `Playback Ended` does not run.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `loop` | in · data | `boolean` | Accepts an on-card literal. |
+
+## Set Video Speed
+
+`blueprint.video.setPlaybackRate` · Latent
+
+Sets how fast the video plays: `1` is normal speed, `2` twice as fast, `0.5` half as fast.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `speed` | in · data | `float` | Kept between `0.0625` and `16`. A value that is not a number leaves the speed as it is. Accepts an on-card literal. |
+
+## Get Video Volume
+
+`blueprint.video.getVolume` · Pure
+
+The video's volume, from `0` to `1`: the **Volume** set on the widget, or the value `Set Video Volume` set. The player's volume settings are not included.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `volume` | out · data | `float` | |
+
+## Is Video Muted
+
+`blueprint.video.isMuted` · Pure
+
+`true` while the video is muted.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `muted` | out · data | `boolean` | |

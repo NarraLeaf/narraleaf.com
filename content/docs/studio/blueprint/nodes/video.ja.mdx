@@ -1,0 +1,177 @@
+---
+title: 動画
+description: 動画ウィジェットの再生、一時停止、停止、再生位置の移動、再生位置の読み取り、音量・消音・ループ・速さの設定です
+---
+
+ページ上の `nl.video` 要素のための 14 個のノードです。クリップの再生、一時停止、停止、再生位置の移動、どこまで再生したかの読み取りと、ゲームの実行中に音量、消音、ループ、速さを変更する操作が含まれます。ストーリーの行が再生する動画はストーリーに属し、これらのノードの対象ではありません。クリップが終わったときにグラフを実行するには、[`Playback Ended`](/ja/docs/studio/blueprint/nodes/events#playback-ended)（再生終了）を使います。
+
+## 規約 [#conventions]
+
+- **動画ウィジェットのブループリント専用です。** これらは `nl.video` にスコープされているため、動画ウィジェット自身のブループリントにのみ提供されます。動画の横に置いたスキップボタンなど、別のグラフから動画を操作するには、`video` 入力を持つ [Element](/ja/docs/studio/blueprint/nodes/element/widget#video) のバージョンを使います。
+- **命令はクリップを待ちません。** `Play Video`（動画を再生）、`Pause Video`（動画を一時停止）、`Stop Video`（動画を停止）、`Seek Video`（動画の再生位置を移す）は、要求を動画に渡したあと `next` から続きます。読み込みが終わっていないクリップは、読み込み後に再生が始まります。
+- **読み取りは直前の命令を反映します。** 同じグラフの中では、`Seek Video` のあとの `Get Video Time`（動画の再生位置を取得）は新しい位置を読み、`Play Video` のあとの `Is Video Playing`（動画が再生中か）は `true` を読みます。
+- **設定ノードは実行中のゲームだけを変えます。** `Set Video Volume`（動画の音量を設定）、`Set Video Muted`（動画の消音を設定）、`Set Video Loop`（動画のループを設定）、`Set Video Speed`（動画の速さを設定）は、Properties でウィジェットに設定した値の代わりに使われます。UI ドキュメントには書き込まないため、次にページを開いたときは Properties の値から始まります。
+- **読み取りは pure、それ以外は latent です。** Blueprint Value のオーナーは `widgetValue` であり、このページの読み取りノードは提供されません。
+- **音のある動画はプレイヤーの操作を待つことがあります。** Web エクスポートを実行するブラウザのように、プレイヤーがクリックかキー入力をするまで音を出させないプラットフォームでは、音のある動画はそれまで再生を始められません。`Play Video` と **Autoplay**（自動再生）は動画をそのままにし、グラフは続きます。消音の動画はすぐに再生できます。
+
+## オープニングムービーのあとにタイトルページを開く [#opening-movie]
+
+オープニングムービーを再生してからタイトルページを開くページは、次のように作ります。
+
+1. ページに **Video**（動画）を追加し、ムービーを **Clip**（クリップ）に選び、**Autoplay**（自動再生）をオンにします。**Loop**（ループ）はオフのままにします。
+2. その動画のブループリントで、`Playback Ended`（再生終了）を `Replace Page`（ページを置き換える）につなぎ、`Page` にタイトルページを設定します。
+
+ムービーが終わるとタイトルページが代わりに開き、タイトルページから `Go back`（前のページに戻る）を実行してもムービーには戻りません。プレイヤーがムービーをスキップできるようにするには、その動画の `Mouse Click`（マウスのクリック）を `Seek Video` につなぎ、`time` にムービーより長い値（`9999` など）を設定します。動画が終わりに移り、`Playback Ended` が実行されます。
+
+## Play Video
+
+`blueprint.video.play` · Latent
+
+動画の再生を始めます。一時停止中なら止めた位置から再開し、最後まで再生したあとなら最初から再生し直します。音量は **Autoplay** と同じく、プレイヤーの音量設定に従います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Pause Video
+
+`blueprint.video.pause` · Latent
+
+動画を今の位置で一時停止します。`Play Video` でその位置から再開します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Stop Video
+
+`blueprint.video.stop` · Latent
+
+動画を一時停止し、クリップの先頭に戻します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+
+## Seek Video
+
+`blueprint.video.seek` · Latent
+
+動画を `time` の位置へ移します。終わりを超える時間は終わりに、負の時間は先頭になります。再生中の動画は再生を続け、一時停止中の動画は一時停止のままです。再生中の動画を終わりに移すと `Playback Ended` が実行され、一時停止中の動画は終わりで止まります。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `time` | in · data | `float` | クリップの先頭からの秒数です。カード上での直接入力に対応します。 |
+
+## Get Video Time
+
+`blueprint.video.getTime` · Pure
+
+動画の今の再生位置を、クリップの先頭からの秒数で返します。画面にクリップがないときは `0` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `time` | out · data | `float` | 単位は秒です。 |
+
+## Get Video Duration
+
+`blueprint.video.getDuration` · Pure
+
+クリップの長さを秒で返します。読み込みが終わるまでは `0` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `duration` | out · data | `float` | 単位は秒です。 |
+
+## Is Video Playing
+
+`blueprint.video.isPlaying` · Pure
+
+動画が再生中のとき `true` です。一時停止中、停止中、最後まで再生したあと、画面にクリップがないときは `false` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isPlaying` | out · data | `boolean` | |
+
+## Is Video Ended
+
+`blueprint.video.isEnded` · Pure
+
+クリップが最後まで再生されたあとは `true` で、もう一度再生するか位置を移すまで続きます。**Loop** がオンのときは常に `false` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `isEnded` | out · data | `boolean` | |
+
+## Set Video Volume
+
+`blueprint.video.setVolume` · Latent
+
+ウィジェットで設定した **Volume**（音量）の代わりに、動画の音量を設定します。プレイヤーの音量設定とオーディオトラックは、その上に適用されます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `volume` | in · data | `float` | `0` から `1` です。範囲外の値は範囲内に収められます。数値でない値では音量は変わりません。カード上での直接入力に対応します。 |
+
+## Set Video Muted
+
+`blueprint.video.setMuted` · Latent
+
+動画を消音するか、消音を解除します。消音中は音量にかかわらず音が出ません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `muted` | in · data | `boolean` | カード上での直接入力に対応します。 |
+
+## Set Video Loop
+
+`blueprint.video.setLoop` · Latent
+
+**Loop** をオンかオフにします。オンの間はクリップが終わると先頭から続き、`Playback Ended` は実行されません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `loop` | in · data | `boolean` | カード上での直接入力に対応します。 |
+
+## Set Video Speed
+
+`blueprint.video.setPlaybackRate` · Latent
+
+動画の再生の速さを設定します。`1` が通常、`2` が 2 倍、`0.5` が半分です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `next` | out · exec | — | |
+| `speed` | in · data | `float` | `0.0625` から `16` の範囲に収められます。数値でない値では速さは変わりません。カード上での直接入力に対応します。 |
+
+## Get Video Volume
+
+`blueprint.video.getVolume` · Pure
+
+動画の音量（`0` から `1`）を返します。ウィジェットで設定した **Volume**、または `Set Video Volume` で設定した値で、プレイヤーの音量設定は含みません。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `volume` | out · data | `float` | |
+
+## Is Video Muted
+
+`blueprint.video.isMuted` · Pure
+
+動画が消音されているとき `true` です。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `muted` | out · data | `boolean` | |

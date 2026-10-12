@@ -1,9 +1,9 @@
 ---
-title: Button、Container、Switch、Frame
-description: 按钮文本与指针、容器裁剪、Switch 的开合状态，以及 Frame 展示哪个 Page——全部作用于连入的元素
+title: Button、Container、Switch、Frame、Video
+description: 按钮文本与指针、容器裁剪、Switch 的开合状态、Frame 展示哪个 Page，以及 Video 的播放，全部作用于连入的元素
 ---
 
-四组比较小的属性面：Button 的文本与指针、Container 的裁剪、Switch 的开合状态，以及 Frame 展示的 Page。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
+Button 的文本与指针、Container 的裁剪、Switch 的开合状态、Frame 展示的 Page，以及 Video 的播放。所有 Element 节点共通的规则见 [Element](/zh/docs/studio/blueprint/nodes/element)
 
 ## Button
 
@@ -245,3 +245,174 @@ Frame 节点带 `element:nl.frame` 引脚，操作的是该 Frame 自己的目�
 | `next` | out · exec | — |  |
 | `element` | in · data | `element:nl.frame` |  |
 | `params` | in · data | `json` |  |
+
+## Video
+
+Video 节点带有名为 `video` 的 `element:nl.video` 引脚，因此可以在页面上任何持有视频绑定的图中使用，例如视频旁边跳过按钮的蓝图。每个节点对连入的视频所做的，与 [Video](/zh/docs/studio/blueprint/nodes/video) 中同名节点对自身视频所做的相同。视频的 `Playback Ended`（播放结束）位于视频控件自己的蓝图中。
+
+### Play Video
+
+`blueprint.element.video.play` · Latent
+
+开始播放视频，或从暂停处继续播放；视频已播完时从头重新播放。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Pause Video
+
+`blueprint.element.video.pause` · Latent
+
+在当前位置暂停视频。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Stop Video
+
+`blueprint.element.video.stop` · Latent
+
+暂停视频并回到视频开头。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+
+### Seek Video
+
+`blueprint.element.video.seek` · Latent
+
+把视频移到 `time` 处。正在播放的视频移到结尾时运行该视频的 `Playback Ended`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | in · data | `float` | 从视频开头计的秒数。可在卡片上直接填写字面量 |
+
+### Get Video Time
+
+`blueprint.element.video.getTime` · Pure
+
+视频当前的播放位置，为从视频开头计的秒数。画面上没有视频时为 `0`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `time` | out · data | `float` | 单位秒 |
+
+### Get Video Duration
+
+`blueprint.element.video.getDuration` · Pure
+
+视频文件的时长，单位为秒。加载完成前为 `0`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `duration` | out · data | `float` | 单位秒 |
+
+### Is Video Playing
+
+`blueprint.element.video.isPlaying` · Pure
+
+视频正在播放时为 `true`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isPlaying` | out · data | `boolean` |  |
+
+### Is Video Ended
+
+`blueprint.element.video.isEnded` · Pure
+
+视频播放到结尾后为 `true`，直到再次播放或移动位置。开启**循环**时始终为 `false`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `isEnded` | out · data | `boolean` |  |
+
+### Set Video Volume
+
+`blueprint.element.video.setVolume` · Latent
+
+设置视频的音量，代替控件上设置的**音量**。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | in · data | `float` | `0` 到 `1`。可在卡片上直接填写字面量 |
+
+### Set Video Muted
+
+`blueprint.element.video.setMuted` · Latent
+
+将视频设为静音或取消静音。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | in · data | `boolean` | 可在卡片上直接填写字面量 |
+
+### Set Video Loop
+
+`blueprint.element.video.setLoop` · Latent
+
+开启或关闭**循环**。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `loop` | in · data | `boolean` | 可在卡片上直接填写字面量 |
+
+### Set Video Speed
+
+`blueprint.element.video.setPlaybackRate` · Latent
+
+设置视频的播放速度，`1` 为正常速度。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `in` | in · exec | — |  |
+| `next` | out · exec | — |  |
+| `video` | in · data | `element:nl.video` |  |
+| `speed` | in · data | `float` | 范围为 `0.0625` 到 `16`。可在卡片上直接填写字面量 |
+
+### Get Video Volume
+
+`blueprint.element.video.getVolume` · Pure
+
+视频的音量（`0` 到 `1`），不含玩家的音量设置。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `volume` | out · data | `float` |  |
+
+### Is Video Muted
+
+`blueprint.element.video.isMuted` · Pure
+
+视频处于静音时为 `true`。
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `video` | in · data | `element:nl.video` |  |
+| `muted` | out · data | `boolean` |  |

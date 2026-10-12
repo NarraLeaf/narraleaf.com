@@ -32,7 +32,8 @@ For a widget the owner is only half the rule: each built-in widget type declares
 | --- | --- |
 | every widget with a private blueprint | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter`, the four keyboard heads, `On Fullscreen Changed`, `On Window Focus Changed`, `On Broadcast`, `On Any Broadcast`, `Element Flush`, `Element Click` |
 | `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.dialog.sentence`, `nl.nvl.texts` | the nine mouse heads, `Focus`, `Blur`, `List Item Refresh` |
-| `nl.video`, `nl.puppet` | the nine mouse heads, `Focus`, `Blur` |
+| `nl.video` | the nine mouse heads, `Focus`, `Blur`, `Playback Ended` |
+| `nl.puppet` | the nine mouse heads, `Focus`, `Blur` |
 | `nl.switch` | the nine mouse heads, `Focus`, `Blur`, `Changed`, `Turned On`, `Turned Off` |
 | `nl.list`, `nl.notification.list`, `nl.choice.list`, `nl.nvl.list` | `Scroll`, `Scroll End`, `Item Render`, `Item Click`, `Item Hover`, `Selection Changed` |
 | `nl.slider` | `Drag Start`, `Value Changed`, `Drag End` |
@@ -695,6 +696,20 @@ Fires in the private blueprint of the parent `nl.frame` when the sub-Page embedd
 | `then` | out · exec | — | |
 | `event` | out · data | `string` | Event name the sub-Page emitted. |
 | `data` | out · data | `json` | Event data the sub-Page emitted. |
+
+## Video
+
+### Playback Ended
+
+`blueprint.event.head.videoEnded`
+
+Fires in the private blueprint of a `nl.video` each time its clip plays to the end, once per play-through. It does not fire while **Loop** is on, when the clip is replaced, or when the page closes before the clip ends. A playing video moved to its end with `Seek Video` fires it as well. Playing the clip on the editor canvas does not fire it.
+
+To start, stop or move the clip from a graph, use the [Video nodes](/docs/studio/blueprint/nodes/video).
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
 
 ## Game preferences
 

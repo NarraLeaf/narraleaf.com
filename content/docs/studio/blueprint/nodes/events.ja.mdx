@@ -32,7 +32,8 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 | --- | --- |
 | 私有ブループリントを持つすべてのウィジェット | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、4つのキーボード Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
 | `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 9つのマウス Head、`Focus`、`Blur`、`List Item Refresh` |
-| `nl.video`、`nl.puppet` | 9つのマウス Head、`Focus`、`Blur` |
+| `nl.video` | 9つのマウス Head、`Focus`、`Blur`、`Playback Ended` |
+| `nl.puppet` | 9つのマウス Head、`Focus`、`Blur` |
 | `nl.switch` | 9つのマウス Head、`Focus`、`Blur`、`Changed`、`Turned On`、`Turned Off` |
 | `nl.list`、`nl.notification.list`、`nl.choice.list`、`nl.nvl.list` | `Scroll`、`Scroll End`、`Item Render`、`Item Click`、`Item Hover`、`Selection Changed` |
 | `nl.slider` | `Drag Start`、`Value Changed`、`Drag End` |
@@ -695,6 +696,20 @@ Page Event（ページイベント）は、その Page コンポーネントに�
 | `then` | out · exec | — | |
 | `event` | out · data | `string` | 子 Page が発行したイベント名。 |
 | `data` | out · data | `json` | 子 Page が発行したイベントデータ。 |
+
+## Video
+
+### Playback Ended
+
+`blueprint.event.head.videoEnded`
+
+Playback Ended（再生終了）は、`nl.video` の私有ブループリントで、クリップが最後まで再生されるたびに 1 回発火します。**Loop**（ループ）がオンのとき、クリップを差し替えたとき、クリップが終わる前にページが閉じたときは発火しません。再生中の動画を `Seek Video`（動画の再生位置を移す）で終わりに移した場合も発火します。エディタのキャンバスでクリップをプレビュー再生しても発火しません。
+
+グラフからクリップの再生、停止、位置の移動を行うには、[Video ノード](/ja/docs/studio/blueprint/nodes/video)を使います。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
 
 ## Game preferences
 
