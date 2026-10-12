@@ -123,7 +123,15 @@ Random Integer（随机整数）在`min`到`max`之间的整数上均匀取值�
 
 ## Compare
 
-Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 的`===`和`!==`比较，不做任何转换。数字`1`和字符串`"1"`不相等；两个分别构造、内容相同的数组也不相等——被检验的是同一性
+Equal（等于）和 Not Equal（不等于）两侧都是`any`，比较两侧所持有的值。`a`与`b`是同一种值且值相同时，`Equal`为真：
+
+- 数字按数值比较，整数（`integer`）`3`等于数字（`float`）`3`。字符串（`string`）逐字比较，完全一致才相等
+- 列表（`array`）的各项依次相等时，两个列表相等。对象的字段相同、各字段的值相等时，两个对象相等，与字段的先后顺序无关
+- 元素（`element`）无论读取多少次，都只等于同一个元素，不等于其他元素。颜色（`RGBAColor`）、二维向量（`Vector2D`）、矩形（`Rect`）、图片（`ImageAsset`）与存档槽（`SaveSlot`）在各字段都相等时相等
+- 未连线的输入视为空值（`null`），与 [`Is Null`](/zh/docs/studio/blueprint/nodes/data#is-null) 的读法一致；不是有限数的数字也视为空值。空值不等于空字符串，也不等于`0`
+- 不同种类的值之间不做转换。数字`1`和字符串`"1"`不相等，`true`也不等于`1`
+
+`Not Equal`的结果总是与`Equal`相反
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -133,10 +141,12 @@ Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 
 
 | 节点 | 类型 | 结果 |
 | --- | --- | --- |
-| `Equal` | `blueprint.compare.equal` | `a`与`b`严格相等时为真|
-| `Not Equal` | `blueprint.compare.notEqual` | 不相等时为真|
+| `Equal` | `blueprint.compare.equal` | `a`与`b`的值相同时为真|
+| `Not Equal` | `blueprint.compare.notEqual` | 值不同时为真|
 
-两个引脚都不接受卡片字面量，而没接线的引脚根本解析不出值——于是两个引脚都空着的`Equal`是拿「什么都没有」和「什么都没有」比，报告`true`。两边都要接线
+两个引脚都不接受卡片字面量。要与固定的值比较，在另一侧接一个`Integer`、`String`等字面量节点；未连线的一侧按空值参与比较
+
+Data 中的 [`Array Contains`](/zh/docs/studio/blueprint/nodes/data#array-contains)、`Array Index Of`、`Array Remove`、`Array Unique`、`Array Find By Key`与`Array Filter By Key`按同一规则查找项
 
 四个数值比较节点用的是`float`，转换规则和本页其余部分一致
 
@@ -174,6 +184,6 @@ Equal（等于）和 Not Equal（不等于）两侧都是`any`，用 JavaScript 
 | `>` | `blueprint.math.greater` | `a`大于`b`|
 | `≥` | `blueprint.math.greaterOrEqual` | `a`大于或等于`b`|
 
-两个操作数都会先转成数字，所以`=`认为数字`1`和字符串`"1"`相等，而`Equal`不认。按你要问的问题来选：数值是否相等用`=`，是否是同一个值用`Equal`
+两个操作数都会先转成数字，所以`=`认为数字`1`和字符串`"1"`相等，而`Equal`不认。按你要问的问题来选：数值是否相等用`=`，种类与值是否都相同用`Equal`
 
 有一侧不是数字时，`≠`输出`true`，其余五个输出`false`

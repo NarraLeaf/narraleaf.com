@@ -123,7 +123,15 @@ A non-boolean input is coerced rather than refused. A finite non-zero number is 
 
 ## Compare
 
-`Equal` and `Not Equal` take `any` on both sides and compare with JavaScript `===` and `!==`, without coercion. The number `1` and the string `"1"` are not equal, and two separately built arrays with identical contents are not equal either — identity is what is being tested.
+`Equal` and `Not Equal` take `any` on both sides and compare the values the two sides hold. `Equal` is true when `a` and `b` are the same kind of value and hold the same value:
+
+- Numbers compare by value, so the integer `3` equals the float `3`. Text compares exactly, character for character.
+- A list equals a list with equal items in the same order. An object equals an object with the same fields and equal values, whatever order the fields are in.
+- An element equals the same element however many times it is read, and no other element. Two `RGBAColor`, `Vector2D`, `Rect`, `ImageAsset` or `SaveSlot` values are equal when their fields are equal.
+- An unwired input counts as `null`, as it does for [`Is Null`](/docs/studio/blueprint/nodes/data#is-null), and so does a number that is not finite. `null` does not equal empty text or `0`.
+- Nothing is converted between kinds. The number `1` and the string `"1"` are not equal, and `true` is not `1`.
+
+`Not Equal` is true exactly when `Equal` is false.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -133,10 +141,12 @@ A non-boolean input is coerced rather than refused. A finite non-zero number is 
 
 | Node | Type | Result |
 | --- | --- | --- |
-| `Equal` | `blueprint.compare.equal` | True when `a` and `b` are strictly equal. |
-| `Not Equal` | `blueprint.compare.notEqual` | True when they are not. |
+| `Equal` | `blueprint.compare.equal` | True when `a` and `b` hold the same value. |
+| `Not Equal` | `blueprint.compare.notEqual` | True when they do not. |
 
-Neither pin accepts a card literal, and an unwired one resolves to nothing at all — so an `Equal` with both pins empty compares nothing against nothing and reports `true`. Wire both sides.
+Neither pin accepts a card literal. To compare against a fixed value, wire a literal such as `Integer` or `String` into the other side; a side left unwired compares as `null`.
+
+[`Array Contains`](/docs/studio/blueprint/nodes/data#array-contains), `Array Index Of`, `Array Remove`, `Array Unique`, `Array Find By Key` and `Array Filter By Key` in Data find items by the same rule.
 
 The four numeric comparisons take `float` instead, and coerce the way the rest of the page does.
 
@@ -174,6 +184,6 @@ The older comparison set, hidden from the palette and kept registered because ex
 | `>` | `blueprint.math.greater` | `a` is above `b`. |
 | `≥` | `blueprint.math.greaterOrEqual` | `a` is above or level with `b`. |
 
-Both operands are coerced to numbers first, so `=` finds the number `1` and the string `"1"` equal where `Equal` does not. Choose by the question you are asking: `=` for numeric equality, `Equal` for identity.
+Both operands are coerced to numbers first, so `=` finds the number `1` and the string `"1"` equal where `Equal` does not. Choose by the question you are asking: `=` for numeric equality, `Equal` for the same value of the same kind.
 
 When either operand is not a number, `≠` outputs `true` and the other five output `false`.

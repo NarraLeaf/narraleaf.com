@@ -860,7 +860,7 @@ Appends to the end.
 
 `blueprint.collection.arrayRemove` · Pure
 
-Removes the first item equal to `item`, compared by JSON value — two objects with the same fields match, even though they are different objects. No match returns the input unchanged.
+Removes the first item equal to `item`, compared as [`Equal`](/docs/studio/blueprint/nodes/math#compare) compares: two objects with the same fields match, even though they are different objects. No match returns the input unchanged.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -884,7 +884,7 @@ Removes one item and closes the gap. An out-of-range index returns the input unc
 
 `blueprint.collection.arrayContains` · Pure
 
-JSON-value equality, the same rule as `Array Remove`. This is deliberately looser than `Equal` in [Math](/docs/studio/blueprint/nodes/math), which compares identity.
+True when an item equals `item`, compared as [`Equal`](/docs/studio/blueprint/nodes/math#compare) compares, the same rule as `Array Remove`.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -981,7 +981,7 @@ The position of the first item equal to `item`, compared by value the way `Array
 
 `blueprint.collection.arrayUnique` · Pure
 
-Drops later duplicates, keeping the first of each. Items are compared by value, so two objects with the same fields count as one.
+Drops later duplicates, keeping the first of each. Items are compared as `Equal` compares them, so two objects with the same fields count as one.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1005,7 +1005,7 @@ Drops later duplicates, keeping the first of each. Items are compared by value, 
 
 `blueprint.collection.arrayFind` · Pure
 
-The first item whose `key` field equals `value`, and where it was.
+The first item whose `key` field equals `value`, compared as `Equal` compares, and where it was.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |
@@ -1019,7 +1019,7 @@ The first item whose `key` field equals `value`, and where it was.
 
 `blueprint.collection.arrayFilter` · Pure
 
-Every item whose `key` field equals `value`, in their original order.
+Every item whose `key` field equals `value`, compared as `Equal` compares, in their original order.
 
 | Pin | Direction | Type | Notes |
 | --- | --- | --- | --- |

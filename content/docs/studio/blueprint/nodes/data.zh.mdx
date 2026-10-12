@@ -916,7 +916,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayRemove` · Pure
 
-移除第一个与`item`相等的项，按 JSON 值比较——两个字段相同的 object 会判定为相等，尽管它们并非同一个对象。没有匹配时原样返回输入
+移除第一个与`item`相等的项，比较方式与 [`Equal`](/zh/docs/studio/blueprint/nodes/math#compare) 相同：两个字段相同的 object 会判定为相等，尽管它们并非同一个对象。没有匹配时原样返回输入
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -940,7 +940,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayContains` · Pure
 
-按 JSON 值相等判断，与`Array Remove`同一套规则。这比 [Math](/zh/docs/studio/blueprint/nodes/math) 里按同一性比较的`Equal`故意放宽了一层
+有一项与`item`相等时为真。比较方式与 [`Equal`](/zh/docs/studio/blueprint/nodes/math#compare) 相同，与`Array Remove`同一套规则
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1037,7 +1037,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayUnique` · Pure
 
-丢掉后出现的重复项，保留每一种的第一个。按值比较，所以字段相同的两个对象算作同一项
+丢掉后出现的重复项，保留每一种的第一个。比较方式与`Equal`相同，所以字段相同的两个对象算作同一项
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1061,7 +1061,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayFind` · Pure
 
-第一个 `key` 字段等于 `value` 的项，以及它在哪里
+第一个 `key` 字段等于 `value` 的项，以及它在哪里。比较方式与`Equal`相同
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
@@ -1075,7 +1075,7 @@ Array Length（数组长度）
 
 `blueprint.collection.arrayFilter` · Pure
 
-所有 `key` 字段等于 `value` 的项，保持原有顺序
+所有 `key` 字段等于 `value` 的项，保持原有顺序。比较方式与`Equal`相同
 
 | 引脚 | 方向 | 类型 | 说明 |
 | --- | --- | --- | --- |
