@@ -5,11 +5,12 @@ import { cn } from '@/lib/cn';
  * The Studio introduction video, as the home page shows it and as a blog post
  * can through MDX (`<StudioVideo lang="zh" />`).
  *
- * Chinese pages embed the Bilibili upload and every other language the YouTube
- * one. StudioDownloads deliberately does not pick a source by page language, but
- * a download link has to say where it leads; a video is only something to press
- * play on, and YouTube does not load in mainland China, where most readers of the
- * Chinese pages are.
+ * Each language shows its own cut. English and Japanese pages embed their
+ * YouTube uploads; Chinese pages embed the Bilibili one, although a Chinese cut
+ * is on YouTube too. StudioDownloads deliberately does not pick a source by page
+ * language, but a download link has to say where it leads; a video is only
+ * something to press play on, and YouTube does not load in mainland China, where
+ * most readers of the Chinese pages are.
  *
  * - YouTube goes through youtube-nocookie.com, the privacy-enhanced host, so the
  *   player stores nothing about a visitor who never presses play. `rel=0` keeps
@@ -21,19 +22,23 @@ import { cn } from '@/lib/cn';
  * towards it. `strict-origin-when-cross-origin` is the policy YouTube's own embed
  * code carries: its player will not start for a page that sends it no referrer.
  */
-const VIDEOS = {
-  youtube: {
+const VIDEOS: Record<Locale, { src: string; title: string }> = {
+  en: {
     src: 'https://www.youtube-nocookie.com/embed/pLx5T0AdRHA?rel=0',
     title: 'NarraLeaf Studio - All-in-One Visual Novel IDE',
   },
-  bilibili: {
+  ja: {
+    src: 'https://www.youtube-nocookie.com/embed/aMsqRjDq42w?rel=0',
+    title: 'NarraLeaf Studio - 本格的なビジュアルノベルエディタ',
+  },
+  zh: {
     src: 'https://player.bilibili.com/player.html?bvid=BV1uSYA6VEBq&p=1&autoplay=0&danmaku=0&high_quality=1',
     title: 'NarraLeaf Studio 介绍视频',
   },
-} as const;
+};
 
 export function StudioVideo({ lang = 'en', className }: { lang?: Locale; className?: string }) {
-  const video = lang === 'zh' ? VIDEOS.bilibili : VIDEOS.youtube;
+  const video = VIDEOS[lang];
 
   return (
     <div
