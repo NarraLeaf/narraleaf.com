@@ -11,6 +11,17 @@ const LABEL = {
 } satisfies Record<Locale, string>;
 
 /**
+ * The label from `lg` to `xl`, where the home nav's single row is too narrow
+ * for the full one (see the note in global.css). Below `lg` the button sits in
+ * the nav's menu, which has room for the full label.
+ */
+const SHORT_LABEL = {
+  en: 'Download',
+  zh: '下载',
+  ja: 'ダウンロード',
+} satisfies Record<Locale, string>;
+
+/**
  * The home nav's call to action.
  *
  * Deliberately not in the docs top-level bar: the docs bar stays navigation
@@ -33,7 +44,8 @@ export function DownloadStudioButton({
       )}
     >
       <Download className="size-4" />
-      {LABEL[locale]}
+      <span className="lg:max-xl:hidden">{LABEL[locale]}</span>
+      <span className="hidden lg:max-xl:inline">{SHORT_LABEL[locale]}</span>
     </Link>
   );
 }

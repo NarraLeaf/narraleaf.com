@@ -186,6 +186,26 @@ html > body[data-scroll-locked] {
   }
 }
 
+/*
+ * The home nav from `lg` to `xl`.
+ *
+ * `lg` is where fumadocs lays the four section links, the search box, the two
+ * toggles, the GitHub mark and the download button out in one row, and from
+ * there until `xl` that row is wider than the window in English and Japanese:
+ * the download button ends past the right edge. The search box is the one item
+ * with room to give, so in this band it keeps its label and drops the shortcut
+ * hint; the download button shortens its own label in the same band.
+ */
+@media (min-width: 64rem) and (max-width: 79.98rem) {
+  [data-search-full] {
+    max-width: 6.5rem;
+  }
+
+  [data-search-full] kbd {
+    display: none;
+  }
+}
+
 @keyframes demo-line-cue {
   0%,
   100% {

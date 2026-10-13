@@ -10,31 +10,25 @@ export type TopLevelNavItem = {
   active: 'nested-url';
 };
 
+/** The sections' names in each language, as the home page footer also calls them. */
+const LABELS: Record<Locale, Record<TopLevelNavKey, string>> = {
+  en: { project: 'Project', docs: 'Documentation', blog: 'Blog', tutorials: 'Tutorials' },
+  zh: { project: '项目', docs: '文档', blog: '博客', tutorials: '教程' },
+  ja: { project: 'プロジェクト', docs: 'ドキュメント', blog: 'ブログ', tutorials: 'チュートリアル' },
+};
+
+const ROUTES: Record<TopLevelNavKey, string> = {
+  project: projectRoute,
+  docs: docsRoute,
+  blog: blogRoute,
+  tutorials: tutorialsRoute,
+};
+
 export function topLevelNavItems(locale: Locale = i18n.defaultLanguage): TopLevelNavItem[] {
-  return [
-    {
-      key: 'project',
-      label: 'Project',
-      href: localizedPath(projectRoute, locale),
-      active: 'nested-url',
-    },
-    {
-      key: 'docs',
-      label: 'Documentation',
-      href: localizedPath(docsRoute, locale),
-      active: 'nested-url',
-    },
-    {
-      key: 'blog',
-      label: 'Blog',
-      href: localizedPath(blogRoute, locale),
-      active: 'nested-url',
-    },
-    {
-      key: 'tutorials',
-      label: 'Tutorials',
-      href: localizedPath(tutorialsRoute, locale),
-      active: 'nested-url',
-    },
-  ];
+  return (Object.keys(ROUTES) as TopLevelNavKey[]).map((key) => ({
+    key,
+    label: LABELS[locale][key],
+    href: localizedPath(ROUTES[key], locale),
+    active: 'nested-url',
+  }));
 }
