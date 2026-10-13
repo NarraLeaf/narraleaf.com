@@ -33,6 +33,7 @@ export const siteLogoPath = '/static/img/narraleaf-logo.webp';
 export const projectRoute = '/project';
 export const docsRoute = '/docs';
 export const blogRoute = '/blog';
+export const tutorialsRoute = '/tutorials';
 export const downloadRoute = '/download';
 export const projectImageRoute = '/og/project';
 /**

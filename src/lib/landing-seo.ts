@@ -1,5 +1,5 @@
 import { type Locale } from './i18n';
-import { blogRoute, downloadRoute, projectRoute } from './shared';
+import { blogRoute, downloadRoute, projectRoute, tutorialsRoute } from './shared';
 
 /**
  * The pages outside the documentation tree: what each one is called in a search
@@ -11,7 +11,7 @@ import { blogRoute, downloadRoute, projectRoute } from './shared';
  * title that differs between the page and its card is the shape of a result
  * that reads as a redirect.
  */
-export type LandingPageKey = 'home' | 'download' | 'project' | 'blog';
+export type LandingPageKey = 'home' | 'download' | 'project' | 'blog' | 'tutorials';
 
 export type LandingPageSeo = {
   /** The full `<title>`, product name included: these pages set it outright. */
@@ -26,6 +26,7 @@ export const landingPaths: Record<LandingPageKey, string> = {
   download: downloadRoute,
   project: projectRoute,
   blog: blogRoute,
+  tutorials: tutorialsRoute,
 };
 
 const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
@@ -142,6 +143,25 @@ const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
       description:
         'NarraLeaf Project のリリース情報とお知らせ。NarraLeaf Studio、NarraLeaf Desktop、NarraLeaf-React の最新情報を掲載しています。',
       keywords: ['NarraLeaf ブログ', 'NarraLeaf リリース', 'narraleaf-react アップデート'],
+    },
+  },
+  tutorials: {
+    en: {
+      title: 'NarraLeaf Studio Tutorials',
+      description:
+        'Video tutorials for NarraLeaf Studio, one task per episode: from creating your first project to building and publishing your game.',
+      keywords: ['NarraLeaf Studio tutorial', 'visual novel tutorial', 'how to make a visual novel'],
+    },
+    zh: {
+      title: 'NarraLeaf Studio 教程',
+      description: 'NarraLeaf Studio 视频教程，每集完成一项具体任务：从新建第一个项目，到构建并发布游戏。',
+      keywords: ['NarraLeaf Studio 教程', '视觉小说制作教程', '视觉小说怎么做'],
+    },
+    ja: {
+      title: 'NarraLeaf Studio チュートリアル',
+      description:
+        'NarraLeaf Studio の動画チュートリアルです。1 回につき 1 つの作業を扱い、最初のプロジェクトの作成から、ゲームのビルドと公開までを解説します。',
+      keywords: ['NarraLeaf Studio チュートリアル', 'ノベルゲームの作り方', 'ビジュアルノベル 制作 入門'],
     },
   },
 };

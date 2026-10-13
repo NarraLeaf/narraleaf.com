@@ -1,7 +1,7 @@
-import { blogRoute, docsRoute, projectRoute } from './shared';
+import { blogRoute, docsRoute, projectRoute, tutorialsRoute } from './shared';
 import { type Locale, i18n, localizedPath } from './i18n';
 
-export type TopLevelNavKey = 'project' | 'docs' | 'blog';
+export type TopLevelNavKey = 'project' | 'docs' | 'blog' | 'tutorials';
 
 export type TopLevelNavItem = {
   key: TopLevelNavKey;
@@ -28,6 +28,12 @@ export function topLevelNavItems(locale: Locale = i18n.defaultLanguage): TopLeve
       key: 'blog',
       label: 'Blog',
       href: localizedPath(blogRoute, locale),
+      active: 'nested-url',
+    },
+    {
+      key: 'tutorials',
+      label: 'Tutorials',
+      href: localizedPath(tutorialsRoute, locale),
       active: 'nested-url',
     },
   ];

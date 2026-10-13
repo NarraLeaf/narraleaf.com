@@ -6,7 +6,16 @@ import desktopCodeImage from '@/assets/home/desktop-code.webp';
 import desktopGameDialogImage from '@/assets/home/desktop-game-dialog.webp';
 import desktopGameMenuImage from '@/assets/home/desktop-game-menu.webp';
 import studioWorkspaceImage from '@/assets/home/studio-workspace.webp';
-import { appName, blogRoute, docsRoute, downloadRoute, gitConfig, projectRoute, siteLogoPath } from '@/lib/shared';
+import {
+  appName,
+  blogRoute,
+  docsRoute,
+  downloadRoute,
+  gitConfig,
+  projectRoute,
+  siteLogoPath,
+  tutorialsRoute,
+} from '@/lib/shared';
 import { isLocale, type Locale, localizedPath } from '@/lib/i18n';
 import { jsonLdScript, landingMetadata } from '@/lib/seo';
 import { studioApplicationJsonLd } from '@/lib/structured-data';
@@ -89,6 +98,7 @@ type FooterCopy = {
   projectLabel: string;
   docsLabel: string;
   blogLabel: string;
+  tutorialsLabel: string;
   sourceLabel: string;
   copyright: string;
 };
@@ -317,6 +327,7 @@ const homeCopy = {
       projectLabel: 'Project',
       docsLabel: 'Docs',
       blogLabel: 'Blog',
+      tutorialsLabel: 'Tutorials',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -524,6 +535,7 @@ const homeCopy = {
       projectLabel: '项目',
       docsLabel: '文档',
       blogLabel: '博客',
+      tutorialsLabel: '教程',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -732,6 +744,7 @@ const homeCopy = {
       projectLabel: 'プロジェクト',
       docsLabel: 'ドキュメント',
       blogLabel: 'ブログ',
+      tutorialsLabel: 'チュートリアル',
       sourceLabel: 'GitHub',
       copyright: 'NarraLeaf Project',
     },
@@ -1136,6 +1149,9 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
             </Link>
             <Link href={localizedPath(blogRoute, locale)} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
               {copy.footer.blogLabel}
+            </Link>
+            <Link href={localizedPath(tutorialsRoute, locale)} className="text-fd-muted-foreground transition-colors hover:text-fd-foreground">
+              {copy.footer.tutorialsLabel}
             </Link>
             <a
               href={githubUrl}

@@ -1,0 +1,304 @@
+{
+  "series": [
+    {
+      "id": "basics",
+      "title": {
+        "en": "The basics",
+        "zh": "基础篇",
+        "ja": "基本編"
+      },
+      "playlist": {
+        "en": "PLF-Nbi1JzNtk",
+        "zh": "PLFYPoBS31fVg",
+        "ja": "PLBkk04PPWYLU"
+      },
+      "episodes": [
+        {
+          "slug": "getting-started",
+          "number": 1,
+          "videos": {
+            "en": {
+              "youtube": "IZ_9KVQgioE",
+              "published": "2026-10-11T19:05:25-07:00",
+              "title": "Getting started",
+              "label": "Episode 1",
+              "summary": "From zero: create a project from the Skeleton template and run the sample game; back in the workspace, find the pages, the game UI, the lines, the background and the music in the order the game showed them; import your own music beside it; press F1 right there and follow the help to the online documentation.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Create a project"
+                },
+                {
+                  "t": 30,
+                  "text": "Run the sample game"
+                },
+                {
+                  "t": 59,
+                  "text": "Where what you saw lives"
+                },
+                {
+                  "t": 82,
+                  "text": "Import an asset"
+                },
+                {
+                  "t": 106,
+                  "text": "When you're stuck"
+                }
+              ],
+              "length": 121.6,
+              "poster": "/static/img/tutorials/getting-started-en.webp"
+            },
+            "zh": {
+              "youtube": "tPBT7t_F2LQ",
+              "published": "2026-10-12T15:21:25-07:00",
+              "title": "上手 Studio",
+              "label": "第 1 集",
+              "summary": "从零开始：以骨架模板新建项目并运行示例游戏；回到工作区，按刚才看到的顺序找到页面、游戏 UI、台词、背景与音乐各在哪；把自己的音乐导入同一处；就在那里按 F1，经帮助页找到在线文档。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "新建项目"
+                },
+                {
+                  "t": 29,
+                  "text": "运行示例游戏"
+                },
+                {
+                  "t": 55,
+                  "text": "刚才看到的都在哪"
+                },
+                {
+                  "t": 78,
+                  "text": "导入资产"
+                },
+                {
+                  "t": 101,
+                  "text": "卡住时看哪里"
+                }
+              ],
+              "length": 115.5,
+              "poster": "/static/img/tutorials/getting-started-zh.webp"
+            },
+            "ja": {
+              "youtube": "_0XgeQUdM1c",
+              "published": "2026-10-12T16:38:01-07:00",
+              "title": "Studio を使い始める",
+              "label": "第 1 回",
+              "summary": "スケルトン テンプレートからプロジェクトを作成し、サンプルゲームを実行します。ワークスペースに戻り、ゲームで見た順に、ページ、ゲーム UI、台詞、背景と音楽がどこにあるかを確認します。自分の音楽を同じ場所に読み込み、そこで F1 を押して、ヘルプからオンラインのドキュメントを開きます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "プロジェクトの作成"
+                },
+                {
+                  "t": 34,
+                  "text": "サンプルゲームの実行"
+                },
+                {
+                  "t": 62,
+                  "text": "各要素の場所"
+                },
+                {
+                  "t": 87,
+                  "text": "アセットの読み込み"
+                },
+                {
+                  "t": 111,
+                  "text": "困ったときは"
+                }
+              ],
+              "length": 128.5,
+              "poster": "/static/img/tutorials/getting-started-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "edit-and-play",
+          "number": 2,
+          "videos": {
+            "en": {
+              "youtube": "XjW8yXZLRRU",
+              "published": "2026-10-12T16:18:59-07:00",
+              "title": "Edit and play",
+              "label": "Episode 2",
+              "summary": "Find a line and change it, play from that row, and keep editing while the game runs and reloads; after deleting a scene by mistake, follow Dev Mode's error to the row at fault and undo the deletion in the outline. Every shortcut: the keyboard icon at the right of the status bar.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Find the line"
+                },
+                {
+                  "t": 11,
+                  "text": "Change it and see it"
+                },
+                {
+                  "t": 30,
+                  "text": "When it breaks"
+                },
+                {
+                  "t": 48,
+                  "text": "Undo it"
+                }
+              ],
+              "length": 60.7,
+              "poster": "/static/img/tutorials/edit-and-play-en.webp"
+            },
+            "zh": {
+              "youtube": "Z2QlRZHv8Z8",
+              "published": "2026-10-12T15:26:03-07:00",
+              "title": "边改边看",
+              "label": "第 2 集",
+              "summary": "找到一句台词并修改，从这一行开始播放，游戏运行时继续修改并自动重载；误删场景后，从开发模式的报错一路找到出错的行，再回到大纲撤销。快捷键一览：状态栏右端的键盘图标。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "找到要改的那句"
+                },
+                {
+                  "t": 10,
+                  "text": "改了马上看"
+                },
+                {
+                  "t": 29,
+                  "text": "改坏了"
+                },
+                {
+                  "t": 46,
+                  "text": "撤回"
+                }
+              ],
+              "length": 58.3,
+              "poster": "/static/img/tutorials/edit-and-play-zh.webp"
+            },
+            "ja": {
+              "youtube": "IhjVAimjImU",
+              "published": "2026-10-12T16:42:42-07:00",
+              "title": "編集しながら確認する",
+              "label": "第 2 回",
+              "summary": "台詞を検索して修正し、その行から再生します。実行中の編集は自動で再読み込みされ、シーンを誤って削除しても、開発モードのエラーから問題の行を開き、アウトラインで元に戻せます。ショートカットの一覧は、ステータスバー右端のキーボードアイコンにあります。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "台詞の検索"
+                },
+                {
+                  "t": 11,
+                  "text": "修正と再生"
+                },
+                {
+                  "t": 30,
+                  "text": "エラーが出たとき"
+                },
+                {
+                  "t": 51,
+                  "text": "削除の取り消し"
+                }
+              ],
+              "length": 62.9,
+              "poster": "/static/img/tutorials/edit-and-play-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "writing-a-story",
+          "number": 3,
+          "videos": {
+            "en": {
+              "youtube": "y0aF5_mLpuY",
+              "published": "2026-10-12T16:21:21-07:00",
+              "title": "Writing a story",
+              "label": "Episode 3",
+              "summary": "Create a scene, give it a default background and write the narration. Before a character comes on, see how a character is made and given sprites: add a Smile pose to Narra in the Characters panel; then bring her on, let her speak, change her expression and take her off, change the background, and play the scene from its first row.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "A new scene · Narration"
+                },
+                {
+                  "t": 26,
+                  "text": "Where characters come from"
+                },
+                {
+                  "t": 54,
+                  "text": "An entrance and dialogue"
+                },
+                {
+                  "t": 76,
+                  "text": "An exit and a new background"
+                },
+                {
+                  "t": 89,
+                  "text": "Play it"
+                }
+              ],
+              "length": 112.2,
+              "poster": "/static/img/tutorials/writing-a-story-en.webp"
+            },
+            "zh": {
+              "youtube": "-mPwg1FYtHw",
+              "published": "2026-10-12T16:16:49-07:00",
+              "title": "写故事",
+              "label": "第 3 集",
+              "summary": "新建一个场景，设好默认背景，写旁白；让角色上场之前，先看新角色怎么建、立绘怎么加：在「角色」面板里给 Narra 加一个「微笑」姿态；然后让她登场、说话、换表情、退场，再换一张背景，最后从第一行开始播放。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "新建场景、写旁白"
+                },
+                {
+                  "t": 24,
+                  "text": "角色从哪来"
+                },
+                {
+                  "t": 52,
+                  "text": "登场与对白"
+                },
+                {
+                  "t": 73,
+                  "text": "退场与换背景"
+                },
+                {
+                  "t": 87,
+                  "text": "播放"
+                }
+              ],
+              "length": 109.8,
+              "poster": "/static/img/tutorials/writing-a-story-zh.webp"
+            },
+            "ja": {
+              "youtube": "_dh61Gg0bF4",
+              "published": "2026-10-12T16:49:19-07:00",
+              "title": "ストーリーを書く",
+              "label": "第 3 回",
+              "summary": "新しいシーンを作成し、既定の背景を設定して地の文を書きます。キャラクターを登場させる前に、キャラクターの作成方法と立ち絵の追加方法を確認し、「キャラクター」パネルで Narra に「笑顔」ポーズを追加します。続いて Narra の登場、台詞、表情の切り替え、退場、背景の変更を書き、最後に 1 行目から再生します。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "シーンの作成・地の文"
+                },
+                {
+                  "t": 26,
+                  "text": "キャラクターの準備"
+                },
+                {
+                  "t": 54,
+                  "text": "登場と台詞"
+                },
+                {
+                  "t": 77,
+                  "text": "退場と背景の変更"
+                },
+                {
+                  "t": 92,
+                  "text": "再生"
+                }
+              ],
+              "length": 114.7,
+              "poster": "/static/img/tutorials/writing-a-story-ja.webp"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

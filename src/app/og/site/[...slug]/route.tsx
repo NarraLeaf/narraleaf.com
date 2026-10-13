@@ -8,7 +8,7 @@ import { cardDescription } from '@/lib/seo';
 
 export const revalidate = false;
 
-const LANDING_KEYS: LandingPageKey[] = ['home', 'download', 'project', 'blog'];
+const LANDING_KEYS: LandingPageKey[] = ['home', 'download', 'project', 'blog', 'tutorials'];
 
 function isLandingKey(value: string | undefined): value is LandingPageKey {
   return LANDING_KEYS.includes(value as LandingPageKey);

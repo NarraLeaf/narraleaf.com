@@ -3,7 +3,8 @@ import { blogSource, pagesWrittenIn, projectSource, source } from '@/lib/source'
 import { blogPostLocales, publishedBlogSlugs } from '@/lib/blog';
 import { i18n, type Locale, localizedPath } from '@/lib/i18n';
 import { absoluteUrl } from '@/lib/seo';
-import { blogRoute, docsRoute, downloadRoute, projectRoute } from '@/lib/shared';
+import { blogRoute, docsRoute, downloadRoute, projectRoute, tutorialsRoute } from '@/lib/shared';
+import { tutorialLocales, tutorialSeries, tutorialSlugs } from '@/lib/tutorials';
 
 /**
  * Every URL on the site worth indexing, in both languages, each one paired with
@@ -145,6 +146,27 @@ function blogEntries(): MetadataRoute.Sitemap {
   ];
 }
 
+/**
+ * The tutorials index in every language that has an episode, and each episode in
+ * the languages its video is published in. The index lists nothing in a language
+ * with no episode yet, so that language's index is left out like an empty page.
+ */
+function tutorialEntries(): MetadataRoute.Sitemap {
+  return [
+    ...localizedEntries(
+      tutorialsRoute,
+      i18n.languages.filter((locale) => tutorialSeries(locale).length > 0),
+      { changeFrequency: 'weekly', priority: 0.7 },
+    ),
+    ...tutorialSlugs().flatMap((slug) =>
+      localizedEntries(`${tutorialsRoute}/${slug}`, tutorialLocales(slug), {
+        changeFrequency: 'monthly',
+        priority: 0.6,
+      }),
+    ),
+  ];
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...localizedEntries('/', [...i18n.languages], {
@@ -159,5 +181,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
     ...contentEntries(),
     ...blogEntries(),
+    ...tutorialEntries(),
   ];
 }
