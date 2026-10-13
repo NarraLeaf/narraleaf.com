@@ -50,7 +50,7 @@ export const tutorialsCopy = {
   en: {
     title: 'Tutorials',
     description:
-      'Video tutorials for NarraLeaf Studio, one task per episode: from creating your first project to building and publishing your game.',
+      'Video tutorials for NarraLeaf Studio. Each episode covers one task, from creating a project to building and publishing a game.',
     empty: 'No tutorials yet.',
     allTutorials: 'All tutorials',
     playlist: 'Playlist on YouTube',
@@ -62,7 +62,7 @@ export const tutorialsCopy = {
   },
   zh: {
     title: '教程',
-    description: 'NarraLeaf Studio 视频教程，每集完成一项具体任务：从新建第一个项目，到构建并发布游戏。',
+    description: 'NarraLeaf Studio 的视频教程。每集讲解一项操作，从新建项目到构建并发布游戏。',
     empty: '还没有教程。',
     allTutorials: '全部教程',
     playlist: 'YouTube 播放列表',

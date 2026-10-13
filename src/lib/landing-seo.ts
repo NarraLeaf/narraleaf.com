@@ -149,12 +149,12 @@ const landingSeo: Record<LandingPageKey, Record<Locale, LandingPageSeo>> = {
     en: {
       title: 'NarraLeaf Studio Tutorials',
       description:
-        'Video tutorials for NarraLeaf Studio, one task per episode: from creating your first project to building and publishing your game.',
+        'Video tutorials for NarraLeaf Studio. Each episode covers one task, from creating a project to building and publishing a game.',
       keywords: ['NarraLeaf Studio tutorial', 'visual novel tutorial', 'how to make a visual novel'],
     },
     zh: {
       title: 'NarraLeaf Studio 教程',
-      description: 'NarraLeaf Studio 视频教程，每集完成一项具体任务：从新建第一个项目，到构建并发布游戏。',
+      description: 'NarraLeaf Studio 的视频教程。每集讲解一项操作，从新建项目到构建并发布游戏。',
       keywords: ['NarraLeaf Studio 教程', '视觉小说制作教程', '视觉小说怎么做'],
     },
     ja: {

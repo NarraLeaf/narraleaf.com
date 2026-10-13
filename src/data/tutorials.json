@@ -22,7 +22,7 @@
               "published": "2026-10-11T19:05:25-07:00",
               "title": "Getting started",
               "label": "Episode 1",
-              "summary": "From zero: create a project from the Skeleton template and run the sample game; back in the workspace, find the pages, the game UI, the lines, the background and the music in the order the game showed them; import your own music beside it; press F1 right there and follow the help to the online documentation.",
+              "summary": "Create a project from the Skeleton template and run the sample game. In the workspace, locate the pages, the game UI, the lines, the background and the music, in the order the game showed them. Import your own music into the same place, then press F1 there and open the online documentation from the help.",
               "chapters": [
                 {
                   "t": 0,
@@ -53,7 +53,7 @@
               "published": "2026-10-12T15:21:25-07:00",
               "title": "上手 Studio",
               "label": "第 1 集",
-              "summary": "从零开始：以骨架模板新建项目并运行示例游戏；回到工作区，按刚才看到的顺序找到页面、游戏 UI、台词、背景与音乐各在哪；把自己的音乐导入同一处；就在那里按 F1，经帮助页找到在线文档。",
+              "summary": "使用骨架模板新建项目，并运行示例游戏。回到工作区后，按游戏中出现的顺序，查看页面、游戏 UI、台词、背景与音乐所在的位置。将自己的音乐导入同一位置，然后在此处按 F1，从帮助中打开在线文档。",
               "chapters": [
                 {
                   "t": 0,
@@ -121,7 +121,7 @@
               "published": "2026-10-12T16:18:59-07:00",
               "title": "Edit and play",
               "label": "Episode 2",
-              "summary": "Find a line and change it, play from that row, and keep editing while the game runs and reloads; after deleting a scene by mistake, follow Dev Mode's error to the row at fault and undo the deletion in the outline. Every shortcut: the keyboard icon at the right of the status bar.",
+              "summary": "Search for a line, edit it and play from that row. Edits made while the game runs are reloaded automatically. After deleting a scene by mistake, open the row at fault from the Dev Mode error and undo the deletion in the outline. The full list of shortcuts is under the keyboard icon at the right end of the status bar.",
               "chapters": [
                 {
                   "t": 0,
@@ -148,7 +148,7 @@
               "published": "2026-10-12T15:26:03-07:00",
               "title": "边改边看",
               "label": "第 2 集",
-              "summary": "找到一句台词并修改，从这一行开始播放，游戏运行时继续修改并自动重载；误删场景后，从开发模式的报错一路找到出错的行，再回到大纲撤销。快捷键一览：状态栏右端的键盘图标。",
+              "summary": "搜索并修改一句台词，从该行开始播放。游戏运行期间的修改会自动重新加载。误删场景后，从开发模式的报错打开出错的行，并在大纲中撤销删除。全部快捷键可通过状态栏右端的键盘图标查看。",
               "chapters": [
                 {
                   "t": 0,
@@ -175,7 +175,7 @@
               "published": "2026-10-12T16:42:42-07:00",
               "title": "編集しながら確認する",
               "label": "第 2 回",
-              "summary": "台詞を検索して修正し、その行から再生します。実行中の編集は自動で再読み込みされ、シーンを誤って削除しても、開発モードのエラーから問題の行を開き、アウトラインで元に戻せます。ショートカットの一覧は、ステータスバー右端のキーボードアイコンにあります。",
+              "summary": "台詞を検索して修正し、その行から再生します。実行中の編集は自動で再読み込みされます。シーンを誤って削除した場合は、開発モードのエラーから問題の行を開き、アウトラインで削除を取り消します。ショートカットの一覧は、ステータスバー右端のキーボードアイコンにあります。",
               "chapters": [
                 {
                   "t": 0,
@@ -208,7 +208,7 @@
               "published": "2026-10-12T16:21:21-07:00",
               "title": "Writing a story",
               "label": "Episode 3",
-              "summary": "Create a scene, give it a default background and write the narration. Before a character comes on, see how a character is made and given sprites: add a Smile pose to Narra in the Characters panel; then bring her on, let her speak, change her expression and take her off, change the background, and play the scene from its first row.",
+              "summary": "Create a scene, set its default background and write the narration. Before the character enters, see how a character is created and given sprites, and add a Smile pose to Narra in the Characters panel. Then write Narra's entrance, lines, change of expression and exit, change the background, and play from the first row.",
               "chapters": [
                 {
                   "t": 0,
@@ -239,7 +239,7 @@
               "published": "2026-10-12T16:16:49-07:00",
               "title": "写故事",
               "label": "第 3 集",
-              "summary": "新建一个场景，设好默认背景，写旁白；让角色上场之前，先看新角色怎么建、立绘怎么加：在「角色」面板里给 Narra 加一个「微笑」姿态；然后让她登场、说话、换表情、退场，再换一张背景，最后从第一行开始播放。",
+              "summary": "新建场景，设置默认背景并写入旁白。角色登场前，了解新建角色与添加立绘的方法，并在「角色」面板中为 Narra 添加「微笑」姿态。随后编写 Narra 的登场、台词、表情切换与退场，更换背景，最后从第一行开始播放。",
               "chapters": [
                 {
                   "t": 0,
