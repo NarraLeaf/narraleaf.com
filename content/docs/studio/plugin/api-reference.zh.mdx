@@ -212,7 +212,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` 和 `registerMany` 返回清理函数。`createBlock` 以 `initialText` 收到作者在命令后面输入的文字，可选的 `describe(params)` 决定插件行显示的文字。见 [story](/zh/docs/studio/plugin/studio/story)
+`register` 和 `registerMany` 返回清理函数。`createBlock` 以 `initialText` 收到作者在命令后面输入的文字，可选的 `describe(params)` 决定插件行显示的文字。`keywords` 是任何界面语言下都能直达这个动作的命令词，`params` 列出插件行在属性面板里显示的字段（两项都由 Studio 1.6.0 及以后的版本读取）。见 [story](/zh/docs/studio/plugin/studio/story)
 
 ### services.blueprintNodes
 
@@ -315,7 +315,7 @@ app.game.storyActions.registerMany(defs);
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `ctx.params` | `Record<string, unknown>` | 这一行的 `params`，即 `createBlock` 写入的内容。每次运行都是一份新的拷贝 |
+| `ctx.params` | `Record<string, unknown>` | 这一行的 `params`：`createBlock` 写入的内容，加上作者在属性面板里的修改。每次运行都是一份新的拷贝 |
 | `ctx.signal` | `AbortSignal` | `run` 还没结束时，玩家回退到这一行之前或读取了存档，它就会被中止 |
 | `ctx.game` | `RuntimePluginGame` | 与 `setup(app)` 收到的 `app.game` 是同一个对象 |
 

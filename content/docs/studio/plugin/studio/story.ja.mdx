@@ -3,7 +3,7 @@ title: story
 description: シーンエディターのストーリーアクションと、それが挿入するプラグインの行
 ---
 
-`app.services.story.actions` は、シーンエディターの挿入パレットに、Plugin カテゴリの下でアクションを登録します。各アクションはストーリーブロックを組み立てて挿入します。そのブロックは、プラグインがなくなってもドキュメントに残る標準のストーリーブロックか、ストーリーがその行に来たときに runtime エントリーが実行する、プラグイン独自の行のどちらかです。
+`app.services.story.actions` は、シーンエディターの挿入パレットに、**Tools**（道具）の下でアクションを登録します。各アクションはストーリーブロックを組み立てて挿入します。そのブロックは、プラグインがなくなってもドキュメントに残る標準のストーリーブロックか、ストーリーがその行に来たときに runtime エントリーが実行する、プラグイン独自の行のどちらかです。
 
 ## プロジェクトのストーリーを読み取る
 
@@ -33,12 +33,16 @@ type StoryPluginActionRegistration = {
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
     describe?: (params: Record<string, unknown>) => string | null | undefined;
+    keywords?: readonly string[];                    // コマンド語。どの表示言語でも有効
+    params?: readonly StoryPluginActionParamDef[];  // Properties パネルのフィールド
 };
 ```
 
 `createBlock` は `generateId()` を受け取ります――ブロックが必要とする任意の id にはこれを使ってください――また、作者がコマンドの後に入力したテキストを `initialText` として受け取ります。`StoryBlock` を返してください。
 
-作者がこのアクションに届く方法は 2 つあります。コマンドメニューから選ぶか、ラベルの先頭の語を入力して Enter を押すかです。`/rock rpsResult` は **Rock, Paper, Scissors** というラベルのアクションを、`initialText` を `rpsResult` として挿入します。組み込みコマンドの名前である語は、常に組み込みコマンドを指します。
+作者がこのアクションに届く方法は 2 つあります。コマンドメニューから選ぶか、コマンド語を入力して Enter を押すかです。コマンド語は、`keywords` のいずれかの語かその先頭部分、またはラベルや id の先頭の語です。`/rock rpsResult` は **Rock, Paper, Scissors** というラベルのアクションを、`initialText` を `rpsResult` として挿入します。翻訳されたラベルは作者の表示言語に合わせて変わり、`keywords` は変わりません。どの言語でも使えるコマンド語は `keywords` に書きます。組み込みコマンドの名前である語は、常に組み込みコマンドを指します。1 語でないキーワードは登録時に拒否されます。
+
+`keywords` と `params` を読み取るのは Studio 1.6.0 以降です。それより前のバージョンはこの 2 つを無視します。
 
 ```ts
 app.services.story.actions.register({
@@ -72,7 +76,7 @@ createBlock: ({ generateId, initialText }) => ({
 }),
 ```
 
-- `params` には、その行が必要とするものを JSON で入れます。Studio はそれを保存するだけで、読み取りません。
+- `params` には、その行が必要とするものを JSON で入れます。Studio はそれを保存し、アクションが宣言した [Properties パネルのフィールド](#properties-パネルのフィールド)を通してだけ変更します。
 - この行はエディターでは何もしません。ゲームの中では、runtime エントリーが同じ `actionId` で [`app.game.storyActions`](/ja/docs/studio/plugin/api-reference#gamestoryactions) に登録した処理がそれを実行し、ストーリーはその終了を待ちます。
 - シーンにこの行がある間、プロジェクトはあなたのプラグインに依存し、すべての実行とビルドにプラグインが含まれます。プラグインがないとき、この行は何もせず、プロジェクトはプラグインが足りないことを報告します。
 
@@ -81,5 +85,55 @@ createBlock: ({ generateId, initialText }) => ({
 ```ts
 describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
 ```
+
+## Properties パネルのフィールド
+
+登録の `params` は、そのアクションの行を選択したときに Properties パネルに表示するフィールドの一覧です。各フィールドは行の `params` のキーを 1 つ編集し、その編集はほかの行の編集と同じくシーンの元に戻す履歴に入ります。フィールドを空にすると、そのキーは削除されます。
+
+```ts
+type StoryPluginActionParamDef = {
+    key: string;                                   // フィールドが編集する params のキー
+    label: string;
+    kind: "select" | "string" | "number";
+    options?: { value: string; label: string }[];  // select の固定の選択肢
+    dynamicOptionsSource?: string;                 // または登録済みのソースから select の選択肢を取る
+    emptyOptionLabel?: string;                     // 空の選択肢の表示。既定は "-"
+};
+```
+
+これはブループリントノードの `inspectorParams` の 1 項目を、この 3 種類の kind に限ったものです。同じ一覧から選ぶノードと行は、1 つのオブジェクトを共有できます。`dynamicOptionsSource` を持つ `select` は、[`registerDynamicSelectOptionsSource`](/ja/docs/studio/plugin/studio/blueprint-nodes) で登録したソースが返す選択肢を、ノードカードでも Properties パネルでも同じように表示します。
+
+```ts
+const achievementParam = {
+    key: "achievementId",
+    label: "Achievement",
+    kind: "select",
+    dynamicOptionsSource: `${PLUGIN_ID}.achievements`,
+} as const;
+
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.story.unlock`,
+    label: "Unlock Achievement",
+    keywords: ["unlock"],
+    params: [achievementParam],
+    createBlock: ({ generateId, initialText }) => ({
+        id: generateId(),
+        kind: "action",
+        parentId: null,
+        childrenIds: [],
+        payload: {
+            action: "plugin",
+            pluginId: PLUGIN_ID,
+            actionId: `${PLUGIN_ID}.story.unlock`,
+            params: initialText?.trim() ? { achievementId: initialText.trim() } : {},
+        },
+    }),
+    describe: params => `Unlock achievement ${String(params.achievementId ?? "")}`,
+});
+```
+
+- `/unlock ACH_WIN` は `ACH_WIN` を選択した状態で行を挿入します。コマンドメニューから選んだ行は何も選択されていない状態で入り、作者が Properties パネルで選びます。
+- 一覧にもう含まれない値が行に保存されている場合、その値は行に残り、作者が別の値を選ぶまでフィールドは見つからない値として表示します。
+- 実行中の Studio が対応していない kind のフィールドは、パネルに表示されません。`params` が配列でない場合、`key` や `label` のない項目がある場合、同じキーを 2 回宣言した場合は、登録時に拒否されます。
 
 アクションから、それが実行するゲームまでの一式は、[例：じゃんけん](/ja/docs/studio/plugin/rock-paper-scissors)にあります。

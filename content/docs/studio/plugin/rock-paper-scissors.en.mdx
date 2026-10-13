@@ -377,4 +377,5 @@ Press **Play from this row** on a line before the game, or run the project in De
 
 - A different game uses the same shape: a story action that writes the row, a `run` that mounts a component and resolves when it is done, and a variable for the result.
 - To give the result to more than one variable, or to read settings from the row, put more keys in `params` and show them in `describe`.
+- To let the author change the variable after the row is inserted, declare it in the registration's `params` as a `string` field; the Properties panel then shows it on the row. See [Fields in the Properties panel](/docs/studio/plugin/studio/story#fields-in-the-properties-panel) (Studio 1.6.0 and later).
 - The reference for each part: [story](/docs/studio/plugin/studio/story), [`game.storyActions`](/docs/studio/plugin/api-reference#gamestoryactions), [ui.overlay](/docs/studio/plugin/runtime/overlay) and [state](/docs/studio/plugin/runtime/state).

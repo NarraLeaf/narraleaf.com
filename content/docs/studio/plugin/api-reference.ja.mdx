@@ -212,7 +212,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` と `registerMany` はクリーンアップを返します。`createBlock` は作者がコマンドの後に入力したテキストを `initialText` として受け取り、任意の `describe(params)` がプラグインの行に表示されるテキストを決めます。[story](/ja/docs/studio/plugin/studio/story)を参照してください。
+`register` と `registerMany` はクリーンアップを返します。`createBlock` は作者がコマンドの後に入力したテキストを `initialText` として受け取り、任意の `describe(params)` がプラグインの行に表示されるテキストを決めます。`keywords` はどの表示言語でもアクションに届くコマンド語、`params` はプラグインの行で Properties パネルに表示するフィールドの一覧です（どちらも Studio 1.6.0 以降が読み取ります）。[story](/ja/docs/studio/plugin/studio/story)を参照してください。
 
 ### services.blueprintNodes
 
@@ -315,7 +315,7 @@ app.game.storyActions.registerMany(defs);
 
 | フィールド | 型 | 内容 |
 | --- | --- | --- |
-| `ctx.params` | `Record<string, unknown>` | その行の `params`。`createBlock` が書き込んだものです。実行のたびに新しいコピーが渡されます。 |
+| `ctx.params` | `Record<string, unknown>` | その行の `params`。`createBlock` が書き込んだものに、作者が Properties パネルで行った編集が加わります。実行のたびに新しいコピーが渡されます。 |
 | `ctx.signal` | `AbortSignal` | `run` がまだ終わっていないうちに、プレイヤーがこの行より前に巻き戻したとき、またはセーブを読み込んだときに中断されます。 |
 | `ctx.game` | `RuntimePluginGame` | `setup(app)` が `app.game` として受け取ったものと同じオブジェクトです。 |
 

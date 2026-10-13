@@ -377,4 +377,5 @@ yarn build
 
 - 別のミニゲームも同じ形で作れます。行を書き込むストーリーアクション、コンポーネントをマウントして終わったら resolve する `run`、そして結果を入れる変数です。
 - 結果を複数の変数に書き込んだり、行から設定を読み取ったりするには、`params` にキーを増やし、`describe` でそれを表示します。
+- 行を挿入した後も作者が変数名を変えられるようにするには、登録の `params` でそれを `string` のフィールドとして宣言します。Properties パネルがその行に表示します。[Properties パネルのフィールド](/ja/docs/studio/plugin/studio/story#properties-パネルのフィールド)を参照してください（Studio 1.6.0 以降）。
 - 各部分のリファレンス：[story](/ja/docs/studio/plugin/studio/story)、[`game.storyActions`](/ja/docs/studio/plugin/api-reference#gamestoryactions)、[ui.overlay](/ja/docs/studio/plugin/runtime/overlay)、[state](/ja/docs/studio/plugin/runtime/state)

@@ -212,7 +212,7 @@ app.services.story.actions.register({
 });
 ```
 
-`register` and `registerMany` return cleanups. `createBlock` receives the text the author typed after the command as `initialText`, and an optional `describe(params)` sets the text a plugin row shows. See [story](/docs/studio/plugin/studio/story).
+`register` and `registerMany` return cleanups. `createBlock` receives the text the author typed after the command as `initialText`, and an optional `describe(params)` sets the text a plugin row shows. `keywords` are command words that reach the action in every interface language, and `params` lists the fields the Properties panel shows on a plugin row (both read by Studio 1.6.0 and later). See [story](/docs/studio/plugin/studio/story).
 
 ### services.blueprintNodes
 
@@ -315,7 +315,7 @@ Registers what runs when the story reaches a row one of the plugin's story actio
 
 | Field | Type | What |
 | --- | --- | --- |
-| `ctx.params` | `Record<string, unknown>` | The row's `params`, as `createBlock` wrote them. A fresh copy on every run. |
+| `ctx.params` | `Record<string, unknown>` | The row's `params`: what `createBlock` wrote, with the author's edits in the Properties panel. A fresh copy on every run. |
 | `ctx.signal` | `AbortSignal` | Aborted when the player rolls back past the row, or loads a save, while `run` is still going. |
 | `ctx.game` | `RuntimePluginGame` | The same object `setup(app)` received as `app.game`. |
 

@@ -377,4 +377,5 @@ yarn build
 
 - 换一个小游戏也是同样的结构：一个写出这一行的故事动作，一个挂载组件、结束时 resolve 的 `run`，再加一个存放结果的变量
 - 要把结果写进多个变量，或者从这一行读取设置，就在 `params` 里放更多的键，并在 `describe` 里显示出来
+- 要让作者在插入这一行之后还能改变量名，就在注册的 `params` 里把它声明成 `string` 字段，属性面板会在这一行上显示它。见[属性面板里的字段](/zh/docs/studio/plugin/studio/story#属性面板里的字段)（Studio 1.6.0 及以后）
 - 各部分的参考：[story](/zh/docs/studio/plugin/studio/story)、[`game.storyActions`](/zh/docs/studio/plugin/api-reference#gamestoryactions)、[ui.overlay](/zh/docs/studio/plugin/runtime/overlay) 和 [state](/zh/docs/studio/plugin/runtime/state)

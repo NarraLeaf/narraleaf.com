@@ -3,7 +3,7 @@ title: story
 description: 场景编辑器里的故事动作，以及它们插入的插件行
 ---
 
-`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 Plugin 分类。每个操作构建一个故事块并插入。这个块可以是标准故事块，插件不在之后文档照样保留它；也可以是插件自己的行，故事走到这一行时由你的 runtime 入口运行
+`app.services.story.actions` 在场景编辑器的插入调板中注册操作，归入 **工具** 分组。每个操作构建一个故事块并插入。这个块可以是标准故事块，插件不在之后文档照样保留它；也可以是插件自己的行，故事走到这一行时由你的 runtime 入口运行
 
 ## 读取项目里的故事
 
@@ -33,12 +33,16 @@ type StoryPluginActionRegistration = {
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
     describe?: (params: Record<string, unknown>) => string | null | undefined;
+    keywords?: readonly string[];                    // 命令词，任何界面语言下都有效
+    params?: readonly StoryPluginActionParamDef[];  // 属性面板里的字段
 };
 ```
 
 `createBlock` 收到 `generateId()`——用它生成块所需的任何 id——以及 `initialText`，即作者在命令后面输入的文字。返回一个 `StoryBlock`
 
-作者有两种方式用到这个动作：从命令菜单里选中它，或者输入一个它的标签以之开头的词再按 Enter。`/rock rpsResult` 会插入标签为 **Rock, Paper, Scissors** 的动作，`initialText` 为 `rpsResult`。内置命令的名字永远指内置命令
+作者有两种方式用到这个动作：从命令菜单里选中它，或者输入它的命令词再按 Enter。命令词是 `keywords` 中的一个词或它的开头，或者标签、id 开头的那个词。`/rock rpsResult` 会插入标签为 **Rock, Paper, Scissors** 的动作，`initialText` 为 `rpsResult`。翻译过的标签随作者的界面语言变化，`keywords` 不变，所以要在所有语言下都能用的命令词写进 `keywords`。内置命令的名字永远指内置命令；不是单个词的关键词在注册时被拒绝
+
+Studio 1.6.0 及以后的版本读取 `keywords` 和 `params`，更早的版本忽略这两项
 
 ```ts
 app.services.story.actions.register({
@@ -72,7 +76,7 @@ createBlock: ({ generateId, initialText }) => ({
 }),
 ```
 
-- `params` 以 JSON 存放这一行需要的任何内容。Studio 只保存它，从不读取
+- `params` 以 JSON 存放这一行需要的任何内容。Studio 保存它，只通过动作声明的[属性面板字段](#属性面板里的字段)修改它
 - 这一行在编辑器里不做任何事。在游戏里，runtime 入口用同一个 `actionId` 在 [`app.game.storyActions`](/zh/docs/studio/plugin/api-reference#gamestoryactions) 注册的处理会运行它，故事等它结束
 - 只要场景里还有这一行，工程就依赖你的插件，每次运行和构建都会带上它。没有这个插件时，这一行什么都不做，工程会报告缺少插件
 
@@ -81,5 +85,55 @@ createBlock: ({ generateId, initialText }) => ({
 ```ts
 describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
 ```
+
+## 属性面板里的字段
+
+注册时的 `params` 列出选中这个动作的行时属性面板显示的字段。每个字段修改这一行 `params` 中的一个键，修改和其他行的编辑一样进入场景的撤销记录。清空字段即删除对应的键
+
+```ts
+type StoryPluginActionParamDef = {
+    key: string;                                   // 字段修改的 params 键
+    label: string;
+    kind: "select" | "string" | "number";
+    options?: { value: string; label: string }[];  // select 的固定选项
+    dynamicOptionsSource?: string;                 // 或由已注册的选项源提供 select 的选项
+    emptyOptionLabel?: string;                     // 空选项的文字，默认 "-"
+};
+```
+
+它就是蓝图节点 `inspectorParams` 的一项，限定为这三种 kind。从同一份列表里选值的节点和行可以共用一个对象：带 `dynamicOptionsSource` 的 `select` 列出经 [`registerDynamicSelectOptionsSource`](/zh/docs/studio/plugin/studio/blueprint-nodes) 注册的选项源返回的内容，节点卡片上和属性面板里一致
+
+```ts
+const achievementParam = {
+    key: "achievementId",
+    label: "成就",
+    kind: "select",
+    dynamicOptionsSource: `${PLUGIN_ID}.achievements`,
+} as const;
+
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.story.unlock`,
+    label: "解锁成就",
+    keywords: ["unlock"],
+    params: [achievementParam],
+    createBlock: ({ generateId, initialText }) => ({
+        id: generateId(),
+        kind: "action",
+        parentId: null,
+        childrenIds: [],
+        payload: {
+            action: "plugin",
+            pluginId: PLUGIN_ID,
+            actionId: `${PLUGIN_ID}.story.unlock`,
+            params: initialText?.trim() ? { achievementId: initialText.trim() } : {},
+        },
+    }),
+    describe: params => `解锁成就 ${String(params.achievementId ?? "")}`,
+});
+```
+
+- `/unlock ACH_WIN` 插入的行已选中 `ACH_WIN`。从命令菜单选出的行没有选中任何值，由作者在属性面板里选
+- 行上存着、列表里已经没有的值保留在行上，字段把它标为缺失，直到作者改选其他值
+- 当前 Studio 不支持的 kind 不显示在面板里。`params` 不是数组、某项缺少 `key` 或 `label`、同一个键声明两次时，注册会被拒绝
 
 从动作到它运行的小游戏，完整的一对见[示例：石头剪刀布](/zh/docs/studio/plugin/rock-paper-scissors)

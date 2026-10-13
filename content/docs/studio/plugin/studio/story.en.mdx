@@ -3,7 +3,7 @@ title: story
 description: Story actions in the scene editor, and the plugin rows they insert.
 ---
 
-`app.services.story.actions` registers actions in the scene editor's insert palette, under the Plugin category. Each action builds a story block and inserts it. The block is either a standard story block, which the document keeps after your plugin is gone, or a row of your plugin's own, which your runtime entry runs when the story reaches it.
+`app.services.story.actions` registers actions in the scene editor's insert palette, under **Tools**. Each action builds a story block and inserts it. The block is either a standard story block, which the document keeps after your plugin is gone, or a row of your plugin's own, which your runtime entry runs when the story reaches it.
 
 ## Reading the project's stories
 
@@ -33,12 +33,16 @@ type StoryPluginActionRegistration = {
     group?: string;
     createBlock: (input: { generateId: () => string; initialText?: string }) => StoryBlock;
     describe?: (params: Record<string, unknown>) => string | null | undefined;
+    keywords?: readonly string[];                    // command words, in every interface language
+    params?: readonly StoryPluginActionParamDef[];  // fields in the Properties panel
 };
 ```
 
 `createBlock` receives `generateId()` — use it for any ids the block needs — and `initialText`, the text the author typed after the command. Return a `StoryBlock`.
 
-An author reaches the action two ways: by picking it from the command menu, or by typing a word its label starts with and pressing Enter. `/rock rpsResult` inserts an action labelled **Rock, Paper, Scissors** with `initialText` set to `rpsResult`. A word that is a built-in command's name always means the built-in command.
+An author reaches the action two ways: by picking it from the command menu, or by typing its command word and pressing Enter. A command word is one of `keywords` or the start of one, or a word the label or the id starts with. `/rock rpsResult` inserts an action labelled **Rock, Paper, Scissors** with `initialText` set to `rpsResult`. A translated label changes with the author's interface language and `keywords` do not, so a command meant to work in every language goes in `keywords`. A word that is a built-in command's name always means the built-in command, and a keyword that is not a single word is refused at registration.
+
+`keywords` and `params` are read by Studio 1.6.0 and later. Earlier versions ignore them.
 
 ```ts
 app.services.story.actions.register({
@@ -72,7 +76,7 @@ createBlock: ({ generateId, initialText }) => ({
 }),
 ```
 
-- `params` holds anything the row needs, as JSON. Studio stores it and never reads it.
+- `params` holds anything the row needs, as JSON. Studio stores it, and changes it only through the [fields the action declares](#fields-in-the-properties-panel).
 - The row does nothing in the editor. In the game, the runtime entry's [`app.game.storyActions`](/docs/studio/plugin/api-reference#gamestoryactions) registration with the same `actionId` runs it, and the story waits until it finishes.
 - While a scene contains the row, the project depends on your plugin, and every run and build includes it. Without the plugin the row does nothing and the project reports the missing plugin.
 
@@ -81,5 +85,55 @@ createBlock: ({ generateId, initialText }) => ({
 ```ts
 describe: params => `Rock, Paper, Scissors → ${String(params.variable ?? "")}`,
 ```
+
+## Fields in the Properties panel
+
+`params` on the registration lists the fields the Properties panel shows when one of the action's rows is selected. Each field edits one key of the row's `params`, and the edit goes into the scene's undo history like any other row edit. Clearing a field removes its key.
+
+```ts
+type StoryPluginActionParamDef = {
+    key: string;                                   // the params key the field edits
+    label: string;
+    kind: "select" | "string" | "number";
+    options?: { value: string; label: string }[];  // a select's fixed options
+    dynamicOptionsSource?: string;                 // or a select's options from a registered source
+    emptyOptionLabel?: string;                     // the empty choice; "-" by default
+};
+```
+
+It is a blueprint node's `inspectorParams` entry limited to these three kinds. A node and a row that pick from the same list can share one object: a `select` with a `dynamicOptionsSource` lists what the source registered with [`registerDynamicSelectOptionsSource`](/docs/studio/plugin/studio/blueprint-nodes) returns, on the node card and in the Properties panel alike.
+
+```ts
+const achievementParam = {
+    key: "achievementId",
+    label: "Achievement",
+    kind: "select",
+    dynamicOptionsSource: `${PLUGIN_ID}.achievements`,
+} as const;
+
+app.services.story.actions.register({
+    id: `${PLUGIN_ID}.story.unlock`,
+    label: "Unlock Achievement",
+    keywords: ["unlock"],
+    params: [achievementParam],
+    createBlock: ({ generateId, initialText }) => ({
+        id: generateId(),
+        kind: "action",
+        parentId: null,
+        childrenIds: [],
+        payload: {
+            action: "plugin",
+            pluginId: PLUGIN_ID,
+            actionId: `${PLUGIN_ID}.story.unlock`,
+            params: initialText?.trim() ? { achievementId: initialText.trim() } : {},
+        },
+    }),
+    describe: params => `Unlock achievement ${String(params.achievementId ?? "")}`,
+});
+```
+
+- `/unlock ACH_WIN` inserts the row with `ACH_WIN` picked. A row picked from the command menu arrives with nothing picked, and the author chooses in the Properties panel.
+- A stored value the list no longer contains stays on the row, and the field lists it as missing until the author picks another.
+- A field of a kind the running Studio does not support is left out of the panel. A `params` that is not an array, an entry without `key` or `label`, or a key declared twice is refused at registration.
 
 The whole pair, from the action to the game it runs, is on [Example: Rock, Paper, Scissors](/docs/studio/plugin/rock-paper-scissors).
