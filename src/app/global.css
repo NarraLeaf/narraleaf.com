@@ -194,14 +194,18 @@ html > body[data-scroll-locked] {
  * there until `xl` that row is wider than the window in English and Japanese:
  * the download button ends past the right edge. The search box is the one item
  * with room to give, so in this band it keeps its label and drops the shortcut
- * hint; the download button shortens its own label in the same band.
+ * hint; the download button shortens its own label in the same band. The hint's
+ * whole box goes, not just its keys: an empty box still takes the flex gap, and
+ * those 8px push 「搜索文档」 onto a second line. Only the home nav's box
+ * (`#nd-nav`): the docs sidebar has its own search box, which keeps its width.
  */
 @media (min-width: 64rem) and (max-width: 79.98rem) {
-  [data-search-full] {
+  #nd-nav [data-search-full] {
     max-width: 6.5rem;
+    white-space: nowrap;
   }
 
-  [data-search-full] kbd {
+  #nd-nav [data-search-full] > :has(> kbd) {
     display: none;
   }
 }
