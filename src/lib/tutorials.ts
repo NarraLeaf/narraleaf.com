@@ -41,6 +41,8 @@ export type TutorialSeries = {
   id: string;
   title: Record<Locale, string>;
   playlist: Record<Locale, string>;
+  /** The series' collection on Bilibili; the Chinese list links it beside the YouTube playlist. */
+  bilibili?: { space: string; collection: string };
   episodes: TutorialEpisode[];
 };
 
@@ -54,6 +56,7 @@ export const tutorialsCopy = {
     empty: 'No tutorials yet.',
     allTutorials: 'All tutorials',
     playlist: 'Playlist on YouTube',
+    collection: 'Collection on Bilibili',
     watchOnYouTube: 'Watch on YouTube',
     watchOnBilibili: 'Watch on Bilibili',
     chapters: 'Chapters',
@@ -66,6 +69,7 @@ export const tutorialsCopy = {
     empty: '还没有教程。',
     allTutorials: '全部教程',
     playlist: 'YouTube 播放列表',
+    collection: '哔哩哔哩合集',
     watchOnYouTube: '在 YouTube 上观看',
     watchOnBilibili: '在哔哩哔哩观看',
     chapters: '章节',
@@ -79,6 +83,7 @@ export const tutorialsCopy = {
     empty: 'チュートリアルはまだありません。',
     allTutorials: 'すべてのチュートリアル',
     playlist: 'YouTube の再生リスト',
+    collection: 'bilibili のコレクション',
     watchOnYouTube: 'YouTube で見る',
     watchOnBilibili: 'bilibili で見る',
     chapters: 'チャプター',
@@ -146,6 +151,10 @@ export function bilibiliWatchUrl(bvid: string): string {
 
 export function youtubePlaylistUrl(id: string): string {
   return `https://www.youtube.com/playlist?list=${id}`;
+}
+
+export function bilibiliCollectionUrl({ space, collection }: { space: string; collection: string }): string {
+  return `https://space.bilibili.com/${space}/lists/${collection}?type=season`;
 }
 
 /** `2:01`, as YouTube shows a length: whole seconds, rounded down. */

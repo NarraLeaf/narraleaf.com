@@ -5,7 +5,14 @@ import type { Metadata } from 'next';
 import { ExternalLink } from 'lucide-react';
 import { isLocale } from '@/lib/i18n';
 import { landingMetadata } from '@/lib/seo';
-import { formatClock, tutorialSeries, tutorialUrl, tutorialsCopy, youtubePlaylistUrl } from '@/lib/tutorials';
+import {
+  bilibiliCollectionUrl,
+  formatClock,
+  tutorialSeries,
+  tutorialUrl,
+  tutorialsCopy,
+  youtubePlaylistUrl,
+} from '@/lib/tutorials';
 
 export default async function TutorialsIndexPage(props: PageProps<'/[lang]/tutorials'>) {
   const { lang } = await props.params;
@@ -30,15 +37,28 @@ export default async function TutorialsIndexPage(props: PageProps<'/[lang]/tutor
               <h2 id={`series-${series.id}`} className="text-2xl font-semibold tracking-tight">
                 {series.title[lang]}
               </h2>
-              <a
-                href={youtubePlaylistUrl(series.playlist[lang])}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 text-sm font-medium text-fd-muted-foreground transition-colors hover:text-fd-foreground"
-              >
-                <ExternalLink className="size-4" />
-                {copy.playlist}
-              </a>
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+                {lang === 'zh' && series.bilibili ? (
+                  <a
+                    href={bilibiliCollectionUrl(series.bilibili)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
+                  >
+                    <ExternalLink className="size-4" />
+                    {copy.collection}
+                  </a>
+                ) : null}
+                <a
+                  href={youtubePlaylistUrl(series.playlist[lang])}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
+                >
+                  <ExternalLink className="size-4" />
+                  {copy.playlist}
+                </a>
+              </div>
             </div>
 
             <ol className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
