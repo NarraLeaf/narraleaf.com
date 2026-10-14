@@ -10,7 +10,8 @@ Start in **Settings → Agent access**. **Address** reads **Listening.** while t
 | Symptom | Cause | What to do |
 | --- | --- | --- |
 | The agent has no NarraLeaf tools | Studio is not running, or **Allow agents to connect** is off | Open Studio and switch it on, then restart the agent or reconnect it |
-| The connection is refused | The port changed, or the one asked for was in use and Studio served on another | Compare the port in **Address** with the agent's configuration, copy the configuration again, and restart the agent |
+| The connection is refused | The port changed after the agent was set up | Compare the port in **Address** with the agent's configuration, copy the configuration again, and restart the agent |
+| **Address** reads **Could not start: Port … is in use by another program.** or **… is reserved by the system.** | Another program holds the port, or Windows has reserved it for Hyper-V, WSL or Docker. Studio does not move to another port on its own | Enter a free port in **Endpoint port**, copy the configuration again, and restart the agent |
 | The agent reports a missing or wrong bearer token | The token was regenerated, or the configuration was typed by hand | Copy the configuration again |
 | The agent reports that requests from web pages are not accepted | The client sends an `Origin` header, as a browser does | Use a client that runs as a program on the computer |
 | The client never connects, or fails with HTTP 405 | The client was set up for the older HTTP+SSE transport | Set it up for Streamable HTTP |

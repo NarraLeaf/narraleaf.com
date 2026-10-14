@@ -21,9 +21,9 @@ Open **Settings → Agent access**. In a project window, the menu bar's **Agent*
 
 ### Allow agents to connect
 
-Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://127.0.0.1:54080/mcp` unless the port was changed, and reads **Listening.** once it is served.
+Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://127.0.0.1:47219/mcp` unless the port was changed, and reads **Listening.** once it is served.
 
-**Port** takes effect at once and accepts 1024 to 65535. When the port is in use, Studio serves on a free one instead, and **Address** shows the one actually in use.
+**Endpoint port** takes effect at once and accepts 1024 to 65535. Studio serves on that port or not at all. When another program holds it, or the system has reserved it, the endpoint does not start: **Address** reads, for example, **Could not start: Port 47219 is in use by another program.**, and the project window's **Agent** menu shows the same line. Enter another port, then copy the configuration again for agents set up before.
 
 </Step>
 
