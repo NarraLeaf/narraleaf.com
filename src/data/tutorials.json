@@ -304,6 +304,129 @@
               "poster": "/static/img/tutorials/writing-a-story-ja.webp"
             }
           }
+        },
+        {
+          "slug": "branches-and-endings",
+          "number": 4,
+          "videos": {
+            "en": {
+              "youtube": "ONOkiFEj9wk",
+              "published": "2026-10-14T09:49:18-07:00",
+              "title": "Branches and endings",
+              "label": "Episode 4",
+              "summary": "Connect After school, the scene written in episode 3, to the sample story, add a choice at its end and record the player's choice in the saved variable affection. Create two ending scenes and jump to one or the other according to the variable. Then use the Route coverage test to find a condition that can never hold, correct it and run the test again. Finally, play the choice and the ending in Dev Mode. When a project has many scenes, Ctrl+P opens a scene by its name.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Connecting the scene"
+                },
+                {
+                  "t": 17,
+                  "text": "Adding a choice"
+                },
+                {
+                  "t": 34,
+                  "text": "Recording the choice"
+                },
+                {
+                  "t": 55,
+                  "text": "Writing the endings"
+                },
+                {
+                  "t": 84,
+                  "text": "Branching on the variable"
+                },
+                {
+                  "t": 105,
+                  "text": "Testing the routes"
+                },
+                {
+                  "t": 143,
+                  "text": "Playing it"
+                }
+              ],
+              "length": 162.4,
+              "poster": "/static/img/tutorials/branches-and-endings-en.webp"
+            },
+            "zh": {
+              "youtube": "B5Up_FYOOHg",
+              "published": "2026-10-14T09:47:42-07:00",
+              "title": "分支与结局",
+              "label": "第 4 集",
+              "summary": "将第 3 集编写的场景「放学后」接入示例剧情，在场景末尾添加选项，并用存档变量「好感」记录玩家的选择。随后新建两个结局场景，按变量的值跳转到不同的结局。接着用「路线覆盖」测试找出无法满足的条件，修正后重新运行测试。最后在开发模式中试玩选项与结局。场景较多时，可按 Ctrl+P 输入名称打开场景。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "接入故事"
+                },
+                {
+                  "t": 17,
+                  "text": "添加选项"
+                },
+                {
+                  "t": 33,
+                  "text": "记录选择"
+                },
+                {
+                  "t": 53,
+                  "text": "编写结局"
+                },
+                {
+                  "t": 82,
+                  "text": "按变量分支"
+                },
+                {
+                  "t": 104,
+                  "text": "测试路线"
+                },
+                {
+                  "t": 142,
+                  "text": "播放"
+                }
+              ],
+              "length": 160.9,
+              "poster": "/static/img/tutorials/branches-and-endings-zh.webp"
+            },
+            "ja": {
+              "youtube": "a05Vy1fpM_g",
+              "published": "2026-10-14T09:50:38-07:00",
+              "title": "分岐とエンディング",
+              "label": "第 4 回",
+              "summary": "第 3 回で書いたシーン「放課後」をサンプルの物語につなぎ、シーンの最後に選択肢を追加して、プレイヤーの選択をセーブ変数「好感度」に記録します。続いてエンディング用のシーンを 2 つ作成し、変数の値に応じて別々のエンディングへジャンプさせます。その後「ルート網羅」テストで満たせない条件を見つけ、修正してもう一度テストを実行します。最後に開発モードで選択肢とエンディングを試します。シーンが多い場合は、Ctrl+P で名前を入力してシーンを開けます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "シーンをつなぐ"
+                },
+                {
+                  "t": 19,
+                  "text": "選択肢の追加"
+                },
+                {
+                  "t": 39,
+                  "text": "選択の記録"
+                },
+                {
+                  "t": 59,
+                  "text": "エンディングを書く"
+                },
+                {
+                  "t": 90,
+                  "text": "変数で分岐する"
+                },
+                {
+                  "t": 113,
+                  "text": "ルートのテスト"
+                },
+                {
+                  "t": 152,
+                  "text": "再生"
+                }
+              ],
+              "length": 170.9,
+              "poster": "/static/img/tutorials/branches-and-endings-ja.webp"
+            }
+          }
         }
       ]
     }
