@@ -427,6 +427,291 @@
               "poster": "/static/img/tutorials/branches-and-endings-ja.webp"
             }
           }
+        },
+        {
+          "slug": "staging-a-scene",
+          "number": 5,
+          "videos": {
+            "en": {
+              "youtube": "zRxYDEAUVss",
+              "published": "2026-10-14T22:12:43-07:00",
+              "title": "Staging a scene",
+              "label": "Episode 5",
+              "summary": "Stage After school, the scene written in episode 3. The scene opens with a clip, which fades out into the corridor. Parallel starts Narra's entrance and a camera push-in together, and Wait holds a pause before her line. A change of sprite or background cuts by default: double-click the row and set a kind and a duration under Transition in its properties, such as a fade-in for the sprite and a dissolve for the background. Narra then moves to the left of the stage, and cherry blossom fades in. Effects on the stage remain until they are removed, so after she leaves the petals are hidden and the camera is reset over a second. A text object is always drawn in front of the characters; /front changes the order of characters and pictures.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "An opening clip"
+                },
+                {
+                  "t": 32,
+                  "text": "A push-in on the entrance"
+                },
+                {
+                  "t": 61,
+                  "text": "A pause and a walk"
+                },
+                {
+                  "t": 105,
+                  "text": "Cherry blossom"
+                },
+                {
+                  "t": 141,
+                  "text": "Clearing the stage"
+                }
+              ],
+              "length": 208,
+              "poster": "/static/img/tutorials/staging-a-scene-en.webp"
+            },
+            "zh": {
+              "youtube": "VFFAiO8oaGw",
+              "published": "2026-10-14T22:10:46-07:00",
+              "title": "演出",
+              "label": "第 5 集",
+              "summary": "为第 3 集编写的场景「放学后」加上演出。场景以一段视频开场，视频淡出后进入走廊。用「并行」让 Narra 登场与镜头推近同时开始，用「等待」在台词之前停顿。立绘与背景默认直接切换：双击该行，在属性的「转场」中设置类型与时长，例如立绘淡入、背景溶解。让 Narra 走到画面左侧，再让樱花淡入飘落。舞台上的效果会一直保留，最后在她退场后隐藏樱花、用 1 秒重置镜头。文字对象总是画在角色前面；角色与图片之间的前后可用「@置顶」调整。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "片头视频"
+                },
+                {
+                  "t": 33,
+                  "text": "登场时推镜头"
+                },
+                {
+                  "t": 61,
+                  "text": "停顿与走位"
+                },
+                {
+                  "t": 106,
+                  "text": "樱花"
+                },
+                {
+                  "t": 146,
+                  "text": "收场"
+                }
+              ],
+              "length": 212.5,
+              "poster": "/static/img/tutorials/staging-a-scene-zh.webp"
+            },
+            "ja": {
+              "youtube": "Fw9mll8BCrY",
+              "published": "2026-10-14T22:14:24-07:00",
+              "title": "演出",
+              "label": "第 5 回",
+              "summary": "第 3 回で書いたシーン「放課後」に演出を加えます。シーンは動画で始まり、動画がフェードアウトすると廊下に移ります。「並行」で Narra の登場とカメラの寄りを同時に始め、「待機」でセリフの前に間を置きます。立ち絵や背景は既定では即座に切り替わります。行をダブルクリックし、プロパティの「トランジション」で種類と長さを設定します（立ち絵はフェードイン、背景はディゾルブなど）。Narra を画面の左へ移動させ、桜をフェードインさせます。舞台上の演出は取り除くまで残るため、最後に彼女の退場後に桜を隠し、カメラを 1 秒でリセットします。テキストは常にキャラクターより手前に描かれます。キャラクターと画像の前後は「/最前面へ」で変えられます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "オープニング動画"
+                },
+                {
+                  "t": 33,
+                  "text": "登場とカメラ"
+                },
+                {
+                  "t": 61,
+                  "text": "間と移動"
+                },
+                {
+                  "t": 107,
+                  "text": "桜"
+                },
+                {
+                  "t": 145,
+                  "text": "後片付け"
+                }
+              ],
+              "length": 211.1,
+              "poster": "/static/img/tutorials/staging-a-scene-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "bringing-in-a-script",
+          "number": 6,
+          "videos": {
+            "en": {
+              "youtube": "4fuOCBOBGZQ",
+              "published": "2026-10-14T22:20:04-07:00",
+              "title": "Bringing in a script you already have",
+              "label": "Episode 6",
+              "summary": "Paste a passage of dialogue written in a document into Walk together, the ending scene from episode 4. Paste as Rows splits it by Name: text and lets you choose who each speaker is: an existing character, a new character, or not a speaker. The choices you change are remembered. Then record Narra's variant spelling in the Dictionary, check the whole project, and unify the spelling with Replace all in the project search. Finally, play the scene in Dev Mode to check it. To find and replace in the current scene only, press Ctrl+F.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Pasting a passage"
+                },
+                {
+                  "t": 18,
+                  "text": "Matching the speakers"
+                },
+                {
+                  "t": 48,
+                  "text": "One spelling"
+                },
+                {
+                  "t": 84,
+                  "text": "Checking it in play"
+                }
+              ],
+              "length": 127.3,
+              "poster": "/static/img/tutorials/bringing-in-a-script-en.webp"
+            },
+            "zh": {
+              "youtube": "Ul4BwyJiM1g",
+              "published": "2026-10-14T22:17:23-07:00",
+              "title": "把已有剧本搬进来",
+              "label": "第 6 集",
+              "summary": "将写在文档里的一段对白整段粘贴进第 4 集的结局场景「一起上学」。「粘贴为行」会按「名字：正文」拆分，并为每个说话人选择对应的角色：已有角色、新建角色，或不是说话人。改过的选择会被记住。随后在「词典」中记下 Narra 的异体写法，检查整个项目，再用项目搜索的「全部替换」统一写法。最后在开发模式中播放检查。只在当前场景内查找替换时，按 Ctrl+F。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "整段粘贴"
+                },
+                {
+                  "t": 16,
+                  "text": "说话人对上角色"
+                },
+                {
+                  "t": 45,
+                  "text": "统一写法"
+                },
+                {
+                  "t": 80,
+                  "text": "播放检查"
+                }
+              ],
+              "length": 124,
+              "poster": "/static/img/tutorials/bringing-in-a-script-zh.webp"
+            },
+            "ja": {
+              "youtube": "YslMla2O2zw",
+              "published": "2026-10-14T22:22:12-07:00",
+              "title": "書き上げた台本を取り込む",
+              "label": "第 6 回",
+              "summary": "文書に書いたセリフを、第 4 回のエンディング用シーン「一緒に登校」にまとめて貼り付けます。「行として貼り付け」は「名前：本文」で分割し、話者ごとに既存のキャラクター、新しいキャラクター、話者ではない、のいずれかを選べます。変更した選択は記憶されます。続いて「辞書」に Narra の別表記を登録してプロジェクト全体を検査し、プロジェクト検索の「すべて置換」で表記をそろえます。最後に開発モードで再生して確認します。現在のシーンだけで検索・置換するときは Ctrl+F を押します。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "まとめて貼り付ける"
+                },
+                {
+                  "t": 18,
+                  "text": "話者をキャラクターに対応させる"
+                },
+                {
+                  "t": 46,
+                  "text": "表記をそろえる"
+                },
+                {
+                  "t": 82,
+                  "text": "再生して確認する"
+                }
+              ],
+              "length": 125.5,
+              "poster": "/static/img/tutorials/bringing-in-a-script-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "making-a-character",
+          "number": 7,
+          "videos": {
+            "en": {
+              "youtube": "UBq1m38prPo",
+              "published": "2026-10-14T22:26:17-07:00",
+              "title": "Making a character",
+              "label": "Episode 7",
+              "summary": "Create Mio, a character with a layered sprite, and choose her colour. Import her sprite from a layered PSD: its top-level groups become axes and the layers in them become tags. Preview combinations of expression and outfit in the editor, frame her dialogue avatar, which is made for each combination of expression and outfit. Then, in Walk alone, an ending from episode 4, bring her on, fade in a new expression and a new outfit, and play it in Dev Mode. A character's colour marks the speaker in the story editor; the colour of the name plate in the game is set by the dialogue box's interface. A new character's size and place are set under Entrance defaults in Properties.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "A new character"
+                },
+                {
+                  "t": 29,
+                  "text": "Importing a PSD · Expression and outfit"
+                },
+                {
+                  "t": 58,
+                  "text": "The dialogue avatar"
+                },
+                {
+                  "t": 72,
+                  "text": "Changing her in the story"
+                },
+                {
+                  "t": 106,
+                  "text": "Playing it"
+                }
+              ],
+              "length": 129.6,
+              "poster": "/static/img/tutorials/making-a-character-en.webp"
+            },
+            "zh": {
+              "youtube": "BmOABebQuNE",
+              "published": "2026-10-14T22:24:15-07:00",
+              "title": "建一个角色",
+              "label": "第 7 集",
+              "summary": "新建一个分层立绘角色「美绪」并选定颜色。从分层 PSD 导入立绘：顶层的组成为差分轴，组里的层成为标签。在编辑器中预览表情与服装的组合，为对白头像取景，头像按表情与服装的每种组合各生成一张。随后在第 4 集的结局「一个人上学」中让她登场，用淡入换表情、换衣服，最后在开发模式中播放。角色颜色用于在故事编辑器中标出说话人；游戏中名牌的颜色由对白框界面决定。新角色的大小与站位可在属性的「登场默认值」中设定。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "新建角色"
+                },
+                {
+                  "t": 27,
+                  "text": "导入 PSD、表情与服装"
+                },
+                {
+                  "t": 54,
+                  "text": "对白头像"
+                },
+                {
+                  "t": 67,
+                  "text": "在故事中切换"
+                },
+                {
+                  "t": 106,
+                  "text": "播放"
+                }
+              ],
+              "length": 130.1,
+              "poster": "/static/img/tutorials/making-a-character-zh.webp"
+            },
+            "ja": {
+              "youtube": "BzV3vpHaasY",
+              "published": "2026-10-14T22:28:27-07:00",
+              "title": "キャラクターを作る",
+              "label": "第 7 回",
+              "summary": "レイヤー式の立ち絵を持つキャラクター「美緒」を作成し、色を決めます。レイヤー分けした PSD から立ち絵を読み込むと、最上位のグループが軸に、グループ内のレイヤーがタグになります。エディターで表情と服装の組み合わせを確認し、セリフのアバターの切り抜きを決めます。アバターは表情と服装の組み合わせごとに作られます。続いて第 4 回のエンディング「ひとりで登校」で彼女を登場させ、表情と服装をフェードインで切り替え、開発モードで再生します。キャラクターの色はストーリーエディターで話者を示すためのもので、ゲーム内の名札の色はセリフ枠の画面で決まります。新しいキャラクターの大きさと位置は、プロパティの「登場時の既定値」で設定できます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "キャラクターの作成"
+                },
+                {
+                  "t": 27,
+                  "text": "PSD の読み込み・表情と服装"
+                },
+                {
+                  "t": 56,
+                  "text": "セリフのアバター"
+                },
+                {
+                  "t": 69,
+                  "text": "ストーリーで切り替える"
+                },
+                {
+                  "t": 113,
+                  "text": "再生"
+                }
+              ],
+              "length": 136.5,
+              "poster": "/static/img/tutorials/making-a-character-ja.webp"
+            }
+          }
         }
       ]
     }
