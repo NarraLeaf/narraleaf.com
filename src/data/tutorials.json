@@ -712,6 +712,129 @@
               "poster": "/static/img/tutorials/making-a-character-ja.webp"
             }
           }
+        },
+        {
+          "slug": "live2d-and-spine",
+          "number": 8,
+          "videos": {
+            "en": {
+              "youtube": "EtMDedXB7tI",
+              "published": "2026-10-15T10:07:54-07:00",
+              "title": "Live2D and Spine",
+              "label": "Episode 8",
+              "summary": "Create Hiyori, a character drawn by Live2D, using Live2D's official sample model. The editor lists two things still to set up: install the Live2D runtime in this project (read the terms, choose the downloaded Cubism SDK for Web archive, and Studio builds it on your computer), then import the model folder. The choices for motion, expression and skin are read from the model; Hiyori has no expression files. Then bring her on in Walk together, an ending from episode 4, switch her motion, and play it in Dev Mode. Spine characters are chosen under Drawn by a runtime too, but you build the runtime yourself from NarraLeaf's guide. The sample model is used under Live2D's sample data terms.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Before you start"
+                },
+                {
+                  "t": 13,
+                  "text": "A Live2D character"
+                },
+                {
+                  "t": 27,
+                  "text": "Installing the runtime"
+                },
+                {
+                  "t": 58,
+                  "text": "Importing the model"
+                },
+                {
+                  "t": 83,
+                  "text": "Bringing her on"
+                },
+                {
+                  "t": 112,
+                  "text": "Playing it"
+                },
+                {
+                  "t": 134,
+                  "text": "Spine"
+                }
+              ],
+              "length": 145.7,
+              "poster": "/static/img/tutorials/live2d-and-spine-en.webp"
+            },
+            "zh": {
+              "youtube": "4jhH07Y4IWc",
+              "published": "2026-10-15T10:03:21-07:00",
+              "title": "Live2D 与 Spine",
+              "label": "第 8 集",
+              "summary": "新建一个由 Live2D 绘制的角色「日和」，模型是 Live2D 官方示例 Hiyori。编辑器列出还需准备的两项：先在本项目中安装 Live2D 运行时（阅读条款，选择下载的 Cubism SDK for Web 压缩包，由 Studio 在本机构建），再导入模型文件夹。动作、表情与皮肤的选项都读自模型；Hiyori 没有表情文件。随后在第 4 集的结局「一起上学」中让她登场并切换动作，在开发模式中播放。Spine 角色同样从「由运行时绘制」中选择，运行时须按 NarraLeaf 文档自行构建。示例模型的使用须遵守 Live2D 的示例数据条款。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "准备"
+                },
+                {
+                  "t": 18,
+                  "text": "新建 Live2D 角色"
+                },
+                {
+                  "t": 32,
+                  "text": "安装运行时"
+                },
+                {
+                  "t": 64,
+                  "text": "导入模型"
+                },
+                {
+                  "t": 91,
+                  "text": "在故事里登场"
+                },
+                {
+                  "t": 120,
+                  "text": "播放"
+                },
+                {
+                  "t": 141,
+                  "text": "Spine"
+                }
+              ],
+              "length": 153.6,
+              "poster": "/static/img/tutorials/live2d-and-spine-zh.webp"
+            },
+            "ja": {
+              "youtube": "Ae-k_kn4xJ8",
+              "published": "2026-10-15T10:10:34-07:00",
+              "title": "Live2D と Spine",
+              "label": "第 8 回",
+              "summary": "Live2D 公式サンプルモデル Hiyori を使って、Live2D で描くキャラクター「ひより」を作ります。エディタには用意するものが 2 つ表示されます。まずこのプロジェクトに Live2D ランタイムを入れ（条件を読み、ダウンロードした Cubism SDK for Web のアーカイブを選ぶと Studio がこの PC でビルドします）、次にモデルのフォルダーを読み込みます。モーション・表情・スキンの選択肢はモデルから読み込まれます。Hiyori には表情ファイルがありません。続いて第 4 回のエンディング「一緒に登校」で彼女を登場させ、モーションを切り替えて、開発モードで再生します。Spine のキャラクターも「ランタイムで描く」から選びますが、ランタイムは NarraLeaf のガイドに沿って自分でビルドします。サンプルモデルは Live2D のサンプルデータ利用規約に従って使用しています。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "準備"
+                },
+                {
+                  "t": 14,
+                  "text": "Live2D のキャラクターを作る"
+                },
+                {
+                  "t": 29,
+                  "text": "ランタイムを入れる"
+                },
+                {
+                  "t": 59,
+                  "text": "モデルを読み込む"
+                },
+                {
+                  "t": 85,
+                  "text": "ストーリーに登場させる"
+                },
+                {
+                  "t": 115,
+                  "text": "再生する"
+                },
+                {
+                  "t": 137,
+                  "text": "Spine"
+                }
+              ],
+              "length": 149.5,
+              "poster": "/static/img/tutorials/live2d-and-spine-ja.webp"
+            }
+          }
         }
       ]
     }
