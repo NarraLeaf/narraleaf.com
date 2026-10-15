@@ -835,6 +835,117 @@
               "poster": "/static/img/tutorials/live2d-and-spine-ja.webp"
             }
           }
+        },
+        {
+          "slug": "voice-over",
+          "number": 10,
+          "videos": {
+            "en": {
+              "youtube": "QwDQF6atK58",
+              "published": "2026-10-15T14:45:03-07:00",
+              "title": "Voice-over",
+              "label": "Episode 10",
+              "summary": "Voice Narra's two lines in After school. Add a voice language in the Voice panel and export a recording script for the voice actor; file names follow the Recording filename pattern, by default scene_number_character. Import the returned takes in one go with Import audio…: they are linked to their lines by file name. A voiced line can be played in the story editor, and has a replay button on Dev Mode's Log page. When a line is rewritten its take is marked outdated; Export pickup script exports only the lines to record again, and the pickup is imported the same way. Voice languages are independent of text languages. No takes are played in this video.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "A voice language"
+                },
+                {
+                  "t": 18,
+                  "text": "For the voice actor"
+                },
+                {
+                  "t": 38,
+                  "text": "One import, matched by name"
+                },
+                {
+                  "t": 57,
+                  "text": "Seeing it in Dev Mode"
+                },
+                {
+                  "t": 89,
+                  "text": "Rewriting a line"
+                },
+                {
+                  "t": 106,
+                  "text": "Exporting only the pickup"
+                }
+              ],
+              "length": 128.6,
+              "poster": "/static/img/tutorials/voice-over-en.webp"
+            },
+            "zh": {
+              "youtube": "EQ0ipdJLgXM",
+              "published": "2026-10-15T14:43:05-07:00",
+              "title": "配音",
+              "label": "第 10 集",
+              "summary": "为「放学后」里 Narra 的两句台词配音。在配音面板中添加一种配音语言，导出录音脚本交给配音演员；文件名按「录音文件名规则」生成，默认为「场景_序号_角色」。交回的录音用「导入音频…」一次导入，按文件名自动关联到台词。有录音的台词在故事编辑器中可试听，在开发模式的「记录」页带有重播按钮。台词改动后，原录音标记为待更新；「导出补录脚本」只导出需要补录的句子，补录交回后同样导入即可。配音语言与文本语言相互独立。片中不播放录音。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "加一种配音语言"
+                },
+                {
+                  "t": 19,
+                  "text": "交给配音演员"
+                },
+                {
+                  "t": 37,
+                  "text": "一次导入，自动对上"
+                },
+                {
+                  "t": 55,
+                  "text": "在开发模式中查看"
+                },
+                {
+                  "t": 86,
+                  "text": "改一句台词"
+                },
+                {
+                  "t": 101,
+                  "text": "只导出要补录的句子"
+                }
+              ],
+              "length": 124.6,
+              "poster": "/static/img/tutorials/voice-over-zh.webp"
+            },
+            "ja": {
+              "youtube": "J9ryxjU6y6E",
+              "published": "2026-10-15T14:47:31-07:00",
+              "title": "ボイス",
+              "label": "第 10 回",
+              "summary": "「放課後」の Narra の 2 つのセリフにボイスを付けます。ボイスパネルでボイスの言語を追加し、収録台本を書き出して声優に渡します。ファイル名は「収録ファイル名のパターン」で作られ、既定は「シーン_番号_キャラクター」です。返ってきた音声は「音声を読み込む…」でまとめて読み込み、ファイル名でセリフに自動で結びつけます。ボイスのあるセリフはストーリーエディタで試聴でき、開発モードの「ログ」には再生ボタンが付きます。セリフを書き換えると元のテイクは古いものとして示され、「追加収録の台本を書き出す」で録り直す行だけを書き出せます。ボイスの言語はテキストの言語とは独立しています。動画内ではボイスを再生しません。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "ボイスの言語を追加する"
+                },
+                {
+                  "t": 19,
+                  "text": "声優に渡す"
+                },
+                {
+                  "t": 37,
+                  "text": "まとめて読み込み、自動で結びつける"
+                },
+                {
+                  "t": 56,
+                  "text": "開発モードで確かめる"
+                },
+                {
+                  "t": 88,
+                  "text": "セリフを書き換える"
+                },
+                {
+                  "t": 104,
+                  "text": "録り直す行だけを書き出す"
+                }
+              ],
+              "length": 127,
+              "poster": "/static/img/tutorials/voice-over-ja.webp"
+            }
+          }
         }
       ]
     }
