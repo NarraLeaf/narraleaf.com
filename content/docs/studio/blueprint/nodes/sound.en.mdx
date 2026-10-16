@@ -1,15 +1,16 @@
 ---
 title: Sound
-description: Playing a clip from a blueprint, and the handle every later node needs to reach it again.
+description: Playing a clip from a blueprint, the handle every later node needs to reach it again, and the music of the page a blueprint runs on.
 ---
 
-Seven nodes for the *interface* sounds a blueprint decides: a sound that depends on a condition, such as a click that plays only once a CG is unlocked, and a sound that is not tied to a hover or a click, such as an ambience a Page plays while it is open. A hover or click sound that always plays needs no blueprint. Set it on the element in Properties, under [Sound](/docs/studio/workspace/ui-editor#sound). The music and effects a story plays belong to the story and are written as `/bgm` and `/sound` rows there.
+Nine nodes for the *interface* sounds a blueprint decides: a sound that depends on a condition, such as a click that plays only once a CG is unlocked, a sound that is not tied to a hover or a click, such as an ambience a Page plays while it is open, and a page's music that changes while the page is open, such as the track pressed in a music room. A hover or click sound that always plays needs no blueprint. Set it on the element in Properties, under [Sound](/docs/studio/workspace/ui-editor#sound). A page's own music is set in its Properties too, under [Music](/docs/studio/workspace/ui-editor#page-music). The music and effects a story plays belong to the story and are written as `/bgm` and `/sound` rows there.
 
 ## Conventions
 
 - **Every one of them is latent.** None can back a Blueprint Value, and none is offered to a Story Action blueprint, which has no game host.
-- **`Play Sound` hands back a handle, and the other six take it.** The handle names the playing clip, not the asset — start the same clip twice and you have two handles that stop, seek and fade independently.
-- **The clip is chosen on the card.** `Audio Clip` picks the asset and `Track` picks the audio track it plays on, so the player's volume for that track applies. The `Asset Id` pin is for the case where the clip is decided at run time. The name it receives has to be one the project holds: picked in an asset picker, or read from a variable or list row that holds one. A name put together at run time, with `Concat` for example, is reported by the [`blueprint/assembled-asset-name`](/docs/studio/blueprint/asset-names) project check and refused by a production build, because the game package does not carry that clip.
+- **`Play Sound` hands back a handle, and `Stop Sound`, `Pause Sound`, `Resume Sound`, `Seek Sound`, `Set Sound Volume` and `Is Sound Playing` take it.** The handle names the playing clip, not the asset: start the same clip twice and you have two handles that stop, seek and fade independently.
+- **The clip is chosen on the card.** On `Play Sound` and `Play Page Music`, `Audio Clip` picks the asset and `Track` picks the audio track it plays on, so the player's volume for that track applies. The `Asset Id` pin is for the case where the clip is decided at run time. The name it receives has to be one the project holds: picked in an asset picker, or read from a variable or list row that holds one. A name put together at run time, with `Concat` for example, is reported by the [`blueprint/assembled-asset-name`](/docs/studio/blueprint/asset-names) project check and refused by a production build, because the game package does not carry that clip.
+- **The page music nodes set the music of their own page.** `Play Page Music` and `Stop Page Music` take no handle. They change the music of the page, or the layer, whose blueprint runs them, for as long as it is open, in place of the page's [Music](/docs/studio/workspace/ui-editor#page-music) setting, and the rules of that setting apply: going back to a page underneath brings that page's music back, and a page that replaces it through `Replace Page` and keeps the current music goes on playing it. While a game is running the story decides the music, so they change nothing, and in Dev Mode a warning in the **Console** panel says so.
 
 ## Play Sound
 
@@ -98,3 +99,39 @@ Starts a clip and returns the handle that reaches it afterwards.
 | `handle` | in · data | `SoundHandle` | |
 | `next` | out · exec | — | |
 | `isPlaying` | out · data | `boolean` | |
+
+## Play Page Music
+
+`blueprint.sound.playPageMusic` · Latent
+
+Makes a clip the music of the page this blueprint runs on, for as long as the page is open. When the same music is already playing on the same track, it carries on without a break, at this node's volume. Otherwise the music playing fades out over its own fade, and this clip fades in over `fade`. Running the node again on the same page replaces the music it set. While a game is running, it changes nothing.
+
+A music room plays its rows with it: a row pressed takes over from the row pressed before it, and leaving the page brings back the music of the page underneath. The Music list on the Extra page of the **Skeleton** template (template 1.20.7 and later) is built this way.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `assetId` | in · data | `string` | Optional. Overrides the card's `Audio Clip`, such as with the clip of the row pressed. |
+| `volume` | in · data | `float` | Optional, literal. From 0 to 1. Without a value, 1. |
+| `loop` | in · data | `boolean` | Optional, literal. Without a value, the track's own setting. The Music track loops. |
+| `fade` | in · data | `float` | Optional, literal. Seconds. The clip fades in over it, and fades out over it when other music takes over. Without a value, 0. |
+| `next` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Audio Clip` | The audio asset to play. |
+| `Track` | The project audio track it plays on, so the player's volume for that track applies. Empty means the Music track. |
+
+## Stop Page Music
+
+`blueprint.sound.stopPageMusic` · Latent
+
+Plays no music on the page this blueprint runs on, for as long as the page is open, as **No music** under the page's **Music** does. The music playing fades out over `fade`. While a game is running, it changes nothing.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `fade` | in · data | `float` | Optional, literal. Seconds. Without a value, the music playing fades out over its own fade. |
+| `next` | out · exec | — | |

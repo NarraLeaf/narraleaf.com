@@ -32,7 +32,7 @@ What unlocks a variant depends on its kind. The editor's inspector says the same
 | --- | --- |
 | CG | `Unlock Gallery` or `Unlock Whole Gallery`, and nothing else. |
 | Recollection | The player reaching the entry's scene. Every variant of the entry unlocks at once. |
-| Music | The story playing the track: a `/bgm` or `/sound` row, or a scene's own background music as the scene starts. A clip a Page plays with `Play Sound` does not count, so the music screen's own player cannot unlock a track. |
+| Music | The story playing the track: a `/bgm` or `/sound` row, or a scene's own background music as the scene starts. A page's music and a clip a Page plays with `Play Page Music` or `Play Sound` do not count, so the music screen's own player cannot unlock a track. |
 | Voice | The player finishing the story line the variant was picked from. |
 
 The unlock record is kept in the player's persistent data, beside [persistent variables](/docs/studio/blueprint/variables#persistent-variables), and in no save file. Starting a new game does not reset it, and loading a save does not change it. `Lock Whole Gallery` clears it. In Studio, **Reset player data** clears it for Dev Mode or for Preview, together with their saves.
@@ -89,7 +89,7 @@ The catalog's entries as rows, in the editor's order, narrowed by kind and group
 | `image`, `assetId` | The picture to draw, as an `ImageAsset` and as a bare asset id. While unlocked: the cover if the player has it, otherwise the first variant they have. While locked: the locked placeholder. `null` and `""` when there is no picture. |
 | `thumbnail`, `thumbnailAssetId` | The same picture. The Gallery editor sets no separate thumbnail. |
 | `coverVariantId` | The variant `image` comes from while unlocked, so a viewer can open on it. The cover while locked. |
-| `audioAssetId` | `music`: the shown track's clip, for [`Play Sound`](/docs/studio/blueprint/nodes/sound#play-sound). Empty while locked. |
+| `audioAssetId` | `music`: the shown track's clip, for [`Play Page Music`](/docs/studio/blueprint/nodes/sound#play-page-music) or [`Play Sound`](/docs/studio/blueprint/nodes/sound#play-sound). Empty while locked. |
 | `durationSec` | Length in seconds when it is known, otherwise `0`. A line picked from the project's voice takes carries its length; an imported track does not. |
 | `voiceUnitId` | `voice`: the shown line's voice id, for [`Play Voice`](/docs/studio/blueprint/nodes/voice#play-voice). Empty while locked. |
 | `lineText` | `voice`: the shown line's text as it read when it was picked, for a subtitle. Empty while locked. |

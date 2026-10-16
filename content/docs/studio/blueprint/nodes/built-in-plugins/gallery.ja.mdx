@@ -32,7 +32,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 | --- | --- |
 | CG | `Unlock Gallery` または `Unlock Whole Gallery` だけです。 |
 | Recollection | プレイヤーがエントリーのシーンに到達したとき。エントリーのすべてのバリアントが一度に解除されます。 |
-| Music | ストーリーがその曲を再生したとき。`/bgm` 行や `/sound` 行、またはシーンの開始時に流れるそのシーン自身の BGM です。Page が `Play Sound` で再生するクリップは数えないため、音楽鑑賞画面自身のプレイヤーでは曲を解除できません。 |
+| Music | ストーリーがその曲を再生したとき。`/bgm` 行や `/sound` 行、またはシーンの開始時に流れるそのシーン自身の BGM です。ページの音楽と、Page が `Play Page Music` や `Play Sound` で再生するクリップは数えないため、音楽鑑賞画面自身のプレイヤーでは曲を解除できません。 |
 | Voice | プレイヤーが、そのバリアントの元になったストーリーの行を読み終えたとき。 |
 
 解除記録はプレイヤーの持続データに、[永続変数](/ja/docs/studio/blueprint/variables#永続変数)と並んで保存され、どのセーブファイルにも入りません。新しいゲームを始めてもリセットされず、セーブをロードしても変わりません。`Lock Whole Gallery` で消去されます。Studio では、**Reset player data**（プレイヤーデータをリセット）が Dev Mode または Preview の解除記録を、それぞれのセーブとともに消去します。
@@ -89,7 +89,7 @@ Gallery プラグインは、ゲームの鑑賞画面のためのものです。
 | `image`、`assetId` | 描く画像を、`ImageAsset` と素のアセット id で。解除済みなら、プレイヤーがカバーを持っていればカバー、なければプレイヤーが持つ最初のバリアント。ロック中はロック中のプレースホルダー。画像がなければ `null` と `""`。 |
 | `thumbnail`、`thumbnailAssetId` | 同じ画像。ギャラリーエディターは別のサムネイルを設定しません。 |
 | `coverVariantId` | 解除済みのとき `image` の元になっているバリアント。ビューアーはこれから開けます。ロック中はカバー。 |
-| `audioAssetId` | `music`：表示している曲のクリップ。[`Play Sound`](/ja/docs/studio/blueprint/nodes/sound#play-sound) に渡します。ロック中は空。 |
+| `audioAssetId` | `music`：表示している曲のクリップ。[`Play Page Music`](/ja/docs/studio/blueprint/nodes/sound#play-page-music) や [`Play Sound`](/ja/docs/studio/blueprint/nodes/sound#play-sound) に渡します。ロック中は空。 |
 | `durationSec` | 長さが分かっていれば秒数、分からなければ `0`。プロジェクトのボイスのテイクから選んだ行は長さを持ち、読み込んだ曲は持ちません。 |
 | `voiceUnitId` | `voice`：表示している行の voice id。[`Play Voice`](/ja/docs/studio/blueprint/nodes/voice#play-voice) に渡します。ロック中は空。 |
 | `lineText` | `voice`：表示している行の、選んだ時点でのテキスト。字幕に使います。ロック中は空。 |

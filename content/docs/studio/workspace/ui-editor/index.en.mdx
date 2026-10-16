@@ -70,6 +70,28 @@ Sounds play in Dev Mode and in the game. The editor canvas plays none.
 
 An instance of a linked component has no **Sound** section and plays the sounds set in the component. For a sound that depends on a condition, use the [Sound nodes](/docs/studio/blueprint/nodes/sound) in a blueprint.
 
+## Page music
+
+A page has a **Music** section in Properties, which sets the music that plays while the page is on screen. A Game UI has no **Music** section; the scene's music plays under it.
+
+- With no music chosen, the row reads **Keep current music**, and the page changes nothing: the music that was playing when the page opened goes on playing. A new page starts this way.
+- **Choose page music** picks an audio asset or an asset set, and the page plays it. When the same music is already playing on the same track, it carries on without a break. Otherwise the music playing fades out over its own fade, and the page's music fades in over the page's **Fade**.
+- **No music**, beside **Choose page music**, plays no music while the page is on screen.
+- **Clear** takes the row back to **Keep current music**.
+
+The line under a chosen music, such as **Volume 1 · Music · Loops**, opens its playback options: **Volume**, from 0 to 1, **Track**, **Loop** and **Fade**. The music plays on the Music track unless **Track** names another, so the player's volume for that track applies. **Loop** follows the track's own setting until it is changed, and the Music track loops. **Fade** is in seconds: the music fades in over it, and fades out over it when other music takes over.
+
+The music that plays is decided by the pages on screen, from the top down: the layers opened over the pages, then the pages, each the most recently opened first. The first page that plays music or has **No music** decides. A page that keeps the current music leaves the decision to the page under it, and when every page keeps, no page music plays.
+
+- A page that keeps the current music, such as a settings page opened over the title page, leaves the title page's music playing.
+- Going back to a page underneath brings that page's music back.
+- A page opened with `Replace Page` that keeps the current music goes on playing the music of the page it replaced.
+- `Play Page Music` and `Stop Page Music` change the music of the page their blueprint runs on while it is open, such as to the track pressed in a music room. See the [Sound nodes](/docs/studio/blueprint/nodes/sound#play-page-music).
+
+While a game is running, the story decides the music. When a game starts or a save is loaded, the page's music fades out, and a page opened during the game, such as a save page or the settings page, plays no page music. When the game ends on a page, by quitting or at the end of the story, the pages decide the music again.
+
+Page music plays in Dev Mode and in the game. The editor canvas plays none. In Dev Mode, an edit that leaves a page's music unchanged does not restart it.
+
 ## Lists
 
 A **List** draws its **Item template** once for each row. What a row holds is set with **Edit content** in the **Content** section of Properties; the line under the button names the fields.

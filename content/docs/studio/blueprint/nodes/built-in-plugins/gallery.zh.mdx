@@ -32,7 +32,7 @@ Gallery 插件用于游戏的鉴赏界面：CG 画廊、场景回想、音乐鉴
 | --- | --- |
 | CG | 只有 `Unlock Gallery` 或 `Unlock Whole Gallery`|
 | Recollection | 玩家进入条目的场景。条目的所有变体一起解锁|
-| Music | 剧情播放该曲目：`/bgm` 或 `/sound` 行，或场景开始时它自己的背景音乐。Page 用 `Play Sound` 播放的音频不算，所以音乐鉴赏界面自己的播放器解锁不了曲目|
+| Music | 剧情播放该曲目：`/bgm` 或 `/sound` 行，或场景开始时它自己的背景音乐。页面音乐，以及 Page 用 `Play Page Music` 或 `Play Sound` 播放的音频都不算，所以音乐鉴赏界面自己的播放器解锁不了曲目|
 | Voice | 玩家读完该变体所选自的那一句剧情台词|
 
 解锁记录保存在玩家的持久数据中，和[持久变量](/zh/docs/studio/blueprint/variables#持久变量)放在一起，不在任何存档文件里。开始新游戏不会重置它，读档也不会改变它。`Lock Whole Gallery` 会清空它。在 Studio 里，**重置玩家数据**会为开发模式或预览清空它，连同它们的存档
@@ -89,7 +89,7 @@ Get Gallery（获取画廊）把目录中的条目按编辑器里的顺序作为
 | `image`、`assetId` | 要画的图，分别是 `ImageAsset` 和裸资源 id。已解锁时：玩家拥有封面就是封面，否则是玩家拥有的第一个变体。锁定时：锁定占位图。没有图时为 `null` 和 `""`|
 | `thumbnail`、`thumbnailAssetId` | 同一张图。画廊编辑器不设置单独的缩略图|
 | `coverVariantId` | 已解锁时 `image` 所取自的变体，查看器可以从它打开。锁定时为封面|
-| `audioAssetId` | `music`：当前显示曲目的音频，用于 [`Play Sound`](/zh/docs/studio/blueprint/nodes/sound#play-sound)。锁定时为空|
+| `audioAssetId` | `music`：当前显示曲目的音频，用于 [`Play Page Music`](/zh/docs/studio/blueprint/nodes/sound#play-page-music) 或 [`Play Sound`](/zh/docs/studio/blueprint/nodes/sound#play-sound)。锁定时为空|
 | `durationSec` | 已知时为秒数，否则为 `0`。从项目语音录音中选的台词带有时长；导入的曲目不带|
 | `voiceUnitId` | `voice`：当前显示台词的 voice id，用于 [`Play Voice`](/zh/docs/studio/blueprint/nodes/voice#play-voice)。锁定时为空|
 | `lineText` | `voice`：当前显示台词在选取时的文字，用作字幕。锁定时为空|
