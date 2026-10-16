@@ -12,7 +12,7 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 - **座標はデザイン座標です。** 要素のマウス Head は、その要素自身のローカルなデザイン空間を報告します。子孫要素から[昇ってきた](#event-bubbling)ことで実行される Head も同じで、押された位置を、ポインタの下にある要素の枠ではなく自分の要素の枠の中で読み取ります。Surface ブループリントに置かれた`Mouse Click`と`Right Click`は、代わりにその[Surface](/ja/docs/studio/blueprint/surfaces)のデザイン空間を報告します。
 - **Blueprint Value の Head。** Blueprint Value グラフが受け付ける Head は`Init`と`On Flush`の2つだけです。
 - **無効な要素は沈黙します。** 無効化されている、またはテキスト編集状態にあるウィジェットは、自身の操作系 Head をまったくディスパッチしません。
-- **キーボードの Head は同じ種類のノードとしてまとめられます。** パレットを一覧するとき、[キーボード](#keyboard)の 4 つの Head は **On Key**（キー入力のとき）として 1 行で表示されます。検索すると各 Head が自分の名前で表示されます。配置したカードは、タイトルの横の ▾ で 4 つのうちの別の Head に切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
+- **キーボードの Head とゲームパッドの Head は、それぞれ同じ種類のノードとしてまとめられます。** パレットを一覧するとき、[キーボード](#keyboard)の 4 つの Head は **On Key**（キー入力のとき）として、[ゲームパッド](#gamepad)の 4 つの Head は **On Gamepad Button**（ゲームパッドのボタン入力のとき）として、それぞれ 1 行で表示されます。検索すると各 Head が自分の名前で表示されます。配置したカードは、タイトルの横の ▾ で 4 つのうちの別の Head に切り替えられます。[同じ種類のノード](/ja/docs/studio/blueprint/nodes#node-families)を参照してください。
 
 ## Head が提供される場所
 
@@ -20,10 +20,10 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 
 | オーナー | 提供される Head |
 | --- | --- |
-| **App logic**（アプリロジック、`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head |
-| Surface ブループリント（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、2つの preference Head、2つの broadcast Head、`Element Flush`、`Element Click` |
+| **App logic**（アプリロジック、`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、4つのゲームパッド Head、2つの preference Head |
+| Surface ブループリント（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、4つのキーボード Head、4つのゲームパッド Head、2つの preference Head、2つの broadcast Head、`Element Flush`、`Element Click` |
 | ウィジェットブループリント（`widgetMain`） | そのウィジェット型が宣言する内容による。下表を参照 |
-| コンポーネント定義内のウィジェット（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`と、下表でそのウィジェット型が宣言する Head。キーボード、ウィンドウ、broadcast、紐づけ要素の Head はありません。 |
+| コンポーネント定義内のウィジェット（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`と、下表でそのウィジェット型が宣言する Head。キーボード、ゲームパッド、ウィンドウ、broadcast、紐づけ要素の Head はありません。 |
 | Blueprint Value（`widgetValue`） | `Init`と`On Flush` |
 | Story action ブループリント | `On Call` |
 
@@ -31,7 +31,7 @@ description: グラフを開始するイベント Head、それぞれが運ぶ p
 
 | ウィジェット型 | Head |
 | --- | --- |
-| 私有ブループリントを持つすべてのウィジェット | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、4つのキーボード Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
+| 私有ブループリントを持つすべてのウィジェット | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、4つのキーボード Head、4つのゲームパッド Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
 | `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 9つのマウス Head、`Focus`、`Blur`、`List Item Refresh` |
 | `nl.video` | 9つのマウス Head、`Focus`、`Blur`、`Playback Ended` |
 | `nl.puppet` | 9つのマウス Head、`Focus`、`Blur` |
@@ -422,6 +422,81 @@ Any Key Up（任意キー解放）は、ランタイムウィンドウが受け�
 | `ctrlKey` | out · data | `boolean` | |
 | `shiftKey` | out · data | `boolean` | |
 | `metaKey` | out · data | `boolean` | Meta / Command / Windows。 |
+
+## ゲームパッド [#gamepad]
+
+ゲームパッドのボタンはキーと同じ順に届きます。まず App logic に、次にキーボードを持っている Surface に、そしてその Surface 上でゲームパッドの Head を持つウィジェットに届きます。どの Surface がキーボードを持つかは[キーボード](#keyboard)を参照してください。入力アクションに割り当てたボタンは、キーと同じようにそのアクションを発生させます。[`On Action`](#on-action)を参照してください。キーと異なり、フォーカスがテキスト入力要素にある間も、ボタンはブループリントに届きます。
+
+ボタンは Xbox コントローラーの配置で名付けられています。
+
+| ボタン | 名前 |
+| --- | --- |
+| フェイスボタン | `A`、`B`、`X`、`Y`。PlayStation のコントローラーでは、バツ、マル、シカク、サンカクです。 |
+| ショルダーとトリガー | `LB`、`RB`、`LT`、`RT` |
+| 中央のボタン | `Back`、`Start`、`Home` |
+| スティックの押し込み | `L3`、`R3` |
+| 十字キー | `D-pad Up`、`D-pad Down`、`D-pad Left`、`D-pad Right` |
+| 左スティックの方向 | `Left Stick Up`、`Left Stick Down`、`Left Stick Left`、`Left Stick Right` |
+
+- **左スティックの方向。** 左スティックをある方向へ半分より多く倒すと、その方向が押されます。斜めに倒したときは、より大きく傾いている方向になります。十字キーと左スティックの両方を割り当てたメニューは、どちらでも移動します。`On Gamepad Button Down` と `On Gamepad Button Up` はこれらの方向を指定できます。`Any Gamepad Button Down` と `Any Gamepad Button Up` はこれらの方向では発火しません。スティックをどれだけ倒しているかは [`Get Gamepad Axis`](/ja/docs/studio/blueprint/nodes/input#get-gamepad-axis) で読み取ります。
+- **複数のコントローラー。** 接続されているすべてのコントローラーのボタンは、ひとつのコントローラーのものとして扱われます。最初のコントローラーが押したときにボタンが押され、どのコントローラーも押さえなくなったときに離されます。
+- **押下は一度だけ。** 押し続けたボタンは、押したときに `Down` を一度、離したときに `Up` を一度発火します。
+- **ウィンドウのフォーカス。** ゲームのウィンドウが隠れているときやフォーカスがないときは、ボタンを読み取りません。ウィンドウがフォーカスを取り戻したときにすでに押されているボタンは `Down` を発火せず、離したときに `Up` を発火します。
+- **対応するコントローラー。** システムが標準配置として報告するコントローラーを読み取ります。それ以外のコントローラーは無視されます。
+
+### On Gamepad Button Down
+
+`blueprint.event.head.gamepadButtonDown`
+
+On Gamepad Button Down（ゲームパッドのボタンを押したとき）は、カード上で選んだボタンが押されたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Button` | 上の表のボタン名のいずれか。左スティックの 4 方向も選べます。 |
+
+### On Gamepad Button Up
+
+`blueprint.event.head.gamepadButtonUp`
+
+On Gamepad Button Up（ゲームパッドのボタンを離したとき）は、カード上で選んだボタンが離されたときに発火します。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Button` | `On Gamepad Button Down` と同じ選択肢です。 |
+
+### Any Gamepad Button Down
+
+`blueprint.event.head.anyGamepadButtonDown`
+
+Any Gamepad Button Down（任意のゲームパッドボタンを押したとき）は、ボタンが押されるたびに発火します。左スティックの 4 方向は除きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | ボタンの名前。`A` や `D-pad Up` など。 |
+
+### Any Gamepad Button Up
+
+`blueprint.event.head.anyGamepadButtonUp`
+
+Any Gamepad Button Up（任意のゲームパッドボタンを離したとき）は、ボタンが離されるたびに発火します。左スティックの 4 方向は除きます。
+
+| ピン | 方向 | 型 | 備考 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | ボタンの名前。`A` や `D-pad Up` など。 |
 
 ## 入力アクション
 

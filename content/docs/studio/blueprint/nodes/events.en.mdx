@@ -12,7 +12,7 @@ An event head is where a graph begins. It has no execution input — the runtime
 - **Coordinates are design coordinates.** An element's mouse heads report the element's own local design space. So does a head that runs because a press [climbed](#event-bubbling) from a descendant: it reads the point the press landed on in its own element's box, not in the box of the element under the pointer. `Mouse Click` and `Right Click` placed on a Surface blueprint report that [Surface](/docs/studio/blueprint/surfaces)'s design space instead.
 - **Blueprint Value heads.** A Blueprint Value graph accepts exactly two heads: `Init` and `On Flush`.
 - **A disabled element stays silent.** A widget that is disabled, or in text-editing state, does not dispatch its interaction heads at all.
-- **The keyboard heads are a family.** While the palette is browsed, the four heads under [Keyboard](#keyboard) are one row, **On Key**. A search finds each head by its own name, and the ▾ beside a placed card's title switches it to another of the four. See [Node families](/docs/studio/blueprint/nodes#node-families).
+- **The keyboard heads are a family, and so are the gamepad heads.** While the palette is browsed, the four heads under [Keyboard](#keyboard) are one row, **On Key**, and the four under [Gamepad](#gamepad) are another, **On Gamepad Button**. A search finds each head by its own name, and the ▾ beside a placed card's title switches it to another of the four. See [Node families](/docs/studio/blueprint/nodes#node-families).
 
 ## Where a head is offered
 
@@ -20,10 +20,10 @@ The palette filters heads by the blueprint's owner. A head that is not listed fo
 
 | Owner | Heads offered |
 | --- | --- |
-| **App logic** (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads |
-| Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
+| **App logic** (`globalMain`) | `App Boot`, `On Game Ready`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, the four gamepad heads, both preference heads |
+| Surface blueprint (`surfaceMain`) | `Surface Init`, `Surface Unmount`, `Before Surface Exit`, `After Surface Enter`, `Mouse Click`, `Right Click`, `On Fullscreen Changed`, `On Window Focus Changed`, `On Window Close Requested`, `On Action`, the four keyboard heads, the four gamepad heads, both preference heads, both broadcast heads, `Element Flush`, `Element Click` |
 | Widget blueprint (`widgetMain`) | whatever that widget type declares; see the table below |
-| Widget inside a component definition (`componentWidgetMain`) | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter` and the heads its type declares in the table below. No keyboard, window, broadcast or bound element heads. |
+| Widget inside a component definition (`componentWidgetMain`) | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter` and the heads its type declares in the table below. No keyboard, gamepad, window, broadcast or bound element heads. |
 | Blueprint Value (`widgetValue`) | `Init` and `On Flush` |
 | Story action blueprint | `On Call` |
 
@@ -31,7 +31,7 @@ For a widget the owner is only half the rule: each built-in widget type declares
 
 | Widget type | Heads |
 | --- | --- |
-| every widget with a private blueprint | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter`, the four keyboard heads, `On Fullscreen Changed`, `On Window Focus Changed`, `On Broadcast`, `On Any Broadcast`, `Element Flush`, `Element Click` |
+| every widget with a private blueprint | `Init`, `On Flush`, `Unmount`, `Before Surface Exit`, `After Surface Enter`, the four keyboard heads, the four gamepad heads, `On Fullscreen Changed`, `On Window Focus Changed`, `On Broadcast`, `On Any Broadcast`, `Element Flush`, `Element Click` |
 | `nl.container`, `nl.text`, `nl.image`, `nl.button`, `nl.dialog.sentence`, `nl.nvl.texts` | the nine mouse heads, `Focus`, `Blur`, `List Item Refresh` |
 | `nl.video` | the nine mouse heads, `Focus`, `Blur`, `Playback Ended` |
 | `nl.puppet` | the nine mouse heads, `Focus`, `Blur` |
@@ -422,6 +422,81 @@ Fires on every key-up the runtime window receives.
 | `ctrlKey` | out · data | `boolean` | |
 | `shiftKey` | out · data | `boolean` | |
 | `metaKey` | out · data | `boolean` | Meta / Command / Windows. |
+
+## Gamepad
+
+A gamepad button goes where a key goes: first to App logic, then to the Surface that owns the keyboard, then to the widgets on that Surface that have a gamepad head. Which Surface owns the keyboard is described under [Keyboard](#keyboard). A button bound to an input action raises it, as a key does; see [`On Action`](#on-action). Unlike a key, a button press still reaches blueprints while focus is in a text-entry element.
+
+Buttons are named after the Xbox controller layout:
+
+| Buttons | Names |
+| --- | --- |
+| Face buttons | `A`, `B`, `X`, `Y`. On a PlayStation controller, Cross, Circle, Square and Triangle. |
+| Shoulders and triggers | `LB`, `RB`, `LT`, `RT` |
+| Center buttons | `Back`, `Start`, `Home` |
+| Stick presses | `L3`, `R3` |
+| D-pad | `D-pad Up`, `D-pad Down`, `D-pad Left`, `D-pad Right` |
+| Left stick directions | `Left Stick Up`, `Left Stick Down`, `Left Stick Left`, `Left Stick Right` |
+
+- **Left stick directions.** Pushing the left stick more than halfway one way presses that direction, and a diagonal counts as the direction it leans more. A menu bound to both the D-pad and the stick moves with either. `On Gamepad Button Down` and `On Gamepad Button Up` can name a direction; `Any Gamepad Button Down` and `Any Gamepad Button Up` do not fire for one. To read how far a stick is pushed, use [`Get Gamepad Axis`](/docs/studio/blueprint/nodes/input#get-gamepad-axis).
+- **Several controllers.** The buttons of every connected controller count as one set. A button is pressed when the first controller presses it, and released when no controller holds it any longer.
+- **One press, no repeat.** A held button fires one `Down` when pressed and one `Up` when released.
+- **Window focus.** Buttons are not read while the game window is hidden or does not have focus. A button already held when the window gets focus back fires no `Down`; its release fires `Up`.
+- **Supported controllers.** A controller that the system reports with the standard layout is read. Other controllers are ignored.
+
+### On Gamepad Button Down
+
+`blueprint.event.head.gamepadButtonDown`
+
+Fires when the button chosen on the card is pressed.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Button` | One of the button names above, including the four left stick directions. |
+
+### On Gamepad Button Up
+
+`blueprint.event.head.gamepadButtonUp`
+
+Fires when the button chosen on the card is released.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Button` | Same choice as `On Gamepad Button Down`. |
+
+### Any Gamepad Button Down
+
+`blueprint.event.head.anyGamepadButtonDown`
+
+Fires on every button press, except the four left stick directions.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | The button's name, such as `A` or `D-pad Up`. |
+
+### Any Gamepad Button Up
+
+`blueprint.event.head.anyGamepadButtonUp`
+
+Fires on every button release, except the four left stick directions.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | The button's name, such as `A` or `D-pad Up`. |
 
 ## Input actions
 

@@ -1,11 +1,11 @@
 ---
 title: Input
-description: プレイヤーがどの種類のデバイスを使っているか、そして入力アクションが今押され続けているかどうか
+description: プレイヤーがどの種類のデバイスを使っているか、入力アクションが今押され続けているかどうか、そして接続されたゲームパッドの状態
 ---
 
-グラフの実行時点でのプレイヤー入力を読み取る、2 つの pure ノードです。ブループリント値ではどちらも提供されません。
+グラフの実行時点でのプレイヤー入力を読み取る、5 つの pure ノードです。使っているデバイス、入力アクションが押され続けているかどうか、そしてゲームパッドのボタンとスティックを読み取ります。ブループリント値ではいずれも提供されません。
 
-どちらもイベントヘッドではありません。入力に**反応**するには、[Events](/ja/docs/studio/blueprint/nodes/events) 内のキーボードヘッドとポインターヘッド、あるいはこの 2 つが読み取るアクション語彙に対応する [`On Action`](/ja/docs/studio/blueprint/nodes/events#on-action) ヘッドを使ってください。この 2 つが答えるのは「今この瞬間、何が真か」です。
+いずれもイベントヘッドではありません。入力に**反応**するには、[Events](/ja/docs/studio/blueprint/nodes/events) 内のキーボード、ゲームパッド、ポインターのヘッド、あるいは `Is Action Held` が読み取る入力アクションに対応する [`On Action`](/ja/docs/studio/blueprint/nodes/events#on-action) ヘッドを使ってください。このページのノードが答えるのは「今この瞬間、何が真か」です。
 
 ## Get Input Device
 
@@ -34,3 +34,45 @@ description: プレイヤーがどの種類のデバイスを使っているか�
 | フィールド | 内容 |
 | --- | --- |
 | `Action` | プロジェクトの入力アクションの一つ。 |
+
+## Is Gamepad Connected
+
+`blueprint.input.isGamepadConnected` · Pure
+
+Is Gamepad Connected（ゲームパッドが接続されているか）は、コントローラーが接続されているかどうかです。たとえば、コントローラーを持っているプレイヤーにだけボタンの案内を表示するときに使います。数えるのはゲームが読み取るコントローラーだけです。[ゲームパッド](/ja/docs/studio/blueprint/nodes/events#gamepad)を参照してください。ゲームのウィンドウにフォーカスがない間も、結果は最新の状態に保たれます。
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `connected` | out · data | `boolean` |
+
+## Is Gamepad Button Held
+
+`blueprint.input.isGamepadButtonHeld` · Pure
+
+Is Gamepad Button Held（ゲームパッドのボタンが押されているか）は、カード上で選んだボタンが、接続されているいずれかのコントローラーで今この瞬間押されているかどうかです。ゲームのウィンドウが隠れているときやフォーカスがないときは `false` を返します。
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `held` | out · data | `boolean` |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Button` | [ゲームパッド](/ja/docs/studio/blueprint/nodes/events#gamepad)に挙げたボタン名のいずれか。左スティックの 4 方向も選べます。 |
+
+## Get Gamepad Axis
+
+`blueprint.input.getGamepadAxis` · Pure
+
+Get Gamepad Axis（ゲームパッドの軸を取得）は、最初に接続されたコントローラーのスティックが、カード上で選んだ軸に沿ってどれだけ倒されているかを `-1` から `1` で返します。X 軸は左が負、右が正で、Y 軸は上が負、下が正です。中心付近にあるスティックは `0` を返します。コントローラーが接続されていないとき、またはゲームのウィンドウが隠れているときやフォーカスがないときは、すべての軸が `0` を返します。
+
+| ピン | 方向 | 型 |
+| --- | --- | --- |
+| `value` | out · data | `float` |
+
+**カード上のフィールド**
+
+| フィールド | 内容 |
+| --- | --- |
+| `Axis` | 左スティックは `LeftX` または `LeftY`、右スティックは `RightX` または `RightY`。 |

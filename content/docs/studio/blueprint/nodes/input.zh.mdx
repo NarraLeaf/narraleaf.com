@@ -1,11 +1,11 @@
 ---
 title: Input
-description: 玩家在用哪一类设备，以及某个输入意图此刻是不是被按住的
+description: 玩家在用哪一类设备、某个输入意图此刻是不是被按住的，以及已连接手柄的状态
 ---
 
-两个 pure 节点，读的是**图跑到那一刻**玩家的输入状态。两个都不在蓝图值中提供。
+五个 pure 节点，读的是**图跑到那一刻**玩家的输入状态：正在用的设备、输入意图是否被按住，以及手柄的按键与摇杆。它们都不在蓝图值中提供。
 
-两个都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘与指针头，或者用 `On Action` 头——它对应的正是这两个节点读的那套意图词表；这两个回答的是「此刻是什么」。
+它们都不是事件头。要**响应**输入，用 [Events](/zh/docs/studio/blueprint/nodes/events) 里的键盘、手柄与指针头，或者用 [`On Action`](/zh/docs/studio/blueprint/nodes/events#on-action) 头，它对应 `Is Action Held` 读取的那套输入意图。本页的节点回答的是「此刻是什么」。
 
 ## Get Input Device
 
@@ -34,3 +34,45 @@ description: 玩家在用哪一类设备，以及某个输入意图此刻是不�
 | 字段 | 说明 |
 | --- | --- |
 | `Action` | 项目的输入意图之一 |
+
+## Is Gamepad Connected
+
+`blueprint.input.isGamepadConnected` · Pure
+
+Is Gamepad Connected（手柄是否连接）读取是否连接了手柄，例如只在玩家有手柄时显示按键提示。只有游戏能读取的手柄才算，见[手柄](/zh/docs/studio/blueprint/nodes/events#gamepad)。游戏窗口没有焦点时，结果仍保持最新
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `connected` | out · data | `boolean` |
+
+## Is Gamepad Button Held
+
+`blueprint.input.isGamepadButtonHeld` · Pure
+
+Is Gamepad Button Held（手柄按键是否按住）读取卡片上选中的按键此刻是否在任一已连接的手柄上被按住。游戏窗口隐藏或没有焦点时读到 `false`
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `held` | out · data | `boolean` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Button` | [手柄](/zh/docs/studio/blueprint/nodes/events#gamepad)下列出的一个按键名称，包括左摇杆的四个方向 |
+
+## Get Gamepad Axis
+
+`blueprint.input.getGamepadAxis` · Pure
+
+Get Gamepad Axis（获取手柄轴向）读取第一个已连接手柄的摇杆沿卡片上选中的轴推了多远，范围 `-1` 到 `1`。X 轴向左为负、向右为正，Y 轴向上为负、向下为正。摇杆停在中心附近时读到 `0`。没有连接手柄，或游戏窗口隐藏、没有焦点时，所有轴都读到 `0`
+
+| 引脚 | 方向 | 类型 |
+| --- | --- | --- |
+| `value` | out · data | `float` |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Axis` | 左摇杆为 `LeftX` 或 `LeftY`，右摇杆为 `RightX` 或 `RightY` |

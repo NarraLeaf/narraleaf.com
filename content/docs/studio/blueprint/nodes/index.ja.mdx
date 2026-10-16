@@ -71,7 +71,7 @@ exec ピンは実行の流れを運び、data ピンは値を運びます。`arr
 | 種類 | ノード | 分類 |
 | --- | --- | --- |
 | **On Key**（キー入力のとき） | `On Key Down`、`On Key Up`、`Any Key Down`、`Any Key Up` | [Events](/ja/docs/studio/blueprint/nodes/events#keyboard) |
-| **On Gamepad Button**（ゲームパッドのボタン入力のとき） | `On Gamepad Button Down`、`On Gamepad Button Up`、`Any Gamepad Button Down`、`Any Gamepad Button Up` | Events |
+| **On Gamepad Button**（ゲームパッドのボタン入力のとき） | `On Gamepad Button Down`、`On Gamepad Button Up`、`Any Gamepad Button Down`、`Any Gamepad Button Up` | [Events](/ja/docs/studio/blueprint/nodes/events#gamepad) |
 | **Literal**（リテラル） | `String`、`Integer`、`Float`、`Boolean`、`Color`、`Vector2D`、`Rect`、`JSON`、`Null` | [Data](/ja/docs/studio/blueprint/nodes/data#リテラル) |
 | **Convert Type**（型を変換） | `To String`、`To Integer`、`To Float`、`To Boolean`、`To JSON` | [Data](/ja/docs/studio/blueprint/nodes/data#変換) |
 | **Check Type**（型を調べる） | `Is String`、`Is Number`、`Is Boolean`、`Is Array`、`Is Object`、`Is Null` | [Data](/ja/docs/studio/blueprint/nodes/data#型判定) |
@@ -122,7 +122,7 @@ Text Style、Image Framing、Visible or Enabled は、ウィジェット自身�
 | [List](/ja/docs/studio/blueprint/nodes/list) | 32 | 実行時の項目、選択、スクロール、項目のコンテキスト。 |
 | [Slider](/ja/docs/studio/blueprint/nodes/slider) | 9 | 値、範囲、スナップ。 |
 | [Debug](/ja/docs/studio/blueprint/nodes/debug) | 2 | ロギングとグラフ内コメント。 |
-| [Input](/ja/docs/studio/blueprint/nodes/input) | 5 | プレイヤーがどのデバイスを使っているか、そしてアクションが押され続けているかどうか。 |
+| [Input](/ja/docs/studio/blueprint/nodes/input) | 5 | プレイヤーがどのデバイスを使っているか、アクションが押され続けているかどうか、そしてゲームパッドのボタンとスティック。 |
 | [Sound](/ja/docs/studio/blueprint/nodes/sound) | 9 | インターフェース用の音声クリップの再生、それに再びアクセスするためのハンドル、そしてページの音楽。 |
 | [Voice](/ja/docs/studio/blueprint/nodes/voice) | 5 | 収録されたセリフの再生と、現在有効な吹き替え言語。 |
 | [Component](/ja/docs/studio/blueprint/nodes/component) | 1 | コンポーネントのある配置を別の配置と区別するパラメータ。 |

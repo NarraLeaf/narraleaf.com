@@ -12,7 +12,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 - **坐标是设计坐标。** 元素的鼠标 Head 使用该元素自己的本地设计坐标系；因事件从后代元素[向上传递](#event-bubbling)而执行的 Head 也是如此，它读到的是这次按下在自己元素框内的位置，而不是在指针下那个元素框内的位置；放在 Surface 蓝图上的`Mouse Click`和`Right Click`则使用该 [Surface](/zh/docs/studio/blueprint/surfaces) 的设计坐标系
 - **Blueprint Value 的 Head。** Blueprint Value 图只接受两个 Head：`Init`和`On Flush`
 - **不可交互的元素不派发。** 控件处于禁用或文本编辑等不可交互状态时，完全不派发它的交互 Head
-- **按键 Head 在创建浮窗中合为一组。** 浏览创建浮窗时，[键盘](#keyboard)下的四个 Head 合为一行**按键时**。搜索时每个 Head 按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为这四个中的另一个。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
+- **按键 Head 与手柄 Head 在创建浮窗中各合为一组。** 浏览创建浮窗时，[键盘](#keyboard)下的四个 Head 合为一行**按键时**，[手柄](#gamepad)下的四个 Head 合为另一行**手柄按键时**。搜索时每个 Head 按自己的名称列出；已放置的卡片可用标题旁的 ▾ 切换为这四个中的另一个。见[同类节点](/zh/docs/studio/blueprint/nodes#node-families)
 
 ## 哪些 Head 可用
 
@@ -20,10 +20,10 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 | 宿主 | 提供的 Head |
 | --- | --- |
-| **应用逻辑**（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head |
-| Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
+| **应用逻辑**（`globalMain`） | `App Boot`、`On Game Ready`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、四个手柄 Head、两个 preference Head |
+| Surface 蓝图（`surfaceMain`） | `Surface Init`、`Surface Unmount`、`Before Surface Exit`、`After Surface Enter`、`Mouse Click`、`Right Click`、`On Fullscreen Changed`、`On Window Focus Changed`、`On Window Close Requested`、`On Action`、四个键盘 Head、四个手柄 Head、两个 preference Head、两个 broadcast Head、`Element Flush`、`Element Click` |
 | 控件私有蓝图（`widgetMain`） | 由该控件类型声明的能力决定，见下表 |
-| 组件定义内的控件（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`，以及下表中该控件类型声明的 Head。没有键盘、窗口、广播和绑定元素的 Head |
+| 组件定义内的控件（`componentWidgetMain`） | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`，以及下表中该控件类型声明的 Head。没有键盘、手柄、窗口、广播和绑定元素的 Head |
 | Blueprint Value（`widgetValue`） | `Init`与`On Flush` |
 | Story Action 蓝图 | `On Call` |
 
@@ -31,7 +31,7 @@ description: 启动一张图的事件 Head、它们各自携带的 payload，以
 
 | 控件类型 | Head |
 | --- | --- |
-| 所有支持私有蓝图的控件 | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、四个键盘 Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
+| 所有支持私有蓝图的控件 | `Init`、`On Flush`、`Unmount`、`Before Surface Exit`、`After Surface Enter`、四个键盘 Head、四个手柄 Head、`On Fullscreen Changed`、`On Window Focus Changed`、`On Broadcast`、`On Any Broadcast`、`Element Flush`、`Element Click` |
 | `nl.container`、`nl.text`、`nl.image`、`nl.button`、`nl.dialog.sentence`、`nl.nvl.texts` | 九个鼠标 Head、`Focus`、`Blur`、`List Item Refresh` |
 | `nl.video` | 九个鼠标 Head、`Focus`、`Blur`、`Playback Ended` |
 | `nl.puppet` | 九个鼠标 Head、`Focus`、`Blur` |
@@ -422,6 +422,81 @@ Any Key Up（任意按键抬起）在运行时窗口收到任意键盘抬起事�
 | `ctrlKey` | out · data | `boolean` | |
 | `shiftKey` | out · data | `boolean` | |
 | `metaKey` | out · data | `boolean` | Meta / Command / Windows|
+
+## 手柄 [#gamepad]
+
+手柄按键的去向与键盘按键相同：先送达应用逻辑，再送达持有键盘的那个 Surface，然后送达该 Surface 上带手柄 Head 的控件。哪个 Surface 持有键盘见[键盘](#keyboard)。绑定到输入意图的按键会像键盘按键一样触发该意图，见 [`On Action`](#on-action)。与键盘不同，焦点位于文本输入元素时，手柄按键仍会送达蓝图
+
+按键按 Xbox 手柄的布局命名：
+
+| 按键 | 名称 |
+| --- | --- |
+| 正面按键 | `A`、`B`、`X`、`Y`。PlayStation 手柄上是叉、圆、方、三角 |
+| 肩键与扳机 | `LB`、`RB`、`LT`、`RT` |
+| 中间按键 | `Back`、`Start`、`Home` |
+| 摇杆按下 | `L3`、`R3` |
+| 十字键 | `D-pad Up`、`D-pad Down`、`D-pad Left`、`D-pad Right` |
+| 左摇杆方向 | `Left Stick Up`、`Left Stick Down`、`Left Stick Left`、`Left Stick Right` |
+
+- **左摇杆方向。** 左摇杆向某个方向推过一半时，按下该方向；斜向时算作偏得更多的那个方向。同时绑定了十字键和左摇杆的菜单，用哪个都能移动。`On Gamepad Button Down` 与 `On Gamepad Button Up` 可以选择这四个方向；`Any Gamepad Button Down` 与 `Any Gamepad Button Up` 不会因它们触发。要读取摇杆推了多远，用 [`Get Gamepad Axis`](/zh/docs/studio/blueprint/nodes/input#get-gamepad-axis)
+- **多个手柄。** 所有已连接的手柄共用同一组按键。第一个手柄按下某个按键时它算作按下，没有任何手柄再按住它时才算作松开
+- **一次按下，不重复。** 按住一个按键只在按下时触发一次 `Down`，松开时触发一次 `Up`
+- **窗口焦点。** 游戏窗口隐藏或没有焦点时不读取按键。窗口重新获得焦点时已经按住的按键不触发 `Down`，松开时触发 `Up`
+- **支持的手柄。** 系统以标准布局报告的手柄会被读取，其他手柄被忽略
+
+### On Gamepad Button Down
+
+`blueprint.event.head.gamepadButtonDown`
+
+On Gamepad Button Down（手柄按下时）在卡片上选中的按键按下时触发
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Button` | 上表中的一个按键名称，包括左摇杆的四个方向 |
+
+### On Gamepad Button Up
+
+`blueprint.event.head.gamepadButtonUp`
+
+On Gamepad Button Up（手柄松开时）在卡片上选中的按键松开时触发
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+
+**卡片字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `Button` | 与 `On Gamepad Button Down` 的选择相同 |
+
+### Any Gamepad Button Down
+
+`blueprint.event.head.anyGamepadButtonDown`
+
+Any Gamepad Button Down（任意手柄按下）在每次按下按键时触发，左摇杆的四个方向除外
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | 按键名称，例如 `A` 或 `D-pad Up` |
+
+### Any Gamepad Button Up
+
+`blueprint.event.head.anyGamepadButtonUp`
+
+Any Gamepad Button Up（任意手柄松开）在每次松开按键时触发，左摇杆的四个方向除外
+
+| 引脚 | 方向 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `then` | out · exec | — | |
+| `button` | out · data | `string` | 按键名称，例如 `A` 或 `D-pad Up` |
 
 ## 输入意图
 

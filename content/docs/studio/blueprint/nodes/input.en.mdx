@@ -1,11 +1,11 @@
 ---
 title: Input
-description: Which device the player is using, and whether an input action is being held.
+description: Which device the player is using, whether an input action is being held, and the state of a connected gamepad.
 ---
 
-Two pure nodes for reading the player's input at the moment the graph runs. Neither is offered in a Blueprint Value.
+Five pure nodes for reading the player's input at the moment the graph runs: the device in use, whether an input action is held, and the gamepad's buttons and sticks. None is offered in a Blueprint Value.
 
-Neither is an event head. To *react* to input, use the keyboard and pointer heads in [Events](/docs/studio/blueprint/nodes/events), or the [`On Action`](/docs/studio/blueprint/nodes/events#on-action) head for the action vocabulary these two read; these two answer "what is true right now".
+None is an event head. To *react* to input, use the keyboard, gamepad and pointer heads in [Events](/docs/studio/blueprint/nodes/events), or the [`On Action`](/docs/studio/blueprint/nodes/events#on-action) head for the actions `Is Action Held` reads. The nodes on this page answer "what is true right now".
 
 ## Get Input Device
 
@@ -34,3 +34,45 @@ Whether the input action chosen on the card is being held down at this instant.
 | Field | What |
 | --- | --- |
 | `Action` | One of the project's input actions. |
+
+## Is Gamepad Connected
+
+`blueprint.input.isGamepadConnected` · Pure
+
+Whether a controller is connected, such as to show button prompts only to a player who has one. Only the controllers the game reads count; see [Gamepad](/docs/studio/blueprint/nodes/events#gamepad). The answer stays current while the game window does not have focus.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `connected` | out · data | `boolean` |
+
+## Is Gamepad Button Held
+
+`blueprint.input.isGamepadButtonHeld` · Pure
+
+Whether the button chosen on the card is held down on any connected controller at this instant. While the game window is hidden or does not have focus, it reads `false`.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `held` | out · data | `boolean` |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Button` | One of the button names listed under [Gamepad](/docs/studio/blueprint/nodes/events#gamepad), including the four left stick directions. |
+
+## Get Gamepad Axis
+
+`blueprint.input.getGamepadAxis` · Pure
+
+How far a stick of the first connected controller is pushed along the axis chosen on the card, from `-1` to `1`. An X axis is negative to the left and positive to the right, and a Y axis is negative up and positive down. A stick resting near its center reads `0`. With no controller connected, or while the game window is hidden or does not have focus, every axis reads `0`.
+
+| Pin | Direction | Type |
+| --- | --- | --- |
+| `value` | out · data | `float` |
+
+**On-card fields**
+
+| Field | What |
+| --- | --- |
+| `Axis` | `LeftX` or `LeftY` for the left stick, `RightX` or `RightY` for the right stick. |

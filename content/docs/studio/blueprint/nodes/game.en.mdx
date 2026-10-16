@@ -11,7 +11,7 @@ Every node here needs the running game. The editor canvas has none: a Game node 
 
 ## Conventions
 
-- **Pure or latent, near enough.** Forty-four nodes are `Pure` and may back a Blueprint Value. Fifty-one are `Latent`, and a Blueprint Value offers none of them. `Clear Visited` is the ninety-sixth and the odd one: effectful but synchronous, so a Blueprint Value leaves it out like a latent node without its being one.
+- **Pure or latent, near enough.** Forty-four nodes are `Pure` and may back a Blueprint Value. Fifty-one are `Latent`, and a Blueprint Value offers none of them. `Clear Visited` and `Post Notification` are the other two: effectful but synchronous, so a Blueprint Value leaves them out like latent nodes without their being latent.
 - **Not offered to Story Action blueprints.** A blueprint called from a story row has no game host, so its palette leaves out every node here except `Get Build Variant`.
 - **A host API is not a playthrough.** `List Saves`, `Get Save Metadata`, `Get Save Time`, `Get Save Line`, `Get Save Story`, `Get Save Playtime`, `Get Save Preview`, `Delete Save`, `List Auto Saves` and `Get Latest Auto Save` read the project's save store and work between playthroughs, with no game running. So do the endings, visited, DLC and build-variant readers — an endings gallery is opened from the title screen, before any game exists. Everything that serializes, deserializes or commands the live game needs one, and fails without it.
 - **State getters degrade; preference getters do not.** Every pure state read — `Is In Game`, `Is Game Overlay`, `Get Nametag`, `Get Speaker Avatar`, `Get Speaker Color`, `Get Dialog Text`, `Is Narrator`, `Is Dialog Waiting`, `Get Choice Count`, `Get Notifications`, `Is NVL Mode`, `Is Text Read`, `Has Read Text`, `Can Undo History`, `Can Redo History`, `Get Track Volume`, both playtime reads, and the endings, visited, DLC, build-variant and character readers — answers with a neutral value when nothing is playing: `false`, `null`, `0`, an empty array, opaque white for a colour, unity for a track volume. That is what lets one shared Page branch on them, and what lets a gallery row bind a locked look straight to a pin. The eighteen preference getters are the exception: they read the live `GamePreference` and fail when there is no game. `Is Dialog Shown` is one of them — it reads the `showDialog` preference and is named for the question rather than the key.
@@ -254,6 +254,21 @@ The notifications the runtime is currently showing, mirrored from the engine's n
 | `message` | Notification text. |
 
 The default notification template does not use this node: its [list](/docs/studio/blueprint/nodes/list) item template reads `message` off the item props instead.
+
+### Post Notification
+
+`blueprint.game.postNotification`
+
+Shows `message` as a notification in the running game, in the same place as the game's own notices: on the project's Game UI in the **Notification** slot when there is one. `Get Notifications` lists it until it closes. The chain continues from `next` as soon as the notification is shown.
+
+With no game running the node fails, and so does an empty `message`.
+
+| Pin | Direction | Type | Notes |
+| --- | --- | --- | --- |
+| `in` | in · exec | — | |
+| `message` | in · data | `string` | The text shown. Accepts an on-card literal. |
+| `duration` | in · data | `float` | Optional. How many seconds the notification stays, above 0. Without a value, 3. Accepts an on-card literal. |
+| `next` | out · exec | — | |
 
 ### Show Dialog
 
