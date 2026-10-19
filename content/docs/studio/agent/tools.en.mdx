@@ -5,7 +5,7 @@ description: Every tool Studio's MCP server offers, grouped by what it works on.
 
 Studio's MCP server has 77 tools of its own, listed below, and plugins can add more; see [Plugin tools](#plugin-tools). Their descriptions are in English, because agents read them, and each one says when to use it. The title is how Studio names the call in the **Agent log** and the status bar.
 
-**Changes the project** marks the tools that are refused while **Allow agents to make changes** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
+**Changes the project** marks the tools that are refused while **Allow agents to change projects** is off. In the open project they are also refused while the agent is paused, while the project is frozen, and during a Team live session. The other tools read; play-testing is among them, so an agent can check a game without permission to change it.
 
 Every tool that works on a project takes an optional `project`, the project folder's absolute path. It is needed only when more than one project is open.
 
@@ -146,6 +146,7 @@ The game's text languages are set with `project_settings_set`, its voice languag
 | `playtest_click` | Click in the game | No | Clicks an element of the running game's interface the way a player's mouse does, named by its id, a path of names, a unique name or the words it shows, and says what opened, closed or started |
 | `playtest_hover` | Point at something in the game | No | Rests the pointer on an element without pressing it, so its hover look and its On Mouse Enter graph run |
 | `playtest_key` | Press a key in the game | No | Presses a key the way a player's keyboard does, so the input actions bound to it and the focus navigation answer it; also right click and the mouse wheel |
+| `playtest_variables` | Read the game's variables | No | The saved and persistent variables as the running Dev Mode game holds them now, what the story, a screen or a page has written so far; `variables_list` gives only declarations and defaults. Scene variables are not listed. `playtest_click` and `playtest_key` also name the variables an act changed |
 | `playtest_stop` | Stop playing | No | Closes the Dev Mode game |
 | `console_read` | Read Studio's console | No | Recent lines from Studio's console (build, story, blueprint, runtime channels) |
 | `build` | Build the game | Yes | Builds a playable package of the project, through the same pipeline as Studio's build dialog |

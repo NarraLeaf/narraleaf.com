@@ -8,7 +8,7 @@ Studio 可以在本机提供 MCP（Model Context Protocol）端点。支持 MCP 
 Agent 的修改与手动编辑经过同一套服务：落地时即显示在画布上，由同一套自动保存写入磁盘，每次修改项目的调用记为一步撤销。作者可以随时暂停 Agent、撤销它的修改，或与它同时编辑
 
 <Callout type="info">
-Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Studio 必须处于运行状态：端点是 Studio 的一部分，只有 Studio 运行时 Agent 才能连接
+Agent 接入需要 Studio 1.5.0 或更高版本。Agent 工作期间 Studio 必须处于运行状态：端点是 Studio 的一部分，只有 Studio 运行时 Agent 才能连接
 </Callout>
 
 ## Agent 能做什么
@@ -42,7 +42,7 @@ Agent 接入需要 1.4.5 之后发布的 Studio 版本。Agent 工作期间 Stud
 
 **`narraleaf-make-game` Skill** 是 Agent 遵循的指南：工作顺序、要写的文本格式、界面设计规则以及需要避开的陷阱。Studio 可以将它导出为文件夹。对于无法加载 Skill 的 Agent，服务器也会提供同一份指南
 
-导出的文件夹中还有一个可选的 Skill，**`narraleaf-port-renpy`**，用于移植附带源码的 Ren'Py 游戏，见[移植 Ren'Py 游戏](/zh/docs/studio/agent/make-a-game#renpy)
+移植附带源码的 Ren'Py 游戏还需要另一个 Skill，**`narraleaf-port-renpy`**。它与 **Ren2Leaf** 向导一同发布在 [MewBaka/Ren2Leaf](https://github.com/MewBaka/Ren2Leaf)；Studio 导出的文件夹里也带有一份，可能旧于仓库中的版本。见[移植 Ren'Py 游戏](/zh/docs/studio/agent/make-a-game#renpy)
 
 ## 下一步
 

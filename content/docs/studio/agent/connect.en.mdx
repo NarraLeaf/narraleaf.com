@@ -21,9 +21,11 @@ Open **Settings → Agent access**. In a project window, the menu bar's **Agent*
 
 ### Allow agents to connect
 
-Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://127.0.0.1:47219/mcp` unless the port was changed, and reads **Listening.** once it is served.
+Switch on **Allow agents to connect**. **Endpoint address** shows the endpoint, `http://127.0.0.1:47219/mcp` unless the port was changed, and reads **Listening.** once it is served.
 
-**Endpoint port** takes effect at once and accepts 1024 to 65535. Studio serves on that port or not at all. When another program holds it, or the system has reserved it, the endpoint does not start: **Address** reads, for example, **Could not start: Port 47219 is in use by another program.**, and the project window's **Agent** menu shows the same line. Enter another port, then copy the configuration again for agents set up before.
+**Endpoint port** takes effect at once and accepts 1024 to 65535. Studio serves on that port or not at all. When another program holds it, or the system has reserved it, the endpoint does not start: **Endpoint address** reads, for example, **Could not start: Port 47219 is in use by another program.**, and the project window's **Agent** menu shows the same line. Enter another port, then copy the configuration again for agents set up before.
+
+The default port changed from 54080 to 47219 in Studio 1.6.2. A profile that came from an earlier release and never had its port changed by hand is moved to the new port once, and **Endpoint address** then reads **The endpoint moved to port 47219. Copy the connection configuration again for clients set up before.** The line goes once a configuration has been copied.
 
 </Step>
 
@@ -31,11 +33,11 @@ Switch on **Allow agents to connect**. **Address** shows the endpoint, `http://1
 
 ### Allow changes
 
-Switch on **Allow agents to make changes** when the agent should edit. It is off by default. While it is off, the agent can read the project and every change it tries is refused.
+Switch on **Allow agents to change projects** when the agent should edit. It is off by default. While it is off, the agent can read the project and every change it tries is refused.
 
 Turning it on from the menu bar, **Agent → Allow agents to modify the project**, asks for confirmation first, in a Studio window.
 
-**Full access**, below it, is off by default and is not needed to make a game. It lets agents change projects and read any folder without asking; see [Full access](/docs/studio/agent/security#full-access) before turning it on.
+**Allow agents full access**, below it, is off by default and is not needed to make a game. It lets agents change projects and read any folder without asking; see [Full access](/docs/studio/agent/security#full-access) before turning it on.
 
 </Step>
 
@@ -51,18 +53,17 @@ This step is optional. When an agent needs a file from any other folder, Studio 
 
 <Step>
 
-### Copy the configuration
+### Pick the application and copy the configuration
 
-**Copy configuration** puts a ready-to-paste configuration on the clipboard, with the address and the access token filled in. It offers four forms:
+Pick the application you use under **Agent application**: Claude Code, Claude Desktop, Codex, opencode, Cursor, Gemini CLI or **Other**. The **Connection configuration** and the **Agent Skill** below are for that one.
 
-| Button | Gives |
-| --- | --- |
-| **Claude Code** | The `claude mcp add` command |
-| **JSON** | An `mcpServers` entry |
-| **opencode** | An `mcp` block for `opencode.json` |
-| **stdio** | An entry that starts Studio itself as a bridge, for clients that can only start a local program. It holds no token |
+**Connection configuration** gives that application a ready-to-paste configuration with the endpoint address and the access token filled in, and says where it goes: for Claude Code it is a command to **Run in a terminal**, for the others it is **Merge into …** a file, and **Other** reads **Streamable HTTP. Enter this address and header in the client's MCP settings.** While **Allow agents to connect** is off, it reads **Available once "Allow agents to connect" is on.**
 
-The same forms are under **Agent → Copy connection configuration** in a project window. The token is also shown under **Access token** with **Show**.
+**Agent Skill** installs the skill where that application reads skills; see [Install the skill](#skill).
+
+A project window's **Agent → Copy connection configuration** offers six forms: Claude Code, Claude Desktop, Codex, opencode, Gemini CLI and JSON.
+
+**Endpoint address** and **Access token** each have a copy button, **Copy address** and **Copy token**. The token itself is never shown in full, only its last four characters. After **Regenerate access token → Regenerate**, clients set up with the old token stop being let in.
 
 </Step>
 
@@ -79,9 +80,9 @@ A project window's menu bar has an **Agent** menu:
 | **Follow agent edits** | Opens the editor where each change lands |
 | **Agent log** | Opens the log of every call in this project |
 | **Enable agent access** | The same switch as **Allow agents to connect** |
-| **Allow agents to modify the project** | The same switch as **Allow agents to make changes**, with a confirmation when turned on. While full access is on, it shows as on and cannot be switched |
-| **Allow agents full access** | The same switch as **Full access**, with a confirmation when turned on |
-| **Copy connection configuration** | Claude Code, opencode, JSON, or **stdio (Claude Desktop)** |
+| **Allow agents to change projects** | The same switch as the one in Settings, with a confirmation when turned on. While full access is on, it shows as on and cannot be switched |
+| **Allow agents full access** | The same switch as the one in Settings, with a confirmation when turned on |
+| **Copy connection configuration** | Six forms: Claude Code, Claude Desktop, Codex, opencode, Gemini CLI and JSON |
 | **Export Agent Skill…** | Writes the skill folder to a folder you pick |
 | **Agent access settings…** | Opens **Settings → Agent access** |
 
@@ -89,7 +90,7 @@ Pausing, following and the log are described in [Making a game with an agent](/d
 
 ## Add Studio to your agent
 
-Each client below registers the server under the name `narraleaf`. Where a snippet shows `<PORT>` and `<TOKEN>`, take them from **Address** and **Access token**.
+Each client below registers the server under the name `narraleaf`. Where a snippet shows `<PORT>` and `<TOKEN>`, take them from **Endpoint address** and **Access token**.
 
 ### Claude Code
 
@@ -134,7 +135,7 @@ The path is Studio's own executable:
 
 Merge the entry into `claude_desktop_config.json` (**Settings → Developer → Edit Config** in Claude Desktop) and restart Claude Desktop.
 
-The entry holds no token. The bridge reads the address and the token from Studio's settings each time, so it keeps working after the token is replaced or the port changes. When Studio is not running, the bridge starts it and waits up to a minute for the endpoint. When agent access is off, it answers every request with a message saying where to switch it on.
+The entry holds no token. The bridge reads the address and the token from Studio's settings each time, so it keeps working after the token is replaced or the port changes. Claude Desktop connects to every server it is configured with whenever it starts, and connecting does not start Studio: `initialize`, `ping` and the lists of tools, resources and prompts are answered by the bridge itself while Studio is not running. The first real tool call starts Studio and waits up to a minute for the endpoint (Studio 1.6.3 and newer). When agent access is off, it answers every request with a message saying where to switch it on.
 
 If the bridge does not suit you, `mcp-remote`, a third-party npm package that needs Node.js, does the same:
 
@@ -227,7 +228,22 @@ The `context.fileName` entry makes Gemini CLI read `AGENTS.md`, which points it 
 
 A client that can only start local programs runs Studio with `--mcp-stdio`, as in the Claude Desktop entry, or a bridge such as `mcp-remote`.
 
-## Install the skill
+## Install the skill [#skill]
+
+The simplest way is to let Studio do it. Pick your application under **Settings → Agent access → Agent application**, and the **Agent Skill** row offers **Install Agent Skill**, saying **Installs into …. Other skills there are kept.** Once it is installed the button reads **Reinstall**, beside **Installed in ….** Studio installs into the folder each application reads skills from:
+
+| Application | Installed into |
+| --- | --- |
+| Claude Code | `~/.claude/skills/` |
+| Codex, opencode, Cursor, Gemini CLI | `~/.agents/skills/`, the one folder all four read |
+| Claude Desktop | **Save zip file…** writes a zip to upload in Claude under **Settings → Capabilities → Skills** |
+| Other | Nothing to install: those applications read the same guide from Studio's MCP server; see [Without a skill](#no-skill) |
+
+After updating Studio, press **Reinstall** once and the skill matches that Studio. When the `SKILL.md` already there is not the one this Studio ships, an older version or your own edits, Studio asks in its own window before replacing it. First-run setup offers the same step on its agent access screen.
+
+An agent session that is already running keeps the text it has read, so start a new one after reinstalling.
+
+### By hand
 
 **Agent → Export Agent Skill…** writes a folder named `NarraLeaf-Skills` into the folder you pick. Files of the same name are replaced; nothing else in the folder is removed.
 
@@ -241,21 +257,15 @@ A client that can only start local programs runs Studio with `--mcp-stdio`, as i
   </Folder>
 </Files>
 
-The skill is `narraleaf-make-game`. Copy the whole folder, not only `SKILL.md`, to where the agent looks for skills:
-
-| Agent | For every folder | For one project |
-| --- | --- | --- |
-| Claude Code | `~/.claude/skills/narraleaf-make-game/` | `.claude/skills/narraleaf-make-game/` |
-| opencode | `~/.config/opencode/skill/narraleaf-make-game/` | `.opencode/skill/narraleaf-make-game/` |
-| Codex CLI | `~/.codex/skills/narraleaf-make-game/` | None |
-| Claude Desktop, claude.ai | Zip the folder and upload it under **Settings → Capabilities → Skills** | None |
-| Cursor, Gemini CLI, others | No skill folder; see below | None |
+The skill is `narraleaf-make-game`. Copy the whole folder, not only `SKILL.md`, to one of the places above. `~/.agents/skills/` is the one folder Codex, opencode, Cursor and Gemini CLI all read; several of them also have a folder of their own (`~/.config/opencode/skills/`, `~/.cursor/skills/`, `~/.gemini/skills/`), and Cursor and opencode read `~/.claude/skills/` as well, so a copy in both places may be listed twice. For one project only, put the folder in that project's `.claude/skills/` or `.agents/skills/`.
 
 Agents that read `AGENTS.md`, such as opencode, Codex, Cursor and Gemini CLI with the setting above, find the skill by themselves when started inside `NarraLeaf-Skills`.
 
-`narraleaf-port-renpy`, beside it, is for porting a Ren'Py game that comes with its source; see [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy). It builds on `narraleaf-make-game`, so install both, in the same way. The server does not serve it as a guide; an agent reads it from the folder.
+With Node.js, the third-party [`skills`](https://github.com/vercel-labs/skills) command installs them straight from the repository: `npx skills add NarraLeaf/Skills -g`, where `-g` installs for your user. `npx skills update` fetches a newer version later.
 
-### Without a skill
+Porting a Ren'Py game also needs `narraleaf-port-renpy`. The folder Studio exports holds a copy, but the skill is published in [MewBaka/Ren2Leaf](https://github.com/MewBaka/Ren2Leaf) together with the Ren2Leaf wizard, where it can be newer. Install it the way you installed `narraleaf-make-game`, and install both. The server does not serve it as a guide; an agent reads it from the folder. See [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy).
+
+### Without a skill [#no-skill]
 
 The server serves the guide itself, so an agent gets it with no skill installed:
 
