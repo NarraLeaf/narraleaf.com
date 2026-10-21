@@ -13,8 +13,9 @@
         "ja": "PLBkk04PPWYLU"
       },
       "bilibili": {
-        "space": "3546731419535895",
-        "collection": "9315584"
+        "aid": "117476717236309",
+        "bvid": "BV1Wqnv64Eq4",
+        "cid": "42914940096"
       },
       "episodes": [
         {
@@ -54,7 +55,6 @@
             },
             "zh": {
               "youtube": "tPBT7t_F2LQ",
-              "bilibili": "BV1enWA6fEob",
               "published": "2026-10-12T15:21:25-07:00",
               "title": "上手 Studio",
               "label": "第 1 集",
@@ -150,7 +150,6 @@
             },
             "zh": {
               "youtube": "Z2QlRZHv8Z8",
-              "bilibili": "BV1QmWw6HETJ",
               "published": "2026-10-12T15:26:03-07:00",
               "title": "边改边看",
               "label": "第 2 集",
@@ -242,7 +241,6 @@
             },
             "zh": {
               "youtube": "-mPwg1FYtHw",
-              "bilibili": "BV1a1Ww6XE6k",
               "published": "2026-10-12T16:16:49-07:00",
               "title": "写故事",
               "label": "第 3 集",

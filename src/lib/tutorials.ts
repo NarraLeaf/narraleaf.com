@@ -1,5 +1,5 @@
 import catalogue from '@/data/tutorials.json';
-import { bilibiliEmbedUrl, youtubeEmbedUrl } from '@/components/video-frame';
+import { type BilibiliVideo, bilibiliPartEmbedUrl, youtubeEmbedUrl } from '@/components/video-frame';
 import { tutorialsRoute } from './shared';
 import { type Locale, i18n, localizedPath } from './i18n';
 
@@ -17,8 +17,6 @@ import { type Locale, i18n, localizedPath } from './i18n';
  */
 export type TutorialVideo = {
   youtube: string;
-  /** Chinese only, when the episode is also on Bilibili. */
-  bilibili?: string;
   /** When the video went up, as YouTube reports it. */
   published: string;
   title: string;
@@ -41,8 +39,11 @@ export type TutorialSeries = {
   id: string;
   title: Record<Locale, string>;
   playlist: Record<Locale, string>;
-  /** The series' collection on Bilibili; the Chinese list links it beside the YouTube playlist. */
-  bilibili?: { space: string; collection: string };
+  /**
+   * The series on Bilibili: one video whose parts are the episodes, part `n` being
+   * episode `n`. The Chinese pages play it and link it beside the YouTube playlist.
+   */
+  bilibili?: BilibiliVideo;
   episodes: TutorialEpisode[];
 };
 
@@ -134,27 +135,35 @@ export function tutorialUrl(slug: string, locale: Locale): string {
 }
 
 /**
- * The player for an episode. A Chinese page plays the Bilibili upload when there
- * is one, since YouTube does not load in mainland China; otherwise YouTube.
+ * The player for an episode. A Chinese page plays the episode's part of the
+ * series' Bilibili video, since YouTube does not load in mainland China;
+ * otherwise YouTube.
  */
-export function tutorialEmbedUrl(video: TutorialVideo, locale: Locale): string {
-  return locale === 'zh' && video.bilibili ? bilibiliEmbedUrl(video.bilibili) : youtubeEmbedUrl(video.youtube);
+export function tutorialEmbedUrl(
+  { series, episode, video }: { series: TutorialSeries; episode: TutorialEpisode; video: TutorialVideo },
+  locale: Locale,
+): string {
+  return locale === 'zh' && series.bilibili
+    ? bilibiliPartEmbedUrl(series.bilibili, episode.number)
+    : youtubeEmbedUrl(video.youtube);
 }
 
 export function youtubeWatchUrl(id: string): string {
   return `https://www.youtube.com/watch?v=${id}`;
 }
 
-export function bilibiliWatchUrl(bvid: string): string {
-  return `https://www.bilibili.com/video/${bvid}`;
+/** One episode on Bilibili: the series' video, opened at that episode's part. */
+export function bilibiliWatchUrl({ bvid }: BilibiliVideo, part: number): string {
+  return `https://www.bilibili.com/video/${bvid}/?p=${part}`;
 }
 
 export function youtubePlaylistUrl(id: string): string {
   return `https://www.youtube.com/playlist?list=${id}`;
 }
 
-export function bilibiliCollectionUrl({ space, collection }: { space: string; collection: string }): string {
-  return `https://space.bilibili.com/${space}/lists/${collection}?type=season`;
+/** The series on Bilibili: the one video that holds every episode. */
+export function bilibiliCollectionUrl({ bvid }: BilibiliVideo): string {
+  return `https://www.bilibili.com/video/${bvid}/`;
 }
 
 /** `2:01`, as YouTube shows a length: whole seconds, rounded down. */

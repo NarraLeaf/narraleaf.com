@@ -20,6 +20,19 @@ export function bilibiliEmbedUrl(bvid: string): string {
   return `https://player.bilibili.com/player.html?bvid=${bvid}&p=1&autoplay=0&danmaku=0&high_quality=1`;
 }
 
+/** A video on Bilibili, by the three ids its player wants. */
+export type BilibiliVideo = { aid: string; bvid: string; cid: string };
+
+/**
+ * One part of a multi-part Bilibili video, as Bilibili's own embed code addresses
+ * it: `aid` and the first part's `cid` beside the `bvid`, `isOutside` for a player
+ * on another site, and `p` for the part. The tutorials are the parts of a single
+ * video, one per episode, so `part` is the episode's own number.
+ */
+export function bilibiliPartEmbedUrl({ aid, bvid, cid }: BilibiliVideo, part: number): string {
+  return `https://player.bilibili.com/player.html?isOutside=true&aid=${aid}&bvid=${bvid}&cid=${cid}&p=${part}&autoplay=0&danmaku=0&high_quality=1`;
+}
+
 /**
  * A video player as a 16:9 frame.
  *

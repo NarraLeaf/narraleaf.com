@@ -28,8 +28,8 @@ export default async function TutorialPage(props: PageProps<'/[lang]/tutorials/[
   if (!tutorial) notFound();
 
   const copy = tutorialsCopy[lang];
-  const { series, video, previous, next } = tutorial;
-  const embed = tutorialEmbedUrl(video, lang);
+  const { series, episode, video, previous, next } = tutorial;
+  const embed = tutorialEmbedUrl(tutorial, lang);
 
   // A video carries its own structured data, so a search result can show the
   // poster, the length and the upload date beside the page.
@@ -76,9 +76,9 @@ export default async function TutorialPage(props: PageProps<'/[lang]/tutorials/[
         <VideoFrame src={embed} title={video.title} className="mt-10" />
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
-          {lang === 'zh' && video.bilibili ? (
+          {lang === 'zh' && series.bilibili ? (
             <a
-              href={bilibiliWatchUrl(video.bilibili)}
+              href={bilibiliWatchUrl(series.bilibili, episode.number)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
