@@ -143,18 +143,24 @@ export function tutorialEmbedUrl(
   { series, episode, video }: { series: TutorialSeries; episode: TutorialEpisode; video: TutorialVideo },
   locale: Locale,
 ): string {
-  return locale === 'zh' && series.bilibili
-    ? bilibiliPartEmbedUrl(series.bilibili, episode.number)
-    : youtubeEmbedUrl(video.youtube);
+  const bilibili = locale === 'zh' && series.bilibili ? bilibiliPartEmbedUrl(series.bilibili, episode.number) : null;
+  return bilibili ?? youtubeEmbedUrl(video.youtube);
 }
 
 export function youtubeWatchUrl(id: string): string {
   return `https://www.youtube.com/watch?v=${id}`;
 }
 
-/** One episode on Bilibili: the series' video, opened at that episode's part. */
-export function bilibiliWatchUrl({ bvid }: BilibiliVideo, part: number): string {
-  return `https://www.bilibili.com/video/${bvid}/?p=${part}`;
+/**
+ * One episode on Bilibili: the series' video, opened at that episode's part. Null
+ * when the reader is not on a Chinese page, or the video has no such part.
+ */
+export function tutorialBilibiliUrl(
+  { series, episode }: { series: TutorialSeries; episode: TutorialEpisode },
+  locale: Locale,
+): string | null {
+  if (locale !== 'zh' || !series.bilibili?.parts[String(episode.number)]) return null;
+  return `${bilibiliCollectionUrl(series.bilibili)}?p=${episode.number}`;
 }
 
 export function youtubePlaylistUrl(id: string): string {
