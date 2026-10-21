@@ -8,10 +8,10 @@ import { landingPageSeo } from '@/lib/landing-seo';
 import { absoluteUrl, alternatesFor, jsonLdScript, keywordsFor, socialMetadataFor } from '@/lib/seo';
 import { tutorialsRoute } from '@/lib/shared';
 import {
-  bilibiliWatchUrl,
   formatClock,
   getTutorial,
   isoDuration,
+  tutorialBilibiliUrl,
   tutorialEmbedUrl,
   tutorialLocales,
   tutorialSeries,
@@ -29,7 +29,8 @@ export default async function TutorialPage(props: PageProps<'/[lang]/tutorials/[
 
   const copy = tutorialsCopy[lang];
   const { series, video, previous, next } = tutorial;
-  const embed = tutorialEmbedUrl(video, lang);
+  const embed = tutorialEmbedUrl(tutorial, lang);
+  const bilibili = tutorialBilibiliUrl(tutorial, lang);
 
   // A video carries its own structured data, so a search result can show the
   // poster, the length and the upload date beside the page.
@@ -76,9 +77,9 @@ export default async function TutorialPage(props: PageProps<'/[lang]/tutorials/[
         <VideoFrame src={embed} title={video.title} className="mt-10" />
 
         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
-          {lang === 'zh' && video.bilibili ? (
+          {bilibili ? (
             <a
-              href={bilibiliWatchUrl(video.bilibili)}
+              href={bilibili}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-fd-muted-foreground transition-colors hover:text-fd-foreground"

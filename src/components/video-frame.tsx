@@ -21,6 +21,28 @@ export function bilibiliEmbedUrl(bvid: string): string {
 }
 
 /**
+ * A multi-part video on Bilibili: the ids its player wants, and the `cid` of each
+ * part, by part number. The player picks a part by its `cid`, not by `p`, so a
+ * part cannot be addressed without it; the numbers come from
+ * `api.bilibili.com/x/web-interface/view?bvid=<bvid>`, which lists them under
+ * `data.pages`.
+ */
+export type BilibiliVideo = { aid: string; bvid: string; parts: Record<string, string> };
+
+/**
+ * One part of a multi-part Bilibili video, as Bilibili's own embed code addresses
+ * it: `isOutside` for a player on another site, `aid` and `bvid` for the video,
+ * `p` for the part, and that part's own `cid`, which is what actually loads it -
+ * a `p` on its own leaves the player wherever the `cid` points, so the two travel
+ * together. Null when the video has no such part.
+ */
+export function bilibiliPartEmbedUrl({ aid, bvid, parts }: BilibiliVideo, part: number): string | null {
+  const cid = parts[String(part)];
+  if (!cid) return null;
+  return `https://player.bilibili.com/player.html?isOutside=true&aid=${aid}&bvid=${bvid}&cid=${cid}&p=${part}&autoplay=0&danmaku=0&high_quality=1`;
+}
+
+/**
  * A video player as a 16:9 frame.
  *
  * `loading="lazy"` keeps the player off the first load until the visitor scrolls

@@ -8,7 +8,7 @@ Studio can serve an MCP endpoint (the Model Context Protocol) on your own comput
 An agent's edit goes through the same services as an edit made by hand. It appears on the canvas as it lands, it is saved by the same auto-save, and each call that changes the project is one step of undo. You can pause the agent, undo what it did, or edit alongside it at any moment.
 
 <Callout type="info">
-Agent access needs a Studio release after 1.4.5. Studio must be open while the agent works: the endpoint is part of Studio, and an agent can only reach it while Studio runs.
+Agent access needs Studio 1.5.0 or newer. Studio must be open while the agent works: the endpoint is part of Studio, and an agent can only reach it while Studio runs.
 </Callout>
 
 ## What an agent can do
@@ -42,7 +42,7 @@ Every tool is listed in [Tools](/docs/studio/agent/tools).
 
 **The `narraleaf-make-game` skill** is the guide the agent follows: the order of work, the text formats it writes, interface design rules and the traps to avoid. Studio exports it as a folder, and the server also serves the same guide to agents that cannot load skills.
 
-The exported folder also holds an optional second skill, **`narraleaf-port-renpy`**, for porting a Ren'Py game that comes with its source. See [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy).
+Porting a Ren'Py game that comes with its source needs a second skill, **`narraleaf-port-renpy`**. It is published in [MewBaka/Ren2Leaf](https://github.com/MewBaka/Ren2Leaf) together with the **Ren2Leaf** wizard; the folder Studio exports holds a copy too, which can be older than the one in that repository. See [Porting a Ren'Py game](/docs/studio/agent/make-a-game#renpy).
 
 ## Next
 

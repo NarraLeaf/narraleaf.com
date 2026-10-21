@@ -5,13 +5,13 @@ description: When an agent cannot reach Studio, when it waits on a folder, and w
 
 ## The agent cannot connect
 
-Start in **Settings → Agent access**. **Address** reads **Listening.** while the endpoint is served, **Not running.** while it is off, and **Could not start:** followed by the reason when it failed.
+Start in **Settings → Agent access**. **Endpoint address** reads **Listening.** while the endpoint is served, **Not running.** while it is off, and **Could not start:** followed by the reason when it failed.
 
 | Symptom | Cause | What to do |
 | --- | --- | --- |
 | The agent has no NarraLeaf tools | Studio is not running, or **Allow agents to connect** is off | Open Studio and switch it on, then restart the agent or reconnect it |
-| The connection is refused | The port changed after the agent was set up | Compare the port in **Address** with the agent's configuration, copy the configuration again, and restart the agent |
-| **Address** reads **Could not start: Port … is in use by another program.** or **… is reserved by the system.** | Another program holds the port, or Windows has reserved it for Hyper-V, WSL or Docker. Studio does not move to another port on its own | Enter a free port in **Endpoint port**, copy the configuration again, and restart the agent |
+| The connection is refused | The port changed after the agent was set up | Compare the port in **Endpoint address** with the agent's configuration, copy the configuration again, and restart the agent |
+| **Endpoint address** reads **Could not start: Port … is in use by another program.** or **… is reserved by the system.** | Another program holds the port, or Windows has reserved it for Hyper-V, WSL or Docker. Studio does not move to another port on its own | Enter a free port in **Endpoint port**, copy the configuration again, and restart the agent |
 | The agent reports a missing or wrong bearer token | The token was regenerated, or the configuration was typed by hand | Copy the configuration again |
 | The agent reports that requests from web pages are not accepted | The client sends an `Origin` header, as a browser does | Use a client that runs as a program on the computer |
 | The client never connects, or fails with HTTP 405 | The client was set up for the older HTTP+SSE transport | Set it up for Streamable HTTP |
@@ -51,7 +51,7 @@ When Studio refuses a call, the agent receives a code, a message and often a nex
 
 | Code | Agent log shows | Meaning | What you do |
 | --- | --- | --- | --- |
-| `writes_disabled` | **Changes not allowed** | **Allow agents to make changes** and **Full access** are both off | Switch on **Allow agents to make changes** if the agent should edit. Reading still works |
+| `writes_disabled` | **Changes not allowed** | **Allow agents to change projects** and **Allow agents full access** are both off | Switch on **Allow agents to change projects** if the agent should edit. Reading still works |
 | `paused` | **Paused** | You paused the agent in this project | **Resume agent** when it may continue |
 | `frozen` | **Project frozen** | The project is not accepting changes: a past version is open, it was frozen by hand, a merge is unfinished, Studio is in recovery mode, or another window took it over | Finish or leave that state; the agent retries |
 | `live_session` | **Live session running** | A Team live session is running in the project | Leave the session, or let the agent work read-only until it ends |

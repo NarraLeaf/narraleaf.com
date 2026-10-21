@@ -24,7 +24,7 @@ Nothing in a request is evaluated as code. The arguments of each call are checke
 
 Studio keeps the token in `agent-mcp.json` in its user data folder, together with the other agent access settings. On macOS and Linux the file can be read by your account only. On Windows it relies on the permissions of the user data folder. The token is kept out of Studio's general settings, which are often exported and shared.
 
-Anything that can read the token can change your projects while agent access is on, so treat it like a password. **Replace the token → Regenerate** issues a new one at once; clients set up with the old one are refused from their next request and need the configuration copied again. The **stdio** entry holds no token and keeps working.
+Anything that can read the token can change your projects while agent access is on, so treat it like a password. **Regenerate access token → Regenerate** issues a new one at once; clients set up with the old one are refused from their next request and need the configuration copied again. The **stdio** entry holds no token and keeps working.
 
 The token never reaches a project window. A project window runs plugin code, so its **Agent** menu is given only whether agent access is on, whether changes are allowed, whether full access is on and whether the endpoint is running. Copying a configuration from that menu is carried out outside the window, straight onto the clipboard.
 
@@ -34,7 +34,7 @@ Copying a configuration puts the token on the system clipboard, where other prog
 
 ## What an agent may change
 
-**Changes are off by default.** With **Allow agents to make changes** off, an agent can read the open projects and every change it tries is refused. Turning it on from a project window's **Agent** menu asks first, **Allow agents to modify projects?**, in a Studio window that plugin code in the project window cannot answer; see [Questions in Studio's own window](#prompts). Switching it off never asks. [Full access](#full-access) allows changes too.
+**Changes are off by default.** With **Allow agents to change projects** off, an agent can read the open projects and every change it tries is refused. Turning it on from a project window's **Agent** menu asks first, **Allow agents to change projects?**, in a Studio window that plugin code in the project window cannot answer; see [Questions in Studio's own window](#prompts). Switching it off never asks. [Full access](#full-access) allows changes too.
 
 **Pausing stops changes in one project.** While an agent is paused, every change it tries there is refused. Reads still work.
 
@@ -60,11 +60,11 @@ One prompt is shown at a time, whichever project window asks. A call waits up to
 
 ## Full access [#full-access]
 
-**Full access** in **Settings → Agent access**, or **Allow agents full access** in a project window's **Agent** menu, is off by default. Turning it on asks first, from either place, with **Give agents full access?** Switching it off never asks.
+**Allow agents full access** is off by default, and the row in **Settings → Agent access** and the item in a project window's **Agent** menu are the same switch. Turning it on asks first, from either place, with **Allow agents full access?** Switching it off never asks.
 
 While it is on:
 
-- Agents may change projects whatever **Allow agents to make changes** says. That switch shows as on and cannot be switched until full access is off again.
+- Agents may change projects whatever **Allow agents to change projects** says. That switch shows as on and cannot be switched until full access is off again.
 - Agents may read files in any folder without asking. Nothing is added to **Folders agents may import from**.
 - The folders that are never offered stay closed: Studio's own folders, the home folder as a whole, and drive roots.
 - Pausing, a frozen project, a Team live session and the checks every change passes still apply.

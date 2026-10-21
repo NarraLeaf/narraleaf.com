@@ -11,7 +11,7 @@ This walk-through assumes the agent is connected and has the skill or the guide.
 
 ### Prepare the script and the art
 
-Put the script in a text file and the art and audio in one folder. In **Settings → Agent access**, switch on **Allow agents to make changes**, and add that folder under **Folders agents may import from**. If you leave the folder out, Studio asks you to allow it the first time the agent reads from it.
+Put the script in a text file and the art and audio in one folder. In **Settings → Agent access**, switch on **Allow agents to change projects**, and add that folder under **Folders agents may import from**. If you leave the folder out, Studio asks you to allow it the first time the agent reads from it.
 
 Sprites need a transparent background; an opaque one shows as a rectangle. Formats Studio imports:
 
@@ -139,11 +139,29 @@ A new take shows as **Voiced**. The agent marks a take **Approved** only when yo
 
 ## Porting a Ren'Py game [#renpy]
 
-The optional `narraleaf-port-renpy` skill guides an agent through moving an existing Ren'Py game into Studio, when the game comes with its source: the `game` folder with its `.rpy` scripts. It builds on `narraleaf-make-game`, so both are installed; see [Connecting an agent](/docs/studio/agent/connect).
+Moving an existing Ren'Py game into Studio needs the `narraleaf-port-renpy` skill, and a game that comes with its source: the `game` folder with its `.rpy` scripts. The skill is published in [MewBaka/Ren2Leaf](https://github.com/MewBaka/Ren2Leaf) together with the **Ren2Leaf** wizard, and it builds on `narraleaf-make-game`, so both are installed; see [Connecting an agent](/docs/studio/agent/connect). The folder Studio exports holds a copy of `narraleaf-port-renpy` too, which can be older than the one in that repository: take the skill and the wizard from Ren2Leaf before you start.
+
+<Callout type="warn">
+Porting is still being tested and is not stable yet. The skill has the agent say so at the start, and list every difference from the original game it could not resolve in the hand-over.
+</Callout>
+
+### The Ren2Leaf wizard
+
+The wizard is a local web program, and you drive it yourself. With Node.js 20 or newer, `node ren2leaf.js` serves it on `127.0.0.1` and opens a browser, on port 4710 unless `--port` says otherwise; `--no-open` leaves the browser alone.
+
+It does the part an agent is not well placed to do: it scans the scripts, the assets and the variables; runs the game with a Ren'Py SDK on the computer and photographs every screen, taking each element's coordinates from the engine rather than inferring them from the code; settles who the speakers are; crops the sprites; and exports a **hand-over pack**, a folder with a `README.md` and `screens/`.
+
+The agent reads that `README.md` before it starts anything. What the pack marks as the migrator's is settled, and the agent follows it; what was scanned is evidence it still checks. Without a pack, the agent has only `screens.rpy` and whatever screenshots you give it.
+
+### The method
 
 - **A converter, not a hand port.** The agent writes a program that reads the scripts once and generates each scene's `.story` text from them. A mapping that turns out wrong is fixed in the converter, and the scenes are generated again.
-- **Ren'Py to Studio mappings.** The skill sets out how Ren'Py statements, image attributes, positions and transforms, characters, variables and persistent data, menus and endings carry over, and which media must be converted before import.
-- **The interface traced from the running game.** The agent runs the Ren'Py game, takes a screenshot of every screen, rebuilds each one in Studio against its picture, and checks it again in Studio's running game. This step needs the Ren'Py SDK on the computer.
+- **Ren'Py to Studio mappings.** The skill sets out how Ren'Py statements, image attributes, positions and transforms, characters and voice, variables and persistent data, menus and endings carry over, and which media must be converted before import.
+- **The interface rebuilt against real pictures of the game.** The agent rebuilds each page in Studio against the pack's screenshots, then checks it again in Studio's running game. A screen that changes with `persistent` is photographed in one of its states only; the other comes from `screens.rpy`, or from a second screenshot you take.
+
+<Callout type="warn">
+A Ren'Py game is a program. Running it runs a program on your computer, with your own permissions to read and write files and reach the network. The skill has the agent say what it is about to run and ask you first, and a game whose origin you do not trust is not run at all: the interface is traced from `screens.rpy` and from screenshots you provide, and the hand-over says so.
+</Callout>
 
 The agent reads the Ren'Py source in place and never changes it; what it makes on the way goes in a working folder of its own.
 
@@ -189,7 +207,7 @@ The log holds the last 500 calls of this window in memory. It records what you c
 
 **Edit alongside it.** You can edit the page or scene the agent is working on. The agent's next write carries the revision it read, so it is refused with `stale_revision`; the agent reads your version again and redoes its change on top of it. Your edit wins.
 
-**Stop it entirely.** Switching off **Allow agents to make changes**, and **Full access** if it is on, refuses every change from every agent until one of them is switched on again. Switching off **Allow agents to connect** stops the endpoint.
+**Stop it entirely.** Switching off **Allow agents to change projects**, and **Allow agents full access** if it is on, refuses every change from every agent until one of them is switched on again. Switching off **Allow agents to connect** stops the endpoint.
 
 ## What usually remains
 
