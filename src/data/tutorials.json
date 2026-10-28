@@ -955,6 +955,323 @@
               "poster": "/static/img/tutorials/voice-over-ja.webp"
             }
           }
+        },
+        {
+          "slug": "changing-a-page",
+          "number": 11,
+          "videos": {
+            "en": {
+              "youtube": "StSOYq25060",
+              "published": "2026-10-28T08:17:16-07:00",
+              "title": "Changing a page",
+              "label": "Episode 11",
+              "summary": "The title page is a page, and everything on it is an element: select it in the UI Outline and change it under Properties on the right. Replace the title page's key art and see how Cover and Contain handle a picture of another shape. Change the game's title and a button's words. Make a Credits page with a list of names and a Back button. Then copy a title button to lead to the new page, and try it in Dev Mode.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Opening the title page"
+                },
+                {
+                  "t": 22,
+                  "text": "Replacing the key art"
+                },
+                {
+                  "t": 60,
+                  "text": "Changing the words"
+                },
+                {
+                  "t": 79,
+                  "text": "Making a page"
+                },
+                {
+                  "t": 123,
+                  "text": "A way in from the title page"
+                },
+                {
+                  "t": 170,
+                  "text": "Trying it in Dev Mode"
+                }
+              ],
+              "length": 187.8,
+              "poster": "/static/img/tutorials/changing-a-page-en.webp"
+            },
+            "zh": {
+              "youtube": "nQR4pqSzU4I",
+              "published": "2026-10-28T08:15:08-07:00",
+              "title": "改页面",
+              "label": "第 11 集",
+              "summary": "标题页是一个页面，页面上的每样东西都是一个元素：在「UI 大纲」中选中它，在右侧「属性」中修改。本集先换掉标题页的主视觉，看「覆盖」与「包含」两种模式怎样处理比例不同的图；再改游戏名和按钮上的字；然后新建「制作人员」页，放上名单和一个「返回」按钮；最后从标题页复制一个按钮通往新页面，并在开发模式中试一遍。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "打开标题页"
+                },
+                {
+                  "t": 21,
+                  "text": "换主视觉"
+                },
+                {
+                  "t": 59,
+                  "text": "改字"
+                },
+                {
+                  "t": 77,
+                  "text": "新建页面"
+                },
+                {
+                  "t": 123,
+                  "text": "从标题页进入"
+                },
+                {
+                  "t": 170,
+                  "text": "在开发模式中试一遍"
+                }
+              ],
+              "length": 188.2,
+              "poster": "/static/img/tutorials/changing-a-page-zh.webp"
+            },
+            "ja": {
+              "youtube": "9Ff86AsOk3c",
+              "published": "2026-10-28T08:19:27-07:00",
+              "title": "ページを変える",
+              "label": "第 11 回",
+              "summary": "タイトル画面は一つのページで、ページの上のものはすべて要素です。「UI のアウトライン」で選び、右の「プロパティ」で変更します。まずタイトル画面のキービジュアルを差し替え、「カバー」と「収める」が比率の違う画像をどう扱うかを見ます。次にゲーム名とボタンの文字を変え、「スタッフ」ページを作って名前と「戻る」ボタンを置きます。最後にタイトルのボタンを複製して新しいページへつなぎ、開発モードで試します。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "タイトル画面を開く"
+                },
+                {
+                  "t": 24,
+                  "text": "キービジュアルを差し替える"
+                },
+                {
+                  "t": 61,
+                  "text": "文字を変える"
+                },
+                {
+                  "t": 81,
+                  "text": "ページを作る"
+                },
+                {
+                  "t": 128,
+                  "text": "タイトル画面から入る"
+                },
+                {
+                  "t": 175,
+                  "text": "開発モードで試す"
+                }
+              ],
+              "length": 194.1,
+              "poster": "/static/img/tutorials/changing-a-page-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "layout",
+          "number": 12,
+          "videos": {
+            "en": {
+              "youtube": "qP3Z5ipK1xY",
+              "published": "2026-10-28T08:22:18-07:00",
+              "title": "Layout",
+              "label": "Episode 12",
+              "summary": "The title page's buttons were placed one by one by their coordinates, so adding a button or changing the order means working every position out again. Group the seven buttons into a container and make it a stack: the buttons line up in the outline's order, and dragging in the outline changes the order. Then turn the stack horizontal and use its two alignments to make a row along the bottom; duplicate a button and the others make room. Finally, see the result in Dev Mode.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Buttons placed by hand"
+                },
+                {
+                  "t": 16,
+                  "text": "Letting the buttons line up"
+                },
+                {
+                  "t": 43,
+                  "text": "Changing the order"
+                },
+                {
+                  "t": 57,
+                  "text": "A row along the bottom · Adding a button"
+                },
+                {
+                  "t": 108,
+                  "text": "Seeing it in Dev Mode"
+                }
+              ],
+              "length": 120.3,
+              "poster": "/static/img/tutorials/layout-en.webp"
+            },
+            "zh": {
+              "youtube": "gKMwnBcP8YQ",
+              "published": "2026-10-28T08:20:49-07:00",
+              "title": "布局",
+              "label": "第 12 集",
+              "summary": "标题页的按钮是逐个填写坐标摆放的，加一个按钮或换一次顺序，每个坐标都要重算。本集把七个按钮编组进一个容器，把容器设为「堆叠」：按钮按大纲中的顺序自动排开；在大纲中拖动就能换顺序；再把方向改为水平、用两种对齐把菜单排成底部一行；复制一个按钮，其余按钮自动让位。最后在开发模式中看结果。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "手动摆放的按钮"
+                },
+                {
+                  "t": 16,
+                  "text": "让按钮自己排好"
+                },
+                {
+                  "t": 43,
+                  "text": "换顺序"
+                },
+                {
+                  "t": 56,
+                  "text": "改成底部一排、加一个按钮"
+                },
+                {
+                  "t": 108,
+                  "text": "在开发模式中查看"
+                }
+              ],
+              "length": 120.2,
+              "poster": "/static/img/tutorials/layout-zh.webp"
+            },
+            "ja": {
+              "youtube": "buiCELRosFw",
+              "published": "2026-10-28T08:24:17-07:00",
+              "title": "レイアウト",
+              "label": "第 12 回",
+              "summary": "タイトル画面のボタンは一つずつ座標を入力して置いてあるため、ボタンを足したり順番を変えたりするたびに座標を計算し直すことになります。この回では七つのボタンをコンテナーにまとめ、「スタック」にします。ボタンはアウトラインの順に自動で並び、アウトラインでドラッグすれば順番が変わります。続いて横向きにし、二つの揃えで画面下の一列にします。ボタンを複製すると、ほかのボタンが場所を空けます。最後に開発モードで確かめます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "手で置いたボタン"
+                },
+                {
+                  "t": 16,
+                  "text": "ボタンを自動で並べる"
+                },
+                {
+                  "t": 44,
+                  "text": "順番を変える"
+                },
+                {
+                  "t": 58,
+                  "text": "画面下の一列にする・ボタンを足す"
+                },
+                {
+                  "t": 109,
+                  "text": "開発モードで確かめる"
+                }
+              ],
+              "length": 121.6,
+              "poster": "/static/img/tutorials/layout-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "change-it-once-everywhere",
+          "number": 13,
+          "videos": {
+            "en": {
+              "youtube": "_MulNgVkR3E",
+              "published": "2026-10-28T08:27:39-07:00",
+              "title": "Change it once, everywhere",
+              "label": "Episode 13",
+              "summary": "On five of the skeleton's pages, the Back button is an instance of one component, Back button. Replace the Back made by hand in episode 11 with that component, change the component once, and six pages change with it. Link the component's colour to the project colour Primary, change Primary under Project › Design, and everything in the game that uses it changes. Finally, add a font, and the game's text is set in it.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Two different Backs"
+                },
+                {
+                  "t": 28,
+                  "text": "Putting the component on your page"
+                },
+                {
+                  "t": 47,
+                  "text": "Change it once, six places change"
+                },
+                {
+                  "t": 67,
+                  "text": "The game's main colour"
+                },
+                {
+                  "t": 94,
+                  "text": "The game's font"
+                },
+                {
+                  "t": 104,
+                  "text": "Seeing it in Dev Mode"
+                }
+              ],
+              "length": 121.3,
+              "poster": "/static/img/tutorials/change-it-once-everywhere-en.webp"
+            },
+            "zh": {
+              "youtube": "DCzjU-rUnIw",
+              "published": "2026-10-28T08:26:08-07:00",
+              "title": "改一处，处处变",
+              "label": "第 13 集",
+              "summary": "骨架中五个页面的「返回」按钮是同一个组件「返回按钮」的实例。本集把第 11 集手动做的「返回」换成这个组件，修改组件一次，六个页面一起改变；再把组件的颜色接到项目配色「主色」，在「项目 › 设计」中换掉主色，全游戏用到主色的地方一起改变；最后添加一个字体，全游戏的文字改用它。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "两个不同的「返回」"
+                },
+                {
+                  "t": 27,
+                  "text": "把组件放到自己的页面上"
+                },
+                {
+                  "t": 46,
+                  "text": "改一次，六处变"
+                },
+                {
+                  "t": 66,
+                  "text": "换掉全游戏的主色、换掉全游戏的字体"
+                },
+                {
+                  "t": 104,
+                  "text": "在开发模式中查看"
+                }
+              ],
+              "length": 121.3,
+              "poster": "/static/img/tutorials/change-it-once-everywhere-zh.webp"
+            },
+            "ja": {
+              "youtube": "1XOfhD701eU",
+              "published": "2026-10-28T08:29:21-07:00",
+              "title": "一か所を変えて、すべてを変える",
+              "label": "第 13 回",
+              "summary": "スケルトンの五つのページにある「戻る」ボタンは、一つのコンポーネント「戻るボタン」のインスタンスです。この回では第 11 回に手で作った「戻る」をこのコンポーネントに置き換え、コンポーネントを一度変えて六つのページを同時に変えます。さらにコンポーネントの色をプロジェクトの色「メインカラー」につなぎ、「プロジェクト › デザイン」でメインカラーを変えると、ゲーム中のメインカラーを使う所がすべて変わります。最後にフォントを追加し、ゲームの文字をそのフォントにします。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "二つの違う「戻る」"
+                },
+                {
+                  "t": 29,
+                  "text": "コンポーネントを自分のページに置く"
+                },
+                {
+                  "t": 49,
+                  "text": "一度変えて、六か所を変える"
+                },
+                {
+                  "t": 69,
+                  "text": "ゲーム全体のメインカラー"
+                },
+                {
+                  "t": 99,
+                  "text": "ゲーム全体のフォント"
+                },
+                {
+                  "t": 109,
+                  "text": "開発モードで確かめる"
+                }
+              ],
+              "length": 127.3,
+              "poster": "/static/img/tutorials/change-it-once-everywhere-ja.webp"
+            }
+          }
         }
       ]
     }
