@@ -1272,6 +1272,315 @@
               "poster": "/static/img/tutorials/change-it-once-everywhere-ja.webp"
             }
           }
+        },
+        {
+          "slug": "in-game-interface",
+          "number": 14,
+          "videos": {
+            "en": {
+              "youtube": "yB172Vnzm4I",
+              "published": "2026-11-01T11:39:04-08:00",
+              "title": "The in-game interface",
+              "label": "Episode 14",
+              "summary": "The dialogue box, the name tag, the choices and the quick menu are Game UIs: not full-screen pages, but parts that hold a fixed place while the game plays. This episode changes them in the order a player meets them in a scene: a darker box with larger words, where the name tag's name and colour come from, a hover look for the choices, one button fewer in the quick menu, and finally a passage of narration shown full-screen as NVL, with an NVL interface of your own. Every step is seen at once in Dev Mode.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Where is the dialogue box changed?"
+                },
+                {
+                  "t": 50,
+                  "text": "Where do the name tag's name and colour come from?"
+                },
+                {
+                  "t": 76,
+                  "text": "How do the choices get a hover look?"
+                },
+                {
+                  "t": 116,
+                  "text": "How is a button taken off the quick menu?"
+                },
+                {
+                  "t": 142,
+                  "text": "How is text shown full-screen, as in a novel? · Summary"
+                }
+              ],
+              "length": 201,
+              "poster": "/static/img/tutorials/in-game-interface-en.webp"
+            },
+            "zh": {
+              "youtube": "Yx7ZbzUdpPc",
+              "published": "2026-11-01T11:05:26-08:00",
+              "title": "游戏界面",
+              "label": "第 14 集",
+              "summary": "对白框、名牌、选项和快捷菜单是「游戏 UI」：它们不是整屏的页面，而是挂在游戏进行时的固定位置上。本集按一场戏里玩家看到的顺序逐个修改：让对白框更深、字更大，弄清名牌的名字和颜色从哪来，给选项加悬停效果，去掉快捷菜单的一个按钮，最后把一段独白换成 NVL 整屏显示，并新建自己的 NVL 界面。每一步都在开发模式中直接看到结果。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "对白框在哪里修改？"
+                },
+                {
+                  "t": 50,
+                  "text": "名牌的名字和颜色从哪里来？"
+                },
+                {
+                  "t": 76,
+                  "text": "选项怎样加悬停效果？"
+                },
+                {
+                  "t": 116,
+                  "text": "快捷菜单怎样去掉一个按钮？"
+                },
+                {
+                  "t": 142,
+                  "text": "怎样像小说那样整屏显示？、小结"
+                }
+              ],
+              "length": 200.7,
+              "poster": "/static/img/tutorials/in-game-interface-zh.webp"
+            },
+            "ja": {
+              "youtube": "wu6_lbPI2_Y",
+              "published": "2026-11-01T12:30:15-08:00",
+              "title": "ゲーム内のインターフェース",
+              "label": "第 14 回",
+              "summary": "台詞枠、ネームタグ、選択肢、クイックメニューは「ゲーム UI」です。画面全体のページではなく、ゲーム中の決まった位置に置かれます。この回では、プレイヤーが一つの場面で目にする順に変えていきます。台詞枠を濃く、文字を大きくし、ネームタグの名前と色の出どころを確かめ、選択肢にホバーの見た目を付け、クイックメニューのボタンを一つ減らします。最後に独白の一節を NVL で画面全体に表示し、自分の NVL インターフェースを作ります。どの手順も開発モードですぐに確かめられます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "台詞枠はどこで変える？"
+                },
+                {
+                  "t": 53,
+                  "text": "ネームタグの名前と色はどこから？"
+                },
+                {
+                  "t": 79,
+                  "text": "選択肢にホバーの見た目を付けるには？"
+                },
+                {
+                  "t": 120,
+                  "text": "クイックメニューのボタンを一つ外すには？"
+                },
+                {
+                  "t": 146,
+                  "text": "小説のように画面全体に表示するには？・まとめ"
+                }
+              ],
+              "length": 205.5,
+              "poster": "/static/img/tutorials/in-game-interface-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "blueprints-the-basics",
+          "number": 15,
+          "videos": {
+            "en": {
+              "youtube": "M3BsZEz91p4",
+              "published": "2026-11-01T11:36:02-08:00",
+              "title": "Blueprints, the basics",
+              "label": "Episode 15",
+              "summary": "Let the player press H to hide the dialogue box. A player's gesture is an Input Action: give the skeleton's Hide a keyboard binding H and the box hides without touching a blueprint, but pressing H again does not bring it back. What happens on a press is written in a blueprint: first decide which one (App logic hears it on every page, Dialogue only during the story), then open Dialogue's logic and replace Hide Dialog with Toggle Dialog Display. Finally, find the reference for every node with F1.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "How is the dialogue box hidden on a computer? · Why does a second H do nothing?"
+                },
+                {
+                  "t": 33,
+                  "text": "Where is the response to a press written?"
+                },
+                {
+                  "t": 46,
+                  "text": "What does Hide do when it fires?"
+                },
+                {
+                  "t": 63,
+                  "text": "How does a second press bring it back?"
+                },
+                {
+                  "t": 82,
+                  "text": "Trying it in Dev Mode"
+                }
+              ],
+              "length": 93.6,
+              "poster": "/static/img/tutorials/blueprints-the-basics-en.webp"
+            },
+            "zh": {
+              "youtube": "R47tWcTgwq0",
+              "published": "2026-11-01T11:07:18-08:00",
+              "title": "蓝图入门",
+              "label": "第 15 集",
+              "summary": "让玩家按 H 收起对话框。玩家的一个手势叫「输入意图」，给骨架的「隐藏」加一个键盘绑定 H，不用碰蓝图就能收起对话框；但再按一次 H 不会让它回来。按下之后做什么写在蓝图里：先判断写在哪一张（应用逻辑在任何页面都会收到，「对话」只在剧情中收到），再打开「对话」的逻辑，把「隐藏对话框」换成「切换对话框显示」。最后用 F1 找到全部节点的参考。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "电脑上怎样收起对话框？、再按一次 H 为什么没有反应？"
+                },
+                {
+                  "t": 33,
+                  "text": "按下之后做什么，写在哪里？"
+                },
+                {
+                  "t": 46,
+                  "text": "「隐藏」触发后做了什么？"
+                },
+                {
+                  "t": 62,
+                  "text": "怎样让再按一次就显示回来？"
+                },
+                {
+                  "t": 82,
+                  "text": "在开发模式中试一下"
+                }
+              ],
+              "length": 93.4,
+              "poster": "/static/img/tutorials/blueprints-the-basics-zh.webp"
+            },
+            "ja": {
+              "youtube": "CmycpfdNQFg",
+              "published": "2026-11-01T12:48:13-08:00",
+              "title": "ブループリント入門",
+              "label": "第 15 回",
+              "summary": "プレイヤーが H を押すと台詞枠が隠れるようにします。プレイヤーの一つの操作を「入力アクション」と呼び、スケルトンの「非表示」にキーボードの割り当て H を足すだけで、ブループリントに触れずに台詞枠を隠せます。ただし、もう一度 H を押しても戻りません。押したあとに何をするかはブループリントに書きます。まずどれに書くかを決め（アプリロジックはどのページでも受け取り、「会話」はストーリー中だけ受け取ります）、「会話」のロジックを開いて「ダイアログを隠す」を「ダイアログの表示を切り替え」に置き換えます。最後に F1 ですべてのノードのリファレンスを見つけます。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "パソコンで台詞枠を隠すには？・もう一度 H を押しても反応しないのはなぜ？"
+                },
+                {
+                  "t": 37,
+                  "text": "押したあとの処理はどこに書く？"
+                },
+                {
+                  "t": 51,
+                  "text": "「非表示」が起きたら何をしている？"
+                },
+                {
+                  "t": 69,
+                  "text": "もう一度押したら戻るようにするには？"
+                },
+                {
+                  "t": 89,
+                  "text": "開発モードで試す"
+                }
+              ],
+              "length": 101.2,
+              "poster": "/static/img/tutorials/blueprints-the-basics-ja.webp"
+            }
+          }
+        },
+        {
+          "slug": "data-in-blueprints",
+          "number": 16,
+          "videos": {
+            "en": {
+              "youtube": "p8_avOvOG60",
+              "published": "2026-11-01T12:33:08-08:00",
+              "title": "Data in blueprints",
+              "label": "Episode 16",
+              "summary": "Show on the title page how many times the player has finished the game. The number must outlast every save, so it lives in a persistent variable; each of the two endings gets an /inc row that adds one; a line of text on the title page takes a Blueprint Value, whose blueprint reads the variable, joins it into \"Times cleared: N\" and hands it to Return Value. The episode also sets Return Value apart from Return: Return Value hands back a value as the result, Return only ends the run.",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "Where does this number belong?"
+                },
+                {
+                  "t": 30,
+                  "text": "How is one added at an ending?"
+                },
+                {
+                  "t": 54,
+                  "text": "How is it shown on the title page?"
+                },
+                {
+                  "t": 83,
+                  "text": "How do Return and Return Value differ?"
+                },
+                {
+                  "t": 105,
+                  "text": "How is clears read?"
+                },
+                {
+                  "t": 145,
+                  "text": "Seeing it in the game"
+                }
+              ],
+              "length": 169.9,
+              "poster": "/static/img/tutorials/data-in-blueprints-en.webp"
+            },
+            "zh": {
+              "youtube": "iTaqt456qAg",
+              "published": "2026-11-01T11:08:59-08:00",
+              "title": "蓝图里的数据",
+              "label": "第 16 集",
+              "summary": "在标题页显示玩家已经通关了几次。这个数要跨存档保留，所以存在「持久变量」里；两个结局各插入一行「@增加」，每次通关加一；标题页上的一行文字选择「蓝图值」，在它的蓝图里读出这个变量，拼成「通关次数：N」交给「返回值」。本集也说明「返回」和「返回值」的区别：「返回值」交出一个值作为结果，「返回」只结束执行。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "这个数该存在哪里？"
+                },
+                {
+                  "t": 28,
+                  "text": "结局时怎样加一？"
+                },
+                {
+                  "t": 53,
+                  "text": "怎样把它显示到标题页上？"
+                },
+                {
+                  "t": 82,
+                  "text": "「返回」和「返回值」有什么不同？"
+                },
+                {
+                  "t": 103,
+                  "text": "怎样读出「通关次数」？"
+                },
+                {
+                  "t": 143,
+                  "text": "在游戏里看"
+                }
+              ],
+              "length": 167.8,
+              "poster": "/static/img/tutorials/data-in-blueprints-zh.webp"
+            },
+            "ja": {
+              "youtube": "GeS7LMaWx4Q",
+              "published": "2026-11-01T12:50:07-08:00",
+              "title": "ブループリントのデータ",
+              "label": "第 16 回",
+              "summary": "タイトル画面に、プレイヤーが何回クリアしたかを表示します。この数はセーブをまたいで残す必要があるので「永続変数」に入れます。二つのエンディングにそれぞれ「/増加」の行を足し、クリアごとに一つ増やします。タイトル画面の文字に「ブループリント値」を選び、そのブループリントで変数を読み、「クリア回数：N」とつないで「値を返す」に渡します。この回では「リターン」と「値を返す」の違いも説明します。「値を返す」は値を結果として渡し、「リターン」は実行を終えるだけです。",
+              "chapters": [
+                {
+                  "t": 0,
+                  "text": "この数はどこに入れる？"
+                },
+                {
+                  "t": 29,
+                  "text": "エンディングで一つ増やすには？"
+                },
+                {
+                  "t": 56,
+                  "text": "タイトル画面に表示するには？"
+                },
+                {
+                  "t": 87,
+                  "text": "「リターン」と「値を返す」はどう違う？"
+                },
+                {
+                  "t": 110,
+                  "text": "「クリア回数」を読み出すには？"
+                },
+                {
+                  "t": 149,
+                  "text": "ゲームで確かめる"
+                }
+              ],
+              "length": 174.2,
+              "poster": "/static/img/tutorials/data-in-blueprints-ja.webp"
+            }
+          }
         }
       ]
     }
